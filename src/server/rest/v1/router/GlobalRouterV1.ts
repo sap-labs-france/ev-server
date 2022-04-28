@@ -1,5 +1,3 @@
-import express, { NextFunction, Request, Response } from 'express';
-
 import AssetRouter from './api/AssetRouter';
 import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
@@ -9,8 +7,7 @@ import ChargingStationRouter from './api/ChargingStationRouter';
 import ChargingStationTemplateRouter from './api/ChargingStationTemplateRouter';
 import CompanyRouter from './api/CompanyRouter';
 import ConnectionRouter from './api/ConnectionRouter';
-import Logging from '../../../../utils/Logging';
-import LoggingRouter from './api/LoggingRouter';
+import LoggingRouter from './api/LogRouter';
 import NotificationRouter from './api/NotificationRouter';
 import OCPIEndpointRouter from './api/OCPIEndpointRouter';
 import OICPEndpointRouter from './api/OICPEndpointRouter';
@@ -27,6 +24,7 @@ import TenantRouter from './api/TenantRouter';
 import TransactionRouter from './api/TransactionRouter';
 import UserRouter from './api/UserRouter';
 import UtilRouter from './util/UtilRouter';
+import express from 'express';
 
 export default class GlobalRouterV1 {
   private router: express.Router;

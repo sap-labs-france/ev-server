@@ -11,6 +11,7 @@ import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
@@ -63,17 +64,21 @@ export default class CompanyService {
       MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Get the Logo
     const companyLogo = await CompanyStorage.getCompanyLogo(tenant, filteredRequest.ID);
-    let logo = companyLogo && !Utils.isNullOrEmptyString(companyLogo.logo) ? companyLogo.logo : Constants.NO_IMAGE;
-    let header = 'image';
-    let encoding: BufferEncoding = 'base64';
-    // Remove encoding header
-    if (logo.startsWith('data:image/')) {
-      header = logo.substring(5, logo.indexOf(';'));
-      encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
-      logo = logo.substring(logo.indexOf(',') + 1);
+    let logo = companyLogo?.logo;
+    if (logo) {
+      // Header
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      if (logo.startsWith('data:image/')) {
+        header = logo.substring(5, logo.indexOf(';'));
+        encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
+        logo = logo.substring(logo.indexOf(',') + 1);
+      }
+      res.setHeader('content-type', header);
+      res.send(Buffer.from(logo, encoding));
+    } else {
+      res.status(StatusCodes.NOT_FOUND);
     }
-    res.setHeader('content-type', header);
-    res.send(Buffer.from(logo, encoding));
     next();
   }
 
@@ -91,9 +96,9 @@ export default class CompanyService {
       ];
     }
     // Check dynamic auth
-    const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationCompaniesFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetCompaniesAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -106,7 +111,7 @@ export default class CompanyService {
         withLogo: filteredRequest.WithLogo,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
-        ...authorizationCompaniesFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -114,14 +119,14 @@ export default class CompanyService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationCompaniesFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationCompaniesFilter.projectFields) {
-      companies.projectFields = authorizationCompaniesFilter.projectFields;
+    if (authorizations.projectFields) {
+      companies.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult, authorizationCompaniesFilter);
+    await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult, authorizations);
     res.json(companies);
     next();
   }
@@ -133,16 +138,8 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanyValidator.getInstance().validateCompanyCreateReq(req.body);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetCompanyAuthorizations(
+    await AuthorizationService.checkAndGetCompanyAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.COMPANY,
-        module: MODULE_NAME, method: 'handleCreateCompany'
-      });
-    }
     // Create company
     const newCompany: Company = {
       ...filteredRequest,

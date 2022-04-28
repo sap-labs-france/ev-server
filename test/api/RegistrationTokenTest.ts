@@ -190,7 +190,7 @@ describe('Registration Token', () => {
           testData.createdRegistrationTokens[1],
           false
         );
-        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       // Update

@@ -16,6 +16,7 @@ import { SiteDataResult } from '../../../../types/DataResult';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SiteValidator from '../validator/SiteValidator';
 import SitesAdminDynamicAuthorizationDataSource from '../../../../authorization/dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
+import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
@@ -125,9 +126,9 @@ export default class SiteService {
     // Check Site Auth
     await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.SiteID, Action.READ, action);
     // Check dynamic auth for reading Users
-    const authorizationSiteUsersFilter = await AuthorizationService.checkAndGetSiteUsersAuthorizations(req.tenant,
-      req.user, filteredRequest);
-    if (!authorizationSiteUsersFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetSiteUsersAuthorizations(req.tenant,
+      req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -136,7 +137,7 @@ export default class SiteService {
       {
         search: filteredRequest.Search,
         siteIDs: [filteredRequest.SiteID],
-        ...authorizationSiteUsersFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -144,7 +145,7 @@ export default class SiteService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationSiteUsersFilter.projectFields
+      authorizations.projectFields
     );
     res.json(users);
     next();
@@ -203,9 +204,9 @@ export default class SiteService {
       ];
     }
     // Check dynamic auth
-    const authorizationSitesFilter = await AuthorizationService.checkAndGetSitesAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationSitesFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetSitesAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -214,7 +215,7 @@ export default class SiteService {
       // Override Site IDs
       const siteAdminDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
         req.tenant, req.user, DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;
-      authorizationSitesFilter.filters = { ...authorizationSitesFilter.filters, ...siteAdminDataSource.getData() };
+      authorizations.filters = { ...authorizations.filters, ...siteAdminDataSource.getData() };
     }
     // Get the sites
     const sites = await SiteStorage.getSites(req.tenant,
@@ -229,7 +230,7 @@ export default class SiteService {
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
-        ...authorizationSitesFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -237,14 +238,14 @@ export default class SiteService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationSitesFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationSitesFilter.projectFields) {
-      sites.projectFields = authorizationSitesFilter.projectFields;
+    if (authorizations.projectFields) {
+      sites.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter);
+    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizations);
     res.json(sites);
     next();
   }
@@ -268,19 +269,20 @@ export default class SiteService {
       MODULE_NAME, 'handleGetSiteImage', req.user);
     // Get the image
     const siteImage = await SiteStorage.getSiteImage(tenant, filteredRequest.ID);
-    if (siteImage?.image) {
+    let image = siteImage?.image;
+    if (image) {
+      // Header
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (siteImage.image.startsWith('data:image/')) {
-        header = siteImage.image.substring(5, siteImage.image.indexOf(';'));
-        encoding = siteImage.image.substring(siteImage.image.indexOf(';') + 1, siteImage.image.indexOf(',')) as BufferEncoding;
-        siteImage.image = siteImage.image.substring(siteImage.image.indexOf(',') + 1);
+      if (image.startsWith('data:image/')) {
+        header = image.substring(5, image.indexOf(';'));
+        encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+        image = image.substring(image.indexOf(',') + 1);
       }
       res.setHeader('content-type', header);
-      res.send(siteImage.image ? Buffer.from(siteImage.image, encoding) : null);
+      res.send(Buffer.from(image, encoding));
     } else {
-      res.send(null);
+      res.status(StatusCodes.NOT_FOUND);
     }
     next();
   }
@@ -294,16 +296,8 @@ export default class SiteService {
     // Check data is valid
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizations(
+    await AuthorizationService.checkAndGetSiteAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleCreateSite'
-      });
-    }
     // Check Company
     await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, filteredRequest.companyID, Action.READ, action);

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { RESTServerRoute, ServerAction } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
@@ -24,42 +23,42 @@ export default class RegistrationTokenRouter {
   }
 
   private buildRouteRegistrationTokens(): void {
-    this.router.get(`/${RESTServerRoute.REST_REGISTRATION_TOKENS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleRestServerAction(RegistrationTokenService.handleGetRegistrationTokens.bind(this), ServerAction.REGISTRATION_TOKENS, req, res, next);
+    this.router.get(`/${RESTServerRoute.REST_REGISTRATION_TOKENS}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(RegistrationTokenService.handleGetRegistrationTokens.bind(this), ServerAction.REGISTRATION_TOKENS, req, res, next);
     });
   }
 
   private buildRouteRegistrationToken(): void {
-    this.router.get(`/${RESTServerRoute.REST_REGISTRATION_TOKEN}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${RESTServerRoute.REST_REGISTRATION_TOKEN}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = sanitize(req.params.id);
-      await RouterUtils.handleRestServerAction(RegistrationTokenService.handleGetRegistrationToken.bind(this), ServerAction.REGISTRATION_TOKEN, req, res, next);
+      void RouterUtils.handleRestServerAction(RegistrationTokenService.handleGetRegistrationToken.bind(this), ServerAction.REGISTRATION_TOKEN, req, res, next);
     });
   }
 
   private buildRouteCreateRegistrationTokens(): void {
-    this.router.post(`/${RESTServerRoute.REST_REGISTRATION_TOKENS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleRestServerAction(RegistrationTokenService.handleCreateRegistrationToken.bind(this), ServerAction.REGISTRATION_TOKEN_CREATE, req, res, next);
+    this.router.post(`/${RESTServerRoute.REST_REGISTRATION_TOKENS}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(RegistrationTokenService.handleCreateRegistrationToken.bind(this), ServerAction.REGISTRATION_TOKEN_CREATE, req, res, next);
     });
   }
 
   private buildRouteUpdateRegistrationTokens(): void {
-    this.router.put(`/${RESTServerRoute.REST_REGISTRATION_TOKEN}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.put(`/${RESTServerRoute.REST_REGISTRATION_TOKEN}`, (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
-      await RouterUtils.handleRestServerAction(RegistrationTokenService.handleUpdateRegistrationToken.bind(this), ServerAction.REGISTRATION_TOKEN_UPDATE, req, res, next);
+      void RouterUtils.handleRestServerAction(RegistrationTokenService.handleUpdateRegistrationToken.bind(this), ServerAction.REGISTRATION_TOKEN_UPDATE, req, res, next);
     });
   }
 
   private buildRouteDeleteRegistrationTokens(): void {
-    this.router.delete(`/${RESTServerRoute.REST_REGISTRATION_TOKEN}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.delete(`/${RESTServerRoute.REST_REGISTRATION_TOKEN}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleRestServerAction(RegistrationTokenService.handleDeleteRegistrationToken.bind(this), ServerAction.REGISTRATION_TOKEN_DELETE, req, res, next);
+      void RouterUtils.handleRestServerAction(RegistrationTokenService.handleDeleteRegistrationToken.bind(this), ServerAction.REGISTRATION_TOKEN_DELETE, req, res, next);
     });
   }
 
   private buildRouteRevokeRegistrationTokens(): void {
-    this.router.put(`/${RESTServerRoute.REST_REGISTRATION_TOKEN_REVOKE}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.put(`/${RESTServerRoute.REST_REGISTRATION_TOKEN_REVOKE}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
-      await RouterUtils.handleRestServerAction(RegistrationTokenService.handleRevokeRegistrationToken.bind(this), ServerAction.REGISTRATION_TOKEN_REVOKE, req, res, next);
+      void RouterUtils.handleRestServerAction(RegistrationTokenService.handleRevokeRegistrationToken.bind(this), ServerAction.REGISTRATION_TOKEN_REVOKE, req, res, next);
     });
   }
 }

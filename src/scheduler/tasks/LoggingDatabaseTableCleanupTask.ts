@@ -4,7 +4,7 @@ import Constants from '../../utils/Constants';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
-import LoggingStorage from '../../storage/mongodb/LoggingStorage';
+import LogStorage from '../../storage/mongodb/LogStorage';
 import PerformanceStorage from '../../storage/mongodb/PerformanceStorage';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -29,7 +29,7 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
 
   private async deleteLogs(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig) {
     // Get the lock
-    const logsCleanUpLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.LOGGING, 'cleanup');
+    const logsCleanUpLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.LOG, 'cleanup');
     if (await LockingManager.acquire(logsCleanUpLock)) {
       try {
         const lastLogMDB = global.database.getCollection(tenant.id, 'logs').find({})
@@ -45,7 +45,7 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
           deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').toDate();
         }
         // Delete
-        const result = await LoggingStorage.deleteLogs(tenant, deleteUpToDate);
+        const result = await LogStorage.deleteLogs(tenant, deleteUpToDate);
         if (result.acknowledged) {
           await Logging.logInfo({
             tenantID: tenant.id,

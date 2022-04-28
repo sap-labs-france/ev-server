@@ -24,6 +24,9 @@
     "captcha": {
       "$ref": "common#/definitions/captcha"
     },
+    "mobile": {
+      "$ref": "user#/definitions/mobile"
+    },
     "locale": {
       "type": "string",
       "sanitize": "mongo",
