@@ -308,7 +308,7 @@ export default class SiteAreaService {
       createdOn: new Date(),
     } as SiteArea;
     // Check site area chain validity
-    await SiteAreaService.checkIfSiteAreaParentAndChildrenValid(req.tenant, siteArea, parentSiteArea, [siteArea.siteID]);
+    await SiteAreaService.checkAndGetSiteAreaTree(req.tenant, siteArea, parentSiteArea, [siteArea.siteID]);
     // Save
     siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
@@ -413,7 +413,7 @@ export default class SiteAreaService {
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
     // Check Site Area tree
-    const rootSiteArea = await SiteAreaService.checkIfSiteAreaParentAndChildrenValid(
+    const rootSiteArea = await SiteAreaService.checkAndGetSiteAreaTree(
       req.tenant, siteArea, parentSiteArea, treeSiteIDs, filteredRequest.subSiteAreasAction);
     // Handle Site Area has children which have not the same site
     if (rootSiteArea) {
@@ -421,14 +421,14 @@ export default class SiteAreaService {
         // Update Site ID in children
         case SubSiteAreaAction.UPDATE:
           await SiteAreaService.updateSiteAreaChildrenWithSiteID(
-            req.tenant, [rootSiteArea], siteArea.siteID);
+            req.tenant, [rootSiteArea], siteArea.siteID, siteArea.id);
           break;
         // Clear parent Site Area in children
         case SubSiteAreaAction.ATTACH:
           await SiteAreaStorage.attachSiteAreaChildrenToNewParent(
             req.tenant, siteArea.id, formerParentSiteAreaID);
           // Parent Site Area not belonging to the new Site
-          if (parentSiteArea.siteID !== siteArea.siteID) {
+          if (parentSiteArea?.siteID !== siteArea.siteID) {
             delete siteArea.parentSiteAreaID;
           }
           break;
@@ -442,7 +442,8 @@ export default class SiteAreaService {
     // Save
     await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     // Update all refs
-    void SiteAreaStorage.updateEntitiesWithOrganizationIDs(req.tenant, site.companyID, filteredRequest.siteID, filteredRequest.id);
+    void SiteAreaStorage.updateEntitiesWithOrganizationIDs(
+      req.tenant, site.companyID, filteredRequest.siteID, filteredRequest.id);
     // Retrigger Smart Charging
     if (filteredRequest.smartCharging) {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -492,16 +493,24 @@ export default class SiteAreaService {
     next();
   }
 
-  private static async updateSiteAreaChildrenWithSiteID(tenant: Tenant, childSiteAreas: SiteArea[], siteID: string): Promise<void> {
-    for (const childSiteArea of childSiteAreas) {
-      await SiteAreaStorage.updateSiteID(tenant, childSiteArea.id, siteID);
-      // Update children 
+  private static async updateSiteAreaChildrenWithSiteID(
+      tenant: Tenant, siteAreas: SiteArea[], siteID: string, currentSiteAreaID: string): Promise<void> {
+    for (const siteArea of siteAreas) {
+      // Do not update the current Site Area (will be updated after)
+      if (siteArea.id !== currentSiteAreaID) {
+        // Update
+        await SiteAreaStorage.updateSiteID(tenant, siteArea.id, siteID);
+        // Update all refs
+        void SiteAreaStorage.updateEntitiesWithOrganizationIDs(
+          tenant, siteArea.site.companyID, siteID, siteArea.id);
+      }
+      // Update children
       await SiteAreaService.updateSiteAreaChildrenWithSiteID(
-        tenant, childSiteArea.childSiteAreas, siteID);
+        tenant, siteArea.childSiteAreas, siteID, currentSiteAreaID);
     }
   }
 
-  private static async checkIfSiteAreaParentAndChildrenValid(tenant: Tenant, siteArea: SiteArea,
+  private static async checkAndGetSiteAreaTree(tenant: Tenant, siteArea: SiteArea,
       parentSiteArea: SiteArea, siteIDs: string[], subSiteAreaAction?: SubSiteAreaAction): Promise<SiteArea> {
     // Build Site Area tree
     const rootSiteArea = await SiteAreaService.buildSiteAreaTree(tenant, siteArea, parentSiteArea, siteIDs);
@@ -558,8 +567,8 @@ export default class SiteAreaService {
   private static async buildSiteAreaTree(tenant: Tenant, siteArea: SiteArea, parentSiteArea: SiteArea, siteIDs: string[]): Promise<SiteArea> {
     // Get all Site Areas of the same Site
     const allSiteAreasOfSite = await SiteAreaStorage.getSiteAreas(tenant,
-      { siteIDs, excludeSiteAreaIDs: siteArea.id ? [siteArea.id] : [] }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases']);
+      { siteIDs, excludeSiteAreaIDs: siteArea.id ? [siteArea.id] : [], withSite: true }, Constants.DB_PARAMS_MAX_LIMIT,
+      ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases', 'site.companyID']);
     // Add current Site Area
     allSiteAreasOfSite.result.push(siteArea);
     // Build tree

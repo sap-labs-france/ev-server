@@ -49,20 +49,15 @@ export default class SiteAreaStorage {
     return result.modifiedCount;
   }
 
-  public static async updateSiteID(tenant: Tenant, siteAreaID: string, siteID: string): Promise<number> {
+  public static async updateSiteID(tenant: Tenant, siteAreaID: string, siteID: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    const result = await global.database.getCollection<any>(tenant.id, 'siteareas').updateMany(
+    const result = await global.database.getCollection<any>(tenant.id, 'siteareas').updateOne(
+      { _id: DatabaseUtils.convertToObjectID(siteAreaID) },
       {
-        _id: DatabaseUtils.convertToObjectID(siteAreaID),
-      },
-      {
-        $set: {
-          siteID: DatabaseUtils.convertToObjectID(siteID),
-        }
-      }) as UpdateResult;
+        $set: { siteID: DatabaseUtils.convertToObjectID(siteID) }
+      });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateSiteID', startTime, { siteAreaID, siteID });
-    return result.modifiedCount;
   }
 
   public static async addAssetsToSiteArea(tenant: Tenant, siteArea: SiteArea, assetIDs: string[]): Promise<void> {
