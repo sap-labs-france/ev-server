@@ -160,7 +160,6 @@ export default class ChargingStationTemplateService {
     const chargingStationTemplates = await ChargingStationTemplateStorage.getChargingStationTemplates(req.tenant,
       {
         search: filteredRequest.Search,
-        siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
         ...authorizationChargingStationTemplateFilter.filters
       },
       {

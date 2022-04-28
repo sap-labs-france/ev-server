@@ -37,7 +37,7 @@ export default class ChargingStationTemplateStorage {
   // }
 
   public static async getChargingStationTemplates(tenant: Tenant,
-      params: { search?: string; tokenIDs?: string[]; siteIDs?: string[]; siteAreaIDs?: string[] } = {},
+      params: { search?: string; IDs?: string[];} = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationTemplate>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -68,21 +68,9 @@ export default class ChargingStationTemplateStorage {
       }
     }
     // Build filter
-    if (!Utils.isEmptyArray(params.tokenIDs)) {
+    if (!Utils.isEmptyArray(params.IDs)) {
       filters._id = {
-        $in: params.tokenIDs.map((tokenID) => DatabaseUtils.convertToObjectID(tokenID))
-      };
-    }
-    // Site Area
-    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
-      filters.siteAreaID = {
-        $in: params.siteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
-      };
-    }
-    // Site
-    if (!Utils.isEmptyArray(params.siteIDs)) {
-      filters['siteArea.siteID'] = {
-        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+        $in: params.IDs.map((ID) => ID)
       };
     }
     // Filters
@@ -144,11 +132,10 @@ export default class ChargingStationTemplateStorage {
   }
 
   public static async getChargingStationTemplate(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { siteIDs?: string[]; } = {},
+      params: {} = {},
       projectFields?: string[]): Promise<ChargingStationTemplate> {
     const chargingstationtemplatessMDB = await ChargingStationTemplateStorage.getChargingStationTemplates(tenant, {
-      tokenIDs: [id],
-      siteIDs: params.siteIDs,
+      IDs: [id],
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingstationtemplatessMDB.count === 1 ? chargingstationtemplatessMDB.result[0] : null;
   }
