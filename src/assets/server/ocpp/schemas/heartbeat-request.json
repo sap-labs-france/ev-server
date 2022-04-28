@@ -1,6 +1,6 @@
 {
     "$id": "heartbeat-request",
-    "title": "HeartbeatResponse",
+    "title": "HeartbeatRequest",
     "type": "object",
     "properties": {},
     "additionalProperties": false

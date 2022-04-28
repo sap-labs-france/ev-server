@@ -108,9 +108,7 @@ export default class OCPPValidation extends SchemaValidator {
 
   public async validateMeterValues(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequestExtended): Promise<void> {
     // Always integer
-    meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
     this.validate(this.meterValueRequest, meterValues);
-
     // Check Connector ID
     if (meterValues.connectorId === 0) {
       // KEBA: Connector ID must be > 0 according to OCPP
@@ -139,8 +137,7 @@ export default class OCPPValidation extends SchemaValidator {
     // Transaction ID is provided on Connector
     if (foundConnector?.currentTransactionID > 0) {
       // Check if provided in Meter Values
-      meterValues.transactionId = Utils.convertToInt(meterValues.transactionId);
-      if (meterValues.transactionId === 0 && foundConnector.currentTransactionID > 0) {
+      if (Utils.isNullOrUndefined(meterValues.transactionId) && foundConnector.currentTransactionID > 0) {
         // Reuse Transaction ID from Connector
         meterValues.transactionId = foundConnector.currentTransactionID;
         await Logging.logWarning({

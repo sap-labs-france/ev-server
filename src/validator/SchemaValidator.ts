@@ -80,7 +80,6 @@ export default class SchemaValidator {
       SchemaValidator.registrationTokenSchema,
       SchemaValidator.siteAreasSchema,
       SchemaValidator.siteSchema,
-      SchemaValidator.ocppSchema
     ]);
   }
 

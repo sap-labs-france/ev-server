@@ -1,6 +1,6 @@
 {
   "$id": "status-notification-request",
-  "description": "Defines the StatusNotification.req PDU",
+  "description": "StatusNotificationRequest",
   "type": "object",
   "properties": {
     "connectorId": {
