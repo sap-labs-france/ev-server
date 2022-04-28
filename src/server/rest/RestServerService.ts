@@ -8,7 +8,7 @@ import CompanyService from './v1/service/CompanyService';
 import ConnectionService from './v1/service/ConnectionService';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import LoggingService from './v1/service/LoggingService';
+import LogService from './v1/service/LogService';
 import NotificationService from './v1/service/NotificationService';
 import OCPIEndpointService from './v1/service/OCPIEndpointService';
 import OICPEndpointService from './v1/service/OICPEndpointService';
@@ -83,9 +83,9 @@ class RequestMapper {
       case 'GET':
         // Register REST actions
         this.registerJsonActionsPaths({
-          [ServerAction.LOGGINGS]: LoggingService.handleGetLogs.bind(this),
-          [ServerAction.LOGGING]: LoggingService.handleGetLog.bind(this),
-          [ServerAction.LOGGINGS_EXPORT]: LoggingService.handleExportLogs.bind(this),
+          [ServerAction.LOGS]: LogService.handleGetLogs.bind(this),
+          [ServerAction.LOG]: LogService.handleGetLog.bind(this),
+          [ServerAction.LOGS_EXPORT]: LogService.handleExportLogs.bind(this),
           [ServerAction.CHARGING_STATIONS]: ChargingStationService.handleGetChargingStations.bind(this),
           [ServerAction.CAR_CATALOGS]: CarService.handleGetCarCatalogs.bind(this),
           [ServerAction.CAR_CATALOG]: CarService.handleGetCarCatalog.bind(this),

@@ -266,7 +266,7 @@ export default class MongoDBStorage {
     const mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
-        minPoolSize: Math.floor(this.dbConfig.poolSize / 4),
+        minPoolSize: Math.floor(this.dbConfig.poolSize / 2),
         maxPoolSize: this.dbConfig.poolSize,
         loggerLevel: this.dbConfig.debug ? 'debug' : null,
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred

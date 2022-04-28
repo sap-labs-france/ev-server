@@ -3,7 +3,7 @@ import ChargingStation, { ChargingStationCapabilities, ChargingStationTemplate, 
 import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
-import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
+import Transaction, { InactivityStatus } from '../../../types/Transaction';
 
 import { ActionsResponse } from '../../../types/GlobalType';
 import BackendError from '../../../exception/BackendError';
@@ -18,8 +18,7 @@ import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
 import OCPPCommon from './OCPPCommon';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import { PricedConsumption } from '../../../types/Pricing';
-import PricingFactory from '../../../integration/pricing/PricingFactory';
+import PricingFacade from '../../../integration/pricing/PricingFacade';
 import { PricingSettingsType } from '../../../types/Setting';
 import { Promise } from 'bluebird';
 import RegistrationToken from '../../../types/RegistrationToken';
@@ -88,12 +87,12 @@ export default class OCPPUtils {
     return token;
   }
 
-  public static async buildAndPriceExtraConsumptionInactivity(tenant: Tenant, chargingStation: ChargingStation, lastTransaction: Transaction): Promise<void> {
+  public static async buildAndPriceExtraConsumptionInactivity(tenant: Tenant, user: User, chargingStation: ChargingStation, lastTransaction: Transaction): Promise<void> {
     const lastConsumption = await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
     if (lastConsumption) {
       // Pricing of the extra inactivity
       if (lastConsumption?.toPrice) {
-        await OCPPUtils.processTransactionPricing(tenant, lastTransaction, chargingStation, lastConsumption, TransactionAction.END);
+        await PricingFacade.processEndTransaction(tenant, lastTransaction, chargingStation, lastConsumption, user);
       }
       // Save the last consumption
       await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
@@ -137,60 +136,6 @@ export default class OCPPUtils {
       }
     }
     return null;
-  }
-
-  public static async processTransactionPricing(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
-      consumption: Consumption, action: TransactionAction): Promise<void> {
-    let pricedConsumption: PricedConsumption;
-    // Get the pricing impl
-    const pricingImpl = await PricingFactory.getPricingImpl(tenant);
-    if (pricingImpl) {
-      switch (action) {
-        // Start Transaction
-        case TransactionAction.START:
-          pricedConsumption = await pricingImpl.startSession(transaction, consumption, chargingStation);
-          if (pricedConsumption) {
-            OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
-            // Set the initial pricing
-            transaction.price = pricedConsumption.amount;
-            transaction.roundedPrice = pricedConsumption.roundedAmount;
-            transaction.priceUnit = pricedConsumption.currencyCode;
-            transaction.pricingSource = pricedConsumption.pricingSource;
-            // Set the actual pricing model after the resolution of the context
-            transaction.pricingModel = pricedConsumption.pricingModel;
-          }
-          break;
-        case TransactionAction.UPDATE:
-          // Set
-          pricedConsumption = await pricingImpl.updateSession(transaction, consumption, chargingStation);
-          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
-          break;
-        case TransactionAction.STOP:
-          // Set
-          pricedConsumption = await pricingImpl.stopSession(transaction, consumption, chargingStation);
-          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
-          break;
-        case TransactionAction.END:
-          // Set
-          pricedConsumption = await pricingImpl.endSession(transaction, consumption, chargingStation);
-          OCPPUtils.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
-          break;
-      }
-    }
-  }
-
-  public static updateCumulatedAmounts(transaction: Transaction, consumption: Consumption, pricedConsumption: PricedConsumption): void {
-    if (pricedConsumption) {
-      // Update consumption
-      consumption.amount = pricedConsumption.amount;
-      consumption.roundedAmount = pricedConsumption.roundedAmount;
-      consumption.currencyCode = pricedConsumption.currencyCode;
-      consumption.pricingSource = pricedConsumption.pricingSource;
-      consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-      // Update transaction
-      transaction.currentCumulatedPrice = consumption.cumulatedAmount;
-      transaction.currentCumulatedRoundedPrice = pricedConsumption.cumulatedRoundedAmount;
-    }
   }
 
   public static assertConsistencyInConsumption(chargingStation: ChargingStation, connectorID: number, consumption: Consumption): void {
@@ -1814,15 +1759,14 @@ export default class OCPPUtils {
 
   private static checkAndGetConnectorAmperageLimit(chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): number {
     const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
-    const connectorAmperageLimitMax = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
     const connectorAmperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases;
-    if (!Utils.objectHasProperty(connector, 'amperageLimit') || (Utils.objectHasProperty(connector, 'amperageLimit') && Utils.isNullOrUndefined(connector.amperageLimit))) {
-      return connectorAmperageLimitMax;
-    } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > connectorAmperageLimitMax) {
-      return connectorAmperageLimitMax;
-    } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit < connectorAmperageLimitMin) {
+    if (connector.amperageLimit // Must be ignored when set to 0
+      && connector.amperageLimit < connectorAmperageLimitMin) {
+      // Return the minimal value
       return connectorAmperageLimitMin;
     }
+    // Return the maximal value
+    return Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
   }
 
   private static async setConnectorPhaseAssignment(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): Promise<void> {

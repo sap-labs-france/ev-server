@@ -10,7 +10,7 @@ import Utils from './Utils';
 export default class NotificationHelper {
   public static notifyStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
     if (user) {
-      void NotificationHandler.sendSessionStarted(
+      void NotificationHandler.sendTransactionStarted(
         tenant,
         transaction.id.toString(),
         user,
@@ -91,7 +91,7 @@ export default class NotificationHelper {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(user.locale);
       // Send Notification (Async)
-      void NotificationHandler.sendEndOfSession(
+      void NotificationHandler.sendEndOfTransaction(
         tenant,
         transaction.id.toString() + '-EOS',
         user,
@@ -116,7 +116,7 @@ export default class NotificationHelper {
       // Notify Signed Data
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
-        void NotificationHandler.sendEndOfSignedSession(
+        void NotificationHandler.sendEndOfSignedTransaction(
           tenant,
           transaction.id.toString() + '-EOSS',
           user,
