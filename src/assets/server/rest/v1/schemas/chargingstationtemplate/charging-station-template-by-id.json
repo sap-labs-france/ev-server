@@ -1,0 +1,15 @@
+{
+  "$id": "charging-station-template-by-id",
+  "title": "charging station template by id Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

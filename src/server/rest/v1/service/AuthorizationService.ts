@@ -1,5 +1,5 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { AssetDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult, ChargingStationTemplateDataResult } from '../../../../types/DataResult';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
@@ -34,6 +34,8 @@ import Tag from '../../../../types/Tag';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
+import { HttpChargingStationTemplateRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
+import { ChargingStationTemplate } from '../../../../types/ChargingStation';
 
 const MODULE_NAME = 'AuthorizationService';
 
@@ -398,6 +400,49 @@ export default class AuthorizationService {
     registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(tenant.id, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(tenant.id, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
   }
+
+  public static async checkAndGetChargingStationTemplateAuthorizations(tenant: Tenant, userToken: UserToken,
+    filteredRequest: Partial<HttpChargingStationTemplateRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+  return AuthorizationService.checkAndGetEntityAuthorizations(
+    tenant, Entity.CHARGING_STATION_TEMPLATE, userToken, filteredRequest, filteredRequest.ID ? { chargingStationTemplateID: filteredRequest.ID } : {}, authAction, entityData);
+}
+
+public static async checkAndGetChargingStationTemplatesAuthorizations(tenant: Tenant, userToken: UserToken,
+    filteredRequest: Partial<HttpCompaniesRequest>): Promise<AuthorizationFilter> {
+  const authorizationFilters: AuthorizationFilter = {
+    filters: {},
+    dataSources: new Map(),
+    projectFields: [],
+    authorized: false,
+  };
+  // Check static & dynamic authorization
+  await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, Action.LIST,
+    authorizationFilters, filteredRequest, null, true);
+  return authorizationFilters;
+}
+
+public static async addChargingStationTemplatesAuthorizations(tenant: Tenant, userToken: UserToken, chargingStationTemplates: ChargingStationTemplateDataResult,
+    authorizationFilter: AuthorizationFilter): Promise<void> {
+  // Add Meta Data
+  chargingStationTemplates.metadata = authorizationFilter.metadata;
+  // Add Authorizations
+  chargingStationTemplates.canCreate = await AuthorizationService.canPerformAuthorizationAction(
+    tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, Action.CREATE, authorizationFilter);
+  for (const chargingStationTemplate of chargingStationTemplates.result) {
+    await AuthorizationService.addChargingStationTemplateAuthorizations(tenant, userToken, chargingStationTemplate, authorizationFilter);
+  }
+}
+
+public static async addChargingStationTemplateAuthorizations(tenant: Tenant, userToken: UserToken, chargingStationTemplate: ChargingStationTemplate,
+    authorizationFilter: AuthorizationFilter): Promise<void> {
+  chargingStationTemplate.canRead = true; // Always true as it should be filtered upfront
+  chargingStationTemplate.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+    tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, Action.DELETE, authorizationFilter, { chargingStationTemplateID: chargingStationTemplate.id }, chargingStationTemplate);
+  chargingStationTemplate.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+    tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, Action.UPDATE, authorizationFilter, { chargingStationTemplateID: chargingStationTemplate.id }, chargingStationTemplate);
+  // Optimize data over the net
+  Utils.removeCanPropertiesWithFalseValue(chargingStationTemplate);
+}
 
   public static async checkAndGetCompaniesAuthorizations(tenant: Tenant, userToken: UserToken,
       filteredRequest: Partial<HttpCompaniesRequest>): Promise<AuthorizationFilter> {

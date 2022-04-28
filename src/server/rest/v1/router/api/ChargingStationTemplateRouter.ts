@@ -5,8 +5,9 @@ import express, { NextFunction, Request, Response } from 'express';
 import ChargingStationTemplateService from '../../service/ChargingStationTemplateService';
 import RouterUtils from '../../../../../utils/RouterUtils';
 import TransactionService from '../../service/TransactionService';
+import sanitize from 'mongo-sanitize';
 
-export default class ChargingStationRouter {
+export default class ChargingStationTemplateRouter {
   private router: express.Router;
 
   public constructor() {
@@ -23,7 +24,8 @@ export default class ChargingStationRouter {
   //   this.buildRouteChargingStationCreateChargingProfile();
   //   this.buildRouteChargingStationChangeAvailability();
   //   this.buildRouteChargingStationTransactions();
-    this.buildRouteChargingStations();
+    this.buildRouteChargingStationTemplates();
+    this.buildRouteChargingStationTemplate();
   //   this.buildRouteChargingStation();
   //   this.buildRouteChargingStationDelete();
   //   this.buildRouteChargingStationReset();
@@ -52,18 +54,18 @@ export default class ChargingStationRouter {
     return this.router;
   }
 
-  private buildRouteChargingStations(): void {
+  private buildRouteChargingStationTemplates(): void {
     this.router.get(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleGetChargingStations.bind(this), ServerAction.CHARGING_STATIONS, req, res, next);
+      await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleGetChargingStationTemplates.bind(this), ServerAction.CHARGING_STATION_TEMPLATES, req, res, next);
     });
   }
 
-  // private buildRouteChargingStation(): void {
-  //   this.router.get(`/${RESTServerRoute.REST_CHARGING_STATION}`, async (req: Request, res: Response, next: NextFunction) => {
-  //     req.query.ID = req.params.id;
-  //     await RouterUtils.handleRestServerAction(ChargingStationService.handleGetChargingStation.bind(this), ServerAction.CHARGING_STATION, req, res, next);
-  //   });
-  // }
+  private buildRouteChargingStationTemplate(): void {
+    this.router.get(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = sanitize(req.params.id);
+      await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleGetChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE, req, res, next);
+    });
+  }
 
   // private buildRouteChargingStationDelete(): void {
   //   this.router.delete(`/${RESTServerRoute.REST_CHARGING_STATIONS}/:id`, async (req: Request, res: Response, next: NextFunction) => {

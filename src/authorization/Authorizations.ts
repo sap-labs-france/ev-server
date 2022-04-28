@@ -279,6 +279,14 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.DELETE);
   }
 
+  public static async canListChargingStationTemplates(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION_TEMPLATE, Action.LIST);
+  }
+
+  public static async canReadChargingStationTemplate(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION_TEMPLATE, Action.READ);
+  }
+
   public static async canListChargingStations(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.LIST);
   }

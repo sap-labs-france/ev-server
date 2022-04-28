@@ -41,6 +41,15 @@ export default class LoggingHelper {
     };
   }
 
+  public static getChargingStationTemplateProperties(chargingStation: ChargingStation): { siteID: string; siteAreaID: string; companyID: string; chargingStationTemplateID: string; } {
+    return {
+      siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
+      chargingStationTemplateID: chargingStation.id,
+    };
+  }
+
   public static getWSWrapperProperties(wsWrapper: WSWrapper): { tenantID: string; siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; } {
     return {
       tenantID: wsWrapper.tenantID,

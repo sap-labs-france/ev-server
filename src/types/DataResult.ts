@@ -7,11 +7,11 @@ import Company from './Company';
 import { Log } from './Log';
 import PricingDefinition from './Pricing';
 import RegistrationToken from './RegistrationToken';
-import ChargingStationTemplate from './ChargingStationTemplate';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
 import User from './User';
+import { ChargingStationTemplate } from './ChargingStation';
 
 export interface DeletedResult {
   acknowledged?: boolean;

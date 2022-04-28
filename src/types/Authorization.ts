@@ -67,6 +67,7 @@ export enum Entity {
   SITE_AREA = 'SiteArea',
   COMPANY = 'Company',
   CHARGING_STATION = 'ChargingStation',
+  CHARGING_STATION_TEMPLATE = 'ChargingStationTemplate',
   TENANT = 'Tenant',
   TRANSACTION = 'Transaction',
   REPORT = 'Report',

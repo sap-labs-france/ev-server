@@ -1,6 +1,6 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
-import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationTemplate, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -48,6 +48,7 @@ import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
 import countries from 'i18n-iso-countries';
 import moment from 'moment';
+import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
 
 const MODULE_NAME = 'UtilsService';
 
@@ -145,6 +146,56 @@ export default class UtilsService {
     return chargingStation;
   }
 
+  public static async checkAndGetChargingStationTemplateAuthorization(tenant: Tenant, userToken: UserToken, chargingStationTemplateID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStationTemplate> {
+    // Check static auth for reading Charging Station
+    if (!await Authorizations.canReadChargingStationTemplate(userToken)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.CHARGING_STATION_TEMPLATE,
+        module: MODULE_NAME, method: 'checkAndGetChargingStationTemplateAuthorization',
+        value: chargingStationTemplateID,
+        chargingStationID: chargingStationTemplateID,
+      });
+    }
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
+      tenant, userToken, { ID: chargingStationTemplateID }, authAction, entityData);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.CHARGING_STATION_TEMPLATE,
+        module: MODULE_NAME, method: 'checkAndGetChargingStationTemplateAuthorization',
+      });
+    }
+    // Get ChargingStationTemplate
+    const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(tenant, chargingStationTemplateID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, chargingStationTemplate, `ChargingStationTemplate ID '${chargingStationTemplateID}' does not exist`,
+      MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
+    // Deleted?
+    // if (chargingStationTemplate?.deleted) {
+    //   throw new AppError({
+    //     ...LoggingHelper.getChargingStationProperties(chargingStationTemplate),
+    //     errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+    //     message: `ChargingStationTemplate with ID '${chargingStationTemplate.id}' is logically deleted`,
+    //     module: MODULE_NAME,
+    //     method: 'checkAndGetChargingStationTemplateAuthorization',
+    //     user: userToken,
+    //   });
+    // }
+    return chargingStationTemplate;
+  }
+
   public static async checkAndGetPricingDefinitionAuthorization(tenant: Tenant, userToken: UserToken, pricingDefinitionID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<PricingDefinition> {
   // Check mandatory fields
@@ -220,7 +271,7 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, registrationToken, `Registration Token ID '${registrationTokenID}' does not exist`,
       MODULE_NAME, 'checkAndGetRegistrationTokenAuthorization', userToken);
-    // Assign projected fields
+    // // Assign projected fields
     if (authorizationFilter.projectFields) {
       registrationToken.projectFields = authorizationFilter.projectFields;
     }

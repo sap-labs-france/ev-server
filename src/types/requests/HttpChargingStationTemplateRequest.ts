@@ -2,7 +2,7 @@ import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 import ChargingStationTemplate from '../ChargingStationTemplate';
 
-export interface HttpChargingStationsTemplateRequest extends HttpDatabaseRequest {
+export interface HttpChargingStationTemplatesRequest extends HttpDatabaseRequest {
   Search: string;
   SiteAreaID: string;
 }

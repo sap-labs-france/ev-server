@@ -222,7 +222,7 @@ export enum Voltage {
   VOLTAGE_110 = 110,
 }
 
-export interface ChargingStationTemplate {
+export interface ChargingStationTemplate extends CreatedUpdatedProps, AuthorizationActions {
   id?: string;
   qa?: boolean;
   hash?: string;
