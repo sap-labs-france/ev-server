@@ -324,7 +324,7 @@ describe('Site Area', () => {
         let transaction = (await testData.userService.transactionApi.readAllCompleted({}, { limit: 1, skip: 0 })).data.result[0];
         let chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
         // Conserve site areas IDs to re init the context
-        const oldChargingStationSiteAreaID = chargingStation.siteAreaID;
+        const oldTransactionSiteAreaID = transaction.siteAreaID;
         const oldTransactionSiteID = transaction.siteID;
         const transactionSiteArea = (await testData.userService.siteAreaApi.readById(oldTransactionSiteAreaID)).data;
         transactionSiteArea.siteID = testData.createdSites[1].id;
