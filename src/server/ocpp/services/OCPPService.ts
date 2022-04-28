@@ -855,7 +855,7 @@ export default class OCPPService {
             await Logging.logWarning({
               ...LoggingHelper.getChargingStationProperties(chargingStation),
               tenantID: tenant.id,
-              module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+              module: MODULE_NAME, method: 'checkAndComputeTransactionExtraInactivityFromStatusNotification',
               action: ServerAction.OCPP_STATUS_NOTIFICATION,
               message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Extra Inactivity is negative and will be ignored: ${transaction.stop.extraInactivitySecs} secs`,
               detailedMessages: { statusNotification }
@@ -874,7 +874,7 @@ export default class OCPPService {
               ...LoggingHelper.getChargingStationProperties(chargingStation),
               tenantID: tenant.id,
               user: transaction.userID,
-              module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+              module: MODULE_NAME, method: 'checkAndComputeTransactionExtraInactivityFromStatusNotification',
               action: ServerAction.EXTRA_INACTIVITY,
               message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Extra Inactivity of ${transaction.stop.extraInactivitySecs} secs has been added`,
               detailedMessages: { statusNotification, connector, lastTransaction: transaction }
@@ -886,7 +886,7 @@ export default class OCPPService {
             ...LoggingHelper.getChargingStationProperties(chargingStation),
             tenantID: tenant.id,
             user: transaction.userID,
-            module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+            module: MODULE_NAME, method: 'checkAndComputeTransactionExtraInactivityFromStatusNotification',
             action: ServerAction.EXTRA_INACTIVITY,
             message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} No Extra Inactivity for this transaction`,
             detailedMessages: { statusNotification, connector, lastTransaction: transaction }
