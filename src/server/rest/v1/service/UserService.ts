@@ -339,9 +339,9 @@ export default class UserService {
       return;
     }
     // Check dynamic auth for reading Sites
-    const authorizationUserSitesFilters = await AuthorizationService.checkAndGetUserSitesAuthorizations(req.tenant,
+    const authorizations = await AuthorizationService.checkAndGetUserSitesAuthorizations(req.tenant,
       req.user, filteredRequest);
-    if (!authorizationUserSitesFilters.authorized) {
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -350,7 +350,7 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         userIDs: [filteredRequest.UserID],
-        ...authorizationUserSitesFilters.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -358,7 +358,7 @@ export default class UserService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationUserSitesFilters.projectFields
+      authorizations.projectFields
     );
     // Filter
     sites.result = sites.result.map((userSite) => ({
@@ -624,16 +624,8 @@ export default class UserService {
     // Check Mandatory fields
     UtilsService.checkIfUserValid(filteredRequest, null, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetUserAuthorizations(
+    const authorizations = await AuthorizationService.checkAndGetUserAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleCreateSite'
-      });
-    }
     // Get the email
     const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     if (foundUser) {
@@ -668,9 +660,9 @@ export default class UserService {
         });
     }
     // Update User Admin Data
-    await UserService.updateUserAdminData(req.tenant, newUser, authorizationFilter.projectFields);
+    await UserService.updateUserAdminData(req.tenant, newUser, authorizations.projectFields);
     // Assign Site to new User
-    await UtilsService.assignCreatedUserToSites(req.tenant, newUser, authorizationFilter);
+    await UtilsService.assignCreatedUserToSites(req.tenant, newUser, authorizations);
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log

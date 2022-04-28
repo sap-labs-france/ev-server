@@ -409,11 +409,11 @@ export default class EmspOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'remoteStopSession'
       });
     }
-    if (!transaction.issuer) {
+    if (transaction.issuer) {
       throw new BackendError({
         ...LoggingHelper.getTransactionProperties(transaction),
         action: ServerAction.OCPI_EMSP_START_SESSION,
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to an external organization`,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to a local organization`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction }
       });

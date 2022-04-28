@@ -14,7 +14,7 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
-import LoggingStorage from '../../src/storage/mongodb/LoggingStorage';
+import LogStorage from '../../src/storage/mongodb/LogStorage';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ServerAction } from '../../src/types/Server';
 import SiteAreaContext from './context/SiteAreaContext';
@@ -436,7 +436,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         async () => {
           await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea(), [testData.chargingStationContext1.getChargingStation().id]);
           // Get the log of the site area limitation adjustment and check the root fuse
-          const log = await LoggingStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
+          const log = await LogStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
           const siteArea = testData.siteAreaContext.getSiteArea();
           const siteAreaLimitPerPhase = Utils.createDecimal(siteArea.maximumPower).div(siteArea.voltage).div(3).toNumber();
           const connectorLimit = Utils.createDecimal(Utils.getChargingStationAmperage(testData.chargingStationContext1.getChargingStation(), null, 1)).toNumber();
@@ -700,7 +700,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
             }
           ]);
           // Check adjustment of site area limit
-          const log = await LoggingStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
+          const log = await LogStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
           const chargingStation = testData.chargingStationContext1.getChargingStation();
           const siteArea = testData.siteAreaContext.getSiteArea();
           const siteAreaLimitPerPhase = Utils.createDecimal(siteArea.maximumPower).div(siteArea.voltage).div(3).toNumber();
@@ -716,7 +716,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         async () => {
           await testData.chargingStationContext.stopTransaction(transaction.id, transaction.tagID, 200, new Date);
           await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
-          const log = await LoggingStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
+          const log = await LogStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
           const siteArea = testData.siteAreaContext.getSiteArea();
           const siteAreaLimitPerPhase = Utils.createDecimal(siteArea.maximumPower).div(siteArea.voltage).div(3).toNumber();
           const connectorLimitSinglePhased = Utils.createDecimal(
@@ -756,7 +756,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         'Test if one charging connector is excluded from root fuse when charging station is excluded',
         async () => {
           await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea(), [testData.chargingStationContext.getChargingStation().id]);
-          const log = await LoggingStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
+          const log = await LogStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
           const siteArea = testData.siteAreaContext.getSiteArea();
           expect(log.result[0].detailedMessages).include('"fusePhase1": ' +
             Utils.createDecimal(siteArea.maximumPower).div(siteArea.voltage).minus(
@@ -781,7 +781,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         'Test if both charging connectors are excluded from root fuse when charging station is excluded',
         async () => {
           await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea(), [testData.chargingStationContext.getChargingStation().id]);
-          const log = await LoggingStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
+          const log = await LogStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
           const siteArea = testData.siteAreaContext.getSiteArea();
           expect(log.result[0].detailedMessages).include('"fusePhase1": ' +
             Utils.createDecimal(siteArea.maximumPower).div(siteArea.voltage).minus(
@@ -999,7 +999,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         'Test if whole charge point is excluded from root fuse when charging station is excluded (one connector charging)',
         async () => {
           await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea(), [testData.chargingStationContext.getChargingStation().id]);
-          const log = await LoggingStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
+          const log = await LogStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
           const chargingStation = testData.chargingStationContext.getChargingStation();
           const chargePoint = chargingStation.chargePoints.find((cp) => cp.connectorIDs.includes(transaction.connectorId));
           const siteArea = testData.siteAreaContext.getSiteArea();
@@ -1055,7 +1055,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         'Test if only charge point is excluded from root fuse when charging station is excluded (two connectors charging)',
         async () => {
           await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea(), [testData.chargingStationContext.getChargingStation().id]);
-          const log = await LoggingStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
+          const log = await LogStorage.getLogs(testData.tenantContext.getTenant(), { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
           const chargingStation = testData.chargingStationContext.getChargingStation();
           const chargePoint = chargingStation.chargePoints.find((cp) => cp.connectorIDs.includes(transaction1.connectorId));
           const siteArea = testData.siteAreaContext.getSiteArea();

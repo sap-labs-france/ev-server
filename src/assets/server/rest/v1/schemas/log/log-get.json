@@ -1,6 +1,6 @@
 {
-  "$id": "logging-get",
-  "title": "Get Logging",
+  "$id": "log-get",
+  "title": "Get Log",
   "description": "",
   "type": "object",
   "properties": {

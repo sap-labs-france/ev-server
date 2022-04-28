@@ -70,7 +70,8 @@ export default class CPOCommandsService {
     next();
   }
 
-  private static async remoteStartSession(action: ServerAction, req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  private static async remoteStartSession(action: ServerAction, req: Request, res: Response,
+      next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const startSession = req.body as OCPIStartSession;
     if (!CPOCommandsService.validateStartSession(startSession)) {
       throw new AppError({
@@ -81,8 +82,15 @@ export default class CPOCommandsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const localToken = await TagStorage.getTag(
+    let localToken = await TagStorage.getTag(
       tenant, startSession.token.uid, { withUser: true });
+      // Create it on the fly
+    if (!localToken) {
+      // Check eMSP user
+      const emspUser = await OCPIUtils.checkAndCreateEMSPUserFromToken(
+        tenant, ocpiEndpoint.countryCode, ocpiEndpoint.partyId, startSession.token);
+      localToken = await OCPIUtilsService.updateCreateTagWithCpoToken(tenant, startSession.token, localToken, emspUser, action);
+    }
     if (!localToken?.active || !localToken.ocpiToken?.valid) {
       await Logging.logError({
         tenantID: tenant.id,
