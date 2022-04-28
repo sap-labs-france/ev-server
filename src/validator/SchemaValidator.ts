@@ -78,7 +78,7 @@ export default class SchemaValidator {
       SchemaValidator.settingSchema,
       SchemaValidator.registrationTokenSchema,
       SchemaValidator.siteAreasSchema,
-      SchemaValidator.siteSchema
+      SchemaValidator.siteSchema,
     ]);
   }
 

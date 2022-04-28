@@ -6420,14 +6420,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/loggings?Limit=100",
+					"raw": "{{base_url}}/v1/api/logs?Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
 						"api",
-						"loggings"
+						"logs"
 					],
 					"query": [
 						{
@@ -6520,14 +6520,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/loggings/{{logID}}",
+					"raw": "{{base_url}}/v1/api/logs/{{logID}}",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
 						"api",
-						"loggings",
+						"logs",
 						"{{logID}}"
 					]
 				}
@@ -6695,14 +6695,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/loggings/action/export",
+					"raw": "{{base_url}}/v1/api/logs/action/export",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
 						"api",
-						"loggings",
+						"logs",
 						"action",
 						"export"
 					],

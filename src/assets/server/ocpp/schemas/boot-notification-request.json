@@ -1,6 +1,6 @@
 {
   "$id": "boot-notification-request",
-  "description": "Defines the BootNotification.req PDU",
+  "description": "BootNotificationRequest",
   "type": "object",
   "properties": {
     "chargePointVendor": {

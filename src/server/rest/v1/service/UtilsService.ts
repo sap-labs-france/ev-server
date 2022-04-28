@@ -29,7 +29,7 @@ import { EntityData } from '../../../../types/GlobalType';
 import { Log } from '../../../../types/Log';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
-import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
+import LogStorage from '../../../../storage/mongodb/LogStorage';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
@@ -415,7 +415,7 @@ export default class UtilsService {
     const authorizations = await AuthorizationService.checkAndGetLoggingAuthorizations(
       tenant, userToken, { ID: logID }, authAction, entityData);
     // Get Log
-    const log = await LoggingStorage.getLog(tenant, logID,
+    const log = await LogStorage.getLog(tenant, logID,
       {
         ...additionalFilters,
         ...authorizations.filters,
