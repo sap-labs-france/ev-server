@@ -375,17 +375,9 @@ export default class SiteAreaService {
       }
     }
     siteArea.numberOfPhases = filteredRequest.numberOfPhases;
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
-        siteArea.tariffID = filteredRequest.tariffID;
-      }
-    }
-    // Delete Charging Profiles
-    let actionsResponse: ActionsResponse;
-    if (siteArea.smartCharging && !filteredRequest.smartCharging) {
-      actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
-        req.tenant, siteArea,
-        { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) &&
+        Utils.objectHasProperty(filteredRequest, 'tariffID')) {
+      siteArea.tariffID = filteredRequest.tariffID;
     }
     // Update
     siteArea.name = filteredRequest.name;
@@ -484,16 +476,6 @@ export default class SiteAreaService {
       action: action,
       detailedMessages: { siteArea }
     });
-    if (actionsResponse && actionsResponse.inError > 0) {
-      throw new AppError({
-        ...LoggingHelper.getSiteAreaProperties(siteArea),
-        action: action,
-        errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
-        message: 'Error occurred while clearing Charging Profiles for Site Area',
-        module: MODULE_NAME, method: 'handleUpdateSiteArea',
-        user: req.user, actionOnUser: req.user
-      });
-    }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -520,7 +502,13 @@ export default class SiteAreaService {
     for (const siteArea of siteAreas) {
       // Do not update the current Site Area (will be updated after)
       if (siteArea.id !== currentSiteAreaID) {
+        // Update
         await SiteAreaStorage.updateSmartCharging(tenant, siteArea.id, smartCharging);
+      }
+      // Clear Charging Profiles (async)
+      if (!smartCharging) {
+        void OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
+          tenant, siteArea, { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
       }
       // Update children
       await SiteAreaService.updateSiteAreaChildrenWithSmartCharging(
