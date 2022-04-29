@@ -1,9 +1,8 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
-import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import SiteArea, { SubSiteAreaAction } from '../../../../types/SiteArea';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
@@ -41,6 +40,7 @@ import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTo
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import Site from '../../../../types/Site';
+import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
