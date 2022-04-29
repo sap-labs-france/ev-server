@@ -523,7 +523,8 @@ export default class SiteAreaService {
     // Count and check all children and children of children
     for (const childSiteArea of siteArea.childSiteAreas) {
       // Check Site Area with Parent
-      if (!subSiteAreaAction && siteArea.siteID !== childSiteArea.siteID) {
+      if (![SubSiteAreaAction.ATTACH, SubSiteAreaAction.CLEAR, SubSiteAreaAction.UPDATE].includes(subSiteAreaAction) &&
+          siteArea.siteID !== childSiteArea.siteID) {
         throw new AppError({
           ...LoggingHelper.getSiteAreaProperties(siteArea),
           errorCode: HTTPError.SITE_AREA_TREE_ERROR_SITE,

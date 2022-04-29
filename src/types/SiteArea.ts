@@ -59,4 +59,5 @@ export enum SubSiteAreaAction {
   UPDATE = 'update',
   ATTACH = 'attach',
   CLEAR = 'clear',
+  FORCE_SMART_CHARGING = 'force_smart_charging',
 }
