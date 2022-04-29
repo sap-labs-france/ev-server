@@ -297,9 +297,9 @@ export default class SiteAreaService {
       createdBy: { id: req.user.id },
       createdOn: new Date(),
     } as SiteArea;
-    // Check Site Area tree
-    const subSiteAreasActions = filteredRequest.subSiteAreasAction ?
-      filteredRequest.subSiteAreasAction?.split('|') as SubSiteAreaAction[] : [];
+    // Build sub-Site Area actions
+    const subSiteAreasActions = SiteAreaService.buildSubSiteAreaActionsFromHttpRequest(
+      action, req.user, siteArea, filteredRequest.subSiteAreasAction);
     // Check site area chain validity
     const rootSiteArea = await SiteAreaService.checkAndGetSiteAreaTree(
       req.tenant, siteArea, parentSiteArea, [siteArea.siteID], subSiteAreasActions);
@@ -368,9 +368,10 @@ export default class SiteAreaService {
     siteArea.siteID = filteredRequest.siteID;
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
+    // Build sub-Site Area actions
+    const subSiteAreasActions = SiteAreaService.buildSubSiteAreaActionsFromHttpRequest(
+      action, req.user, siteArea, filteredRequest.subSiteAreasAction);
     // Check Site Area tree
-    const subSiteAreasActions = filteredRequest.subSiteAreasAction ?
-      filteredRequest.subSiteAreasAction?.split('|') as SubSiteAreaAction[] : [];
     const rootSiteArea = await SiteAreaService.checkAndGetSiteAreaTree(
       req.tenant, siteArea, parentSiteArea, treeSiteIDs, subSiteAreasActions);
     // Handle Site Area has children which have not the same site
@@ -393,6 +394,22 @@ export default class SiteAreaService {
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
+  }
+
+  public static buildSubSiteAreaActionsFromHttpRequest(action: ServerAction, user: UserToken, siteArea,
+      subSiteAreasAction: string): SubSiteAreaAction[] {
+    // Split
+    const subSiteAreasActions = subSiteAreasAction ? subSiteAreasAction?.split('|') as SubSiteAreaAction[] : [];
+    // Does not support yet multiple actions
+    if (subSiteAreasActions?.length > 1) {
+      throw new AppError({
+        ...LoggingHelper.getSiteAreaProperties(siteArea),
+        errorCode: HTTPError.SITE_AREA_TREE_ERROR_MULTIPLE_ACTIONS_NOT_SUPPORTED,
+        message: `Multiple Actions on sub-Site Area is not supported: ${subSiteAreasActions.join(', ')}`,
+        user, action, module: MODULE_NAME, method: 'buildSubSiteAreaActionsFromHttpRequest',
+      });
+    }
+    return subSiteAreasActions;
   }
 
   private static async checkAndGetParentSiteArea(tenant: Tenant, user: UserToken, siteArea: SiteArea,
