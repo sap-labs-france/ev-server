@@ -570,22 +570,6 @@ describe('Site Area', () => {
         testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
       });
 
-      it('Should not be able to update site in the site area chain', async () => {
-        // Change entity
-        testData.newSubSubSiteArea.siteID = '5ce249a2372f0b1c8caf6532';
-        // Update
-        const response = await testData.userService.updateEntity(
-          testData.userService.siteAreaApi,
-          testData.newSubSubSiteArea, false
-        );
-        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR);
-        const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
-          testData.userService.siteAreaApi,
-          testData.newSubSubSiteArea, false
-        );
-        testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
-      });
-
       it('Should not be able to update number of phases in site area chain', async () => {
         // Change entity
         testData.newSubSubSiteArea.numberOfPhases = 1;
@@ -618,22 +602,38 @@ describe('Site Area', () => {
         testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
       });
 
+      it('Should not be able to update site in the site area chain', async () => {
+        // Change entity
+        testData.newSubSubSiteArea.siteID = '5ce249a2372f0b1c8caf6532';
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_SITE);
+        const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
+      });
+
       it('Should not be able to delete root site area, which still has children', async () => {
         // Delete the created entity
         const response = await testData.userService.deleteEntity(
           testData.userService.siteAreaApi,
           testData.newSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
-      it('Should not be able to delete sub site area, which still has children', async () => {
+      it('Should be able to delete sub site area, which still has children', async () => {
         // Delete the created entity
         const response = await testData.userService.deleteEntity(
           testData.userService.siteAreaApi,
           testData.newSubSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.SITE_AREA_HIERARCHY_DEPENDENCY_ERROR);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to delete sub site area, which do not have children', async () => {
