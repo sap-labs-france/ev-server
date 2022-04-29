@@ -277,8 +277,6 @@ export default class SiteAreaService {
       Action.CREATE, Entity.SITE_AREA, MODULE_NAME, 'handleCreateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaCreateReq(req.body);
-    // Check request data is valid
-    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check Site Area auth
     await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
       {}, Action.CREATE, filteredRequest);
@@ -303,7 +301,8 @@ export default class SiteAreaService {
     const subSiteAreasActions = filteredRequest.subSiteAreasAction ?
       filteredRequest.subSiteAreasAction?.split('|') as SubSiteAreaAction[] : [];
     // Check site area chain validity
-    const rootSiteArea = await SiteAreaService.checkAndGetSiteAreaTree(req.tenant, siteArea, parentSiteArea, [siteArea.siteID], subSiteAreasActions);
+    const rootSiteArea = await SiteAreaService.checkAndGetSiteAreaTree(
+      req.tenant, siteArea, parentSiteArea, [siteArea.siteID], subSiteAreasActions);
     // Handle Site Area has children which have not the same site
     await SiteAreaService.processSubSiteAreaActions(
       req.tenant, rootSiteArea, siteArea, parentSiteArea, subSiteAreasActions);
@@ -327,8 +326,6 @@ export default class SiteAreaService {
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleUpdateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaUpdateReq(req.body);
-    // Check Mandatory fields
-    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check and Get SiteArea
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest, {

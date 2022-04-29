@@ -28,9 +28,9 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import { EntityData } from '../../../../types/GlobalType';
 import { Log } from '../../../../types/Log';
+import LogStorage from '../../../../storage/mongodb/LogStorage';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
-import LogStorage from '../../../../storage/mongodb/LogStorage';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
@@ -1399,58 +1399,6 @@ export default class UtilsService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Connector cannot be active without the Car component',
         module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfSiteAreaValid(siteArea: Partial<SiteArea>, req: Request): void {
-    if (req.method !== 'POST' && !siteArea.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site Area ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (!siteArea.name) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site Area name is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (!siteArea.siteID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    // Power
-    if (siteArea.maximumPower <= 0) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (siteArea.voltage !== Voltage.VOLTAGE_230 && siteArea.voltage !== Voltage.VOLTAGE_110) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage as number}V`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (siteArea.numberOfPhases !== 1 && siteArea.numberOfPhases !== 3) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site area number of phases must be either 1 or 3 but got ${siteArea.numberOfPhases}`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
