@@ -48,5 +48,9 @@ export interface HttpAssignAssetsToSiteAreaRequest {
 }
 
 export interface HttpSiteAreaUpdateRequest extends SiteArea {
-  subSiteAreasAction?: SubSiteAreaAction;
+  subSiteAreasAction?: string;
+}
+
+export interface HttpSiteAreaCreateRequest extends SiteArea {
+  subSiteAreasAction?: string;
 }

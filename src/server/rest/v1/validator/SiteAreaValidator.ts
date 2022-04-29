@@ -1,8 +1,7 @@
-import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaConsumptionsRequest, HttpSiteAreaImageRequest, HttpSiteAreaRequest, HttpSiteAreaUpdateRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaConsumptionsRequest, HttpSiteAreaCreateRequest, HttpSiteAreaImageRequest, HttpSiteAreaRequest, HttpSiteAreaUpdateRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
-import SiteArea from '../../../../types/SiteArea';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
@@ -41,7 +40,7 @@ export default class SiteAreaValidator extends SchemaValidator {
     return this.validate(this.siteAreaGetImage, data);
   }
 
-  public validateSiteAreaCreateReq(data: Record<string, unknown>): SiteArea {
+  public validateSiteAreaCreateReq(data: Record<string, unknown>): HttpSiteAreaCreateRequest {
     return this.validate(this.siteAreaCreate, data);
   }
 

@@ -48,13 +48,7 @@
     },
     "subSiteAreasAction": {
       "type": "string",
-      "sanitize": "mongo",
-      "enum": [
-        "update",
-        "attach",
-        "clear",
-        "force_smart_charging"
-      ]
+      "sanitize": "mongo"
     },
     "image": {
       "type": "string",
