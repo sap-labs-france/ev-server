@@ -36,6 +36,9 @@
     },
     "tariffID": {
       "$ref": "common#/definitions/tariff-id"
+    },
+    "subSiteAreasAction": {
+      "$ref": "common#/definitions/subSiteAreasAction"
     }
   },
   "required": [

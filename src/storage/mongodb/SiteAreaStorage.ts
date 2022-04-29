@@ -49,6 +49,17 @@ export default class SiteAreaStorage {
     return result.modifiedCount;
   }
 
+  public static async updateSmartCharging(tenant: Tenant, siteAreaID: string, smartCharging: boolean): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    await global.database.getCollection<any>(tenant.id, 'siteareas').updateOne(
+      { _id: DatabaseUtils.convertToObjectID(siteAreaID) },
+      {
+        $set: { smartCharging: Utils.convertToBoolean(smartCharging) }
+      });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateSmartCharging', startTime, { siteAreaID, smartCharging });
+  }
+
   public static async updateSiteID(tenant: Tenant, siteAreaID: string, siteID: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);

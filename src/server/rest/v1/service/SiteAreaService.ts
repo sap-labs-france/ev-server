@@ -437,6 +437,11 @@ export default class SiteAreaService {
           await SiteAreaStorage.attachSiteAreaChildrenToNewParent(
             req.tenant, siteArea.id, null);
           break;
+        // Update Smart Charging in children
+        case SubSiteAreaAction.FORCE_SMART_CHARGING:
+          await SiteAreaService.updateSiteAreaChildrenWithSmartCharging(
+            req.tenant, [rootSiteArea], siteArea.smartCharging, siteArea.id);
+          break;
       }
     }
     // Save
@@ -510,6 +515,19 @@ export default class SiteAreaService {
     }
   }
 
+  private static async updateSiteAreaChildrenWithSmartCharging(
+      tenant: Tenant, siteAreas: SiteArea[], smartCharging: boolean, currentSiteAreaID: string): Promise<void> {
+    for (const siteArea of siteAreas) {
+      // Do not update the current Site Area (will be updated after)
+      if (siteArea.id !== currentSiteAreaID) {
+        await SiteAreaStorage.updateSmartCharging(tenant, siteArea.id, smartCharging);
+      }
+      // Update children
+      await SiteAreaService.updateSiteAreaChildrenWithSmartCharging(
+        tenant, siteArea.childSiteAreas, smartCharging, currentSiteAreaID);
+    }
+  }
+
   private static async checkAndGetSiteAreaTree(tenant: Tenant, siteArea: SiteArea,
       parentSiteArea: SiteArea, siteIDs: string[], subSiteAreaAction?: SubSiteAreaAction): Promise<SiteArea> {
     // Build Site Area tree
@@ -533,7 +551,8 @@ export default class SiteAreaService {
           detailedMessages: { siteArea, childSiteArea },
         });
       }
-      if (siteArea.smartCharging !== childSiteArea.smartCharging) {
+      if (subSiteAreaAction !== SubSiteAreaAction.FORCE_SMART_CHARGING &&
+          siteArea.smartCharging !== childSiteArea.smartCharging) {
         throw new AppError({
           ...LoggingHelper.getSiteAreaProperties(siteArea),
           errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_CHARGING,

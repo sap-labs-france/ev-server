@@ -46,9 +46,10 @@
       "enum": [
         "update",
         "attach",
-        "clear"
+        "clear",
+        "force_smart_charging"
       ]
-}
+    }
   },
   "required": [
     "id",
