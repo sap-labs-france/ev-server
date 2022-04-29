@@ -41,14 +41,7 @@
       "$ref": "common#/definitions/tariff-id"
     },
     "subSiteAreasAction": {
-      "type": "string",
-      "sanitize": "mongo",
-      "enum": [
-        "update",
-        "attach",
-        "clear",
-        "force_smart_charging"
-      ]
+      "$ref": "site-area#/definitions/subSiteAreasAction"
     }
   },
   "required": [
