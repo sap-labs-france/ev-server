@@ -547,6 +547,9 @@
           "545": {
             "$ref": "#/components/responses/SiteAreaTreeVoltageError"
           },
+          "546": {
+            "$ref": "#/components/responses/SiteAreaTreeServeralActionNotSupported"
+          },
           "500": {
             "$ref": "#/components/responses/BackendError"
           }
@@ -667,6 +670,9 @@
           },
           "545": {
             "$ref": "#/components/responses/SiteAreaTreeVoltageError"
+          },
+          "546": {
+            "$ref": "#/components/responses/SiteAreaTreeServeralActionNotSupported"
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
@@ -14048,6 +14054,9 @@
       },
       "SiteAreaTreeNumberOfPhasesError": {
         "description": "Site Area must have the same Number of Phases as its parent"
+      },
+      "SiteAreaTreeServeralActionNotSupported": {
+        "description": "Multiple changes are currently not supported (eg. change of Site and Smart Charging.)"
       },
       "SiteAreaTreeVoltageError": {
         "description": "Site Area must have the same Voltage as its parent"
