@@ -274,19 +274,11 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaCreateReq(req.body);
     // Check request data is valid
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
+    // Check Site Area auth
+    await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
       {}, Action.CREATE, filteredRequest);
-    if (!authorizations.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'handleCreateSiteArea'
-      });
-    }
     // Check Site auth
-    const site = await UtilsService.checkAndGetSiteAuthorization(
+    await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Create Site Area
     const siteArea: SiteArea = {
