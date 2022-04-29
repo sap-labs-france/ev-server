@@ -298,7 +298,7 @@ export default class SiteAreaService {
       createdOn: new Date(),
     } as SiteArea;
     // Build sub-Site Area actions
-    const subSiteAreasActions = SiteAreaService.buildSubSiteAreaActionsFromHttpRequest(
+    const subSiteAreasActions = SiteAreaService.buildSubSiteAreaActions(
       action, req.user, siteArea, filteredRequest.subSiteAreasAction);
     // Check site area chain validity
     const rootSiteArea = await SiteAreaService.checkAndGetSiteAreaTree(
@@ -369,7 +369,7 @@ export default class SiteAreaService {
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
     // Build sub-Site Area actions
-    const subSiteAreasActions = SiteAreaService.buildSubSiteAreaActionsFromHttpRequest(
+    const subSiteAreasActions = SiteAreaService.buildSubSiteAreaActions(
       action, req.user, siteArea, filteredRequest.subSiteAreasAction);
     // Check Site Area tree
     const rootSiteArea = await SiteAreaService.checkAndGetSiteAreaTree(
@@ -379,9 +379,14 @@ export default class SiteAreaService {
       req.tenant, rootSiteArea, siteArea, parentSiteArea, subSiteAreasActions, formerParentSiteAreaID);
     // Save
     await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
-    // Update all refs
+    // Update all refsx
     void SiteAreaStorage.updateEntitiesWithOrganizationIDs(
       req.tenant, site.companyID, filteredRequest.siteID, filteredRequest.id);
+    // Clear Charging Profiles (async)
+    if (!siteArea.smartCharging) {
+      void OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
+        req.tenant, siteArea, { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
+    }
     // Retrigger Smart Charging
     SiteAreaService.triggerSmartCharging(req.tenant, action, siteArea);
     await Logging.logInfo({
@@ -396,7 +401,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static buildSubSiteAreaActionsFromHttpRequest(action: ServerAction, user: UserToken, siteArea,
+  public static buildSubSiteAreaActions(action: ServerAction, user: UserToken, siteArea,
       subSiteAreasAction: string): SubSiteAreaAction[] {
     // Split
     const subSiteAreasActions = subSiteAreasAction ? subSiteAreasAction?.split('|') as SubSiteAreaAction[] : [];
@@ -537,11 +542,11 @@ export default class SiteAreaService {
       if (siteArea.id !== currentSiteAreaID) {
         // Update
         await SiteAreaStorage.updateSmartCharging(tenant, siteArea.id, smartCharging);
-      }
-      // Clear Charging Profiles (async)
-      if (!smartCharging) {
-        void OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
-          tenant, siteArea, { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
+        // Clear Charging Profiles (async)
+        if (!smartCharging) {
+          void OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
+            tenant, siteArea, { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
+        }
       }
       // Update children
       await SiteAreaService.updateSiteAreaChildrenWithSmartCharging(
@@ -554,13 +559,15 @@ export default class SiteAreaService {
     // Build Site Area tree
     const rootSiteArea = await SiteAreaService.buildSiteAreaTree(tenant, siteArea, parentSiteArea, siteIDs);
     // Check Site Area children
-    SiteAreaService.checkIfSiteAreaTreeISConsistent(rootSiteArea, subSiteAreaActions);
+    SiteAreaService.checkIfSiteAreaTreeIsConsistent(rootSiteArea, subSiteAreaActions);
     return rootSiteArea;
   }
 
-  private static checkIfSiteAreaTreeISConsistent(siteArea: SiteArea, subSiteAreaActions: SubSiteAreaAction[] = []): void {
+  private static checkIfSiteAreaTreeIsConsistent(siteArea: SiteArea, subSiteAreaActions: SubSiteAreaAction[] = []): void {
+    let totalChildrenMaximumPower = 0;
     // Count and check all children and children of children
     for (const childSiteArea of siteArea.childSiteAreas) {
+      totalChildrenMaximumPower += childSiteArea.maximumPower;
       // Check Site Area with Parent
       const actionOnSite = subSiteAreaActions.filter((subSiteAreaAction) =>
         [SubSiteAreaAction.ATTACH, SubSiteAreaAction.CLEAR, SubSiteAreaAction.UPDATE].includes(subSiteAreaAction));
@@ -570,7 +577,7 @@ export default class SiteAreaService {
           ...LoggingHelper.getSiteAreaProperties(siteArea),
           errorCode: HTTPError.SITE_AREA_TREE_ERROR_SITE,
           message: `Site ID between Site Area ('${siteArea.name}') and its child ('${childSiteArea.name}') differs`,
-          module: MODULE_NAME, method: 'checkIfSiteAreaTreeISConsistent',
+          module: MODULE_NAME, method: 'checkIfSiteAreaTreeIsConsistent',
           detailedMessages: { siteArea, childSiteArea },
         });
       }
@@ -582,7 +589,7 @@ export default class SiteAreaService {
           ...LoggingHelper.getSiteAreaProperties(siteArea),
           errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_CHARGING,
           message: `Smart Charging between Site Area ('${siteArea.name}') and its child ('${childSiteArea.name}') differs`,
-          module: MODULE_NAME, method: 'checkIfSiteAreaTreeISConsistent',
+          module: MODULE_NAME, method: 'checkIfSiteAreaTreeIsConsistent',
           detailedMessages: { siteArea, childSiteArea },
         });
       }
@@ -591,7 +598,7 @@ export default class SiteAreaService {
           ...LoggingHelper.getSiteAreaProperties(siteArea),
           errorCode: HTTPError.SITE_AREA_TREE_ERROR_SMART_NBR_PHASES,
           message: `Number Of Phases between Site Area ('${siteArea.name}') and its child ('${childSiteArea.name}') differs`,
-          module: MODULE_NAME, method: 'checkIfSiteAreaTreeISConsistent',
+          module: MODULE_NAME, method: 'checkIfSiteAreaTreeIsConsistent',
           detailedMessages: { siteArea, childSiteArea },
         });
       }
@@ -600,12 +607,22 @@ export default class SiteAreaService {
           ...LoggingHelper.getSiteAreaProperties(siteArea),
           errorCode: HTTPError.SITE_AREA_TREE_ERROR_VOLTAGE,
           message: `Voltage between Site Area ('${siteArea.name}') and its child ('${childSiteArea.name}') differs`,
-          module: MODULE_NAME, method: 'checkIfSiteAreaTreeISConsistent',
+          module: MODULE_NAME, method: 'checkIfSiteAreaTreeIsConsistent',
           detailedMessages: { siteArea, childSiteArea },
         });
       }
       // Process children
-      SiteAreaService.checkIfSiteAreaTreeISConsistent(childSiteArea, subSiteAreaActions);
+      SiteAreaService.checkIfSiteAreaTreeIsConsistent(childSiteArea, subSiteAreaActions);
+    }
+    // Check Max Power
+    if (Utils.convertToInt(totalChildrenMaximumPower) > Utils.convertToInt(siteArea.maximumPower)) {
+      throw new AppError({
+        ...LoggingHelper.getSiteAreaProperties(siteArea),
+        errorCode: HTTPError.SITE_AREA_TREE_ERROR_CHILDREN_MAX_POWER,
+        message: `The total maximum power of child Site Areas (${totalChildrenMaximumPower}W) is beyond its parent '${siteArea.name}' (${siteArea.maximumPower}W)`,
+        module: MODULE_NAME, method: 'checkIfSiteAreaTreeIsConsistent',
+        detailedMessages: { siteArea },
+      });
     }
   }
 
@@ -613,7 +630,7 @@ export default class SiteAreaService {
     // Get all Site Areas of the same Site
     const allSiteAreasOfSite = await SiteAreaStorage.getSiteAreas(tenant,
       { siteIDs, excludeSiteAreaIDs: siteArea.id ? [siteArea.id] : [], withSite: true }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases', 'site.companyID']);
+      ['id', 'name', 'parentSiteAreaID', 'siteID', 'smartCharging', 'name', 'voltage', 'numberOfPhases', 'maximumPower', 'site.companyID']);
     // Add current Site Area
     allSiteAreasOfSite.result.push(siteArea);
     // Build tree

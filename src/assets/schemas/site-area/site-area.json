@@ -14,7 +14,8 @@
     "maximumPower": {
       "type": "number",
       "sanitize": "mongo",
-      "minimum": 0
+      "minimum": 0,
+      "default": 0
     },
     "numberOfPhases": {
       "type": "number",

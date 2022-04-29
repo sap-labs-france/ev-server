@@ -550,6 +550,9 @@
           "546": {
             "$ref": "#/components/responses/SiteAreaTreeServeralActionNotSupported"
           },
+          "547": {
+            "$ref": "#/components/responses/SiteAreaTreeChildrenMaxPower"
+          },
           "500": {
             "$ref": "#/components/responses/BackendError"
           }
@@ -673,6 +676,9 @@
           },
           "546": {
             "$ref": "#/components/responses/SiteAreaTreeServeralActionNotSupported"
+          },
+          "547": {
+            "$ref": "#/components/responses/SiteAreaTreeChildrenMaxPower"
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
@@ -14054,6 +14060,9 @@
       },
       "SiteAreaTreeNumberOfPhasesError": {
         "description": "Site Area must have the same Number of Phases as its parent"
+      },
+      "SiteAreaTreeChildrenMaxPower": {
+        "description": "The total power of the child Site Areas must be lower than the one of their parents."
       },
       "SiteAreaTreeServeralActionNotSupported": {
         "description": "Multiple changes are currently not supported (eg. change of Site and Smart Charging.)"
