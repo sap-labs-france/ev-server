@@ -564,10 +564,8 @@ export default class SiteAreaService {
   }
 
   private static checkIfSiteAreaTreeIsConsistent(siteArea: SiteArea, subSiteAreaActions: SubSiteAreaAction[] = []): void {
-    let totalChildrenMaximumPower = 0;
     // Count and check all children and children of children
     for (const childSiteArea of siteArea.childSiteAreas) {
-      totalChildrenMaximumPower += childSiteArea.maximumPower;
       // Check Site Area with Parent
       const actionOnSite = subSiteAreaActions.filter((subSiteAreaAction) =>
         [SubSiteAreaAction.ATTACH, SubSiteAreaAction.CLEAR, SubSiteAreaAction.UPDATE].includes(subSiteAreaAction));
@@ -613,16 +611,6 @@ export default class SiteAreaService {
       }
       // Process children
       SiteAreaService.checkIfSiteAreaTreeIsConsistent(childSiteArea, subSiteAreaActions);
-    }
-    // Check Max Power
-    if (Utils.convertToInt(totalChildrenMaximumPower) > Utils.convertToInt(siteArea.maximumPower)) {
-      throw new AppError({
-        ...LoggingHelper.getSiteAreaProperties(siteArea),
-        errorCode: HTTPError.SITE_AREA_TREE_ERROR_CHILDREN_MAX_POWER,
-        message: `The total maximum power of child Site Areas (${totalChildrenMaximumPower}W) is beyond its parent '${siteArea.name}' (${siteArea.maximumPower}W)`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaTreeIsConsistent',
-        detailedMessages: { siteArea },
-      });
     }
   }
 
