@@ -229,6 +229,7 @@ export default class SiteAreaStorage {
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     const startTime = Logging.traceDatabaseRequestStart();
+    const withChargingStations = params.withChargingStations;
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -477,7 +478,7 @@ export default class SiteAreaStorage {
           siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
         }
         // Charging stations
-        if (!params.withChargingStations && siteAreaMDB.chargingStations && !params.chargingStationConnectorStatuses) {
+        if (!withChargingStations && siteAreaMDB.chargingStations && !params.chargingStationConnectorStatuses) {
           delete siteAreaMDB.chargingStations;
         }
         // Add
