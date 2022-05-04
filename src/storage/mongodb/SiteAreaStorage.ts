@@ -307,7 +307,7 @@ export default class SiteAreaStorage {
     }
     // Connector statuses
     if (!Utils.isEmptyArray(params.chargingStationConnectorStatuses)) {
-      const pipelineMatch = { ['connectors.status'] : { $in: params.chargingStationConnectorStatuses } };
+      const pipelineMatch = { 'connectors.status' : { $in: params.chargingStationConnectorStatuses } };
       const additionalPipeline = [{
         '$addFields': {
           'connectors': {
