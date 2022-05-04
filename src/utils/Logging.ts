@@ -720,7 +720,7 @@ export default class Logging {
   public static async traceOcppMessageResponse(module: string, tenant: Tenant, chargingStationID: string,
       action: ServerAction, request: any, response: any, direction: '<<' | '>>',
       chargingStationDetails: { siteID: string, siteAreaID: string, companyID: string,}, performanceTracingData?: PerformanceTracingData): Promise<void> {
-    if (Logging.getTraceConfiguration().traceOcpp) {
+    if (Logging.getTraceConfiguration().traceOcpp && performanceTracingData) {
       // Compute duration if provided
       const executionDurationMillis = performanceTracingData?.startTimestamp ? Date.now() - performanceTracingData.startTimestamp : 0;
       const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
