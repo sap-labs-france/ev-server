@@ -1,14 +1,13 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
-import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
 import Constants from '../../../../utils/Constants';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import { HTTPError } from '../../../../types/HTTPError';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -45,9 +44,11 @@ export default class SiteAreaService {
       req.tenant, req.user, siteArea, filteredRequest.assetIDs, action);
     // Save
     if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
-      await SiteAreaStorage.addAssetsToSiteArea(req.tenant, siteArea, assets.map((asset) => asset.id));
+      await SiteAreaStorage.addAssetsToSiteArea(
+        req.tenant, siteArea.id, siteArea.siteID, siteArea.site.companyID, assets.map((asset) => asset.id));
     } else {
-      await SiteAreaStorage.removeAssetsFromSiteArea(req.tenant, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
+      await SiteAreaStorage.removeAssetsFromSiteArea(
+        req.tenant, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
     }
     await Logging.logInfo({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
@@ -97,7 +98,7 @@ export default class SiteAreaService {
     // Save
     if (action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
       await SiteAreaStorage.addChargingStationsToSiteArea(
-        req.tenant, siteArea, chargingStations.map((chargingStation) => chargingStation.id));
+        req.tenant, siteArea.id, siteArea.siteID, siteArea.site.companyID, chargingStations.map((chargingStation) => chargingStation.id));
     } else {
       await SiteAreaStorage.removeChargingStationsFromSiteArea(
         req.tenant, filteredRequest.siteAreaID, chargingStations.map((chargingStation) => chargingStation.id));
