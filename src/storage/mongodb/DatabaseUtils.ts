@@ -131,6 +131,29 @@ export default class DatabaseUtils {
     }, additionalPipeline);
   }
 
+  public static pushArrayFilterInAggregation(aggregation: any[], arrayName: string, filter: Record<string, any>): void {
+    // Unwind the array
+    aggregation.push({ '$unwind': { path: `$${arrayName}`, preserveNullAndEmptyArrays: true } });
+    // Filter
+    aggregation.push({ '$match': filter });
+    // Group back
+    DatabaseUtils.groupBackToArray(aggregation, arrayName);
+  }
+
+  public static push2ArraysFilterInAggregation(aggregation: any[], firstArrayName: string,
+      firstArrayPropertyID: string, secondArrayName: string, filter: Record<string, any>): void {
+    // Unwind first array
+    aggregation.push({ '$unwind': { path: `$${firstArrayName}`, preserveNullAndEmptyArrays: true } });
+    // Unwind second array
+    aggregation.push({ '$unwind': { path: `$${secondArrayName}`, preserveNullAndEmptyArrays: true } });
+    // Filter
+    aggregation.push({ '$match': filter });
+    // Group back second array
+    DatabaseUtils.groupBackToArray(aggregation, secondArrayName, firstArrayPropertyID);
+    // Group back first array
+    DatabaseUtils.groupBackToArray(aggregation, firstArrayName);
+  }
+
   public static pushArrayLookupInAggregation(arrayName: string,
       lookupMethod: (lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) => void,
       lookupParams: DbLookup, additionalParams: { pipeline?: Record<string, any>[], sort?: any } = {}): void {
@@ -148,38 +171,8 @@ export default class DatabaseUtils {
         $sort: additionalParams.sort
       });
     }
-    // Group back to arrays
-    lookupParams.aggregation.push(
-      JSON.parse(`{
-        "$group": {
-          "_id": {
-            "id": "$id",
-            "_id": "$_id"
-          },
-          "root": { "$first": "$$ROOT" },
-          "${arrayName}": { "$push": "$${arrayName}" }
-        }
-      }`)
-    );
-    // Replace array
-    lookupParams.aggregation.push(JSON.parse(`{
-      "$addFields": {
-        "root.${arrayName}": {
-          "$cond": {
-            "if": {
-              "$or": [
-                { "$eq": [ "$${arrayName}", [{}] ] },
-                { "$eq": [ "$${arrayName}", [null] ] }
-              ]
-            },
-            "then": [],
-            "else": "$${arrayName}"
-          }
-        }
-      }
-    }`));
-    // Replace root
-    lookupParams.aggregation.push({ $replaceRoot: { newRoot: '$root' } });
+    // Group back tp array
+    DatabaseUtils.groupBackToArray(lookupParams.aggregation, arrayName);
     // Sort again (after grouping, sort is lost)
     if (additionalParams.sort) {
       lookupParams.aggregation.push({
@@ -492,5 +485,43 @@ export default class DatabaseUtils {
     aggregation.push({
       $project: projectFields
     });
+  }
+
+  private static groupBackToArray(aggregation: any[], arrayName: string, arrayPropertyID = 'id'): void {
+    // Keep the prop as variable in the query (eg. keep 'connectors' as var instead fo 'chargingStations.connectors' which is invalid in MongoDB )
+    const arrayVariableNames = arrayName.split('.');
+    const arrayVariableName = arrayVariableNames[arrayVariableNames.length - 1];
+    // Group back to arrays
+    aggregation.push(
+      JSON.parse(`{
+        "$group": {
+          "_id": {
+            "_id": "$_id",
+            "id": "$${arrayPropertyID}"
+          },
+          "root": { "$first": "$$ROOT" },
+          "${arrayVariableName}": { "$push": "$${arrayName}" }
+        }
+      }`)
+    );
+    // Replace array
+    aggregation.push(JSON.parse(`{
+      "$addFields": {
+        "root.${arrayName}": {
+          "$cond": {
+            "if": {
+              "$or": [
+                { "$eq": [ "$${arrayVariableName}", [{}] ] },
+                { "$eq": [ "$${arrayVariableName}", [null] ] }
+              ]
+            },
+            "then": [],
+            "else": "$${arrayVariableName}"
+          }
+        }
+      }
+    }`));
+    // Replace root
+    aggregation.push({ $replaceRoot: { newRoot: '$root' } });
   }
 }
