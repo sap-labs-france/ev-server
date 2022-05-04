@@ -12,7 +12,7 @@ const MODULE_NAME = 'FillMobileAppSettingsTask';
 
 export default class FillMobileAppSettingsTask extends TenantMigrationTask {
   public async migrateTenant(tenant: Tenant): Promise<void> {
-    let updated = 0;
+    let updated = false;
     let mobileSettingToSave: Partial<SettingDB>;
     // Get mobile setting
     const mobileSetting = await SettingStorage.getSettingByIdentifier(tenant, TechnicalSettings.MOBILE);
@@ -22,22 +22,21 @@ export default class FillMobileAppSettingsTask extends TenantMigrationTask {
         content : {
           type: MobileSettingsType.MOBILE,
           mobile: {
-            settingsIOSMobileAppID: 'eMobility',
-            settingsAndroidMobileAppID: 'com.emobility',
+            androidMobileAppID: 'com.emobility',
             scheme: 'eMobility'
           }
         }
       };
       await SettingStorage.saveSettings(tenant, mobileSettingToSave);
-      updated++;
+      updated = true;
     }
     // Log in the default tenant
-    if (updated > 0) {
+    if (updated) {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${updated} Mobile application setting has been inserted in Tenant ${Utils.buildTenantName(tenant)}`
+        message: `Mobile application setting has been inserted in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

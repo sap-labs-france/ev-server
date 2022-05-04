@@ -9,11 +9,7 @@
         "mobile": {
           "type": "object",
           "properties": {
-            "settingsIOSMobileAppID": {
-              "type": "string",
-              "sanitize": "mongo"
-            },
-            "settingsAndroidMobileAppID": {
+            "androidMobileAppID": {
               "type": "string",
               "sanitize": "mongo"
             },
