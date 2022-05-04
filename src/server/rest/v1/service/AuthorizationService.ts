@@ -1,11 +1,11 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { BillingInvoice, BillingPaymentMethod } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
-import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfileRequest, HttpChargingProfilesRequest, HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpPricingDefinitionRequest, HttpPricingDefinitionsRequest } from '../../../../types/requests/HttpPricingRequest';
 import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
@@ -19,6 +19,8 @@ import User, { UserRole } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import Asset from '../../../../types/Asset';
 import Authorizations from '../../../../authorization/Authorizations';
+import { ChargingProfile } from '../../../../types/ChargingProfile';
+import ChargingStation from '../../../../types/ChargingStation';
 import Company from '../../../../types/Company';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
@@ -597,6 +599,87 @@ export default class AuthorizationService {
     return authorizations;
   }
 
+  public static async checkAndGetChargingProfilesAuthorizations(tenant: Tenant, userToken: UserToken,
+      authAction: Action, filteredRequest?: HttpChargingProfilesRequest, failsWithException = true): Promise<AuthorizationFilter> {
+    const authorizations: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false,
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_PROFILE, authAction,
+      authorizations, filteredRequest, null, failsWithException);
+    return authorizations;
+  }
+
+  public static async addChargingProfilesAuthorizations(tenant: Tenant, userToken: UserToken, chargingProfiles: ChargingProfileDataResult,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Meta Data
+    chargingProfiles.metadata = authorizationFilter.metadata;
+    chargingProfiles.canUpdate = true; // TODO
+    for (const chargingProfile of chargingProfiles.result) {
+      await AuthorizationService.addChargingProfileAuthorizations(tenant, userToken, chargingProfile, authorizationFilter);
+    }
+  }
+
+  public static async addChargingProfileAuthorizations(tenant: Tenant, userToken: UserToken, chargingProfile: ChargingProfile,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    chargingProfile.canRead = true; // Always true as it should be filtered upfront
+    chargingProfile.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_PROFILE, Action.UPDATE, authorizationFilter, { chargingStationID: chargingProfile.id }, chargingProfile);
+    chargingProfile.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_PROFILE, Action.DELETE, authorizationFilter, { chargingStationID: chargingProfile.id }, chargingProfile);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(chargingProfile);
+  }
+
+  public static async checkAndGetChargingProfileAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpChargingProfileRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(tenant, Entity.CHARGING_PROFILE, userToken, {}, {}, authAction, entityData);
+  }
+
+
+  public static async checkAndGetChargingStationAuthorizations_new(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpChargingStationRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(tenant, Entity.CHARGING_STATION, userToken, {}, {}, authAction, entityData);
+  }
+
+  public static async checkAndGetChargingStationsAuthorizations(tenant: Tenant, userToken: UserToken,
+      authAction: Action, filteredRequest?: HttpChargingStationsRequest, failsWithException = true): Promise<AuthorizationFilter> {
+    const authorizations: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false,
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION, authAction,
+      authorizations, filteredRequest, null, failsWithException);
+    return authorizations;
+  }
+
+  public static async addChargingStationsAuthorizations(tenant: Tenant, userToken: UserToken, chargingStations: ChargingStationDataResult,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Meta Data
+    chargingStations.metadata = authorizationFilter.metadata;
+    chargingStations.canExport = true; // TODO
+    for (const chargingStation of chargingStations.result) {
+      await AuthorizationService.addChargingStationAuthorizations(tenant, userToken, chargingStation, authorizationFilter);
+    }
+  }
+
+  public static async addChargingStationAuthorizations(tenant: Tenant, userToken: UserToken, chargingStation: ChargingStation,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    chargingStation.canRead = true; // Always true as it should be filtered upfront
+    chargingStation.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.UPDATE, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.DELETE, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(chargingStation);
+  }
+
   public static async checkAndGetBillingAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(tenant, Entity.BILLING, userToken, {}, {}, authAction, entityData);
   }
@@ -818,21 +901,6 @@ export default class AuthorizationService {
       tenant, userToken, Entity.CAR_CATALOG, Action.UPDATE, authorizationFilter, { CarCatalogID: carCatalog.id }, carCatalog);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(carCatalog);
-  }
-
-
-  public static async checkAndGetChargingStationsAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest?: HttpChargingStationsRequest): Promise<AuthorizationFilter> {
-    const authorizations: AuthorizationFilter = {
-      filters: {},
-      dataSources: new Map(),
-      projectFields: [],
-      authorized: false,
-    };
-    // Check static & dynamic authorization
-    await this.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION, Action.LIST,
-      authorizations, filteredRequest, null, true);
-    return authorizations;
   }
 
   private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,

@@ -4,6 +4,8 @@ import Transaction, { TransactionStats } from './Transaction';
 
 import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
+import { ChargingProfile } from './ChargingProfile';
+import ChargingStation from './ChargingStation';
 import Company from './Company';
 import { Log } from './Log';
 import PricingDefinition from './Pricing';
@@ -109,4 +111,10 @@ export interface AssetDataResult extends DataResult<Asset> {
   canCreate: boolean;
   canListSites: boolean;
   canListSiteAreas: boolean;
+}
+export interface ChargingStationDataResult extends DataResult<ChargingStation> {
+  canExport?: boolean;
+}
+export interface ChargingProfileDataResult extends DataResult<ChargingProfile> {
+  canUpdate?: boolean;
 }

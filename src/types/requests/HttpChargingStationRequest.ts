@@ -25,6 +25,11 @@ export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
   SiteID?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HttpChargingProfileRequest extends HttpByIDRequest {
+
+}
+
 export interface HttpDownloadQrCodeRequest {
   ChargingStationID?: string;
   ConnectorID?: number;

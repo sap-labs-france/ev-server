@@ -1,5 +1,6 @@
 import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
+import { ChargingProfileDataResult, ChargingStationDataResult, DataResult } from '../../types/DataResult';
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationOicpData, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, RemoteAuthorization, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId, UpdateResult } from 'mongodb';
@@ -10,7 +11,6 @@ import BackendError from '../../exception/BackendError';
 import ChargingStationValidatorStorage from './validator/ChargingStationValidatorStorage';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { InactivityStatus } from '../../types/Transaction';
@@ -114,6 +114,17 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
+  public static async getChargingProfile_new(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
+      params: { siteIDs?: string[]; withSiteArea?: boolean; } = {},
+      projectFields?: string[]): Promise<ChargingProfile> {
+    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenant, {
+      chargingProfileID: id,
+      withSiteArea: params.withSiteArea,
+      siteIDs: params.siteIDs,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
+  }
+
   public static async getChargingStationByOcpiLocationEvseUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
       ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
       projectFields?: string[]): Promise<ChargingStation> {
@@ -143,7 +154,7 @@ export default class ChargingStationStorage {
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
       },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<ChargingStationDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -752,6 +763,8 @@ export default class ChargingStationStorage {
     };
   }
 
+
+  // TODO: remove this
   public static async getChargingProfile(tenant: Tenant, id: string): Promise<ChargingProfile> {
     const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenant, {
       chargingProfileID: id
@@ -763,7 +776,7 @@ export default class ChargingStationStorage {
       params: { search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
         profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean;
         withSiteArea?: boolean; siteIDs?: string[]; } = {},
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<ChargingProfileDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values

@@ -228,6 +228,10 @@ export interface BillingInvoiceAuthorizationActions extends AuthorizationActions
   canDownload?:boolean;
 }
 
+export interface ChargingProfileAuthorizationActions extends AuthorizationActions {
+  canDownload?:boolean;
+}
+
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
