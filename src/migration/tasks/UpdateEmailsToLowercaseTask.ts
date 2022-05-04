@@ -23,7 +23,7 @@ export default class UpdateEmailsToLowercaseTask extends TenantMigrationTask {
     if (updateResult.modifiedCount > 0) {
     // Log in the default tenant
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
         message: `${updateResult.modifiedCount} User(s) mail have been updated in Tenant ${Utils.buildTenantName(tenant)}`

@@ -1,3 +1,4 @@
+import SiteArea, { SiteAreaOcpiData } from '../../types/SiteArea';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import AssetStorage from './AssetStorage';
@@ -9,7 +10,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
-import SiteArea from '../../types/SiteArea';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from './TransactionStorage';
 import Utils from '../../utils/Utils';
@@ -31,23 +32,21 @@ export default class SiteAreaStorage {
     return updated;
   }
 
-  public static async addAssetsToSiteArea(tenant: Tenant, siteArea: SiteArea, assetIDs: string[]): Promise<void> {
+  public static async addAssetsToSiteArea(tenant: Tenant, siteAreaID: string, siteID: string, companyID: string, assetIDs: string[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    // Site Area provided?
-    if (siteArea) {
-      // At least one Asset
-      if (assetIDs && assetIDs.length > 0) {
-        // Update all assets
-        await global.database.getCollection<any>(tenant.id, 'assets').updateMany(
-          { '_id': { $in: assetIDs.map((assetID) => DatabaseUtils.convertToObjectID(assetID)) } },
-          {
-            $set: {
-              siteAreaID: DatabaseUtils.convertToObjectID(siteArea.id),
-              siteID: DatabaseUtils.convertToObjectID(siteArea.siteID)
-            }
-          });
-      }
+    // At least one Asset
+    if (!Utils.isEmptyArray(assetIDs)) {
+      // Update all assets
+      await global.database.getCollection<any>(tenant.id, 'assets').updateMany(
+        { '_id': { $in: assetIDs.map((assetID) => DatabaseUtils.convertToObjectID(assetID)) } },
+        {
+          $set: {
+            siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+            siteID: DatabaseUtils.convertToObjectID(siteID),
+            companyID: DatabaseUtils.convertToObjectID(companyID)
+          }
+        });
     }
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addAssetsToSiteArea', startTime, assetIDs);
   }
@@ -65,7 +64,8 @@ export default class SiteAreaStorage {
           {
             $set: {
               siteAreaID: null,
-              siteID: null
+              siteID: null,
+              companyID: null
             }
           });
       }
@@ -83,6 +83,24 @@ export default class SiteAreaStorage {
     return {
       id: id, image: siteAreaImageMDB ? siteAreaImageMDB.image : null
     };
+  }
+
+  public static async getSiteAreaByOcpiLocationUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID, projectFields?: string[]): Promise<SiteArea> {
+    const siteAreaMDB = await SiteAreaStorage.getSiteAreas(tenant, {
+      ocpiLocationID,
+      withSite: true,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    // No unique key on OCPI Location (avoid create several Site Area with the same location ID)
+    if (siteAreaMDB.count > 1) {
+      await Logging.logWarning({
+        tenantID: tenant.id,
+        action: ServerAction.UNKNOWN_ACTION,
+        module: MODULE_NAME, method: 'getSiteAreaByOcpiLocationUid',
+        message: `Multiple Site Area with same OCPI Location ID '${ocpiLocationID}'`,
+        detailedMessages: { ocpiLocationID, siteAreas: siteAreaMDB.result }
+      });
+    }
+    return siteAreaMDB.count >= 1 ? siteAreaMDB.result[0] : null;
   }
 
   public static async getSiteArea(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
@@ -132,7 +150,7 @@ export default class SiteAreaStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
     // Modify
-    await global.database.getCollection<SiteArea>(tenant.id, 'siteareas').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'siteareas').findOneAndUpdate(
       { _id: siteAreaMDB._id },
       { $set: siteAreaMDB },
       { upsert: true, returnDocument: 'after' }
@@ -144,11 +162,26 @@ export default class SiteAreaStorage {
     return siteAreaMDB._id.toString();
   }
 
+  public static async saveSiteAreaOcpiData(tenant: Tenant, id: string, ocpiData: SiteAreaOcpiData): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Modify document
+    await global.database.getCollection<any>(tenant.id, 'siteareas').findOneAndUpdate(
+      { '_id': DatabaseUtils.convertToObjectID(id) },
+      {
+        $set: {
+          ocpiData
+        }
+      },
+      { upsert: false });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSiteAreaOcpiData', startTime, ocpiData);
+  }
+
   public static async getSiteAreas(tenant: Tenant,
       params: {
         siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; issuer?: boolean; name?: string;
         withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
-        locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean; ocpiLocationID?: string;
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -181,11 +214,16 @@ export default class SiteAreaStorage {
     if (params.search) {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.address1': { $regex: params.search, $options: 'i' } },
         { 'address.postalCode': { $regex: params.search, $options: 'i' } },
         { 'address.city': { $regex: params.search, $options: 'i' } },
         { 'address.region': { $regex: params.search, $options: 'i' } },
         { 'address.country': { $regex: params.search, $options: 'i' } },
+        { 'ocpiData.location.id': { $regex: params.search, $options: 'im' } },
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // Site Area
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
@@ -216,6 +254,11 @@ export default class SiteAreaStorage {
     if (Utils.objectHasProperty(params, 'smartCharging') && Utils.isBoolean(params.smartCharging)) {
       filters.smartCharging = params.smartCharging;
     }
+    // OCPI Location ID
+    if (params.ocpiLocationID) {
+      filters['ocpiData.location.id'] = params.ocpiLocationID;
+    }
+    // Name
     if (params.name) {
       filters.name = params.name;
     }
@@ -231,9 +274,9 @@ export default class SiteAreaStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const siteAreasCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'siteareas')
+    const siteAreasCountMDB = await global.database.getCollection<any>(tenant.id, 'siteareas')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
@@ -309,28 +352,26 @@ export default class SiteAreaStorage {
           'chargingStations.deleted', 'chargingStations.cannotChargeInParallel', 'chargingStations.public', 'chargingStations.inactive']);
     }
     // Read DB
-    const siteAreasMDB = await global.database.getCollection<SiteArea>(tenant.id, 'siteareas')
-      .aggregate<SiteArea>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const siteAreasMDB = await global.database.getCollection<any>(tenant.id, 'siteareas')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as SiteArea[];
     const siteAreas: SiteArea[] = [];
     // TODO: Handle this coding into the MongoDB request
     if (siteAreasMDB && siteAreasMDB.length > 0) {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
-        if (siteAreaMDB.issuer) {
-          // Skip site area with no charging stations if asked
-          if (params.withOnlyChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
-            continue;
-          }
-          // Add counts of Available/Occupied Chargers/Connectors
-          if (params.withAvailableChargingStations) {
-            // Set the Charging Stations' Connector statuses
-            siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
-          }
-          // Charging stations
-          if (!params.withChargingStations && siteAreaMDB.chargingStations) {
-            delete siteAreaMDB.chargingStations;
-          }
+        // Skip site area with no charging stations if asked
+        if (params.withOnlyChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
+          continue;
+        }
+        // Add counts of Available/Occupied Chargers/Connectors
+        if (params.withAvailableChargingStations) {
+          // Set the Charging Stations' Connector statuses
+          siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
+        }
+        // Charging stations
+        if (!params.withChargingStations && siteAreaMDB.chargingStations) {
+          delete siteAreaMDB.chargingStations;
         }
         // Add
         siteAreas.push(siteAreaMDB);
@@ -344,24 +385,21 @@ export default class SiteAreaStorage {
     };
   }
 
-  public static async addChargingStationsToSiteArea(tenant: Tenant, siteArea: SiteArea, chargingStationIDs: string[]): Promise<void> {
+  public static async addChargingStationsToSiteArea(tenant: Tenant, siteAreaID: string, siteID: string, companyID: string, chargingStationIDs: string[]): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    // Site provided?
-    if (siteArea) {
-      // At least one ChargingStation
-      if (chargingStationIDs && chargingStationIDs.length > 0) {
-        // Update all chargers
-        await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
-          { '_id': { $in: chargingStationIDs } },
-          {
-            $set: {
-              companyID: DatabaseUtils.convertToObjectID(siteArea.site?.companyID),
-              siteID: DatabaseUtils.convertToObjectID(siteArea.siteID),
-              siteAreaID: DatabaseUtils.convertToObjectID(siteArea.id),
-            }
-          });
-      }
+    // At least one ChargingStation
+    if (!Utils.isEmptyArray(chargingStationIDs)) {
+      // Update all chargers
+      await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
+        { '_id': { $in: chargingStationIDs } },
+        {
+          $set: {
+            siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
+            siteID: DatabaseUtils.convertToObjectID(siteID),
+            companyID: DatabaseUtils.convertToObjectID(companyID),
+          }
+        });
     }
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addChargingStationsToSiteArea', startTime, chargingStationIDs);
   }

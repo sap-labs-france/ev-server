@@ -155,9 +155,9 @@ export default class SiteStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const usersCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'siteusers')
+    const usersCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, usersCountMDB);
@@ -191,9 +191,9 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<UserSite>(tenant.id, 'siteusers')
-      .aggregate<UserSite>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const siteUsersMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as UserSite[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, siteUsersMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(usersCountMDB[0]),
@@ -238,7 +238,7 @@ export default class SiteStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateSiteUserAdmin', startTime, { siteID, userID, siteAdmin });
   }
 
-  public static async saveSite(tenant: Tenant, siteToSave: Site, saveImage = true): Promise<string> {
+  public static async saveSite(tenant: Tenant, siteToSave: Site, saveImage = false): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const siteFilter: any = {};
@@ -335,11 +335,16 @@ export default class SiteStorage {
     if (params.search) {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.address1': { $regex: params.search, $options: 'i' } },
         { 'address.postalCode': { $regex: params.search, $options: 'i' } },
         { 'address.city': { $regex: params.search, $options: 'i' } },
         { 'address.region': { $regex: params.search, $options: 'i' } },
         { 'address.country': { $regex: params.search, $options: 'i' } },
+        { 'ocpiData.location.id': { $regex: params.search, $options: 'im' } },
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // Site Name
     if (params.name) {
@@ -390,9 +395,9 @@ export default class SiteStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const sitesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'sites')
+    const sitesCountMDB = await global.database.getCollection<any>(tenant.id, 'sites')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSites', startTime, aggregation, sitesCountMDB);
@@ -456,9 +461,9 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const sitesMDB = await global.database.getCollection<Site>(tenant.id, 'sites')
+    const sitesMDB = await global.database.getCollection<any>(tenant.id, 'sites')
       .aggregate(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as Site[];
     const sites = [];
     // TODO: Handle this coding into the MongoDB request
     if (sitesMDB && sitesMDB.length > 0) {

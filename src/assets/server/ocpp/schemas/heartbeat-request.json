@@ -1,7 +1,6 @@
 {
     "$id": "heartbeat-request",
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "HeartbeatResponse",
+    "title": "HeartbeatRequest",
     "type": "object",
     "properties": {},
     "additionalProperties": false

@@ -1,17 +1,17 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
-import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
 import Constants from '../../../../utils/Constants';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import { HTTPError } from '../../../../types/HTTPError';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
@@ -19,6 +19,7 @@ import { SiteAreaDataResult } from '../../../../types/DataResult';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteAreaValidator from '../validator/SiteAreaValidator';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
+import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
@@ -37,18 +38,21 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const authAction = action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN_ASSETS_TO_SITE_AREA : Action.UNASSIGN_ASSETS_FROM_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.siteAreaID, authAction, action);
+      req.tenant, req.user, filteredRequest.siteAreaID, authAction, action, null, { withSite: true });
     // Check and Get Assets
     const assets = await UtilsService.checkSiteAreaAssetsAuthorization(
       req.tenant, req.user, siteArea, filteredRequest.assetIDs, action);
     // Save
     if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
-      await SiteAreaStorage.addAssetsToSiteArea(req.tenant, siteArea, assets.map((asset) => asset.id));
+      await SiteAreaStorage.addAssetsToSiteArea(
+        req.tenant, siteArea.id, siteArea.siteID, siteArea.site.companyID, assets.map((asset) => asset.id));
     } else {
-      await SiteAreaStorage.removeAssetsFromSiteArea(req.tenant, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
+      await SiteAreaStorage.removeAssetsFromSiteArea(
+        req.tenant, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
     }
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      ...LoggingHelper.getSiteAreaProperties(siteArea),
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME,
       method: 'handleAssignAssetsToSiteArea',
@@ -80,6 +84,7 @@ export default class SiteAreaService {
           const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
           if (numberOfConnectedPhase !== 1 && action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
             throw new AppError({
+              ...LoggingHelper.getSiteAreaProperties(siteArea),
               action: action,
               errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
               message: `Error occurred while assigning charging station: '${chargingStation.id}'. Charging Station is not single phased`,
@@ -93,14 +98,15 @@ export default class SiteAreaService {
     // Save
     if (action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
       await SiteAreaStorage.addChargingStationsToSiteArea(
-        req.tenant, siteArea, chargingStations.map((chargingStation) => chargingStation.id));
+        req.tenant, siteArea.id, siteArea.siteID, siteArea.site.companyID, chargingStations.map((chargingStation) => chargingStation.id));
     } else {
       await SiteAreaStorage.removeChargingStationsFromSiteArea(
         req.tenant, filteredRequest.siteAreaID, chargingStations.map((chargingStation) => chargingStation.id));
     }
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      ...LoggingHelper.getSiteAreaProperties(siteArea),
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
       message: 'Site Area\'s Charging Stations have been assigned successfully',
@@ -124,7 +130,8 @@ export default class SiteAreaService {
     await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      ...LoggingHelper.getSiteAreaProperties(siteArea),
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSiteArea',
       message: `Site Area '${siteArea.name}' has been deleted successfully`,
       action: action,
@@ -157,19 +164,20 @@ export default class SiteAreaService {
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(
       await TenantStorage.getTenant(filteredRequest.TenantID), filteredRequest.ID);
-    if (siteAreaImage?.image) {
+    let image = siteAreaImage?.image;
+    if (image) {
+      // Header
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (siteAreaImage.image.startsWith('data:image/')) {
-        header = siteAreaImage.image.substring(5, siteAreaImage.image.indexOf(';'));
-        encoding = siteAreaImage.image.substring(siteAreaImage.image.indexOf(';') + 1, siteAreaImage.image.indexOf(',')) as BufferEncoding;
-        siteAreaImage.image = siteAreaImage.image.substring(siteAreaImage.image.indexOf(',') + 1);
+      if (image.startsWith('data:image/')) {
+        header = image.substring(5, image.indexOf(';'));
+        encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+        image = image.substring(image.indexOf(',') + 1);
       }
       res.setHeader('content-type', header);
-      res.send(siteAreaImage.image ? Buffer.from(siteAreaImage.image, encoding) : null);
+      res.send(Buffer.from(image, encoding));
     } else {
-      res.send(null);
+      res.status(StatusCodes.NOT_FOUND);
     }
     next();
   }
@@ -188,9 +196,9 @@ export default class SiteAreaService {
       ];
     }
     // Check dynamic auth
-    const authorizationSiteAreasFilter = await AuthorizationService.checkAndGetSiteAreasAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationSiteAreasFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetSiteAreasAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -206,7 +214,7 @@ export default class SiteAreaService {
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
-        ...authorizationSiteAreasFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -214,15 +222,15 @@ export default class SiteAreaService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationSiteAreasFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationSiteAreasFilter.projectFields) {
-      siteAreas.projectFields = authorizationSiteAreasFilter.projectFields;
+    if (authorizations.projectFields) {
+      siteAreas.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
     await AuthorizationService.addSiteAreasAuthorizations(req.tenant, req.user, siteAreas as SiteAreaDataResult,
-      authorizationSiteAreasFilter);
+      authorizations);
     res.json(siteAreas);
     next();
   }
@@ -267,19 +275,11 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaCreateReq(req.body);
     // Check request data is valid
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
-    // Check auth
-    const authorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
+    // Check Site Area auth
+    await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
       {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'handleCreateSiteArea'
-      });
-    }
     // Check Site auth
-    const site = await UtilsService.checkAndGetSiteAuthorization(
+    await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Create Site Area
     const siteArea: SiteArea = {
@@ -288,15 +288,11 @@ export default class SiteAreaService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as SiteArea;
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      if (!site.public) {
-        delete siteArea.tariffID;
-      }
-    }
     // Save
-    siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, true);
+    siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      ...LoggingHelper.getSiteAreaProperties(siteArea),
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSiteArea',
       message: `Site Area '${siteArea.name}' has been created successfully`,
       action: action,
@@ -337,6 +333,7 @@ export default class SiteAreaService {
           const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
           if (numberOfPhases !== 1) {
             throw new AppError({
+              ...LoggingHelper.getSiteAreaProperties(siteArea),
               action: action,
               errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
               message: `Error occurred while updating SiteArea.'${chargingStation.id}' is not single phased`,
@@ -351,9 +348,6 @@ export default class SiteAreaService {
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
         siteArea.tariffID = filteredRequest.tariffID;
-      }
-      if (!site.public) {
-        delete siteArea.tariffID;
       }
     }
     let actionsResponse: ActionsResponse;
@@ -375,7 +369,7 @@ export default class SiteAreaService {
     if (filteredRequest.smartCharging) {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setTimeout(async () => {
-        const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(req.user.tenantID, siteArea);
+        const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(req.tenant.id, siteArea);
         if (siteAreaLock) {
           try {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.tenant);
@@ -384,7 +378,8 @@ export default class SiteAreaService {
             }
           } catch (error) {
             await Logging.logError({
-              tenantID: req.user.tenantID,
+              ...LoggingHelper.getSiteAreaProperties(siteArea),
+              tenantID: req.tenant.id,
               module: MODULE_NAME, method: 'handleUpdateSiteArea',
               action: action,
               message: 'An error occurred while trying to call smart charging',
@@ -398,7 +393,8 @@ export default class SiteAreaService {
       }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
     }
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      ...LoggingHelper.getSiteAreaProperties(siteArea),
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteArea',
       message: `Site Area '${siteArea.name}' has been updated successfully`,
       action: action,
@@ -406,6 +402,7 @@ export default class SiteAreaService {
     });
     if (actionsResponse && actionsResponse.inError > 0) {
       throw new AppError({
+        ...LoggingHelper.getSiteAreaProperties(siteArea),
         action: action,
         errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
         message: 'Error occurred while clearing Charging Profiles for Site Area',

@@ -8,7 +8,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USER, action: Action.LIST,
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
-          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
           'billingData.customerID', 'billingData.lastChangedOn'
         ],
         condition: {
@@ -105,7 +105,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
-          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
           'billingData.customerID', 'billingData.lastChangedOn', 'technical', 'freeAccess'
         ],
         condition: {
@@ -274,7 +274,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'address.coordinates', 'site.id', 'site.name', 'site.public', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+          'address.coordinates', 'site.id', 'site.name', 'site.public', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn',
+          'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
       },
       {
@@ -374,13 +375,15 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
       { resource: Entity.TAX, action: [Action.LIST] },
-      // ---------------------------------------------------------------------------------------------------
-      // TODO - no use-case so far - clarify whether a SYNC INVOICES and CREATE INVOICE makes sense or not!
-      // ---------------------------------------------------------------------------------------------------
-      // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE] },
-      // { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.CREATE] },
-      { resource: Entity.INVOICE, action: [Action.LIST] },
-      { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ] },
+      {
+        resource: Entity.INVOICE, action: [Action.LIST],
+        attributes: [
+          'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
+        ]
+      },
+      {
+        resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ]
+      },
       {
         resource: Entity.ASSET, action: [Action.CREATE, Action.READ,
           Action.CHECK_CONNECTION, Action.CREATE_CONSUMPTION]
@@ -502,6 +505,18 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CAR, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [],
+            metadata: {
+              createPoolCar: {
+                visible: true
+              }
+            }
+          }
+        },
         attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
@@ -652,9 +667,34 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'issuer', 'logo', 'address'
         ]
       },
-      { resource: Entity.INVOICE, action: [Action.LIST] },
       {
-        resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ],
+        resource: Entity.INVOICE, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions'
+        ]
+      },
+      {
+        resource: Entity.INVOICE, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions'
+        ]
+      },
+      {
+        resource: Entity.INVOICE, action: Action.DOWNLOAD,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -663,8 +703,26 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         }
       },
-      { resource: Entity.PAYMENT_METHOD, action: Action.LIST },
-      { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE] },
+      {
+        resource: Entity.PAYMENT_METHOD, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        }
+      },
+      {
+        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        }
+      },
       {
         resource: Entity.SITE, action: Action.LIST,
         condition: {
@@ -786,7 +844,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['OwnUser']
+            filters: ['OwnUser'],
+            metadata: {
+              id: {
+                visible: false
+              }
+            },
           }
         },
         attributes: [
@@ -1210,7 +1273,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SitesAdmin']
+            filters: ['SitesAdmin'],
+            metadata: {
+              createPoolCar: {
+                visible: true
+              }
+            }
           }
         },
         attributes: [

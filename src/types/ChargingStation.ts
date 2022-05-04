@@ -1,15 +1,14 @@
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
-
 import { AuthorizationActions } from './Authorization';
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 import { OICPEvseDataRecord } from './oicp/OICPEvse';
 import { OICPIdentification } from './oicp/OICPIdentification';
 import Site from './Site';
 import SiteArea from './SiteArea';
+import { InactivityStatus } from './Transaction';
 import User from './User';
 
 export default interface ChargingStation extends CreatedUpdatedProps, AuthorizationActions {
@@ -314,54 +313,8 @@ export type OCPPParams = {
   params: OcppParameter[];
 };
 
-// IMPORTANT: Always enter vendors in lower case
 export enum ChargerVendor {
-  ARK_AC_EV_CHARGER = 'ark ac ev charger',
-  ALFEN = 'alfen bv',
-  ALPITRONIC = 'alpitronic gmbh',
-  BENDER = 'bender gmbh co. kg',
-  CFOS = 'cfos',
-  DBTCEV = 'dbt-cev',
-  EBEE = 'ebee',
-  ECOTAP = 'ecotap',
-  ENPLUS = 'en+',
-  EXADYS = 'exadys',
-  EVBOX = 'ev-box',
-  EVMETER = 'ev meter',
-  INNOGY = 'innogy',
-  INGETEAM = 'ingeteam',
-  INGETEAM_ENERGY = 'ingeteam energy',
-  EFACEC = 'pt.efacec',
-  IES = 'ies',
-  HDM = 'hdm',
-  HAGER = 'hager',
-  WALLBOX_CHARGERS = 'wall box chargers',
-  SCHNEIDER = 'schneider electric',
-  WEBASTO = 'webasto',
-  DELTA_ELECTRONICS = 'delta electronics',
-  DELTA = 'delta',
   ABB = 'abb',
-  XCHARGE = 'xcharge',
-  LEGRAND = 'legrand',
-  ATESS = 'atess',
-  MENNEKES = 'mennekes',
+  EVBOX = 'ev-box',
   KEBA = 'keba ag',
-  SAP_LABS_FRANCE = 'sap labs france caen',
-  CIRCONTROL = 'circontrol',
-  JOINON = 'joinon',
-  JOINT = 'joint',
-  NEXANS = 'nexans',
-  AIXCHARGE = 'aixcharge',
-  LAFON_TECHNOLOGIES = 'lafon technologies',
-  TRITIUM = 'tritium',
-  GREEN_MOTION = 'green motion',
-  G2_MOBILITY = 'com.g2mobility',
-  MEAECN = 'meaecn',
-  KOSTAD = 'kostad',
-  KEMPOWER = 'kempower',
-  GROWATT = 'growatt',
-  SETEC = 'setec-power',
-  ELECTRIC_LOADING = 'electric loading',
-  VESTEL = 'vestel',
-  CHARGEX_GMBH = "Chargex gmbh",
 }

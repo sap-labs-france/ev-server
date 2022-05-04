@@ -1,7 +1,7 @@
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import BaseApi from './utils/BaseApi';
 import CrudApi from './utils/CrudApi';
-import { ServerRoute } from '../../../src/types/Server';
+import { RESTServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class TenantApi extends CrudApi {
@@ -13,25 +13,25 @@ export default class TenantApi extends CrudApi {
   }
 
   public async readById(id: string) {
-    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_TENANT, { id }));
+    return super.readById(id, this.buildRestEndpointUrl(RESTServerRoute.REST_TENANT, { id }));
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_TENANTS));
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_TENANTS));
   }
 
   public async create(data) {
-    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_TENANTS));
+    return super.create(data, this.buildRestEndpointUrl(RESTServerRoute.REST_TENANTS));
   }
 
   public async update(data) {
-    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_TENANT, { id: data.id }));
+    return super.update(data, this.buildRestEndpointUrl(RESTServerRoute.REST_TENANT, { id: data.id }));
   }
 
   public async delete(id: string) {
-    return await this._authenticatedApi.send({
+    return this._authenticatedApi.send({
       method: 'DELETE',
-      url: this.buildRestEndpointUrl(ServerRoute.REST_TENANT, { id }),
+      url: this.buildRestEndpointUrl(RESTServerRoute.REST_TENANT, { id }),
       params: {
         forced: true
       }

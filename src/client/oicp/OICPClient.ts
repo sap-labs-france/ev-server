@@ -149,7 +149,7 @@ export default abstract class OICPClient {
         module: MODULE_NAME, method: 'getPrivateKey',
       });
     }
-    return await Cypher.decrypt(this.tenant, this.settings[this.role].key);
+    return Cypher.decrypt(this.tenant, this.settings[this.role].key);
   }
 
   private async getClientCertificate(action: ServerAction): Promise<string> {
@@ -165,7 +165,7 @@ export default abstract class OICPClient {
         module: MODULE_NAME, method: 'getClientCertificate',
       });
     }
-    return await Cypher.decrypt(this.tenant, this.settings[this.role].cert);
+    return Cypher.decrypt(this.tenant, this.settings[this.role].cert);
   }
 
   private getAxiosConfig(): AxiosRequestConfig {

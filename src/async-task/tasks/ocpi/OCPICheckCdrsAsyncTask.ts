@@ -35,7 +35,7 @@ export default class OCPICheckCdrsAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_CDRS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_CDRS, error);
       }
     }
   }

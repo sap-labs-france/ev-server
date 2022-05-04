@@ -233,6 +233,22 @@ export default class Utils {
     return true;
   }
 
+  public static computeTimeDurationSecs(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(1000).toNumber();
+  }
+
+  public static computeTimeDurationMins(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(60 * 1000).toNumber();
+  }
+
+  public static computeTimeDurationHours(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(60 * 60 * 1000).toNumber();
+  }
+
+  public static computeTimeDurationDays(timeStart: number): number {
+    return Utils.createDecimal(Date.now()).minus(timeStart).div(24 * 60 * 60 * 1000).toNumber();
+  }
+
   public static objectHasProperty(obj: any, key: string): boolean {
     return _.has(obj, key);
   }
@@ -372,11 +388,6 @@ export default class Utils {
     return connectorStats;
   }
 
-  /**
-   * Map user locale (en_US, fr_FR...) to language (en, fr...)
-   *
-   * @param locale
-   */
   public static getLanguageFromLocale(locale: string): string {
     let language = Constants.DEFAULT_LANGUAGE;
     // Get the language
@@ -386,12 +397,7 @@ export default class Utils {
     return language;
   }
 
-  /**
-   * Map language (en, fr...) to user locale (en_US, fr_FR...)
-   *
-   * @param language
-   */
-  static getLocaleFromLanguage(language: string): string {
+  public static getLocaleFromLanguage(language: string): string {
     if (language === 'fr') {
       return 'fr_FR';
     } else if (language === 'es') {
@@ -1276,7 +1282,7 @@ export default class Utils {
   }
 
   public static async generateQrCode(data: string) :Promise<string> {
-    return await QRCode.toDataURL(data);
+    return QRCode.toDataURL(data);
   }
 
   public static createDefaultSettingContent(componentName: string, activeComponentContent: TenantComponentContent, currentSettingContent: SettingDBContent): SettingDBContent {
@@ -1290,12 +1296,6 @@ export default class Utils {
             return {
               'type': PricingSettingsType.SIMPLE,
               'simple': {}
-            } as SettingDBContent;
-          } else if (activeComponentContent.type === PricingSettingsType.CONVERGENT_CHARGING) {
-            // SAP CC
-            return {
-              'type': PricingSettingsType.CONVERGENT_CHARGING,
-              'convergentCharging': {}
             } as SettingDBContent;
           }
         }
@@ -1505,6 +1505,62 @@ export default class Utils {
     return PerformanceRecordGroup.UNKNOWN;
   }
 
+  public static getAxiosActionFromURL(url: string): ServerAction {
+    if (!url) {
+      return ServerAction.HTTP_REQUEST;
+    }
+    // OCPI
+    if (url.includes('ocpi/cpo')) {
+      // The CPO is called by the EMSP
+      return ServerAction.OCPI_EMSP_REQUEST;
+    }
+    if (url.includes('ocpi/emsp')) {
+      // The eMSP is called by the CPO
+      return ServerAction.OCPI_CPO_REQUEST;
+    }
+    // Hubject
+    if (url.includes('hubject')) {
+      return ServerAction.OICP_CPO_REQUEST;
+    }
+    // Concur
+    if (url.includes('concursolutions')) {
+      return ServerAction.SAP_CONCUR_REQUEST;
+    }
+    // Recaptcha
+    if (url.includes('recaptcha')) {
+      return ServerAction.RECAPTCHA_REQUEST;
+    }
+    // Greencom
+    if (url.includes('gcn-eibp')) {
+      return ServerAction.GREENCOM_REQUEST;
+    }
+    // Stripe
+    if (url.includes('stripe')) {
+      return ServerAction.STRIPE_REQUEST;
+    }
+    // ioThink
+    if (url.includes('kheiron')) {
+      return ServerAction.IOTHINK_REQUEST;
+    }
+    // Lacroix
+    if (url.includes('esoftlink ')) {
+      return ServerAction.LACROIX_REQUEST;
+    }
+    // EV Database
+    if (url.includes('ev-database')) {
+      return ServerAction.EV_DATABASE_REQUEST;
+    }
+    // WIT
+    if (url.includes('wit-datacenter')) {
+      return ServerAction.WIT_REQUEST;
+    }
+    // SAP Smart Charging
+    if (url.includes('smart-charging')) {
+      return ServerAction.SAP_SMART_CHARGING_REQUEST;
+    }
+    return ServerAction.HTTP_REQUEST;
+  }
+
   public static buildPerformanceRecord(params: {
     tenantSubdomain?: string; durationMs?: number; resSizeKb?: number; reqSizeKb?: number;
     action: ServerAction|string; group?: PerformanceRecordGroup; httpUrl?: string;
@@ -1613,5 +1669,15 @@ export default class Utils {
 
   public static hash(data: string): string {
     return crypto.createHash('sha256').update(data).digest('hex');
+  }
+
+  public static transactionDurationToString(transaction: Transaction): string {
+    let totalDurationSecs;
+    if (transaction.stop) {
+      totalDurationSecs = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    } else {
+      totalDurationSecs = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    }
+    return moment.duration(totalDurationSecs, 's').format('h[h]mm', { trim: false });
   }
 }

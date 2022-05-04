@@ -208,11 +208,11 @@ export default class ConsumptionChunkPricer {
       const consumptionWh = this.consumptionChunk?.consumptionWh || 0;
       // Price the charging time only when charging!
       if (consumptionWh > 0) {
-        const pricedData = this.priceTimeDimension(dimensionToPrice, this.getAbsorbedChargingTime());
-        if (pricedData) {
-          this.absorbChargingTime();
+        const result = this.priceTimeDimension(dimensionToPrice, this.getAbsorbedChargingTime());
+        if (result?.pricedData) {
+          this.absorbChargingTime(result?.remainder);
         }
-        return this.enrichPricedData(pricedData, activePricingDefinition);
+        return this.enrichPricedData(result?.pricedData, activePricingDefinition);
       }
     }
     // IMPORTANT!
@@ -223,10 +223,10 @@ export default class ConsumptionChunkPricer {
     return this.getPricingModel().pricerContext.lastAbsorbedChargingTime || this.getPricingModel().pricerContext.sessionStartDate;
   }
 
-  private absorbChargingTime() {
+  private absorbChargingTime(remainder = 0) {
     // Mark the charging time as already priced - to avoid pricing it twice
     // This may happen when combining several tariffs in a single session
-    this.getPricingModel().pricerContext.lastAbsorbedChargingTime = this.consumptionChunk.endedAt;
+    this.getPricingModel().pricerContext.lastAbsorbedChargingTime = moment(this.consumptionChunk.endedAt).subtract(remainder, 'seconds').toDate();
   }
 
   private priceParkingTimeConsumption(): PricedDimensionData {
@@ -238,11 +238,11 @@ export default class ConsumptionChunkPricer {
       const consumptionWh = this.consumptionChunk?.consumptionWh || 0;
       // Price the parking time only when it makes sense - NOT during the warmup!
       if (totalInactivitySecs > 0 && cumulatedConsumptionDataWh > 0 && consumptionWh <= 0) {
-        const pricedData = this.priceTimeDimension(dimensionToPrice, this.getAbsorbedParkingTime());
-        if (pricedData) {
-          this.absorbParkingTime();
+        const result = this.priceTimeDimension(dimensionToPrice, this.getAbsorbedParkingTime());
+        if (result?.pricedData) {
+          this.absorbParkingTime(result?.remainder);
         }
-        return this.enrichPricedData(pricedData, activePricingDefinition);
+        return this.enrichPricedData(result?.pricedData, activePricingDefinition);
       }
     }
     // IMPORTANT!
@@ -253,10 +253,10 @@ export default class ConsumptionChunkPricer {
     return this.getPricingModel().pricerContext.lastAbsorbedParkingTime || this.getPricingModel().pricerContext.sessionStartDate;
   }
 
-  private absorbParkingTime() {
+  private absorbParkingTime(remainder = 0) {
     // Mark the parking time as already priced - to avoid pricing it twice
     // This may happen when combining several tariffs in a single session
-    this.getPricingModel().pricerContext.lastAbsorbedParkingTime = this.consumptionChunk.endedAt;
+    this.getPricingModel().pricerContext.lastAbsorbedParkingTime = moment(this.consumptionChunk.endedAt).subtract(remainder, 'seconds').toDate();
   }
 
   private getActiveDefinition4Dimension(actualPricingDefinitions: ResolvedPricingDefinition[], dimensionType: string): ResolvedPricingDefinition {
@@ -336,19 +336,27 @@ export default class ConsumptionChunkPricer {
     return pricedData;
   }
 
-  private priceTimeDimension(pricingDimension: PricingDimension, lastStepDate: Date): PricedDimensionData {
+  private priceTimeDimension(pricingDimension: PricingDimension, lastStepDate: Date): { pricedData: PricedDimensionData, remainder: number } {
     // Is there a step size
     if (pricingDimension.stepSize) {
       // Price the charging time only when charging!
       const timeSpent = moment(this.consumptionChunk.endedAt).diff(moment(lastStepDate), 'seconds');
       const nbSteps = Utils.createDecimal(timeSpent).divToInt(pricingDimension.stepSize).toNumber();
+      const absorbedSeconds = Utils.createDecimal(nbSteps).mul(pricingDimension.stepSize);
+      const remainder = Utils.createDecimal(timeSpent).minus(absorbedSeconds); // remainder => seconds that have not been yet priced
       if (nbSteps > 0) {
-        return this.priceTimeSteps(pricingDimension, nbSteps);
+        return {
+          pricedData: this.priceTimeSteps(pricingDimension, nbSteps),
+          remainder: remainder.toNumber()
+        };
       }
     } else {
       const seconds = moment(this.consumptionChunk.endedAt).diff(moment(this.consumptionChunk.startedAt), 'seconds');
       if (seconds > 0) {
-        return this.priceTimeSpent(pricingDimension, seconds);
+        return {
+          pricedData: this.priceTimeSpent(pricingDimension, seconds),
+          remainder: 0
+        };
       }
     }
   }

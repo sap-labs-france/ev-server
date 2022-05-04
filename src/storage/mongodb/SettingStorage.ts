@@ -57,7 +57,7 @@ export default class SettingStorage {
     };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
-    await global.database.getCollection<SettingDB>(tenant.id, 'settings').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'settings').findOneAndUpdate(
       settingFilter,
       { $set: settingMDB },
       { upsert: true, returnDocument: 'after' });
@@ -250,16 +250,6 @@ export default class SettingStorage {
           last_updated: settings.result[0].lastChangedOn ? Utils.convertToDate(settings.result[0].lastChangedOn) : null,
         };
       }
-      // Convergent Charging
-      if (config.convergentCharging) {
-        pricingSettings.type = PricingSettingsType.CONVERGENT_CHARGING;
-        pricingSettings.convergentCharging = {
-          url: config.convergentCharging.url ? config.convergentCharging.url : '',
-          chargeableItemName: config.convergentCharging.chargeableItemName ? config.convergentCharging.chargeableItemName : '',
-          user: config.convergentCharging.user ? config.convergentCharging.user : '',
-          password: config.convergentCharging.password ? config.convergentCharging.password : '',
-        };
-      }
     }
     return pricingSettings;
   }
@@ -372,9 +362,9 @@ export default class SettingStorage {
       });
     }
     // Count Records
-    const settingsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'settings')
+    const settingsCountMDB = await global.database.getCollection<any>(tenant.id, 'settings')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Rename ID
@@ -397,9 +387,9 @@ export default class SettingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const settingsMDB = await global.database.getCollection<SettingDB>(tenant.id, 'settings')
-      .aggregate<SettingDB>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const settingsMDB = await global.database.getCollection<any>(tenant.id, 'settings')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as SettingDB[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSettings', startTime, aggregation, settingsMDB);
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),
@@ -446,9 +436,9 @@ export default class SettingStorage {
     await SettingStorage.saveSettings(tenant, settingsToSave);
   }
 
-  public static async getBillingSetting(tenant: Tenant): Promise<BillingSettings> {
+  public static async getBillingSetting(tenant: Tenant, projectedFields?: string[]): Promise<BillingSettings> {
     // Get BILLING Settings by Identifier
-    const setting = await SettingStorage.getSettingByIdentifier(tenant, TenantComponents.BILLING);
+    const setting = await SettingStorage.getSettingByIdentifier(tenant, TenantComponents.BILLING, projectedFields);
     if (setting) {
       const { id, backupSensitiveData, category } = setting;
       const { createdBy, createdOn, lastChangedBy, lastChangedOn } = setting;

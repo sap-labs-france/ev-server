@@ -27,7 +27,12 @@ export default class DatabaseUtils {
   }
 
   public static isObjectID(id: string): boolean {
-    return ObjectId.isValid(id);
+    if (ObjectId.isValid(id)) {
+      if (new ObjectId(id).toString() === id) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static buildAggregateOptions(): AggregateOptions {
@@ -46,8 +51,8 @@ export default class DatabaseUtils {
   }
 
   public static getCollectionName(tenantID: string, collectionNameSuffix: string): string {
-    let prefix = Constants.DEFAULT_TENANT;
-    if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && ObjectId.isValid(tenantID)) {
+    let prefix = Constants.DEFAULT_TENANT_ID;
+    if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && DatabaseUtils.isObjectID(tenantID)) {
       prefix = tenantID;
     }
     return `${prefix}.${collectionNameSuffix}`;
@@ -342,16 +347,10 @@ export default class DatabaseUtils {
   }
 
   public static addLastChangedCreatedProps(dest: any, entity: any): void {
-    dest.createdBy = null;
-    dest.lastChangedBy = null;
-    if (entity.createdBy || entity.createdOn) {
-      dest.createdBy = DatabaseUtils.mongoConvertUserID(entity, 'createdBy');
-      dest.createdOn = Utils.convertToDate(entity.createdOn);
-    }
-    if (entity.lastChangedBy || entity.lastChangedOn) {
-      dest.lastChangedBy = DatabaseUtils.mongoConvertUserID(entity, 'lastChangedBy');
-      dest.lastChangedOn = Utils.convertToDate(entity.lastChangedOn);
-    }
+    dest.createdBy = entity.createdBy ? DatabaseUtils.mongoConvertUserID(entity, 'createdBy') : null;
+    dest.createdOn = entity.createdOn ? Utils.convertToDate(entity.createdOn) : null;
+    dest.lastChangedBy = entity.lastChangedBy ? DatabaseUtils.mongoConvertUserID(entity, 'lastChangedBy') : null;
+    dest.lastChangedOn = entity.lastChangedOn ? Utils.convertToDate(entity.lastChangedOn) : null;
   }
 
   public static pushRenameDatabaseID(aggregation: any[], nestedField?: string): void {
@@ -445,7 +444,7 @@ export default class DatabaseUtils {
     if (!obj || !obj[prop]) {
       return null;
     }
-    if (ObjectId.isValid(obj[prop])) {
+    if (DatabaseUtils.isObjectID(obj[prop])) {
       return obj[prop] as ObjectId;
     }
     if (obj[prop].id) {

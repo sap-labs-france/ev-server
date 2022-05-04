@@ -13,7 +13,7 @@
           "pattern": "^[a-f0-9]{64}$"
         },
         "chargingStationID": {
-          "$ref": "chargingstation#/definitions/id"
+          "$ref": "#/definitions/id"
         },
         "connectorID": {
           "$ref": "#/definitions/connector/properties/connectorId"

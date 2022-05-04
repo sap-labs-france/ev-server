@@ -1,15 +1,14 @@
 import Tenant, { TenantComponents } from '../../types/Tenant';
 
+import BillingFacade from '../../integration/billing/BillingFacade';
 import BillingFactory from '../../integration/billing/BillingFactory';
 import { BillingStatus } from '../../types/Billing';
 import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../types/Server';
 import TenantSchedulerTask from '../TenantSchedulerTask';
-import { TransactionAction } from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
@@ -92,7 +91,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                           tenantID: tenant.id,
                           action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                           module: MODULE_NAME, method: 'processTenant',
-                          message: `Transaction '${transactionMDB._id}' is not pending anymore`,
+                          message: `Transaction '${transaction.id}' is not pending anymore`,
                         });
                         continue;
                       }
@@ -102,7 +101,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                           tenantID: tenant.id,
                           action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                           module: MODULE_NAME, method: 'processTenant',
-                          message: `Unexpected situation - Transaction '${transactionMDB._id}' has already been billed`,
+                          message: `Unexpected situation - Transaction '${transaction.id}' has already been billed`,
                         });
                         continue;
                       }
@@ -110,16 +109,15 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                       transaction.stop.extraInactivityComputed = true;
                       transaction.stop.extraInactivitySecs = 0;
                       // Billing - This starts the billing async task - the BillingStatus will remain PENDING for a while!
-                      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
+                      await BillingFacade.processEndTransaction(tenant, transaction, transaction.user);
                       // Save
                       await TransactionStorage.saveTransaction(tenant, transaction);
                       await Logging.logInfo({
                         tenantID: tenant.id,
                         action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
-                        actionOnUser: (transaction.user ? transaction.user : null),
+                        actionOnUser: transaction.user,
                         module: MODULE_NAME, method: 'processTenant',
                         message: `The billing process has been started for transaction '${transaction.id}'`,
-                        detailedMessages: { cdr: transaction.ocpiData.cdr }
                       });
                     } catch (error) {
                       await Logging.logError({

@@ -295,7 +295,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return stripeInvoice;
   }
 
-  public async synchronizeAsBillingInvoice(stripeInvoice: Stripe.Invoice, checkUserExists:boolean): Promise<BillingInvoice> {
+  public async synchronizeAsBillingInvoice(stripeInvoice: Stripe.Invoice): Promise<BillingInvoice> {
     if (!stripeInvoice) {
       throw new BackendError({
         message: 'Unexpected situation - invoice is not set',
@@ -320,16 +320,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, action: ServerAction.BILLING,
         method: 'synchronizeAsBillingInvoice',
       });
-    } else if (checkUserExists) {
-      // Let's make sure the userID is still valid
-      const user = await UserStorage.getUser(this.tenant, userID);
-      if (!user) {
-        throw new BackendError({
-          message: `Unexpected situation - the e-Mobility user does not exist - ${userID}`,
-          module: MODULE_NAME, action: ServerAction.BILLING,
-          method: 'synchronizeAsBillingInvoice',
-        });
-      }
     }
     // Get the corresponding BillingInvoice (if any)
     const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByInvoiceID(this.tenant, stripeInvoice.id);
@@ -370,8 +360,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer> {
     if (invoice.downloadUrl) {
+      await this.checkConnection();
+      // Get fresh data because persisted url expires after 30 days
+      const stripeInvoice = await this.getStripeInvoice(invoice.invoiceID);
+      const downloadUrl = stripeInvoice.invoice_pdf;
       // Get document
-      const response = await this.axiosInstance.get(invoice.downloadUrl, {
+      const response = await this.axiosInstance.get(downloadUrl, {
         responseType: 'arraybuffer'
       });
       // Convert
@@ -446,7 +440,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       stripeInvoice = await this.getStripeInvoice(billingInvoice.invoiceID);
     }
     // Let's replicate some information on our side
-    billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
+    billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice);
     if (!billingInvoice) {
       throw new Error(`Unexpected situation - failed to synchronize ${stripeInvoice.id} - the invoice is null`);
     }
@@ -455,38 +449,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     void this.sendInvoiceNotification(billingInvoice);
     await this.updateTransactionsBillingData(billingInvoice);
     return billingInvoice;
-  }
-
-  // TODO - move this method to the billing abstraction to make it common to all billing implementation
-  private async updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
-    if (!billingInvoice.sessions) {
-      // This should not happen - but it happened once!
-      throw new Error(`Unexpected situation - Invoice ${billingInvoice.id} has no sessions attached to it`);
-    }
-    await Promise.all(billingInvoice.sessions.map(async (session) => {
-      const transactionID = session.transactionID;
-      try {
-        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
-        // Update Billing Data
-        if (transaction?.billingData?.stop) {
-          transaction.billingData.stop.invoiceStatus = billingInvoice.status;
-          transaction.billingData.stop.invoiceNumber = billingInvoice.number;
-          transaction.billingData.lastUpdate = new Date();
-          // Save
-          await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
-        }
-      } catch (error) {
-        // Catch stripe errors and send the information back to the client
-        await Logging.logError({
-          tenantID: this.tenant.id,
-          action: ServerAction.BILLING_CHARGE_INVOICE,
-          actionOnUser: billingInvoice.user,
-          module: MODULE_NAME, method: 'updateTransactionsBillingData',
-          message: `Failed to update transaction billing data - transaction: ${transactionID}`,
-          detailedMessages: { error: error.stack }
-        });
-      }
-    }));
   }
 
   private async chargeStripeInvoice(invoiceID: string): Promise<StripeChargeOperationResult> {
@@ -782,23 +744,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
-    if (!this.settings.billing.isTransactionBillingActivated) {
-      return {
-        // Keeps track whether the billing was activated or not on start transaction
-        withBillingActive: false
-      };
-    }
-    // User with free access are not billed
-    if (transaction.user?.freeAccess) {
-      return {
-        // Do not bill internal users
-        withBillingActive: false
-      };
-    }
     // Check Stripe
     await this.checkConnection();
-    // Check Transaction
-    this.checkStartTransaction(transaction);
     // Check Start Transaction Prerequisites
     const customerID: string = transaction.user?.billingData?.customerID;
     // Check whether the customer exists or not
@@ -991,11 +938,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     }
     if (transaction.billingData?.stop?.status === BillingStatus.BILLED) {
-      await Logging.logWarning({
+      await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'endTransaction',
-        message: `Operation aborted - unexpected situation - the session has already been billed - transaction ID: ${transaction.id}`
+        message: `Operation skipped - the session has already been billed - transaction ID: ${transaction.id}`
       });
       // Preserve the previous state unchanged
       return transaction.billingData.stop;
@@ -1031,29 +978,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return {
       status: BillingStatus.PENDING
     };
-  }
-
-  private async checkBillingDataThreshold(transaction: Transaction): Promise<boolean> {
-    // Do not bill suspicious StopTransaction events
-    if (!Utils.isDevelopmentEnv()) {
-    // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
-      const timeSpent = this.computeTimeSpentInSeconds(transaction);
-      // TODO - make it part of the pricing or billing settings!
-      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
-        await Logging.logWarning({
-          ...LoggingHelper.getTransactionProperties(transaction),
-          tenantID: this.tenant.id,
-          user: transaction.userID,
-          action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'stopTransaction',
-          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`,
-        });
-        // Abort the billing process - thresholds are not met!
-        return false;
-      }
-    }
-    // billing data sounds correct
-    return true;
   }
 
   public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
@@ -1103,7 +1027,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  private async getLatestDraftInvoiceOfTheMonth(customerID: string): Promise<Stripe.Invoice> {
+  private async getLatestDraftInvoiceOfTheMonth(tenantID:string, userID: string, customerID: string): Promise<Stripe.Invoice> {
     // Fetch the invoice list - c.f.: https://stripe.com/docs/api/invoices/list
     // The invoices are returned sorted by creation date, with the most recent ones appearing first.
     const list = await this.stripe.invoices.list({
@@ -1112,10 +1036,20 @@ export default class StripeBillingIntegration extends BillingIntegration {
       limit: 1
     });
     const latestDraftInvoice = !Utils.isEmptyArray((list.data)) ? list.data[0] : null;
-    // Check for the date
-    // We do not want to mix in the same invoice charging sessions from different months
-    if (latestDraftInvoice && moment.unix(latestDraftInvoice.created).isSame(moment(), 'month')) {
-      return latestDraftInvoice;
+    // An invoice with no metadata should not be reused - it may have been created manually from the STRIPE dashboard
+    if (latestDraftInvoice?.metadata) {
+      // Check for the tenant
+      if (tenantID !== latestDraftInvoice.metadata.tenantID) {
+        return null;
+      }
+      // Check for the userID
+      if (userID !== latestDraftInvoice.metadata.userID) {
+        return null;
+      }
+      // Check for the date - We do not want to mix in the same invoice charging sessions from different months
+      if (moment.unix(latestDraftInvoice.created).isSame(moment(), 'month')) {
+        return latestDraftInvoice;
+      }
     }
     // The latest DRAFT invoice is too old - don't reuse it!
     return null;
@@ -1222,7 +1156,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       stripeInvoice = null;
     } else {
       // immediateBillingAllowed is OFF - let's add to the latest DRAFT invoice (if any)
-      stripeInvoice = await this.getLatestDraftInvoiceOfTheMonth(customerID);
+      stripeInvoice = await this.getLatestDraftInvoiceOfTheMonth(this.tenant.id, userID, customerID);
     }
     // Let's create an invoice item per dimension
     // When the stripeInvoice is null a pending item is created
@@ -1261,7 +1195,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       stripeInvoice = await this.getStripeInvoice(stripeInvoice.id);
     }
     // Let's replicate some information on our side
-    const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
+    const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice);
     if (!billingInvoice) {
       throw new Error(`Unexpected situation - failed to synchronize ${stripeInvoice.id} - the invoice is null`);
     }
@@ -1359,21 +1293,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-');
   }
 
-  private computeTimeSpentInSeconds(transaction: Transaction): number {
-    let totalDuration: number;
-    if (!transaction.stop) {
-      totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
-    } else {
-      totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
-    }
-    return totalDuration;
-  }
-
-  private convertTimeSpentToString(transaction: Transaction): string {
-    const totalDuration = this.computeTimeSpentInSeconds(transaction);
-    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
-  }
-
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async checkIfUserCanBeCreated(user: User): Promise<boolean> {
     // throw new BackendError({
@@ -1455,11 +1374,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async createUser(user: User): Promise<BillingUser> {
-    return await this.createBillingUser(user, false);
+    return this.createBillingUser(user, false);
   }
 
   public async repairUser(user: User): Promise<BillingUser> {
-    return await this.createBillingUser(user, true);
+    return this.createBillingUser(user, true);
   }
 
   private async createBillingUser(user: User, forceUserCreation: boolean): Promise<BillingUser> {

@@ -14,7 +14,7 @@ import EVDatabaseConfiguration from '../types/configuration/EVDatabaseConfigurat
 import EmailConfiguration from '../types/configuration/EmailConfiguration';
 import FirebaseConfiguration from '../types/configuration/FirebaseConfiguration';
 import JsonEndpointConfiguration from '../types/configuration/JsonEndpointConfiguration';
-import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
+import LogConfiguration from '../types/configuration/LogConfiguration';
 import MigrationConfiguration from '../types/configuration/MigrationConfiguration';
 import MonitoringConfiguration from '../types/configuration/MonitoringConfiguration';
 import NotificationConfiguration from '../types/configuration/NotificationConfiguration';
@@ -223,10 +223,10 @@ export default class Configuration {
     return chargingStationConfiguration;
   }
 
-  public static getLoggingConfig(): LoggingConfiguration {
-    const logging = Configuration.getConfig().Logging;
-    if (!Configuration.isUndefined('Logging', logging)) {
-      return logging;
+  public static getLogConfig(): LogConfiguration {
+    const log = Configuration.getConfig().Logging;
+    if (!Configuration.isUndefined('Logging', log)) {
+      return log;
     }
   }
 
@@ -303,7 +303,7 @@ export default class Configuration {
   // Dup method: Avoid circular deps with Utils class
   private static isUndefined(name: string, value: any): boolean {
     if (typeof value === 'undefined') {
-      console.error(chalk.red(`Missing property '${name}' in config.json`));
+      console.error(chalk.yellow(`[Warning] Missing property '${name}' in config.json`));
       return true;
     }
     return false;

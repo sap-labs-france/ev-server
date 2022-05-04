@@ -48,14 +48,14 @@ export default class Constants {
   public static readonly SMART_CHARGING_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_CONNECTION_LOCK_SECS = 5;
-
+  public static readonly TENANT_DEFAULT_LOGO = '/assets/img/logo-low.gif';
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
 
-  public static readonly DEFAULT_TENANT = 'default';
+  public static readonly DEFAULT_TENANT_ID = 'default';
   public static readonly DEFAULT_TENANT_OBJECT = Object.freeze({
-    id: Constants.DEFAULT_TENANT,
-    name: Constants.DEFAULT_TENANT,
-    subdomain: Constants.DEFAULT_TENANT
+    id: Constants.DEFAULT_TENANT_ID,
+    name: Constants.DEFAULT_TENANT_ID,
+    subdomain: Constants.DEFAULT_TENANT_ID
   } as Tenant);
 
   // Output of crypto.getCiphers()
@@ -243,6 +243,8 @@ export default class Constants {
 
   public static readonly REST_RESPONSE_SUCCESS = Object.freeze({ status: 'Success' });
 
+  public static readonly REST_CHARGING_STATION_COMMAND_RESPONSE_SUCCESS = Object.freeze({ status: 'Accepted' });
+
   public static readonly DELAY_SMART_CHARGING_EXECUTION_MILLIS = 3000;
   public static readonly DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS = 10000;
 
@@ -289,6 +291,8 @@ export default class Constants {
 
   public static readonly ANONYMIZED_VALUE = '####';
 
+  public static readonly WS_MAX_NBR_OF_FAILED_PINGS = 3;
+  public static readonly WS_LOCK_TIME_OUT_MILLIS = 500;
   public static readonly WS_DEFAULT_KEEP_ALIVE_MILLIS = 180 * 1000;
   public static readonly WS_RECONNECT_DISABLED = 0;
   public static readonly WS_RECONNECT_UNLIMITED = -1;
@@ -499,4 +503,7 @@ export default class Constants {
     ...Constants.OCPP_POWER_ACTIVE_IMPORT_ATTRIBUTE,
     phase: OCPPPhase.L3,
   });
+
+  public static readonly AFIREV_MINIMAL_DURATION_THRESHOLD = 120; // Minimal duration - 2 minutes
+  public static readonly AFIREV_MINIMAL_CONSUMPTION_THRESHOLD = 500; // Minimal consumption - 0.5 kW.h
 }

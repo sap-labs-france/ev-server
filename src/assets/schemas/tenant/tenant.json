@@ -25,6 +25,18 @@
     },
     "logo": {
       "$ref": "common#/definitions/logo"
+    },
+    "createdBy": {
+      "$ref": "common#/definitions/createdBy"
+    },
+    "createdOn": {
+      "$ref": "common#/definitions/createdOn"
+    },
+    "lastChangedBy": {
+      "$ref": "common#/definitions/lastChangedBy"
+    },
+    "lastChangedOn": {
+      "$ref": "common#/definitions/lastChangedOn"
     }
   },
   "required": [

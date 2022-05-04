@@ -1,5 +1,5 @@
 import AuthenticatedBaseApi from './AuthenticatedBaseApi';
-import { ServerRoute } from '../../../../src/types/Server';
+import { RESTServerRoute } from '../../../../src/types/Server';
 import TestConstants from './TestConstants';
 
 export default class CrudApi {
@@ -15,11 +15,11 @@ export default class CrudApi {
   }
 
   public async readById(id, path): Promise<any> {
-    return await this.read({ ID: id }, path);
+    return this.read({ ID: id }, path);
   }
 
   public async read(params, path): Promise<any> {
-    return await this._authenticatedApi.send({
+    return this._authenticatedApi.send({
       method: 'GET',
       url: path,
       params
@@ -32,7 +32,7 @@ export default class CrudApi {
     // Build Ordering
     this.buildOrdering(ordering, params);
     // Call
-    return await this._authenticatedApi.send({
+    return this._authenticatedApi.send({
       method: 'GET',
       url: path,
       params: params
@@ -40,7 +40,7 @@ export default class CrudApi {
   }
 
   public async create(data, path): Promise<any> {
-    return await this._authenticatedApi.send({
+    return this._authenticatedApi.send({
       method: 'POST',
       url: path,
       data: data,
@@ -48,7 +48,7 @@ export default class CrudApi {
   }
 
   public async update(data, path): Promise<any> {
-    return await this._authenticatedApi.send({
+    return this._authenticatedApi.send({
       method: 'PUT',
       url: path,
       data: data,
@@ -56,7 +56,7 @@ export default class CrudApi {
   }
 
   public async delete(id, path): Promise<any> {
-    return await this._authenticatedApi.send({
+    return this._authenticatedApi.send({
       method: 'DELETE',
       url: path,
       params: {
@@ -65,7 +65,7 @@ export default class CrudApi {
     });
   }
 
-  protected buildRestEndpointUrl(urlPatternAsString: ServerRoute, params: { [name: string]: string | number | null } = {}, urlPrefix = 'api'): string {
+  protected buildRestEndpointUrl(urlPatternAsString: RESTServerRoute, params: { [name: string]: string | number | boolean| null } = {}, urlPrefix = 'api'): string {
     let resolvedUrlPattern = urlPatternAsString as string;
     for (const key in params) {
       if (Object.prototype.hasOwnProperty.call(params, key)) {

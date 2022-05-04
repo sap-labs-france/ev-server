@@ -145,11 +145,11 @@ export default class Authorizations {
         siteOwnerIDs.push(siteUser.site.id);
       }
     }
-    let tenantHashID = Constants.DEFAULT_TENANT;
+    let tenantHashID = Constants.DEFAULT_TENANT_ID;
     let activeComponents = [];
     let tenantName;
     let tenantSubdomain;
-    if (tenant.id !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       tenantName = tenant.name;
       tenantSubdomain = tenant.subdomain;
       tenantHashID = SessionHashService.buildTenantHashID(tenant);
@@ -209,7 +209,7 @@ export default class Authorizations {
       alternateUser = result.user;
       alternateTag = result.tag;
       // Get User and Tag that started the Transaction
-      user = await UserStorage.getUserByTagId(tenant, transaction.tagID);
+      user = await UserStorage.getUserByTagID(tenant, transaction.tagID);
       tag = await TagStorage.getTag(tenant, transaction.tagID);
     } else {
       // Check User
@@ -807,7 +807,7 @@ export default class Authorizations {
       // Access Control is disabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
-        const user = await UserStorage.getUserByTagId(tenant, tagID);
+        const user = await UserStorage.getUserByTagID(tenant, tagID);
         const tag = await TagStorage.getTag(tenant, tagID);
         return { user, tag };
       }
@@ -820,7 +820,7 @@ export default class Authorizations {
       if (user) {
         return { user };
       }
-      // Create the Tag as inactive and abort
+      // Notify
       void this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
     }
     // Get Authorized User
@@ -876,7 +876,7 @@ export default class Authorizations {
     switch (authAction) {
       // OCPP Authorize
       case Action.AUTHORIZE:
-        // Check IOP Remote Authorization on Charging Station
+        // Retrieve Authorization ID from Charging Station (Remote Start)
         user.authorizationID = await Authorizations.checkAndGetOCPIAuthorizationIDFromIOPRemoteStartTransaction(
           action, tenant, chargingStation, connector, tag, transaction);
         // Not found: Request one from OCPI IOP
@@ -887,9 +887,14 @@ export default class Authorizations {
         break;
       // OCPP Start Transaction
       case Action.START_TRANSACTION:
-        // Retrieve Authorization ID
+        // Retrieve Authorization ID from OCPP Authorization with Roaming badge
         user.authorizationID = await Authorizations.checkAndGetOCPIAuthorizationIDFromOCPPAuthorize(
           tenant, transaction);
+        if (!user.authorizationID) {
+          // Retrieve Authorization ID from Charging Station (OCPI Remote Start)
+          user.authorizationID = await Authorizations.checkAndGetOCPIAuthorizationIDFromIOPRemoteStartTransaction(
+            action, tenant, chargingStation, connector, tag, transaction);
+        }
         // Not found: Request one from OCPI IOP
         if (!user.authorizationID) {
           user.authorizationID = await ocpiClient.authorizeToken(

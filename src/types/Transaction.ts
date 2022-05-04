@@ -1,6 +1,6 @@
 import { Car, CarCatalog } from './Car';
-import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 import Consumption, { AbstractCurrentConsumption } from './Consumption';
+import { OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 
 import ChargingStation from '../types/ChargingStation';
 import Company from './Company';
@@ -98,7 +98,6 @@ export default interface Transaction extends AbstractCurrentConsumption {
   currentCumulatedPrice?: number;
   currentCumulatedRoundedPrice?: number; // added to address rounding issues on multiple pricing dimension
   currentSignedData?: string;
-  status?: ChargePointStatus;
   numberOfMeterValues: number;
   uniqueId?: string;
   values?: Consumption[];

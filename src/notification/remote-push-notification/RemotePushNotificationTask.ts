@@ -29,8 +29,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             projectId: this.firebaseConfig.projectID,
             clientEmail: this.firebaseConfig.clientEmail,
             privateKey: this.firebaseConfig.privateKey
-          }),
-          databaseURL: this.firebaseConfig.databaseURL
+          })
         });
         // Init tenant conf
         if (!Utils.isEmptyArray(this.firebaseConfig.tenants)) {
@@ -41,8 +40,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
                 projectId: tenantConfig.configuration.projectID,
                 clientEmail: tenantConfig.configuration.clientEmail,
                 privateKey: tenantConfig.configuration.privateKey
-              }),
-              databaseURL: tenantConfig.configuration.databaseURL
+              })
             }, tenantConfig.tenantID);
             // Keep it per Tenant
             this.tenantFirebaseApps.set(tenantConfig.tenantID, app);
@@ -51,7 +49,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         this.initialized = true;
       } catch (error) {
         void Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.REMOTE_PUSH_NOTIFICATION,
           module: MODULE_NAME, method: 'constructor',
           message: `Error initializing Firebase: '${error.message as string}'`,

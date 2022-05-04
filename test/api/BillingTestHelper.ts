@@ -5,9 +5,10 @@ import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
 import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
-import chai, { assert, expect } from 'chai';
+import chai, { expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
+import BillingFacade from '../../src/integration/billing/BillingFacade';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -16,8 +17,7 @@ import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
 import Decimal from 'decimal.js';
-import LoggingStorage from '../../src/storage/mongodb/LoggingStorage';
-import OCPPUtils from '../../src/server/ocpp/utils/OCPPUtils';
+import LogStorage from '../../src/storage/mongodb/LogStorage';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
@@ -27,13 +27,13 @@ import { TenantComponents } from '../../src/types/Tenant';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import TestUtils from './TestUtils';
-import { TransactionAction } from '../../src/types/Transaction';
 import TransactionStorage from '../../src/storage/mongodb/TransactionStorage';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
+import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -212,6 +212,18 @@ export default class BillingTestHelper {
           active: true
         }
       };
+    } else if (testMode === 'E+CT(STEP80S)') {
+      dimensions = {
+        energy: {
+          price: 0.30,
+          active: true
+        },
+        chargingTime: {
+          price: 0.60, // Euro per hour
+          stepSize: 80, // 1 minute + 20 seconds
+          active: true
+        }
+      };
     } else if (testMode === 'E-After30mins+PT') {
       // Create a second tariff with a different pricing strategy
       dimensions = {
@@ -316,6 +328,13 @@ export default class BillingTestHelper {
     }
     await this.createTariff4ChargingStation(testMode, this.chargingStationContext.getChargingStation(), new Date(), dimensions, ConnectorType.COMBO_CCS, restrictions);
     return this.chargingStationContext;
+  }
+
+  public checkTimezone(): void {
+    const timezone = Utils.getTimezone(this.chargingStationContext.getChargingStation().coordinates);
+    // Simulated sessions last 2 hours - Some tests cannot work when the day is about to change!
+    assert(moment().tz(timezone).isoWeekday() === moment().add(2, 'hours').tz(timezone).isoWeekday(),
+      'Timezone is set  to ' + timezone + ' - test execution can not work in that context');
   }
 
   public async initChargingStationContext2TestTimeRestrictions(testMode = 'E', aParticularMoment: moment.Moment) : Promise<ChargingStationContext> {
@@ -507,7 +526,7 @@ export default class BillingTestHelper {
   public async dumpLastErrors(): Promise<void> {
     const params = { levels: ['E'] };
     const dbParams = { limit: 2, skip: 0, sort: { timestamp: -1 } }; // the 2 last errors
-    const loggedErrors = await LoggingStorage.getLogs(this.tenantContext.getTenant(), params, dbParams, null);
+    const loggedErrors = await LogStorage.getLogs(this.tenantContext.getTenant(), params, dbParams, null);
     if (loggedErrors?.result.length > 0) {
       for (const loggedError of loggedErrors.result) {
         console.error(
@@ -598,7 +617,7 @@ export default class BillingTestHelper {
         transaction = await TransactionStorage.getTransaction(tenant, transactionId, { withUser: true, withChargingStation: true });
         transaction.stop.extraInactivityComputed = true;
         transaction.stop.extraInactivitySecs = 0;
-        await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.END);
+        await BillingFacade.processEndTransaction(tenant, transaction, transaction.user);
       } else {
         // #end
         const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());

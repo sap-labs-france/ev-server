@@ -156,6 +156,7 @@ export enum Action {
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
   MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
+  RESOLVE = 'Resolve',
 }
 
 export interface AuthorizationContext {
@@ -221,6 +222,10 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
   canMaintainPricingDefinitions?: boolean;
+}
+
+export interface BillingInvoiceAuthorizationActions extends AuthorizationActions {
+  canDownload?:boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

@@ -29,8 +29,8 @@ export default class AssetStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
-    const assetImageMDB = await global.database.getCollection<Image>(tenant.id, 'assetimages')
-      .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
+    const assetImageMDB = await global.database.getCollection<any>(tenant.id, 'assetimages')
+      .findOne({ _id: DatabaseUtils.convertToObjectID(id) }) as Image;
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssetImage', startTime, { id }, assetImageMDB);
     return {
       id: id,
@@ -85,7 +85,7 @@ export default class AssetStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(assetMDB, assetToSave);
     // Modify
-    await global.database.getCollection<Asset>(tenant.id, 'assets').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'assets').findOneAndUpdate(
       { _id: assetMDB._id },
       { $set: assetMDB },
       { upsert: true }
@@ -119,6 +119,9 @@ export default class AssetStorage {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } },
       ];
+      if (DatabaseUtils.isObjectID(params.search)) {
+        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+      }
     }
     // With no Site Area
     if (params.withNoSiteArea) {
@@ -160,9 +163,9 @@ export default class AssetStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const assetsCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'assets')
+    const assetsCountMDB = await global.database.getCollection<any>(tenant.id, 'assets')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
@@ -212,9 +215,9 @@ export default class AssetStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const assetsMDB = await global.database.getCollection<Asset>(tenant.id, 'assets')
-      .aggregate<Asset>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const assetsMDB = await global.database.getCollection<any>(tenant.id, 'assets')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Asset[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssets', startTime, aggregation, assetsMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(assetsCountMDB[0]),
@@ -325,9 +328,9 @@ export default class AssetStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const assetsMDB = await global.database.getCollection<Asset>(tenant.id, 'assets')
-      .aggregate<Asset>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const assetsMDB = await global.database.getCollection<any>(tenant.id, 'assets')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as Asset[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAssetsInError', startTime, aggregation, assetsMDB);
     return {
       count: assetsMDB.length,
@@ -339,7 +342,7 @@ export default class AssetStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Asset
-    await global.database.getCollection<Asset>(tenant.id, 'assets')
+    await global.database.getCollection<any>(tenant.id, 'assets')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Delete Image
     await global.database.getCollection<any>(tenant.id, 'assetimages')

@@ -1,3 +1,4 @@
+import { BillingInvoice, BillingPaymentMethod } from './Billing';
 import { Car, CarCatalog } from './Car';
 import Transaction, { TransactionStats } from './Transaction';
 
@@ -40,6 +41,7 @@ export interface SiteDataResult extends DataResult<Site> {
   canCreate: boolean;
   canAssignUsers: boolean;
   canUnassignUsers: boolean;
+  canListCompanies: boolean;
 }
 
 export interface LogDataResult extends DataResult<Log> {
@@ -52,6 +54,8 @@ export interface SiteAreaDataResult extends DataResult<SiteArea> {
 
 export interface CarDataResult extends DataResult<Car> {
   canCreate: boolean;
+  canListUsers: boolean;
+  canListCarCatalog: boolean;
 }
 
 export interface CarCatalogDataResult extends DataResult<CarCatalog> {
@@ -76,6 +80,14 @@ export interface TagDataResult extends DataResult<Tag> {
 
 export interface TransactionDataResult extends DataResult<Transaction> {
   stats: TransactionStats;
+}
+
+export interface BillingInvoiceDataResult extends DataResult<BillingInvoice> {
+  canListUsers?: boolean;
+}
+
+export interface BillingPaymentMethodDataResult extends DataResult<BillingPaymentMethod> {
+  canCreate?: boolean;
 }
 
 export interface TransactionRefundDataResult {

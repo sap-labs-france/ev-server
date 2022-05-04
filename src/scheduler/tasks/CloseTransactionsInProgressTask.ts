@@ -28,7 +28,7 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
         const ocppService = new OCPPService(Configuration.getChargingStationConfig());
         // Get opened transactions to close
         const transactions = await TransactionStorage.getTransactions(
-          tenant, { transactionsToClose: true }, Constants.DB_PARAMS_MAX_LIMIT);
+          tenant, { transactionsToClose: true, issuer: true }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const transaction of transactions.result) {
           try {
             // Soft stop transaction
@@ -64,7 +64,7 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
           `{{inSuccess}} Transaction(s) have been soft stopped successfully in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inError}} Transaction(s) failed to be soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inSuccess}} Transaction(s) have been soft stopped successfully but {{inError}} failed in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
-          `Not Transaction has been soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`
+          `No Transaction has been soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`
         );
       } catch (error) {
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.TRANSACTION_SOFT_STOP, error);

@@ -13,9 +13,9 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'BillingStorage';
 
 export default class BillingStorage {
-  public static async getInvoice(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<BillingInvoice> {
+  public static async getInvoice(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID, params: { userIDs?: string[] } = {}, projectFields?: string[]): Promise<BillingInvoice> {
     const invoicesMDB = await BillingStorage.getInvoices(tenant, {
-      invoiceIDs: [id]
+      invoiceIDs: [id], userIDs: params.userIDs
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
@@ -97,9 +97,9 @@ export default class BillingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const invoicesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'invoices')
+    const invoicesCountMDB = await global.database.getCollection<any>(tenant.id, 'invoices')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getInvoices', startTime, aggregation, invoicesCountMDB);
@@ -139,9 +139,9 @@ export default class BillingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const invoicesMDB = await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices')
-      .aggregate<BillingInvoice>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const invoicesMDB = await global.database.getCollection<any>(tenant.id, 'invoices')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as BillingInvoice[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getInvoices', startTime, aggregation, invoicesMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(invoicesCountMDB[0]),
@@ -171,7 +171,7 @@ export default class BillingStorage {
       payInvoiceUrl: invoiceToSave.payInvoiceUrl
     };
     // Modify and return the modified document
-    await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'invoices').findOneAndUpdate(
       { _id: invoiceMDB._id },
       { $set: invoiceMDB },
       { upsert: true, returnDocument: 'after' }
@@ -203,7 +203,7 @@ export default class BillingStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Invoice
-    await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices')
+    await global.database.getCollection<any>(tenant.id, 'invoices')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteInvoice', startTime, { id });
   }
@@ -212,7 +212,7 @@ export default class BillingStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Invoice
-    await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices')
+    await global.database.getCollection<any>(tenant.id, 'invoices')
       .findOneAndDelete({ 'invoiceID': id });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteInvoiceByInvoiceID', startTime, { id });
   }

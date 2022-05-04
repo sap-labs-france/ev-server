@@ -111,10 +111,6 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'importedusers', [
       { fields: { email: 1 }, options: { unique: true } }
     ]);
-    await this.handleIndexesInCollection(tenantID, 'eulas');
-    // Assets
-    await this.handleIndexesInCollection(tenantID, 'assets', [
-    ]);
     // Invoices
     await this.handleIndexesInCollection(tenantID, 'invoices', [
       { fields: { invoiceID: 1 }, options: { unique: true } },
@@ -144,8 +140,8 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'tags', [
       { fields: { visualID: 1 }, options: { unique: true } },
       { fields: { issuer: 1, createdOn: 1 } },
+      { fields: { userID: 1 } },
       { fields: { createdOn: 1 } },
-      { fields: { userID: 1, issuer: 1 } },
       { fields: { _id: 'text', description: 'text', visualID: 'text' } },
     ]);
     // Tags Import
@@ -209,7 +205,7 @@ export default class MongoDBStorage {
 
   public async deleteTenantDatabase(tenantID: string): Promise<void> {
     // Not the Default tenant
-    if (tenantID !== Constants.DEFAULT_TENANT) {
+    if (tenantID !== Constants.DEFAULT_TENANT_ID) {
       // Safety check
       if (!this.database) {
         throw new BackendError({
@@ -266,7 +262,7 @@ export default class MongoDBStorage {
     const mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
-        minPoolSize: Math.floor(this.dbConfig.poolSize / 4),
+        minPoolSize: Math.floor(this.dbConfig.poolSize / 2),
         maxPoolSize: this.dbConfig.poolSize,
         loggerLevel: this.dbConfig.debug ? 'debug' : null,
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
@@ -301,7 +297,7 @@ export default class MongoDBStorage {
         const message = `${this.dbPingFailed} database ping(s) failed: ${error.message as string}`;
         Logging.logConsoleError(message);
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MONGO_DB,
           module: MODULE_NAME, method: 'ping',
           message, detailedMessages: { error: error.stack }
@@ -333,31 +329,31 @@ export default class MongoDBStorage {
   private async handleCheckDefaultTenant() {
     try {
       // Database creation Lock
-      const databaseLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, 'check-database');
+      const databaseLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT_ID, LockEntity.DATABASE, 'check-database');
       if (await LockingManager.acquire(databaseLock)) {
         try {
           // Check only collections with indexes
           // Locks
-          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'locks', []);
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'locks', []);
           // Tenants
-          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'tenants', [
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'tenants', [
             { fields: { subdomain: 1 }, options: { unique: true } },
           ]);
           // Performances
-          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'performances', [
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'performances', [
             { fields: { timestamp: 1 }, options: { expireAfterSeconds: 14 * 24 * 3600 } },
             { fields: { timestamp: 1, group: 1, tenantSubdomain: 1 } },
           ]);
           // Users
-          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'users', [
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'users', [
             { fields: { email: 1 }, options: { unique: true } }
           ]);
           // Car Catalogs
-          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'carcatalogimages', [
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'carcatalogimages', [
             { fields: { carID: 1 } }
           ]);
           // Logs
-          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'logs', [
+          await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'logs', [
             { fields: { timestamp: 1 }, options: { expireAfterSeconds: 14 * 24 * 3600 } },
             { fields: { type: 1, timestamp: 1 } },
             { fields: { action: 1, timestamp: 1 } },
@@ -375,7 +371,7 @@ export default class MongoDBStorage {
       const message = 'Error while checking Database in tenant \'default\'';
       Logging.logConsoleError(message);
       await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MONGO_DB,
         module: MODULE_NAME, method: 'handleIndexesInCollection',
         message, detailedMessages: { error: error.stack }
@@ -385,7 +381,7 @@ export default class MongoDBStorage {
 
   private async handleCheckTenants() {
     // Get all the Tenants
-    const tenantsMDB = await this.database.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
+    const tenantsMDB = await this.database.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT_ID, 'tenants'))
       .find({}).toArray();
     const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
@@ -405,7 +401,7 @@ export default class MongoDBStorage {
         const message = `Error while checking Database in tenant '${tenantId}'`;
         Logging.logConsoleError(message);
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MONGO_DB,
           module: MODULE_NAME, method: 'handleIndexesInCollection',
           message, detailedMessages: { error: error.stack }
@@ -438,7 +434,7 @@ export default class MongoDBStorage {
           const message = `Error in creating collection '${tenantID}.${tenantCollectionName}': ${error.message as string}`;
           Logging.logConsoleError(message);
           await Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.MONGO_DB,
             module: MODULE_NAME, method: 'handleIndexesInCollection',
             message, detailedMessages: { error: error.stack, tenantCollectionName, name, indexes }
@@ -471,7 +467,7 @@ export default class MongoDBStorage {
               const message = `Drop index '${databaseIndex.name as string}' in collection ${tenantCollectionName}`;
               Utils.isDevelopmentEnv() && Logging.logConsoleDebug(message);
               await Logging.logInfo({
-                tenantID: Constants.DEFAULT_TENANT,
+                tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
                 module: MODULE_NAME, method: 'handleIndexesInCollection',
                 message, detailedMessages: { tenantCollectionName, indexes, indexName: databaseIndex.name }
@@ -483,7 +479,7 @@ export default class MongoDBStorage {
               const message = `Error in dropping index '${databaseIndex.name as string}' in '${tenantCollectionName}': ${error.message as string}`;
               Logging.logConsoleError(message);
               await Logging.logError({
-                tenantID: Constants.DEFAULT_TENANT,
+                tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
                 module: MODULE_NAME, method: 'handleIndexesInCollection',
                 message, detailedMessages: { error: error.stack, tenantCollectionName, name, indexes, indexName: databaseIndex.name }
@@ -502,7 +498,7 @@ export default class MongoDBStorage {
               const message = `Create index ${JSON.stringify(index)} in collection ${tenantCollectionName}`;
               Utils.isDevelopmentEnv() && Logging.logConsoleDebug(message);
               await Logging.logInfo({
-                tenantID: Constants.DEFAULT_TENANT,
+                tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
                 module: MODULE_NAME, method: 'handleIndexesInCollection',
                 message, detailedMessages: { tenantCollectionName, name, indexes, indexFields: index.fields, indexOptions: index.options }
@@ -514,7 +510,7 @@ export default class MongoDBStorage {
               const message = `Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message as string}`;
               Logging.logConsoleError(message);
               await Logging.logError({
-                tenantID: Constants.DEFAULT_TENANT,
+                tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
                 module: MODULE_NAME, method: 'handleIndexesInCollection',
                 message, detailedMessages: { error: error.stack, tenantCollectionName, name, indexes, indexFields: index.fields, indexOptions: index.options }
@@ -527,7 +523,7 @@ export default class MongoDBStorage {
       const message = `Unexpected error in handling Collection '${tenantID}.${name}': ${error.message as string}`;
       Logging.logConsoleError(message);
       await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MONGO_DB,
         module: MODULE_NAME, method: 'handleIndexesInCollection',
         message, detailedMessages: { error: error.stack, tenantID, name, indexes }

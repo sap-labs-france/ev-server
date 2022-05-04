@@ -5,17 +5,28 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Mocha Tests",
-      "type": "pwa-node",
-      "request": "attach",
-      "port": 9230,
-      "timeout": 30000,
-      "skipFiles": [
-        "<node_internals>/**"
+      "type": "node",
+      "name": "Run all Tests",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "args": [
+        "--i",
+        "--runInBand",
+        "--config='./test/jest.config.ts'",
+        "--reporters='default'",
+        "--reporters='./JestEvseReporter'",
+        "--watchAll=false",
       ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "disableOptimisticBPs": false,
+      "windows": {
+        "program": "${workspaceFolder}/node_modules/jest/bin/jest"
+      }
     },
     {
-      "name": "Debug ev-server",
+      "name": "Debug",
       "type": "pwa-node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
@@ -30,7 +41,7 @@
       "stopOnEntry": true
     },
     {
-      "name": "Debug ev-server Nodemon",
+      "name": "Debug (nodemon)",
       "type": "pwa-node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
@@ -50,14 +61,14 @@
       "stopOnEntry": true
     },
     {
-      "name": "Debug mochatest:createContext",
+      "name": "Debug Tests 'createContext'",
       "type": "pwa-node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run-script",
-        "mochatest:createContext"
+        "test:createContext"
       ],
       "sourceMaps": true,
       "resolveSourceMapLocations": [

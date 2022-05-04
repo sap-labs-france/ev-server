@@ -36,7 +36,7 @@ export default class LockingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const locksCountMDB = await global.database.getCollection<DatabaseCount>(Constants.DEFAULT_TENANT, 'locks')
+    const locksCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'locks')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray();
     // Check if only the total count is requested
@@ -62,9 +62,9 @@ export default class LockingStorage {
       $limit: dbParams.limit
     });
     // Read DB
-    const locksMDB = await global.database.getCollection<Lock>(Constants.DEFAULT_TENANT, 'locks')
-      .aggregate<Lock>(aggregation)
-      .toArray();
+    const locksMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'locks')
+      .aggregate<any>(aggregation)
+      .toArray() as Lock[];
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getLocks', startTime, aggregation, locksMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(locksCountMDB[0]),
@@ -85,7 +85,7 @@ export default class LockingStorage {
     // Transfer
     const lockMDB = {
       _id: lockToSave.id,
-      tenantID: lockToSave.tenantID !== Constants.DEFAULT_TENANT ? DatabaseUtils.convertToObjectID(lockToSave.tenantID) : null,
+      tenantID: lockToSave.tenantID !== Constants.DEFAULT_TENANT_ID ? DatabaseUtils.convertToObjectID(lockToSave.tenantID) : null,
       entity: lockToSave.entity,
       key: lockToSave.key,
       type: lockToSave.type,
@@ -94,7 +94,7 @@ export default class LockingStorage {
       hostname: lockToSave.hostname
     };
     // Create
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'locks')
       .insertOne(lockMDB);
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'insertLock', startTime, lockToSave);
   }
@@ -102,7 +102,7 @@ export default class LockingStorage {
   public static async deleteLock(id: string): Promise<boolean> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete
-    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'locks')
       .findOneAndDelete({ '_id': id });
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteLock', startTime, { id });
     return result.value !== null;
@@ -111,7 +111,7 @@ export default class LockingStorage {
   public static async deleteLockByHostname(hostname:string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'locks')
       .deleteMany({ 'hostname': hostname });
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteLockByHostname', startTime, { hostname });
   }
