@@ -1005,61 +1005,6 @@ export default class UtilsService {
 
   public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,
       filteredRequest: ChargingProfile, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Charging Profile ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfChargingProfileIsValid'
-      });
-    }
-    if (!Utils.objectHasProperty(filteredRequest, 'chargingStationID')) {
-      throw new AppError({
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Station ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!Utils.objectHasProperty(filteredRequest, 'connectorID')) {
-      throw new AppError({
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Connector ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.profile) {
-      throw new AppError({
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Profile is mandatory',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel ||
-      !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
-      !filteredRequest.profile.chargingSchedule) {
-      throw new AppError({
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Invalid Charging Profile',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
-      throw new AppError({
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Invalid Charging Profile\'s Schedule',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
     if (filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.length === 0) {
       throw new AppError({
         action: ServerAction.CHARGING_PROFILE_UPDATE,
@@ -1189,38 +1134,6 @@ export default class UtilsService {
   }
 
   public static checkIfTenantValid(tenant: Partial<Tenant>, req: Request): void {
-    if (req.method !== 'POST' && !tenant.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tenant ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
-      });
-    }
-    if (!tenant.name) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tenant Name is mandatory',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
-      });
-    }
-    if (!tenant.components) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tenant Components is mandatory',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
-      });
-    }
-    if (!tenant.components) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tenant Components is mandatory',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
-      });
-    }
     if (tenant.components.oicp?.active && tenant.components.ocpi?.active) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1373,36 +1286,6 @@ export default class UtilsService {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Password is not valid',
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (filteredRequest.phone && !Utils.isPhoneValid(filteredRequest.phone)) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Phone '${filteredRequest.phone}' is not valid`,
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (filteredRequest.mobile && !Utils.isPhoneValid(filteredRequest.mobile)) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User Mobile is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (filteredRequest.plateID && !Utils.isPlateIDValid(filteredRequest.plateID)) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Plate ID '${filteredRequest.plateID}' is not valid`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
