@@ -466,11 +466,7 @@ export default class SiteAreaStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Project
-    if (projectFields) {
-      DatabaseUtils.projectFields(aggregation,
-        [...projectFields, 'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastSeen',
-          'chargingStations.deleted', 'chargingStations.cannotChargeInParallel', 'chargingStations.public', 'chargingStations.inactive']);
-    }
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const siteAreasMDB = await global.database.getCollection<any>(tenant.id, 'siteareas')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
