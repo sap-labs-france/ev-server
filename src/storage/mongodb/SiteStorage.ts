@@ -390,6 +390,25 @@ export default class SiteStorage {
     aggregation.push({
       $match: filters
     });
+    // Charging Station Connnector stats
+    if (params.withAvailableChargingStations) {
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteID',
+        asField: 'chargingStations' });
+      // Unwind Charging Stations and Connectors
+      aggregation.push(
+        { $unwind: { path: '$chargingStations', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$chargingStations.connectors', preserveNullAndEmptyArrays: true } }
+      );
+      // Add Status fields
+      DatabaseUtils.addConnectorStatusFields(aggregation);
+      // Group back Connectors
+      DatabaseUtils.groupBackToArray(aggregation, 'chargingStations.connectors', 'chargingStations.id',
+        DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
+      // Group back Charging Stations
+      DatabaseUtils.groupBackToArray(aggregation, 'chargingStations', 'id',
+        DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
+    }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
@@ -464,37 +483,11 @@ export default class SiteStorage {
     const sitesMDB = await global.database.getCollection<any>(tenant.id, 'sites')
       .aggregate(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray() as Site[];
-    const sites = [];
-    // TODO: Handle this coding into the MongoDB request
-    if (sitesMDB && sitesMDB.length > 0) {
-      // Create
-      for (const siteMDB of sitesMDB) {
-        if (params.withOnlyChargingStations || params.withAvailableChargingStations) {
-        // Get the chargers
-          const chargingStations = await ChargingStationStorage.getChargingStations(tenant,
-            { siteIDs: [siteMDB.id], includeDeleted: false, withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT);
-          // Skip site with no charging stations if asked
-          if (params.withOnlyChargingStations && chargingStations.count === 0) {
-            continue;
-          }
-          // Add counts of Available/Occupied Chargers/Connectors
-          if (params.withAvailableChargingStations) {
-          // Set the Charging Stations' Connector statuses
-            siteMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);
-          }
-        }
-        if (!siteMDB.autoUserSiteAssignment) {
-          siteMDB.autoUserSiteAssignment = false;
-        }
-        // Add
-        sites.push(siteMDB);
-      }
-    }
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSites', startTime, aggregation, sites);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSites', startTime, aggregation, sitesMDB);
     return {
       projectFields: projectFields,
       count: DatabaseUtils.getCountFromDatabaseCount(sitesCountMDB[0]),
-      result: sites
+      result: sitesMDB
     };
   }
 

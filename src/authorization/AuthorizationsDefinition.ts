@@ -229,7 +229,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectors'
         ]
       },
       {
@@ -735,7 +735,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'connectors'
         ],
       },
       {
@@ -1012,7 +1012,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'connectors'
         ]
       },
       {

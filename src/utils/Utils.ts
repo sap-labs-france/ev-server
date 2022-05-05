@@ -321,62 +321,6 @@ export default class Utils {
     return true;
   }
 
-  public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
-    const connectorStats: ConnectorStats = {
-      totalConnectors: 0,
-      chargingConnectors: 0,
-      suspendedConnectors: 0,
-      availableConnectors: 0,
-      unavailableConnectors: 0,
-      preparingConnectors: 0,
-      finishingConnectors: 0,
-      faultedConnectors: 0
-    };
-    // Chargers
-    for (const chargingStation of chargingStations) {
-      // Check not deleted
-      if (chargingStation.deleted) {
-        continue;
-      }
-      // Handle Connectors
-      if (!chargingStation.connectors) {
-        chargingStation.connectors = [];
-      }
-      for (const connector of chargingStation.connectors) {
-        if (!connector) {
-          continue;
-        }
-        connectorStats.totalConnectors++;
-        // Not Available?
-        if (chargingStation.inactive ||
-          connector.status === ChargePointStatus.UNAVAILABLE) {
-          connectorStats.unavailableConnectors++;
-          // Available?
-        } else if (connector.status === ChargePointStatus.AVAILABLE) {
-          connectorStats.availableConnectors++;
-          // Suspended?
-        } else if (connector.status === ChargePointStatus.SUSPENDED_EV ||
-          connector.status === ChargePointStatus.SUSPENDED_EVSE) {
-          connectorStats.suspendedConnectors++;
-          // Charging?
-        } else if (connector.status === ChargePointStatus.CHARGING ||
-          connector.status === ChargePointStatus.OCCUPIED) {
-          connectorStats.chargingConnectors++;
-          // Faulted?
-        } else if (connector.status === ChargePointStatus.FAULTED) {
-          connectorStats.faultedConnectors++;
-          // Preparing?
-        } else if (connector.status === ChargePointStatus.PREPARING) {
-          connectorStats.preparingConnectors++;
-          // Finishing?
-        } else if (connector.status === ChargePointStatus.FINISHING) {
-          connectorStats.finishingConnectors++;
-        }
-      }
-    }
-    return connectorStats;
-  }
-
   public static getLanguageFromLocale(locale: string): string {
     let language = Constants.DEFAULT_LANGUAGE;
     // Get the language
