@@ -1,6 +1,8 @@
 import { BillingInvoice, BillingPaymentMethod } from './Billing';
 import { Car, CarCatalog } from './Car';
+import Site, { SiteUser } from './Site';
 import Transaction, { TransactionStats } from './Transaction';
+import User, { UserSite } from './User';
 
 import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
@@ -8,10 +10,8 @@ import Company from './Company';
 import { Log } from './Log';
 import PricingDefinition from './Pricing';
 import RegistrationToken from './RegistrationToken';
-import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
-import User from './User';
 
 export interface DeletedResult {
   acknowledged?: boolean;
@@ -42,6 +42,14 @@ export interface SiteDataResult extends DataResult<Site> {
   canAssignUsers: boolean;
   canUnassignUsers: boolean;
   canListCompanies: boolean;
+}
+
+export interface UserSiteDataResult extends DataResult<UserSite> {
+  canUpdateUserSite: boolean;
+}
+
+export interface SiteUserDataResult extends DataResult<SiteUser> {
+  canUpdateUserSite: boolean;
 }
 
 export interface LogDataResult extends DataResult<Log> {

@@ -189,6 +189,7 @@ export interface AuthorizationActions {
 
 export interface UserAuthorizationActions extends AuthorizationActions {
   canAssignSites?: boolean;
+  canUnassignSites?: boolean;
 }
 
 export interface TagAuthorizationActions extends AuthorizationActions {
@@ -240,6 +241,7 @@ export enum DynamicAuthorizationFilterName {
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
   EXCLUDE_ACTION = 'ExcludeAction',
+  SITES_ADMIN_OR_OWNER = 'SitesAdminOrOwner',
 }
 
 export enum DynamicAuthorizationAssertName {
@@ -257,6 +259,7 @@ export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
   EXCLUDE_ACTION = 'ExcludeAction',
+  SITES_ADMIN_OR_OWNER = 'SitesAdminOrOwner',
 }
 
 export interface DynamicAuthorizationDataSourceData { }
@@ -266,6 +269,10 @@ export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extend
 }
 
 export interface SitesAdminDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteIDs?: string[];
+}
+
+export interface SitesAdminOrOwnerDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
 

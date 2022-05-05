@@ -3,7 +3,7 @@ import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import Busboy, { FileInfo } from 'busboy';
 import { Car, CarType } from '../../../../types/Car';
-import { DataResult, UserDataResult } from '../../../../types/DataResult';
+import { DataResult, SiteUserDataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -113,7 +113,7 @@ export default class UserService {
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Check and Get Sites
-    const sites = await UtilsService.checkUserSitesAuthorization(
+    const sites = await UtilsService.checkAndGetUserSitesAuthorization(
       req.tenant, req.user, user, filteredRequest.siteIDs, action);
     // Save
     if (action === ServerAction.ADD_SITES_TO_USER) {
@@ -367,6 +367,8 @@ export default class UserService {
       siteOwner: userSite.siteOwner,
       site: userSite.site
     }));
+    // Add Auth flags
+    await AuthorizationService.addSiteUsersAuthorizations(req.tenant, req.user, sites as SiteUserDataResult , authorizations);
     res.json(sites);
     next();
   }

@@ -1,21 +1,18 @@
-import { Action, DynamicAuthorizationDataSourceName, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
+import { SiteDataResult, UserSiteDataResult } from '../../../../types/DataResult';
 
-import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
-import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
+import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
-import { SiteDataResult } from '../../../../types/DataResult';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SiteValidator from '../validator/SiteValidator';
-import SitesAdminDynamicAuthorizationDataSource from '../../../../authorization/dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
@@ -96,7 +93,7 @@ export default class SiteService {
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
     // Check and Get Users
-    const users = await UtilsService.checkSiteUsersAuthorization(
+    const users = await UtilsService.checkAndGetSiteUsersAuthorization(
       req.tenant, req.user, site, filteredRequest.userIDs, action);
     // Save
     if (action === ServerAction.ADD_USERS_TO_SITE) {
@@ -147,6 +144,8 @@ export default class SiteService {
       },
       authorizations.projectFields
     );
+    // add user auth
+    await AuthorizationService.addUserSitesAuthorizations(req.tenant, req.user, users as UserSiteDataResult, authorizations);
     res.json(users);
     next();
   }
@@ -209,13 +208,6 @@ export default class SiteService {
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
-    }
-    // Check Site Admin filter
-    if (filteredRequest.SiteAdmin) {
-      // Override Site IDs
-      const siteAdminDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
-        req.tenant, req.user, DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;
-      authorizations.filters = { ...authorizations.filters, ...siteAdminDataSource.getData() };
     }
     // Get the sites
     const sites = await SiteStorage.getSites(req.tenant,
