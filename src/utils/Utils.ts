@@ -1,41 +1,41 @@
-import { AxiosError } from 'axios';
-import bcrypt from 'bcryptjs';
-import { Promise } from 'bluebird';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { Car, CarCatalog } from '../types/Car';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
+import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
+import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
+import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenant';
+import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
+import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes, randomUUID } from 'crypto';
+import global, { EntityData } from '../types/GlobalType';
+
+import Address from '../types/Address';
+import { AxiosError } from 'axios';
+import BackendError from '../exception/BackendError';
+import Configuration from './Configuration';
+import ConnectorStats from '../types/ConnectorStats';
+import Constants from './Constants';
 import { Decimal } from 'decimal.js';
+import LoggingHelper from './LoggingHelper';
+import { Promise } from 'bluebird';
+import QRCode from 'qrcode';
 import { Request } from 'express';
+import { ServerAction } from '../types/Server';
+import SiteArea from '../types/SiteArea';
+import Tag from '../types/Tag';
+import UserToken from '../types/UserToken';
+import { WebSocketCloseEventStatusString } from '../types/WebSocket';
+import _ from 'lodash';
+import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import http from 'http';
-import _ from 'lodash';
 import moment from 'moment';
 import { nanoid } from 'nanoid';
 import os from 'os';
 import passwordGenerator from 'password-generator';
 import path from 'path';
-import QRCode from 'qrcode';
 import tzlookup from 'tz-lookup';
 import validator from 'validator';
-import BackendError from '../exception/BackendError';
-import Address from '../types/Address';
-import { Car, CarCatalog } from '../types/Car';
-import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
-import ConnectorStats from '../types/ConnectorStats';
-import global, { EntityData } from '../types/GlobalType';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
-import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
-import { ServerAction } from '../types/Server';
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import SiteArea from '../types/SiteArea';
-import Tag from '../types/Tag';
-import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenant';
-import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
-import User, { UserRole, UserStatus } from '../types/User';
-import UserToken from '../types/UserToken';
-import { WebSocketCloseEventStatusString } from '../types/WebSocket';
-import Configuration from './Configuration';
-import Constants from './Constants';
-import LoggingHelper from './LoggingHelper';
-
 
 const MODULE_NAME = 'Utils';
 
@@ -323,8 +323,6 @@ export default class Utils {
 
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
     const connectorStats: ConnectorStats = {
-      totalChargers: 0,
-      availableChargers: 0,
       totalConnectors: 0,
       chargingConnectors: 0,
       suspendedConnectors: 0,
@@ -340,8 +338,6 @@ export default class Utils {
       if (chargingStation.deleted) {
         continue;
       }
-      // Check connectors
-      connectorStats.totalChargers++;
       // Handle Connectors
       if (!chargingStation.connectors) {
         chargingStation.connectors = [];
@@ -375,17 +371,6 @@ export default class Utils {
           // Finishing?
         } else if (connector.status === ChargePointStatus.FINISHING) {
           connectorStats.finishingConnectors++;
-        }
-      }
-      // Handle Chargers
-      for (const connector of chargingStation.connectors) {
-        if (!connector) {
-          continue;
-        }
-        // Check if Available
-        if (!chargingStation.inactive && connector.status === ChargePointStatus.AVAILABLE) {
-          connectorStats.availableChargers++;
-          break;
         }
       }
     }

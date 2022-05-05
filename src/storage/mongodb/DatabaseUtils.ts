@@ -1,11 +1,11 @@
 import { AggregateOptions, ObjectId } from 'mongodb';
+import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { DatabaseCount } from '../../types/GlobalType';
 import DbLookup from '../../types/database/DbLookup';
-import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import Tenant from '../../types/Tenant';
 import User from '../../types/User';
 import UserToken from '../../types/UserToken';
@@ -16,6 +16,61 @@ const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 const MODULE_NAME = 'DatabaseUtils';
 
 export default class DatabaseUtils {
+  public static addConnectorStatusFields(aggregation: any[]): void {
+    DatabaseUtils.addConnectorStatusField(aggregation, 'availableConnectors', ChargePointStatus.AVAILABLE);
+    DatabaseUtils.addConnectorStatusField(aggregation, 'unavailableConnectors', ChargePointStatus.UNAVAILABLE);
+    DatabaseUtils.addConnectorStatusField(aggregation, 'preparingConnectors', ChargePointStatus.PREPARING);
+    DatabaseUtils.addConnectorStatusField(aggregation, 'finishingConnectors', ChargePointStatus.FINISHING);
+    DatabaseUtils.addConnectorStatusField(aggregation, 'faultedConnectors', ChargePointStatus.FAULTED);
+    DatabaseUtils.addConnectorStatusesField(aggregation, 'chargingConnectors', [ChargePointStatus.CHARGING, ChargePointStatus.OCCUPIED]);
+    DatabaseUtils.addConnectorStatusesField(aggregation, 'suspendedConnectors', [ChargePointStatus.SUSPENDED_EVSE, ChargePointStatus.SUSPENDED_EV]);
+    aggregation.push({ $addFields: { 'connectors.totalConnectors': 1 } });
+  }
+
+  public static getConnectorStatusAggregationFields(): Record<string, any> {
+    return {
+      totalConnectors : { $sum : '$connectors.totalConnectors' },
+      unavailableConnectors : { $sum : '$connectors.unavailableConnectors' },
+      chargingConnectors : { $sum : '$connectors.chargingConnectors' },
+      suspendedConnectors : { $sum : '$connectors.suspendedConnectors' },
+      availableConnectors : { $sum : '$connectors.availableConnectors' },
+      faultedConnectors : { $sum : '$connectors.faultedConnectors' },
+      preparingConnectors : { $sum : '$connectors.preparingConnectors' },
+      finishingConnectors : { $sum : '$connectors.finishingConnectors' },
+    };
+  }
+
+  public static addConnectorStatusField(aggregation: any[], fieldName: string, connectorStatus: ChargePointStatus): void {
+    aggregation.push({
+      $addFields: {
+        [`connectors.${fieldName}`]: {
+          $cond: {
+            if: {
+              $eq: ['$chargingStations.connectors.status', connectorStatus]
+            },
+            then: 1, else: 0
+          }
+        }
+      }
+    });
+  }
+
+  public static addConnectorStatusesField(aggregation: any[], fieldName: string, connectorStatuses: ChargePointStatus[]): void {
+    aggregation.push({
+      $addFields: {
+        [`connectors.${fieldName}`]: {
+          $cond: {
+            if : {
+              $or : connectorStatuses.map((connectorStatus) =>
+                ({ $eq: ['$chargingStations.connectors.status', connectorStatus] }))
+            },
+            then: 1, else: 0
+          }
+        }
+      }
+    });
+  }
+
   public static getCountFromDatabaseCount(databaseCount: DatabaseCount): number {
     if (databaseCount) {
       if (databaseCount.count === Constants.DB_RECORD_COUNT_CEIL) {
@@ -420,6 +475,57 @@ export default class DatabaseUtils {
     }
   }
 
+  public static groupBackToArray(aggregation: any[], arrayName: string, arrayPropertyID = 'id',
+      groupAggregation: Record<string, any> = {}, rootAggregationName = ''): void {
+    // Keep the prop as variable in the query (eg. keep 'connectors' as var instead fo 'chargingStations.connectors' which is invalid in MongoDB )
+    const arrayVariableNames = arrayName.split('.');
+    const arrayVariableName = arrayVariableNames[arrayVariableNames.length - 1];
+    // Group back to arrays
+    aggregation.push({
+      $group: {
+        '_id': {
+          '_id': '$_id',
+          id: `$${arrayPropertyID}`
+        },
+        root: { $first: '$$ROOT' },
+        [`${arrayVariableName}`]: { $push: `$${arrayName}` },
+        ...groupAggregation
+      }
+    });
+    // Replace Array
+    aggregation.push({
+      $addFields: {
+        [`root.${arrayName}`]: {
+          $cond: {
+            if: {
+              $or: [
+                { $eq: [ `$${arrayVariableName}`, [{}] ] },
+                { $eq: [ `$${arrayVariableName}`, [null] ] }
+              ]
+            },
+            then: [],
+            else: `$${arrayVariableName}`
+          }
+        }
+      }
+    });
+    // Replace Aggregation
+    if (groupAggregation && rootAggregationName) {
+      // Build aggregated fileds
+      const aggregatedFields = Object.keys(groupAggregation).reduce((previousValue: Record<string,any>, key: string) =>
+        ({
+          ...previousValue,
+          [`root.${rootAggregationName}.${key}`]:`$${key}`
+        }), {});
+      // Add
+      aggregation.push({
+        $addFields: aggregatedFields
+      });
+    }
+    // Replace root
+    aggregation.push({ $replaceRoot: { newRoot: '$root' } });
+  }
+
   private static buildChargingStationInactiveFlagQuery(): Record<string, any> {
     // Add inactive field
     return {
@@ -485,43 +591,5 @@ export default class DatabaseUtils {
     aggregation.push({
       $project: projectFields
     });
-  }
-
-  private static groupBackToArray(aggregation: any[], arrayName: string, arrayPropertyID = 'id'): void {
-    // Keep the prop as variable in the query (eg. keep 'connectors' as var instead fo 'chargingStations.connectors' which is invalid in MongoDB )
-    const arrayVariableNames = arrayName.split('.');
-    const arrayVariableName = arrayVariableNames[arrayVariableNames.length - 1];
-    // Group back to arrays
-    aggregation.push(
-      JSON.parse(`{
-        "$group": {
-          "_id": {
-            "_id": "$_id",
-            "id": "$${arrayPropertyID}"
-          },
-          "root": { "$first": "$$ROOT" },
-          "${arrayVariableName}": { "$push": "$${arrayName}" }
-        }
-      }`)
-    );
-    // Replace array
-    aggregation.push(JSON.parse(`{
-      "$addFields": {
-        "root.${arrayName}": {
-          "$cond": {
-            "if": {
-              "$or": [
-                { "$eq": [ "$${arrayVariableName}", [{}] ] },
-                { "$eq": [ "$${arrayVariableName}", [null] ] }
-              ]
-            },
-            "then": [],
-            "else": "$${arrayVariableName}"
-          }
-        }
-      }
-    }`));
-    // Replace root
-    aggregation.push({ $replaceRoot: { newRoot: '$root' } });
   }
 }
