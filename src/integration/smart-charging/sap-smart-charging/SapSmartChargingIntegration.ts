@@ -63,11 +63,22 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
   }
 
   public async buildChargingProfiles(sourceSiteArea: SiteArea, excludedChargingStations?: string[]): Promise<ChargingProfile[]> {
-    // Get all site areas of Site to build site area tree
+    // Get Site Areas of Site
     const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant,
-      { siteIDs: [sourceSiteArea.siteID], withChargingStations: true, withAssets: true,
-        chargingStationConnectorStatuses: [ChargePointStatus.CHARGING, ChargePointStatus.SUSPENDED_EVSE] },
-      Constants.DB_PARAMS_MAX_LIMIT);
+      { siteIDs: [sourceSiteArea.siteID], withAssets: true }, Constants.DB_PARAMS_MAX_LIMIT);
+    // Get Charging Stations of Site
+    if (!Utils.isEmptyArray(siteAreas.result)) {
+      const chargingStations = await ChargingStationStorage.getChargingStations(this.tenant,
+        { siteIDs: [sourceSiteArea.siteID], connectorStatuses: [ChargePointStatus.CHARGING, ChargePointStatus.SUSPENDED_EVSE] },
+        Constants.DB_PARAMS_MAX_LIMIT);
+      // Assign Charging Stations to Site Areas
+      if (!Utils.isEmptyArray(chargingStations.result)) {
+        for (const siteArea of siteAreas.result) {
+          siteArea.chargingStations = chargingStations.result.filter(
+            (chargingStation) => chargingStation.siteID === siteArea.siteID);
+        }
+      }
+    }
     // Build site area trees
     const siteAreaTrees = Utils.buildSiteAreasTree(siteAreas.result);
     // Find tree which contains the source site area of smart charging
