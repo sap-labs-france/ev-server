@@ -7,7 +7,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.USER, action: Action.LIST,
         attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy.name', 'createdBy.firstName',
           'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
           'billingData.customerID', 'billingData.lastChangedOn'
         ],
@@ -104,7 +104,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.LIST, Action.EXPORT, Action.IMPORT
         ],
         attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy.name', 'createdBy.firstName',
           'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
           'billingData.customerID', 'billingData.lastChangedOn', 'technical', 'freeAccess'
         ],
@@ -274,8 +274,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'address.coordinates', 'site.id', 'site.name', 'site.public', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn',
-          'lastChangedBy.name', 'lastChangedBy.firstName', 'connectors'
+          'address.coordinates', 'site.id', 'site.name', 'site.public', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters',
+          'createdOn', 'createdBy.name', 'createdBy.firstName', 'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectors'
         ]
       },
       {
