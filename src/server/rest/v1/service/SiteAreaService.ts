@@ -272,8 +272,6 @@ export default class SiteAreaService {
       Action.CREATE, Entity.SITE_AREA, MODULE_NAME, 'handleCreateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaCreateReq(req.body);
-    // Check request data is valid
-    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check Site Area auth
     await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
       {}, Action.CREATE, filteredRequest);
@@ -307,8 +305,6 @@ export default class SiteAreaService {
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleUpdateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaUpdateReq(req.body);
-    // Check Mandatory fields
-    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check and Get SiteArea
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest, {

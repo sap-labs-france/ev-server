@@ -107,7 +107,6 @@ export default class PricingService {
       Action.CREATE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleCreatePricingDefinition');
     // Filter
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionCreate(req.body);
-    UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Get dynamic auth
     await AuthorizationService.checkAndGetPricingDefinitionAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
@@ -145,8 +144,6 @@ export default class PricingService {
       Action.UPDATE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleUpdatePricingDefinition');
     // Filter
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionUpdate(req.body);
-    // Check Mandatory fields
-    UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Check and Get Pricing
     let pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
