@@ -1838,7 +1838,5 @@ export default class OCPPUtils {
       chargePoint.power += connector.power;
       chargePoint.connectorIDs.push(connector.connectorId);
     }
-    // Reset Charging Station
-    chargingStation.maximumPower = chargePoint.power;
   }
 }
