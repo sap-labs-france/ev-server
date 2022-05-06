@@ -6,7 +6,7 @@
   "configurations": [
     {
       "type": "node",
-      "name": "Run all Tests",
+      "name": "vscode-jest-tests",
       "request": "launch",
       "program": "${workspaceFolder}/node_modules/.bin/jest",
       "args": [
