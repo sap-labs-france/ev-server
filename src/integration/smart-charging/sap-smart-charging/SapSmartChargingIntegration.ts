@@ -63,6 +63,8 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
   }
 
   public async buildChargingProfiles(sourceSiteArea: SiteArea, excludedChargingStations?: string[]): Promise<ChargingProfile[]> {
+    const chargingStationIDs = [];
+    const transactionIDs = [];
     // Get Site Areas of Site
     const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant,
       { siteIDs: [sourceSiteArea.siteID], withAssets: true }, Constants.DB_PARAMS_MAX_LIMIT);
@@ -73,9 +75,20 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         Constants.DB_PARAMS_MAX_LIMIT);
       // Assign Charging Stations to Site Areas
       if (!Utils.isEmptyArray(chargingStations.result)) {
+        // TODO: Store the Site Area ID in the DB profiles and use siteAreaIDs param in this DB request.
+        // Get all the charging station IDs and transaction IDs from site areas to retrieve current profiles and transactions
+        for (const chargingStation of chargingStations.result) {
+          chargingStationIDs.push(chargingStation.id);
+          for (const connector of chargingStation.connectors) {
+            if (connector.currentTransactionID) {
+              transactionIDs.push(connector.currentTransactionID);
+            }
+          }
+        }
+        // Attach Charging Station to Site Area
         for (const siteArea of siteAreas.result) {
           siteArea.chargingStations = chargingStations.result.filter(
-            (chargingStation) => chargingStation.siteID === siteArea.siteID);
+            (chargingStation) => chargingStation.siteAreaID === siteArea.id);
         }
       }
     }
@@ -83,20 +96,6 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     const siteAreaTrees = Utils.buildSiteAreasTree(siteAreas.result);
     // Find tree which contains the source site area of smart charging
     const rootSiteArea = Utils.getRootSiteAreaFromSiteAreasTree(sourceSiteArea.id, siteAreaTrees);
-    // TODO: Store the Site Area ID in the DB profiles and use siteAreaIDs param in this DB request.
-    // Get all the charging station IDs and transaction IDs from site areas to retrieve current profiles and transactions
-    const chargingStationIDs = [];
-    const transactionIDs = [];
-    for (const siteArea of siteAreas.result) {
-      for (const chargingStation of siteArea.chargingStations) {
-        chargingStationIDs.push(chargingStation.id);
-        for (const connector of chargingStation.connectors) {
-          if (connector.currentTransactionID) {
-            transactionIDs.push(connector.currentTransactionID);
-          }
-        }
-      }
-    }
     // Get all Profiles from the site areas
     const currentChargingProfilesResponse = await ChargingStationStorage.getChargingProfiles(
       this.tenant, { chargingStationIDs: chargingStationIDs, profilePurposeType:  ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
