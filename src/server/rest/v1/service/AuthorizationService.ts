@@ -626,7 +626,7 @@ public static async addChargingStationTemplateAuthorizations(tenant: Tenant, use
         'site.id', 'site.public', 'site.name', 'site.address', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus', 'tariffID',
         'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
         'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
-        'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
+        'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit', 'companyID'
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };

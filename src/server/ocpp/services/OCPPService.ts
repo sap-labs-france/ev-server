@@ -115,13 +115,14 @@ export default class OCPPService {
     try {
       // Get the header infos
       const { chargingStation, tenant } = headers;
+      if (!heartbeat) {
+        heartbeat = {} as OCPPHeartbeatRequestExtended;
+      }
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heart Beat Object
-      heartbeat = {
-        chargeBoxID: chargingStation.id,
-        timestamp: new Date(),
-        timezone: Utils.getTimezone(chargingStation.coordinates)
-      };
+      heartbeat.chargeBoxID = chargingStation.id;
+      heartbeat.timestamp = new Date();
+      heartbeat.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Save Heart Beat
       await OCPPStorage.saveHeartbeat(tenant, heartbeat);
       await Logging.logInfo({
