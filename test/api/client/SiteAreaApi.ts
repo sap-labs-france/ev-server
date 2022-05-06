@@ -56,7 +56,7 @@ export default class SiteAreaApi extends CrudApi {
     return super.update({ assetIDs }, this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_AREA_ASSIGN_ASSETS, { id: siteAreaID }));
   }
 
-  public async removeAssets(siteAreaID: string, assetIDs) {
+  public async removeAssets(siteAreaID: string, assetIDs: string[]) {
     return super.update({ assetIDs }, this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_AREA_REMOVE_ASSETS, { id: siteAreaID }));
   }
 }

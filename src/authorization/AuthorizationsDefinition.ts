@@ -7,8 +7,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.USER, action: Action.LIST,
         attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
-          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy.name', 'createdBy.firstName',
+          'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
           'billingData.customerID', 'billingData.lastChangedOn'
         ],
         condition: {
@@ -104,8 +104,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.LIST, Action.EXPORT, Action.IMPORT
         ],
         attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
-          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy.name', 'createdBy.firstName',
+          'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
           'billingData.customerID', 'billingData.lastChangedOn', 'technical', 'freeAccess'
         ],
         condition: {
@@ -229,7 +229,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectors'
         ]
       },
       {
@@ -274,7 +274,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'address.coordinates', 'site.id', 'site.name', 'site.public', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+          'address.coordinates', 'site.id', 'site.name', 'site.public', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters',
+          'createdOn', 'createdBy.name', 'createdBy.firstName', 'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectors'
         ]
       },
       {
@@ -734,7 +735,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'connectors'
         ],
       },
       {
@@ -763,7 +764,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'address.coordinates', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'address.coordinates', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer',
+          'distanceMeters', 'createdOn', 'lastChangedOn', 'connectors'
         ],
       },
       {
@@ -1010,7 +1012,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'connectors'
         ]
       },
       {
@@ -1025,7 +1027,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'address.coordinates', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'address.coordinates', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer',
+          'distanceMeters', 'createdOn', 'lastChangedOn', 'connectors'
         ]
       },
       {
