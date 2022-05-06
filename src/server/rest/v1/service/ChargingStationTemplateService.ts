@@ -1,29 +1,19 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { NextFunction, Request, Response } from 'express';
-import Busboy, { FileInfo } from 'busboy';
 
 import AppAuthError from '../../../../exception/AppAuthError';
-import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
-import Constants from '../../../../utils/Constants';
-import Logging from '../../../../utils/Logging';
-import LoggingHelper from '../../../../utils/LoggingHelper';
-import LockingHelper from '../../../../locking/LockingHelper';
-import LockingManager from '../../../../locking/LockingManager';
+import Authorizations from '../../../../authorization/Authorizations';
+import { ChargingStationTemplate } from '../../../../types/ChargingStation';
 import { ChargingStationTemplateDataResult } from '../../../../types/DataResult';
 import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
 import ChargingStationTemplateValidator from '../validator/ChargingStationTemplateValidator';
+import Constants from '../../../../utils/Constants';
+import { HTTPAuthError } from '../../../../types/HTTPError';
+import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import { ServerAction } from '../../../../types/Server';
-import { TenantComponents } from '../../../../types/Tenant';
-import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import moment from 'moment';
-import Authorizations from '../../../../authorization/Authorizations';
-import { Readable } from 'stream';
-import JSONStream from 'JSONStream';
-import ChargingStationTemplate from '../../../../types/ChargingStation';
 
 const MODULE_NAME = 'ChargingStationTemplateService';
 
@@ -44,60 +34,18 @@ export default class ChargingStationTemplateService {
     }
     const newChargingStationTemplate: ChargingStationTemplate = {
       id: filteredRequest.id,
-      templateHash: filteredRequest.hash,
-      templateHashCapabilities: filteredRequest.hashCapabilities,
-      templateHashTechnical: filteredRequest.hashTechnical,
-      templateHashOcppStandard: filteredRequest.hashOcppStandard,
-      templateHashOcppVendor: filteredRequest.hashOcppVendor,
-      issuer: filteredRequest.issuer,
-      public: filteredRequest.public,
-      siteAreaID: filteredRequest.siteAreaID,
-      siteID: filteredRequest.siteID,
-      companyID: filteredRequest.companyID,
-      chargePointSerialNumber: filteredRequest.chargePointSerialNumber,
-      chargePointModel: filteredRequest.chargePointModel,
-      chargeBoxSerialNumber: filteredRequest.chargeBoxSerialNumber,
+      hash: filteredRequest.hash,
+      hashCapabilities: filteredRequest.hashCapabilities,
+      hashTechnical: filteredRequest.hashTechnical,
+      hashOcppStandard: filteredRequest.hashOcppStandard,
+      hashOcppVendor: filteredRequest.hashOcppVendor,
       chargePointVendor: filteredRequest.chargePointVendor,
-      iccid: filteredRequest.iccid,
-      imsi: filteredRequest.imsi,
-      meterType: filteredRequest.meterType,
-      firmwareVersion: filteredRequest.firmwareVersion,
-      firmwareUpdateStatus: filteredRequest.firmwareUpdateStatus,
-      meterSerialNumber: filteredRequest.meterSerialNumber,
-      endpoint: filteredRequest.endpoint,
-      ocppVersion: filteredRequest.ocppVersion,
-      ocppProtocol: filteredRequest.ocppProtocol,
-      cloudHostIP: filteredRequest.cloudHostIP,
-      cloudHostName: filteredRequest.cloudHostName,
-      lastSeen: new Date(),
-      deleted: filteredRequest.deleted,
-      inactive: filteredRequest.inactive,
-      tokenID: filteredRequest.tokenID,
-      forceInactive: filteredRequest.forceInactive,
-      manualConfiguration: filteredRequest.manualConfiguration,
-      lastReboot: new Date(),
-      chargingStationURL: filteredRequest.chargingStationURL,
-      maximumPower: filteredRequest.maximumPower,
-      masterSlave: filteredRequest.masterSlave,
-      voltage: filteredRequest.voltage,
-      excludeFromSmartCharging: filteredRequest.excludeFromSmartCharging,
-      powerLimitUnit: filteredRequest.powerLimitUnit,
-      coordinates: filteredRequest.coordinates,
-      chargePoints: filteredRequest.chargePoints,
-      connectors: filteredRequest.connectors,
-      backupConnectors: filteredRequest.backupConnectors,
-      remoteAuthorizations: filteredRequest.remoteAuthorizations,
-      currentIPAddress: filteredRequest.currentIPAddress,
-      siteArea: filteredRequest.siteArea,
-      site: filteredRequest.site,
       capabilities: filteredRequest.capabilities,
       ocppStandardParameters: filteredRequest.ocppStandardParameters,
       ocppVendorParameters: filteredRequest.ocppVendorParameters,
-      distanceMeters: filteredRequest.distanceMeters,
-      ocpiData: filteredRequest.ocpiData,
-      oicpData: filteredRequest.oicpData,
-      tariffID: filteredRequest.tariffID,
-      createdOn: new Date()
+      createdOn: new Date(),
+      extraFilters: filteredRequest.extraFilters,
+      technical: filteredRequest.technical
     };
 
     newChargingStationTemplate.id = await ChargingStationTemplateStorage.saveChargingStationTemplate(req.tenant, newChargingStationTemplate);
@@ -105,7 +53,7 @@ export default class ChargingStationTemplateService {
       tenantID: req.tenant.id,
       ...LoggingHelper.getChargingStationTemplateProperties(newChargingStationTemplate),
       user: req.user, module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
-      message: `newChargingStationTemplate '${newChargingStationTemplate}' has been created successfully`,
+      message: `newChargingStationTemplate '${newChargingStationTemplate.id}' has been created successfully`,
       action: action,
       detailedMessages: { car: newChargingStationTemplate }
     });
@@ -143,6 +91,7 @@ export default class ChargingStationTemplateService {
       chargingStationTemplates.projectFields = authorizationChargingStationTemplateFilter.projectFields;
     }
     // Add Auth flags
+    // eslint-disable-next-line max-len
     await AuthorizationService.addChargingStationTemplatesAuthorizations(req.tenant, req.user, chargingStationTemplates as ChargingStationTemplateDataResult, authorizationChargingStationTemplateFilter);
     res.json(chargingStationTemplates);
     next();

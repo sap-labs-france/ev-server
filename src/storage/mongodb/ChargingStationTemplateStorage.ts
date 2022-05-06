@@ -1,14 +1,13 @@
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
+import { ChargingStationTemplate } from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import ChargingStationTemplate  from '../../types/ChargingStation';
 
 const MODULE_NAME = 'ChargingStationTemplateStorage';
 
@@ -22,7 +21,7 @@ export default class ChargingStationTemplateStorage {
     await global.database.getCollection(tenant.id, 'chargingstationtemplates').findOneAndUpdate(
       { _id: chargingStationTemplate.id },
       { $set: chargingStationTemplate },
-      { upsert: true}
+      { upsert: true }
     );
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationTemplate', startTime, chargingStationTemplate);
     return chargingStationTemplate.id.toString();
@@ -124,7 +123,7 @@ export default class ChargingStationTemplateStorage {
   }
 
   public static async getChargingStationTemplate(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: {} = {},
+      params = {},
       projectFields?: string[]): Promise<ChargingStationTemplate> {
     const chargingstationtemplatessMDB = await ChargingStationTemplateStorage.getChargingStationTemplates(tenant, {
       IDs: [id],

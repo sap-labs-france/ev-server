@@ -1,7 +1,6 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
-import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
-import ChargingStationTemplate from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationTemplate, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -21,6 +20,7 @@ import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CentralSystemRestServiceConfiguration from '../../../../types/configuration/CentralSystemRestServiceConfiguration';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
 import Company from '../../../../types/Company';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
@@ -28,9 +28,9 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import { EntityData } from '../../../../types/GlobalType';
 import { Log } from '../../../../types/Log';
+import LogStorage from '../../../../storage/mongodb/LogStorage';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
-import LogStorage from '../../../../storage/mongodb/LogStorage';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
@@ -53,7 +53,6 @@ import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
 import countries from 'i18n-iso-countries';
 import moment from 'moment';
-import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
 
 const MODULE_NAME = 'UtilsService';
 

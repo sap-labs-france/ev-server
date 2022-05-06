@@ -1,6 +1,7 @@
+import ChargingStation, { ChargingStationTemplate } from '../types/ChargingStation';
+
 import Asset from '../types/Asset';
 import { Car } from '../types/Car';
-import ChargingStation from '../types/ChargingStation';
 import { PricingContext } from '../types/Pricing';
 import RegistrationToken from '../types/RegistrationToken';
 import Site from '../types/Site';
@@ -41,12 +42,9 @@ export default class LoggingHelper {
     };
   }
 
-  public static getChargingStationTemplateProperties(chargingStation: ChargingStation): { siteID: string; siteAreaID: string; companyID: string; chargingStationTemplateID: string; } {
+  public static getChargingStationTemplateProperties(chargingStationTemplate: ChargingStationTemplate): { chargingStationTemplateID: string; } {
     return {
-      siteID: chargingStation.siteID,
-      siteAreaID: chargingStation.siteAreaID,
-      companyID: chargingStation.companyID,
-      chargingStationTemplateID: chargingStation.id,
+      chargingStationTemplateID: chargingStationTemplate.id,
     };
   }
 
