@@ -1,6 +1,7 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
-import ChargingStation, { ChargePoint, ChargingStationTemplate, Voltage } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
+import ChargingStationTemplate from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';

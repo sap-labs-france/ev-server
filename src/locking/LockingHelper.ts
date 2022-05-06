@@ -64,6 +64,14 @@ export default class LockingHelper {
     return lock;
   }
 
+  public static async acquireImportChargingStationTemplateLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.CHARGING_STATION_TEMPLATE, 'charging-station-template');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
   public static async acquireSyncCarCatalogsLock(tenantID: string): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.CAR_CATALOG, 'synchronize-car-catalogs');
     if (!(await LockingManager.acquire(lock))) {

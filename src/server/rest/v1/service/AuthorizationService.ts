@@ -38,7 +38,7 @@ import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
 import { HttpChargingStationTemplateRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
-import { ChargingStationTemplate } from '../../../../types/ChargingStation';
+import  ChargingStationTemplate from '../../../../types/ChargingStation';
 
 const MODULE_NAME = 'AuthorizationService';
 

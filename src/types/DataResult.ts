@@ -12,7 +12,7 @@ import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
 import User from './User';
-import { ChargingStationTemplate } from './ChargingStation';
+import  ChargingStationTemplate  from './ChargingStation';
 
 export interface DeletedResult {
   acknowledged?: boolean;
@@ -36,6 +36,8 @@ export interface RegistrationTokenDataResult extends DataResult<RegistrationToke
 
 export interface ChargingStationTemplateDataResult extends DataResult<ChargingStationTemplate> {
   canCreate: boolean;
+  importedBy?: string;
+  importedOn?: Date;
 }
 
 export interface CompanyDataResult extends DataResult<Company> {

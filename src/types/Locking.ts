@@ -18,6 +18,7 @@ export enum LockEntity {
   DATABASE = 'database',
   DATABASE_INDEX = 'database-index',
   CHARGING_STATION = 'charging-station',
+  CHARGING_STATION_TEMPLATE = 'charging-station-template',
   SITE_AREA = 'site-area',
   USER = 'user',
   LOG = 'log',

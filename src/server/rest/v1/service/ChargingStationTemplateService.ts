@@ -1,6 +1,8 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { NextFunction, Request, Response } from 'express';
+import Busboy, { FileInfo } from 'busboy';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -8,7 +10,8 @@ import AuthorizationService from './AuthorizationService';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
-import ChargingStationTemplate from '../../../../types/ChargingStation';
+import LockingHelper from '../../../../locking/LockingHelper';
+import LockingManager from '../../../../locking/LockingManager';
 import { ChargingStationTemplateDataResult } from '../../../../types/DataResult';
 import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
 import ChargingStationTemplateValidator from '../validator/ChargingStationTemplateValidator';
@@ -17,134 +20,99 @@ import { TenantComponents } from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';
+import Authorizations from '../../../../authorization/Authorizations';
+import { Readable } from 'stream';
+import JSONStream from 'JSONStream';
+import ChargingStationTemplate from '../../../../types/ChargingStation';
 
 const MODULE_NAME = 'ChargingStationTemplateService';
 
 export default class ChargingStationTemplateService {
-  // public static async handleCreateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-  //   // Filter
-  //   const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokenCreateReq(req.body);
-  //   // Check the Site Area
-  //   if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
-  //     await UtilsService.checkAndGetSiteAreaAuthorization(
-  //       req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, filteredRequest, null, false);
-  //   }
-  //   // Get dynamic auth
-  //   const authorizationFilter = await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-  //   if (!authorizationFilter.authorized) {
-  //     throw new AppAuthError({
-  //       errorCode: HTTPAuthError.FORBIDDEN,
-  //       user: req.user,
-  //       action: Action.CREATE, entity: Entity.REGISTRATION_TOKEN,
-  //       module: MODULE_NAME, method: 'handleCreateRegistrationToken'
-  //     });
-  //   }
-  //   // Create
-  //   const registrationToken: RegistrationToken = {
-  //     siteAreaID: filteredRequest.siteAreaID,
-  //     description: filteredRequest.description,
-  //     expirationDate: filteredRequest.expirationDate ? filteredRequest.expirationDate : moment().add(1, 'month').toDate(),
-  //     createdBy: { id: req.user.id },
-  //     createdOn: new Date()
-  //   };
-  //   // Save
-  //   registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
-  //   await Logging.logInfo({
-  //     // ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-  //     tenantID: req.tenant.id,
-  //     user: req.user, module: MODULE_NAME, method: 'handleCreateRegistrationToken',
-  //     message: `Registration Token '${registrationToken.description}' has been created successfully`,
-  //     action, detailedMessages: { registrationToken }
-  //   });
-  //   res.json(Object.assign({ id: registrationToken.id }, Constants.REST_RESPONSE_SUCCESS));
-  //   next();
-  // }
+  public static async handleCreateChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // const filteredRequest = ChargingStationTemplateValidator.getInstance().validateCarCreateReq(req.body);
+    const filteredRequest = req.body;
+    await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest as ChargingStationTemplate);
+    // Check auth
+    if (!(await Authorizations.canCreateChargingStationTemplates(req.user))) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.IMPORT, entity: Entity.CHARGING_STATION_TEMPLATE,
+        module: MODULE_NAME, method: 'handleCreateChargingStationTemplate'
+      });
+    }
+    const newChargingStationTemplate: ChargingStationTemplate = {
+      id: filteredRequest.id,
+      templateHash: filteredRequest.hash,
+      templateHashCapabilities: filteredRequest.hashCapabilities,
+      templateHashTechnical: filteredRequest.hashTechnical,
+      templateHashOcppStandard: filteredRequest.hashOcppStandard,
+      templateHashOcppVendor: filteredRequest.hashOcppVendor,
+      issuer: filteredRequest.issuer,
+      public: filteredRequest.public,
+      siteAreaID: filteredRequest.siteAreaID,
+      siteID: filteredRequest.siteID,
+      companyID: filteredRequest.companyID,
+      chargePointSerialNumber: filteredRequest.chargePointSerialNumber,
+      chargePointModel: filteredRequest.chargePointModel,
+      chargeBoxSerialNumber: filteredRequest.chargeBoxSerialNumber,
+      chargePointVendor: filteredRequest.chargePointVendor,
+      iccid: filteredRequest.iccid,
+      imsi: filteredRequest.imsi,
+      meterType: filteredRequest.meterType,
+      firmwareVersion: filteredRequest.firmwareVersion,
+      firmwareUpdateStatus: filteredRequest.firmwareUpdateStatus,
+      meterSerialNumber: filteredRequest.meterSerialNumber,
+      endpoint: filteredRequest.endpoint,
+      ocppVersion: filteredRequest.ocppVersion,
+      ocppProtocol: filteredRequest.ocppProtocol,
+      cloudHostIP: filteredRequest.cloudHostIP,
+      cloudHostName: filteredRequest.cloudHostName,
+      lastSeen: new Date(),
+      deleted: filteredRequest.deleted,
+      inactive: filteredRequest.inactive,
+      tokenID: filteredRequest.tokenID,
+      forceInactive: filteredRequest.forceInactive,
+      manualConfiguration: filteredRequest.manualConfiguration,
+      lastReboot: new Date(),
+      chargingStationURL: filteredRequest.chargingStationURL,
+      maximumPower: filteredRequest.maximumPower,
+      masterSlave: filteredRequest.masterSlave,
+      voltage: filteredRequest.voltage,
+      excludeFromSmartCharging: filteredRequest.excludeFromSmartCharging,
+      powerLimitUnit: filteredRequest.powerLimitUnit,
+      coordinates: filteredRequest.coordinates,
+      chargePoints: filteredRequest.chargePoints,
+      connectors: filteredRequest.connectors,
+      backupConnectors: filteredRequest.backupConnectors,
+      remoteAuthorizations: filteredRequest.remoteAuthorizations,
+      currentIPAddress: filteredRequest.currentIPAddress,
+      siteArea: filteredRequest.siteArea,
+      site: filteredRequest.site,
+      capabilities: filteredRequest.capabilities,
+      ocppStandardParameters: filteredRequest.ocppStandardParameters,
+      ocppVendorParameters: filteredRequest.ocppVendorParameters,
+      distanceMeters: filteredRequest.distanceMeters,
+      ocpiData: filteredRequest.ocpiData,
+      oicpData: filteredRequest.oicpData,
+      tariffID: filteredRequest.tariffID,
+      createdOn: new Date()
+    };
 
-  // public static async handleUpdateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-  //   // Filter
-  //   const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokenUpdateReq(req.body);
-  //   // Check and Get Registration Token
-  //   const registrationToken = await UtilsService.checkAndGetRegistrationTokenAuthorization(
-  //     req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
-  //   // Check the Site Area
-  //   if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
-  //     await UtilsService.checkAndGetSiteAreaAuthorization(
-  //       req.tenant, req.user, filteredRequest.siteAreaID, Action.READ, action, filteredRequest, null, false);
-  //   }
-  //   // Update
-  //   registrationToken.siteAreaID = filteredRequest.siteAreaID;
-  //   registrationToken.description = filteredRequest.description;
-  //   registrationToken.expirationDate = filteredRequest.expirationDate ? filteredRequest.expirationDate : moment().add(1, 'month').toDate();
-  //   registrationToken.lastChangedBy = { id: req.user.id };
-  //   registrationToken.lastChangedOn = new Date();
-  //   registrationToken.revocationDate = null;
-  //   // Save
-  //   await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
-  //   await Logging.logInfo({
-  //     ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-  //     tenantID: req.tenant.id,
-  //     user: req.user, module: MODULE_NAME, method: 'handleUpdateRegistrationToken',
-  //     message: `Registration Token '${registrationToken.description}' has been updated successfully`,
-  //     action, detailedMessages: { registrationToken }
-  //   });
-  //   res.json(Constants.REST_RESPONSE_SUCCESS);
-  //   next();
-  // }
+    newChargingStationTemplate.id = await ChargingStationTemplateStorage.saveChargingStationTemplate(req.tenant, newChargingStationTemplate);
+    await Logging.logInfo({
+      tenantID: req.tenant.id,
+      ...LoggingHelper.getChargingStationTemplateProperties(newChargingStationTemplate),
+      user: req.user, module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
+      message: `newChargingStationTemplate '${newChargingStationTemplate}' has been created successfully`,
+      action: action,
+      detailedMessages: { car: newChargingStationTemplate }
+    });
+    res.json(Object.assign({ id: newChargingStationTemplate.id }, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
 
-  // public static async handleDeleteRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-  //   // Filter
-  //   const registrationTokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenGetReq(req.query).ID;
-  //   // Check and Get Registration Token
-  //   const registrationToken = await UtilsService.checkAndGetRegistrationTokenAuthorization(
-  //     req.tenant, req.user, registrationTokenID, Action.DELETE, action);
-  //   // Delete
-  //   await RegistrationTokenStorage.deleteRegistrationToken(req.tenant, registrationToken.id);
-  //   await Logging.logInfo({
-  //     ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-  //     tenantID: req.tenant.id,
-  //     user: req.user,
-  //     module: MODULE_NAME, method: 'handleDeleteRegistrationToken',
-  //     message: `Registration token with ID '${registrationTokenID}' has been deleted successfully`,
-  //     action, detailedMessages: { registrationToken }
-  //   });
-  //   res.json(Constants.REST_RESPONSE_SUCCESS);
-  //   next();
-  // }
-
-  // public static async handleRevokeRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-  //   // Filter
-  //   const registrationTokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenGetReq(req.query).ID;
-  //   // Check and Get Registration Token
-  //   const registrationToken = await UtilsService.checkAndGetRegistrationTokenAuthorization(
-  //     req.tenant, req.user, registrationTokenID, Action.REVOKE, action, null, {}, true);
-  //   if (registrationToken.expirationDate &&
-  //       moment(registrationToken.expirationDate).isBefore(new Date())) {
-  //     throw new AppError({
-  //       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-  //       errorCode: HTTPError.GENERAL_ERROR,
-  //       message: 'Cannot revoke a token that has expired',
-  //       module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
-  //       user: req.user
-  //     });
-  //   }
-  //   // Update
-  //   const now = new Date();
-  //   registrationToken.revocationDate = now;
-  //   registrationToken.lastChangedBy = { 'id': req.user.id };
-  //   registrationToken.lastChangedOn = now;
-  //   // Save
-  //   await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
-  //   await Logging.logInfo({
-  //     ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-  //     tenantID: req.tenant.id,
-  //     user: req.user,
-  //     module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
-  //     message: `Registration token with ID '${registrationTokenID}' has been revoked successfully`,
-  //     action: action
-  //   });
-  //   res.json(Constants.REST_RESPONSE_SUCCESS);
-  //   next();
-  // }
 
   public static async handleGetChargingStationTemplates(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter

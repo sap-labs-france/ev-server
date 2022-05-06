@@ -21,7 +21,7 @@ export default class ChargingStationTemplateRouter {
   //   this.buildRouteChargingStationRequestOCPPParameters();
   //   this.buildRouteChargingStationDeleteChargingProfile();
   //   this.buildRouteChargingStationUpdateChargingProfile();
-  //   this.buildRouteChargingStationCreateChargingProfile();
+    this.buildRouteChargingStationCreateChargingProfile();
   //   this.buildRouteChargingStationChangeAvailability();
   //   this.buildRouteChargingStationTransactions();
     this.buildRouteChargingStationTemplates();
@@ -66,6 +66,11 @@ export default class ChargingStationTemplateRouter {
       await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleGetChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE, req, res, next);
     });
   }
+
+  private buildRouteChargingStationCreateChargingProfile(): void {
+    this.router.post(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE_IMPORT}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleCreateChargingStationTemplate.bind(this), ServerAction.CHARGING_PROFILE_CREATE, req, res, next);
+    });
 
   // private buildRouteChargingStationDelete(): void {
   //   this.router.delete(`/${RESTServerRoute.REST_CHARGING_STATIONS}/:id`, async (req: Request, res: Response, next: NextFunction) => {
@@ -245,11 +250,8 @@ export default class ChargingStationTemplateRouter {
   //   });
   // }
 
-  // private buildRouteChargingStationCreateChargingProfile(): void {
-  //   this.router.post(`/${RESTServerRoute.REST_CHARGING_PROFILES}`, async (req: Request, res: Response, next: NextFunction) => {
-  //     await RouterUtils.handleRestServerAction(ChargingStationService.handleCreateChargingProfile.bind(this), ServerAction.CHARGING_PROFILE_CREATE, req, res, next);
-  //   });
-  // }
+  
+  }
 
   // private buildRouteChargingStationUpdateChargingProfile(): void {
   //   this.router.put(`/${RESTServerRoute.REST_CHARGING_PROFILE}`, async (req: Request, res: Response, next: NextFunction) => {
