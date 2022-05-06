@@ -179,14 +179,19 @@ export default class ConsumptionStorage {
   }
 
   public static async getSiteAreaConsumptions(tenant: Tenant,
-      params: { siteAreaID: string; startDate: Date; endDate: Date }): Promise<Consumption[]> {
+      params: { siteAreaIDs: string[]; startDate: Date; endDate: Date }): Promise<Consumption[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create filters
     const filters: FilterParams = {};
     // ID
-    if (params.siteAreaID) {
-      filters.siteAreaID = DatabaseUtils.convertToObjectID(params.siteAreaID);
+    if (params.siteAreaIDs) {
+      // filters.siteAreaID = DatabaseUtils.convertToObjectID(params.siteAreaIDs);
+      const siteAreaIDs = [];
+      for (const siteAreaID of params.siteAreaIDs) {
+        siteAreaIDs.push(DatabaseUtils.convertToObjectID(siteAreaID));
+      }
+      filters.siteAreaID.$in = siteAreaIDs;
     }
     // Date provided?
     if (params.startDate || params.endDate) {
