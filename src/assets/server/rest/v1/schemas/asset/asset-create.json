@@ -1,6 +1,6 @@
 {
   "$id": "asset-create",
-  "title": "Create Asset Request",
+  "title": "Create Asset Request",
   "type": "object",
   "properties": {
     "name": {

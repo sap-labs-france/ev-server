@@ -191,7 +191,6 @@ export default class CarService {
       Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarCreateReq(req.body);
-    UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
     await AuthorizationService.checkAndGetCarAuthorizations(
       req.tenant,req.user, {}, Action.CREATE, filteredRequest as Car);
@@ -261,7 +260,6 @@ export default class CarService {
       Action.UPDATE, Entity.CAR, MODULE_NAME, 'handleUpdateCar');
     // Filter
     const filteredRequest = CarValidator.getInstance().validateCarUpdateReq(req.body);
-    UtilsService.checkIfCarValid(filteredRequest, req);
     // Check and Get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as Car);

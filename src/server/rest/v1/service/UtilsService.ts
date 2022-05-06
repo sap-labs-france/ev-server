@@ -1,6 +1,6 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
-import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -27,11 +27,9 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import { EntityData } from '../../../../types/GlobalType';
 import { Log } from '../../../../types/Log';
+import LogStorage from '../../../../storage/mongodb/LogStorage';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
-import LogStorage from '../../../../storage/mongodb/LogStorage';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
 import PricingDefinition from '../../../../types/Pricing';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
@@ -50,7 +48,6 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
-import countries from 'i18n-iso-countries';
 import moment from 'moment';
 
 const MODULE_NAME = 'UtilsService';
@@ -873,109 +870,6 @@ export default class UtilsService {
     }
   }
 
-  public static checkIfOCPIEndpointValid(ocpiEndpoint: Partial<OCPIEndpoint>, req: Request): void {
-    if (req.method !== 'POST' && !ocpiEndpoint.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid'
-      });
-    }
-    if (!ocpiEndpoint.name) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid',
-        user: req.user.id
-      });
-    }
-    if (!ocpiEndpoint.role) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint role is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid',
-        user: req.user.id
-      });
-    }
-    if (!ocpiEndpoint.baseUrl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint base URL is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid',
-        user: req.user.id
-      });
-    }
-    if (ocpiEndpoint.countryCode && !countries.isValid(ocpiEndpoint.countryCode)) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `The OCPI Endpoint ${ocpiEndpoint.countryCode} country code provided is invalid`,
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid',
-        user: req.user.id
-      });
-    }
-    if (!ocpiEndpoint.localToken) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint local token is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid',
-        user: req.user.id
-      });
-    }
-    if (!ocpiEndpoint.token) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OCPI Endpoint token is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOCPIEndpointValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfOICPEndpointValid(oicpEndpoint: Partial<OICPEndpoint>, req: Request): void {
-    if (req.method !== 'POST' && !oicpEndpoint.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OICP Endpoint ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOICPEndpointValid'
-      });
-    }
-    if (!oicpEndpoint.name) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OICP Endpoint name is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOICPEndpointValid',
-        user: req.user.id
-      });
-    }
-    if (!oicpEndpoint.role) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OICP Endpoint role is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOICPEndpointValid',
-        user: req.user.id
-      });
-    }
-    if (!oicpEndpoint.baseUrl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The OICP Endpoint base URL is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfOICPEndpointValid',
-        user: req.user.id
-      });
-    }
-  }
-
   public static httpSortFieldsToMongoDB(httpSortFields: string): any {
     // Exist?
     if (httpSortFields) {
@@ -1111,61 +1005,6 @@ export default class UtilsService {
 
   public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,
       filteredRequest: ChargingProfile, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Charging Profile ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfChargingProfileIsValid'
-      });
-    }
-    if (!Utils.objectHasProperty(filteredRequest, 'chargingStationID')) {
-      throw new AppError({
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Station ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!Utils.objectHasProperty(filteredRequest, 'connectorID')) {
-      throw new AppError({
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Connector ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.profile) {
-      throw new AppError({
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Profile is mandatory',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel ||
-      !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
-      !filteredRequest.profile.chargingSchedule) {
-      throw new AppError({
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Invalid Charging Profile',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
-      throw new AppError({
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Invalid Charging Profile\'s Schedule',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
     if (filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.length === 0) {
       throw new AppError({
         action: ServerAction.CHARGING_PROFILE_UPDATE,
@@ -1294,66 +1133,7 @@ export default class UtilsService {
     }
   }
 
-  public static checkIfSiteValid(site: Partial<Site>, req: Request): void {
-    if (req.method !== 'POST' && !site.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteValid',
-        user: req.user.id
-      });
-    }
-    if (!site.name) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site Name is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteValid',
-        user: req.user.id
-      });
-    }
-    if (!site.companyID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Company ID is mandatory for the Site',
-        module: MODULE_NAME, method: 'checkIfSiteValid',
-        user: req.user.id
-      });
-    }
-  }
-
   public static checkIfTenantValid(tenant: Partial<Tenant>, req: Request): void {
-    if (req.method !== 'POST' && !tenant.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tenant ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
-      });
-    }
-    if (!tenant.name) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tenant Name is mandatory',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
-      });
-    }
-    if (!tenant.components) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tenant Components is mandatory',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
-      });
-    }
-    if (!tenant.components) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tenant Components is mandatory',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
-      });
-    }
     if (tenant.components.oicp?.active && tenant.components.ocpi?.active) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1399,182 +1179,6 @@ export default class UtilsService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Connector cannot be active without the Car component',
         module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfSiteAreaValid(siteArea: Partial<SiteArea>, req: Request): void {
-    if (req.method !== 'POST' && !siteArea.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site Area ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (!siteArea.name) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site Area name is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (!siteArea.siteID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    // Power
-    if (siteArea.maximumPower <= 0) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (siteArea.voltage !== Voltage.VOLTAGE_230 && siteArea.voltage !== Voltage.VOLTAGE_110) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage as number}V`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-    if (siteArea.numberOfPhases !== 1 && siteArea.numberOfPhases !== 3) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site area number of phases must be either 1 or 3 but got ${siteArea.numberOfPhases}`,
-        module: MODULE_NAME, method: 'checkIfSiteAreaValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfPricingDefinitionValid(pricing: Partial<PricingDefinition>, req: Request): void {
-    if (req.method !== 'POST' && !pricing.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Pricing ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfPricingDefinitionValid',
-        user: req.user.id
-      });
-    }
-    if (!pricing.dimensions) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Pricing Dimensions are mandatory',
-        module: MODULE_NAME, method: 'checkIfPricingDefinitionValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfAssetValid(asset: Partial<Asset>, req: Request): void {
-    if (req.method !== 'POST' && !asset.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Asset ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfAssetValid',
-        user: req.user.id
-      });
-    }
-    if (!asset.name) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Asset Name is mandatory',
-        module: MODULE_NAME, method: 'checkIfAssetValid',
-        user: req.user.id
-      });
-    }
-    if (!asset.siteAreaID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Asset Site Area is mandatory',
-        module: MODULE_NAME, method: 'checkIfAssetValid',
-        user: req.user.id
-      });
-    }
-    if (!asset.assetType) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Asset type is mandatory',
-        module: MODULE_NAME, method: 'checkIfAssetValid',
-        user: req.user.id
-      });
-    }
-    if (!(typeof asset.staticValueWatt === 'number')) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Fallback value must be of type number',
-        module: MODULE_NAME, method: 'checkIfAssetValid',
-        user: req.user.id
-      });
-    }
-    if (Utils.objectHasProperty(asset, 'fluctuationPercent')) {
-      if (!(typeof asset.fluctuationPercent === 'number') || asset.fluctuationPercent < 0 || asset.fluctuationPercent > 100) {
-        throw new AppError({
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Fluctuation percentage should be between 0 and 100',
-          module: MODULE_NAME, method: 'checkIfAssetValid',
-          user: req.user.id
-        });
-      }
-    }
-    if (asset.dynamicAsset) {
-      if (!asset.connectionID && !asset.usesPushAPI) {
-        throw new AppError({
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Asset connection is mandatory, if it is not using push API',
-          module: MODULE_NAME, method: 'checkIfAssetValid',
-          user: req.user.id
-        });
-      }
-      if (!asset.meterID && !asset.usesPushAPI) {
-        throw new AppError({
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Asset meter ID is mandatory, if it is not using push API',
-          module: MODULE_NAME, method: 'checkIfAssetValid',
-          user: req.user.id
-        });
-      }
-    }
-  }
-
-  public static checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): void {
-    // Check RFID Card
-    if (!tag.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tag ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-        user: req.user.id
-      });
-    }
-    // Check badge visual ID
-    if (!tag.visualID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tag visual ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
-        user: req.user.id
-      });
-    }
-    // Check description
-    if (!tag.description) {
-      tag.description = `Tag ID '${tag.id}'`;
-    }
-    // Check user activation
-    if (!Utils.objectHasProperty(tag, 'active')) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tag Active property is mandatory',
-        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
         user: req.user.id
       });
     }
@@ -1686,128 +1290,6 @@ export default class UtilsService {
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id
-      });
-    }
-    if (filteredRequest.phone && !Utils.isPhoneValid(filteredRequest.phone)) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Phone '${filteredRequest.phone}' is not valid`,
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (filteredRequest.mobile && !Utils.isPhoneValid(filteredRequest.mobile)) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User Mobile is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-    if (filteredRequest.plateID && !Utils.isPlateIDValid(filteredRequest.plateID)) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User Plate ID '${filteredRequest.plateID}' is not valid`,
-        module: MODULE_NAME,
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
-  }
-
-  public static checkIfCarValid(car: Partial<Car>, req: Request): void {
-    if (req.method !== 'POST' && !car.id) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.vin) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Vin Car is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.licensePlate) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'License Plate is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!Utils.isPlateIDValid(car.licensePlate)) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Car License Plate ID '${car.licensePlate}' is not valid`,
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id,
-        actionOnUser: car.id
-      });
-    }
-    if (!car.carCatalogID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Catalog ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.type) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car type is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.converter) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Converter is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.converter.amperagePerPhase) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Converter amperage per phase is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.converter.numberOfPhases) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Converter number of phases is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.converter.powerWatts) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Converter power is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
-      });
-    }
-    if (!car.converter.type) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car Converter type is mandatory',
-        module: MODULE_NAME, method: 'checkIfCarValid',
-        user: req.user.id
       });
     }
   }
