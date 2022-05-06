@@ -396,7 +396,6 @@ export default class AssetService {
       Action.CREATE, Entity.ASSET, MODULE_NAME, 'handleCreateAsset');
     // Check request is valid
     const filteredAssetRequest = AssetValidator.getInstance().validateAssetCreateReq(req.body);
-    UtilsService.checkIfAssetValid(filteredAssetRequest, req);
     // Check authorizations for current action attempt
     await AuthorizationService.checkAndGetAssetAuthorizations(
       req.tenant, req.user, Action.CREATE, {}, filteredAssetRequest);
@@ -437,7 +436,6 @@ export default class AssetService {
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleUpdateAsset');
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetUpdateReq(req.body);
-    UtilsService.checkIfAssetValid(filteredRequest, req);
     // Check Site Area authorization
     let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {

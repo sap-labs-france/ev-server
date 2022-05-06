@@ -500,7 +500,6 @@ export default class ChargingStationService {
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleTriggerSmartCharging');
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateSmartChargingTriggerReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.SiteAreaID, MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Get Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.SiteAreaID);
     UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.SiteAreaID}' does not exist`,
@@ -566,10 +565,6 @@ export default class ChargingStationService {
         chargingStationID: filteredRequest.ChargingStationID,
       });
     }
-    // Check ChargeBoxID
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargingStationID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
-    // Check ConnectorID
-    UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Get the Charging Station`
     const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID);
     // Found ChargingStation ?
@@ -673,7 +668,6 @@ export default class ChargingStationService {
     req.query.ChargeBoxID && (req.query.ChargingStationID = req.query.ChargeBoxID);
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargingStationID, MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Get the Charging Station`
     const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID);
     // Found?
@@ -700,7 +694,6 @@ export default class ChargingStationService {
   public static async handleRequestChargingStationOcppParameters(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersRequestReq(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
     // Check auth
     if (!await Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -729,9 +722,6 @@ export default class ChargingStationService {
   public static async handleDeleteChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const chargingStationID = ChargingStationValidator.getInstance().validateChargingStationDeleteReq(req.query).ID;
-    // Check Mandatory fields
-    UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME,
-      'handleDeleteChargingStation', req.user);
     // Get
     const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, chargingStationID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${chargingStationID}' does not exist`,
@@ -853,8 +843,6 @@ export default class ChargingStationService {
   public static async handleGetChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetReq({ ...req.params, ...req.query });
-    // Check ID is provided
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetChargingStation', req.user);
     // Check auth
     if (!await Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
