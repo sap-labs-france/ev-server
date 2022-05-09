@@ -20,7 +20,7 @@ export enum LockEntity {
   CHARGING_STATION = 'charging-station',
   SITE_AREA = 'site-area',
   USER = 'user',
-  LOGGING = 'logging',
+  LOG = 'log',
   PERFORMANCE = 'performance',
   TRANSACTION = 'transaction',
   CAR = 'car',

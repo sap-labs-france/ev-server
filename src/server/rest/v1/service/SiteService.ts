@@ -126,9 +126,9 @@ export default class SiteService {
     // Check Site Auth
     await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.SiteID, Action.READ, action);
     // Check dynamic auth for reading Users
-    const authorizationSiteUsersFilter = await AuthorizationService.checkAndGetSiteUsersAuthorizations(req.tenant,
-      req.user, filteredRequest);
-    if (!authorizationSiteUsersFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetSiteUsersAuthorizations(req.tenant,
+      req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -137,7 +137,7 @@ export default class SiteService {
       {
         search: filteredRequest.Search,
         siteIDs: [filteredRequest.SiteID],
-        ...authorizationSiteUsersFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -145,7 +145,7 @@ export default class SiteService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationSiteUsersFilter.projectFields
+      authorizations.projectFields
     );
     res.json(users);
     next();
@@ -204,9 +204,9 @@ export default class SiteService {
       ];
     }
     // Check dynamic auth
-    const authorizationSitesFilter = await AuthorizationService.checkAndGetSitesAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationSitesFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetSitesAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -215,7 +215,7 @@ export default class SiteService {
       // Override Site IDs
       const siteAdminDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
         req.tenant, req.user, DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;
-      authorizationSitesFilter.filters = { ...authorizationSitesFilter.filters, ...siteAdminDataSource.getData() };
+      authorizations.filters = { ...authorizations.filters, ...siteAdminDataSource.getData() };
     }
     // Get the sites
     const sites = await SiteStorage.getSites(req.tenant,
@@ -230,7 +230,7 @@ export default class SiteService {
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
-        ...authorizationSitesFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -238,14 +238,14 @@ export default class SiteService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationSitesFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationSitesFilter.projectFields) {
-      sites.projectFields = authorizationSitesFilter.projectFields;
+    if (authorizations.projectFields) {
+      sites.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter);
+    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizations);
     res.json(sites);
     next();
   }
@@ -293,19 +293,9 @@ export default class SiteService {
       Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
     // Filter request
     const filteredRequest = SiteValidator.getInstance().validateSiteCreateReq(req.body);
-    // Check data is valid
-    UtilsService.checkIfSiteValid(filteredRequest, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizations(
+    await AuthorizationService.checkAndGetSiteAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleCreateSite'
-      });
-    }
     // Check Company
     await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, filteredRequest.companyID, Action.READ, action);
@@ -336,8 +326,6 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
     // Filter request
     const filteredRequest = SiteValidator.getInstance().validateSiteUpdateReq(req.body);
-    // Check data is valid
-    UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);

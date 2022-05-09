@@ -124,12 +124,14 @@ export default class CpoOCPIClient extends OCPIClient {
         // Update the tags
         await Promise.map(tokens, async (token) => {
           try {
-          // Get eMSP user
-            const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
+            // Get eMSP user
+            const email = OCPIUtils.buildEmspEmailFromOCPIToken(
+              token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
             const emspUser = emspUsersMap.get(email);
             // Get the Tag
             const emspTag = tags.result.find((tag) => tag.id === token.uid);
-            await OCPIUtilsService.updateCpoToken(this.tenant, token, emspTag, emspUser, ServerAction.OCPI_CPO_GET_TOKENS);
+            await OCPIUtilsService.updateCreateTagWithCpoToken(
+              this.tenant, token, emspTag, emspUser, ServerAction.OCPI_CPO_GET_TOKENS);
             result.success++;
           } catch (error) {
             result.failure++;
@@ -171,10 +173,8 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('tokens', ServerAction.OCPI_CPO_AUTHORIZE_TOKEN)}/${token.uid}/authorize`;
     // Build payload
-    const locationReference: OCPILocationReference =
-    {
+    const locationReference: OCPILocationReference = {
       location_id: chargingStation.siteID,
-      // Gireve does not support authorization request on multiple EVSE
       evse_uids: [RoamingUtils.buildEvseUID(chargingStation, connector.connectorId)]
     };
     // Call IOP
@@ -243,7 +243,7 @@ export default class CpoOCPIClient extends OCPIClient {
       location: ocpiLocation,
       currency: this.settings.currency,
       status: OCPISessionStatus.PENDING,
-      total_cost: transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0,
+      total_cost: 0, // Never calculate the cost of OCPI transaction
       last_updated: transaction.timestamp
     };
     // Call IOP
@@ -284,7 +284,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Update transaction
     transaction.ocpiData.session.kwh = Utils.createDecimal(transaction.currentTotalConsumptionWh).div(1000).toNumber();
     transaction.ocpiData.session.last_updated = transaction.currentTimestamp;
-    transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
+    transaction.ocpiData.session.total_cost = 0; // Never calculate the cost of OCPI transaction
     transaction.ocpiData.session.currency = this.settings.currency;
     transaction.ocpiData.session.status = OCPISessionStatus.ACTIVE;
     transaction.ocpiData.session.charging_periods = await this.buildChargingPeriods(this.tenant, transaction);
@@ -293,7 +293,7 @@ export default class CpoOCPIClient extends OCPIClient {
       kwh: transaction.ocpiData.session.kwh,
       last_updated: transaction.ocpiData.session.last_updated,
       currency: transaction.ocpiData.session.currency,
-      total_cost: transaction.ocpiData.session.total_cost > 0 ? transaction.ocpiData.session.total_cost : 0,
+      total_cost: 0, // Never calculate the cost of OCPI transaction
       status: transaction.ocpiData.session.status,
       charging_periods: transaction.ocpiData.session.charging_periods
     };
@@ -336,7 +336,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_CPO_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_CPO_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_CPO_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
     transaction.ocpiData.session.kwh = Utils.createDecimal(transaction.stop.totalConsumptionWh).div(1000).toNumber();
-    transaction.ocpiData.session.total_cost = transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0;
+    transaction.ocpiData.session.total_cost = 0; // Never calculate the cost of OCPI transaction
     transaction.ocpiData.session.end_datetime = transaction.stop.timestamp;
     transaction.ocpiData.session.last_updated = transaction.stop.timestamp;
     transaction.ocpiData.session.status = OCPISessionStatus.COMPLETED;
@@ -400,7 +400,7 @@ export default class CpoOCPIClient extends OCPIClient {
       auth_method: transaction.ocpiData.session.auth_method,
       location: transaction.ocpiData.session.location,
       authorization_id: transaction.ocpiData.session.authorization_id,
-      total_cost: transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0,
+      total_cost: 0, // Never calculate the cost of OCPI transaction
       charging_periods: await this.buildChargingPeriods(this.tenant, transaction),
       last_updated: transaction.stop.timestamp
     };
@@ -778,7 +778,6 @@ export default class CpoOCPIClient extends OCPIClient {
       `{{inSuccess}} EVSE Status(es) were successfully patched and {{inError}} failed to be patched in ${executionDurationSecs}s`,
       'No EVSE Status have been patched'
     );
-    // Return result
     return result;
   }
 
@@ -786,30 +785,18 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!Utils.isEmptyArray(tokens)) {
       for (const token of tokens) {
         // Get eMSP user
-        const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
-        // Check cache
+        const email = OCPIUtils.buildEmspEmailFromOCPIToken(
+          token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
+        // Check from cache
         let emspUser = emspUsers.get(email);
         if (!emspUser) {
-          // Get User from DB
-          emspUser = await UserStorage.getUserByEmail(this.tenant, email);
-          // Create user
-          if (!emspUser) {
-            // Create User
-            emspUser = {
-              issuer: false,
-              createdOn: token.last_updated,
-              lastChangedOn: token.last_updated,
-              name: token.issuer,
-              firstName: OCPIUtils.buildOperatorName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId),
-              email: OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId),
-              locale: Utils.getLocaleFromLanguage(token.language),
-            } as User;
-            // Save User
-            emspUser.id = await UserStorage.saveUser(this.tenant, emspUser);
-            await UserStorage.saveUserRole(this.tenant, emspUser.id, UserRole.BASIC);
-            await UserStorage.saveUserStatus(this.tenant, emspUser.id, UserStatus.ACTIVE);
+          // Check eMsp User
+          emspUser = await OCPIUtils.checkAndCreateEMSPUserFromToken(
+            this.tenant, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId, token);
+          if (emspUser) {
+            // Keep in cache
+            emspUsers.set(email, emspUser);
           }
-          emspUsers.set(email, emspUser);
         }
       }
     }

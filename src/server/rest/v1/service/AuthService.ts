@@ -139,8 +139,6 @@ export default class AuthService {
     // Check reCaptcha
     await UtilsService.checkReCaptcha(tenant, action, 'handleRegisterUser',
       centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
-    // Check Mandatory field
-    UtilsService.checkIfUserValid(filteredRequest as User, null, req);
     // Check email
     const user = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
     if (user) {

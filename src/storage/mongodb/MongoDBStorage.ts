@@ -111,10 +111,6 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'importedusers', [
       { fields: { email: 1 }, options: { unique: true } }
     ]);
-    await this.handleIndexesInCollection(tenantID, 'eulas');
-    // Assets
-    await this.handleIndexesInCollection(tenantID, 'assets', [
-    ]);
     // Invoices
     await this.handleIndexesInCollection(tenantID, 'invoices', [
       { fields: { invoiceID: 1 }, options: { unique: true } },
@@ -144,8 +140,8 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'tags', [
       { fields: { visualID: 1 }, options: { unique: true } },
       { fields: { issuer: 1, createdOn: 1 } },
+      { fields: { userID: 1 } },
       { fields: { createdOn: 1 } },
-      { fields: { userID: 1, issuer: 1 } },
       { fields: { _id: 'text', description: 'text', visualID: 'text' } },
     ]);
     // Tags Import
@@ -266,7 +262,7 @@ export default class MongoDBStorage {
     const mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
-        minPoolSize: Math.floor(this.dbConfig.poolSize / 4),
+        minPoolSize: Math.floor(this.dbConfig.poolSize / 2),
         maxPoolSize: this.dbConfig.poolSize,
         loggerLevel: this.dbConfig.debug ? 'debug' : null,
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred

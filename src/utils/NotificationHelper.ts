@@ -6,11 +6,12 @@ import Tenant from '../types/Tenant';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
 import Utils from './Utils';
+import moment from 'moment';
 
 export default class NotificationHelper {
   public static notifyStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
     if (user) {
-      void NotificationHandler.sendSessionStarted(
+      void NotificationHandler.sendTransactionStarted(
         tenant,
         transaction.id.toString(),
         user,
@@ -91,7 +92,7 @@ export default class NotificationHelper {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(user.locale);
       // Send Notification (Async)
-      void NotificationHandler.sendEndOfSession(
+      void NotificationHandler.sendEndOfTransaction(
         tenant,
         transaction.id.toString() + '-EOS',
         user,
@@ -107,7 +108,7 @@ export default class NotificationHelper {
           connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           totalConsumption: i18nManager.formatNumber(Math.round(transaction.stop.totalConsumptionWh / 10) / 100),
           totalDuration: Utils.transactionDurationToString(transaction),
-          totalInactivity: Utils.transactionInactivityToString(transaction, user),
+          totalInactivity: NotificationHelper.transactionInactivityToString(transaction, user),
           stateOfCharge: transaction.stop.stateOfCharge,
           evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
@@ -116,7 +117,7 @@ export default class NotificationHelper {
       // Notify Signed Data
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
-        void NotificationHandler.sendEndOfSignedSession(
+        void NotificationHandler.sendEndOfSignedTransaction(
           tenant,
           transaction.id.toString() + '-EOSS',
           user,
@@ -148,5 +149,18 @@ export default class NotificationHelper {
         );
       }
     }
+  }
+
+  private static transactionInactivityToString(transaction: Transaction, user: User, i18nHourShort = 'h') {
+    const i18nManager = I18nManager.getInstanceForLocale(user ? user.locale : Constants.DEFAULT_LANGUAGE);
+    // Get total
+    const totalInactivitySecs = transaction.stop.totalInactivitySecs;
+    // None?
+    if (totalInactivitySecs === 0) {
+      return `0${i18nHourShort}00 (${i18nManager.formatPercentage(0)})`;
+    }
+    // Build the inactivity percentage
+    const totalInactivityPercent = i18nManager.formatPercentage(Math.round((totalInactivitySecs / transaction.stop.totalDurationSecs) * 100) / 100);
+    return moment.duration(totalInactivitySecs, 's').format(`h[${i18nHourShort}]mm`, { trim: false }) + ` (${totalInactivityPercent})`;
   }
 }

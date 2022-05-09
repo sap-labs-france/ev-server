@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "Applying the charging profiles for <strong>'<%- chargeBoxID %>'</strong> failed three times.",
+      "Applying the charging profiles for <strong>'<%- chargeBoxID %>'</strong> failed.",
       "",
       "The charging station was excluded from this smart charging run automatically."
     ],

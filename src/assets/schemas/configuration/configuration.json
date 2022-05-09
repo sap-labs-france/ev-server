@@ -402,9 +402,6 @@
         "clientX509CertURL": {
           "type": "string"
         },
-        "databaseURL": {
-          "type": "string"
-        },
         "tenants": {
           "type": "array",
           "items": {
@@ -434,8 +431,7 @@
         "authURI",
         "tokenURI",
         "authProviderX509CertURL",
-        "clientX509CertURL",
-        "databaseURL"
+        "clientX509CertURL"
       ]
     },
     "Axios": {

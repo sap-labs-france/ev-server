@@ -339,12 +339,12 @@ export default class TransactionService {
     // Get data
     const { transaction, chargingStation, connector } =
       await TransactionService.checkAndGetTransactionChargingStationConnector(action, req.tenant, req.user, transactionID);
+    req.body.chargingStationID = transaction.chargeBoxID;
+    req.body.args = { transactionId: transaction.id };
     // Handle the routing
     if (chargingStation.issuer) {
       // OCPP Remote Stop
       if (!chargingStation.inactive && connector.currentTransactionID === transaction.id) {
-        req.body.chargingStationID = transaction.chargeBoxID;
-        req.body.args = { transactionId: transaction.id };
         await ChargingStationService.handleOcppAction(ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION, req, res, next);
       // Transaction Soft Stop
       } else {
@@ -352,8 +352,14 @@ export default class TransactionService {
           transaction, chargingStation, connector, req, res, next);
       }
     } else {
-      // OCPI Remote Stop
-      await ChargingStationService.handleOcpiAction(ServerAction.OCPI_EMSP_STOP_SESSION, req, res, next);
+      // eslint-disable-next-line no-lonely-if
+      if (connector.currentTransactionID === transaction.id) {
+        // OCPI Remote Stop
+        await ChargingStationService.handleOcpiAction(ServerAction.OCPI_EMSP_STOP_SESSION, req, res, next);
+      } else {
+        await TransactionService.transactionSoftStop(ServerAction.TRANSACTION_SOFT_STOP,
+          transaction, chargingStation, connector, req, res, next);
+      }
     }
   }
 
@@ -457,11 +463,11 @@ export default class TransactionService {
     } else {
       consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(
         req.tenant, { transactionId: transaction.id }, [
-          'consumptions.startedAt', 'consumptions.cumulatedConsumptionWh', 'consumptions.cumulatedConsumptionAmps', 'consumptions.cumulatedAmount',
-          'consumptions.stateOfCharge', 'consumptions.limitWatts', 'consumptions.limitAmps', 'consumptions.startedAt', 'consumptions.endedAt',
-          'consumptions.instantVoltsDC', 'consumptions.instantVolts', 'consumptions.instantVoltsL1', 'consumptions.instantVoltsL2', 'consumptions.instantVoltsL3',
-          'consumptions.instantWattsDC', 'consumptions.instantWatts', 'consumptions.instantWattsL1', 'consumptions.instantWattsL2', 'consumptions.instantWattsL3',
-          'consumptions.instantAmpsDC', 'consumptions.instantAmps', 'consumptions.instantAmpsL1', 'consumptions.instantAmpsL2', 'consumptions.instantAmpsL3'
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'stateOfCharge', 'limitWatts', 'limitAmps',
+          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
+          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
+          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3'
         ]);
     }
     // Assign
