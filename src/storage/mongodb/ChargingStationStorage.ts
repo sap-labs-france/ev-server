@@ -763,15 +763,6 @@ export default class ChargingStationStorage {
     };
   }
 
-
-  // TODO: remove this
-  public static async getChargingProfile(tenant: Tenant, id: string): Promise<ChargingProfile> {
-    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenant, {
-      chargingProfileID: id
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
-  }
-
   public static async getChargingProfiles(tenant: Tenant,
       params: { search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
         profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean;

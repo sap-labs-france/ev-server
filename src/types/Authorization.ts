@@ -157,6 +157,9 @@ export enum Action {
   GENERATE_QR = 'GenerateQrCode',
   MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
   RESOLVE = 'Resolve',
+  GET_STATUS_NOTIFICATION = 'GetStatusNotification',
+  GET_BOOT_NOTIFICATION = 'GetBootNotification',
+  RESERVE_NOW = 'ReserveNow'
 }
 
 export interface AuthorizationContext {
@@ -226,6 +229,22 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
 
 export interface BillingInvoiceAuthorizationActions extends AuthorizationActions {
   canDownload?:boolean;
+}
+
+export interface ChargingStationAuthorizationActions extends AuthorizationActions {
+  canReserveNow?:boolean;
+  canReset?:boolean;
+  canClearCache?:boolean;
+  canGetConfiguration?:boolean;
+  canChangeConfiguration?:boolean;
+  canSetChargingProfile?:boolean;
+  canGetCompositeSchedule?:boolean;
+  canClearChargingProfile?:boolean;
+  canGetDiagnostics?:boolean;
+  canUpdateFirmware?:boolean;
+  canRemoteStopTransaction?:boolean;
+  canStopTransaction?:boolean;
+  canChangeAvailability?:boolean;
 }
 
 export interface ChargingProfileAuthorizationActions extends AuthorizationActions {

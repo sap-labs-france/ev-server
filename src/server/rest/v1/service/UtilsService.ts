@@ -158,7 +158,7 @@ export default class UtilsService {
     UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
     // Get dynamic auth
     // We cheack read action
-    const authorizations = await AuthorizationService.checkAndGetChargingProfileAuthorizations(tenant, userToken, { ID: chargingStationID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetChargingStationAuthorizations(tenant, userToken, { ID: chargingStationID }, authAction, entityData);
     // Get ChargingStation
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingStationID,
       {

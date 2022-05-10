@@ -315,7 +315,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.CHARGING_STATION, action: [Action.LIST, Action.IN_ERROR],
+        resource: Entity.CHARGING_STATION, action: [Action.LIST],
         attributes: [
           'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
           'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage', 'distanceMeters',
@@ -326,7 +326,51 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.CHARGING_STATION, action: [Action.UPDATE],
+        resource: Entity.CHARGING_STATION, action: Action.GET_STATUS_NOTIFICATION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'timestamp', 'chargeBoxID', 'connectorId', 'timezone', 'status', 'errorCode', 'info', 'vendorId', 'vendorErrorCode'
+        ]
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.GET_BOOT_NOTIFICATION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'chargePointVendor', 'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'firmwareVersion', 'ocppVersion',
+          'ocppProtocol', 'endpoint', 'timestamp', 'chargeBoxID', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.IN_ERROR,
+        attributes: [
+          'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'errorCodeDetails', 'errorCode', 'lastSeen',
+          'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode'
+        ]
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.UPDATE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        }
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.RESERVE_NOW,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -342,7 +386,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION, Action.REMOTE_START_TRANSACTION,
           Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION, Action.START_TRANSACTION,
           Action.UNLOCK_CONNECTOR, Action.AUTHORIZE, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
-          Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.EXPORT,
+          Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.EXPORT, Action.EXPORT_OCPP_PARAMS,
           Action.CHANGE_AVAILABILITY, Action.TRIGGER_DATA_TRANSFER
         ]
       },
@@ -823,6 +867,33 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
+        resource: Entity.CHARGING_STATION, action: Action.GET_STATUS_NOTIFICATION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'timestamp', 'chargeBoxID', 'connectorId', 'timezone', 'status', 'errorCode', 'info', 'vendorId', 'vendorErrorCode'
+        ]
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.GET_BOOT_NOTIFICATION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'chargePointVendor', 'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'firmwareVersion', 'ocppVersion',
+          'ocppProtocol', 'endpoint', 'timestamp', 'chargeBoxID', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      {
         resource: Entity.CHARGING_STATION, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -833,23 +904,14 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.CHARGING_STATION,
-        action: [Action.REMOTE_START_TRANSACTION, Action.AUTHORIZE, Action.START_TRANSACTION],
+        resource: Entity.CHARGING_STATION, action: [Action.RESERVE_NOW, Action.REMOTE_START_TRANSACTION, Action.AUTHORIZE, Action.START_TRANSACTION],
         condition: {
-          Fn: 'OR',
-          args: [
-            {
-              Fn: 'EQUALS',
-              args: { 'site': null }
-            },
-            {
-              Fn: 'LIST_CONTAINS',
-              args: {
-                'sites': '$.site'
-              }
-            }
-          ]
-        }
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
       },
       {
         resource: Entity.CHARGING_STATION,
@@ -1085,7 +1147,36 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn', 'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email'
         ]
       },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.GET_STATUS_NOTIFICATION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'timestamp', 'chargeBoxID', 'connectorId', 'timezone', 'status', 'errorCode', 'info', 'vendorId', 'vendorErrorCode'
+        ]
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.GET_BOOT_NOTIFICATION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'chargePointVendor', 'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'firmwareVersion', 'ocppVersion',
+          'ocppProtocol', 'endpoint', 'timestamp', 'chargeBoxID', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
       { resource: Entity.CHARGING_STATION, action: Action.READ },
+      { resource: Entity.CHARGING_STATION, action: Action.RESERVE_NOW },
+
       { resource: Entity.TRANSACTION, action: Action.LIST },
       { resource: Entity.TRANSACTION, action: Action.READ },
     ]
@@ -1365,7 +1456,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.CHARGING_STATION, action: [Action.UPDATE, Action.EXPORT],
+        resource: Entity.CHARGING_STATION, action: [Action.UPDATE, Action.EXPORT, Action.EXPORT_OCPP_PARAMS],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1375,15 +1466,44 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.CHARGING_STATION,
-        action: [Action.DELETE, Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION,
+        resource: Entity.CHARGING_STATION, action: [Action.RESET, Action.CLEAR_CACHE, Action.DELETE, Action.GET_CONFIGURATION,
           Action.CHANGE_CONFIGURATION, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
           Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.REMOTE_STOP_TRANSACTION,
           Action.STOP_TRANSACTION, Action.CHANGE_AVAILABILITY],
         condition: {
-          Fn: 'LIST_CONTAINS',
-          args: { 'sitesAdmin': '$.site' }
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
+        }
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.GET_STATUS_NOTIFICATION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
         },
+        attributes: [
+          'id', 'timestamp', 'chargeBoxID', 'connectorId', 'timezone', 'status', 'errorCode', 'info', 'vendorId', 'vendorErrorCode'
+        ]
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.GET_BOOT_NOTIFICATION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'chargePointVendor', 'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'firmwareVersion', 'ocppVersion',
+          'ocppProtocol', 'endpoint', 'timestamp', 'chargeBoxID', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
       },
       {
         resource: Entity.CHARGING_PROFILE, action: Action.LIST,

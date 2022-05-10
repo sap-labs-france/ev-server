@@ -663,7 +663,9 @@ export default class AuthorizationService {
       authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
     chargingStations.metadata = authorizationFilter.metadata;
-    chargingStations.canExport = true; // TODO
+    chargingStations.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION, Action.EXPORT, authorizationFilter);
+    chargingStations.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken,
+      Entity.CHARGING_STATION, Action.EXPORT_OCPP_PARAMS, authorizationFilter);
     for (const chargingStation of chargingStations.result) {
       await AuthorizationService.addChargingStationAuthorizations(tenant, userToken, chargingStation, authorizationFilter);
     }
@@ -676,6 +678,32 @@ export default class AuthorizationService {
       tenant, userToken, Entity.CHARGING_STATION, Action.UPDATE, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
     chargingStation.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.DELETE, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canReserveNow = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.RESERVE_NOW, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canReset = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.RESET, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canClearCache = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.CLEAR_CACHE, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canGetConfiguration = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.GET_CONFIGURATION, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canChangeConfiguration = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.CHANGE_CONFIGURATION, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canSetChargingProfile = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.SET_CHARGING_PROFILE, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canGetCompositeSchedule = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.GET_COMPOSITE_SCHEDULE, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canClearChargingProfile = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.CLEAR_CHARGING_PROFILE, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canGetDiagnostics = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.GET_DIAGNOSTICS, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canUpdateFirmware = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.UPDATE_FIRMWARE, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canRemoteStopTransaction = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.REMOTE_STOP_TRANSACTION, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canStopTransaction = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.STOP_TRANSACTION, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canChangeAvailability = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.CHANGE_AVAILABILITY, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(chargingStation);
   }
