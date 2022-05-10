@@ -99,65 +99,11 @@ export default class UtilsService {
     });
   }
 
-  // TODO: Not yet migrated to the new authorization framework
   public static async checkAndGetChargingStationAuthorization(tenant: Tenant, userToken: UserToken, chargingStationID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStation> {
-    // Check static auth for reading Charging Station
-    if (!await Authorizations.canReadChargingStation(userToken)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
-        value: chargingStationID,
-        chargingStationID: chargingStationID,
-      });
-    }
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetChargingStationAuthorizations(
-      tenant, userToken, { ID: chargingStationID }, authAction, entityData);
-    if (!authorizations.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
-      });
-    }
-    // Get ChargingStation
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingStationID,
-      {
-        ...additionalFilters,
-        ...authorizations.filters
-      },
-      applyProjectFields ? authorizations.projectFields : null
-    );
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation ID '${chargingStationID}' does not exist`,
-      MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
-    // Deleted?
-    if (chargingStation?.deleted) {
-      throw new AppError({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `ChargingStation with ID '${chargingStation.id}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'checkAndGetChargingStationAuthorization',
-        user: userToken,
-      });
-    }
-    return chargingStation;
-  }
-
-  // New authorization
-  public static async checkAndGetChargingStationAuthorization_new(tenant: Tenant, userToken: UserToken, chargingStationID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStation> {
-
-    // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
-    // Get dynamic auth
-    // We cheack read action
     const authorizations = await AuthorizationService.checkAndGetChargingStationAuthorizations(tenant, userToken, { ID: chargingStationID }, authAction, entityData);
     // Get ChargingStation
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingStationID,
@@ -213,7 +159,7 @@ export default class UtilsService {
     // We cheack read action
     const authorizations = await AuthorizationService.checkAndGetChargingProfileAuthorizations(tenant, userToken, { ID: chargingProfileID }, authAction, entityData);
     // Get charging profile
-    const chargingProfile = await ChargingStationStorage.getChargingProfile_new(tenant, chargingProfileID,
+    const chargingProfile = await ChargingStationStorage.getChargingProfile(tenant, chargingProfileID,
       {
         ...additionalFilters,
         ...authorizations.filters

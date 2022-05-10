@@ -114,7 +114,7 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
-  public static async getChargingProfile_new(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
+  public static async getChargingProfile(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
       params: { siteIDs?: string[]; withSiteArea?: boolean; } = {},
       projectFields?: string[]): Promise<ChargingProfile> {
     const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenant, {

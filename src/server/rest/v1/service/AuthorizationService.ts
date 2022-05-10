@@ -572,33 +572,6 @@ export default class AuthorizationService {
     Utils.removeCanPropertiesWithFalseValue(siteArea);
   }
 
-  public static async checkAndGetChargingStationAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpChargingStationRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
-    const authorizations: AuthorizationFilter = {
-      filters: {},
-      dataSources: new Map(),
-      projectFields: [
-        'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'masterSlave', 'excludeFromSmartCharging', 'lastReboot',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.address', 'siteArea.smartCharging', 'siteArea.siteID',
-        'site.id', 'site.public', 'site.name', 'site.address', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus', 'tariffID',
-        'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
-        'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
-        'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
-    };
-    // Filter projected fields
-    authorizations.projectFields = AuthorizationService.filterProjectFields(
-      authorizations.projectFields, filteredRequest.ProjectFields);
-    // Not an Admin?
-    if (userToken.role !== UserRole.ADMIN) {
-      // Check assigned Sites
-      await AuthorizationService.checkAssignedSites(
-        tenant, userToken, null, authorizations);
-    }
-    return authorizations;
-  }
-
   public static async checkAndGetChargingProfilesAuthorizations(tenant: Tenant, userToken: UserToken,
       authAction: Action, filteredRequest?: HttpChargingProfilesRequest, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
@@ -640,7 +613,7 @@ export default class AuthorizationService {
   }
 
 
-  public static async checkAndGetChargingStationAuthorizations_new(tenant: Tenant, userToken: UserToken,
+  public static async checkAndGetChargingStationAuthorizations(tenant: Tenant, userToken: UserToken,
       filteredRequest: Partial<HttpChargingStationRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(tenant, Entity.CHARGING_STATION, userToken, {}, {}, authAction, entityData);
   }
