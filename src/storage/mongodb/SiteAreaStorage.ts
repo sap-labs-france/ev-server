@@ -353,24 +353,7 @@ export default class SiteAreaStorage {
     }
     // Charging Station Connnector stats
     if (params.withAvailableChargingStations) {
-      if (withChargingStations) {
-        DatabaseUtils.pushChargingStationLookupInAggregation({
-          tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteAreaID',
-          asField: 'chargingStations' });
-      }
-      // Unwind Charging Stations and Connectors
-      aggregation.push(
-        { $unwind: { path: '$chargingStations', preserveNullAndEmptyArrays: true } },
-        { $unwind: { path: '$chargingStations.connectors', preserveNullAndEmptyArrays: true } }
-      );
-      // Add Status fields
-      DatabaseUtils.addConnectorStatusFields(aggregation);
-      // Group back Connectors
-      DatabaseUtils.groupBackToArray(aggregation, 'chargingStations.connectors', 'chargingStations.id',
-        DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
-      // Group back Charging Stations
-      DatabaseUtils.groupBackToArray(aggregation, 'chargingStations', 'id',
-        DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
+      DatabaseUtils.addConnectorStatsInOrg(tenant, aggregation, 'siteAreaID', withChargingStations);
       withChargingStations = false;
     }
     // Limit records?

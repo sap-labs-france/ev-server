@@ -392,22 +392,7 @@ export default class SiteStorage {
     });
     // Charging Station Connnector stats
     if (params.withAvailableChargingStations) {
-      DatabaseUtils.pushChargingStationLookupInAggregation({
-        tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteID',
-        asField: 'chargingStations' });
-      // Unwind Charging Stations and Connectors
-      aggregation.push(
-        { $unwind: { path: '$chargingStations', preserveNullAndEmptyArrays: true } },
-        { $unwind: { path: '$chargingStations.connectors', preserveNullAndEmptyArrays: true } }
-      );
-      // Add Status fields
-      DatabaseUtils.addConnectorStatusFields(aggregation);
-      // Group back Connectors
-      DatabaseUtils.groupBackToArray(aggregation, 'chargingStations.connectors', 'chargingStations.id',
-        DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
-      // Group back Charging Stations
-      DatabaseUtils.groupBackToArray(aggregation, 'chargingStations', 'id',
-        DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
+      DatabaseUtils.addConnectorStatsInOrg(tenant, aggregation, 'siteID');
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {

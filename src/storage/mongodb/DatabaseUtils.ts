@@ -16,6 +16,28 @@ const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 const MODULE_NAME = 'DatabaseUtils';
 
 export default class DatabaseUtils {
+  public static addConnectorStatsInOrg(tenant: Tenant, aggregation: any[],
+      organizationID: string, addChargingStationLookup = true): void {
+    if (addChargingStationLookup) {
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: '_id', foreignField: organizationID,
+        asField: 'chargingStations' });
+    }
+    // Unwind Charging Stations and Connectors
+    aggregation.push(
+      { $unwind: { path: '$chargingStations', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$chargingStations.connectors', preserveNullAndEmptyArrays: true } }
+    );
+    // Add Status fields
+    DatabaseUtils.addConnectorStatusFields(aggregation);
+    // Group back Connectors
+    DatabaseUtils.groupBackToArray(aggregation, 'chargingStations.connectors', 'chargingStations.id',
+      DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
+    // Group back Charging Stations
+    DatabaseUtils.groupBackToArray(aggregation, 'chargingStations', 'id',
+      DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
+  }
+
   public static addConnectorStatusFields(aggregation: any[]): void {
     DatabaseUtils.addConnectorStatusField(aggregation, 'availableConnectors', ChargePointStatus.AVAILABLE);
     DatabaseUtils.addConnectorStatusField(aggregation, 'unavailableConnectors', ChargePointStatus.UNAVAILABLE);
@@ -24,7 +46,16 @@ export default class DatabaseUtils {
     DatabaseUtils.addConnectorStatusField(aggregation, 'faultedConnectors', ChargePointStatus.FAULTED);
     DatabaseUtils.addConnectorStatusesField(aggregation, 'chargingConnectors', [ChargePointStatus.CHARGING, ChargePointStatus.OCCUPIED]);
     DatabaseUtils.addConnectorStatusesField(aggregation, 'suspendedConnectors', [ChargePointStatus.SUSPENDED_EVSE, ChargePointStatus.SUSPENDED_EV]);
-    aggregation.push({ $addFields: { 'connectors.totalConnectors': 1 } });
+    aggregation.push({
+      $addFields: {
+        'connectors.totalConnectors' : {
+          $cond : {
+            if : { $gt : [ '$chargingStations.connectors', null ] },
+            then : 1, else : 0
+          }
+        }
+      }
+    });
   }
 
   public static getConnectorStatusAggregationFields(): Record<string, any> {
@@ -45,9 +76,7 @@ export default class DatabaseUtils {
       $addFields: {
         [`connectors.${fieldName}`]: {
           $cond: {
-            if: {
-              $eq: ['$chargingStations.connectors.status', connectorStatus]
-            },
+            if: { $eq: ['$chargingStations.connectors.status', connectorStatus] },
             then: 1, else: 0
           }
         }
