@@ -56,7 +56,6 @@ const MODULE_NAME = 'ChargingStationService';
 
 export default class ChargingStationService {
 
-  // Called when updating the charging station -D
   public static async handleUpdateChargingStationParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationParametersUpdateReq({ ...req.params, ...req.body });
@@ -259,7 +258,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // Statc limitation render button enabled and click apply -D
   public static async handleChargingStationLimitPower(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationLimitPowerReq(req.body);
@@ -381,7 +379,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // called when listing charging plan -D
   public static async handleGetChargingProfiles(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingProfilesGetReq(req.query);
@@ -422,7 +419,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // charging stations / click on battery icon / charging plan / trigger smart -D
   public static async handleTriggerSmartCharging(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if Component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
@@ -465,7 +461,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // charging stations / edit / connector / display QR code -D
   public static async handleGenerateQrCodeForConnector(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationQRCodeGenerateReq(req.query);
@@ -490,7 +485,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // POSTMAN -D
   public static async handleCreateChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingProfileCreateReq(req.body);
@@ -502,7 +496,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // Make visible Apply button and Apply charge plan -D
   public static async handleUpdateChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingProfileUpdateReq({ ...req.params, ...req.body });
@@ -514,7 +507,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // Charging plan delete, make visible button -D
   public static async handleDeleteChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check existence
     const chargingProfileID = ChargingStationValidator.getInstance().validateChargingProfileDeleteReq(req.query).ID;
@@ -525,9 +517,8 @@ export default class ChargingStationService {
     await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, chargingProfile.chargingStationID, Action.UPDATE, action, null, { issuer: true, withSiteArea: true });
     try {
-      // TODO: Remove comment in order to delete
       // Delete
-      // await OCPPUtils.clearAndDeleteChargingProfile(req.tenant, chargingProfile);
+      await OCPPUtils.clearAndDeleteChargingProfile(req.tenant, chargingProfile);
     } catch (error) {
       throw new AppError({
         action,
@@ -542,7 +533,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // Click edit button / onload -D
   public static async handleGetChargingStationOcppParameters(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Backward compatibility for the mobile application
     req.query.ChargeBoxID && (req.query.ChargingStationID = req.query.ChargeBoxID);
@@ -558,7 +548,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // Edit / OCPP parameters / update ocpp configuration from template -D
   public static async handleRequestChargingStationOcppParameters(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersRequestReq(req.body);
@@ -574,7 +563,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // -D
   public static async handleDeleteChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const chargingStationID = ChargingStationValidator.getInstance().validateChargingStationDeleteReq(req.query).ID;
@@ -657,7 +645,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // -D
   public static async handleGetChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetReq({ ...req.params, ...req.query });
@@ -668,7 +655,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // -D
   public static async handleGetChargingStations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
@@ -677,7 +663,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // Organisation / site / export all -D
   public static async handleExportChargingStationsOCPPParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
@@ -703,7 +688,6 @@ export default class ChargingStationService {
     res.end();
   }
 
-  // -D
   public static async handleExportChargingStations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Force params
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
@@ -715,7 +699,6 @@ export default class ChargingStationService {
       ChargingStationService.convertToCSV.bind(this));
   }
 
-  // -D
   public static async handleDownloadQrCodesPdf(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationQRCodeDownloadReq(req.query);
@@ -725,7 +708,6 @@ export default class ChargingStationService {
       ChargingStationService.convertQrCodeToPDF.bind(this));
   }
 
-  // -D
   public static async handleGetChargingStationsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationInErrorReq(req.query);
@@ -774,7 +756,6 @@ export default class ChargingStationService {
     res.json(chargingStations);
   }
 
-  // -D
   public static async handleGetStatusNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationNotificationsGetReq(req.query);
@@ -794,7 +775,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // -D
   public static async handleReserveNow(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Request assembly
     req.body.chargingStationID = req.params.id;
@@ -816,7 +796,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // -D
   public static async handleCancelReservation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Request assembly
     req.body.chargingStationID = req.params.id;
@@ -839,7 +818,6 @@ export default class ChargingStationService {
     next();
   }
 
-  // -D
   public static async handleGetBootNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationNotificationsGetReq(req.query);
@@ -859,7 +837,7 @@ export default class ChargingStationService {
     next();
   }
 
-  // Leave open
+  // This endpoint is not subject to auth check
   public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationFirmwareDownloadReq(req.query);
@@ -901,7 +879,6 @@ export default class ChargingStationService {
     });
   }
 
-  // -D
   public static async handleOcpiAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
@@ -995,7 +972,6 @@ export default class ChargingStationService {
     }
   }
 
-  // -D (postman reset)
   public static async handleOcppAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Backward compatibility for the mobile application
     if (req.body.chargeBoxID) {
