@@ -468,7 +468,7 @@ export default class ChargingStationService {
     // Behavior change : If the charging station is logically deleted we won't return a charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user,
       filteredRequest.ChargingStationID, Action.READ, action);
-    // Check connector
+    // Found Connector ?
     UtilsService.assertObjectExists(action, Utils.getConnectorFromID(chargingStation, filteredRequest.ConnectorID),
       `Connector ID '${filteredRequest.ConnectorID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);

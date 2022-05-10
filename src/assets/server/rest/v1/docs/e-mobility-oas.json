@@ -48,8 +48,8 @@
       "description": "Integration connection API"
     },
     {
-      "name": "Loggings",
-      "description": "Loggings API"
+      "name": "Logs",
+      "description": "Logs API"
     },
     {
       "name": "Assets",
@@ -4690,12 +4690,12 @@
                       },
                       "startTime": {
                         "type": "string",
-                        "description": "Optional. This contains the date and time of the oldest logging information to include in the diagnostics.",
+                        "description": "Optional. This contains the date and time of the oldest log information to include in the diagnostics.",
                         "format": "date-time"
                       },
                       "stopTime": {
                         "type": "string",
-                        "description": "Optional. This contains the date and time of the latest logging information to include in the diagnostics.",
+                        "description": "Optional. This contains the date and time of the latest log information to include in the diagnostics.",
                         "format": "date-time"
                       }
                     },
@@ -9061,7 +9061,7 @@
         }
       }
     },
-    "/api/loggings": {
+    "/api/logs": {
       "get": {
         "security": [
           {
@@ -9117,7 +9117,7 @@
           }
         ],
         "tags": [
-          "Loggings"
+          "Logs"
         ],
         "responses": {
           "200": {
@@ -9162,7 +9162,7 @@
         }
       }
     },
-    "/api/loggings/{id}": {
+    "/api/logs/{id}": {
       "get": {
         "security": [
           {
@@ -9182,7 +9182,7 @@
           }
         ],
         "tags": [
-          "Loggings"
+          "Logs"
         ],
         "responses": {
           "200": {
@@ -9224,14 +9224,14 @@
         }
       }
     },
-    "/api/loggings/action/export": {
+    "/api/logs/action/export": {
       "get": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Export loggings as CSV file",
+        "description": "Export logs as CSV file",
         "parameters": [
           {
             "$ref": "#/components/parameters/StartDateTime"
@@ -9277,7 +9277,7 @@
           }
         ],
         "tags": [
-          "Loggings"
+          "Logs"
         ],
         "responses": {
           "200": {

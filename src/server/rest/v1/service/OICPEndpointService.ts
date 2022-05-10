@@ -72,8 +72,6 @@ export default class OICPEndpointService {
     }
     // Filter
     const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointCreateReq(req.body);
-    // Check Mandatory fields
-    UtilsService.checkIfOICPEndpointValid(filteredRequest, req);
     const oicpEndpoint: OICPEndpoint = {
       ...filteredRequest,
       createdBy: { id: req.user.id },
@@ -110,8 +108,6 @@ export default class OICPEndpointService {
       Action.UPDATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleUpdateOicpEndpoint');
     // Filter
     const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointUpdateReq(req.body);
-    // Check Mandatory fields
-    UtilsService.checkIfOICPEndpointValid(filteredRequest, req);
     // Check auth
     if (!await Authorizations.canUpdateOicpEndpoint(req.user)) {
       throw new AppAuthError({
@@ -288,8 +284,6 @@ export default class OICPEndpointService {
     }
     // Filter
     const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointPingReq(req.params);
-    // Check Mandatory fields
-    UtilsService.checkIfOICPEndpointValid(filteredRequest, req);
     // Get oicpEndpoint
     const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.id);
     // Build OICP Client

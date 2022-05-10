@@ -30,6 +30,7 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
 import OICPFacade from '../../oicp/OICPFacade';
+import PricingFacade from '../../../integration/pricing/PricingFacade';
 import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
@@ -114,13 +115,14 @@ export default class OCPPService {
     try {
       // Get the header infos
       const { chargingStation, tenant } = headers;
+      if (!heartbeat) {
+        heartbeat = {} as OCPPHeartbeatRequestExtended;
+      }
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heart Beat Object
-      heartbeat = {
-        chargeBoxID: chargingStation.id,
-        timestamp: new Date(),
-        timezone: Utils.getTimezone(chargingStation.coordinates)
-      };
+      heartbeat.chargeBoxID = chargingStation.id;
+      heartbeat.timestamp = new Date();
+      heartbeat.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Save Heart Beat
       await OCPPStorage.saveHeartbeat(tenant, heartbeat);
       await Logging.logInfo({
@@ -209,7 +211,7 @@ export default class OCPPService {
         OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
         if (consumption.toPrice) {
           // Pricing
-          await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.UPDATE);
+          await PricingFacade.processUpdateTransaction(tenant, transaction, chargingStation, consumption, transaction.user);
           // Billing
           await BillingFacade.processUpdateTransaction(tenant, transaction, transaction.user);
         }
@@ -377,7 +379,7 @@ export default class OCPPService {
       // Create consumption
       const firstConsumption = await OCPPUtils.createFirstConsumption(tenant, chargingStation, newTransaction);
       // Pricing
-      await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, firstConsumption, TransactionAction.START);
+      await PricingFacade.processStartTransaction(tenant, newTransaction, chargingStation, firstConsumption, user);
       // Billing
       await BillingFacade.processStartTransaction(tenant, newTransaction, chargingStation, chargingStation.siteArea, user);
       // OCPI
@@ -482,7 +484,7 @@ export default class OCPPService {
       // Soft Stop
       this.checkSoftStopTransaction(transaction, stopTransaction, isSoftStop);
       // Transaction End has already been received?
-      await this.checkAndApplyLastConsumptionInStopTransaction(tenant, chargingStation, transaction, stopTransaction);
+      await this.checkAndApplyLastConsumptionInStopTransaction(tenant, chargingStation, transaction, stopTransaction, user);
       // Signed Data
       this.checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction, stopTransaction);
       // Update Transaction with Stop Transaction and Stop MeterValues
@@ -801,7 +803,7 @@ export default class OCPPService {
         if (lastTransaction.stop) {
           // Check Inactivity
           const transactionUpdated = await this.checkAndComputeTransactionExtraInactivityFromStatusNotification(
-            tenant, chargingStation, lastTransaction, connector, statusNotification);
+            tenant, chargingStation, lastTransaction, lastTransaction.user, connector, statusNotification);
           // Billing: Trigger the asynchronous billing task
           const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction);
           // OCPI: Post the CDR
@@ -831,7 +833,7 @@ export default class OCPPService {
   }
 
   private async checkAndComputeTransactionExtraInactivityFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
-      transaction: Transaction, connector: Connector, statusNotification: OCPPStatusNotificationRequestExtended): Promise<boolean> {
+      transaction: Transaction, user: User, connector: Connector, statusNotification: OCPPStatusNotificationRequestExtended): Promise<boolean> {
     let extraInactivityUpdated = false;
     if (Utils.objectHasProperty(statusNotification, 'timestamp')) {
       // Session is finished
@@ -855,7 +857,7 @@ export default class OCPPService {
             await Logging.logWarning({
               ...LoggingHelper.getChargingStationProperties(chargingStation),
               tenantID: tenant.id,
-              module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+              module: MODULE_NAME, method: 'checkAndComputeTransactionExtraInactivityFromStatusNotification',
               action: ServerAction.OCPP_STATUS_NOTIFICATION,
               message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Extra Inactivity is negative and will be ignored: ${transaction.stop.extraInactivitySecs} secs`,
               detailedMessages: { statusNotification }
@@ -869,12 +871,12 @@ export default class OCPPService {
               transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs
             );
             // Build extra inactivity consumption
-            await OCPPUtils.buildAndPriceExtraConsumptionInactivity(tenant, chargingStation, transaction);
+            await OCPPUtils.buildAndPriceExtraConsumptionInactivity(tenant, user, chargingStation, transaction);
             await Logging.logInfo({
               ...LoggingHelper.getChargingStationProperties(chargingStation),
               tenantID: tenant.id,
               user: transaction.userID,
-              module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+              module: MODULE_NAME, method: 'checkAndComputeTransactionExtraInactivityFromStatusNotification',
               action: ServerAction.EXTRA_INACTIVITY,
               message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Extra Inactivity of ${transaction.stop.extraInactivitySecs} secs has been added`,
               detailedMessages: { statusNotification, connector, lastTransaction: transaction }
@@ -886,7 +888,7 @@ export default class OCPPService {
             ...LoggingHelper.getChargingStationProperties(chargingStation),
             tenantID: tenant.id,
             user: transaction.userID,
-            module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+            module: MODULE_NAME, method: 'checkAndComputeTransactionExtraInactivityFromStatusNotification',
             action: ServerAction.EXTRA_INACTIVITY,
             message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} No Extra Inactivity for this transaction`,
             detailedMessages: { statusNotification, connector, lastTransaction: transaction }
@@ -1799,7 +1801,7 @@ export default class OCPPService {
   }
 
   private async checkAndApplyLastConsumptionInStopTransaction(tenant: Tenant, chargingStation: ChargingStation,
-      transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended) {
+      transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended, user: User) {
     // No need to compute the last consumption if Transaction.End Meter Value has been received
     if (!transaction.transactionEndReceived) {
       // Recreate the last meter value to price the last Consumption
@@ -1812,7 +1814,7 @@ export default class OCPPService {
         OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
         if (consumption.toPrice) {
           // Price
-          await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.STOP);
+          await PricingFacade.processStopTransaction(tenant, transaction, chargingStation, consumption, user);
         }
         // Save Consumption
         await ConsumptionStorage.saveConsumption(tenant, consumption);
@@ -1825,6 +1827,7 @@ export default class OCPPService {
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           action: ServerAction.OCPP_STOP_TRANSACTION,
+          actionOnUser: user,
           module: MODULE_NAME, method: 'checkAndApplyLastConsumptionInStopTransaction',
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction.End consumption '${transaction.lastConsumption.value}' differs from Stop Transaction '${stopTransaction.meterStop}'`,
           detailedMessages: { stopTransaction, transaction }

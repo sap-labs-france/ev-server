@@ -25,7 +25,7 @@ import Company from '../../../../types/Company';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import { HttpLogRequest } from '../../../../types/requests/HttpLoggingRequest';
+import { HttpLogRequest } from '../../../../types/requests/HttpLogRequest';
 import { HttpRegistrationTokenRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
 import Logging from '../../../../utils/Logging';

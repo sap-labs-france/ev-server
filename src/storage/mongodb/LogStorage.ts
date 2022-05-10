@@ -1,5 +1,5 @@
 import { DataResult, DeletedResult } from '../../types/DataResult';
-import global, { DatabaseCount, FilterParams } from './../../types/GlobalType';
+import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
@@ -9,7 +9,7 @@ import { ServerType } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
-export default class LoggingStorage {
+export default class LogStorage {
   public static async deleteLogs(tenant: Tenant, deleteUpToDate: Date): Promise<DeletedResult> {
     DatabaseUtils.checkTenantObject(tenant);
     // Build filter
@@ -56,7 +56,7 @@ export default class LoggingStorage {
 
   public static async getLog(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
       params: { siteIDs?: string[]; } = {}, projectFields: string[]): Promise<Log> {
-    const logsMDB = await LoggingStorage.getLogs(tenant, {
+    const logsMDB = await LogStorage.getLogs(tenant, {
       logIDs: [id],
       siteIDs: params.siteIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
@@ -150,13 +150,13 @@ export default class LoggingStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
-    const loggingsCountMDB = await global.database.getCollection<any>(tenant.id, 'logs')
+    const logsCountMDB = await global.database.getCollection<any>(tenant.id, 'logs')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       return {
-        count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),
+        count: (logsCountMDB.length > 0 ? logsCountMDB[0].count : 0),
         result: []
       };
     }
@@ -211,12 +211,12 @@ export default class LoggingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const loggingsMDB = await global.database.getCollection<any>(tenant.id, 'logs')
+    const logsMDB = await global.database.getCollection<any>(tenant.id, 'logs')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray() as Log[];
     return {
-      count: DatabaseUtils.getCountFromDatabaseCount(loggingsCountMDB[0]),
-      result: loggingsMDB
+      count: DatabaseUtils.getCountFromDatabaseCount(logsCountMDB[0]),
+      result: logsMDB
     };
   }
 }
