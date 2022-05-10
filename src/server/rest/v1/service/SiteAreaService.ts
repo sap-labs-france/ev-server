@@ -260,8 +260,12 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.SiteAreaID, Action.READ, action);
+    const parentSiteArea = await SiteAreaService.checkAndGetParentSiteArea(
+      req.tenant, req.user, siteArea, siteArea.parentSiteAreaID, action);
+    const rootSiteArea = await SiteAreaService.buildSiteAreaTree(req.tenant, siteArea, parentSiteArea, [siteArea.siteID]);
+    const targetSiteArea = Utils.getSiteAreaFromSiteAreasTree(siteArea.id, [rootSiteArea]);
     // Get the ConsumptionValues
-    const siteAreaIDs = siteArea.childSiteAreas.map((obj) => obj.id);
+    const siteAreaIDs = Utils.getSiteAreaIDsFromSiteAreasTree(targetSiteArea);
     const consumptions = await ConsumptionStorage.getSiteAreaConsumptions(req.tenant, {
       siteAreaIDs: siteAreaIDs,
       startDate: filteredRequest.StartDate,

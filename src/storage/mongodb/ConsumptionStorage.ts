@@ -185,13 +185,10 @@ export default class ConsumptionStorage {
     // Create filters
     const filters: FilterParams = {};
     // ID
-    if (params.siteAreaIDs) {
-      // filters.siteAreaID = DatabaseUtils.convertToObjectID(params.siteAreaIDs);
-      const siteAreaIDs = [];
-      for (const siteAreaID of params.siteAreaIDs) {
-        siteAreaIDs.push(DatabaseUtils.convertToObjectID(siteAreaID));
-      }
-      filters.siteAreaID.$in = siteAreaIDs;
+    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
+      filters.siteAreaID = {
+        $in: params.siteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
+      };
     }
     // Date provided?
     if (params.startDate || params.endDate) {

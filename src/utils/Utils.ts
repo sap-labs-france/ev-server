@@ -1708,6 +1708,14 @@ export default class Utils {
     }
   }
 
+  public static getSiteAreaIDsFromSiteAreasTree(siteArea: SiteArea): string[] {
+    const siteAreaIDs = [siteArea.id];
+    for (const childSiteArea of siteArea.childSiteAreas) {
+      siteAreaIDs.push(...Utils.getSiteAreaIDsFromSiteAreasTree(childSiteArea));
+    }
+    return siteAreaIDs;
+  }
+
   public static transactionDurationToString(transaction: Transaction): string {
     let totalDurationSecs;
     if (transaction.stop) {
