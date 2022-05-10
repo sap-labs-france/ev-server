@@ -1,7 +1,7 @@
 import { ChargePointStatus, OCPPPhase } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, Profile } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, Connector, CurrentType, StaticLimitAmps, Voltage } from '../../../types/ChargingStation';
-import { ConnectorAmps, OptimizerCar, OptimizerCarConnectorAssignment, OptimizerChargingProfilesRequest, OptimizerChargingStationConnectorFuse, OptimizerChargingStationFuse, OptimizerFuse, OptimizerFuseTree, OptimizerFuseTreeNode, OptimizerResult } from '../../../types/Optimizer';
+import { ConnectorAmps, ExcludedAmperage, OptimizerCar, OptimizerCarConnectorAssignment, OptimizerChargingProfilesRequest, OptimizerChargingStationConnectorFuse, OptimizerChargingStationFuse, OptimizerFuse, OptimizerFuseTree, OptimizerFuseTreeNode, OptimizerResult } from '../../../types/Optimizer';
 import { ServerAction, ServerProtocol } from '../../../types/Server';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 
@@ -207,10 +207,15 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
   private async buildFuseNodes(siteArea: SiteArea, fuseTreeNode: OptimizerFuse | OptimizerFuseTreeNode[],
       fuseID: { value: number }, carConnectorAssignments: OptimizerCarConnectorAssignment[],
       cars: OptimizerCar[], excludedChargingStations: string[], chargingStationsInError: { value: boolean },
-      currentChargingProfiles: ChargingProfile[], transactions: Transaction[]): Promise<void> {
+      currentChargingProfiles: ChargingProfile[], transactions: Transaction[]): Promise<ExcludedAmperage> {
     this.checkIfSiteAreaIsValid(siteArea);
     // Adjust site limitation
-    const rootFuse = await this.buildRootFuse(siteArea, fuseID, excludedChargingStations);
+    const excludedAmperage: ExcludedAmperage = {
+      phase1: 0,
+      phase2: 0,
+      phase3: 0
+    };
+    const rootFuse = await this.buildRootFuse(siteArea, fuseID, excludedChargingStations, excludedAmperage);
     // Loop through charging stations to get each connector
     for (const chargingStation of siteArea.chargingStations) {
       // Create helper to build fuse tree
@@ -280,11 +285,46 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       // Build fuse node for each child
       for (const siteAreaChild of siteArea.childSiteAreas) {
         // Use Fuse tree child elements  to build sub site areas
-        await this.buildFuseNodes(siteAreaChild,
+        const excludedAmperageOnSubSiteAreas = await this.buildFuseNodes(siteAreaChild,
           (!Array.isArray(fuseTreeNode) ? fuseTreeNode.children : fuseTreeNode[fuseTreeNode.length - 1].children),
           fuseID, carConnectorAssignments, cars, excludedChargingStations, chargingStationsInError, currentChargingProfiles, transactions);
+        // Adjust fuse tree with excluded power from sub site areas
+        if (!Array.isArray(fuseTreeNode)) {
+          fuseTreeNode.fusePhase1 -= excludedAmperageOnSubSiteAreas.phase1;
+          fuseTreeNode.fusePhase2 -= excludedAmperageOnSubSiteAreas.phase2;
+          fuseTreeNode.fusePhase3 -= excludedAmperageOnSubSiteAreas.phase3;
+          // Ensure always positive
+          if (fuseTreeNode.fusePhase1 < 0) {
+            fuseTreeNode.fusePhase1 = 0;
+          }
+          if (fuseTreeNode.fusePhase2 < 0) {
+            fuseTreeNode.fusePhase2 = 0;
+          }
+          if (fuseTreeNode.fusePhase3 < 0) {
+            fuseTreeNode.fusePhase3 = 0;
+          }
+        } else {
+          rootFuse.fusePhase1 = rootFuse.fusePhase1 - excludedAmperageOnSubSiteAreas.phase1 < 0 ? rootFuse.fusePhase1 - excludedAmperageOnSubSiteAreas.phase1 : 0;
+          rootFuse.fusePhase1 -= excludedAmperageOnSubSiteAreas.phase1;
+          rootFuse.fusePhase2 -= excludedAmperageOnSubSiteAreas.phase2;
+          rootFuse.fusePhase3 -= excludedAmperageOnSubSiteAreas.phase3;
+          // Ensure always positive
+          if (rootFuse.fusePhase1 < 0) {
+            rootFuse.fusePhase1 = 0;
+          }
+          if (rootFuse.fusePhase2 < 0) {
+            rootFuse.fusePhase2 = 0;
+          }
+          if (rootFuse.fusePhase3 < 0) {
+            rootFuse.fusePhase3 = 0;
+          }
+        }
+        excludedAmperage.phase1 += excludedAmperageOnSubSiteAreas.phase1;
+        excludedAmperage.phase2 += excludedAmperageOnSubSiteAreas.phase2;
+        excludedAmperage.phase3 += excludedAmperageOnSubSiteAreas.phase3;
       }
     }
+    return excludedAmperage;
   }
 
   private async getTransactionFromChargingConnector(siteArea: SiteArea, chargingStation: ChargingStation, connector: Connector, transactions: Transaction[]):Promise<Transaction> {
@@ -318,7 +358,8 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     return currentTransaction;
   }
 
-  private async buildRootFuse(siteArea: SiteArea, fuseID: { value: number }, excludedChargingStations?: string[]): Promise<OptimizerFuse> {
+  private async buildRootFuse(siteArea: SiteArea, fuseID: { value: number }, excludedChargingStations?: string[],
+      excludedAmperage?: ExcludedAmperage): Promise<OptimizerFuse> {
     // Get Asset consumption
     const assetConsumptionInWatts = await this.getAssetConsumptionInWatts(siteArea);
     if (siteArea.maximumPower !== siteArea.maximumPower - assetConsumptionInWatts) {
@@ -329,6 +370,12 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         module: MODULE_NAME, method: 'buildRootFuse',
         detailedMessages: { siteArea }
       });
+      if (assetConsumptionInWatts > 0) {
+        const excludedAmperagePerPhase = Utils.createDecimal(assetConsumptionInWatts).div(siteArea.voltage).div(siteArea.numberOfPhases).toNumber();
+        excludedAmperage.phase1 += excludedAmperagePerPhase;
+        excludedAmperage.phase2 += excludedAmperagePerPhase;
+        excludedAmperage.phase3 += excludedAmperagePerPhase;
+      }
     }
     // Calculate Site Amps excluding asset consumption
     const siteMaxAmps = Utils.createDecimal(siteArea.maximumPower).minus(assetConsumptionInWatts).div(siteArea.voltage).toNumber();
@@ -361,22 +408,27 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
           // Handle single phased site area
           if (siteArea.numberOfPhases === 1) {
             rootFuse.fusePhase1 -= connectorAmperage;
+            excludedAmperage.phase1 += connectorAmperage;
             // Handle single phased stations on three phased site areas
           } else if (Utils.getNumberOfConnectedPhases(chargingStation) === 1) {
             if (connector.phaseAssignmentToGrid?.csPhaseL1) {
               switch (connector.phaseAssignmentToGrid.csPhaseL1) {
                 case OCPPPhase.L1:
                   rootFuse.fusePhase1 -= connectorAmperage;
+                  excludedAmperage.phase1 += connectorAmperage;
                   break;
                 case OCPPPhase.L2:
                   rootFuse.fusePhase2 -= connectorAmperage;
+                  excludedAmperage.phase2 += connectorAmperage;
                   break;
                 case OCPPPhase.L3:
                   rootFuse.fusePhase3 -= connectorAmperage;
+                  excludedAmperage.phase3 += connectorAmperage;
                   break;
               }
             } else {
               rootFuse.fusePhase1 -= connectorAmperage;
+              excludedAmperage.phase1 += connectorAmperage;
             }
           } else {
             // Handle three phased AC/DC stations on three phased site areas
@@ -391,8 +443,11 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
               }
             }
             rootFuse.fusePhase1 -= connectorAmperagePerPhase;
+            excludedAmperage.phase1 += connectorAmperagePerPhase;
             rootFuse.fusePhase2 -= connectorAmperagePerPhase;
+            excludedAmperage.phase2 += connectorAmperagePerPhase;
             rootFuse.fusePhase3 -= connectorAmperagePerPhase;
+            excludedAmperage.phase3 += connectorAmperagePerPhase;
           }
           // Remove the connector
           chargingStation.connectors.splice(j, 1);

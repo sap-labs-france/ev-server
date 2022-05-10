@@ -111,6 +111,12 @@ export interface OptimizerResult {
   cars: OptimizerCar[];
 }
 
+export interface ExcludedAmperage {
+  phase1: number;
+  phase2: number;
+  phase3: number;
+}
+
 export type OptimizerEventType = 'CarArrival' | 'CarDeparture' | 'CarFinished' | 'EnergyPriceChange' | 'Reoptimize';
 
 export type OptimizerCarType = 'BEV' | 'PHEV' | 'PETROL' | 'DIESEL';

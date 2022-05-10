@@ -1406,6 +1406,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
     beforeAll(() => {
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+      testData.siteAreaContext1 = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
       testData.chargingStationContext1 = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}` + '-' + 'singlePhased');
     });
@@ -1417,6 +1418,11 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Available);
       await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector1Available);
       await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector2Available);
+      // Reset modifications on siteArea
+      testData.siteAreaContext.getSiteArea().maximumPower = 200000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      testData.siteAreaContext1.getSiteArea().maximumPower = 200000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext1.getSiteArea());
     });
 
     it('Check if one charging connector of three phased charging station will be excluded from smart charging on three phased site area', async () => {
@@ -1470,12 +1476,29 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
       }
     );
+
+    it(
+      'Check if two charging connectors will be excluded also on parent site area level',
+      async () => {
+        testData.siteAreaContext.getSiteArea().maximumPower = 100000;
+        testData.siteAreaContext1.getSiteArea().maximumPower = 22080 +
+        Utils.createDecimal(limitMinThreePhased[0].limit).mul(testData.siteAreaContext.getSiteArea().voltage).toNumber();
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext1.getSiteArea());
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea(),
+          [testData.chargingStationContext1.getChargingStation().id]);
+        expect(chargingProfiles.length).to.be.eq(2);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+      }
+    );
   });
 
   describe('Test for Asset management', () => {
     beforeAll(async () => {
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+      testData.siteAreaContext1 = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
       testData.newAsset = {
         id: '601d381a8bcb0639a4bfaca2',
@@ -1505,6 +1528,8 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       // Reset modifications on siteArea
       testData.siteAreaContext.getSiteArea().maximumPower = 200000;
       await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      testData.siteAreaContext1.getSiteArea().maximumPower = 200000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext1.getSiteArea());
 
       await AssetStorage.deleteAsset(testData.tenantContext.getTenant(), testData.newAsset.id);
     });
