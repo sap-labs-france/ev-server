@@ -245,6 +245,9 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canRemoteStopTransaction?:boolean;
   canStopTransaction?:boolean;
   canChangeAvailability?:boolean;
+  canRemoteStartTransaction?:boolean;
+  canUnlockConnector?:boolean;
+  canDataTransfer?:boolean;
 }
 
 export interface ChargingProfileAuthorizationActions extends AuthorizationActions {

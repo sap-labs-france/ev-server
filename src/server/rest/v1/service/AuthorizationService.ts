@@ -677,6 +677,12 @@ export default class AuthorizationService {
       tenant, userToken, Entity.CHARGING_STATION, Action.STOP_TRANSACTION, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
     chargingStation.canChangeAvailability = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.CHANGE_AVAILABILITY, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canRemoteStartTransaction = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.REMOTE_START_TRANSACTION, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canUnlockConnector = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.UNLOCK_CONNECTOR, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canDataTransfer = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.TRIGGER_DATA_TRANSFER, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(chargingStation);
   }
