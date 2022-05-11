@@ -21,38 +21,6 @@ export default class ChargingStationTemplateApi extends CrudApi {
     return super.readAll(params, paging, ordering, `/v1/api/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}`);
   }
 
-  // public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-  //   return super.readAll(params, paging, ordering, `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS_IN_ERROR}`);
-  // }
-
-  // public async update(data) {
-  //   return super.update(data, `/v1/api/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}/${data.id}/parameters`);
-  // }
-
-  // public async delete(id) {
-  //   return super.delete(id, `/v1/api/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}/${id}`);
-  // }
-
-  // public async readConsumptionStatistics(year) {
-  //   return super.read({ Year: year }, '/client/api/ChargingStationConsumptionStatistics');
-  // }
-
-  // public async readUsageStatistics(year) {
-  //   return super.read({ Year: year }, '/client/api/ChargingStationUsageStatistics');
-  // }
-
-  // public async readAllTransactions(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-  //   return super.readAll(params, paging, ordering, `/v1/api/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}/${params.id}/transactions`);
-  // }
-
-  // public async readAllYears(params) {
-  //   return super.readAll(params, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/TransactionYears');
-  // }
-
-  // public async remoteStartTransaction(data) {
-  //   return super.update(data, `/v1/api/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}/${data.chargingStationID}/remote/start`);
-  // }
-
   public async checkConnector(chargingStation, connectorId, connectorData) {
     expect(chargingStation).to.not.be.null;
     // Always remove the timestamp

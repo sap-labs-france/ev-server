@@ -4,7 +4,6 @@ import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpChargingStationTemplatesRequest extends HttpDatabaseRequest {
   Search: string;
-  SiteAreaID: string;
 }
 
 export interface HttpChargingStationTemplateRequest extends HttpByIDRequest {

@@ -1,5 +1,6 @@
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
+import { ChargingStationTemplate } from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
@@ -8,33 +9,11 @@ import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import { ChargingStationTemplate } from '../../types/ChargingStation';
 
 const MODULE_NAME = 'ChargingStationTemplateStorage';
 
 export default class ChargingStationTemplateStorage {
-  // public static async saveRegistrationToken(tenant: Tenant, registrationToken: ChargingStationTemplate): Promise<string> {
-  //   const startTime = Logging.traceDatabaseRequestStart();
-  //   DatabaseUtils.checkTenantObject(tenant);
-  //   // Set
-  //   const registrationTokenMDB = {
-  //     _id: registrationToken.id ? DatabaseUtils.convertToObjectID(registrationToken.id) : new ObjectId(),
-  //     description: registrationToken.description,
-  //     siteAreaID: registrationToken.siteAreaID ? DatabaseUtils.convertToObjectID(registrationToken.siteAreaID) : null,
-  //     expirationDate: Utils.convertToDate(registrationToken.expirationDate),
-  //     revocationDate: Utils.convertToDate(registrationToken.revocationDate)
-  //   };
-  //   // Add Last Changed/Created props
-  //   DatabaseUtils.addLastChangedCreatedProps(registrationTokenMDB, registrationToken);
-  //   // Modify
-  //   await global.database.getCollection(tenant.id, 'registrationtokens').findOneAndUpdate(
-  //     { _id: registrationTokenMDB._id },
-  //     { $set: registrationTokenMDB },
-  //     { upsert: true, returnDocument: 'after' }
-  //   );
-  //   await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveRegistrationToken', startTime, registrationTokenMDB);
-  //   return registrationTokenMDB._id.toString();
-  // }
+
 
   public static async getChargingStationTemplates(tenant: Tenant,
       params: { search?: string; IDs?: string[];} = {},
@@ -132,7 +111,7 @@ export default class ChargingStationTemplateStorage {
   }
 
   public static async getChargingStationTemplate(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: {} = {},
+      params = {},
       projectFields?: string[]): Promise<ChargingStationTemplate> {
     const chargingstationtemplatessMDB = await ChargingStationTemplateStorage.getChargingStationTemplates(tenant, {
       IDs: [id],

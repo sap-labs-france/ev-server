@@ -27,19 +27,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CHARGING_STATION_TEMPLATE, action: [Action.LIST, Action.READ, Action.DELETE, Action.UPDATE],
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: [],
-            metadata: {
-              status: {
-                visible: true,
-                mandatory: true,
-              }
-            },
-          }
-        },
       },
       {
         resource: Entity.USER, action: Action.DELETE,

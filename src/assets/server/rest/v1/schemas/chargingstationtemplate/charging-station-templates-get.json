@@ -7,9 +7,6 @@
     "Search": {
       "$ref": "common#/definitions/search"
     },
-    "SiteAreaID": {
-      "$ref": "registration-token#/definitions/siteAreaID"
-    },
     "Limit": {
       "$ref": "common#/definitions/limit"
     },
