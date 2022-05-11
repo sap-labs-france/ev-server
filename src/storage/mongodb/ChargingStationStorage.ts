@@ -82,24 +82,6 @@ export default class ChargingStationStorage {
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteChargingStationTemplates', startTime, { qa: { $not: { $eq: true } } });
   }
 
-  public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<void> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    // Validate
-    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(chargingStationTemplate);
-    // Prepare DB structure
-    const chargingStationTemplateMDB = {
-      ...chargingStationTemplate,
-      _id: chargingStationTemplate.id
-    };
-    delete chargingStationTemplateMDB.id;
-    // Modify and return the modified document
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').findOneAndReplace(
-      { '_id': chargingStationTemplate.id },
-      chargingStationTemplateMDB,
-      { upsert: true });
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveChargingStationTemplate', startTime, chargingStationTemplate);
-  }
-
   public static async getChargingStation(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
       params: { includeDeleted?: boolean, issuer?: boolean; siteIDs?: string[]; withSiteArea?: boolean; withSite?: boolean; } = {},
       projectFields?: string[]): Promise<ChargingStation> {

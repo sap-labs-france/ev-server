@@ -1,7 +1,9 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
+import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import { ChargingStationTemplate } from '../../../../types/ChargingStation';
@@ -9,7 +11,6 @@ import { ChargingStationTemplateDataResult } from '../../../../types/DataResult'
 import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
 import ChargingStationTemplateValidator from '../validator/ChargingStationTemplateValidator';
 import Constants from '../../../../utils/Constants';
-import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import { ServerAction } from '../../../../types/Server';
@@ -19,10 +20,19 @@ const MODULE_NAME = 'ChargingStationTemplateService';
 
 export default class ChargingStationTemplateService {
   public static async handleCreateChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // const filteredRequest = ChargingStationTemplateValidator.getInstance().validateCarCreateReq(req.body);
-    const filteredRequest = req.body;
+    const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateCreateReq(req.body);
     await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
-      req.tenant, req.user, {}, Action.CREATE, filteredRequest as ChargingStationTemplate);
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
+    const foundCST = await ChargingStationTemplateStorage.getChargingStationTemplate(req.tenant, filteredRequest.id);
+    if (foundCST) {
+      throw new AppError({
+        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
+        message: `id '${filteredRequest.id}' already exists`,
+        module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
+        user: req.user,
+        action: action
+      });
+    }
     // Check auth
     if (!(await Authorizations.canCreateChargingStationTemplate(req.user))) {
       throw new AppAuthError({
@@ -48,7 +58,7 @@ export default class ChargingStationTemplateService {
       technical: filteredRequest.technical
     };
 
-    newChargingStationTemplate.id = await ChargingStationTemplateStorage.saveChargingStationTemplate(req.tenant, newChargingStationTemplate);
+    newChargingStationTemplate.id = await ChargingStationTemplateStorage.saveChargingStationTemplate(newChargingStationTemplate);
     await Logging.logInfo({
       tenantID: req.tenant.id,
       ...LoggingHelper.getChargingStationTemplateProperties(newChargingStationTemplate),
@@ -73,7 +83,7 @@ export default class ChargingStationTemplateService {
       return;
     }
     // Get the tokens
-    const chargingStationTemplates = await ChargingStationTemplateStorage.getChargingStationTemplates(req.tenant,
+    const chargingStationTemplates = await ChargingStationTemplateStorage.getChargingStationTemplates(
       {
         search: filteredRequest.Search,
         ...authorizationChargingStationTemplateFilter.filters

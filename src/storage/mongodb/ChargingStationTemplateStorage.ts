@@ -1,6 +1,7 @@
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import { ChargingStationTemplate } from '../../types/ChargingStation';
+import ChargingStationValidatorStorage from './validator/ChargingStationValidatorStorage';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
@@ -12,26 +13,29 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'ChargingStationTemplateStorage';
 
 export default class ChargingStationTemplateStorage {
-  public static async saveChargingStationTemplate(tenant: Tenant, chargingStationTemplate: ChargingStationTemplate): Promise<string> {
+  public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    // Add Last Changed/Created props
-    DatabaseUtils.addLastChangedCreatedProps(chargingStationTemplate, chargingStationTemplate);
-    // Modify
-    await global.database.getCollection(tenant.id, 'chargingstationtemplates').findOneAndUpdate(
-      { _id: chargingStationTemplate.id },
-      { $set: chargingStationTemplate },
-      { upsert: true }
-    );
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationTemplate', startTime, chargingStationTemplate);
-    return chargingStationTemplate.id.toString();
+    // Validate
+    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(chargingStationTemplate);
+    // Prepare DB structure
+    const chargingStationTemplateMDB = {
+      ...chargingStationTemplate,
+      _id: chargingStationTemplate.id
+    };
+    delete chargingStationTemplateMDB.id;
+    // Modify and return the modified document
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').findOneAndReplace(
+      { '_id': chargingStationTemplate.id },
+      chargingStationTemplateMDB,
+      { upsert: true });
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveChargingStationTemplate', startTime, chargingStationTemplate);
+    return chargingStationTemplateMDB.id;
   }
 
-  public static async getChargingStationTemplates(tenant: Tenant,
+  public static async getChargingStationTemplates(
       params: { search?: string; IDs?: string[];} = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationTemplate>> {
     const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -40,11 +44,6 @@ export default class ChargingStationTemplateStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
-    // Add Site Area
-    DatabaseUtils.pushSiteAreaLookupInAggregation({
-      tenantID: tenant.id, aggregation, localField: 'siteAreaID', foreignField: '_id',
-      asField: 'siteArea', oneToOneCardinality: true
-    });
     // Set the filters
     const filters: FilterParams = {};
     // Search
@@ -82,7 +81,7 @@ export default class ChargingStationTemplateStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationTemplates', startTime, aggregation, chargingStationTemplatesCountMDB);
+      // await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationTemplates', startTime, aggregation, chargingStationTemplatesCountMDB);
       return {
         count: (chargingStationTemplatesCountMDB.length > 0 ? chargingStationTemplatesCountMDB[0].count : 0),
         result: []
@@ -107,15 +106,13 @@ export default class ChargingStationTemplateStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const ChargingStationTemplates = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray() as ChargingStationTemplate[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationTemplates', startTime, aggregation, ChargingStationTemplates);
+    // await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationTemplates', startTime, aggregation, ChargingStationTemplates);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(chargingStationTemplatesCountMDB[0]),
       result: ChargingStationTemplates
@@ -125,7 +122,7 @@ export default class ChargingStationTemplateStorage {
   public static async getChargingStationTemplate(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
       params = {},
       projectFields?: string[]): Promise<ChargingStationTemplate> {
-    const chargingstationtemplatessMDB = await ChargingStationTemplateStorage.getChargingStationTemplates(tenant, {
+    const chargingstationtemplatessMDB = await ChargingStationTemplateStorage.getChargingStationTemplates({
       IDs: [id],
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingstationtemplatessMDB.count === 1 ? chargingstationtemplatessMDB.result[0] : null;
