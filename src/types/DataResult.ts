@@ -4,6 +4,7 @@ import Transaction, { TransactionStats } from './Transaction';
 
 import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
+import { ChargingStationTemplate } from './ChargingStation';
 import Company from './Company';
 import { Log } from './Log';
 import PricingDefinition from './Pricing';
@@ -12,7 +13,6 @@ import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
 import User from './User';
-import { ChargingStationTemplate } from './ChargingStation';
 
 export interface DeletedResult {
   acknowledged?: boolean;

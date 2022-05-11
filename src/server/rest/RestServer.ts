@@ -1,10 +1,8 @@
-import { Application, NextFunction, Request, Response } from 'express';
-
+import { Application } from 'express';
 import AuthService from './v1/service/AuthService';
 import CentralSystemRestServiceConfiguration from '../../types/configuration/CentralSystemRestServiceConfiguration';
 import ExpressUtils from '../ExpressUtils';
 import GlobalRouterV1 from './v1/router/GlobalRouterV1';
-import Logging from '../../utils/Logging';
 import RestServerService from './RestServerService';
 import { ServerType } from '../../types/Server';
 import { ServerUtils } from '../ServerUtils';

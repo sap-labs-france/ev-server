@@ -15,6 +15,7 @@ export default class ChargingStationTemplateRouter {
   }
 
   public buildRoutes(): express.Router {
+    this.buildRouteChargingStationCreateChargingProfile();
     this.buildRouteChargingStationTemplates();
     this.buildRouteChargingStationTemplate();
     return this.router;
@@ -30,6 +31,12 @@ export default class ChargingStationTemplateRouter {
     this.router.get(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = sanitize(req.params.id);
       await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleGetChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE, req, res, next);
+    });
+  }
+
+  private buildRouteChargingStationCreateChargingProfile(): void {
+    this.router.post(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE_IMPORT}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleCreateChargingStationTemplate.bind(this), ServerAction.CHARGING_PROFILE_CREATE, req, res, next);
     });
   }
 }

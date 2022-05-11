@@ -20,6 +20,8 @@ class TestData {
   public siteContext: SiteContext;
   public siteAreaContext: any;
   public newSite: any;
+  public newSiteArea: any;
+  public testAsset: any;
   public newUser: any;
   public createdSites: any[] = [];
   public createdUsers: any[] = [];
@@ -47,6 +49,25 @@ async function createSite() {
     Factory.site.build({ companyID: testData.tenantContext.getContext().companies[0].id })
   );
   testData.createdSites.push(testData.newSite);
+}
+
+async function createSiteArea() {
+  // Create the site area
+  testData.newSiteArea = await testData.userService.createEntity(
+    testData.userService.siteAreaApi,
+    Factory.siteArea.build({ siteID: testData.createdSites[0].id })
+  );
+}
+
+async function createAsset() {
+  // Create Asset
+  testData.testAsset = await testData.userService.createEntity(
+    testData.userService.assetApi,
+    Factory.asset.build({
+      siteAreaID: testData.newSiteArea.id,
+      assetType: 'PR'
+    })
+  );
 }
 
 async function assignUserToSite(userRole, site): Promise<any> {
@@ -99,7 +120,7 @@ describe('Site', () => {
   describe('With component Organization (utorg)', () => {
 
     beforeAll(async () => {
-      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
@@ -111,6 +132,9 @@ describe('Site', () => {
 
       beforeAll(async () => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        await createSite();
+        await createSiteArea();
+        await createAsset();
       });
 
       afterAll(async () => {
@@ -131,6 +155,18 @@ describe('Site', () => {
             false
           );
         }
+        // Delete Asset
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.assetApi,
+          testData.testAsset,
+          false
+        );
+        // Delete site area
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.siteAreaApi,
+          testData.newSiteArea,
+          false
+        );
         testData.createdUsers = [];
       });
 
@@ -141,6 +177,65 @@ describe('Site', () => {
           Factory.site.build({ companyID: testData.tenantContext.getContext().companies[0].id })
         );
         testData.createdSites.push(testData.newSite);
+      });
+
+      it('Assets, Charging stations and transactions should be aligned with organizations entities', async () => {
+        const chargingStations = await testData.userService.chargingStationApi.readAll({});
+        let transaction = (await testData.userService.transactionApi.readAllCompleted({}, { limit: 1, skip: 0 })).data.result[0];
+        let chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
+        // Conserve site areas ID to re init the context
+        const oldChargingStationSiteAreaID = chargingStation.siteAreaID;
+        // Conserve company ID to re init the context
+        const oldTransactionCompanyID = transaction.companyID;
+        // Get the site of the transaction
+        const transactionSite = (await testData.userService.siteApi.readById(transaction.siteID)).data;
+        // Change the companyID of the Site
+        transactionSite.companyID = testData.tenantContext.getContext().companies[0].id;
+        // Update
+        await testData.userService.updateEntity(
+          testData.userService.siteApi,
+          transactionSite
+        );
+        // Get the updated site
+        transaction = (await testData.userService.transactionApi.readById(transaction.id)).data;
+        expect(transaction.companyID).to.equal(testData.tenantContext.getContext().companies[0].id);
+        // Assign Charging Station
+        await testData.userService.siteAreaApi.assignChargingStations(
+          testData.newSiteArea.id, [chargingStation.id]);
+        testData.createdSites[0].companyID = testData.tenantContext.getContext().companies[1].id;
+        // Update
+        await testData.userService.updateEntity(
+          testData.userService.siteApi,
+          testData.createdSites[0]
+        );
+        // Get the assigned asset
+        testData.testAsset = (await testData.userService.assetApi.readById(testData.testAsset.id)).data;
+        expect(testData.testAsset.companyID).to.equal(testData.tenantContext.getContext().companies[1].id);
+        // Get the assigned charging station
+        chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
+        expect(chargingStation.companyID).to.equal(testData.tenantContext.getContext().companies[1].id);
+        // Put back the context in place
+        testData.createdSites[0].companyID = testData.tenantContext.getContext().companies[0].id;
+        // Update
+        await testData.userService.updateEntity(
+          testData.userService.siteApi,
+          testData.createdSites[0]
+        );
+        transactionSite.companyID = oldTransactionCompanyID;
+        // Update
+        await testData.userService.updateEntity(
+          testData.userService.siteApi,
+          transactionSite
+        );
+        // Remove charging station from site area
+        await testData.userService.siteAreaApi.removeChargingStations(
+          testData.newSiteArea.id, [chargingStation.id]);
+        chargingStation = (await testData.userService.chargingStationApi.readById(chargingStation.id)).data;
+        // Put back the context in place
+        if (oldChargingStationSiteAreaID) {
+          await testData.userService.siteAreaApi.assignChargingStations(
+            oldChargingStationSiteAreaID, [chargingStation.id]);
+        }
       });
 
       it('Should find the created site by id', async () => {
@@ -280,7 +375,18 @@ describe('Site', () => {
             false
           );
         }
+        // Delete created asset
         testData.createdUsers = [];
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.assetApi,
+          testData.testAsset,
+          false
+        );
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.siteAreaApi,
+          testData.newSiteArea,
+          false
+        );
       });
 
       it('Should find a site he is assigned to', async () => {
@@ -313,7 +419,7 @@ describe('Site', () => {
         'Should not find a site he is not assigned to in the site list',
         async () => {
           try {
-          // Check if the created entity is in the list
+            // Check if the created entity is in the list
             await testData.userService.checkEntityInList(
               testData.userService.siteApi,
               testData.createdSites[1]
