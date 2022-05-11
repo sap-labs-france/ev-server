@@ -283,7 +283,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION_TEMPLATE, Action.LIST);
   }
 
-  public static async canCreateChargingStationTemplates(loggedUser: UserToken): Promise<boolean> {
+  public static async canCreateChargingStationTemplate(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION_TEMPLATE, Action.CREATE);
   }
 

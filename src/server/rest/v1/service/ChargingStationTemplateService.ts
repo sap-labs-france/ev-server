@@ -24,7 +24,7 @@ export default class ChargingStationTemplateService {
     await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest as ChargingStationTemplate);
     // Check auth
-    if (!(await Authorizations.canCreateChargingStationTemplates(req.user))) {
+    if (!(await Authorizations.canCreateChargingStationTemplate(req.user))) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
