@@ -271,6 +271,13 @@ export default class SiteAreaService {
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
     });
+    if (siteAreaIDs.length > 1) {
+      const limitAmps = Utils.createDecimal(siteArea.maximumPower).div(siteArea.voltage).toNumber();
+      for (const consumption of consumptions) {
+        consumption.limitWatts = siteArea.maximumPower;
+        consumption.limitAmps = limitAmps;
+      }
+    }
     // Assign
     siteArea.values = consumptions;
     res.json(siteArea);
