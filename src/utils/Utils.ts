@@ -1693,7 +1693,6 @@ export default class Utils {
     }
   }
 
-
   public static getSiteAreaIDsFromSiteAreasTree(siteArea: SiteArea): string[] {
     const siteAreaIDs = [siteArea.id];
     for (const childSiteArea of siteArea.childSiteAreas) {
