@@ -1693,20 +1693,6 @@ export default class Utils {
     }
   }
 
-  public static findSiteAreaInTrees(siteAreaID: string, siteAreaTrees: SiteArea[] = []): SiteArea {
-    // Loop through trees to find specific tree
-    for (const siteAreaTree of siteAreaTrees) {
-      // Check node
-      if (siteAreaTree.id === siteAreaID) {
-        return siteAreaTree;
-      }
-      // Site Area ID is defined return tree, which contains the site area
-      const requestedTree = Utils.findSiteAreaInTrees(siteAreaID, siteAreaTree.childSiteAreas);
-      if (requestedTree) {
-        return siteAreaTree;
-      }
-    }
-  }
 
   public static getSiteAreaIDsFromSiteAreasTree(siteArea: SiteArea): string[] {
     const siteAreaIDs = [siteArea.id];
