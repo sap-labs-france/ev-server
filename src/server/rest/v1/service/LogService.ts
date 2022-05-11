@@ -4,23 +4,23 @@ import { NextFunction, Request, Response } from 'express';
 import { Action } from '../../../../types/Authorization';
 import AuthorizationService from './AuthorizationService';
 import Constants from '../../../../utils/Constants';
-import { HttpLogsRequest } from '../../../../types/requests/HttpLoggingRequest';
+import { HttpLogsRequest } from '../../../../types/requests/HttpLogRequest';
 import { Log } from '../../../../types/Log';
-import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
-import LoggingValidator from '../validator/LoggingValidator';
+import LogStorage from '../../../../storage/mongodb/LogStorage';
+import LogValidator from '../validator/LogValidator';
 import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';
 
-const MODULE_NAME = 'LoggingService';
+const MODULE_NAME = 'LogService';
 
-export default class LoggingService {
+export default class LogService {
   public static async handleGetLogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = LoggingValidator.getInstance().validateLoggingsGetReq(req.query);
+    const filteredRequest = LogValidator.getInstance().validateLogsGetReq(req.query);
     // Get Logs
-    res.json(await LoggingService.getLogs(req, filteredRequest));
+    res.json(await LogService.getLogs(req, filteredRequest));
     next();
   }
 
@@ -28,16 +28,16 @@ export default class LoggingService {
     // Force params
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Filter
-    const filteredRequest = LoggingValidator.getInstance().validateLoggingsGetReq(req.query);
+    const filteredRequest = LogValidator.getInstance().validateLogsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-logs.csv', filteredRequest,
-      LoggingService.getLogs.bind(this),
-      LoggingService.convertToCSV.bind(this));
+      LogService.getLogs.bind(this),
+      LogService.convertToCSV.bind(this));
   }
 
   public static async handleGetLog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = LoggingValidator.getInstance().validateLoggingGetReq(req.query);
+    const filteredRequest = LogValidator.getInstance().validateLogGetReq(req.query);
     // Check and Get Log
     const log = await UtilsService.checkAndGetLogAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, null, true);
@@ -45,7 +45,7 @@ export default class LoggingService {
     next();
   }
 
-  private static convertToCSV(req: Request, loggings: Log[], writeHeader = true): string {
+  private static convertToCSV(req: Request, logs: Log[], writeHeader = true): string {
     let headers = null;
     // Header
     if (writeHeader) {
@@ -64,7 +64,7 @@ export default class LoggingService {
       ].join(Constants.CSV_SEPARATOR);
     }
     // Content
-    const rows = loggings.map((log) => {
+    const rows = logs.map((log) => {
       const row = [
         log.level,
         moment(log.timestamp).format('YYYY-MM-DD'),
@@ -91,7 +91,7 @@ export default class LoggingService {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
     // Get Logs
-    const logs = await LoggingStorage.getLogs(req.tenant, {
+    const logs = await LogStorage.getLogs(req.tenant, {
       search: filteredRequest.Search,
       startDateTime: filteredRequest.StartDateTime,
       endDateTime: filteredRequest.EndDateTime,

@@ -126,7 +126,6 @@ export default class TagService {
   public static async handleCreateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TagValidator.getInstance().validateTagCreateReq(req.body);
-    UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Get dynamic auth
     await AuthorizationService.checkAndGetTagAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
@@ -327,7 +326,6 @@ export default class TagService {
   public static async handleUpdateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TagValidator.getInstance().validateTagUpdateReq({ ...req.params, ...req.body });
-    UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
       filteredRequest, { withUser: true }, true);

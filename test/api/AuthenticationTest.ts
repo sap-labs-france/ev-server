@@ -89,7 +89,7 @@ describe('Authentication Service (utall)', () => {
       expect(user.eulaAcceptedOn).to.not.be.null;
       expect(user.eulaAcceptedVersion).to.not.be.null;
       expect(user.eulaAcceptedVersion).to.be.above(0);
-      expect(user.createdBy).to.be.null;
+      expect(user.createdBy).to.be.undefined;
       expect(user.createdOn).to.not.be.null;
     });
 

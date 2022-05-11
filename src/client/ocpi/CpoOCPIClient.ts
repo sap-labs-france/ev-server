@@ -6,7 +6,6 @@ import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthori
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPILocation, OCPILocationOptions, OCPILocationReference, OCPILocationType } from '../../types/ocpi/OCPILocation';
-import User, { UserRole, UserStatus } from '../../types/User';
 
 import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
@@ -38,6 +37,7 @@ import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import User from '../../types/User';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
@@ -370,7 +370,7 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'postCdr',
       });
     }
-    if (!transaction.ocpiData?.session) {
+    if (!transaction.ocpiData?.session?.id) {
       throw new BackendError({
         ...LoggingHelper.getTransactionProperties(transaction),
         action: ServerAction.OCPI_CPO_PUSH_CDRS,

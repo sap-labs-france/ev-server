@@ -1,14 +1,13 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
-import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
 import Constants from '../../../../utils/Constants';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import { HTTPError } from '../../../../types/HTTPError';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -39,15 +38,17 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const authAction = action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN_ASSETS_TO_SITE_AREA : Action.UNASSIGN_ASSETS_FROM_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.siteAreaID, authAction, action);
+      req.tenant, req.user, filteredRequest.siteAreaID, authAction, action, null, { withSite: true });
     // Check and Get Assets
     const assets = await UtilsService.checkSiteAreaAssetsAuthorization(
       req.tenant, req.user, siteArea, filteredRequest.assetIDs, action);
     // Save
     if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
-      await SiteAreaStorage.addAssetsToSiteArea(req.tenant, siteArea, assets.map((asset) => asset.id));
+      await SiteAreaStorage.addAssetsToSiteArea(
+        req.tenant, siteArea.id, siteArea.siteID, siteArea.site.companyID, assets.map((asset) => asset.id));
     } else {
-      await SiteAreaStorage.removeAssetsFromSiteArea(req.tenant, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
+      await SiteAreaStorage.removeAssetsFromSiteArea(
+        req.tenant, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
     }
     await Logging.logInfo({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
@@ -97,7 +98,7 @@ export default class SiteAreaService {
     // Save
     if (action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
       await SiteAreaStorage.addChargingStationsToSiteArea(
-        req.tenant, siteArea, chargingStations.map((chargingStation) => chargingStation.id));
+        req.tenant, siteArea.id, siteArea.siteID, siteArea.site.companyID, chargingStations.map((chargingStation) => chargingStation.id));
     } else {
       await SiteAreaStorage.removeChargingStationsFromSiteArea(
         req.tenant, filteredRequest.siteAreaID, chargingStations.map((chargingStation) => chargingStation.id));
@@ -121,7 +122,6 @@ export default class SiteAreaService {
       Action.DELETE, Entity.SITE_AREA, MODULE_NAME, 'handleDeleteSiteArea');
     // Filter request
     const siteAreaID = SiteAreaValidator.getInstance().validateSiteAreaGetReq(req.query).ID;
-    UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'handleDeleteSiteArea', req.user);
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
@@ -272,21 +272,11 @@ export default class SiteAreaService {
       Action.CREATE, Entity.SITE_AREA, MODULE_NAME, 'handleCreateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaCreateReq(req.body);
-    // Check request data is valid
-    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
+    // Check Site Area auth
+    await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
       {}, Action.CREATE, filteredRequest);
-    if (!authorizations.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'handleCreateSiteArea'
-      });
-    }
     // Check Site auth
-    const site = await UtilsService.checkAndGetSiteAuthorization(
+    await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Create Site Area
     const siteArea: SiteArea = {
@@ -315,8 +305,6 @@ export default class SiteAreaService {
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleUpdateSiteArea');
     // Filter request
     const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaUpdateReq(req.body);
-    // Check Mandatory fields
-    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check and Get SiteArea
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest, {

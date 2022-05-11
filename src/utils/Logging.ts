@@ -10,8 +10,8 @@ import BackendError from '../exception/BackendError';
 import Configuration from '../utils/Configuration';
 import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
-import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
-import LoggingStorage from '../storage/mongodb/LoggingStorage';
+import LogConfiguration from '../types/configuration/LogConfiguration';
+import LogStorage from '../storage/mongodb/LogStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import { OICPResult } from '../types/oicp/OICPResult';
@@ -28,14 +28,14 @@ import sizeof from 'object-sizeof';
 const MODULE_NAME = 'Logging';
 
 export default class Logging {
-  private static loggingConfig: LoggingConfiguration;
+  private static logConfig: LogConfiguration;
   private static traceConfig: TraceConfiguration;
 
-  public static getConfiguration(): LoggingConfiguration {
-    if (!this.loggingConfig) {
-      this.loggingConfig = Configuration.getLoggingConfig();
+  public static getConfiguration(): LogConfiguration {
+    if (!this.logConfig) {
+      this.logConfig = Configuration.getLogConfig();
     }
-    return this.loggingConfig;
+    return this.logConfig;
   }
 
   public static getTraceConfiguration(): TraceConfiguration {
@@ -720,7 +720,7 @@ export default class Logging {
   public static async traceOcppMessageResponse(module: string, tenant: Tenant, chargingStationID: string,
       action: ServerAction, request: any, response: any, direction: '<<' | '>>',
       chargingStationDetails: { siteID: string, siteAreaID: string, companyID: string,}, performanceTracingData?: PerformanceTracingData): Promise<void> {
-    if (Logging.getTraceConfiguration().traceOcpp) {
+    if (Logging.getTraceConfiguration().traceOcpp && performanceTracingData) {
       // Compute duration if provided
       const executionDurationMillis = performanceTracingData?.startTimestamp ? Date.now() - performanceTracingData.startTimestamp : 0;
       const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
@@ -880,12 +880,12 @@ export default class Logging {
 
   private static async log(log: Log): Promise<string> {
     // Check Log Level
-    const loggingConfig = Logging.getConfiguration();
+    const logConfig = Logging.getConfiguration();
     // Default Log Level
-    const logLevel = loggingConfig.logLevel ? loggingConfig.logLevel : LogLevel.DEBUG;
+    const logLevel = logConfig.logLevel ? logConfig.logLevel : LogLevel.DEBUG;
     // Log Level
     switch (LogLevel[logLevel]) {
-      // No logging at all
+      // No log at all
       case LogLevel.NONE:
         return;
       // Keep all log messages just filter out DEBUG
@@ -936,7 +936,7 @@ export default class Logging {
       log.tenantID = Constants.DEFAULT_TENANT_ID;
     }
     // Save
-    return LoggingStorage.saveLog(log.tenantID, log);
+    return LogStorage.saveLog(log.tenantID, log);
   }
 
   private static async anonymizeSensitiveData(message: any): Promise<any> {
@@ -1007,7 +1007,7 @@ export default class Logging {
       tenantID: Constants.DEFAULT_TENANT_ID,
       module: MODULE_NAME,
       method: 'anonymizeSensitiveData',
-      action: ServerAction.LOGGING,
+      action: ServerAction.LOG,
       message: 'No matching object type for log message anonymisation',
       detailedMessages: { message }
     });
