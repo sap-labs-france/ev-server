@@ -216,6 +216,50 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       phase3: 0
     };
     const rootFuse = await this.buildRootFuse(siteArea, fuseID, excludedChargingStations, excludedAmperage);
+    await this.buildFuseChargingStationNodes(siteArea, rootFuse, fuseID, carConnectorAssignments, cars,
+      excludedChargingStations, chargingStationsInError, currentChargingProfiles, transactions);
+    // Check if current iteration contains root fuse or children of request fuse tree
+    if (Array.isArray(fuseTreeNode)) {
+      // Push child tree of current site area to children
+      fuseTreeNode.push(rootFuse);
+    } else {
+      // Set initial site area to fuse tree as reference
+      fuseTreeNode['@type'] = 'Fuse';
+      fuseTreeNode.id = rootFuse.id;
+      fuseTreeNode.fusePhase1 = rootFuse.fusePhase1;
+      fuseTreeNode.fusePhase2 = rootFuse.fusePhase2;
+      fuseTreeNode.fusePhase3 = rootFuse.fusePhase3;
+      fuseTreeNode.phase1Connected = rootFuse.phase1Connected;
+      fuseTreeNode.phase2Connected = rootFuse.phase2Connected;
+      fuseTreeNode.phase3Connected = rootFuse.phase3Connected;
+      fuseTreeNode.children = rootFuse.children;
+    }
+    // Check if current site area has children
+    if (!Utils.isEmptyArray(siteArea.childSiteAreas)) {
+      // Build fuse node for each child
+      for (const siteAreaChild of siteArea.childSiteAreas) {
+        // Use Fuse tree child elements  to build sub site areas
+        const excludedAmperageOnSubSiteAreas = await this.buildFuseNodes(siteAreaChild,
+          (!Array.isArray(fuseTreeNode) ? fuseTreeNode.children : fuseTreeNode[fuseTreeNode.length - 1].children),
+          fuseID, carConnectorAssignments, cars, excludedChargingStations, chargingStationsInError, currentChargingProfiles, transactions);
+        // Adjust fuse tree with excluded power from sub site areas
+        if (!Array.isArray(fuseTreeNode)) {
+          this.deductAmperageFromFuse(fuseTreeNode, excludedAmperageOnSubSiteAreas);
+        } else {
+          this.deductAmperageFromFuse(rootFuse, excludedAmperageOnSubSiteAreas);
+        }
+        excludedAmperage.phase1 += excludedAmperageOnSubSiteAreas.phase1;
+        excludedAmperage.phase2 += excludedAmperageOnSubSiteAreas.phase2;
+        excludedAmperage.phase3 += excludedAmperageOnSubSiteAreas.phase3;
+      }
+    }
+    return excludedAmperage;
+  }
+
+  private async buildFuseChargingStationNodes(siteArea: SiteArea, rootFuse: OptimizerFuse,
+      fuseID: { value: number }, carConnectorAssignments: OptimizerCarConnectorAssignment[],
+      cars: OptimizerCar[], excludedChargingStations: string[], chargingStationsInError: { value: boolean },
+      currentChargingProfiles: ChargingProfile[], transactions: Transaction[]) {
     // Loop through charging stations to get each connector
     for (const chargingStation of siteArea.chargingStations) {
       // Create helper to build fuse tree
@@ -264,67 +308,22 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         rootFuse.children.push(chargingStationFuse);
       }
     } // End for of charging stations
-    // Check if current iteration contains root fuse or children of request fuse tree
-    if (Array.isArray(fuseTreeNode)) {
-      // Push child tree of current site area to children
-      fuseTreeNode.push(rootFuse);
-    } else {
-      // Set initial site area to fuse tree as reference
-      fuseTreeNode['@type'] = 'Fuse';
-      fuseTreeNode.id = rootFuse.id;
-      fuseTreeNode.fusePhase1 = rootFuse.fusePhase1;
-      fuseTreeNode.fusePhase2 = rootFuse.fusePhase2;
-      fuseTreeNode.fusePhase3 = rootFuse.fusePhase3;
-      fuseTreeNode.phase1Connected = rootFuse.phase1Connected;
-      fuseTreeNode.phase2Connected = rootFuse.phase2Connected;
-      fuseTreeNode.phase3Connected = rootFuse.phase3Connected;
-      fuseTreeNode.children = rootFuse.children;
+  }
+
+  private deductAmperageFromFuse(fuse: OptimizerFuse, excludedAmperage: ExcludedAmperage) {
+    fuse.fusePhase1 -= excludedAmperage.phase1;
+    fuse.fusePhase2 -= excludedAmperage.phase2;
+    fuse.fusePhase3 -= excludedAmperage.phase3;
+    // Ensure always positive
+    if (fuse.fusePhase1 < 0) {
+      fuse.fusePhase1 = 0;
     }
-    // Check if current site area has children
-    if (!Utils.isEmptyArray(siteArea.childSiteAreas)) {
-      // Build fuse node for each child
-      for (const siteAreaChild of siteArea.childSiteAreas) {
-        // Use Fuse tree child elements  to build sub site areas
-        const excludedAmperageOnSubSiteAreas = await this.buildFuseNodes(siteAreaChild,
-          (!Array.isArray(fuseTreeNode) ? fuseTreeNode.children : fuseTreeNode[fuseTreeNode.length - 1].children),
-          fuseID, carConnectorAssignments, cars, excludedChargingStations, chargingStationsInError, currentChargingProfiles, transactions);
-        // Adjust fuse tree with excluded power from sub site areas
-        if (!Array.isArray(fuseTreeNode)) {
-          fuseTreeNode.fusePhase1 -= excludedAmperageOnSubSiteAreas.phase1;
-          fuseTreeNode.fusePhase2 -= excludedAmperageOnSubSiteAreas.phase2;
-          fuseTreeNode.fusePhase3 -= excludedAmperageOnSubSiteAreas.phase3;
-          // Ensure always positive
-          if (fuseTreeNode.fusePhase1 < 0) {
-            fuseTreeNode.fusePhase1 = 0;
-          }
-          if (fuseTreeNode.fusePhase2 < 0) {
-            fuseTreeNode.fusePhase2 = 0;
-          }
-          if (fuseTreeNode.fusePhase3 < 0) {
-            fuseTreeNode.fusePhase3 = 0;
-          }
-        } else {
-          rootFuse.fusePhase1 = rootFuse.fusePhase1 - excludedAmperageOnSubSiteAreas.phase1 < 0 ? rootFuse.fusePhase1 - excludedAmperageOnSubSiteAreas.phase1 : 0;
-          rootFuse.fusePhase1 -= excludedAmperageOnSubSiteAreas.phase1;
-          rootFuse.fusePhase2 -= excludedAmperageOnSubSiteAreas.phase2;
-          rootFuse.fusePhase3 -= excludedAmperageOnSubSiteAreas.phase3;
-          // Ensure always positive
-          if (rootFuse.fusePhase1 < 0) {
-            rootFuse.fusePhase1 = 0;
-          }
-          if (rootFuse.fusePhase2 < 0) {
-            rootFuse.fusePhase2 = 0;
-          }
-          if (rootFuse.fusePhase3 < 0) {
-            rootFuse.fusePhase3 = 0;
-          }
-        }
-        excludedAmperage.phase1 += excludedAmperageOnSubSiteAreas.phase1;
-        excludedAmperage.phase2 += excludedAmperageOnSubSiteAreas.phase2;
-        excludedAmperage.phase3 += excludedAmperageOnSubSiteAreas.phase3;
-      }
+    if (fuse.fusePhase2 < 0) {
+      fuse.fusePhase2 = 0;
     }
-    return excludedAmperage;
+    if (fuse.fusePhase3 < 0) {
+      fuse.fusePhase3 = 0;
+    }
   }
 
   private async getTransactionFromChargingConnector(siteArea: SiteArea, chargingStation: ChargingStation, connector: Connector, transactions: Transaction[]):Promise<Transaction> {
