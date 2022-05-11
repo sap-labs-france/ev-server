@@ -20,7 +20,7 @@ export default class ChargingStationTemplateBootstrap {
     }
     // Delete all previous templates
     await ChargingStationStorage.deleteChargingStationTemplates();
-    await ChargingStationTemplateBootstrap.UpdateAndHashChargingStationTemplates(chargingStationTemplates)
+    await ChargingStationTemplateBootstrap.UpdateAndHashChargingStationTemplates(chargingStationTemplates);
   }
 
   public static async UpdateAndHashChargingStationTemplates(chargingStationTemplates: ChargingStationTemplate[]): Promise<void> {
