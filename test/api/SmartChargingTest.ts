@@ -1563,11 +1563,41 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
     );
 
     it(
+      'Check if parent site area is limited with building consumption on sub site area  ',
+      async () => {
+        testData.siteAreaContext.getSiteArea().maximumPower = 200000;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+        testData.siteAreaContext1.getSiteArea().maximumPower = 100000;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext1.getSiteArea());
+        await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+        chargingStationConnector1Charging.timestamp = new Date().toISOString();
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': 87
+          },
+          {
+            'startPeriod': 900,
+            'limit': 87
+          },
+          {
+            'startPeriod': 1800,
+            'limit': 87
+          },
+        ]);
+      }
+    );
+
+    it(
       'Check if charging station is limited with backup value from building',
       async () => {
         testData.newAsset.lastConsumption = { timestamp: new Date('2021-02-05T14:16:19.001Z'), value: 0 };
         testData.siteAreaContext.getSiteArea().maximumPower = 120000;
         await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+        testData.siteAreaContext1.getSiteArea().maximumPower = 200000;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext1.getSiteArea());
         await AssetStorage.saveAsset(testData.tenantContext.getTenant(), testData.newAsset);
         await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
         chargingStationConnector1Charging.timestamp = new Date().toISOString();
