@@ -906,7 +906,6 @@ export default class UtilsService {
       action: Action, entity: Entity, module: string, method: string): void {
     // Check from token
     const active = Utils.isComponentActiveFromToken(userToken, component);
-    // Throw
     if (!active) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
