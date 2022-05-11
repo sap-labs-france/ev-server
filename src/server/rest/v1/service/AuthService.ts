@@ -761,7 +761,10 @@ export default class AuthService {
   }
 
   private static isLoggedFromUserDevice(req: Request) {
-    return req.useragent.isMobile ||
-      req.useragent.isDesktop;
+    if (req.useragent.platform === 'unknown' && req.useragent.os === 'unknown') {
+      // Workaround - react native app not detected as a mobile app
+      return true;
+    }
+    return req.useragent.isMobile || req.useragent.isDesktop;
   }
 }
