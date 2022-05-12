@@ -5,6 +5,7 @@ import User, { UserRole, UserStatus } from '../types/User';
 
 import AssignedSitesDynamicAuthorizationDataSource from './dynamic-data-source/AssignedSitesDynamicAuthorizationDataSource';
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
+import AuthorizationService from '../server/rest/v1/service/AuthorizationService';
 import AuthorizationsManager from './AuthorizationsManager';
 import BackendError from '../exception/BackendError';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
@@ -285,20 +286,6 @@ export default class Authorizations {
 
   public static async canListChargingStationsInError(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.IN_ERROR);
-  }
-
-  public static async canPerformActionOnChargingStation(loggedUser: UserToken, action: Action, chargingStation: ChargingStation, context?: AuthorizationContext): Promise<boolean> {
-    if (!context) {
-      const isOrgCompActive = Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION);
-      context = {
-        tagIDs: loggedUser.tagIDs,
-        owner: loggedUser.id,
-        site: isOrgCompActive ? chargingStation.siteID : null,
-        sites: loggedUser.sites,
-        sitesAdmin: loggedUser.sitesAdmin
-      };
-    }
-    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, action, context);
   }
 
   public static async canReadChargingStation(loggedUser: UserToken): Promise<boolean> {
@@ -995,7 +982,8 @@ export default class Authorizations {
         sites: userToken.sites,
         sitesAdmin: userToken.sitesAdmin
       };
-      if (!await Authorizations.canPerformActionOnChargingStation(userToken, authAction, chargingStation, context)) {
+      const authorization = await AuthorizationService.checkAndGetChargingStationsAuthorizations(tenant, userToken, authAction);
+      if (!authorization.authorized) {
         throw new BackendError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           action: action,
