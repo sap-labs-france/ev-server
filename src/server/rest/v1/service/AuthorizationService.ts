@@ -636,9 +636,15 @@ export default class AuthorizationService {
       authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
     chargingStations.metadata = authorizationFilter.metadata;
-    chargingStations.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION, Action.EXPORT, authorizationFilter);
-    chargingStations.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken,
-      Entity.CHARGING_STATION, Action.EXPORT_OCPP_PARAMS, authorizationFilter);
+    // Auth
+    chargingStations.canListCompanies = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.COMPANY, Action.LIST, authorizationFilter);
+    chargingStations.canListSites = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter);
+    chargingStations.canListSiteAreas = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE_AREA, Action.LIST, authorizationFilter);
+    chargingStations.canExport = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.EXPORT, authorizationFilter);
     for (const chargingStation of chargingStations.result) {
       await AuthorizationService.addChargingStationAuthorizations(tenant, userToken, chargingStation, authorizationFilter);
     }
@@ -683,6 +689,10 @@ export default class AuthorizationService {
       tenant, userToken, Entity.CHARGING_STATION, Action.UNLOCK_CONNECTOR, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
     chargingStation.canDataTransfer = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.TRIGGER_DATA_TRANSFER, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.GENERATE_QR, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canMaintainPricingDefinitions = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.MAINTAIN_PRICING_DEFINITIONS, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(chargingStation);
   }

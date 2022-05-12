@@ -704,7 +704,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationQRCodeDownloadReq(req.query);
     // Export
     await UtilsService.exportToPDF(req, res, 'exported-charging-stations-qr-code.pdf',
-      ChargingStationService.getChargingStations.bind(this, req, filteredRequest, Action.LIST),
+      ChargingStationService.getChargingStations.bind(this, req, filteredRequest, Action.GENERATE_QR),
       ChargingStationService.convertQrCodeToPDF.bind(this));
   }
 

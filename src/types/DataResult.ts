@@ -114,7 +114,9 @@ export interface AssetDataResult extends DataResult<Asset> {
 }
 export interface ChargingStationDataResult extends DataResult<ChargingStation> {
   canExport?: boolean;
-  canExportOCPPParams?: boolean;
+  canListSites?:boolean;
+  canListSiteAreas?:boolean;
+  canListCompanies?:boolean;
 }
 export interface ChargingProfileDataResult extends DataResult<ChargingProfile> {
   canUpdate?: boolean;
