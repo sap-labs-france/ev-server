@@ -3,7 +3,7 @@ import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import Busboy, { FileInfo } from 'busboy';
 import { Car, CarType } from '../../../../types/Car';
-import { DataResult, SiteUserDataResult, UserDataResult } from '../../../../types/DataResult';
+import { DataResult, SiteDataResult, SiteUserDataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -341,12 +341,14 @@ export default class UserService {
     // Check dynamic auth for reading Sites
     const authorizations = await AuthorizationService.checkAndGetUserSitesAuthorizations(req.tenant,
       req.user, filteredRequest);
+    // const authorizations = await AuthorizationService.checkAndGetSitesAuthorizations(req.tenant,
+      // req.user, filteredRequest);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
     // Get Sites
-    const sites = await UserStorage.getUserSites(req.tenant,
+    const siteUsers = await UserStorage.getSiteUsers(req.tenant,
       {
         search: filteredRequest.Search,
         userIDs: [filteredRequest.UserID],
@@ -361,15 +363,16 @@ export default class UserService {
       authorizations.projectFields
     );
     // Filter
-    sites.result = sites.result.map((userSite) => ({
-      userID: userSite.userID,
-      siteAdmin: userSite.siteAdmin,
-      siteOwner: userSite.siteOwner,
-      site: userSite.site
+    siteUsers.result = siteUsers.result.map((siteUser) => ({
+      userID: siteUser.userID,
+      siteAdmin: siteUser.siteAdmin,
+      siteOwner: siteUser.siteOwner,
+      site: siteUser.site
     }));
     // Add Auth flags
-    await AuthorizationService.addSiteUsersAuthorizations(req.tenant, req.user, sites as SiteUserDataResult , authorizations);
-    res.json(sites);
+    await AuthorizationService.addSiteUsersAuthorizations(req.tenant, req.user, siteUsers as SiteUserDataResult , authorizations);
+    // await AuthorizationService.addSiteAuthorizations(req.tenant, req.user, siteUsers.result. as SiteDataResult , authorizations);
+    res.json(siteUsers);
     next();
   }
 

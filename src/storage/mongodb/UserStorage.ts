@@ -910,7 +910,7 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteUser', startTime, { id });
   }
 
-  public static async getUserSites(tenant: Tenant,
+  public static async getSiteUsers(tenant: Tenant,
       params: { search?: string; userIDs: string[]; siteAdmin?: boolean; siteOwner?: boolean },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -960,14 +960,14 @@ export default class UserStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const sitesCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
+    const siteUsersCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', startTime, sitesCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', startTime, siteUsersCountMDB);
       return {
-        count: (!Utils.isEmptyArray(sitesCountMDB) ? sitesCountMDB[0].count : 0),
+        count: (!Utils.isEmptyArray(siteUsersCountMDB) ? siteUsersCountMDB[0].count : 0),
         result: []
       };
     }
@@ -1001,7 +1001,7 @@ export default class UserStorage {
       .toArray() as SiteUser[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', startTime, siteUsersMDB);
     return {
-      count: DatabaseUtils.getCountFromDatabaseCount(sitesCountMDB[0]),
+      count: DatabaseUtils.getCountFromDatabaseCount(siteUsersCountMDB[0]),
       result: siteUsersMDB,
       projectFields: projectFields
     };

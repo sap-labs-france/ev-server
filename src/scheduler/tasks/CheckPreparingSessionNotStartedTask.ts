@@ -29,7 +29,7 @@ export default class CheckPreparingSessionNotStartedTask extends TenantScheduler
           // Get site owner and then send notification
           if (chargingStation.siteArea && chargingStation.siteArea.siteID) {
             // Get Site Owners
-            const siteOwners = await SiteStorage.getSiteUsers(tenant,
+            const siteOwners = await SiteStorage.getUserSites(tenant,
               { siteIDs: [ chargingStation.siteArea.siteID ], siteOwnerOnly: true }, Constants.DB_PARAMS_MAX_LIMIT);
             if (siteOwners && siteOwners.count > 0) {
               // Send notification

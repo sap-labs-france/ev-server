@@ -72,6 +72,7 @@ export enum Entity {
   REPORT = 'Report',
   USER = 'User',
   USERS_SITES = 'UsersSites',
+  SITES_USERS = 'SiteUsers',
   LOGGING = 'Logging',
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',

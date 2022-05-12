@@ -130,7 +130,7 @@ export default class SiteService {
       return;
     }
     // Get Users
-    const users = await SiteStorage.getSiteUsers(req.tenant,
+    const userSites = await SiteStorage.getUserSites(req.tenant,
       {
         search: filteredRequest.Search,
         siteIDs: [filteredRequest.SiteID],
@@ -144,9 +144,16 @@ export default class SiteService {
       },
       authorizations.projectFields
     );
+    // Filter
+    userSites.result = userSites.result.map((userSite) => ({
+      siteID: userSite.siteID,
+      siteAdmin: userSite.siteAdmin,
+      siteOwner: userSite.siteOwner,
+      user: userSite.user
+    }));
     // add user auth
-    await AuthorizationService.addUserSitesAuthorizations(req.tenant, req.user, users as UserSiteDataResult, authorizations);
-    res.json(users);
+    await AuthorizationService.addUserSitesAuthorizations(req.tenant, req.user, userSites as UserSiteDataResult, authorizations);
+    res.json(userSites);
     next();
   }
 

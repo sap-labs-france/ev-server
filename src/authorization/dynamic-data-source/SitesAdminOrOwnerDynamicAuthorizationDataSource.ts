@@ -22,7 +22,7 @@ export default class SitesAdminOrOwnerDynamicAuthorizationDataSource
   // get la liste des sites dont le user connecté est site admin dessus
   private async getSitesAdminOrOwnerSiteIDs(): Promise<string[]> {
     // Get the Site IDs of the Sites for which the user is Site Admin
-    const sitesAdmin = await UserStorage.getUserSites(this.tenant,
+    const sitesAdmin = await UserStorage.getSiteUsers(this.tenant,
       {
         userIDs: [this.userToken.id],
         siteAdmin: true,
@@ -30,7 +30,7 @@ export default class SitesAdminOrOwnerDynamicAuthorizationDataSource
       }, Constants.DB_PARAMS_MAX_LIMIT,
       ['siteID']
     );
-    const sitesOwner = await UserStorage.getUserSites(this.tenant,
+    const sitesOwner = await UserStorage.getSiteUsers(this.tenant,
       {
         userIDs: [this.userToken.id],
         siteOwner: true

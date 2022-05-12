@@ -96,7 +96,7 @@ export default class SiteStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addUsersToSite', startTime, userIDs);
   }
 
-  public static async getSiteUsers(tenant: Tenant,
+  public static async getUserSites(tenant: Tenant,
       params: { search?: string; siteIDs: string[]; siteOwnerOnly?: boolean },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserSite>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -155,14 +155,14 @@ export default class SiteStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const usersCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
+    const userSitesCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, usersCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, userSitesCountMDB);
       return {
-        count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+        count: (userSitesCountMDB.length > 0 ? userSitesCountMDB[0].count : 0),
         result: []
       };
     }
@@ -191,13 +191,13 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
+    const userSitesMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray() as UserSite[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, siteUsersMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, userSitesCountMDB);
     return {
-      count: DatabaseUtils.getCountFromDatabaseCount(usersCountMDB[0]),
-      result: siteUsersMDB
+      count: DatabaseUtils.getCountFromDatabaseCount(userSitesCountMDB[0]),
+      result: userSitesMDB
     };
   }
 
@@ -537,16 +537,16 @@ export default class SiteStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteCompanySites', startTime, { companyID });
   }
 
-  public static async siteHasUser(tenant: Tenant, siteID: string, userID: string): Promise<boolean> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    // Exec
-    const result = await global.database.getCollection<any>(tenant.id, 'siteusers').findOne(
-      { siteID: DatabaseUtils.convertToObjectID(siteID), userID: DatabaseUtils.convertToObjectID(userID) });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'siteHasUser', startTime, { siteID });
-    if (!result) {
-      return false;
-    }
-    return true;
-  }
+  // public static async siteHasUser(tenant: Tenant, siteID: string, userID: string): Promise<boolean> {
+  //   const startTime = Logging.traceDatabaseRequestStart();
+  //   DatabaseUtils.checkTenantObject(tenant);
+  //   // Exec
+  //   const result = await global.database.getCollection<any>(tenant.id, 'siteusers').findOne(
+  //     { siteID: DatabaseUtils.convertToObjectID(siteID), userID: DatabaseUtils.convertToObjectID(userID) });
+  //   await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'siteHasUser', startTime, { siteID });
+  //   if (!result) {
+  //     return false;
+  //   }
+  //   return true;
+  // }
 }
