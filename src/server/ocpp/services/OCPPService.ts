@@ -5,7 +5,6 @@ import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
 import { Action } from '../../../types/Authorization';
-import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
 import BillingFacade from '../../../integration/billing/BillingFacade';
 import CarConnectorFactory from '../../../integration/car-connector/CarConnectorFactory';
@@ -39,6 +38,7 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import UtilsService from '../../rest/v1/service/UtilsService';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 
@@ -263,7 +263,7 @@ export default class OCPPService {
       const { chargingStation, tenant } = headers;
       // Check props
       OCPPValidation.getInstance().validateAuthorize(authorize);
-      const { user } = await Authorizations.isAuthorizedOnChargingStation(tenant, chargingStation,
+      const { user } = await UtilsService.isAuthorizedOnChargingStation(tenant, chargingStation,
         authorize.idTag, ServerAction.OCPP_AUTHORIZE, Action.AUTHORIZE);
       // Check Billing Prerequisites
       await OCPPUtils.checkBillingPrerequisites(tenant, ServerAction.OCPP_AUTHORIZE, chargingStation, user);
@@ -364,7 +364,7 @@ export default class OCPPService {
       // Create Transaction
       const newTransaction = await this.createTransaction(tenant, startTransaction);
       // Check User
-      const { user, tag } = await Authorizations.isAuthorizedToStartTransaction(
+      const { user, tag } = await UtilsService.isAuthorizedToStartTransaction(
         tenant, chargingStation, startTransaction.tagID, newTransaction, ServerAction.OCPP_START_TRANSACTION, Action.START_TRANSACTION);
       if (user) {
         startTransaction.userID = user.id;
@@ -586,7 +586,7 @@ export default class OCPPService {
     let alternateUser: User;
     if (!isStoppedByCentralSystem) {
       // Check and get the authorized Users
-      const authorizedUsers = await Authorizations.isAuthorizedToStopTransaction(
+      const authorizedUsers = await UtilsService.isAuthorizedToStopTransaction(
         tenant, chargingStation, transaction, tagId, ServerAction.OCPP_STOP_TRANSACTION, Action.STOP_TRANSACTION);
       user = authorizedUsers.user;
       alternateUser = authorizedUsers.alternateUser;

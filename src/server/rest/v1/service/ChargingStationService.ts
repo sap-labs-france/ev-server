@@ -1550,7 +1550,7 @@ export default class ChargingStationService {
     }
     const tag = tags.result[0];
     // Check if user is authorized
-    await Authorizations.isAuthorizedToStopTransaction(req.tenant, chargingStation, transaction, tag.id,
+    await UtilsService.isAuthorizedToStopTransaction(req.tenant, chargingStation, transaction, tag.id,
       ServerAction.OCPP_STOP_TRANSACTION, Action.REMOTE_STOP_TRANSACTION);
     // Set the tag ID to handle the Stop Transaction afterwards
     transaction.remotestop = {
