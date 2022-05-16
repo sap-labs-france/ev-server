@@ -540,7 +540,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersGetReq(req.query);
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ, action, null, { withSiteArea: true });
+      req.tenant, req.user, filteredRequest.ChargingStationID, Action.UPDATE, action, null, { withSiteArea: true });
     // Get the Parameters
     const parameters = await ChargingStationStorage.getOcppParameters(req.tenant, chargingStation.id);
     // Return the result
@@ -553,7 +553,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersRequestReq(req.body);
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.chargingStationID, Action.READ, action, null, { withSiteArea: true });
+      req.tenant, req.user, filteredRequest.chargingStationID, Action.UPDATE, action, null, { withSiteArea: true });
     // Get the configuration
     let result = await OCPPCommon.requestAndSaveChargingStationOcppParameters(req.tenant, chargingStation);
     if (filteredRequest.forceUpdateOCPPParamsFromTemplate) {

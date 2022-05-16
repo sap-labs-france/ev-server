@@ -374,7 +374,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.CHARGING_STATION, action: Action.RESERVE_NOW,
+        resource: Entity.CHARGING_STATION, action: [ Action.RESERVE_NOW, Action.GET_CONFIGURATION ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -387,7 +387,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.CHARGING_STATION,
         action: [
           Action.CREATE, Action.READ,
-          Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION, Action.REMOTE_START_TRANSACTION,
+          Action.CHANGE_CONFIGURATION, Action.REMOTE_START_TRANSACTION,
           Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION, Action.START_TRANSACTION,
           Action.UNLOCK_CONNECTOR, Action.AUTHORIZE, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
           Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.EXPORT, Action.EXPORT_OCPP_PARAMS,
