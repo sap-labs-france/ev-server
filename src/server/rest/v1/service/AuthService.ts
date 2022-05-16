@@ -765,11 +765,11 @@ export default class AuthService {
     if (!fromUserDevice) {
       // Troubleshooting REACT NATIVE LOGIN with API USERS
       void Logging.logWarning({
-        tenantID: req.tenant?.id,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'isLoggedFromUserDevice',
         action: ServerAction.LOGIN,
         user: req.user,
-        message: req.useragent.source,
+        message: 'User Agent: ' + req.useragent.source,
         detailedMessages: { userAgent: req.useragent }
       });
       if (req.useragent.platform === 'unknown' && req.useragent.os === 'unknown') {
