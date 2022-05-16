@@ -761,7 +761,22 @@ export default class AuthService {
   }
 
   private static isLoggedFromUserDevice(req: Request) {
-    return req.useragent.isMobile ||
-      req.useragent.isDesktop;
+    const fromUserDevice = req.useragent.isMobile || req.useragent.isDesktop;
+    if (!fromUserDevice) {
+      // Troubleshooting REACT NATIVE LOGIN with API USERS
+      void Logging.logWarning({
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        module: MODULE_NAME, method: 'isLoggedFromUserDevice',
+        action: ServerAction.LOGIN,
+        user: req.user,
+        message: 'User Agent: ' + req.useragent.source,
+        detailedMessages: { userAgent: req.useragent }
+      });
+      if (req.useragent.platform === 'unknown' && req.useragent.os === 'unknown') {
+        // Workaround - react native app not detected as a mobile app
+        // return true; - to be clarified
+      }
+    }
+    return fromUserDevice;
   }
 }
