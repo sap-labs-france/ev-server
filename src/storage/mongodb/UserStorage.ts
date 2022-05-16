@@ -911,7 +911,7 @@ export default class UserStorage {
   }
 
   public static async getSiteUsers(tenant: Tenant,
-      params: { search?: string; userIDs: string[]; siteAdmin?: boolean; siteOwner?: boolean },
+      params: { search?: string; userIDs: string[]; siteIDs?: string[]; siteAdmin?: boolean; siteOwner?: boolean },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -937,6 +937,16 @@ export default class UserStorage {
     }
     // Create Aggregation
     const aggregation: any[] = [];
+    // Filter on authorized sites
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      aggregation.push({
+        $match: {
+          siteID: {
+            $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+          }
+        }
+      });
+    }
     // Filter
     aggregation.push({
       $match: filters

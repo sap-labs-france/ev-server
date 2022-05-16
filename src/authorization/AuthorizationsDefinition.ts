@@ -253,14 +253,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.USERS_SITES, action: Action.LIST,
-        attributes: [
-          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteID',
-          'site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID'
-        ]
-      },
-      {
-        resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.READ, Action.UPDATE],
+        resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.READ, Action.UPDATE, Action.LIST],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1609,7 +1602,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.READ, Action.LIST],
+        resource: Entity.USERS_SITES, action: [Action.READ, Action.LIST],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1621,17 +1614,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteID',
           'site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID'
         ]
-      },
-      {
-        resource: Entity.USERS_SITES,
-        action: Action.UNASSIGN,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['-OwnUser', 'LocalIssuer']
-          }
-        },
       },
       {
         resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION],
