@@ -292,8 +292,6 @@ export default class SiteService {
       Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
     // Filter request
     const filteredRequest = SiteValidator.getInstance().validateSiteCreateReq(req.body);
-    // Check data is valid
-    UtilsService.checkIfSiteValid(filteredRequest, req);
     // Get dynamic auth
     await AuthorizationService.checkAndGetSiteAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
@@ -327,8 +325,6 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
     // Filter request
     const filteredRequest = SiteValidator.getInstance().validateSiteUpdateReq(req.body);
-    // Check data is valid
-    UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);

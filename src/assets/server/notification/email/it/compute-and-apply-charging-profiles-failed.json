@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Gentile Amministratore,",
       "",
-      "Applicazione dei profili di ricarica per <strong>'<%- chargeBoxID %>'</strong> è fallita tre volte.",
+      "Applicazione dei profili di ricarica per <strong>'<%- chargeBoxID %>'</strong> è fallita.",
       "",
       "La stazione di ricarica è stata esclusa automaticamente dalla gestione della ricarica intelligente."
     ],

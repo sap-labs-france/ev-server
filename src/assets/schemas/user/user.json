@@ -39,7 +39,9 @@
     },
     "mobile": {
       "type": "string",
-      "sanitize": "mongo"
+      "sanitize": "mongo",
+      "pattern": "^|\\+?([0-9] ?){9,14}[0-9]$",
+      "nullable": true
     },
     "locale": {
       "type": "string",
@@ -50,7 +52,9 @@
     },
     "phone": {
       "type": "string",
-      "sanitize": "mongo"
+      "sanitize": "mongo",
+      "pattern": "^|\\+?([0-9] ?){9,14}[0-9]$",
+      "nullable": true
     },
     "issuer": {
       "type": "boolean",
@@ -66,7 +70,8 @@
     },
     "plateID": {
       "type": "string",
-      "sanitize": "mongo"
+      "sanitize": "mongo",
+      "pattern": "^[A-Z0-9- ]*$"
     },
     "role": {
       "type": "string",
