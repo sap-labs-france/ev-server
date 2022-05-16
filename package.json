@@ -103,7 +103,7 @@
     "countries-list": "^2.6.1",
     "csvtojson": "^2.0.10",
     "decimal.js": "^10.3.1",
-    "ejs": "^3.1.6",
+    "ejs": "^3.1.7",
     "emailjs": "^3.7.0",
     "express": "^4.17.1",
     "express-sanitizer": "^1.0.6",
