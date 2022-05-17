@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import User, { UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
@@ -6,7 +7,6 @@ import { HTTPError } from '../../../../types/HTTPError';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 
@@ -45,6 +45,18 @@ export default class SessionHashService {
         throw new AppError({
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `User ID '${userID}' does not exist`,
+          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          user: req.user,
+          detailedMessages: {
+            request: req.url,
+            headers: res.getHeaders(),
+          }
+        });
+      }
+      if (user.status !== UserStatus.ACTIVE) {
+        throw new AppError({
+          errorCode: StatusCodes.UNAUTHORIZED,
+          message: 'User is not active',
           module: MODULE_NAME, method: 'checkUserAndTenantValidity',
           user: req.user,
           detailedMessages: {
