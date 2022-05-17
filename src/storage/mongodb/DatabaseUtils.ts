@@ -16,6 +16,43 @@ const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 const MODULE_NAME = 'DatabaseUtils';
 
 export default class DatabaseUtils {
+  public static readonly MONGO_USER_MASK = Object.freeze({
+    '_id': 0,
+    '__v': 0,
+    'email': 0,
+    'phone': 0,
+    'mobile': 0,
+    'notificationsActive': 0,
+    'notifications': 0,
+    'iNumber': 0,
+    'costCenter': 0,
+    'status': 0,
+    'createdBy': 0,
+    'createdOn': 0,
+    'lastChangedBy': 0,
+    'lastChangedOn': 0,
+    'role': 0,
+    'password': 0,
+    'locale': 0,
+    'passwordWrongNbrTrials': 0,
+    'passwordBlockedUntil': 0,
+    'passwordResetHash': 0,
+    'eulaAcceptedOn': 0,
+    'eulaAcceptedVersion': 0,
+    'eulaAcceptedHash': 0,
+    'image': 0,
+    'address': 0,
+    'plateID': 0,
+    'verificationToken': 0,
+    'mobileLastChangedOn': 0,
+    'issuer': 0,
+    'mobileOs': 0,
+    'mobileToken': 0,
+    'verifiedAt': 0,
+    'importedData': 0,
+    'billingData': 0
+  });
+
   public static addConnectorStatsInOrg(tenant: Tenant, aggregation: any[],
       organizationID: string, addChargingStationLookup = true): void {
     if (addChargingStationLookup) {
@@ -616,7 +653,7 @@ export default class DatabaseUtils {
     aggregation.push({ $addFields: addNullFields });
     // Project
     const projectFields: any = {};
-    projectFields[`${fieldName}`] = Constants.MONGO_USER_MASK;
+    projectFields[`${fieldName}`] = DatabaseUtils.MONGO_USER_MASK;
     aggregation.push({
       $project: projectFields
     });
