@@ -149,7 +149,7 @@
     },
     "billingSubAccountCreationLink": {
       "title": "Billing sub-account",
-      "body": "You have been invited to create a billing sub-account in organization. Please check your email to complete the process"
+      "body": "You have been invited to create a billing sub-account. Please check your email to complete the process"
     },
     "endUserErrorNotification": {
       "title": "A User Reported an Error",

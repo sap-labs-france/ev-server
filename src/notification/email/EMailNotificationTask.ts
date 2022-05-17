@@ -141,7 +141,7 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendBillingSubAccountCreationLink(data: BillingSubAccountCreationLink, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    return this.prepareAndSendEmail('billing-subaccount-created', data, user, tenant, severity);
+    return this.prepareAndSendEmail('billing-sub-account-created', data, user, tenant, severity);
   }
 
   // TODO : Delete sendBillingNewInvoice ??

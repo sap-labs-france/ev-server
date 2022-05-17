@@ -1,5 +1,5 @@
 {
-  "subject": "Billing - New invoice",
+  "subject": "Billing - Sub-account onboarding",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
