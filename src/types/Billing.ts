@@ -159,5 +159,7 @@ export interface BillingAccount {
   activationLink?: string;
   userID?: string;
   pending: boolean;
+  siteID?: string;
+  companyID?: string;
 }
 

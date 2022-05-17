@@ -5,9 +5,19 @@
   "properties": {
     "userID": {
       "$ref": "common#/definitions/id"
+    },
+    "siteID": {
+      "$ref": "common#/definitions/id"
+    },
+    "companyID": {
+      "$ref": "common#/definitions/id"
     }
   },
   "required": [
     "userID"
+  ],
+  "oneOf": [
+    { "required": ["siteID"] },
+    { "required": ["companyID"] }
   ]
 }

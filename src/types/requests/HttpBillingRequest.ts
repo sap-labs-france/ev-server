@@ -31,4 +31,6 @@ export interface HttpDeletePaymentMethod {
 
 export interface HttpBillingCreateSubAccount {
   userID: string;
+  siteID?: string;
+  companyID: string;
 }
