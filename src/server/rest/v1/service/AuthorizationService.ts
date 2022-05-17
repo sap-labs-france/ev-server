@@ -60,14 +60,14 @@ export default class AuthorizationService {
     // Add Meta Data
     userSites.metadata = authorizationFilter.metadata;
     // Add Authorizations
-    userSites.canUpdateUserSite = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, Action.UPDATE, authorizationFilter);
+    userSites.canUpdateUserSites = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, Action.UPDATE, authorizationFilter);
   }
 
   public static async addSiteUsersAuthorizations(tenant: Tenant, userToken: UserToken, siteUsers: SiteUserDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
     siteUsers.metadata = authorizationFilter.metadata;
     // Add Authorizations
-    siteUsers.canUpdateUserSite = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, Action.UPDATE, authorizationFilter);
+    siteUsers.canUpdateSiteUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, Action.UPDATE, authorizationFilter);
   }
 
   public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
@@ -248,6 +248,10 @@ export default class AuthorizationService {
       tenant, userToken, Entity.USERS_SITES, Action.ASSIGN, authorizationFilter, { UserID: user.id }, user);
     user.canUnassignSites = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USERS_SITES, Action.UNASSIGN, authorizationFilter, { UserID: user.id }, user);
+    user.canListSites = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter, { UserID: user.id }, user);
+    user.canListTokens = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.REGISTRATION_TOKEN, Action.LIST, authorizationFilter, { UserID: user.id }, user);
     Utils.removeCanPropertiesWithFalseValue(user);
   }
 

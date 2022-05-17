@@ -1,8 +1,8 @@
 import { BillingInvoice, BillingPaymentMethod } from './Billing';
 import { Car, CarCatalog } from './Car';
-import Site, { SiteUser } from './Site';
+import Site, { UserSite } from './Site';
 import Transaction, { TransactionStats } from './Transaction';
-import User, { UserSite } from './User';
+import User, { SiteUser } from './User';
 
 import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
@@ -45,11 +45,11 @@ export interface SiteDataResult extends DataResult<Site> {
 }
 
 export interface UserSiteDataResult extends DataResult<UserSite> {
-  canUpdateUserSite: boolean;
+  canUpdateUserSites: boolean;
 }
 
 export interface SiteUserDataResult extends DataResult<SiteUser> {
-  canUpdateUserSite: boolean;
+  canUpdateSiteUsers: boolean;
 }
 
 export interface LogDataResult extends DataResult<Log> {

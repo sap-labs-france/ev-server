@@ -54,7 +54,7 @@ export interface StartTransactionUserData {
   lastDepartureTime: Date;
 }
 
-export interface UserSite {
+export interface SiteUser {
   user: User;
   userID?: string;
   siteID: string;

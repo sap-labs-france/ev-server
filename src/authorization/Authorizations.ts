@@ -132,17 +132,17 @@ export default class Authorizations {
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
     // Get User's site
-    const siteUsers = (await UserStorage.getSiteUsers(tenant, { userIDs: [user.id] },
+    const userSites = (await UserStorage.getUserSites(tenant, { userIDs: [user.id] },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
-    for (const siteUser of siteUsers) {
+    for (const userSite of userSites) {
       if (!Authorizations.isAdmin(user)) {
-        siteIDs.push(siteUser.site.id);
-        if (siteUser.siteAdmin) {
-          siteAdminIDs.push(siteUser.site.id);
+        siteIDs.push(userSite.site.id);
+        if (userSite.siteAdmin) {
+          siteAdminIDs.push(userSite.site.id);
         }
       }
-      if (siteUser.siteOwner) {
-        siteOwnerIDs.push(siteUser.site.id);
+      if (userSite.siteOwner) {
+        siteOwnerIDs.push(userSite.site.id);
       }
     }
     let tenantHashID = Constants.DEFAULT_TENANT_ID;

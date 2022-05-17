@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
-import { SiteDataResult, UserSiteDataResult } from '../../../../types/DataResult';
+import { SiteDataResult, SiteUserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
 
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
@@ -130,7 +130,7 @@ export default class SiteService {
       return;
     }
     // Get Users
-    const userSites = await SiteStorage.getUserSites(req.tenant,
+    const siteUsers = await SiteStorage.getSiteUsers(req.tenant,
       {
         search: filteredRequest.Search,
         siteIDs: [filteredRequest.SiteID],
@@ -145,15 +145,15 @@ export default class SiteService {
       authorizations.projectFields
     );
     // Filter
-    userSites.result = userSites.result.map((userSite) => ({
-      siteID: userSite.siteID,
-      siteAdmin: userSite.siteAdmin,
-      siteOwner: userSite.siteOwner,
-      user: userSite.user
+    siteUsers.result = siteUsers.result.map((siteUser) => ({
+      siteID: siteUser.siteID,
+      siteAdmin: siteUser.siteAdmin,
+      siteOwner: siteUser.siteOwner,
+      user: siteUser.user
     }));
     // add user auth
-    await AuthorizationService.addUserSitesAuthorizations(req.tenant, req.user, userSites as UserSiteDataResult, authorizations);
-    res.json(userSites);
+    await AuthorizationService.addSiteUsersAuthorizations(req.tenant, req.user, siteUsers as SiteUserDataResult, authorizations);
+    res.json(siteUsers);
     next();
   }
 

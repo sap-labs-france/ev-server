@@ -191,6 +191,8 @@ export interface AuthorizationActions {
 export interface UserAuthorizationActions extends AuthorizationActions {
   canAssignSites?: boolean;
   canUnassignSites?: boolean;
+  canListSites?: boolean;
+  canListTokens?: boolean;
 }
 
 export interface TagAuthorizationActions extends AuthorizationActions {

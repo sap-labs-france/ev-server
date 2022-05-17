@@ -24,7 +24,7 @@ export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActi
   tariffID?: string;
 }
 
-export interface SiteUser {
+export interface UserSite {
   site: Site;
   siteID?: string;
   userID: string;
