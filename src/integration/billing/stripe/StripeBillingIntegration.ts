@@ -1720,8 +1720,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
 
     return {
-      id: subAccount.id,
-      activationLink: activationLink.url
+      accountID: subAccount.id,
+      activationLink: activationLink.url,
+      pending: true
     };
   }
 }

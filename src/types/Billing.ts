@@ -154,7 +154,10 @@ export interface BillingAdditionalData {
 }
 
 export interface BillingAccount {
-  id: string;
+  id?: string;
+  accountID: string;
   activationLink?: string;
+  userID?: string;
+  pending: boolean;
 }
 

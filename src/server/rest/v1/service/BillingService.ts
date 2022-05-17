@@ -496,6 +496,9 @@ export default class BillingService {
       MODULE_NAME, 'handleCreateSubAccount', req.user);
     // Create the sub account
     const subAccount = await billingImpl.createSubAccount();
+    subAccount.userID = user.id;
+    // Save the sub account
+    subAccount.id = await BillingStorage.saveSubAccount(req.tenant, subAccount);
     // Notify the user by mail
     void NotificationHandler.sendBillingSubAccountCreationLink(req.tenant, Utils.generateUUID(), user, { onboardingLink: subAccount.activationLink });
     res.status(StatusCodes.CREATED).json(subAccount);
