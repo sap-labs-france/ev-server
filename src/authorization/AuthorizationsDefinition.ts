@@ -373,7 +373,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'dimensions.parkingTime.active', 'dimensions.parkingTime.price', 'dimensions.parkingTime.stepSize', 'dimensions.parkingTime.pricedData',
         ]
       },
-      { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
+      { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA, Action.BILLING_CREATE_SUB_ACCOUNT] },
       { resource: Entity.TAX, action: [Action.LIST] },
       {
         resource: Entity.INVOICE, action: [Action.LIST],

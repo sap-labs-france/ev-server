@@ -475,8 +475,10 @@ export default class BillingService {
   public static async handleCreateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CREATE, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleCreateSubAccount');
+      Action.CREATE, Entity.BILLING, MODULE_NAME, 'handleCreateSubAccount');
     const filteredRequest = BillingValidator.getInstance().validateBillingCreateSubAccountReq(req.body);
+    // Check authorization
+    await AuthorizationService.checkAndGetBillingAuthorizations(req.tenant, req.user, Action.BILLING_CREATE_SUB_ACCOUNT);
     // Get the billing impl
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
