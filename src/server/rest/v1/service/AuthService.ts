@@ -9,6 +9,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
+import { Details } from 'express-useragent';
 import { HTTPError } from '../../../../types/HTTPError';
 import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
@@ -761,22 +762,25 @@ export default class AuthService {
   }
 
   private static isLoggedFromUserDevice(req: Request) {
-    const fromUserDevice = req.useragent.isMobile || req.useragent.isDesktop;
-    if (!fromUserDevice) {
-      // Troubleshooting REACT NATIVE LOGIN with API USERS
+    const userAgent = req.useragent;
+    return userAgent.isMobile || userAgent.isDesktop || AuthService.isReactNative(userAgent);
+  }
+
+  private static isReactNative(userAgent: Details): boolean {
+    if (userAgent.platform === 'unknown' && userAgent.os === 'unknown') {
+      if (/okhttp|android|darwin/i.test(userAgent.source)) {
+        // Detect REACT NATIVE APP (ANDROID or IOS)
+        return true;
+      }
+      // Trace API USER login attempts from unknown platform/os - could be POSTMAN or anything else
       void Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'isLoggedFromUserDevice',
         action: ServerAction.LOGIN,
-        user: req.user,
-        message: 'User Agent: ' + req.useragent.source,
-        detailedMessages: { userAgent: req.useragent }
+        message: 'User Agent: ' + userAgent.source,
+        detailedMessages: { userAgent }
       });
-      if (req.useragent.platform === 'unknown' && req.useragent.os === 'unknown') {
-        // Workaround - react native app not detected as a mobile app
-        // return true; - to be clarified
-      }
     }
-    return fromUserDevice;
+    return false;
   }
 }
