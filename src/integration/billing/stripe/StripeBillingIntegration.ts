@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
@@ -1683,5 +1683,45 @@ export default class StripeBillingIntegration extends BillingIntegration {
         });
       }
     }));
+  }
+
+  public async createSubAccount(): Promise<BillingAccount> {
+    await this.checkConnection();
+    let subAccount: Stripe.Account;
+    // Create the sub-account
+    try {
+      subAccount = await this.stripe.accounts.create({
+        type: 'standard'
+      });
+    } catch (e) {
+      throw new BackendError({
+        message: 'Unexpected situation - unable to create sub-account',
+        detailedMessages: { e },
+        module: MODULE_NAME, action: ServerAction.BILLING_CREATE_SUB_ACCOUNT,
+        method: 'createSubAccount',
+      });
+    }
+    // Generate the link to activate the sub-account
+    let activationLink: Stripe.AccountLink;
+    try {
+      activationLink = await this.stripe.accountLinks.create({
+        account: subAccount.id,
+        return_url: Utils.buildEvseBillingSubAccountActivationURL(this.tenant.subdomain, subAccount.id),
+        refresh_url: Utils.buildEvseURL(),
+        type: 'account_onboarding',
+      });
+    } catch (e) {
+      throw new BackendError({
+        message: 'Unexpected situation - unable to create activation link',
+        detailedMessages: { e },
+        module: MODULE_NAME, action: ServerAction.BILLING_CREATE_SUB_ACCOUNT,
+        method: 'createSubAccount',
+      });
+    }
+
+    return {
+      id: subAccount.id,
+      activationLink: activationLink.url
+    };
   }
 }

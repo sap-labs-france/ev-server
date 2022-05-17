@@ -1,9 +1,9 @@
-import { BillingChargeInvoiceAction, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
+import { BillingAccount, BillingChargeInvoiceAction, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { expect } from 'chai';
-import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 
+import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
@@ -450,5 +450,9 @@ export default class StripeTestHelper {
       assert(response?.data?.succeeded === false, 'The operation should fail');
       assert(response?.data?.error, 'error should not be null');
     }
+  }
+
+  public async createSubAccount(): Promise<BillingAccount> {
+    return await this.billingImpl.createSubAccount();
   }
 }

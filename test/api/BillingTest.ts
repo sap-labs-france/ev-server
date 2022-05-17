@@ -15,6 +15,7 @@ import { StatusCodes } from 'http-status-codes';
 import StripeTestHelper from './StripeTestHelper';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
+import Utils from '../../src/utils/Utils';
 import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
@@ -83,6 +84,14 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           -------------------------------------------------------*/
         const immediateBilling = true;
         await stripeTestHelper.forceBillingSettings(immediateBilling);
+      });
+
+      describe('Sub-accounts', () => {
+        it('Should create a sub-account with its associated activation link', async () => {
+          const subAccount = await stripeTestHelper.createSubAccount();
+          expect(subAccount.id).to.exist;
+          expect(subAccount.activationLink).to.include('https://connect.stripe.com/setup/s/');
+        });
       });
 
       it('Should add a different source to BILLING-TEST user', async () => {
@@ -950,7 +959,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 19.49);
       });
     });
-
   });
 
   describe('Billing Test Data Cleanup (utbilling)', () => {
