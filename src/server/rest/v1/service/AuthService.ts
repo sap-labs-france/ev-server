@@ -768,16 +768,8 @@ export default class AuthService {
 
   private static isReactNative(userAgent: Details): boolean {
     if (userAgent.platform === 'unknown' && userAgent.os === 'unknown') {
-      if (userAgent.browser === 'okhttp') {
-        // Detect REACT NATIVE APP (ANDROID) - user agent NOT properly set
-        return true;
-      }
-      if (/android/i.test(userAgent.source)) {
-        // Detect REACT NATIVE APP (ANDROID)- user agent properly set
-        return true;
-      }
-      if (/darwin/i.test(userAgent.source)) {
-        // Detect REACT NATIVE APP (IPHONE)- user agent properly set
+      if (/okhttp|android|darwin/i.test(userAgent.source)) {
+        // Detect REACT NATIVE APP (ANDROID or IOS)
         return true;
       }
       // Trace API USER login attempts from unknown platform/os - could be POSTMAN or anything else
