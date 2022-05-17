@@ -16,6 +16,8 @@ import Constants from '../../../../utils/Constants';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
+import NotificationHandler from '../../../../notification/NotificationHandler';
+import NotificationService from './NotificationService';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
@@ -467,6 +469,34 @@ export default class BillingService {
       await SettingStorage.saveBillingSetting(req.tenant, billingSettings);
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleCreateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.CREATE, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleCreateSubAccount');
+    const filteredRequest = BillingValidator.getInstance().validateBillingCreateSubAccountReq(req.body);
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleDownloadInvoice',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get the user
+    const user = await UserStorage.getUser(req.tenant, filteredRequest.userID);
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
+      MODULE_NAME, 'handleCreateSubAccount', req.user);
+    // Create the sub account
+    const subAccount = await billingImpl.createSubAccount();
+    // Notify the user by mail
+    void NotificationHandler.sendBillingSubAccountCreationLink(req.tenant, Utils.generateUUID(), user, { onboardingLink: subAccount.activationLink });
+    res.status(StatusCodes.CREATED).json(subAccount);
     next();
   }
 
