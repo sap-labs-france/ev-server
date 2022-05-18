@@ -225,9 +225,7 @@ export default class BillingStorage {
       _id: subAccount.id ? DatabaseUtils.convertToObjectID(subAccount.id) : new ObjectId(),
       accountID: subAccount.accountID,
       pending: subAccount.pending,
-      userID: DatabaseUtils.convertToObjectID(subAccount.userID),
-      siteID: subAccount.siteID ? DatabaseUtils.convertToObjectID(subAccount.siteID) : null,
-      companyID: subAccount.companyID ? DatabaseUtils.convertToObjectID(subAccount.companyID) : null
+      userID: DatabaseUtils.convertToObjectID(subAccount.userID)
     };
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'billingsubaccounts').findOneAndUpdate(

@@ -492,25 +492,13 @@ export default class BillingService {
         user: req.user
       });
     }
-    let subAccount: BillingAccount = {} as BillingAccount;
-
     // Get the user
     const user = await UserStorage.getUser(req.tenant, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleCreateSubAccount', req.user);
-    subAccount.userID = user.id;
-    // Get the company or the site
-    if (filteredRequest.companyID) {
-      const company = await CompanyStorage.getCompany(req.tenant, filteredRequest.companyID);
-      UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`, MODULE_NAME, 'handleCreateSubAccount', req.user);
-      subAccount.companyID = company.id;
-    } else if (filteredRequest.siteID) {
-      const site = await SiteStorage.getSite(req.tenant, filteredRequest.siteID);
-      UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`, MODULE_NAME, 'handleCreateSubAccount', req.user);
-      subAccount.siteID = site.id;
-    }
     // Create the sub account
-    subAccount = { ...subAccount, ...await billingImpl.createSubAccount() };
+    const subAccount = await billingImpl.createSubAccount();
+    subAccount.userID = user.id;
     // Save the sub account
     subAccount.id = await BillingStorage.saveSubAccount(req.tenant, subAccount);
     // Notify the user

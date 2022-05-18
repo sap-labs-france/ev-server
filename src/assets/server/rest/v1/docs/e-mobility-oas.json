@@ -13866,26 +13866,8 @@
                 "required": [
                   "userID"
                 ],
-                "oneOf": [
-                  {
-                    "required": [
-                      "siteID"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "companyID"
-                    ]
-                  }
-                ],
                 "properties": {
                   "userID": {
-                    "type": "string"
-                  },
-                  "siteID": {
-                    "type": "string"
-                  },
-                  "companyID": {
                     "type": "string"
                   }
                 }
