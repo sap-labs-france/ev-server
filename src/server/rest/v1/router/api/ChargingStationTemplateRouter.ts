@@ -19,6 +19,7 @@ export default class ChargingStationTemplateRouter {
     this.buildRouteChargingStationTemplates();
     this.buildRouteChargingStationTemplate();
     this.buildRouteChargingStationTemplatesDelete();
+    this.buildRouteChargingStationTemplatesUpdate();
     return this.router;
   }
 
@@ -45,6 +46,13 @@ export default class ChargingStationTemplateRouter {
     this.router.delete(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE_DELETE}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = sanitize(req.params.id);
       await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleDeleteChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE_DELETE, req, res, next);
+    });
+  }
+
+  private buildRouteChargingStationTemplatesUpdate(): void {
+    this.router.put(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE_UPDATE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = sanitize(req.params.id);
+      await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleUpdateChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE_UPDATE, req, res, next);
     });
   }
 }

@@ -75,7 +75,6 @@ export default class ChargingStationTemplateService {
     next();
   }
 
-
   public static async handleGetChargingStationTemplates(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplatesGetReq(req.query);
@@ -152,6 +151,58 @@ export default class ChargingStationTemplateService {
       detailedMessages: { chargingStationTemplate }
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleUpdateChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateCreateReq(req.body);
+    await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
+    const foundCST = await ChargingStationTemplateStorage.getChargingStationTemplate(filteredRequest.id);
+    if (!foundCST) {
+      throw new AppError({
+        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
+        message: `id '${filteredRequest.id}' don't exists`,
+        module: MODULE_NAME, method: 'handleUpdateChargingStationTemplate',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check auth
+    if (!(await Authorizations.canUpdateChargingStationTemplate(req.user))) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.CHARGING_STATION_TEMPLATE,
+        module: MODULE_NAME, method: 'handleUpdateChargingStationTemplate'
+      });
+    }
+    const newChargingStationTemplate: ChargingStationTemplate = {
+      id: filteredRequest.id,
+      hash: filteredRequest.hash,
+      hashCapabilities: filteredRequest.hashCapabilities,
+      hashTechnical: filteredRequest.hashTechnical,
+      hashOcppStandard: filteredRequest.hashOcppStandard,
+      hashOcppVendor: filteredRequest.hashOcppVendor,
+      chargePointVendor: filteredRequest.chargePointVendor,
+      capabilities: filteredRequest.capabilities,
+      ocppStandardParameters: filteredRequest.ocppStandardParameters,
+      ocppVendorParameters: filteredRequest.ocppVendorParameters,
+      createdOn: new Date(),
+      extraFilters: filteredRequest.extraFilters,
+      technical: filteredRequest.technical
+    };
+
+    newChargingStationTemplate.id = await ChargingStationTemplateStorage.saveChargingStationTemplate(newChargingStationTemplate);
+    await Logging.logInfo({
+      tenantID: req.tenant.id,
+      ...LoggingHelper.getChargingStationTemplateProperties(newChargingStationTemplate),
+      user: req.user, module: MODULE_NAME, method: 'handleUpdateChargingStationTemplate',
+      message: `'${newChargingStationTemplate.id}' has been updated successfully`,
+      action: action,
+      detailedMessages: { chargingStationtemplate: newChargingStationTemplate }
+    });
+    res.json(Object.assign({ id: newChargingStationTemplate.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 }
