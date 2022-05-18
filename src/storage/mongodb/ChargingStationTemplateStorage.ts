@@ -81,7 +81,7 @@ export default class ChargingStationTemplateStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      // await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationTemplates', startTime, aggregation, chargingStationTemplatesCountMDB);
+      await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getChargingStationTemplates', startTime, aggregation, chargingStationTemplatesCountMDB);
       return {
         count: (chargingStationTemplatesCountMDB.length > 0 ? chargingStationTemplatesCountMDB[0].count : 0),
         result: []
@@ -112,14 +112,14 @@ export default class ChargingStationTemplateStorage {
     const ChargingStationTemplates = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray() as ChargingStationTemplate[];
-    // await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStationTemplates', startTime, aggregation, ChargingStationTemplates);
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getChargingStationTemplates', startTime, aggregation, ChargingStationTemplates);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(chargingStationTemplatesCountMDB[0]),
       result: ChargingStationTemplates
     };
   }
 
-  public static async getChargingStationTemplate(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
+  public static async getChargingStationTemplate(id: string = Constants.UNKNOWN_OBJECT_ID,
       params = {},
       projectFields?: string[]): Promise<ChargingStationTemplate> {
     const chargingstationtemplatessMDB = await ChargingStationTemplateStorage.getChargingStationTemplates({
@@ -128,10 +128,11 @@ export default class ChargingStationTemplateStorage {
     return chargingstationtemplatessMDB.count === 1 ? chargingstationtemplatessMDB.result[0] : null;
   }
 
-  // public static async deleteRegistrationToken(tenant: Tenant, id: string): Promise<void> {
-  //   const startTime = Logging.traceDatabaseRequestStart();
-  //   await global.database.getCollection<any>(tenant.id, 'registrationtokens')
-  //     .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
-  //   await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteRegistrationToken', startTime, { id });
-  // }
+  public static async deleteChargingStationTemplate(tenant: Tenant, chargingStationTemplateID: string): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    // Delete singular CST
+    await global.database.getCollection(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates')
+      .deleteOne({ '_id': chargingStationTemplateID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteChargingStationTemplate', startTime, { chargingStationTemplateID });
+  }
 }

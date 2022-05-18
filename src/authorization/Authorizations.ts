@@ -331,6 +331,10 @@ export default class Authorizations {
     });
   }
 
+  public static async canDeleteChargingStationTemplate(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION_TEMPLATE, Action.DELETE);
+  }
+
   public static async canExportParams(loggedUser: UserToken, siteID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.EXPORT, {
       site: siteID,

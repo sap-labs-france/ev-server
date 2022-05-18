@@ -12,6 +12,7 @@ export default class ChargingStationTemplateValidator extends SchemaValidator {
   private chargingStationTemplateGetByID: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstationtemplate/charging-station-template-get.json`, 'utf8'));
   private chargingStationsTemplateGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstationtemplate/charging-station-templates-get.json`, 'utf8'));
   // private chargingStationTemplateUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-token-update.json`, 'utf8'));
+  private chargingStationsTemplateDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstationtemplate/charging-station-template-delete.json`, 'utf8'));
 
 
   private constructor() {
@@ -35,6 +36,10 @@ export default class ChargingStationTemplateValidator extends SchemaValidator {
 
   public validateChargingStationTemplatesGetReq(data: Record<string, unknown>): HttpChargingStationTemplatesRequest {
     return this.validate(this.chargingStationsTemplateGet, data);
+  }
+
+  public validateChargingStationTemplateDelete(data: Record<string, unknown>): HttpChargingStationTemplateRequest {
+    return this.validate(this.chargingStationsTemplateDelete, data);
   }
 
   // public validateChargingStationTemplateUpdateReq(data: Record<string, unknown>): ChargingStationTemplate {

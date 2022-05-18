@@ -13,7 +13,11 @@ import ChargingStationTemplateValidator from '../validator/ChargingStationTempla
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
+import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
+import { TenantComponents } from '../../../../types/Tenant';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'ChargingStationTemplateService';
@@ -23,7 +27,7 @@ export default class ChargingStationTemplateService {
     const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateCreateReq(req.body);
     await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    const foundCST = await ChargingStationTemplateStorage.getChargingStationTemplate(req.tenant, filteredRequest.id);
+    const foundCST = await ChargingStationTemplateStorage.getChargingStationTemplate(filteredRequest.id);
     if (foundCST) {
       throw new AppError({
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
@@ -116,5 +120,38 @@ export default class ChargingStationTemplateService {
     res.json(chargingStationTemplate);
     next();
   }
-}
 
+  public static async handleDeleteChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const chargingStationTemplateID = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateDelete(req.query).ID;
+    // Check Mandatory fields
+    UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME,
+      'handleDeleteChargingStationTemplate', req.user);
+    // Get
+    const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(chargingStationTemplateID);
+    UtilsService.assertObjectExists(action, chargingStationTemplate, `Charging StationTemplate ID '${chargingStationTemplateID}' does not exist`,
+      MODULE_NAME, 'handleDeleteChargingStationTemplate', req.user);
+    // Check auth
+    if (!await Authorizations.canDeleteChargingStationTemplate(req.user)) {
+      throw new AppAuthError({
+        ...LoggingHelper.getChargingStationTemplateProperties(chargingStationTemplate),
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.DELETE, entity: Entity.CHARGING_STATION_TEMPLATE,
+        module: MODULE_NAME, method: 'handleDeleteChargingStationTemplate',
+        value: chargingStationTemplateID,
+      });
+    }
+    // Delete physically
+    await ChargingStationTemplateStorage.deleteChargingStationTemplate(req.tenant, chargingStationTemplate.id);
+    await Logging.logInfo({
+      tenantID: req.tenant.id,
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStation',
+      message: `Charging Station '${chargingStationTemplate.id}' has been deleted successfully`,
+      action,
+      detailedMessages: { chargingStationTemplate }
+    });
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+}
