@@ -298,6 +298,8 @@ export interface BillingNewInvoiceNotification extends BaseNotification {
 
 export interface BillingSubAccountCreationLink extends BaseNotification {
   onboardingLink: string;
+  evseDashboardURL: string;
+  user: User;
 }
 
 export interface CarCatalogSynchronizationFailedNotification extends BaseNotification {

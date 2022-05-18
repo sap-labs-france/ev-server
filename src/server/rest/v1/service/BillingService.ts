@@ -514,7 +514,7 @@ export default class BillingService {
     // Save the sub account
     subAccount.id = await BillingStorage.saveSubAccount(req.tenant, subAccount);
     // Notify the user by mail
-    void NotificationHandler.sendBillingSubAccountCreationLink(req.tenant, Utils.generateUUID(), user, { onboardingLink: subAccount.activationLink });
+    void NotificationHandler.sendBillingSubAccountCreationLink(req.tenant, Utils.generateUUID(), user, { onboardingLink: subAccount.activationLink, evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
     res.status(StatusCodes.CREATED).json(subAccount);
     next();
   }
