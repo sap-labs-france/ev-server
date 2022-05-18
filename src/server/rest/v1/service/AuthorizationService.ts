@@ -653,6 +653,8 @@ export default class AuthorizationService {
   public static async addChargingStationAuthorizations(tenant: Tenant, userToken: UserToken, chargingStation: ChargingStation,
       authorizationFilter: AuthorizationFilter): Promise<void> {
     chargingStation.canRead = true; // Always true as it should be filtered upfront
+    chargingStation.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.LIST, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
     chargingStation.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.UPDATE, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
     chargingStation.canDelete = await AuthorizationService.canPerformAuthorizationAction(
