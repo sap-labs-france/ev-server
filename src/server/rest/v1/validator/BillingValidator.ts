@@ -1,4 +1,4 @@
-import { HttpBillingCreateSubAccount, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingActivateSubAccount, HttpBillingCreateSubAccount, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 
 import { BillingSettings } from '../../../../types/Setting';
 import Schema from '../../../../types/validator/Schema';
@@ -15,6 +15,7 @@ export default class BillingValidator extends SchemaValidator {
   private billingInvoicesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoices-get.json`, 'utf8'));
   private billingInvoiceGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoice-get.json`, 'utf8'));
   private billingCreateSubAccount: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-create-sub-account.json`, 'utf8'));
+  private billingActivateSubAccount: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-activate-sub-account.json`, 'utf8'));
 
   private constructor() {
     super('BillingValidator');
@@ -53,5 +54,9 @@ export default class BillingValidator extends SchemaValidator {
 
   public validateBillingCreateSubAccountReq(data: Record<string, unknown>): HttpBillingCreateSubAccount {
     return this.validate(this.billingCreateSubAccount, data);
+  }
+
+  public validateBillingActivateSubAccountReq(data: Record<string, unknown>): HttpBillingActivateSubAccount {
+    return this.validate(this.billingActivateSubAccount, data);
   }
 }

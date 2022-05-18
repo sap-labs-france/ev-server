@@ -1,0 +1,14 @@
+{
+  "$id": "billing-activate-sub-account",
+  "title": "Activate a Billing sub-account Request",
+  "type": "object",
+  "properties": {
+    "subAccountID": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "subAccountID"
+  ]
+}

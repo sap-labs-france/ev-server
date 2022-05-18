@@ -34,3 +34,7 @@ export interface HttpBillingCreateSubAccount {
   siteID?: string;
   companyID: string;
 }
+
+export interface HttpBillingActivateSubAccount {
+  subAccountID: string;
+}
