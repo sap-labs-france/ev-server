@@ -345,8 +345,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // Get Message Text
-    const title = i18nManager.translate('notifications.billingPeriodicOperationFailed.title');
-    const body = i18nManager.translate('notifications.billingPeriodicOperationFailed.body',
+    const title = i18nManager.translate('notifications.billingSubAccountCreationLink.title');
+    const body = i18nManager.translate('notifications.billingSubAccountCreationLink.body',
       { onboardingLink: data.onboardingLink, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_CREATE_SUB_ACCOUNT,
