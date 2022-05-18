@@ -296,7 +296,7 @@ export interface BillingNewInvoiceNotification extends BaseNotification {
   invoiceStatus: string;
 }
 
-export interface BillingSubAccountCreationLink extends BaseNotification {
+export interface BillingSubAccountCreationLinkNotification extends BaseNotification {
   onboardingLink: string;
   evseDashboardURL: string;
   user: User;
