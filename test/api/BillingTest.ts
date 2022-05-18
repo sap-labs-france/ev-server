@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { BillingAccount, BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
+import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
 
@@ -11,12 +11,12 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import { HTTPError } from '../../src/types/HTTPError';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { StatusCodes } from 'http-status-codes';
 import StripeTestHelper from './StripeTestHelper';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
-import Utils from '../../src/utils/Utils';
 import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
@@ -440,6 +440,36 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             userID: billingTestHelper.userContext.id
           });
           expect(response.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+        });
+
+        it('should create a sub account and activate it', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id,
+            siteID: billingTestHelper.siteContext.getSite().id,
+          });
+          expect(response.status).to.be.eq(StatusCodes.CREATED);
+
+          const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.accountID });
+          expect(activationResponse.status).to.be.eq(StatusCodes.OK);
+          expect(activationResponse.data.pending).to.be.false;
+        });
+
+        it('should not activate an inexistent sub account', async () => {
+          const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: 'xxx' });
+          expect(activationResponse.status).to.be.eq(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        });
+
+        it('should not activate a sub account twice', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id,
+            siteID: billingTestHelper.siteContext.getSite().id,
+          });
+          expect(response.status).to.be.eq(StatusCodes.CREATED);
+
+          let activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.accountID });
+          expect(activationResponse.status).to.be.eq(StatusCodes.OK);
+          activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.accountID });
+          expect(activationResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
         });
       });
 
