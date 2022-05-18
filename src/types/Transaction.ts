@@ -42,6 +42,14 @@ export interface UserDefaultTagCar {
   errorCodes?: StartTransactionErrorCode[];
 }
 
+export interface AdvenirConsumption {
+  [evseID: string]: {
+    [transactionId: string]: [
+      [{ timestamp: string, value: number }]
+    ]
+  }
+}
+
 export enum StartTransactionErrorCode {
   BILLING_NO_PAYMENT_METHOD = 'no_payment_method', // start transaction is not possible - user has no payment method
   BILLING_NO_TAX = 'billing_no_tax', // start transaction is not possible - the tax ID is not set or inconsistent
