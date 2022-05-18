@@ -14,7 +14,8 @@
     "maximumPower": {
       "type": "number",
       "sanitize": "mongo",
-      "minimum": 0
+      "minimum": 0,
+      "default": 0
     },
     "numberOfPhases": {
       "type": "number",
@@ -37,8 +38,18 @@
     "siteID": {
       "$ref": "common#/definitions/id"
     },
+    "parentSiteAreaID": {
+      "type": "string",
+      "pattern": "^$|^[0-9a-fA-F]{24}$",
+      "sanitize": "mongo",
+      "nullable": true
+    },
     "tariffID": {
       "$ref": "common#/definitions/tariff-id"
+    },
+    "subSiteAreasAction": {
+      "type": "string",
+      "sanitize": "mongo"
     },
     "image": {
       "type": "string",

@@ -1,6 +1,7 @@
 import ChargingStation, { Voltage } from '../types/ChargingStation';
 
 import Address from './Address';
+import Asset from './Asset';
 import ConnectorStats from './ConnectorStats';
 import Consumption from './Consumption';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
@@ -38,8 +39,12 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
   smartCharging: boolean;
   accessControl: boolean;
   chargingStations: ChargingStation[];
+  assets: Asset[];
   connectorStats: ConnectorStats;
   values: Consumption[];
+  parentSiteAreaID?: string;
+  parentSiteArea?: SiteArea;
+  childSiteAreas?: SiteArea[];
   distanceMeters?: number;
   openingTimes?: OpeningTimes;
   tariffID?: string;
@@ -48,4 +53,11 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
 
 export interface SiteAreaOcpiData {
   location: OCPILocation;
+}
+
+export enum SubSiteAreaAction {
+  UPDATE = 'update',
+  ATTACH = 'attach',
+  CLEAR = 'clear',
+  FORCE_SMART_CHARGING = 'force_smart_charging',
 }
