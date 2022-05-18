@@ -1697,7 +1697,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       throw new BackendError({
         message: 'Unexpected situation - unable to create sub-account',
         detailedMessages: { e },
-        module: MODULE_NAME, action: ServerAction.BILLING_CREATE_SUB_ACCOUNT,
+        module: MODULE_NAME, action: ServerAction.BILLING_SUB_ACCOUNT_CREATE,
         method: 'createSubAccount',
       });
     }
@@ -1714,7 +1714,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       throw new BackendError({
         message: 'Unexpected situation - unable to create activation link',
         detailedMessages: { e },
-        module: MODULE_NAME, action: ServerAction.BILLING_CREATE_SUB_ACCOUNT,
+        module: MODULE_NAME, action: ServerAction.BILLING_SUB_ACCOUNT_CREATE,
         method: 'createSubAccount',
       });
     }

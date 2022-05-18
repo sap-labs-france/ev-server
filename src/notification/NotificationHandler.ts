@@ -1383,12 +1383,12 @@ export default class NotificationHandler {
           try {
           // Save
             await NotificationHandler.saveNotification(
-              tenant, notificationSource.channel, notificationID, ServerAction.BILLING_CREATE_SUB_ACCOUNT, { user });
+              tenant, notificationSource.channel, notificationID, ServerAction.BILLING_SUB_ACCOUNT_CREATE, { user });
             // Send
             void notificationSource.notificationTask.sendBillingSubAccountCreationLink(
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
-            await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_CREATE_SUB_ACCOUNT, error);
+            await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_SUB_ACCOUNT_CREATE, error);
           }
         }
       }
