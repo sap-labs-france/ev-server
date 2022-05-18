@@ -551,10 +551,12 @@ export default class BillingService {
     // Activate and save the sub account
     subAccount.pending = false;
     await BillingStorage.saveSubAccount(req.tenant, subAccount);
-
-    // Notify the user by mail
-    // void NotificationHandler.sendBillingSubAccountCreationLink(
-    //   req.tenant, Utils.generateUUID(), user, { onboardingLink: subAccount.activationLink, evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
+    // Get the sub account owner
+    const user = await UserStorage.getUser(req.tenant, subAccount.userID);
+    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.userID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
+    // Notify the user
+    void NotificationHandler.sendBillingSubAccountActivationNotification(
+      req.tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
     res.status(StatusCodes.OK).json(subAccount);
     next();
   }

@@ -1,0 +1,31 @@
+{
+  "subject": "Billing - Sub-account activated",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Billing - Sub-account activated",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- tenantLogoURL %>"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Dear <%- (user.firstName ? user.firstName : user.name) %>,",
+      "",
+      "Your billing sub-account has been activated."
+    ],
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
