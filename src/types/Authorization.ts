@@ -244,6 +244,7 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canUpdateFirmware?:boolean;
   canRemoteStopTransaction?:boolean;
   canStopTransaction?:boolean;
+  canStarTransaction?:boolean;
   canChangeAvailability?:boolean;
   canRemoteStartTransaction?:boolean;
   canUnlockConnector?:boolean;

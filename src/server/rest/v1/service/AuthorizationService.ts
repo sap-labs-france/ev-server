@@ -681,6 +681,8 @@ export default class AuthorizationService {
       tenant, userToken, Entity.CHARGING_STATION, Action.REMOTE_STOP_TRANSACTION, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
     chargingStation.canStopTransaction = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.STOP_TRANSACTION, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
+    chargingStation.canStarTransaction = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.START_TRANSACTION, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
     chargingStation.canChangeAvailability = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.CHANGE_AVAILABILITY, authorizationFilter, { chargingStationID: chargingStation.id }, chargingStation);
     chargingStation.canRemoteStartTransaction = await AuthorizationService.canPerformAuthorizationAction(
