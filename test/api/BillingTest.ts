@@ -6,7 +6,6 @@ import chai, { expect } from 'chai';
 import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
-import CompanyFactory from '../factories/CompanyFactory';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -395,51 +394,16 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(response.data.result.length).to.be.gt(0);
         });
 
-        it('should create a sub account for a site', async () => {
-          const response = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id,
-            siteID: billingTestHelper.siteContext.getSite().id,
-          });
-          expect(response.status).to.be.eq(StatusCodes.CREATED);
-          expect(response.data.id).to.not.be.null;
-          expect(response.data.accountID).to.not.be.null;
-          expect(response.data.userID).to.eq(billingTestHelper.userContext.id);
-          expect(response.data.activationLink).to.not.be.null;
-          expect(response.data.pending).to.be.true;
-          expect(response.data.siteID).to.be.eq(billingTestHelper.siteContext.getSite().id);
-          expect(response.data.companyID).to.not.exist;
-        });
-
-        it('should create a sub account for a company', async () => {
-          const company = await billingTestHelper.tenantContext.createCompany(CompanyFactory.build());
-          const response = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id,
-            companyID: company.id
-          });
-          expect(response.status).to.be.eq(StatusCodes.CREATED);
-          expect(response.data.id).to.not.be.null;
-          expect(response.data.accountID).to.not.be.null;
-          expect(response.data.userID).to.eq(billingTestHelper.userContext.id);
-          expect(response.data.activationLink).to.not.be.null;
-          expect(response.data.pending).to.be.true;
-          expect(response.data.siteID).to.not.exist;
-          expect(response.data.companyID).to.be.eq(company.id);
-        });
-
-        it('should not create a sub account for a company AND a site', async () => {
-          const response = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id,
-            companyID: '6283bc3cc746c38fa184d716',
-            siteID: '6283bc3cc746c38fa184d715',
-          });
-          expect(response.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
-        });
-
-        it('should not create a sub account without company or site', async () => {
+        it('should create a sub account', async () => {
           const response = await billingTestHelper.userService.billingApi.createSubAccount({
             userID: billingTestHelper.userContext.id
           });
-          expect(response.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(response.status).to.be.eq(StatusCodes.CREATED);
+          expect(response.data.id).to.not.be.null;
+          expect(response.data.accountID).to.not.be.null;
+          expect(response.data.userID).to.eq(billingTestHelper.userContext.id);
+          expect(response.data.activationLink).to.not.be.null;
+          expect(response.data.pending).to.be.true;
         });
 
         it('should create a sub account and activate it', async () => {
@@ -533,8 +497,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should not be able to create a sub account', async () => {
           const response = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id,
-            siteID: '6283bc3cc746c38fa184d716'
+            userID: billingTestHelper.userContext.id
           });
           expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });

@@ -13855,7 +13855,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Create a Billing sub-account for a site or a company",
+        "description": "Create a Billing sub-account",
         "tags": [
           "Billing"
         ],
@@ -13866,26 +13866,8 @@
                 "required": [
                   "userID"
                 ],
-                "oneOf": [
-                  {
-                    "required": [
-                      "siteID"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "companyID"
-                    ]
-                  }
-                ],
                 "properties": {
                   "userID": {
-                    "type": "string"
-                  },
-                  "siteID": {
-                    "type": "string"
-                  },
-                  "companyID": {
                     "type": "string"
                   }
                 }
@@ -13900,7 +13882,6 @@
               "application/json": {
                 "example": {
                   "userID": "###",
-                  "siteID": "###",
                   "accountID": "###",
                   "activationLink": "###",
                   "pending": true,
@@ -13917,6 +13898,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }

@@ -1,10 +1,10 @@
 {
-  "subject": "Billing - Connected account onboarding",
+  "subject": "Facturation - Initialisation Compte connecté",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Billing - Connected account onboarding",
+      "title": "Facturation - Intégration Compte connecté",
       "image": {
         "left": {
           "height": 60,
@@ -17,12 +17,12 @@
       }
     },
     "beforeActionLines": [
-      "Dear <%- (user.firstName ? user.firstName : user.name) %>,",
+      "Cher <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "Your billing Connected account onboarding must be completed by following the link below:"
+      "L'initialisation de votre Compte Connecté doit être complétée en suivant le lien ci-dessous:"
     ],
     "actions": [{
-        "title": "Finish Connected account onboarding",
+        "title": "Finaliser l'initialisation du compte connecté",
         "url": "<%- onboardingLink %>"
       }],
     "afterActionLines": [

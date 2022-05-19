@@ -977,7 +977,7 @@ export default class Utils {
   }
 
   public static buildEvseBillingSubAccountActivationURL(tenantSubdomain: string, subAccountID: string): string {
-    return `${Utils.buildEvseURL(tenantSubdomain)}/billing/sub-account/${subAccountID}`;
+    return `${Utils.buildEvseURL(tenantSubdomain)}/billing/sub-accounts/${subAccountID}`;
   }
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
