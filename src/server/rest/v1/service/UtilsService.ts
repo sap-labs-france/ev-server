@@ -165,7 +165,7 @@ export default class UtilsService {
     UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
-      tenant, userToken, { ID: chargingStationTemplateID }, authAction, entityData);
+      tenant, userToken, { id: chargingStationTemplateID }, authAction, entityData);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,

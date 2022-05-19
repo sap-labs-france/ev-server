@@ -6,6 +6,7 @@ import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
+import { HttpGetChargingStationTemplateRequest } from '../../types/requests/HttpChargingStationTemplateRequest';
 import Logging from '../../utils/Logging';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -121,7 +122,7 @@ export default class ChargingStationTemplateStorage {
 
   public static async getChargingStationTemplate(id: string = Constants.UNKNOWN_OBJECT_ID,
       params = {},
-      projectFields?: string[]): Promise<ChargingStationTemplate> {
+      projectFields?: string[]): Promise<HttpGetChargingStationTemplateRequest> {
     const chargingstationtemplatessMDB = await ChargingStationTemplateStorage.getChargingStationTemplates({
       IDs: [id],
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);

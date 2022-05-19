@@ -112,17 +112,17 @@ export default class ChargingStationTemplateService {
 
   public static async handleGetChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateGetReq(req.query);
+    const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateGetReq(req.body);
     // Check and Get Registration Token
     const chargingStationTemplate = await UtilsService.checkAndGetChargingStationTemplateAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
+      req.tenant, req.user, filteredRequest.id, Action.READ, action, null, {}, true);
     res.json(chargingStationTemplate);
     next();
   }
 
   public static async handleDeleteChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const chargingStationTemplateID = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateDelete(req.query).ID;
+    const chargingStationTemplateID = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateDeleteReq(req.body).id;
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME,
       'handleDeleteChargingStationTemplate', req.user);
@@ -155,15 +155,15 @@ export default class ChargingStationTemplateService {
   }
 
   public static async handleUpdateChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateCreateReq(req.body);
+    const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateUpdateReq(req.body);
     await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
-      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
+      req.tenant, req.user, filteredRequest, Action.UPDATE);
     const foundCST = await ChargingStationTemplateStorage.getChargingStationTemplate(filteredRequest.id);
     if (!foundCST) {
       throw new AppError({
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
-        message: `id '${filteredRequest.id}' don't exists`,
-        module: MODULE_NAME, method: 'handleUpdateChargingStationTemplate',
+        message: `id '${filteredRequest.id}' don't already exists`,
+        module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
         user: req.user,
         action: action
       });
@@ -173,7 +173,7 @@ export default class ChargingStationTemplateService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.UPDATE, entity: Entity.CHARGING_STATION_TEMPLATE,
+        action: Action.IMPORT, entity: Entity.CHARGING_STATION_TEMPLATE,
         module: MODULE_NAME, method: 'handleUpdateChargingStationTemplate'
       });
     }

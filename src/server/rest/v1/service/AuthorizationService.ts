@@ -24,7 +24,7 @@ import Company from '../../../../types/Company';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import { HttpChargingStationTemplateRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
+import { HttpGetChargingStationTemplateRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
 import { HttpLogRequest } from '../../../../types/requests/HttpLogRequest';
 import { HttpRegistrationTokenRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
@@ -428,13 +428,13 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetChargingStationTemplateAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpChargingStationTemplateRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<ChargingStationTemplate>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
-      tenant, Entity.CHARGING_STATION_TEMPLATE, userToken, filteredRequest, filteredRequest.ID ? { chargingStationTemplateID: filteredRequest.ID } : {}, authAction, entityData);
+      tenant, Entity.CHARGING_STATION_TEMPLATE, userToken, filteredRequest, filteredRequest.id ? { chargingStationTemplateID: filteredRequest.id } : {}, authAction, entityData);
   }
 
   public static async checkAndGetChargingStationTemplatesAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpCompaniesRequest>): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpGetChargingStationTemplateRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

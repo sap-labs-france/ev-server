@@ -4,11 +4,11 @@
   "description": "",
   "type": "object",
   "properties": {
-    "ID": {
+    "id": {
       "type": "string"
     }
   },
   "required": [
-    "ID"
+    "id"
   ]
 }
