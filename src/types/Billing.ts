@@ -153,3 +153,11 @@ export interface BillingAdditionalData {
   lastError?: BillingError,
 }
 
+export interface BillingAccount {
+  id?: string;
+  accountID: string;
+  activationLink?: string;
+  userID?: string;
+  pending: boolean;
+}
+

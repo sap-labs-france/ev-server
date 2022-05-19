@@ -12031,7 +12031,8 @@
           }
         }
       }
-    },    "/api/oicp/endpoints": {
+    },
+    "/api/oicp/endpoints": {
       "post": {
         "security": [
           {
@@ -13847,6 +13848,63 @@
         }
       }
     },
+    "/api/billing/sub-accounts": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create a Billing sub-account",
+        "tags": [
+          "Billing"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "userID"
+                ],
+                "properties": {
+                  "userID": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pending sub-account created",
+            "content": {
+              "application/json": {
+                "example": {
+                  "userID": "###",
+                  "accountID": "###",
+                  "activationLink": "###",
+                  "pending": true,
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/invoices": {
       "get": {
         "security": [
@@ -13987,8 +14045,7 @@
           "200": {
             "description": "Return invoice as PDF",
             "content": {
-              "application/pdf": {
-              }
+              "application/pdf": {}
             }
           },
           "401": {

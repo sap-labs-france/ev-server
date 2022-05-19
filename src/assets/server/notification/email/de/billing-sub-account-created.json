@@ -1,0 +1,35 @@
+{
+  "subject": "Billing - Connected account onboarding",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Billing - Connected account onboarding",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- tenantLogoURL %>"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Dear <%- (user.firstName ? user.firstName : user.name) %>,",
+      "",
+      "Your billing Connected account onboarding must be completed by following the link below:"
+    ],
+    "actions": [{
+        "title": "Finish Connected account onboarding",
+        "url": "<%- onboardingLink %>"
+      }],
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
