@@ -147,6 +147,10 @@
       "title": "Nouvelle facture a payer",
       "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}} est disponible, vérifiez vos emails pour finaliser le paiement"
     },
+    "billingSubAccountCreationLink": {
+      "title": "Compte connecté",
+      "body": "Vous avez été invité à créer un Compte Connecté pour le service de facturation. Veuillez vérifier vos emails pour terminer le processus"
+    },
     "endUserErrorNotification": {
       "title": "Un utitilisateur a reporté une erreur",
       "body": "'{{userName}}' a reporté: '{{errorTitle}}' - '{{errorDescription}}' dans l'organisation '{{tenantName}}'"

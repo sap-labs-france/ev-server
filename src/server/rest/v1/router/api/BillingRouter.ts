@@ -40,6 +40,10 @@ export default class BillingRouter {
     // ROUTES for TAXES
     // -----------------------------------
     this.buildRouteBillingGetTaxes();
+    // -----------------------------------
+    // ROUTES for SUB-ACCOUNTS
+    // -----------------------------------
+    this.buildRouteBillingCreateSubAccount();
     return this.router;
   }
 
@@ -136,6 +140,12 @@ export default class BillingRouter {
   private buildRouteBillingGetTaxes(): void {
     this.router.get(`/${RESTServerRoute.REST_BILLING_TAXES}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleRestServerAction(BillingService.handleGetBillingTaxes.bind(this), ServerAction.BILLING_TAXES, req, res, next);
+    });
+  }
+
+  private buildRouteBillingCreateSubAccount(): void {
+    this.router.post(`/${RESTServerRoute.REST_BILLING_SUB_ACCOUNTS}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(BillingService.handleCreateSubAccount.bind(this), ServerAction.BILLING_SUB_ACCOUNT_CREATE, req, res, next);
     });
   }
 }
