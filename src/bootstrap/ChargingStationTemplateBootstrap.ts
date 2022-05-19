@@ -1,5 +1,6 @@
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import { ChargingStationTemplate } from '../types/ChargingStation';
+import ChargingStationTemplateStorage from '../storage/mongodb/ChargingStationTemplateStorage';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
@@ -20,10 +21,6 @@ export default class ChargingStationTemplateBootstrap {
     }
     // Delete all previous templates
     await ChargingStationStorage.deleteChargingStationTemplates();
-    await ChargingStationTemplateBootstrap.UpdateAndHashChargingStationTemplates(chargingStationTemplates);
-  }
-
-  public static async UpdateAndHashChargingStationTemplates(chargingStationTemplates: ChargingStationTemplate[]): Promise<void> {
     // Read File
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
@@ -35,7 +32,7 @@ export default class ChargingStationTemplateBootstrap {
         chargingStationTemplate.hashOcppStandard = Utils.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
         chargingStationTemplate.hashOcppVendor = Utils.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
         // Save
-        await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
+        await ChargingStationTemplateStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
         error.message = `Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message as string}`;
         await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT_ID, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);

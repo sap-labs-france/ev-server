@@ -175,7 +175,7 @@ export default class UtilsService {
       });
     }
     // Get ChargingStationTemplate
-    const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(tenant, chargingStationTemplateID,
+    const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(chargingStationTemplateID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
@@ -187,7 +187,7 @@ export default class UtilsService {
     // Deleted?
     // if (chargingStationTemplate?.deleted) {
     //   throw new AppError({
-    //     ...LoggingHelper.getChargingStationProperties(chargingStationTemplate),
+    //     ...LoggingHelper.getChargingStationTemplateProperties(chargingStationTemplate),
     //     errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
     //     message: `ChargingStationTemplate with ID '${chargingStationTemplate.id}' is logically deleted`,
     //     module: MODULE_NAME,

@@ -496,6 +496,8 @@ export enum RESTServerRoute {
   REST_CHARGING_STATION_TEMPLATES = 'charging-station-templates',
   REST_CHARGING_STATION_TEMPLATE = 'charging-station-templates/:id',
   REST_CHARGING_STATION_TEMPLATE_CREATE = 'charging-station-template/action/create',
+  REST_CHARGING_STATION_TEMPLATE_DELETE = 'charging-station-template/action/delete/:id',
+  REST_CHARGING_STATION_TEMPLATE_UPDATE = 'charging-station-template/action/update/:id',
 
   REST_CHARGING_STATIONS = 'charging-stations',
   REST_CHARGING_STATION = 'charging-stations/:id',
