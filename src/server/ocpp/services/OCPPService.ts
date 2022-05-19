@@ -239,7 +239,7 @@ export default class OCPPService {
       // First Meter Value -> Trigger Smart Charging to adjust the limit
       if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed) {
         // Yes: Trigger Smart Charging
-        await this.triggerSmartCharging(tenant, chargingStation);
+        await this.triggerSmartCharging(tenant, chargingStation.siteArea);
       }
       await Logging.logInfo({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -637,7 +637,7 @@ export default class OCPPService {
       setTimeout(async () => {
         try {
           // Trigger Smart Charging
-          await this.triggerSmartCharging(tenant, chargingStation);
+          await this.triggerSmartCharging(tenant, chargingStation.siteArea);
         } catch (error) {
           await Logging.logError({
             ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -732,7 +732,7 @@ export default class OCPPService {
       connector.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging
-        await this.triggerSmartCharging(tenant, chargingStation);
+        await this.triggerSmartCharging(tenant, chargingStation.siteArea);
       } catch (error) {
         await Logging.logError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -1331,11 +1331,10 @@ export default class OCPPService {
     return transaction.tagID;
   }
 
-  private async triggerSmartCharging(tenant: Tenant, chargingStation: ChargingStation) {
+  private async triggerSmartCharging(tenant: Tenant, siteArea: SiteArea) {
     // Smart Charging must be active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
       // Get Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant, chargingStation.siteAreaID);
       if (siteArea && siteArea.smartCharging) {
         const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea);
         if (siteAreaLock) {

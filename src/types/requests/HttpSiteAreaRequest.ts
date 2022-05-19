@@ -1,9 +1,12 @@
+import SiteArea, { SubSiteAreaAction } from '../SiteArea';
+
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpSiteAreaRequest extends HttpByIDRequest {
   ID: string;
   WithSite?: boolean;
+  WithParentSiteArea?: boolean;
   WithChargingStations?: boolean;
 }
 
@@ -11,8 +14,10 @@ export interface HttpSiteAreasRequest extends HttpDatabaseRequest {
   Issuer: boolean;
   Search: string;
   SiteID?: string;
+  ExcludeSiteAreaID?: string;
   CompanyID?: string;
   WithSite?: boolean;
+  WithParentSiteArea?: boolean;
   WithChargeBoxes?: boolean;
   WithAvailableChargers: boolean;
   LocLongitude?: number;
@@ -40,4 +45,12 @@ export interface HttpSiteAreaImageRequest extends HttpByIDRequest {
 export interface HttpAssignAssetsToSiteAreaRequest {
   siteAreaID: string;
   assetIDs: string[];
+}
+
+export interface HttpSiteAreaUpdateRequest extends SiteArea {
+  subSiteAreasAction?: string;
+}
+
+export interface HttpSiteAreaCreateRequest extends SiteArea {
+  subSiteAreasAction?: string;
 }

@@ -83,10 +83,10 @@ export default class OICPFacade {
   }
 
   public static async processEndTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
-      siteArea: SiteArea, user: User, action: ServerAction): Promise<void> {
+      siteArea: SiteArea, user: User, action: ServerAction): Promise<boolean> {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.OICP) ||
         !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl) {
-      return;
+      return false;
     }
     // Get OICP CPO client
     const oicpClient = await OICPFacade.checkAndGetOICPCpoClient(
@@ -97,7 +97,7 @@ export default class OICPFacade {
 
   public static async checkAndSendTransactionCdr(tenant: Tenant, transaction: Transaction,
       chargingStation: ChargingStation, siteArea: SiteArea, action: ServerAction): Promise<boolean> {
-    let OICPCdrSent = false;
+    let oicpCdrSent = false;
     // CDR not already pushed
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP) &&
         transaction.oicpData?.session && !transaction.oicpData.cdr?.SessionID) {
@@ -106,15 +106,15 @@ export default class OICPFacade {
       if (OICPLock) {
         try {
           // Roaming
-          OICPCdrSent = true;
-          await OICPFacade.processEndTransaction(tenant, transaction, chargingStation, siteArea, transaction.user, action);
+          oicpCdrSent = await OICPFacade.processEndTransaction(
+            tenant, transaction, chargingStation, siteArea, transaction.user, action);
         } finally {
           // Release the lock
           await LockingManager.release(OICPLock);
         }
       }
     }
-    return OICPCdrSent;
+    return oicpCdrSent;
   }
 
   public static async updateConnectorStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<void> {
