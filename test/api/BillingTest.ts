@@ -408,8 +408,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should create a sub account and activate it', async () => {
           const response = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id,
-            siteID: billingTestHelper.siteContext.getSite().id,
+            userID: billingTestHelper.userContext.id
           });
           expect(response.status).to.be.eq(StatusCodes.CREATED);
 
@@ -425,8 +424,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should not activate a sub account twice', async () => {
           const response = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id,
-            siteID: billingTestHelper.siteContext.getSite().id,
+            userID: billingTestHelper.userContext.id
           });
           expect(response.status).to.be.eq(StatusCodes.CREATED);
 
@@ -500,6 +498,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             userID: billingTestHelper.userContext.id
           });
           expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
+        });
+
+        it('should not activate an inexistent sub account', async () => {
+          const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: 'xxx' });
+          expect(activationResponse.status).to.be.eq(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
         });
       });
 

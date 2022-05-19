@@ -154,7 +154,7 @@ export default class BillingRouter {
   private buildRouteBillingActivateSubAccount(): void {
     this.router.patch(`/${RESTServerRoute.REST_BILLING_ACTIVATE_SUB_ACCOUNT}`, (req: Request, res: Response, next: NextFunction) => {
       req.params.subAccountID = req.params.id;
-      void RouterUtils.handleRestServerAction(BillingService.handleActivateSubAccount.bind(this), ServerAction.BILLING_ACTIVATE_SUB_ACCOUNT, req, res, next);
+      void RouterUtils.handleRestServerAction(BillingService.handleActivateSubAccount.bind(this), ServerAction.BILLING_SUB_ACCOUNT_ACTIVATE, req, res, next);
     });
   }
 }
