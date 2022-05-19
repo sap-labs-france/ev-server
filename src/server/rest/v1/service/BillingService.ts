@@ -520,7 +520,7 @@ export default class BillingService {
         user: req.user
       });
     }
-    const subAccount = await BillingStorage.getSubAccountByAccountID(req.tenant, filteredRequest.subAccountID);
+    const subAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.subAccountID);
     UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.subAccountID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
     // Check if the sub account is already activated
     if (!subAccount.pending) {

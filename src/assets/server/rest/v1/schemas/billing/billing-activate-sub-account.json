@@ -4,8 +4,7 @@
   "type": "object",
   "properties": {
     "subAccountID": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "common#/definitions/id"
     }
   },
   "required": [

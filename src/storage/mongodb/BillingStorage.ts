@@ -339,9 +339,9 @@ export default class BillingStorage {
     };
   }
 
-  public static async getSubAccountByAccountID(tenant: Tenant, accountID: string): Promise<BillingAccount> {
+  public static async getSubAccountByID(tenant: Tenant, id: string): Promise<BillingAccount> {
     const subAccountMDB = await BillingStorage.getSubAccounts(tenant, {
-      subAccountAccountIDs: [accountID]
+      subAccountIDs: [id]
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     return subAccountMDB.count === 1 ? subAccountMDB.result[0] : null;
   }
