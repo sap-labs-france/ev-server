@@ -135,6 +135,7 @@ export enum Action {
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   BILLING_CREATE_SUB_ACCOUNT = 'BillingCreateSubAccount',
+  BILLING_ACTIVATE_SUB_ACCOUNT = 'BillingActivateSubAccount',
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
