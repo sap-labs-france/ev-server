@@ -3,11 +3,11 @@
   "title": "Activate a Billing sub-account Request",
   "type": "object",
   "properties": {
-    "subAccountID": {
+    "ID": {
       "$ref": "common#/definitions/id"
     }
   },
   "required": [
-    "subAccountID"
+    "ID"
   ]
 }

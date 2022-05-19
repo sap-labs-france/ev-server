@@ -1,10 +1,10 @@
 {
-  "subject": "Billing - Connected account activated",
+  "subject": "Billing - Compte connecté activé",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Billing - Connected account activated",
+      "title": "Billing - Compte connecté activé",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "Your billing Connected account has been activated."
+      "Votre compte connecté a été activé."
     ],
     "afterActionLines": [
       "Best Regards,",

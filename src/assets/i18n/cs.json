@@ -151,6 +151,10 @@
         "title": "Billing Connected account",
         "body": "You have been invited to create a billing Connected account. Please check your email to complete the process"
       },
+      "billingSubAccountActivated": {
+        "title": "Billing Connected account activated",
+        "body": "Your billing Connected account has been activated"
+      },
       "endUserErrorNotification":{
          "title":"Uživatel oznámil chybu",
          "body":"Uživatel '{{userName}}' oznámil: '{{errorTitle}}' - '{{errorDescription}}' v organizaci '{{tenantName}}'"

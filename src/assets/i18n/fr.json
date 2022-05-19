@@ -151,6 +151,10 @@
       "title": "Compte connecté",
       "body": "Vous avez été invité à créer un Compte Connecté pour le service de facturation. Veuillez vérifier vos emails pour terminer le processus"
     },
+    "billingSubAccountActivated": {
+      "title": "Compte connecté activé",
+      "body": "Votre compte connecté a été activé"
+    },
     "endUserErrorNotification": {
       "title": "Un utitilisateur a reporté une erreur",
       "body": "'{{userName}}' a reporté: '{{errorTitle}}' - '{{errorDescription}}' dans l'organisation '{{tenantName}}'"
