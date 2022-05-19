@@ -59,6 +59,7 @@ export default class CompanyStorage {
         country: companyToSave.address.country,
         coordinates: Utils.hasValidGpsCoordinates(companyToSave.address.coordinates) ? companyToSave.address.coordinates.map(
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
+        billingSubAccountID: companyToSave.billingSubAccountID ? DatabaseUtils.convertToObjectID(companyToSave.billingSubAccountID) : null,
       };
     }
     // Add Last Changed/Created props

@@ -13,4 +13,5 @@ export default interface Company extends CreatedUpdatedProps, AuthorizationActio
   sites?: Site[];
   distanceMeters?: number;
   openingTimes?: OpeningTimes;
+  billingSubAccountID?: string;
 }

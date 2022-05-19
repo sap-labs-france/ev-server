@@ -26,6 +26,9 @@
     },
     "image": {
       "$ref": "site#/definitions/image"
+    },
+    "subAccountID": {
+      "$ref": "common#/definitions/id"
     }
   },
   "required": [

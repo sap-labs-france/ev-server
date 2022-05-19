@@ -6,6 +6,7 @@ import chai, { expect } from 'chai';
 import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
+import CompanyFactory from '../factories/CompanyFactory';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -432,6 +433,20 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(activationResponse.status).to.be.eq(StatusCodes.OK);
           activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.accountID });
           expect(activationResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+        });
+
+        it('should create a company assigned to a sub-account', async () => {
+          const subAccountResponse = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
+
+          let companyResponse = await billingTestHelper.userService.companyApi.create(
+            { ...CompanyFactory.build(), billingSubAccountID: subAccountResponse.data.id }
+          );
+          expect(companyResponse.status).to.be.eq(StatusCodes.CREATED);
+          companyResponse = await billingTestHelper.userService.companyApi.readById(companyResponse.data.id);
+          expect(companyResponse.data.billingSubAccountID).to.eq(subAccountResponse.data.id);
         });
       });
 

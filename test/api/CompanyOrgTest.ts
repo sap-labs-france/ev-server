@@ -1,5 +1,6 @@
 import chai, { expect } from 'chai';
 
+import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
 import Company from '../../src/types/Company';
 import ContextDefinition from './context/ContextDefinition';
@@ -29,6 +30,8 @@ class TestData {
 }
 
 const testData = new TestData();
+const billingTestHelper = new BillingTestHelper();
+
 
 /**
  * @param userRole

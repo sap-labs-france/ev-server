@@ -166,7 +166,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
           'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'billingSubAccountID'
         ]
       },
       {
@@ -207,7 +207,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.COMPANY, action: Action.READ,
         attributes: [
-          'id', 'name', 'issuer', 'logo', 'address'
+          'id', 'name', 'issuer', 'logo', 'address', 'billingSubAccountID'
         ]
       },
       {

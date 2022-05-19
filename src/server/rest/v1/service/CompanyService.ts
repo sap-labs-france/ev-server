@@ -1,14 +1,16 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
 
-import AppAuthError from '../../../../exception/AppAuthError';
+import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
+import BillingFactory from '../../../../integration/billing/BillingFactory';
+import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import Company from '../../../../types/Company';
 import { CompanyDataResult } from '../../../../types/DataResult';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import CompanyValidator from '../validator/CompanyValidator';
 import Constants from '../../../../utils/Constants';
-import { HTTPAuthError } from '../../../../types/HTTPError';
+import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
@@ -147,6 +149,14 @@ export default class CompanyService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Company;
+    // If the company is assigned to a billing sub-account, check if the billing is active
+    if (filteredRequest.billingSubAccountID) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+        Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
+      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.billingSubAccountID);
+      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.billingSubAccountID}' does not exist`, MODULE_NAME, 'handleCreateCompany', req.user);
+      newCompany.billingSubAccountID = billingSubAccount.id;
+    }
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);
     await Logging.logInfo({
@@ -156,7 +166,7 @@ export default class CompanyService {
       action: action,
       detailedMessages: { company: newCompany }
     });
-    res.json(Object.assign({ id: newCompany.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.status(StatusCodes.CREATED).json(Object.assign({ id: newCompany.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
