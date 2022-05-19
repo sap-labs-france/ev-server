@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
-import { SiteDataResult, SiteUserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
+import { SiteDataResult, SiteUserDataResult } from '../../../../types/DataResult';
 
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
