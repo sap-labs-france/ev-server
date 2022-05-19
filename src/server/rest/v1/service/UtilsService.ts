@@ -476,7 +476,7 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
-        entity: Entity.USERS_SITES,
+        entity: Entity.USER_SITE,
         module: MODULE_NAME, method: 'checkUserSitesAuthorization',
       });
     }
@@ -515,7 +515,7 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
-        entity: Entity.USERS_SITES,
+        entity: Entity.USER_SITE,
         module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
       });
     }

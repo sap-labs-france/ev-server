@@ -71,8 +71,8 @@ export enum Entity {
   TRANSACTION = 'Transaction',
   REPORT = 'Report',
   USER = 'User',
-  USERS_SITES = 'UsersSites',
-  SITES_USERS = 'SiteUsers',
+  USER_SITE = 'UserSite',
+  SITE_USER = 'SiteUser',
   LOGGING = 'Logging',
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',
@@ -191,8 +191,10 @@ export interface AuthorizationActions {
 export interface UserAuthorizationActions extends AuthorizationActions {
   canAssignSites?: boolean;
   canUnassignSites?: boolean;
-  canListSites?: boolean;
-  canListTokens?: boolean;
+  canListUserSites?: boolean;
+  canListTags?: boolean;
+  canListTransactions?: boolean;
+  canSynchronizeBillingUser?: boolean;
 }
 
 export interface TagAuthorizationActions extends AuthorizationActions {
@@ -226,7 +228,7 @@ export interface SiteAreaAuthorizationActions extends AuthorizationActions {
 export interface SiteAuthorizationActions extends AuthorizationActions {
   canAssignUsers?: boolean;
   canUnassignUsers?: boolean;
-  canReadUsers?: boolean;
+  canListSiteUsers?: boolean;
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
   canMaintainPricingDefinitions?: boolean;
