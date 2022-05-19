@@ -34,5 +34,6 @@ export interface HttpBillingCreateSubAccount {
 }
 
 export interface HttpBillingActivateSubAccount {
-  subAccountID: string;
+  ID: string;
+  TenantID: string;
 }
