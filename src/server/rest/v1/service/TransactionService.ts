@@ -548,7 +548,7 @@ export default class TransactionService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.TRANSACTION, MODULE_NAME, 'handleGetTransactionConsumptionForAdvenir');
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionConsumptionsGetReq(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionConsumptionsAdvenirGetReq(req.query);
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
       'handleGetConsumptionFromTransaction', req.user);
@@ -600,8 +600,8 @@ export default class TransactionService {
           };
         }
       );
-      // Value is not known on our side
-      const userID = '<put-here-the-advenir-cpo-id>';
+      // Add Advenir user Id if exists
+      const userID = filteredRequest.AdvenirUserId ?? '<put-here-the-advenir-cpo-id>';
       // Prepare ADVENIR payload
       const transactionID = `${transaction.id}`;
       const transactionData: AdvenirTransactionData = {
