@@ -42,12 +42,20 @@ export interface UserDefaultTagCar {
   errorCodes?: StartTransactionErrorCode[];
 }
 
-export interface AdvenirConsumption {
-  [evseID: string]: {
-    [transactionId: string]: [
-      [{ timestamp: string, value: number }]
-    ]
-  }
+export interface AdvenirPayload {
+  [ userID: string ]: AdvenirEvseData
+}
+
+export interface AdvenirEvseData {
+  [ evseID: string ]: AdvenirTransactionData
+}
+export interface AdvenirTransactionData {
+  [ transactionID: string ]: AdvenirConsumptionData[]
+}
+
+export interface AdvenirConsumptionData {
+  timestamp: number,
+  value: number
 }
 
 export enum StartTransactionErrorCode {

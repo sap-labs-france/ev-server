@@ -3,7 +3,7 @@ import ChargingStation, { Connector } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
-import Transaction, { AdvenirConsumption } from '../../../../types/Transaction';
+import Transaction, { AdvenirConsumptionData, AdvenirEvseData, AdvenirPayload, AdvenirTransactionData } from '../../../../types/Transaction';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -584,20 +584,37 @@ export default class TransactionService {
       // Build EvseID
       const evseID = RoamingUtils.buildEvseID(ocpiClient.getLocalCountryCode(action), ocpiClient.getLocalPartyID(action), transaction.chargeBox, transaction.connectorId);
       // Get Consumption
-      const consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(
-        req.tenant, { transactionId: transaction.id }, [
-          'startedAt', 'cumulatedConsumptionWh']);
-      const advenirValues = [];
-      for (const consumption of consumptions) {
-        advenirValues.unshift({ timestamp: consumption.startedAt.getTime().toString(), value: consumption.cumulatedConsumptionWh });
-      }
-      const advenirConsumption = {
-        [evseID]: {
-          [transaction.id.toString()]:
-            advenirValues
+      const consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(req.tenant,
+        { transactionId: transaction.id },
+        // ACHTUNG - endedAt must be part of the projection to properly sort the collection result
+        ['startedAt', 'endedAt', 'cumulatedConsumptionWh']
+      );
+      // Convert consumptions to the ADVENIR format
+      const advenirValues: AdvenirConsumptionData[] = consumptions.map(
+        (consumption) => {
+          // Unix epoch format expected
+          const timestamp = Utils.createDecimal(consumption.startedAt.getTime()).div(1000).toNumber();
+          return {
+            timestamp,
+            value: consumption.cumulatedConsumptionWh
+          };
         }
-      } as AdvenirConsumption;
-      res.json(advenirConsumption);
+      );
+      // Value is not known on our side
+      const userID = '<put-here-the-advenir-cpo-id>';
+      // Prepare ADVENIR payload
+      const transactionID = `${transaction.id}`;
+      const transactionData: AdvenirTransactionData = {
+        [transactionID]:
+          advenirValues
+      };
+      const evseData: AdvenirEvseData = {
+        [evseID]: transactionData
+      };
+      const advenirPayload: AdvenirPayload = {
+        [userID]: evseData
+      };
+      res.json(advenirPayload);
     } catch (error) {
       await Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
