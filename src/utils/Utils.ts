@@ -16,10 +16,12 @@ import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import { Decimal } from 'decimal.js';
+import LoggingHelper from './LoggingHelper';
 import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
+import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
@@ -34,6 +36,8 @@ import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
 import validator from 'validator';
+
+const MODULE_NAME = 'Utils';
 
 export default class Utils {
   public static removeCanPropertiesWithFalseValue(entityData: EntityData): void {
@@ -315,77 +319,6 @@ export default class Utils {
       }
     }
     return true;
-  }
-
-  public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
-    const connectorStats: ConnectorStats = {
-      totalChargers: 0,
-      availableChargers: 0,
-      totalConnectors: 0,
-      chargingConnectors: 0,
-      suspendedConnectors: 0,
-      availableConnectors: 0,
-      unavailableConnectors: 0,
-      preparingConnectors: 0,
-      finishingConnectors: 0,
-      faultedConnectors: 0
-    };
-    // Chargers
-    for (const chargingStation of chargingStations) {
-      // Check not deleted
-      if (chargingStation.deleted) {
-        continue;
-      }
-      // Check connectors
-      connectorStats.totalChargers++;
-      // Handle Connectors
-      if (!chargingStation.connectors) {
-        chargingStation.connectors = [];
-      }
-      for (const connector of chargingStation.connectors) {
-        if (!connector) {
-          continue;
-        }
-        connectorStats.totalConnectors++;
-        // Not Available?
-        if (chargingStation.inactive ||
-          connector.status === ChargePointStatus.UNAVAILABLE) {
-          connectorStats.unavailableConnectors++;
-          // Available?
-        } else if (connector.status === ChargePointStatus.AVAILABLE) {
-          connectorStats.availableConnectors++;
-          // Suspended?
-        } else if (connector.status === ChargePointStatus.SUSPENDED_EV ||
-          connector.status === ChargePointStatus.SUSPENDED_EVSE) {
-          connectorStats.suspendedConnectors++;
-          // Charging?
-        } else if (connector.status === ChargePointStatus.CHARGING ||
-          connector.status === ChargePointStatus.OCCUPIED) {
-          connectorStats.chargingConnectors++;
-          // Faulted?
-        } else if (connector.status === ChargePointStatus.FAULTED) {
-          connectorStats.faultedConnectors++;
-          // Preparing?
-        } else if (connector.status === ChargePointStatus.PREPARING) {
-          connectorStats.preparingConnectors++;
-          // Finishing?
-        } else if (connector.status === ChargePointStatus.FINISHING) {
-          connectorStats.finishingConnectors++;
-        }
-      }
-      // Handle Chargers
-      for (const connector of chargingStation.connectors) {
-        if (!connector) {
-          continue;
-        }
-        // Check if Available
-        if (!chargingStation.inactive && connector.status === ChargePointStatus.AVAILABLE) {
-          connectorStats.availableChargers++;
-          break;
-        }
-      }
-    }
-    return connectorStats;
   }
 
   public static getLanguageFromLocale(locale: string): string {
@@ -893,7 +826,7 @@ export default class Utils {
     return true;
   }
 
-  static isEmptyObject(obj: any): boolean {
+  public static isEmptyObject(obj: any): boolean {
     return !Object.keys(obj).length;
   }
 
@@ -1669,6 +1602,103 @@ export default class Utils {
 
   public static hash(data: string): string {
     return crypto.createHash('sha256').update(data).digest('hex');
+  }
+
+  public static buildSiteAreasTree(allSiteAreasOfSite: SiteArea[] = []): SiteArea[] {
+    if (Utils.isEmptyArray(allSiteAreasOfSite)) {
+      return [];
+    }
+    // Hash Table helper
+    const siteAreaHashTable: Record<string, SiteArea> = {};
+    for (const siteAreaOfSite of allSiteAreasOfSite) {
+      siteAreaHashTable[siteAreaOfSite.id] = { ...siteAreaOfSite, childSiteAreas: [] } as SiteArea;
+    }
+    const rootSiteAreasOfSite: SiteArea[] = [];
+    // Build tree
+    for (const siteAreaOfSite of allSiteAreasOfSite) {
+      // Site Area has parent and exists in the Map
+      if (!Utils.isNullOrUndefined(siteAreaOfSite.parentSiteAreaID)) {
+        if (Utils.isNullOrUndefined(siteAreaHashTable[siteAreaOfSite.parentSiteAreaID])) {
+          throw new BackendError({
+            ...LoggingHelper.getSiteAreaProperties(allSiteAreasOfSite[0]),
+            method: 'buildSiteAreasTree',
+            message: `Cannot find parent Site Area of '${siteAreaOfSite.name}' while building Site Area tree`,
+            detailedMessages: { orphanSiteArea: siteAreaOfSite, siteAreaHashTable },
+          });
+        }
+        // Push sub site area to parent children array
+        siteAreaHashTable[siteAreaOfSite.parentSiteAreaID].childSiteAreas.push(siteAreaHashTable[siteAreaOfSite.id]);
+      // Root Site Area
+      } else {
+        // If no parent ID is defined push root site area to array
+        rootSiteAreasOfSite.push(siteAreaHashTable[siteAreaOfSite.id]);
+      }
+    }
+    // Check circular deps
+    let numberOfSiteAreas = 0;
+    for (const rootSiteAreaOfSite of rootSiteAreasOfSite) {
+      // Root
+      numberOfSiteAreas++;
+      // Children
+      numberOfSiteAreas += Utils.numberOfChildrenOfSiteAreaTree(rootSiteAreaOfSite);
+    }
+    // Not all Site Areas in Root
+    if (numberOfSiteAreas !== allSiteAreasOfSite.length) {
+      throw new BackendError({
+        ...LoggingHelper.getSiteAreaProperties(allSiteAreasOfSite[0]),
+        method: 'buildSiteAreasTree',
+        message: 'Circular dependency found in Site Area tree',
+        detailedMessages: { siteAreaHashTable },
+      });
+    }
+    return rootSiteAreasOfSite;
+  }
+
+  public static numberOfChildrenOfSiteAreaTree(siteArea: SiteArea): number {
+    let numberOfChildren = 0;
+    if (!Utils.isEmptyArray(siteArea.childSiteAreas)) {
+      for (const childSiteArea of siteArea.childSiteAreas) {
+        numberOfChildren++;
+        numberOfChildren += Utils.numberOfChildrenOfSiteAreaTree(childSiteArea);
+      }
+    }
+    return numberOfChildren;
+  }
+
+  public static getSiteAreaFromSiteAreasTree(siteAreaID: string, siteAreas: SiteArea[]): SiteArea {
+    if (!Utils.isEmptyArray(siteAreas)) {
+      for (const siteArea of siteAreas) {
+        if (siteArea.id === siteAreaID) {
+          return siteArea;
+        }
+        const foundSiteArea = Utils.getSiteAreaFromSiteAreasTree(siteAreaID, siteArea.childSiteAreas);
+        if (foundSiteArea) {
+          return foundSiteArea;
+        }
+      }
+    }
+  }
+
+  public static getRootSiteAreaFromSiteAreasTree(siteAreaID: string, siteAreas: SiteArea[]): SiteArea {
+    if (!Utils.isEmptyArray(siteAreas)) {
+      for (const siteArea of siteAreas) {
+        if (siteArea.id === siteAreaID) {
+          return siteArea;
+        }
+        const foundSiteArea = Utils.getSiteAreaFromSiteAreasTree(siteAreaID, siteArea.childSiteAreas);
+        if (foundSiteArea) {
+          return siteArea;
+        }
+      }
+    }
+  }
+
+  public static getSiteAreaIDsFromSiteAreasTree(siteArea: SiteArea): string[] {
+    const siteAreaIDs = [siteArea.id];
+    for (const childSiteArea of siteArea.childSiteAreas) {
+      siteAreaIDs.push(...Utils.getSiteAreaIDsFromSiteAreasTree(childSiteArea));
+    }
+    return siteAreaIDs;
   }
 
   public static transactionDurationToString(transaction: Transaction): string {

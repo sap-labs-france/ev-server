@@ -111,7 +111,6 @@ export default abstract class OCPIClient {
       const endpointVersions = await this.getEndpointVersions();
       // Set available endpoints
       this.ocpiEndpoint.availableEndpoints = OCPIUtils.convertAvailableEndpoints(endpointVersions);
-      this.ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(this.tenant.subdomain);
       // Post credentials and receive response
       const credentials = await this.postCredentials();
       // Store information
