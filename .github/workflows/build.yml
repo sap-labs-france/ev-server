@@ -10,6 +10,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.head_ref || github.ref_name }}
+      cancel-in-progress: true
     strategy:
       matrix:
         node-version: [16.x]
@@ -26,6 +29,9 @@ jobs:
 
   build-submodules:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.head_ref || github.ref_name }}
+      cancel-in-progress: true
     strategy:
       matrix:
         node-version: [16.x]
@@ -45,6 +51,9 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.head_ref || github.ref_name }}
+      cancel-in-progress: true
     steps:
     - uses: actions/checkout@v2
     - name: Set up Docker Buildx
