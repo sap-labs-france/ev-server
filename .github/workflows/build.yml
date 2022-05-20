@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - master-qa
+
 jobs:
   build:
     runs-on: ubuntu-latest
