@@ -1,7 +1,7 @@
 import { ChargePointStatus, OCPPPhase } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, Profile } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, Connector, CurrentType, StaticLimitAmps, Voltage } from '../../../types/ChargingStation';
-import { ConnectorAmps, OptimizerCar, OptimizerCarConnectorAssignment, OptimizerChargingProfilesRequest, OptimizerChargingStationConnectorFuse, OptimizerChargingStationFuse, OptimizerFuse, OptimizerResult } from '../../../types/Optimizer';
+import { ConnectorAmps, ExcludedAmperage, OptimizerCar, OptimizerCarConnectorAssignment, OptimizerChargingProfilesRequest, OptimizerChargingStationConnectorFuse, OptimizerChargingStationFuse, OptimizerFuse, OptimizerFuseTree, OptimizerFuseTreeNode, OptimizerResult } from '../../../types/Optimizer';
 import { ServerAction, ServerProtocol } from '../../../types/Server';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 
@@ -10,8 +10,6 @@ import { AssetType } from '../../../types/Asset';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
-import { Car } from '../../../types/Car';
-import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
@@ -19,8 +17,8 @@ import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
 import { SapSmartChargingSetting } from '../../../types/Setting';
 import SiteArea from '../../../types/SiteArea';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingIntegration from '../SmartChargingIntegration';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import Utils from '../../../utils/Utils';
@@ -64,31 +62,56 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     }
   }
 
-  public async buildChargingProfiles(siteArea: SiteArea, excludedChargingStations?: string[]): Promise<ChargingProfile[]> {
-    // Get the Charging Stations of the site area with status charging and preparing
-    const chargingStations = await ChargingStationStorage.getChargingStations(this.tenant,
-      { siteAreaIDs: [siteArea.id], withSiteArea: true, connectorStatuses: [ChargePointStatus.CHARGING, ChargePointStatus.SUSPENDED_EVSE] },
-      Constants.DB_PARAMS_MAX_LIMIT);
-    siteArea.chargingStations = chargingStations.result;
-    // TODO: Store the Site Area ID in the DB profiles and use siteAreaIDs param in this DB request.
-    // Get all the charging station IDs from the site area
+  public async buildChargingProfiles(sourceSiteArea: SiteArea, excludedChargingStations?: string[]): Promise<ChargingProfile[]> {
     const chargingStationIDs = [];
-    for (const chargingStation of siteArea.chargingStations) {
-      chargingStationIDs.push(chargingStation.id);
+    const transactionIDs = [];
+    // Get Site Areas of Site
+    const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant,
+      { siteIDs: [sourceSiteArea.siteID], withAssets: true }, Constants.DB_PARAMS_MAX_LIMIT);
+    // Get Charging Stations of Site
+    if (!Utils.isEmptyArray(siteAreas.result)) {
+      const chargingStations = await ChargingStationStorage.getChargingStations(this.tenant,
+        { siteIDs: [sourceSiteArea.siteID], connectorStatuses: [ChargePointStatus.CHARGING, ChargePointStatus.SUSPENDED_EVSE] },
+        Constants.DB_PARAMS_MAX_LIMIT);
+      // Assign Charging Stations to Site Areas
+      if (!Utils.isEmptyArray(chargingStations.result)) {
+        // TODO: Store the Site Area ID in the DB profiles and use siteAreaIDs param in this DB request.
+        // Get all the charging station IDs and transaction IDs from site areas to retrieve current profiles and transactions
+        for (const chargingStation of chargingStations.result) {
+          chargingStationIDs.push(chargingStation.id);
+          for (const connector of chargingStation.connectors) {
+            if (connector.currentTransactionID) {
+              transactionIDs.push(connector.currentTransactionID);
+            }
+          }
+        }
+        // Attach Charging Station to Site Area
+        for (const siteArea of siteAreas.result) {
+          siteArea.chargingStations = chargingStations.result.filter(
+            (chargingStation) => chargingStation.siteAreaID === siteArea.id);
+        }
+      }
     }
-    // Get all Profiles from the site area
+    // Build site area trees
+    const siteAreaTrees = Utils.buildSiteAreasTree(siteAreas.result);
+    // Find tree which contains the source site area of smart charging
+    const rootSiteArea = Utils.getRootSiteAreaFromSiteAreasTree(sourceSiteArea.id, siteAreaTrees);
+    // Get all Profiles from the site areas
     const currentChargingProfilesResponse = await ChargingStationStorage.getChargingProfiles(
       this.tenant, { chargingStationIDs: chargingStationIDs, profilePurposeType:  ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
     const currentChargingProfiles = currentChargingProfilesResponse.result;
-    const request = await this.buildOptimizerRequest(siteArea, currentChargingProfiles, excludedChargingStations);
+    // Get all transactions of the site areas
+    const transactions = await TransactionStorage.getTransactions(this.tenant, { transactionIDs: transactionIDs, withCar: true }, Constants.DB_PARAMS_MAX_LIMIT);
+    // Build request
+    const request = await this.buildOptimizerRequest(rootSiteArea, excludedChargingStations, false, currentChargingProfiles, transactions.result);
     // Call optimizer
-    const url = await this.buildOptimizerUrl(siteArea);
+    const url = await this.buildOptimizerUrl(sourceSiteArea);
     // Check at least one car
     if (request.state.cars.length === 0) {
       await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.SMART_CHARGING,
-        message: `${siteArea.name} > No car connected so no need to call the SAP Smart Charging service`,
+        message: `${sourceSiteArea.name} > No car connected so no need to call the SAP Smart Charging service`,
         module: MODULE_NAME, method: 'buildChargingProfiles',
         detailedMessages: { request }
       });
@@ -97,7 +120,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     await Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.SMART_CHARGING,
-      message: `${siteArea.name} > Call the SAP Smart Charging service...`,
+      message: `${sourceSiteArea.name} > Call the SAP Smart Charging service...`,
       module: MODULE_NAME, method: 'buildChargingProfiles',
       detailedMessages: { url, request }
     });
@@ -110,21 +133,21 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     await Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.SMART_CHARGING,
-      message: `${siteArea.name} > SAP Smart Charging service has been called successfully`,
+      message: `${sourceSiteArea.name} > SAP Smart Charging service has been called successfully`,
       module: MODULE_NAME, method: 'buildChargingProfiles',
       detailedMessages: { response: response.data }
     });
     // Build charging profiles from result
     const chargingProfiles = await this.buildChargingProfilesFromOptimizerResponse(
-      siteArea, response.data);
+      sourceSiteArea, siteAreas.result, response.data);
     await Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.SMART_CHARGING,
-      message: `${siteArea.name} > Charging Profiles have been built successfully`,
+      message: `${sourceSiteArea.name} > Charging Profiles have been built successfully`,
       module: MODULE_NAME, method: 'buildChargingProfiles',
       detailedMessages: { chargingProfiles }
     });
-    await this.checkIfChargingProfileAlreadyApplied(chargingProfiles, currentChargingProfiles, siteArea);
+    await this.checkIfChargingProfileAlreadyApplied(chargingProfiles, currentChargingProfiles, sourceSiteArea);
     return chargingProfiles;
   }
 
@@ -148,19 +171,95 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     return requestUrl;
   }
 
-  private async buildOptimizerRequest(siteArea: SiteArea, currentChargingProfiles: ChargingProfile[] = [], excludedChargingStations: string[] = [], retry = false):
-  Promise<OptimizerChargingProfilesRequest> {
+  private async buildOptimizerRequest(siteArea: SiteArea, excludedChargingStations: string[] = [], retry = false,
+      currentChargingProfiles: ChargingProfile[] = [], transactions: Transaction[] = []): Promise<OptimizerChargingProfilesRequest> {
     // Instantiate initial arrays for request
     const cars: OptimizerCar[] = [];
     const carConnectorAssignments: OptimizerCarConnectorAssignment[] = [];
+    const fuseTree = { rootFuse: {} } as OptimizerFuseTree;
     // Store original site area in case of failure
     const originalSiteArea = siteArea;
-    let chargingStationsInError = false;
+    const chargingStationsInError = { value: false };
     // Create indices to generate IDs in number format
-    let fuseID = 0;
+    const fuseID = { value: 0 };
+    await this.buildFuseNodes(siteArea, fuseTree.rootFuse, fuseID, carConnectorAssignments, cars,
+      excludedChargingStations, chargingStationsInError, currentChargingProfiles, transactions);
+    if (chargingStationsInError.value && retry === false) {
+      const request = await this.buildOptimizerRequest(originalSiteArea, excludedChargingStations, true, currentChargingProfiles, transactions);
+      return request;
+    }
+    // Build request
+    const request: OptimizerChargingProfilesRequest = {
+      event: {
+        eventType: 'Reoptimize',
+      },
+      state: {
+        fuseTree: fuseTree,
+        cars: cars,
+        carAssignments: carConnectorAssignments,
+        // Calculate seconds from last quarte hour
+        currentTimeSeconds: Utils.createDecimal(moment().diff(moment().startOf('hour'), 'seconds')).div(900).modulo(1).mul(900).toNumber(),
+      },
+    };
+    return request;
+  }
+
+  private async buildFuseNodes(siteArea: SiteArea, fuseTreeNode: OptimizerFuse | OptimizerFuseTreeNode[],
+      fuseID: { value: number }, carConnectorAssignments: OptimizerCarConnectorAssignment[],
+      cars: OptimizerCar[], excludedChargingStations: string[], chargingStationsInError: { value: boolean },
+      currentChargingProfiles: ChargingProfile[], transactions: Transaction[]): Promise<ExcludedAmperage> {
     this.checkIfSiteAreaIsValid(siteArea);
     // Adjust site limitation
-    const rootFuse = await this.buildRootFuse(siteArea, fuseID, excludedChargingStations);
+    const excludedAmperage: ExcludedAmperage = {
+      phase1: 0,
+      phase2: 0,
+      phase3: 0
+    };
+    const rootFuse = await this.buildRootFuse(siteArea, fuseID, excludedChargingStations, excludedAmperage);
+    await this.buildFuseChargingStationNodes(siteArea, rootFuse, fuseID, carConnectorAssignments, cars,
+      excludedChargingStations, chargingStationsInError, currentChargingProfiles, transactions);
+    // Check if current iteration contains root fuse or children of request fuse tree
+    if (Array.isArray(fuseTreeNode)) {
+      // Push child tree of current site area to children
+      fuseTreeNode.push(rootFuse);
+    } else {
+      // Set initial site area to fuse tree as reference
+      fuseTreeNode['@type'] = 'Fuse';
+      fuseTreeNode.id = rootFuse.id;
+      fuseTreeNode.fusePhase1 = rootFuse.fusePhase1;
+      fuseTreeNode.fusePhase2 = rootFuse.fusePhase2;
+      fuseTreeNode.fusePhase3 = rootFuse.fusePhase3;
+      fuseTreeNode.phase1Connected = rootFuse.phase1Connected;
+      fuseTreeNode.phase2Connected = rootFuse.phase2Connected;
+      fuseTreeNode.phase3Connected = rootFuse.phase3Connected;
+      fuseTreeNode.children = rootFuse.children;
+    }
+    // Check if current site area has children
+    if (!Utils.isEmptyArray(siteArea.childSiteAreas)) {
+      // Build fuse node for each child
+      for (const siteAreaChild of siteArea.childSiteAreas) {
+        // Use Fuse tree child elements  to build sub site areas
+        const excludedAmperageOnSubSiteAreas = await this.buildFuseNodes(siteAreaChild,
+          (!Array.isArray(fuseTreeNode) ? fuseTreeNode.children : fuseTreeNode[fuseTreeNode.length - 1].children),
+          fuseID, carConnectorAssignments, cars, excludedChargingStations, chargingStationsInError, currentChargingProfiles, transactions);
+        // Adjust fuse tree with excluded power from sub site areas
+        if (!Array.isArray(fuseTreeNode)) {
+          this.deductAmperageFromFuse(fuseTreeNode, excludedAmperageOnSubSiteAreas);
+        } else {
+          this.deductAmperageFromFuse(rootFuse, excludedAmperageOnSubSiteAreas);
+        }
+        excludedAmperage.phase1 += excludedAmperageOnSubSiteAreas.phase1;
+        excludedAmperage.phase2 += excludedAmperageOnSubSiteAreas.phase2;
+        excludedAmperage.phase3 += excludedAmperageOnSubSiteAreas.phase3;
+      }
+    }
+    return excludedAmperage;
+  }
+
+  private async buildFuseChargingStationNodes(siteArea: SiteArea, rootFuse: OptimizerFuse,
+      fuseID: { value: number }, carConnectorAssignments: OptimizerCarConnectorAssignment[],
+      cars: OptimizerCar[], excludedChargingStations: string[], chargingStationsInError: { value: boolean },
+      currentChargingProfiles: ChargingProfile[], transactions: Transaction[]) {
     // Loop through charging stations to get each connector
     for (const chargingStation of siteArea.chargingStations) {
       // Create helper to build fuse tree
@@ -171,9 +270,9 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       // Loop through connectors to generate Cars, charging stations and car assignments for request
       for (const connector of chargingStation.connectors) {
         // Get the transaction
-        const transaction = await this.getTransactionFromChargingConnector(siteArea, chargingStation, connector);
+        const transaction = await this.getTransactionFromChargingConnector(siteArea, chargingStation, connector, transactions);
         if (Utils.isNullOrUndefined(transaction)) {
-          chargingStationsInError = true;
+          chargingStationsInError.value = true;
           excludedChargingStations.push(chargingStation.id);
           continue;
         }
@@ -190,48 +289,44 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         // Build car
         let car = {} as OptimizerCar;
         // If Car ID is provided - build custom car
-        car = await this.buildCar(fuseID, chargingStation, transaction, currentChargingProfiles);
+        car = this.buildCar(fuseID, chargingStation, transaction, currentChargingProfiles);
         cars.push(car);
         // Assign car to the connector
         carConnectorAssignments.push({
-          carID: fuseID,
-          chargingStationID: fuseID // It's a connector but for the optimizer this is a Charging Station
+          carID: fuseID.value,
+          chargingStationID: fuseID.value // It's a connector but for the optimizer this is a Charging Station
         });
-        fuseID++;
+        fuseID.value++;
       } // End for of connectors
       // Build Charging Station fuse
       const chargingStationFuse = this.buildChargingStationFuse(
         fuseID, sumConnectorAmperagePhase1, sumConnectorAmperagePhase2, sumConnectorAmperagePhase3,
         chargingStationConnectorsFuse);
-      fuseID++;
+      fuseID.value++;
       // Push to fuse tree, if children are not empty
       if (chargingStationFuse.children.length > 0) {
         rootFuse.children.push(chargingStationFuse);
       }
     } // End for of charging stations
-    if (chargingStationsInError && retry === false) {
-      const request = await this.buildOptimizerRequest(originalSiteArea, currentChargingProfiles, excludedChargingStations, true);
-      return request;
-    }
-    // Build request
-    const request: OptimizerChargingProfilesRequest = {
-      event: {
-        eventType: 'Reoptimize',
-      },
-      state: {
-        fuseTree: {
-          rootFuse: rootFuse,
-        },
-        cars: cars,
-        carAssignments: carConnectorAssignments,
-        // Calculate seconds from last quarte hour
-        currentTimeSeconds: Utils.createDecimal(moment().diff(moment().startOf('hour'), 'seconds')).div(900).modulo(1).mul(900).toNumber(),
-      },
-    };
-    return request;
   }
 
-  private async getTransactionFromChargingConnector(siteArea: SiteArea, chargingStation: ChargingStation, connector: Connector):Promise<Transaction> {
+  private deductAmperageFromFuse(fuse: OptimizerFuse, excludedAmperage: ExcludedAmperage) {
+    fuse.fusePhase1 -= excludedAmperage.phase1;
+    fuse.fusePhase2 -= excludedAmperage.phase2;
+    fuse.fusePhase3 -= excludedAmperage.phase3;
+    // Ensure always positive
+    if (fuse.fusePhase1 < 0) {
+      fuse.fusePhase1 = 0;
+    }
+    if (fuse.fusePhase2 < 0) {
+      fuse.fusePhase2 = 0;
+    }
+    if (fuse.fusePhase3 < 0) {
+      fuse.fusePhase3 = 0;
+    }
+  }
+
+  private async getTransactionFromChargingConnector(siteArea: SiteArea, chargingStation: ChargingStation, connector: Connector, transactions: Transaction[]):Promise<Transaction> {
     // Transaction in progress?
     if (!connector.currentTransactionID) {
       // Should not happen
@@ -246,8 +341,8 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       return null;
     }
     // Get the transaction
-    const transaction = await TransactionStorage.getTransaction(this.tenant, connector.currentTransactionID);
-    if (!transaction) {
+    const currentTransaction = transactions.find((transaction) => transaction.id === connector.currentTransactionID);
+    if (!currentTransaction) {
       // Should not happen
       await Logging.logError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -259,12 +354,13 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       });
       return null;
     }
-    return transaction;
+    return currentTransaction;
   }
 
-  private async buildRootFuse(siteArea: SiteArea, fuseID: number, excludedChargingStations?: string[]): Promise<OptimizerFuse> {
+  private async buildRootFuse(siteArea: SiteArea, fuseID: { value: number }, excludedChargingStations?: string[],
+      excludedAmperage?: ExcludedAmperage): Promise<OptimizerFuse> {
     // Get Asset consumption
-    const assetConsumptionInWatts = await this.getAssetConsumptionInWatts(siteArea.id);
+    const assetConsumptionInWatts = await this.getAssetConsumptionInWatts(siteArea);
     if (siteArea.maximumPower !== siteArea.maximumPower - assetConsumptionInWatts) {
       await Logging.logDebug({
         tenantID: this.tenant.id,
@@ -273,13 +369,19 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         module: MODULE_NAME, method: 'buildRootFuse',
         detailedMessages: { siteArea }
       });
+      if (assetConsumptionInWatts > 0) {
+        const excludedAmperagePerPhase = Utils.createDecimal(assetConsumptionInWatts).div(siteArea.voltage).div(siteArea.numberOfPhases).toNumber();
+        excludedAmperage.phase1 += excludedAmperagePerPhase;
+        excludedAmperage.phase2 += excludedAmperagePerPhase;
+        excludedAmperage.phase3 += excludedAmperagePerPhase;
+      }
     }
     // Calculate Site Amps excluding asset consumption
     const siteMaxAmps = Utils.createDecimal(siteArea.maximumPower).minus(assetConsumptionInWatts).div(siteArea.voltage).toNumber();
     const siteMaxAmpsPerPhase = Utils.createDecimal(siteMaxAmps).div(siteArea.numberOfPhases).toNumber();
     const rootFuse: OptimizerFuse = {
       '@type': 'Fuse',
-      id: fuseID++,
+      id: fuseID.value++,
       fusePhase1: siteMaxAmpsPerPhase,
       fusePhase2: siteArea.numberOfPhases > 1 ? siteMaxAmpsPerPhase : 0,
       fusePhase3: siteArea.numberOfPhases > 1 ? siteMaxAmpsPerPhase : 0,
@@ -305,22 +407,27 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
           // Handle single phased site area
           if (siteArea.numberOfPhases === 1) {
             rootFuse.fusePhase1 -= connectorAmperage;
+            excludedAmperage.phase1 += connectorAmperage;
             // Handle single phased stations on three phased site areas
           } else if (Utils.getNumberOfConnectedPhases(chargingStation) === 1) {
             if (connector.phaseAssignmentToGrid?.csPhaseL1) {
               switch (connector.phaseAssignmentToGrid.csPhaseL1) {
                 case OCPPPhase.L1:
                   rootFuse.fusePhase1 -= connectorAmperage;
+                  excludedAmperage.phase1 += connectorAmperage;
                   break;
                 case OCPPPhase.L2:
                   rootFuse.fusePhase2 -= connectorAmperage;
+                  excludedAmperage.phase2 += connectorAmperage;
                   break;
                 case OCPPPhase.L3:
                   rootFuse.fusePhase3 -= connectorAmperage;
+                  excludedAmperage.phase3 += connectorAmperage;
                   break;
               }
             } else {
               rootFuse.fusePhase1 -= connectorAmperage;
+              excludedAmperage.phase1 += connectorAmperage;
             }
           } else {
             // Handle three phased AC/DC stations on three phased site areas
@@ -335,8 +442,11 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
               }
             }
             rootFuse.fusePhase1 -= connectorAmperagePerPhase;
+            excludedAmperage.phase1 += connectorAmperagePerPhase;
             rootFuse.fusePhase2 -= connectorAmperagePerPhase;
+            excludedAmperage.phase2 += connectorAmperagePerPhase;
             rootFuse.fusePhase3 -= connectorAmperagePerPhase;
+            excludedAmperage.phase3 += connectorAmperagePerPhase;
           }
           // Remove the connector
           chargingStation.connectors.splice(j, 1);
@@ -403,30 +513,29 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     return car;
   }
 
-  private async buildCar(fuseID: number, chargingStation: ChargingStation, transaction: Transaction, currentChargingProfiles: ChargingProfile[]): Promise<OptimizerCar> {
+  private buildCar(fuseID: { value: number }, chargingStation: ChargingStation, transaction: Transaction, currentChargingProfiles: ChargingProfile[]): OptimizerCar {
     const voltage = Utils.getChargingStationVoltage(chargingStation);
-    const customCar = this.buildSafeCar(fuseID, chargingStation, transaction);
+    const customCar = this.buildSafeCar(fuseID.value, chargingStation, transaction);
     // Handle provided Car
-    if (transaction.carID) {
-      const transactionCar: Car = await CarStorage.getCar(this.tenant, transaction.carID);
+    if (!Utils.isNullOrUndefined(transaction.car)) {
       // Setting limit from car only for 3 phased stations (AmpPerPhase-capability variates on single phased charging)
       if (Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC &&
         Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId) === 3) {
-        if (transactionCar?.converter?.amperagePerPhase > 0) {
-          customCar.maxCurrentPerPhase = transactionCar.converter.amperagePerPhase; // Charge capability in Amps per phase
-          customCar.maxCurrent = transactionCar.converter.amperagePerPhase * 3; // Charge capability in Amps
+        if (transaction.car?.converter?.amperagePerPhase > 0) {
+          customCar.maxCurrentPerPhase = transaction.car.converter.amperagePerPhase; // Charge capability in Amps per phase
+          customCar.maxCurrent = transaction.car.converter.amperagePerPhase * 3; // Charge capability in Amps
         }
       } else if (Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.DC) {
-        if (transactionCar?.carCatalog?.fastChargePowerMax > 0) {
+        if (transaction?.carCatalog?.fastChargePowerMax > 0) {
           const maxDCCurrent = Utils.convertWattToAmp(
-            chargingStation, null, transaction.connectorId, transactionCar.carCatalog.fastChargePowerMax * 1000); // Charge capability in Amps
+            chargingStation, null, transaction.connectorId, transaction.carCatalog.fastChargePowerMax * 1000); // Charge capability in Amps
           customCar.maxCurrentPerPhase = Utils.roundTo((maxDCCurrent / 3), 3); // Charge capability in Amps per phase
           customCar.maxCurrent = customCar.maxCurrentPerPhase * 3;
         }
       }
-      if (transactionCar?.carCatalog?.batteryCapacityFull > 0) {
-        customCar.maxCapacity = transactionCar.carCatalog.batteryCapacityFull * 1000 / voltage; // Battery capacity in Amp.h
-        customCar.minLoadingState = (transactionCar.carCatalog.batteryCapacityFull * 1000 / voltage) * 0.5; // Battery level at the end of the charge in Amp.h set at 50%
+      if (transaction?.carCatalog?.batteryCapacityFull > 0) {
+        customCar.maxCapacity = transaction.carCatalog.batteryCapacityFull * 1000 / voltage; // Battery capacity in Amp.h
+        customCar.minLoadingState = (transaction.carCatalog.batteryCapacityFull * 1000 / voltage) * 0.5; // Battery level at the end of the charge in Amp.h set at 50%
       }
     }
     // Override
@@ -436,11 +545,11 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
       if (chargePoint?.efficiency > 0) {
-        customCar.maxCurrentPerPhase /= chargePoint.efficiency / 100;
+        customCar.maxCurrentPerPhase = Utils.createDecimal(customCar.maxCurrentPerPhase).div(chargePoint.efficiency).mul(100).toNumber();
         customCar.maxCurrent = customCar.maxCurrentPerPhase * 3;
       } else {
         // Use safe value if efficiency is not provided
-        customCar.maxCurrentPerPhase /= Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT / 100;
+        customCar.maxCurrentPerPhase = Utils.createDecimal(customCar.maxCurrentPerPhase).div(Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT).mul(100).toNumber();
         customCar.maxCurrent = customCar.maxCurrentPerPhase * 3;
       }
     }
@@ -561,7 +670,8 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     return connectorAmps;
   }
 
-  private buildChargingStationConnectorFuse(siteArea: SiteArea, fuseID: number, chargingStation: ChargingStation, connector: Connector): OptimizerChargingStationConnectorFuse {
+  private buildChargingStationConnectorFuse(siteArea: SiteArea, fuseID: { value: number }, chargingStation: ChargingStation, connector: Connector):
+  OptimizerChargingStationConnectorFuse {
     // Get connector's power
     const connectorAmps = this.getConnectorNbrOfPhasesAndAmps(siteArea, chargingStation, connector);
     let connectorAmpsPerPhase = connectorAmps.totalAmps / connectorAmps.numberOfConnectedPhase;
@@ -569,16 +679,16 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     if (Utils.getChargingStationCurrentType(chargingStation, null, connector.connectorId) === CurrentType.DC) {
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
       if (chargePoint?.efficiency > 0) {
-        connectorAmpsPerPhase /= chargePoint.efficiency / 100;
+        connectorAmpsPerPhase = Utils.createDecimal(connectorAmpsPerPhase).div(chargePoint.efficiency).mul(100).toNumber();
       } else {
         // Use safe value if efficiency is not provided
-        connectorAmpsPerPhase /= Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT;
+        connectorAmpsPerPhase = Utils.createDecimal(connectorAmpsPerPhase).div(Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT).mul(100).toNumber();
       }
     }
     // Build charging station from connector
     const chargingStationConnectorFuse: OptimizerChargingStationConnectorFuse = {
       '@type': 'ChargingStation', // It's connector but for the optimizer this is a Charging Station
-      id: fuseID,
+      id: fuseID.value,
       fusePhase1: connectorAmpsPerPhase,
       fusePhase2: connectorAmps.numberOfConnectedPhase > 1 ? connectorAmpsPerPhase : 0,
       fusePhase3: connectorAmps.numberOfConnectedPhase > 1 ? connectorAmpsPerPhase : 0,
@@ -589,7 +699,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     return chargingStationConnectorFuse;
   }
 
-  private buildChargingStationFuse(fuseID: number,
+  private buildChargingStationFuse(fuseID: { value: number },
       sumConnectorAmperagePhase1: number, sumConnectorAmperagePhase2: number, sumConnectorAmperagePhase3: number,
       chargingStationConnectorsFuse: OptimizerChargingStationConnectorFuse[]): OptimizerChargingStationFuse {
     // Each charging station can have multiple connectors (= charge points)
@@ -597,7 +707,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     // A charging station's connectors are modelled as its 'children'
     const chargingStationFuse: OptimizerChargingStationFuse = {
       '@type': 'Fuse',
-      id: fuseID,
+      id: fuseID.value,
       fusePhase1: sumConnectorAmperagePhase1,
       fusePhase2: sumConnectorAmperagePhase2,
       fusePhase3: sumConnectorAmperagePhase3,
@@ -609,7 +719,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     return chargingStationFuse;
   }
 
-  private async buildChargingProfilesFromOptimizerResponse(siteArea: SiteArea, optimizerResult: OptimizerResult): Promise<ChargingProfile[]> {
+  private async buildChargingProfilesFromOptimizerResponse(sourceSiteArea: SiteArea, siteAreas: SiteArea[], optimizerResult: OptimizerResult): Promise<ChargingProfile[]> {
     const chargingProfiles: ChargingProfile[] = [];
     // Get the last full 15 minutes to set begin of charging profile
     const startSchedule = new Date();
@@ -625,24 +735,30 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       const chargingStationID = chargingStationDetails[0];
       const connectorID = Utils.convertToInt(chargingStationDetails[1]);
       // Get the charging station
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.tenant, chargingStationID);
-      if (!chargingStation) {
+      let currentChargingStation: ChargingStation;
+      for (const siteArea of siteAreas) {
+        const index = siteArea.chargingStations.findIndex((chargingStation) => chargingStation.id === chargingStationID);
+        if (index > -1) {
+          currentChargingStation = siteArea.chargingStations[index];
+        }
+      }
+      if (!currentChargingStation) {
         throw new BackendError({
           chargingStationID: chargingStationID,
-          companyID: siteArea.site?.companyID,
-          siteID: siteArea.siteID,
-          siteAreaID: siteArea.id,
+          companyID: sourceSiteArea.site?.companyID,
+          siteID: sourceSiteArea.siteID,
+          siteAreaID: sourceSiteArea.id,
           action: ServerAction.SMART_CHARGING,
           module: MODULE_NAME, method: 'buildChargingProfilesFromOptimizerResponse',
-          message: `${siteArea.name} > Charging Station not found`
+          message: `${sourceSiteArea.name} > Charging Station not found`
         });
       }
-      const connector = Utils.getConnectorFromID(chargingStation, connectorID);
+      const connector = Utils.getConnectorFromID(currentChargingStation, connectorID);
       let numberOfConnectedPhase = 0;
       let chargePoint: ChargePoint;
       if (connector.chargePointID) {
-        chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
-        numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
+        chargePoint = Utils.getChargePointFromID(currentChargingStation, connector.chargePointID);
+        numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(currentChargingStation, chargePoint, connector.connectorId);
       } else {
         numberOfConnectedPhase = connector.numberOfConnectedPhase;
       }
@@ -657,7 +773,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       i < car.currentPlan.length && (car.currentPlan[i] > 0 || chargingSchedule.chargingSchedulePeriod.length < 3); i++) {
         chargingSchedule.chargingSchedulePeriod.push({
           startPeriod: currentTimeSlotMins * 15 * 60, // Start period in secs (starts at 0 sec from startSchedule date/time)
-          limit: this.calculateCarConsumption(chargingStation, connector, numberOfConnectedPhase, car.currentPlan[i])
+          limit: this.calculateCarConsumption(currentChargingStation, connector, numberOfConnectedPhase, car.currentPlan[i])
         });
         currentTimeSlotMins++;
       }
@@ -675,7 +791,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       // Build charging profile with charging station id and connector id
       const chargingProfile: ChargingProfile = {
         chargingStationID: chargingStationID,
-        chargingStation: chargingStation,
+        chargingStation: currentChargingStation,
         connectorID: connectorID,
         chargePointID: chargePoint.chargePointID,
         profile: profile
@@ -691,11 +807,11 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     if (Utils.getChargingStationCurrentType(chargingStation, null, connector.connectorId) === CurrentType.DC) {
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
       if (chargePoint?.efficiency > 0) {
-        return Utils.roundTo(currentLimit * chargePoint.efficiency / 100 * numberOfConnectedPhase, 3);
+        return Utils.roundTo(currentLimit * chargePoint.efficiency / 100 * numberOfConnectedPhase, 1);
       }
-      return Utils.roundTo(currentLimit * Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT * numberOfConnectedPhase, 3);
+      return Utils.roundTo(currentLimit * Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT * numberOfConnectedPhase, 1);
     }
-    return Utils.roundTo((currentLimit * numberOfConnectedPhase), 3);
+    return Utils.roundTo((currentLimit * numberOfConnectedPhase), 1);
   }
 
   private checkIfCarIsIncreasingConsumption(chargingStation: ChargingStation, currentChargingProfiles: ChargingProfile[], transaction: Transaction, currentType: CurrentType,
@@ -756,19 +872,11 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     return -1;
   }
 
-  private async getAssetConsumptionInWatts(siteAreaId: string): Promise<number> {
-    const tenant = await TenantStorage.getTenant(this.tenant.id);
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
+  private async getAssetConsumptionInWatts(siteArea: SiteArea): Promise<number> {
+    if (Utils.isTenantComponentActive(this.tenant, TenantComponents.ASSET) && !Utils.isEmptyArray(siteArea.assets)) {
       // Create cumulated consumption helper
       let cumulatedConsumptionWatt = 0;
-      // Get assets
-      const assets = await AssetStorage.getAssets(tenant,
-        {
-          siteAreaIDs: [siteAreaId],
-        },
-        Constants.DB_PARAMS_MAX_LIMIT
-      );
-      for (const asset of assets.result) {
+      for (const asset of siteArea.assets) {
         if (!asset.excludeFromSmartCharging) {
           // Handle dynamic assets
           if (asset.dynamicAsset) {
@@ -790,7 +898,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
             cumulatedConsumptionWatt += consumptionSaveValue;
             if (asset.powerWattsLastSmartChargingRun !== asset.currentInstantWatts) {
               asset.powerWattsLastSmartChargingRun = asset.currentInstantWatts;
-              await AssetStorage.saveAsset(tenant, asset);
+              await AssetStorage.saveAsset(this.tenant, asset);
             }
           } else if (asset.assetType === AssetType.CONSUMPTION || asset.assetType === AssetType.CONSUMPTION_AND_PRODUCTION) {
             // If not dynamic add static consumption for consuming assets

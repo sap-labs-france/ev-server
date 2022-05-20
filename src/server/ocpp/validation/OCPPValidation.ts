@@ -27,6 +27,7 @@ export default class OCPPValidation extends SchemaValidator {
   private heartbeatRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/heartbeat-request.json`, 'utf8'));
   private firmwareStatusNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/firmware-status-notification-request.json`, 'utf8'));
   private dataTransferRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/data-transfert-request.json`, 'utf8'));
+  private meterValueRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/meter-values-request.json`, 'utf8'));
 
   private constructor() {
     super('OCPPValidation');
@@ -107,7 +108,7 @@ export default class OCPPValidation extends SchemaValidator {
 
   public async validateMeterValues(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequestExtended): Promise<void> {
     // Always integer
-    meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
+    this.validate(this.meterValueRequest, meterValues);
     // Check Connector ID
     if (meterValues.connectorId === 0) {
       // KEBA: Connector ID must be > 0 according to OCPP
@@ -131,12 +132,12 @@ export default class OCPPValidation extends SchemaValidator {
         action: ServerAction.OCPP_METER_VALUES,
         message: `Connector ID '${meterValues.connectorId}' not found for Transaction ID '${meterValues.transactionId}'`
       });
+      return;
     }
     // Transaction ID is provided on Connector
-    if (foundConnector.currentTransactionID > 0) {
+    if (foundConnector?.currentTransactionID > 0) {
       // Check if provided in Meter Values
-      meterValues.transactionId = Utils.convertToInt(meterValues.transactionId);
-      if (meterValues.transactionId === 0 && foundConnector.currentTransactionID > 0) {
+      if (Utils.isNullOrUndefined(meterValues.transactionId) && foundConnector.currentTransactionID > 0) {
         // Reuse Transaction ID from Connector
         meterValues.transactionId = foundConnector.currentTransactionID;
         await Logging.logWarning({

@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
-import { BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
+import { BillingAccount, BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
@@ -17,7 +17,7 @@ import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
 import Decimal from 'decimal.js';
-import LoggingStorage from '../../src/storage/mongodb/LoggingStorage';
+import LogStorage from '../../src/storage/mongodb/LogStorage';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
@@ -209,6 +209,18 @@ export default class BillingTestHelper {
         parkingTime: {
           price: 20, // Euro per hour
           stepSize: 120, // 120 seconds == 2 minutes
+          active: true
+        }
+      };
+    } else if (testMode === 'E+CT(STEP80S)') {
+      dimensions = {
+        energy: {
+          price: 0.30,
+          active: true
+        },
+        chargingTime: {
+          price: 0.60, // Euro per hour
+          stepSize: 80, // 1 minute + 20 seconds
           active: true
         }
       };
@@ -514,7 +526,7 @@ export default class BillingTestHelper {
   public async dumpLastErrors(): Promise<void> {
     const params = { levels: ['E'] };
     const dbParams = { limit: 2, skip: 0, sort: { timestamp: -1 } }; // the 2 last errors
-    const loggedErrors = await LoggingStorage.getLogs(this.tenantContext.getTenant(), params, dbParams, null);
+    const loggedErrors = await LogStorage.getLogs(this.tenantContext.getTenant(), params, dbParams, null);
     if (loggedErrors?.result.length > 0) {
       for (const loggedError of loggedErrors.result) {
         console.error(

@@ -10,8 +10,8 @@ import BackendError from '../exception/BackendError';
 import Configuration from '../utils/Configuration';
 import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
-import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
-import LoggingStorage from '../storage/mongodb/LoggingStorage';
+import LogConfiguration from '../types/configuration/LogConfiguration';
+import LogStorage from '../storage/mongodb/LogStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import { OICPResult } from '../types/oicp/OICPResult';
@@ -28,14 +28,14 @@ import sizeof from 'object-sizeof';
 const MODULE_NAME = 'Logging';
 
 export default class Logging {
-  private static loggingConfig: LoggingConfiguration;
+  private static logConfig: LogConfiguration;
   private static traceConfig: TraceConfiguration;
 
-  public static getConfiguration(): LoggingConfiguration {
-    if (!this.loggingConfig) {
-      this.loggingConfig = Configuration.getLoggingConfig();
+  public static getConfiguration(): LogConfiguration {
+    if (!this.logConfig) {
+      this.logConfig = Configuration.getLogConfig();
     }
-    return this.loggingConfig;
+    return this.logConfig;
   }
 
   public static getTraceConfiguration(): TraceConfiguration {
@@ -73,7 +73,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -90,7 +90,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -135,7 +135,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -230,7 +230,7 @@ export default class Logging {
       });
       Utils.isDevelopmentEnv() && Logging.logConsoleError(messageError);
     } else {
-      await Logging.logInfo({
+      await Logging.logDebug({
         tenantID: tenantID,
         user,
         action, module, method,
@@ -278,7 +278,7 @@ export default class Logging {
       });
       Utils.isDevelopmentEnv() && Logging.logConsoleError(messageError);
     } else {
-      await Logging.logInfo({
+      await Logging.logDebug({
         tenantID: tenantID,
         action, module, method,
         message: messageNoSuccessNoError,
@@ -294,7 +294,7 @@ export default class Logging {
       messageSuccess, messageError, messageSuccessAndError, messageNoSuccessNoError);
   }
 
-  public static async traceExpressRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async traceExpressRequest(req: Request, res: Response, next: NextFunction, action?: ServerAction): Promise<void> {
     if (Logging.getTraceConfiguration().traceIngressHttp) {
       try {
         // Get Tenant info
@@ -315,7 +315,7 @@ export default class Logging {
           userID = user.id;
         }
         // Clear Default Tenant
-        if (tenantID === Constants.DEFAULT_TENANT) {
+        if (tenantID === Constants.DEFAULT_TENANT_ID) {
           tenantID = null;
         }
         // Keep Tenant in request
@@ -339,7 +339,7 @@ export default class Logging {
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
         await Logging.logDebug({
           tenantID,
-          action: ServerAction.HTTP_REQUEST,
+          action: action ?? ServerAction.HTTP_REQUEST,
           user: userID,
           message,
           module: MODULE_NAME, method: 'logExpressRequest',
@@ -358,14 +358,18 @@ export default class Logging {
         });
         req['performanceID'] = performanceID;
       } finally {
-        next();
+        // Express call does not provide action
+        if (!action) {
+          next();
+        }
       }
-    } else {
+    // Express call does not provide action
+    } else if (!action) {
       next();
     }
   }
 
-  public static traceExpressResponse(req: Request, res: Response, next: NextFunction): void {
+  public static traceExpressResponse(req: Request, res: Response, next: NextFunction, action?: ServerAction): void {
     if (Logging.getTraceConfiguration().traceIngressHttp) {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       res.on('finish', async () => {
@@ -394,7 +398,7 @@ export default class Logging {
           });
           if (Utils.isDevelopmentEnv()) {
             Logging.logConsoleWarning('====================================');
-            Logging.logConsoleWarning(`Tenant ID '${tenantID ? tenantID : Constants.DEFAULT_TENANT}'`);
+            Logging.logConsoleWarning(`Tenant ID '${tenantID ? tenantID : Constants.DEFAULT_TENANT_ID}'`);
             Logging.logConsoleWarning(error.stack);
             Logging.logConsoleWarning(message);
             Logging.logConsoleWarning('====================================');
@@ -411,7 +415,7 @@ export default class Logging {
           });
           if (Utils.isDevelopmentEnv()) {
             Logging.logConsoleWarning('====================================');
-            Logging.logConsoleWarning(`Tenant ID '${tenantID ? tenantID : Constants.DEFAULT_TENANT}'`);
+            Logging.logConsoleWarning(`Tenant ID '${tenantID ? tenantID : Constants.DEFAULT_TENANT_ID}'`);
             Logging.logConsoleWarning(error.stack);
             Logging.logConsoleWarning(message);
             Logging.logConsoleWarning('====================================');
@@ -420,7 +424,7 @@ export default class Logging {
         await Logging.logDebug({
           tenantID: tenantID,
           user: req.user,
-          action: ServerAction.HTTP_RESPONSE,
+          action: action ?? ServerAction.HTTP_RESPONSE,
           message,
           module: MODULE_NAME, method: 'logExpressResponse',
           detailedMessages: {
@@ -441,7 +445,10 @@ export default class Logging {
         }
       });
     }
-    next();
+    // Express call does not provide action
+    if (!action) {
+      next();
+    }
   }
 
   public static async traceExpressError(error: Error, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -465,14 +472,14 @@ export default class Logging {
           httpUrl: request.url,
           httpMethod: request.method.toLocaleUpperCase(),
           reqSizeKb: sizeOfRequestDataKB,
-          action: ServerAction.HTTP_REQUEST,
+          action: Utils.getAxiosActionFromURL(request.url),
         })
       );
       const message = `Axios HTTP Request - '${Utils.last5Chars(performanceID)}' >> Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${request.method.toLocaleUpperCase()} '${request.url}'`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
         tenantID: tenant.id,
-        action: ServerAction.HTTP_REQUEST,
+        action: Utils.getAxiosActionFromURL(request.url),
         module: Constants.MODULE_AXIOS, method: 'interceptor',
         message,
         detailedMessages: {
@@ -512,7 +519,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -529,7 +536,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -538,7 +545,7 @@ export default class Logging {
       try {
         await Logging.logDebug({
           tenantID: tenant.id,
-          action: ServerAction.HTTP_RESPONSE,
+          action: Utils.getAxiosActionFromURL(response.config.url),
           message,
           module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
           detailedMessages: {
@@ -561,7 +568,7 @@ export default class Logging {
       } catch (error) {
         await Logging.logDebug({
           tenantID: tenant.id,
-          action: ServerAction.HTTP_RESPONSE,
+          action: Utils.getAxiosActionFromURL(response.config.url),
           message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - Res ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
           module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
           detailedMessages: {
@@ -577,7 +584,7 @@ export default class Logging {
     // Error handling is done outside to get the proper module information
     await Logging.logError({
       tenantID: tenant.id,
-      action: ServerAction.HTTP_ERROR,
+      action: Utils.getAxiosActionFromURL(error.config.url),
       message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
       module: Constants.MODULE_AXIOS, method: 'interceptor',
       detailedMessages: {
@@ -643,7 +650,7 @@ export default class Logging {
 
   // Used to log exception in catch(...) only
   public static async logActionExceptionMessageAndSendResponse(action: ServerAction, exception: Error,
-      req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): Promise<void> {
+      req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT_ID): Promise<void> {
     // Clear password
     if (action === ServerAction.LOGIN && req.body.password) {
       req.body.password = '####';
@@ -713,7 +720,7 @@ export default class Logging {
   public static async traceOcppMessageResponse(module: string, tenant: Tenant, chargingStationID: string,
       action: ServerAction, request: any, response: any, direction: '<<' | '>>',
       chargingStationDetails: { siteID: string, siteAreaID: string, companyID: string,}, performanceTracingData?: PerformanceTracingData): Promise<void> {
-    if (Logging.getTraceConfiguration().traceOcpp) {
+    if (Logging.getTraceConfiguration().traceOcpp && performanceTracingData) {
       // Compute duration if provided
       const executionDurationMillis = performanceTracingData?.startTimestamp ? Date.now() - performanceTracingData.startTimestamp : 0;
       const sizeOfResponseDataKB = Utils.truncTo(Utils.createDecimal(
@@ -731,7 +738,7 @@ export default class Logging {
         });
         if (Utils.isDevelopmentEnv()) {
           Logging.logConsoleWarning('====================================');
-          Logging.logConsoleWarning(`Tenant ID '${tenant?.id ? tenant.id : Constants.DEFAULT_TENANT}'`);
+          Logging.logConsoleWarning(`Tenant ID '${tenant?.id ? tenant.id : Constants.DEFAULT_TENANT_ID}'`);
           Logging.logConsoleWarning(error.stack);
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
@@ -873,12 +880,12 @@ export default class Logging {
 
   private static async log(log: Log): Promise<string> {
     // Check Log Level
-    const loggingConfig = Logging.getConfiguration();
+    const logConfig = Logging.getConfiguration();
     // Default Log Level
-    const logLevel = loggingConfig.logLevel ? loggingConfig.logLevel : LogLevel.DEBUG;
+    const logLevel = logConfig.logLevel ? logConfig.logLevel : LogLevel.DEBUG;
     // Log Level
     switch (LogLevel[logLevel]) {
-      // No logging at all
+      // No log at all
       case LogLevel.NONE:
         return;
       // Keep all log messages just filter out DEBUG
@@ -926,10 +933,10 @@ export default class Logging {
       log.message = log.message[0].toUpperCase() + log.message.substring(1);
     }
     if (!log.tenantID || log.tenantID === '') {
-      log.tenantID = Constants.DEFAULT_TENANT;
+      log.tenantID = Constants.DEFAULT_TENANT_ID;
     }
     // Save
-    return LoggingStorage.saveLog(log.tenantID, log);
+    return LogStorage.saveLog(log.tenantID, log);
   }
 
   private static async anonymizeSensitiveData(message: any): Promise<any> {
@@ -997,10 +1004,10 @@ export default class Logging {
       return message;
     }
     await Logging.logError({
-      tenantID: Constants.DEFAULT_TENANT,
+      tenantID: Constants.DEFAULT_TENANT_ID,
       module: MODULE_NAME,
       method: 'anonymizeSensitiveData',
-      action: ServerAction.LOGGING,
+      action: ServerAction.LOG,
       message: 'No matching object type for log message anonymisation',
       detailedMessages: { message }
     });
@@ -1009,7 +1016,7 @@ export default class Logging {
 
   private static buildLogError(action: ServerAction, module: string,
       method: string, tenantID: string, user: UserToken | User | string, error: any): Log {
-    const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
+    const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT_ID;
     if (error.params) {
       return {
         user: user,

@@ -1,3 +1,4 @@
+import { AuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { TenantComponents } from './Tenant';
 
@@ -21,7 +22,7 @@ export enum IntegrationSettings {
   STATISTICS = 'statistics'
 }
 
-export interface Setting extends CreatedUpdatedProps {
+export interface Setting extends AuthorizationActions, CreatedUpdatedProps {
   id?: string;
   identifier: TenantComponents | TechnicalSettings;
   sensitiveData?: string[];
@@ -58,7 +59,6 @@ export interface SettingDBContent {
   oicp?: OicpSetting;
   // pricing?: PricingSetting;  // TODO - reorg pricing similar to billing
   simple?: SimplePricingSetting;
-  convergentCharging?: ConvergentChargingPricingSetting;
   billing?: BillingSetting;
   stripe?: StripeBillingSetting;
   sac?: SacAnalyticsSetting;
@@ -73,14 +73,12 @@ export interface SettingDBContent {
 
 export enum PricingSettingsType {
   SIMPLE = 'simple',
-  CONVERGENT_CHARGING = 'convergentCharging',
 }
 
 export interface PricingSettings extends Setting {
   identifier: TenantComponents.PRICING;
   type: PricingSettingsType;
   simple?: SimplePricingSetting;
-  convergentCharging?: ConvergentChargingPricingSetting;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -89,20 +87,12 @@ export interface PricingSetting {
 
 export enum PricingContentType {
   SIMPLE = 'simple',
-  CONVERGENT_CHARGING = 'convergentCharging',
 }
 
 export interface SimplePricingSetting extends PricingSetting {
   price: number;
   currency: string;
   last_updated?: Date;
-}
-
-export interface ConvergentChargingPricingSetting extends PricingSetting {
-  url: string;
-  chargeableItemName: string;
-  user: string;
-  password: string;
 }
 
 export enum RoamingSettingsType {

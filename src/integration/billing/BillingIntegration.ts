@@ -1,4 +1,4 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser } from '../../types/Billing';
+import { BillingAccount, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser } from '../../types/Billing';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
@@ -324,24 +324,39 @@ export default abstract class BillingIntegration {
   protected async checkBillingDataThreshold(transaction: Transaction): Promise<boolean> {
     // Do not bill suspicious StopTransaction events
     if (!Utils.isDevelopmentEnv()) {
-    // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
       const timeSpent = this.computeTimeSpentInSeconds(transaction);
-      // TODO - make it part of the pricing or billing settings!
-      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
+      if (timeSpent < Constants.AFIREV_MINIMAL_DURATION_THRESHOLD /* 2 minutes */) {
         await Logging.logWarning({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: this.tenant.id,
           user: transaction.userID,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'stopTransaction',
-          message: `Transaction data is suspicious - Billing operation has been aborted for Transaction ID '${transaction.id}'`,
+          message: `Transaction duration is too short - billing operation has been aborted - transaction ID: ${transaction.id}`,
+        });
+        // Abort the billing process - thresholds are not met!
+        return false;
+      }
+      if (transaction.stop.totalConsumptionWh < Constants.AFIREV_MINIMAL_CONSUMPTION_THRESHOLD /* 0.5 kW.h */) {
+        await Logging.logWarning({
+          ...LoggingHelper.getTransactionProperties(transaction),
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'stopTransaction',
+          message: `Transaction consumption is too low - billing operation has been aborted - transaction ID: ${transaction.id}`,
         });
         // Abort the billing process - thresholds are not met!
         return false;
       }
     }
-    // billing data sounds correct
+    // Session data seem to be consistent
     return true;
+  }
+
+  protected convertTimeSpentToString(transaction: Transaction): string {
+    const totalDuration = this.computeTimeSpentInSeconds(transaction);
+    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
   protected computeTimeSpentInSeconds(transaction: Transaction): number {
@@ -352,11 +367,6 @@ export default abstract class BillingIntegration {
       totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     }
     return totalDuration;
-  }
-
-  protected convertTimeSpentToString(transaction: Transaction): string {
-    const totalDuration = this.computeTimeSpentInSeconds(transaction);
-    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
   private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
@@ -675,4 +685,6 @@ export default abstract class BillingIntegration {
   abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 
   abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]>;
+
+  abstract createSubAccount(): Promise<BillingAccount>;
 }

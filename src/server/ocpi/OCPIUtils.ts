@@ -4,6 +4,7 @@ import OCPIEndpoint, { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../.
 import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPITariff, OCPITariffDimensionType } from '../../types/ocpi/OCPITariff';
 import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
+import User, { UserRole, UserStatus } from '../../types/User';
 
 import AppError from '../../exception/AppError';
 import BackendError from '../../exception/BackendError';
@@ -32,7 +33,7 @@ import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tag from '../../types/Tag';
 import Tenant from '../../types/Tenant';
-import { UserStatus } from '../../types/User';
+import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -145,9 +146,32 @@ export default class OCPIUtils {
   }
 
   public static buildEmspEmailFromOCPIToken(token: OCPIToken, countryCode: string, partyId: string): string {
-    if (token?.issuer) {
-      return `${token.issuer}@${partyId}.${countryCode}`.toLowerCase();
+    return `${token.issuer}@${partyId}.${countryCode}`.toLowerCase();
+  }
+
+  public static async checkAndCreateEMSPUserFromToken(tenant: Tenant, countryCode: string, partyId: string, token: OCPIToken): Promise<User> {
+    // Get eMSP user
+    const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, countryCode, partyId);
+    // Get User from DB
+    let emspUser = await UserStorage.getUserByEmail(tenant, email);
+    // Create user
+    if (!emspUser) {
+      // Create User
+      emspUser = {
+        issuer: false,
+        createdOn: token.last_updated,
+        lastChangedOn: token.last_updated,
+        name: token.issuer,
+        firstName: OCPIUtils.buildOperatorName(countryCode, partyId),
+        email,
+        locale: Utils.getLocaleFromLanguage(token.language),
+      } as User;
+      // Save User
+      emspUser.id = await UserStorage.saveUser(tenant, emspUser);
+      await UserStorage.saveUserRole(tenant, emspUser.id, UserRole.BASIC);
+      await UserStorage.saveUserStatus(tenant, emspUser.id, UserStatus.ACTIVE);
     }
+    return emspUser;
   }
 
   public static atob(base64: string): string {
@@ -407,10 +431,10 @@ export default class OCPIUtils {
 
   public static convertStatus2OCPIStatus(status: ChargePointStatus): OCPIEvseStatus {
     switch (status) {
+      case ChargePointStatus.PREPARING:
       case ChargePointStatus.AVAILABLE:
         return OCPIEvseStatus.AVAILABLE;
       case ChargePointStatus.OCCUPIED:
-      case ChargePointStatus.PREPARING:
       case ChargePointStatus.SUSPENDED_EV:
       case ChargePointStatus.SUSPENDED_EVSE:
       case ChargePointStatus.FINISHING:
@@ -430,14 +454,22 @@ export default class OCPIUtils {
     const tariff = {} as OCPITariff;
     tariff.id = '1';
     tariff.currency = simplePricingSetting.currency;
-    tariff.elements[0].price_components[0].type = OCPITariffDimensionType.TIME;
-    tariff.elements[0].price_components[0].price = simplePricingSetting.price;
-    tariff.elements[0].price_components[0].step_size = 60;
+    tariff.elements = [
+      {
+        price_components: [
+          {
+            type: OCPITariffDimensionType.TIME,
+            price: simplePricingSetting.price,
+            step_size: 60,
+          }
+        ]
+      }
+    ];
     tariff.last_updated = simplePricingSetting.last_updated;
     return tariff;
   }
 
-  public static async processEMSPLocationSite(tenant: Tenant, location: OCPILocation, company: Company, site: Site, siteName?: string): Promise<Site> {
+  public static async updateEMSPLocationSite(tenant: Tenant, location: OCPILocation, company: Company, site: Site, siteName?: string): Promise<Site> {
     // Create Site
     if (!site) {
       site = {
@@ -478,7 +510,7 @@ export default class OCPIUtils {
     return site;
   }
 
-  public static async processEMSPLocationSiteArea(tenant: Tenant, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<SiteArea> {
+  public static async updateEMSPLocationSiteArea(tenant: Tenant, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<SiteArea> {
     // Create Site Area
     if (!siteArea) {
       siteArea = {

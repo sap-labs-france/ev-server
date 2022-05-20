@@ -22,7 +22,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "$ref": "common#/definitions/id"
+            "$ref": "common#/definitions/string-id"
           },
           "name": {
             "type": "string",

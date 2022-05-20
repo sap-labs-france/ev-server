@@ -1,4 +1,4 @@
-import { AccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
+import { AccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingSubAccountCreationLinkNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
 import User, { UserStatus } from '../../types/User';
 
 import Configuration from '../../utils/Configuration';
@@ -29,8 +29,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             projectId: this.firebaseConfig.projectID,
             clientEmail: this.firebaseConfig.clientEmail,
             privateKey: this.firebaseConfig.privateKey
-          }),
-          databaseURL: this.firebaseConfig.databaseURL
+          })
         });
         // Init tenant conf
         if (!Utils.isEmptyArray(this.firebaseConfig.tenants)) {
@@ -41,8 +40,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
                 projectId: tenantConfig.configuration.projectID,
                 clientEmail: tenantConfig.configuration.clientEmail,
                 privateKey: tenantConfig.configuration.privateKey
-              }),
-              databaseURL: tenantConfig.configuration.databaseURL
+              })
             }, tenantConfig.tenantID);
             // Keep it per Tenant
             this.tenantFirebaseApps.set(tenantConfig.tenantID, app);
@@ -51,7 +49,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         this.initialized = true;
       } catch (error) {
         void Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.REMOTE_PUSH_NOTIFICATION,
           module: MODULE_NAME, method: 'constructor',
           message: `Error initializing Firebase: '${error.message as string}'`,
@@ -341,6 +339,18 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_PERIODIC_OPERATION_FAILED,
       title, body, user, { 'error': data.nbrInvoicesInError.toString() }, severity);
+  }
+
+  public async sendBillingSubAccountCreationLink(data: BillingSubAccountCreationLinkNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    // Set the locale
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    // Get Message Text
+    const title = i18nManager.translate('notifications.billingSubAccountCreationLink.title');
+    const body = i18nManager.translate('notifications.billingSubAccountCreationLink.body',
+      { onboardingLink: data.onboardingLink, tenantName: tenant.name });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_CREATE_SUB_ACCOUNT,
+      title, body, user, { 'onboardingLink': data.onboardingLink }, severity);
   }
 
   public async sendComputeAndApplyChargingProfilesFailed(data: ComputeAndApplyChargingProfilesFailedNotification,

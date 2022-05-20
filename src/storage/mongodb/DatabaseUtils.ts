@@ -1,11 +1,11 @@
 import { AggregateOptions, ObjectId } from 'mongodb';
+import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { DatabaseCount } from '../../types/GlobalType';
 import DbLookup from '../../types/database/DbLookup';
-import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import Tenant from '../../types/Tenant';
 import User from '../../types/User';
 import UserToken from '../../types/UserToken';
@@ -16,6 +16,127 @@ const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 const MODULE_NAME = 'DatabaseUtils';
 
 export default class DatabaseUtils {
+  public static readonly MONGO_USER_MASK = Object.freeze({
+    '_id': 0,
+    '__v': 0,
+    'email': 0,
+    'phone': 0,
+    'mobile': 0,
+    'notificationsActive': 0,
+    'notifications': 0,
+    'iNumber': 0,
+    'costCenter': 0,
+    'status': 0,
+    'createdBy': 0,
+    'createdOn': 0,
+    'lastChangedBy': 0,
+    'lastChangedOn': 0,
+    'role': 0,
+    'password': 0,
+    'locale': 0,
+    'passwordWrongNbrTrials': 0,
+    'passwordBlockedUntil': 0,
+    'passwordResetHash': 0,
+    'eulaAcceptedOn': 0,
+    'eulaAcceptedVersion': 0,
+    'eulaAcceptedHash': 0,
+    'image': 0,
+    'address': 0,
+    'plateID': 0,
+    'verificationToken': 0,
+    'mobileLastChangedOn': 0,
+    'issuer': 0,
+    'mobileOs': 0,
+    'mobileToken': 0,
+    'verifiedAt': 0,
+    'importedData': 0,
+    'billingData': 0
+  });
+
+  public static addConnectorStatsInOrg(tenant: Tenant, aggregation: any[],
+      organizationID: string, addChargingStationLookup = true): void {
+    if (addChargingStationLookup) {
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: '_id', foreignField: organizationID,
+        asField: 'chargingStations' });
+    }
+    // Unwind Charging Stations and Connectors
+    aggregation.push(
+      { $unwind: { path: '$chargingStations', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$chargingStations.connectors', preserveNullAndEmptyArrays: true } }
+    );
+    // Add Status fields
+    DatabaseUtils.addConnectorStatusFields(aggregation);
+    // Group back Connectors
+    DatabaseUtils.groupBackToArray(aggregation, 'chargingStations.connectors', 'chargingStations.id',
+      DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
+    // Group back Charging Stations
+    DatabaseUtils.groupBackToArray(aggregation, 'chargingStations', 'id',
+      DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
+  }
+
+  public static addConnectorStatusFields(aggregation: any[]): void {
+    DatabaseUtils.addConnectorStatusField(aggregation, 'availableConnectors', ChargePointStatus.AVAILABLE);
+    DatabaseUtils.addConnectorStatusField(aggregation, 'unavailableConnectors', ChargePointStatus.UNAVAILABLE);
+    DatabaseUtils.addConnectorStatusField(aggregation, 'preparingConnectors', ChargePointStatus.PREPARING);
+    DatabaseUtils.addConnectorStatusField(aggregation, 'finishingConnectors', ChargePointStatus.FINISHING);
+    DatabaseUtils.addConnectorStatusField(aggregation, 'faultedConnectors', ChargePointStatus.FAULTED);
+    DatabaseUtils.addConnectorStatusesField(aggregation, 'chargingConnectors', [ChargePointStatus.CHARGING, ChargePointStatus.OCCUPIED]);
+    DatabaseUtils.addConnectorStatusesField(aggregation, 'suspendedConnectors', [ChargePointStatus.SUSPENDED_EVSE, ChargePointStatus.SUSPENDED_EV]);
+    aggregation.push({
+      $addFields: {
+        'connectors.totalConnectors' : {
+          $cond : {
+            if : { $gt : [ '$chargingStations.connectors', null ] },
+            then : 1, else : 0
+          }
+        }
+      }
+    });
+  }
+
+  public static getConnectorStatusAggregationFields(): Record<string, any> {
+    return {
+      totalConnectors : { $sum : '$connectors.totalConnectors' },
+      unavailableConnectors : { $sum : '$connectors.unavailableConnectors' },
+      chargingConnectors : { $sum : '$connectors.chargingConnectors' },
+      suspendedConnectors : { $sum : '$connectors.suspendedConnectors' },
+      availableConnectors : { $sum : '$connectors.availableConnectors' },
+      faultedConnectors : { $sum : '$connectors.faultedConnectors' },
+      preparingConnectors : { $sum : '$connectors.preparingConnectors' },
+      finishingConnectors : { $sum : '$connectors.finishingConnectors' },
+    };
+  }
+
+  public static addConnectorStatusField(aggregation: any[], fieldName: string, connectorStatus: ChargePointStatus): void {
+    aggregation.push({
+      $addFields: {
+        [`connectors.${fieldName}`]: {
+          $cond: {
+            if: { $eq: ['$chargingStations.connectors.status', connectorStatus] },
+            then: 1, else: 0
+          }
+        }
+      }
+    });
+  }
+
+  public static addConnectorStatusesField(aggregation: any[], fieldName: string, connectorStatuses: ChargePointStatus[]): void {
+    aggregation.push({
+      $addFields: {
+        [`connectors.${fieldName}`]: {
+          $cond: {
+            if : {
+              $or : connectorStatuses.map((connectorStatus) =>
+                ({ $eq: ['$chargingStations.connectors.status', connectorStatus] }))
+            },
+            then: 1, else: 0
+          }
+        }
+      }
+    });
+  }
+
   public static getCountFromDatabaseCount(databaseCount: DatabaseCount): number {
     if (databaseCount) {
       if (databaseCount.count === Constants.DB_RECORD_COUNT_CEIL) {
@@ -27,7 +148,12 @@ export default class DatabaseUtils {
   }
 
   public static isObjectID(id: string): boolean {
-    return ObjectId.isValid(id);
+    if (ObjectId.isValid(id)) {
+      if (new ObjectId(id).toString() === id) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static buildAggregateOptions(): AggregateOptions {
@@ -46,8 +172,8 @@ export default class DatabaseUtils {
   }
 
   public static getCollectionName(tenantID: string, collectionNameSuffix: string): string {
-    let prefix = Constants.DEFAULT_TENANT;
-    if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && ObjectId.isValid(tenantID)) {
+    let prefix = Constants.DEFAULT_TENANT_ID;
+    if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && DatabaseUtils.isObjectID(tenantID)) {
       prefix = tenantID;
     }
     return `${prefix}.${collectionNameSuffix}`;
@@ -112,6 +238,13 @@ export default class DatabaseUtils {
     }, [DatabaseUtils.buildChargingStationInactiveFlagQuery(), ...additionalPipeline]);
   }
 
+  public static pushAssetLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
+    DatabaseUtils.pushCollectionLookupInAggregation('assets', {
+      objectIDFields: ['createdBy', 'lastChangedBy'],
+      ...lookupParams
+    }, additionalPipeline);
+  }
+
   public static pushTagLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('tags', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
@@ -125,6 +258,28 @@ export default class DatabaseUtils {
     }, additionalPipeline);
   }
 
+  public static pushArrayFilterInAggregation(aggregation: any[], arrayName: string, filter: Record<string, any>): void {
+    // Unwind the array
+    aggregation.push({ '$unwind': { path: `$${arrayName}`, preserveNullAndEmptyArrays: true } });
+    // Filter
+    aggregation.push({ '$match': filter });
+    // Group back
+    DatabaseUtils.groupBackToArray(aggregation, arrayName);
+  }
+
+  public static push2ArraysFilterInAggregation(aggregation: any[], firstArrayName: string,
+      firstArrayPropertyID: string, secondArrayName: string, filter: Record<string, any>): void {
+    // Unwind first array
+    aggregation.push({ '$unwind': { path: `$${firstArrayName}`, preserveNullAndEmptyArrays: true } });
+    // Unwind second array
+    aggregation.push({ '$unwind': { path: `$${secondArrayName}`, preserveNullAndEmptyArrays: true } });
+    // Filter
+    aggregation.push({ '$match': filter });
+    // Group back second array
+    DatabaseUtils.groupBackToArray(aggregation, secondArrayName, firstArrayPropertyID);
+    // Group back first array
+    DatabaseUtils.groupBackToArray(aggregation, firstArrayName);
+  }
 
   public static pushArrayLookupInAggregation(arrayName: string,
       lookupMethod: (lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) => void,
@@ -143,38 +298,8 @@ export default class DatabaseUtils {
         $sort: additionalParams.sort
       });
     }
-    // Group back to arrays
-    lookupParams.aggregation.push(
-      JSON.parse(`{
-        "$group": {
-          "_id": {
-            "id": "$id",
-            "_id": "$_id"
-          },
-          "root": { "$first": "$$ROOT" },
-          "${arrayName}": { "$push": "$${arrayName}" }
-        }
-      }`)
-    );
-    // Replace array
-    lookupParams.aggregation.push(JSON.parse(`{
-      "$addFields": {
-        "root.${arrayName}": {
-          "$cond": {
-            "if": {
-              "$or": [
-                { "$eq": [ "$${arrayName}", [{}] ] },
-                { "$eq": [ "$${arrayName}", [null] ] }
-              ]
-            },
-            "then": [],
-            "else": "$${arrayName}"
-          }
-        }
-      }
-    }`));
-    // Replace root
-    lookupParams.aggregation.push({ $replaceRoot: { newRoot: '$root' } });
+    // Group back tp array
+    DatabaseUtils.groupBackToArray(lookupParams.aggregation, arrayName);
     // Sort again (after grouping, sort is lost)
     if (additionalParams.sort) {
       lookupParams.aggregation.push({
@@ -422,6 +547,57 @@ export default class DatabaseUtils {
     }
   }
 
+  public static groupBackToArray(aggregation: any[], arrayName: string, arrayPropertyID = 'id',
+      groupAggregation: Record<string, any> = {}, rootAggregationName = ''): void {
+    // Keep the prop as variable in the query (eg. keep 'connectors' as var instead fo 'chargingStations.connectors' which is invalid in MongoDB )
+    const arrayVariableNames = arrayName.split('.');
+    const arrayVariableName = arrayVariableNames[arrayVariableNames.length - 1];
+    // Group back to arrays
+    aggregation.push({
+      $group: {
+        '_id': {
+          '_id': '$_id',
+          id: `$${arrayPropertyID}`
+        },
+        root: { $first: '$$ROOT' },
+        [`${arrayVariableName}`]: { $push: `$${arrayName}` },
+        ...groupAggregation
+      }
+    });
+    // Replace Array
+    aggregation.push({
+      $addFields: {
+        [`root.${arrayName}`]: {
+          $cond: {
+            if: {
+              $or: [
+                { $eq: [ `$${arrayVariableName}`, [{}] ] },
+                { $eq: [ `$${arrayVariableName}`, [null] ] }
+              ]
+            },
+            then: [],
+            else: `$${arrayVariableName}`
+          }
+        }
+      }
+    });
+    // Replace Aggregation
+    if (groupAggregation && rootAggregationName) {
+      // Build aggregated fileds
+      const aggregatedFields = Object.keys(groupAggregation).reduce((previousValue: Record<string,any>, key: string) =>
+        ({
+          ...previousValue,
+          [`root.${rootAggregationName}.${key}`]:`$${key}`
+        }), {});
+      // Add
+      aggregation.push({
+        $addFields: aggregatedFields
+      });
+    }
+    // Replace root
+    aggregation.push({ $replaceRoot: { newRoot: '$root' } });
+  }
+
   private static buildChargingStationInactiveFlagQuery(): Record<string, any> {
     // Add inactive field
     return {
@@ -446,7 +622,7 @@ export default class DatabaseUtils {
     if (!obj || !obj[prop]) {
       return null;
     }
-    if (ObjectId.isValid(obj[prop])) {
+    if (DatabaseUtils.isObjectID(obj[prop])) {
       return obj[prop] as ObjectId;
     }
     if (obj[prop].id) {
@@ -483,7 +659,7 @@ export default class DatabaseUtils {
     aggregation.push({ $addFields: addNullFields });
     // Project
     const projectFields: any = {};
-    projectFields[`${fieldName}`] = Constants.MONGO_USER_MASK;
+    projectFields[`${fieldName}`] = DatabaseUtils.MONGO_USER_MASK;
     aggregation.push({
       $project: projectFields
     });

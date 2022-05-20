@@ -30,7 +30,6 @@ export default class ContextDefinition {
     TENANT_WITH_NO_COMPONENTS: 'utnothing', // No components are active
     TENANT_ORGANIZATION: 'utorg', // Only organization component is active
     TENANT_SIMPLE_PRICING: 'utpricing', // Only pricing component is active
-    TENANT_CONVERGENT_CHARGING: 'utconvcharg', // Only convergent charging component is active
     TENANT_OCPI: 'utocpi', // Only ocpi component is active
     TENANT_OICP: 'utoicp', // Only ocpi component is active
     TENANT_FUNDING: 'utrefund', // Only refund component is active
@@ -226,24 +225,6 @@ export default class ContextDefinition {
           simple: {
             price: ContextDefinition.DEFAULT_PRICE,
             currency: 'EUR'
-          }
-        }
-      }
-    },
-  },
-  {
-    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
-    id: 'aaaaaaaaaaaaaaaaaaaaaaa5',
-    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
-    componentSettings: {
-      pricing: {
-        content: {
-          type: PricingSettingsType.CONVERGENT_CHARGING,
-          convergentCharging: {
-            url: '',
-            chargeableItemName: '',
-            user: '',
-            password: ''
           }
         }
       }
@@ -604,6 +585,9 @@ export default class ContextDefinition {
   static readonly TENANT_COMPANY_LIST: any[] = [
     { // Default company no settings yet
       id: '5ce249a2372f0b1c8caf928f'
+    },
+    { // Second company no settings yet
+      id: '5ce249a2372f0b1c8caf928e'
     }
   ];
 
@@ -643,42 +627,48 @@ export default class ContextDefinition {
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
       numberOfPhases: 3,
       accessControl: true,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
+      voltage: Voltage.VOLTAGE_230
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5476',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
       numberOfPhases: 3,
       accessControl: false,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
+      voltage: Voltage.VOLTAGE_230
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf1234',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
       numberOfPhases: 3,
       accessControl: true,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
+      voltage: Voltage.VOLTAGE_230
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf4678',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
       numberOfPhases: 3,
       accessControl: false,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
+      voltage: Voltage.VOLTAGE_230
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf5497',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
       numberOfPhases: 3,
       accessControl: true,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
+      voltage: Voltage.VOLTAGE_230
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5432',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
       numberOfPhases: 3,
       accessControl: false,
-      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
+      voltage: Voltage.VOLTAGE_230
     },
     // Smart Charging must be deactivated. (Connection to CS will fail, because they do not exist)
     { // With smart charging three phased
@@ -687,6 +677,8 @@ export default class ContextDefinition {
       numberOfPhases: 3,
       accessControl: true,
       maximumPower: 100000,
+      smartCharging: true,
+      parentSiteAreaID: '5ce249a2372f0b1c8caf5444',
       voltage: Voltage.VOLTAGE_230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
@@ -695,6 +687,7 @@ export default class ContextDefinition {
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED}`,
       numberOfPhases: 1,
       maximumPower: 100000,
+      smartCharging: true,
       voltage: Voltage.VOLTAGE_230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
@@ -704,6 +697,7 @@ export default class ContextDefinition {
       numberOfPhases: 3,
       accessControl: true,
       maximumPower: 200000,
+      smartCharging: true,
       voltage: Voltage.VOLTAGE_230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     }

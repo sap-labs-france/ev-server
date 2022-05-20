@@ -13,7 +13,7 @@ export class ServerUtils {
     const logMsg = `${serverType} Server listening on '${protocol}://${hostname}:${port}'`;
     // Log
     await Logging.logInfo({
-      tenantID: Constants.DEFAULT_TENANT,
+      tenantID: Constants.DEFAULT_TENANT_ID,
       module: serverModuleName, method: methodName,
       action: ServerAction.STARTUP,
       message: logMsg

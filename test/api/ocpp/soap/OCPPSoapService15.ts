@@ -26,35 +26,35 @@ export default class OCPPSoapService15 extends OCPPService {
   }
 
   public async executeStopTransaction(chargingStationID: string, stopTransaction: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'StopTransaction', stopTransaction));
+    return this.execute(this.buildSOAPRequest(chargingStationID, 'StopTransaction', stopTransaction));
   }
 
   public async executeHeartbeat(chargingStationID: string, heartbeat: OCPPHeartbeatRequest): Promise<OCPPHeartbeatResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'Heartbeat', heartbeat));
+    return this.execute(this.buildSOAPRequest(chargingStationID, 'Heartbeat', heartbeat));
   }
 
   public async executeMeterValues(chargingStationID: string, meterValue: OCPPMeterValuesRequest|OCPP15MeterValuesRequest): Promise<OCPPMeterValuesResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'MeterValues', meterValue));
+    return this.execute(this.buildSOAPRequest(chargingStationID, 'MeterValues', meterValue));
   }
 
   public async executeBootNotification(chargingStationID: string, bootNotification: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'BootNotification', bootNotification));
+    return this.execute(this.buildSOAPRequest(chargingStationID, 'BootNotification', bootNotification));
   }
 
   public async executeStatusNotification(chargingStationID: string, statusNotification: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'StatusNotification', statusNotification));
+    return this.execute(this.buildSOAPRequest(chargingStationID, 'StatusNotification', statusNotification));
   }
 
   public async executeFirmwareStatusNotification(chargingStationID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequest): Promise<OCPPFirmwareStatusNotificationResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'FirmwareStatusNotification', firmwareStatusNotification));
+    return this.execute(this.buildSOAPRequest(chargingStationID, 'FirmwareStatusNotification', firmwareStatusNotification));
   }
 
   public async executeDiagnosticsStatusNotification(chargingStationID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequest): Promise<OCPPDiagnosticsStatusNotificationResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'DiagnosticsStatusNotification', diagnosticsStatusNotification));
+    return this.execute(this.buildSOAPRequest(chargingStationID, 'DiagnosticsStatusNotification', diagnosticsStatusNotification));
   }
 
   public async executeDataTransfer(chargingStationID: string, dataTransfer: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'DataTransfer', dataTransfer));
+    return this.execute(this.buildSOAPRequest(chargingStationID, 'DataTransfer', dataTransfer));
   }
 
   private async execute(request: any): Promise<any> {

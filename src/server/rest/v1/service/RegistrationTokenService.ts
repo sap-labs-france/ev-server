@@ -30,16 +30,8 @@ export default class RegistrationTokenService {
         req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, filteredRequest, null, false);
     }
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(
+    await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.REGISTRATION_TOKEN,
-        module: MODULE_NAME, method: 'handleCreateRegistrationToken'
-      });
-    }
     // Create
     const registrationToken: RegistrationToken = {
       siteAreaID: filteredRequest.siteAreaID,
@@ -52,7 +44,7 @@ export default class RegistrationTokenService {
     registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     await Logging.logInfo({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateRegistrationToken',
       message: `Registration Token '${registrationToken.description}' has been created successfully`,
       action, detailedMessages: { registrationToken }
@@ -83,7 +75,7 @@ export default class RegistrationTokenService {
     await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     await Logging.logInfo({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateRegistrationToken',
       message: `Registration Token '${registrationToken.description}' has been updated successfully`,
       action, detailedMessages: { registrationToken }
@@ -102,7 +94,7 @@ export default class RegistrationTokenService {
     await RegistrationTokenStorage.deleteRegistrationToken(req.tenant, registrationToken.id);
     await Logging.logInfo({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteRegistrationToken',
       message: `Registration token with ID '${registrationTokenID}' has been deleted successfully`,
@@ -129,14 +121,15 @@ export default class RegistrationTokenService {
       });
     }
     // Update
-    registrationToken.revocationDate = new Date();
+    const now = new Date();
+    registrationToken.revocationDate = now;
     registrationToken.lastChangedBy = { 'id': req.user.id };
-    registrationToken.lastChangedOn = new Date();
+    registrationToken.lastChangedOn = now;
     // Save
     await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     await Logging.logInfo({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
       message: `Registration token with ID '${registrationTokenID}' has been revoked successfully`,
@@ -150,9 +143,9 @@ export default class RegistrationTokenService {
     // Filter
     const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokensGetReq(req.query);
     // Check dynamic auth
-    const authorizationRegistrationTokenFilter = await AuthorizationService.checkAndGetRegistrationTokensAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationRegistrationTokenFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetRegistrationTokensAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -161,7 +154,7 @@ export default class RegistrationTokenService {
       {
         search: filteredRequest.Search,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
-        ...authorizationRegistrationTokenFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -169,14 +162,14 @@ export default class RegistrationTokenService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationRegistrationTokenFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationRegistrationTokenFilter.projectFields) {
-      registrationTokens.projectFields = authorizationRegistrationTokenFilter.projectFields;
+    if (authorizations.projectFields) {
+      registrationTokens.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addRegistrationTokensAuthorizations(req.tenant, req.user, registrationTokens as RegistrationTokenDataResult, authorizationRegistrationTokenFilter);
+    await AuthorizationService.addRegistrationTokensAuthorizations(req.tenant, req.user, registrationTokens as RegistrationTokenDataResult, authorizations);
     res.json(registrationTokens);
     next();
   }

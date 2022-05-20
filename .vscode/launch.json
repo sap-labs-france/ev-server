@@ -26,7 +26,7 @@
       }
     },
     {
-      "name": "Debug ev-server",
+      "name": "Debug",
       "type": "pwa-node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
@@ -41,7 +41,7 @@
       "stopOnEntry": true
     },
     {
-      "name": "Debug ev-server Nodemon",
+      "name": "Debug (nodemon)",
       "type": "pwa-node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
@@ -61,7 +61,7 @@
       "stopOnEntry": true
     },
     {
-      "name": "Debug test:createContext",
+      "name": "Debug Tests 'createContext'",
       "type": "pwa-node",
       "request": "launch",
       "cwd": "${workspaceFolder}",

@@ -48,14 +48,14 @@ export default class Constants {
   public static readonly SMART_CHARGING_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_CONNECTION_LOCK_SECS = 5;
-
+  public static readonly TENANT_DEFAULT_LOGO = '/assets/img/logo-low.gif';
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
 
-  public static readonly DEFAULT_TENANT = 'default';
+  public static readonly DEFAULT_TENANT_ID = 'default';
   public static readonly DEFAULT_TENANT_OBJECT = Object.freeze({
-    id: Constants.DEFAULT_TENANT,
-    name: Constants.DEFAULT_TENANT,
-    subdomain: Constants.DEFAULT_TENANT
+    id: Constants.DEFAULT_TENANT_ID,
+    name: Constants.DEFAULT_TENANT_ID,
+    subdomain: Constants.DEFAULT_TENANT_ID
   } as Tenant);
 
   // Output of crypto.getCiphers()
@@ -322,46 +322,8 @@ export default class Constants {
   ]);
 
   public static readonly SENSITIVE_DATA = Object.freeze([
-    'firstName', 'name', 'repeatPassword', 'password', 'plainPassword','captcha', 'email', 'coordinates', 'latitude', 'longitude',
-    'Authorization', 'authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'Bearer', 'auth_token', 'token'
+    'firstName', 'name', 'repeatPassword', 'password', 'plainPassword', 'captcha', 'email'
   ]);
-
-  public static readonly MONGO_USER_MASK = Object.freeze({
-    '_id': 0,
-    '__v': 0,
-    'email': 0,
-    'phone': 0,
-    'mobile': 0,
-    'notificationsActive': 0,
-    'notifications': 0,
-    'iNumber': 0,
-    'costCenter': 0,
-    'status': 0,
-    'createdBy': 0,
-    'createdOn': 0,
-    'lastChangedBy': 0,
-    'lastChangedOn': 0,
-    'role': 0,
-    'password': 0,
-    'locale': 0,
-    'passwordWrongNbrTrials': 0,
-    'passwordBlockedUntil': 0,
-    'passwordResetHash': 0,
-    'eulaAcceptedOn': 0,
-    'eulaAcceptedVersion': 0,
-    'eulaAcceptedHash': 0,
-    'image': 0,
-    'address': 0,
-    'plateID': 0,
-    'verificationToken': 0,
-    'mobileLastChangedOn': 0,
-    'issuer': 0,
-    'mobileOs': 0,
-    'mobileToken': 0,
-    'verifiedAt': 0,
-    'importedData': 0,
-    'billingData': 0
-  });
 
   public static readonly DEFAULT_OCPP_16_CONFIGURATION: OcppParameter[] = Object.freeze([
     { 'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null },

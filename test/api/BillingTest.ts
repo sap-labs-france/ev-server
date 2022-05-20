@@ -2,8 +2,8 @@
 import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
-import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 
+import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from '../../src/utils/Constants';
@@ -83,6 +83,15 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           -------------------------------------------------------*/
         const immediateBilling = true;
         await stripeTestHelper.forceBillingSettings(immediateBilling);
+      });
+
+      describe('Sub-accounts', () => {
+        it('Should create a sub-account with its associated activation link', async () => {
+          const subAccount = await stripeTestHelper.createSubAccount();
+          expect(subAccount.accountID).to.exist;
+          expect(subAccount.activationLink).to.include('https://connect.stripe.com/setup/s/');
+          expect(subAccount.pending).to.be.true;
+        });
       });
 
       it('Should add a different source to BILLING-TEST user', async () => {
@@ -383,6 +392,18 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.result.length).to.be.gt(0);
         });
+
+        it('should create a sub account', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(response.status).to.be.eq(StatusCodes.CREATED);
+          expect(response.data.id).to.not.be.null;
+          expect(response.data.accountID).to.not.be.null;
+          expect(response.data.userID).to.eq(billingTestHelper.userContext.id);
+          expect(response.data.activationLink).to.not.be.null;
+          expect(response.data.pending).to.be.true;
+        });
       });
 
       describe('Where basic user', () => {
@@ -441,6 +462,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           assert(transactionID, 'transactionID should not be null');
           const itemsAfter = await billingTestHelper.getNumberOfSessions(basicUser.id);
           expect(itemsAfter).to.be.eq(itemsBefore + 1);
+        });
+
+        it('should not be able to create a sub account', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
       });
 
@@ -666,6 +694,17 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           assert(transactionID, 'transactionID should not be null');
           // Check that we have a new invoice with an invoiceID and an invoiceNumber
           await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 29.49);
+        });
+
+        it('should bill the ENERGY + CT(STEP80S) on COMBO CCS - DC', async () => {
+          await billingTestHelper.initChargingStationContext2TestFastCharger('E+CT(STEP80S)');
+          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+          const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+          await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 10.11);
         });
 
         it('should bill the FF+E with 2 tariffs on COMBO CCS - DC', async () => {
@@ -939,7 +978,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 19.49);
       });
     });
-
   });
 
   describe('Billing Test Data Cleanup (utbilling)', () => {

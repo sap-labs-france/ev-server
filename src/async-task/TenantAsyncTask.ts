@@ -19,7 +19,7 @@ export default abstract class TenantAsyncTask extends AbstractAsyncTask {
       const tenantCorrelationID = Utils.generateShortNonUniqueID();
       const startTimeInTenant = moment();
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.ASYNC_TASK,
         module: MODULE_NAME, method: 'executeAsyncTask',
         message: `The Task '${this.getAsyncTask().name}~${this.getCorrelationID()}~${tenantCorrelationID}' is running for Tenant ${Utils.buildTenantName(tenant)}...`
@@ -39,7 +39,7 @@ export default abstract class TenantAsyncTask extends AbstractAsyncTask {
         await this.afterExecuteTenantAsyncTask(tenant);
       } catch (error) {
         await Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.ASYNC_TASK,
           module: MODULE_NAME, method: 'executeAsyncTask',
           message: `Error while running the Task '${this.getAsyncTask().name}~${this.getCorrelationID()}~${tenantCorrelationID}' for Tenant ${Utils.buildTenantName(tenant)}: ${error.message as string}`,
@@ -56,7 +56,7 @@ export default abstract class TenantAsyncTask extends AbstractAsyncTask {
       // Log Total Processing Time in Tenant
       const totalTimeSecsInTenant = moment.duration(moment().diff(startTimeInTenant)).asSeconds();
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.ASYNC_TASK,
         module: MODULE_NAME, method: 'executeAsyncTask',
         message: `The Task '${this.getAsyncTask().name}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(tenant)}`

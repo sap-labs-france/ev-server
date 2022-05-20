@@ -31,7 +31,7 @@ export default class AlignEntitiesWithOrganizationIDsTask extends TenantMigratio
             tenant, foundSite.companyID.toString(), siteArea.siteID.toString(), siteArea._id.toString());
         } else {
           await Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: Constants.DEFAULT_TENANT_ID,
             module: MODULE_NAME, method: 'migrateTenant',
             action: ServerAction.MIGRATION,
             message: `Site ID '${siteArea.siteID.toString()}' does not exist.`,
@@ -42,7 +42,7 @@ export default class AlignEntitiesWithOrganizationIDsTask extends TenantMigratio
     // Log in the default tenant
     if (updated > 0) {
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
         message: `${updated} record(s) have been updated with Organization IDs in Tenant ${Utils.buildTenantName(tenant)}`
@@ -51,7 +51,7 @@ export default class AlignEntitiesWithOrganizationIDsTask extends TenantMigratio
   }
 
   public getVersion(): string {
-    return '1.0';
+    return '1.1';
   }
 
   public getName(): string {

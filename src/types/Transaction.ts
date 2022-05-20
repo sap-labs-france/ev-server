@@ -1,6 +1,6 @@
 import { Car, CarCatalog } from './Car';
-import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 import Consumption, { AbstractCurrentConsumption } from './Consumption';
+import { OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 
 import ChargingStation from '../types/ChargingStation';
 import Company from './Company';
@@ -40,6 +40,22 @@ export interface UserDefaultTagCar {
   car: Car;
   tag: Tag;
   errorCodes?: StartTransactionErrorCode[];
+}
+
+export interface AdvenirPayload {
+  [ userID: string ]: AdvenirEvseData
+}
+
+export interface AdvenirEvseData {
+  [ evseID: string ]: AdvenirTransactionData
+}
+export interface AdvenirTransactionData {
+  [ transactionID: string ]: AdvenirConsumptionData[]
+}
+
+export interface AdvenirConsumptionData {
+  timestamp: number,
+  value: number
 }
 
 export enum StartTransactionErrorCode {

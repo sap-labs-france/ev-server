@@ -7,7 +7,7 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import { ServerRoute } from '../../src/types/Server';
+import { RESTServerRoute } from '../../src/types/Server';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../src/types/Tag';
@@ -110,7 +110,7 @@ describe('User', () => {
           // Send
           const response = await testData.userService._baseApi.send({
             method: 'GET',
-            url: '/v1/auth/' + ServerRoute.REST_END_USER_LICENSE_AGREEMENT_CHECK + `?Email=${testData.userContext.email}&Tenant=${testData.tenantContext.getTenant().subdomain}`,
+            url: '/v1/auth/' + RESTServerRoute.REST_END_USER_LICENSE_AGREEMENT_CHECK + `?Email=${testData.userContext.email}&Tenant=${testData.tenantContext.getTenant().subdomain}`,
             headers: {
               'Content-Type': 'application/json'
             }

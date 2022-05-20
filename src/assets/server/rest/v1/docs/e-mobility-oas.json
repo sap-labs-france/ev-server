@@ -11,12 +11,7 @@
     "description": "Charging Station Management Software",
     "version": "1.0.0",
     "contact": {
-      "name": "Serge FABIANO",
-      "email": "serge.fabiano@sap.com"
-    },
-    "license": {
-      "name": "Apache 2.0",
-      "url": "https://github.com/sap-labs-france/ev-server/blob/master/LICENSE"
+      "name": "Serge FABIANO"
     }
   },
   "tags": [
@@ -53,8 +48,8 @@
       "description": "Integration connection API"
     },
     {
-      "name": "Loggings",
-      "description": "Loggings API"
+      "name": "Logs",
+      "description": "Logs API"
     },
     {
       "name": "Assets",
@@ -405,6 +400,9 @@
             "$ref": "#/components/parameters/WithSite"
           },
           {
+            "$ref": "#/components/parameters/WithParentSiteArea"
+          },
+          {
             "$ref": "#/components/parameters/WithChargingStations"
           },
           {
@@ -531,6 +529,30 @@
           "403": {
             "$ref": "#/components/responses/ForbiddenError"
           },
+          "540": {
+            "$ref": "#/components/responses/SiteAreaTreeError"
+          },
+          "541": {
+            "$ref": "#/components/responses/SiteAreaTreeSameSiteAreaError"
+          },
+          "542": {
+            "$ref": "#/components/responses/SiteAreaTreeSiteError"
+          },
+          "543": {
+            "$ref": "#/components/responses/SiteAreaTreeSmartChargingError"
+          },
+          "544": {
+            "$ref": "#/components/responses/SiteAreaTreeNumberOfPhasesError"
+          },
+          "545": {
+            "$ref": "#/components/responses/SiteAreaTreeVoltageError"
+          },
+          "546": {
+            "$ref": "#/components/responses/SiteAreaTreeServeralActionNotSupported"
+          },
+          "547": {
+            "$ref": "#/components/responses/SiteAreaTreeChildrenMaxPower"
+          },
           "500": {
             "$ref": "#/components/responses/BackendError"
           }
@@ -634,6 +656,30 @@
           "539": {
             "description": "One of the charging stations is not single phased"
           },
+          "540": {
+            "$ref": "#/components/responses/SiteAreaTreeError"
+          },
+          "541": {
+            "$ref": "#/components/responses/SiteAreaTreeSameSiteAreaError"
+          },
+          "542": {
+            "$ref": "#/components/responses/SiteAreaTreeSiteError"
+          },
+          "543": {
+            "$ref": "#/components/responses/SiteAreaTreeSmartChargingError"
+          },
+          "544": {
+            "$ref": "#/components/responses/SiteAreaTreeNumberOfPhasesError"
+          },
+          "545": {
+            "$ref": "#/components/responses/SiteAreaTreeVoltageError"
+          },
+          "546": {
+            "$ref": "#/components/responses/SiteAreaTreeServeralActionNotSupported"
+          },
+          "547": {
+            "$ref": "#/components/responses/SiteAreaTreeChildrenMaxPower"
+          },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
@@ -673,6 +719,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "543": {
+            "$ref": "#/components/responses/SiteAreaHierarchyDependencyError"
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
@@ -1076,11 +1125,11 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "demo.demo@sap.com"
+                    "example": "user@domain.com"
                   },
                   "password": {
                     "type": "string",
-                    "example": "DeM*Us$r1"
+                    "example": "password"
                   },
                   "acceptEula": {
                     "type": "boolean",
@@ -1146,7 +1195,7 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "demo.demo@sap.com"
+                    "example": "user@domain.com"
                   },
                   "name": {
                     "type": "string",
@@ -1158,7 +1207,11 @@
                   },
                   "password": {
                     "type": "string",
-                    "example": "DeM*Us$r1"
+                    "example": "password"
+                  },
+                  "mobile": {
+                    "type": "string",
+                    "example": "+33666696969"
                   },
                   "acceptEula": {
                     "type": "boolean",
@@ -1234,7 +1287,7 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "demo.demo@sap.com"
+                    "example": "user@domain.com"
                   },
                   "password": {
                     "type": "string"
@@ -1253,7 +1306,7 @@
                 "resetRequest": {
                   "summary": "Request a password reset",
                   "value": {
-                    "email": "demo.demo@sap.com",
+                    "email": "user@domain.com",
                     "captcha": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA",
                     "tenant": "slf"
                   }
@@ -1261,7 +1314,7 @@
                 "resetValidation": {
                   "summary": "Validate password reset",
                   "value": {
-                    "email": "demo.demo@sap.com",
+                    "email": "user@domain.com",
                     "captcha": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA",
                     "hash": "dcff1ec7-cecb-4c2f-99da-47aeb1f83509",
                     "password": "Azerty123?",
@@ -1344,7 +1397,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "example": "demo.demo@sap.com"
+              "example": "user@domain.com"
             }
           },
           {
@@ -1399,7 +1452,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "example": "demo.demo@sap.com"
+              "example": "user@domain.com"
             }
           },
           {
@@ -1408,7 +1461,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "example": "demo.demo@sap.com"
+              "example": "user@domain.com"
             }
           },
           {
@@ -1458,7 +1511,7 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "demo.demo@sap.com"
+                    "example": "user@domain.com"
                   },
                   "tenant": {
                     "type": "string",
@@ -4691,12 +4744,12 @@
                       },
                       "startTime": {
                         "type": "string",
-                        "description": "Optional. This contains the date and time of the oldest logging information to include in the diagnostics.",
+                        "description": "Optional. This contains the date and time of the oldest log information to include in the diagnostics.",
                         "format": "date-time"
                       },
                       "stopTime": {
                         "type": "string",
-                        "description": "Optional. This contains the date and time of the latest logging information to include in the diagnostics.",
+                        "description": "Optional. This contains the date and time of the latest log information to include in the diagnostics.",
                         "format": "date-time"
                       }
                     },
@@ -5186,7 +5239,7 @@
               "text/csv": {
                 "schema": {
                   "type": "string",
-                  "example": "Charging Station\tName\tValue\tSite Area\tSite\nSAP-Mougins-03\tAllowOfflineTxForUnknownId\ttrue\tMougins - South\tSAP Labs Mougins\nSAP-Mougins-03\tallowpluggedcable\true\tMougins - South\tSAP Labs Mougins"
+                  "example": "Charging Station\tName\tValue\tSite Area\tSite\nCS-03\tAllowOfflineTxForUnknownId\ttrue\tMougins - South\tLabs Mougins\nCS-03\tallowpluggedcable\true\tMougins - South\tLabs Mougins"
                 }
               }
             }
@@ -6560,7 +6613,7 @@
                   },
                   "password": {
                     "type": "string",
-                    "example": "DeM*Us$r1"
+                    "example": "password"
                   },
                   "phone": {
                     "type": "string",
@@ -6568,7 +6621,7 @@
                   },
                   "email": {
                     "type": "string",
-                    "example": "user.demo@sap.com"
+                    "example": "user@domain.com"
                   },
                   "issuer": {
                     "type": "boolean"
@@ -7225,7 +7278,7 @@
             "description": "Users exported successfully",
             "content": {
               "text/csv": {
-                "example": "id,name,firstName,locale,role,status,email,eulaAcceptedOn,createdOn,changedOn,changedBy\n\"###\",\"DEMO\",\"User\",\"en_EN\",\"B\",\"P\",\"user.demo@sap.com\",\"2021-06-09\",\"2021-04-23\",\"2021-06-09\",\"\""
+                "example": "id,name,firstName,locale,role,status,email,eulaAcceptedOn,createdOn,changedOn,changedBy\n\"###\",\"DEMO\",\"User\",\"en_EN\",\"B\",\"P\",\"user@domain.com\",\"2021-06-09\",\"2021-04-23\",\"2021-06-09\",\"\""
               }
             }
           },
@@ -7247,6 +7300,177 @@
         }
       }
     },
+    "/api/pricing-definitions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get pricing definitions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EntityID"
+          },
+          {
+            "$ref": "#/components/parameters/EntityType"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Pricing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return pricing definitions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PricingDefinition"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/pricing-definitions/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get pricing definition by id",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/pricingDefinitionID"
+          }
+        ],
+        "tags": [
+          "Pricing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return pricing definition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingDefinition"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/pricing-model/resolve": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Resolve pricing context",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorID"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          }
+        ],
+        "tags": [
+          "Pricing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return tariffs matching a pricing context",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PricingDefinition"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/users/{id}/payment-methods": {
       "get": {
         "security": [
@@ -7258,12 +7482,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/userID"
-          },
-          {
-            "$ref": "#/components/parameters/Skip"
-          },
-          {
-            "$ref": "#/components/parameters/Limit"
           }
         ],
         "tags": [
@@ -8897,7 +9115,7 @@
         }
       }
     },
-    "/api/loggings": {
+    "/api/logs": {
       "get": {
         "security": [
           {
@@ -8953,7 +9171,7 @@
           }
         ],
         "tags": [
-          "Loggings"
+          "Logs"
         ],
         "responses": {
           "200": {
@@ -8998,7 +9216,7 @@
         }
       }
     },
-    "/api/loggings/{id}": {
+    "/api/logs/{id}": {
       "get": {
         "security": [
           {
@@ -9018,7 +9236,7 @@
           }
         ],
         "tags": [
-          "Loggings"
+          "Logs"
         ],
         "responses": {
           "200": {
@@ -9060,14 +9278,14 @@
         }
       }
     },
-    "/api/loggings/action/export": {
+    "/api/logs/action/export": {
       "get": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Export loggings as CSV file",
+        "description": "Export logs as CSV file",
         "parameters": [
           {
             "$ref": "#/components/parameters/StartDateTime"
@@ -9113,7 +9331,7 @@
           }
         ],
         "tags": [
-          "Loggings"
+          "Logs"
         ],
         "responses": {
           "200": {
@@ -11770,6 +11988,50 @@
         }
       }
     },
+    "/api/ocpi/endpoints/{id}/credentials": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update credentials of an OCPI Endpoint",
+        "tags": [
+          "OCPI"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OCPIEndpointID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OCPI Endpoint updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "statusCode": 200,
+                  "statusText": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/oicp/endpoints": {
       "post": {
         "security": [
@@ -13586,6 +13848,63 @@
         }
       }
     },
+    "/api/billing/sub-accounts": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create a Billing sub-account",
+        "tags": [
+          "Billing"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "userID"
+                ],
+                "properties": {
+                  "userID": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pending sub-account created",
+            "content": {
+              "application/json": {
+                "example": {
+                  "userID": "###",
+                  "accountID": "###",
+                  "activationLink": "###",
+                  "pending": true,
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/invoices": {
       "get": {
         "security": [
@@ -13726,8 +14045,7 @@
           "200": {
             "description": "Return invoice as PDF",
             "content": {
-              "application/pdf": {
-              }
+              "application/pdf": {}
             }
           },
           "401": {
@@ -13784,6 +14102,33 @@
       },
       "InvalidCSVHeaderFormat": {
         "description": "Invalid CSV header format"
+      },
+      "SiteAreaTreeError": {
+        "description": "Circular dependency error in Site Area Tree"
+      },
+      "SiteAreaTreeSameSiteAreaError": {
+        "description": "Site Area cannot have a parent of itslef"
+      },
+      "SiteAreaTreeSiteError": {
+        "description": "Site Area must have the same Site as its parent"
+      },
+      "SiteAreaTreeSmartChargingError": {
+        "description": "Site Area must have the same Smart Charging value as its parent"
+      },
+      "SiteAreaTreeNumberOfPhasesError": {
+        "description": "Site Area must have the same Number of Phases as its parent"
+      },
+      "SiteAreaTreeChildrenMaxPower": {
+        "description": "The total power of the child Site Areas must be lower than the one of their parents."
+      },
+      "SiteAreaTreeServeralActionNotSupported": {
+        "description": "Multiple changes are currently not supported (eg. change of Site and Smart Charging.)"
+      },
+      "SiteAreaTreeVoltageError": {
+        "description": "Site Area must have the same Voltage as its parent"
+      },
+      "SiteAreaHierarchyDependencyError": {
+        "description": "Site Area has dependencies to other Site Areas"
       }
     },
     "schemas": {
@@ -13797,16 +14142,16 @@
         "properties": {
           "id": {
             "type": "string",
-            "example": "5be7fb271014d90008992347",
+            "example": "66666666666666666666666",
             "readOnly": true
           },
           "name": {
             "type": "string",
-            "example": "SAP Labs France"
+            "example": "Labs France"
           },
           "email": {
             "type": "string",
-            "example": "serge.fabiano@sap.com"
+            "example": "user@domain.com"
           },
           "subdomain": {
             "type": "string",
@@ -13882,8 +14227,7 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "simple",
-                      "convergentCharging"
+                      "simple"
                     ]
                   },
                   "active": {
@@ -14016,6 +14360,21 @@
             "type": "string"
           },
           "site": {
+            "type": "object",
+            "readOnly": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "parentSiteAreaID": {
+            "type": "string"
+          },
+          "parentSiteArea": {
             "type": "object",
             "readOnly": true,
             "properties": {
@@ -14740,7 +15099,7 @@
           },
           "password": {
             "type": "string",
-            "example": "DeM*Us$r1"
+            "example": "password"
           },
           "phone": {
             "type": "string",
@@ -14748,7 +15107,7 @@
           },
           "email": {
             "type": "string",
-            "example": "user.demo@sap.com"
+            "example": "user@domain.com"
           },
           "issuer": {
             "type": "boolean"
@@ -15438,23 +15797,6 @@
                   }
                 }
               },
-              "convergentCharging": {
-                "type": "object",
-                "properties": {
-                  "url": {
-                    "type": "string"
-                  },
-                  "chargeableItemName": {
-                    "type": "string"
-                  },
-                  "user": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  }
-                }
-              },
               "simple": {
                 "type": "object",
                 "properties": {
@@ -15775,6 +16117,115 @@
               "type": "number",
               "description": "User name"
             }
+          }
+        }
+      },
+      "PricingDefinition": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "entityID": {
+            "type": "string"
+          },
+          "entityType": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "staticRestrictions": {
+            "$ref": "#/components/schemas/PricingStaticRestrictions"
+          },
+          "restrictions": {
+            "$ref": "#/components/schemas/PricingRestrictions"
+          },
+          "dimensions": {
+            "$ref": "#/components/schemas/PricingDimensions"
+          }
+        }
+      },
+      "PricingDimensions": {
+        "type": "object",
+        "properties": {
+          "flatFee": {
+            "$ref": "#/components/schemas/PricingDimension"
+          },
+          "energy": {
+            "$ref": "#/components/schemas/PricingDimension"
+          },
+          "chargingTime": {
+            "$ref": "#/components/schemas/PricingDimension"
+          },
+          "parkingTime": {
+            "$ref": "#/components/schemas/PricingDimension"
+          }
+        }
+      },
+      "PricingDimension": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "price": {
+            "type": "number"
+          },
+          "stepSize": {
+            "type": "number"
+          }
+        }
+      },
+      "PricingStaticRestrictions": {
+        "type": "object",
+        "properties": {
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "connectorType": {
+            "type": "string"
+          },
+          "connectorPowerkW": {
+            "type": "number"
+          }
+        }
+      },
+      "PricingRestrictions": {
+        "type": "object",
+        "properties": {
+          "daysOfWeek": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "timeFrom": {
+            "type": "string"
+          },
+          "timeTo": {
+            "type": "string"
+          },
+          "minEnergykWh": {
+            "type": "number"
+          },
+          "maxEnergykWh": {
+            "type": "number"
+          },
+          "minDurationSeconds": {
+            "type": "number"
+          },
+          "maxDurationSeconds": {
+            "type": "number"
           }
         }
       },
@@ -16294,6 +16745,14 @@
           "type": "boolean"
         }
       },
+      "WithParentSiteArea": {
+        "in": "query",
+        "name": "WithParentSiteArea",
+        "description": "With parent site area parent attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
       "WithTag": {
         "in": "query",
         "name": "WithTag",
@@ -16612,6 +17071,39 @@
         "required": true,
         "schema": {
           "type": "string"
+        }
+      },
+      "pricingDefinitionID": {
+        "in": "path",
+        "name": "id",
+        "description": "PricingDefintionID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "EntityID": {
+        "in": "query",
+        "name": "Entity ID",
+        "description": "Entity ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "EntityType": {
+        "in": "query",
+        "name": "Entity Type",
+        "description": "Entity Type",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "WithEntityInformation": {
+        "in": "query",
+        "name": "WithEntityInformation",
+        "description": "With details about the entity",
+        "schema": {
+          "type": "boolean"
         }
       }
     }

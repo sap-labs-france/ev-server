@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
@@ -295,7 +295,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return stripeInvoice;
   }
 
-  public async synchronizeAsBillingInvoice(stripeInvoice: Stripe.Invoice, checkUserExists:boolean): Promise<BillingInvoice> {
+  public async synchronizeAsBillingInvoice(stripeInvoice: Stripe.Invoice): Promise<BillingInvoice> {
     if (!stripeInvoice) {
       throw new BackendError({
         message: 'Unexpected situation - invoice is not set',
@@ -320,16 +320,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, action: ServerAction.BILLING,
         method: 'synchronizeAsBillingInvoice',
       });
-    } else if (checkUserExists) {
-      // Let's make sure the userID is still valid
-      const user = await UserStorage.getUser(this.tenant, userID);
-      if (!user) {
-        throw new BackendError({
-          message: `Unexpected situation - the e-Mobility user does not exist - ${userID}`,
-          module: MODULE_NAME, action: ServerAction.BILLING,
-          method: 'synchronizeAsBillingInvoice',
-        });
-      }
     }
     // Get the corresponding BillingInvoice (if any)
     const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByInvoiceID(this.tenant, stripeInvoice.id);
@@ -370,8 +360,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer> {
     if (invoice.downloadUrl) {
+      await this.checkConnection();
+      // Get fresh data because persisted url expires after 30 days
+      const stripeInvoice = await this.getStripeInvoice(invoice.invoiceID);
+      const downloadUrl = stripeInvoice.invoice_pdf;
       // Get document
-      const response = await this.axiosInstance.get(invoice.downloadUrl, {
+      const response = await this.axiosInstance.get(downloadUrl, {
         responseType: 'arraybuffer'
       });
       // Convert
@@ -446,7 +440,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       stripeInvoice = await this.getStripeInvoice(billingInvoice.invoiceID);
     }
     // Let's replicate some information on our side
-    billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
+    billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice);
     if (!billingInvoice) {
       throw new Error(`Unexpected situation - failed to synchronize ${stripeInvoice.id} - the invoice is null`);
     }
@@ -1033,7 +1027,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  private async getLatestDraftInvoiceOfTheMonth(customerID: string): Promise<Stripe.Invoice> {
+  private async getLatestDraftInvoiceOfTheMonth(tenantID:string, userID: string, customerID: string): Promise<Stripe.Invoice> {
     // Fetch the invoice list - c.f.: https://stripe.com/docs/api/invoices/list
     // The invoices are returned sorted by creation date, with the most recent ones appearing first.
     const list = await this.stripe.invoices.list({
@@ -1042,10 +1036,20 @@ export default class StripeBillingIntegration extends BillingIntegration {
       limit: 1
     });
     const latestDraftInvoice = !Utils.isEmptyArray((list.data)) ? list.data[0] : null;
-    // Check for the date
-    // We do not want to mix in the same invoice charging sessions from different months
-    if (latestDraftInvoice && moment.unix(latestDraftInvoice.created).isSame(moment(), 'month')) {
-      return latestDraftInvoice;
+    // An invoice with no metadata should not be reused - it may have been created manually from the STRIPE dashboard
+    if (latestDraftInvoice?.metadata) {
+      // Check for the tenant
+      if (tenantID !== latestDraftInvoice.metadata.tenantID) {
+        return null;
+      }
+      // Check for the userID
+      if (userID !== latestDraftInvoice.metadata.userID) {
+        return null;
+      }
+      // Check for the date - We do not want to mix in the same invoice charging sessions from different months
+      if (moment.unix(latestDraftInvoice.created).isSame(moment(), 'month')) {
+        return latestDraftInvoice;
+      }
     }
     // The latest DRAFT invoice is too old - don't reuse it!
     return null;
@@ -1152,7 +1156,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       stripeInvoice = null;
     } else {
       // immediateBillingAllowed is OFF - let's add to the latest DRAFT invoice (if any)
-      stripeInvoice = await this.getLatestDraftInvoiceOfTheMonth(customerID);
+      stripeInvoice = await this.getLatestDraftInvoiceOfTheMonth(this.tenant.id, userID, customerID);
     }
     // Let's create an invoice item per dimension
     // When the stripeInvoice is null a pending item is created
@@ -1191,7 +1195,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       stripeInvoice = await this.getStripeInvoice(stripeInvoice.id);
     }
     // Let's replicate some information on our side
-    const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
+    const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice);
     if (!billingInvoice) {
       throw new Error(`Unexpected situation - failed to synchronize ${stripeInvoice.id} - the invoice is null`);
     }
@@ -1370,11 +1374,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async createUser(user: User): Promise<BillingUser> {
-    return await this.createBillingUser(user, false);
+    return this.createBillingUser(user, false);
   }
 
   public async repairUser(user: User): Promise<BillingUser> {
-    return await this.createBillingUser(user, true);
+    return this.createBillingUser(user, true);
   }
 
   private async createBillingUser(user: User, forceUserCreation: boolean): Promise<BillingUser> {
@@ -1679,5 +1683,46 @@ export default class StripeBillingIntegration extends BillingIntegration {
         });
       }
     }));
+  }
+
+  public async createSubAccount(): Promise<BillingAccount> {
+    await this.checkConnection();
+    let subAccount: Stripe.Account;
+    // Create the sub-account
+    try {
+      subAccount = await this.stripe.accounts.create({
+        type: 'standard'
+      });
+    } catch (e) {
+      throw new BackendError({
+        message: 'Unexpected situation - unable to create sub-account',
+        detailedMessages: { e },
+        module: MODULE_NAME, action: ServerAction.BILLING_SUB_ACCOUNT_CREATE,
+        method: 'createSubAccount',
+      });
+    }
+    // Generate the link to activate the sub-account
+    let activationLink: Stripe.AccountLink;
+    try {
+      activationLink = await this.stripe.accountLinks.create({
+        account: subAccount.id,
+        return_url: Utils.buildEvseBillingSubAccountActivationURL(this.tenant.subdomain, subAccount.id),
+        refresh_url: Utils.buildEvseURL(),
+        type: 'account_onboarding',
+      });
+    } catch (e) {
+      throw new BackendError({
+        message: 'Unexpected situation - unable to create activation link',
+        detailedMessages: { e },
+        module: MODULE_NAME, action: ServerAction.BILLING_SUB_ACCOUNT_CREATE,
+        method: 'createSubAccount',
+      });
+    }
+
+    return {
+      accountID: subAccount.id,
+      activationLink: activationLink.url,
+      pending: true
+    };
   }
 }

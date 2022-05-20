@@ -134,6 +134,7 @@ export enum Action {
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
+  BILLING_CREATE_SUB_ACCOUNT = 'BillingCreateSubAccount',
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
@@ -156,6 +157,7 @@ export enum Action {
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
   MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
+  RESOLVE = 'Resolve',
 }
 
 export interface AuthorizationContext {
@@ -221,6 +223,10 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
   canMaintainPricingDefinitions?: boolean;
+}
+
+export interface BillingInvoiceAuthorizationActions extends AuthorizationActions {
+  canDownload?:boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

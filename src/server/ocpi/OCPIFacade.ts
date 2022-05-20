@@ -77,10 +77,10 @@ export default class OCPIFacade {
   }
 
   public static async processEndTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
-      siteArea: SiteArea, user: User, action: ServerAction): Promise<void> {
+      siteArea: SiteArea, user: User, action: ServerAction): Promise<boolean> {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) ||
         !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl || user.issuer) {
-      return;
+      return false;
     }
     // Get OCPI CPO client
     const ocpiClient = await OCPIFacade.checkAndGetOcpiCpoClient(
@@ -100,8 +100,8 @@ export default class OCPIFacade {
       if (ocpiLock) {
         try {
           // Roaming
-          ocpiCdrSent = true;
-          await OCPIFacade.processEndTransaction(tenant, transaction, chargingStation, siteArea, transaction.user, action);
+          ocpiCdrSent = await OCPIFacade.processEndTransaction(
+            tenant, transaction, chargingStation, siteArea, transaction.user, action);
         } finally {
           // Release the lock
           await LockingManager.release(ocpiLock);
@@ -126,7 +126,7 @@ export default class OCPIFacade {
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'updateConnectorStatus',
-        action: ServerAction.OCPI_PATCH_STATUS,
+        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
         message: `${Utils.buildConnectorInfo(connector.connectorId)} An error occurred while patching the connector's Status`,
         detailedMessages: { error: error.stack, connector, chargingStation }
       });

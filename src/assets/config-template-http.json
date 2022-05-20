@@ -84,7 +84,8 @@
   "Storage": {
     "implementation": "mongodb",
     "uri": "YourConnectionURI",
-    "debug": false
+    "debug": false,
+    "poolSize": 10
   },
   "Notification": {
     "Email": {
@@ -104,8 +105,7 @@
     "authURI": "",
     "tokenURI": "",
     "authProviderX509CertURL": "",
-    "clientX509CertURL": "",
-    "databaseURL": ""
+    "clientX509CertURL": ""
   },
   "Axios": {
     "retries": 0,

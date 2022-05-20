@@ -1,4 +1,4 @@
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingSubAccountCreationLinkNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
 import BackendError from '../../exception/BackendError';
@@ -140,6 +140,10 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('billing-periodic-operation-failed', data, user, tenant, severity);
   }
 
+  public async sendBillingSubAccountCreationLink(data: BillingSubAccountCreationLinkNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('billing-sub-account-created', data, user, tenant, severity);
+  }
+
   // TODO : Delete sendBillingNewInvoice ??
   public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('billing-new-invoice', data, user, tenant, severity);
@@ -228,7 +232,7 @@ export default class EMailNotificationTask implements NotificationTask {
       const messageSent: Message = await smtpClient.sendAsync(messageToSend);
       // Email sent successfully
       await Logging.logDebug({
-        tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
+        tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
         siteID: data?.siteID,
         siteAreaID: data?.siteAreaID,
         companyID: data?.companyID,
@@ -247,7 +251,7 @@ export default class EMailNotificationTask implements NotificationTask {
     } catch (error) {
       try {
         await Logging.logError({
-          tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
+          tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
           siteID: data?.siteID,
           siteAreaID: data?.siteAreaID,
           companyID: data?.companyID,
@@ -327,8 +331,8 @@ export default class EMailNotificationTask implements NotificationTask {
       // Render the subject
       emailTemplate.subject = ejs.render(emailTemplate.subject, data);
       // Render the tenant name
-      if (tenant.id === Constants.DEFAULT_TENANT) {
-        emailTemplate.tenant = Constants.DEFAULT_TENANT;
+      if (tenant.id === Constants.DEFAULT_TENANT_ID) {
+        emailTemplate.tenant = Constants.DEFAULT_TENANT_ID;
       } else {
         emailTemplate.tenant = tenant.name;
       }

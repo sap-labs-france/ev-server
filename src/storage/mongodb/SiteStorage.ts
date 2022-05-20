@@ -1,4 +1,3 @@
-import Site, { SiteOcpiData } from '../../types/Site';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import AssetStorage from './AssetStorage';
@@ -9,6 +8,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
+import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from './TransactionStorage';
@@ -155,9 +155,9 @@ export default class SiteStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const usersCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'siteusers')
+    const usersCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, usersCountMDB);
@@ -191,9 +191,9 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<UserSite>(tenant.id, 'siteusers')
-      .aggregate<UserSite>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
+    const siteUsersMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as UserSite[];
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, siteUsersMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(usersCountMDB[0]),
@@ -390,14 +390,18 @@ export default class SiteStorage {
     aggregation.push({
       $match: filters
     });
+    // Charging Station Connnector stats
+    if (params.withAvailableChargingStations) {
+      DatabaseUtils.addConnectorStatsInOrg(tenant, aggregation, 'siteID');
+    }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const sitesCountMDB = await global.database.getCollection<DatabaseCount>(tenant.id, 'sites')
+    const sitesCountMDB = await global.database.getCollection<any>(tenant.id, 'sites')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray();
+      .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSites', startTime, aggregation, sitesCountMDB);
@@ -461,40 +465,14 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const sitesMDB = await global.database.getCollection<Site>(tenant.id, 'sites')
+    const sitesMDB = await global.database.getCollection<any>(tenant.id, 'sites')
       .aggregate(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
-    const sites = [];
-    // TODO: Handle this coding into the MongoDB request
-    if (sitesMDB && sitesMDB.length > 0) {
-      // Create
-      for (const siteMDB of sitesMDB) {
-        if (params.withOnlyChargingStations || params.withAvailableChargingStations) {
-        // Get the chargers
-          const chargingStations = await ChargingStationStorage.getChargingStations(tenant,
-            { siteIDs: [siteMDB.id], includeDeleted: false, withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT);
-          // Skip site with no charging stations if asked
-          if (params.withOnlyChargingStations && chargingStations.count === 0) {
-            continue;
-          }
-          // Add counts of Available/Occupied Chargers/Connectors
-          if (params.withAvailableChargingStations) {
-          // Set the Charging Stations' Connector statuses
-            siteMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);
-          }
-        }
-        if (!siteMDB.autoUserSiteAssignment) {
-          siteMDB.autoUserSiteAssignment = false;
-        }
-        // Add
-        sites.push(siteMDB);
-      }
-    }
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSites', startTime, aggregation, sites);
+      .toArray() as Site[];
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSites', startTime, aggregation, sitesMDB);
     return {
       projectFields: projectFields,
       count: DatabaseUtils.getCountFromDatabaseCount(sitesCountMDB[0]),
-      result: sites
+      result: sitesMDB
     };
   }
 

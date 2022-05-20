@@ -3,7 +3,6 @@ import Tenant, { TenantComponents } from '../../types/Tenant';
 
 import BuiltInPricingIntegration from './simple-pricing/BuiltInPricingIntegration';
 import PricingIntegration from './PricingIntegration';
-import SapConvergentChargingPricingIntegration from './sap-convergent-charging/SapConvergentChargingPricingIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Utils from '../../utils/Utils';
 
@@ -16,10 +15,6 @@ export default class PricingFactory {
       if (pricingSetting) {
         let pricingIntegrationImpl = null;
         switch (pricingSetting.type) {
-          // SAP Convergent Charging
-          case PricingSettingsType.CONVERGENT_CHARGING:
-            pricingIntegrationImpl = new SapConvergentChargingPricingIntegration(tenant, pricingSetting.convergentCharging);
-            break;
           // Simple Pricing
           case PricingSettingsType.SIMPLE:
             // Simple Pricing implementation

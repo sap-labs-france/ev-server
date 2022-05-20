@@ -7,7 +7,7 @@
       "$ref": "user#/definitions/id"
     },
     "ChargingStationID": {
-      "$ref": "common#/definitions/string-id"
+      "$ref": "chargingstation#/definitions/id"
     },
     "ProjectFields": {
       "$ref": "common#/definitions/projectFields"

@@ -1,6 +1,6 @@
 {
   "$id": "start-transaction-request",
-  "description": "Defines the StartTransaction.req PDU",
+  "description": "StartTransactionRequest",
   "type": "object",
   "properties": {
     "connectorId": {

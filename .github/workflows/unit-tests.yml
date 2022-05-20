@@ -12,6 +12,9 @@ on:
 jobs:
   unit-tests-submodules:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.head_ref || github.ref_name }}
+      cancel-in-progress: true
     strategy:
       matrix:
         node-version: [16.x]
@@ -44,11 +47,11 @@ jobs:
     - name: Start Server
       run: |
         npm run start:dev & sleep 10
-    - name: Create Integration Test data
+    - name: Create Test data
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
         npm run test:createContext
-    - name: Run Integration Tests
+    - name: Run Tests
       run: npm run test
 

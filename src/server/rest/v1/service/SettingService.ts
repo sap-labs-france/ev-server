@@ -24,7 +24,6 @@ export default class SettingService {
   public static async handleDeleteSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingID = SettingValidator.getInstance().validateSettingGetByIDReq(req.query).ID;
-    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleDeleteSetting', req.user);
     // Check auth
     if (!await Authorizations.canDeleteSetting(req.user)) {
       throw new AppAuthError({
@@ -43,7 +42,7 @@ export default class SettingService {
     await SettingStorage.deleteSetting(req.tenant, settingID);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSetting',
       message: `Setting '${setting.identifier}' has been deleted successfully`,
       action: action,
@@ -56,7 +55,6 @@ export default class SettingService {
   public static async handleGetSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingID = SettingValidator.getInstance().validateSettingGetByIDReq(req.query).ID;
-    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSetting', req.user);
     // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
@@ -85,7 +83,6 @@ export default class SettingService {
   public static async handleGetSettingByIdentifier(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingID = SettingValidator.getInstance().validateSettingGetByIdentifierReq(req.query).Identifier;
-    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
     // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
@@ -161,7 +158,7 @@ export default class SettingService {
     filteredRequest.id = await SettingStorage.saveSettings(req.tenant, filteredRequest);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSetting',
       message: `Setting '${filteredRequest.identifier}' has been created successfully`,
       action: action,
@@ -172,7 +169,6 @@ export default class SettingService {
   }
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    UtilsService.assertIdIsProvided(action, req.body.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     const filteredRequest = SettingService.filterSetting(action, req);
     // Check auth
     if (!await Authorizations.canUpdateSetting(req.user)) {
@@ -286,7 +282,7 @@ export default class SettingService {
     }
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSetting',
       message: `Setting '${filteredRequest.id}' has been updated successfully`,
       action: action,

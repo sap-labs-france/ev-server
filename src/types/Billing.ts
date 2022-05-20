@@ -1,4 +1,7 @@
+import { AuthorizationActions, BillingInvoiceAuthorizationActions } from './Authorization';
+
 import { ActionsResponse } from './GlobalType';
+import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { PricedConsumptionData } from './Pricing';
 import User from './User';
 
@@ -60,7 +63,7 @@ export interface BillingTax {
   percentage: number;
 }
 
-export interface BillingInvoice {
+export interface BillingInvoice extends CreatedUpdatedProps, BillingInvoiceAuthorizationActions {
   id: string;
   invoiceID: string;
   liveMode: boolean;
@@ -112,7 +115,7 @@ export interface BillingOperationResult {
   internalData?: unknown // an object returned by the concrete implementation - e.g.: STRIPE
 }
 
-export interface BillingPaymentMethod {
+export interface BillingPaymentMethod extends AuthorizationActions {
   id: string;
   brand: string;
   expiringOn: Date;
@@ -148,5 +151,13 @@ export enum BillingErrorCode {
 export interface BillingAdditionalData {
   session?: BillingSessionData,
   lastError?: BillingError,
+}
+
+export interface BillingAccount {
+  id?: string;
+  accountID: string;
+  activationLink?: string;
+  userID?: string;
+  pending: boolean;
 }
 

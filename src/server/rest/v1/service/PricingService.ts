@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
-import PricingDefinition, { PricingEntity } from '../../../../types/Pricing';
+import PricingDefinition, { PricingContext, PricingEntity, ResolvedPricingDefinition, ResolvedPricingModel } from '../../../../types/Pricing';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AuthorizationService from './AuthorizationService';
@@ -9,6 +9,8 @@ import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { PricingDefinitionDataResult } from '../../../../types/DataResult';
+import PricingFactory from '../../../../integration/pricing/PricingFactory';
+import PricingHelper from '../../../../integration/pricing/PricingHelper';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import PricingValidator from '../validator/PricingValidator';
 import { ServerAction } from '../../../../types/Server';
@@ -21,13 +23,37 @@ const MODULE_NAME = 'PricingService';
 
 export default class PricingService {
 
+  public static async handleResolvePricingModel(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
+      Action.RESOLVE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleResolvePricingModel');
+    // Filter
+    const filteredRequest = PricingValidator.getInstance().validatePricingModelResolve(req.query);
+    let pricingContext: PricingContext = null;
+    let pricingDefinitions: ResolvedPricingDefinition[] = [];
+    const pricingImpl = await PricingFactory.getPricingImpl(req.tenant);
+    if (pricingImpl) {
+      // Fetch the charging station data required for resolving the pricing context
+      // TODO: how to only read the required data? - required projected fields: ['id', 'companyID', 'siteID', 'siteAreaID', 'coordinates']
+      const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ, action);
+      // Resolve the pricing context
+      pricingContext = PricingHelper.buildUserPricingContext(req.tenant, filteredRequest.UserID, chargingStation, filteredRequest.ConnectorID, filteredRequest.StartDateTime);
+      const pricingModel: ResolvedPricingModel = await pricingImpl.resolvePricingContext(pricingContext);
+      pricingDefinitions = pricingModel?.pricingDefinitions;
+    }
+    res.json({
+      pricingContext,
+      pricingDefinitions
+    });
+    next();
+  }
+
   public static async handleGetPricingDefinition(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.READ, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleGetPricingDefinition');
     // Filter
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionGet(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetPricingDefinition', req.user);
     // Check and get pricing
     const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withEntityInformation: filteredRequest.WithEntityInformation }, true);
@@ -42,9 +68,9 @@ export default class PricingService {
     // Filter
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionsGet(req.query);
     // Check dynamic auth
-    const authorizationPricingDefinitionsFilter = await AuthorizationService.checkAndGetPricingDefinitionsAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationPricingDefinitionsFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetPricingDefinitionsAuthorizations(
+      req.tenant, req.user, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -54,21 +80,21 @@ export default class PricingService {
         entityID: filteredRequest.EntityID || null,
         entityType: filteredRequest.EntityType || null,
         withEntityInformation: filteredRequest?.WithEntityInformation,
-        ...authorizationPricingDefinitionsFilter.filters
+        ...authorizations.filters
       }, {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationPricingDefinitionsFilter.projectFields
+      authorizations.projectFields
     ) as PricingDefinitionDataResult;
     // Assign projected fields
-    if (authorizationPricingDefinitionsFilter.projectFields) {
-      pricingDefinitions.projectFields = authorizationPricingDefinitionsFilter.projectFields;
+    if (authorizations.projectFields) {
+      pricingDefinitions.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions, authorizationPricingDefinitionsFilter);
+    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions, authorizations);
     // Alter the canCreate flag according to the pricing definition context
     pricingDefinitions.canCreate = await PricingService.alterCanCreate(req, action, filteredRequest.EntityType, filteredRequest.EntityID, pricingDefinitions.canCreate);
     res.json(pricingDefinitions);
@@ -81,18 +107,9 @@ export default class PricingService {
       Action.CREATE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleCreatePricingDefinition');
     // Filter
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionCreate(req.body);
-    UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetPricingDefinitionAuthorizations(
+    await AuthorizationService.checkAndGetPricingDefinitionAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.PRICING_DEFINITION,
-        module: MODULE_NAME, method: 'handleCreatePricingDefinition'
-      });
-    }
     // Check authorization and get the site ID depending on the entity type
     const siteID = await PricingService.checkAuthorizationAndGetSiteID(req, action, filteredRequest.entityType, filteredRequest.entityID);
     // Check that the pricing definitions can be changed for that site
@@ -111,7 +128,7 @@ export default class PricingService {
     newPricingDefinition.id = await PricingStorage.savePricingDefinition(req.tenant, newPricingDefinition);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreatePricingDefinition',
       message: `Pricing model '${newPricingDefinition.id}' has been created successfully`,
       action: action,
@@ -127,8 +144,6 @@ export default class PricingService {
       Action.UPDATE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleUpdatePricingDefinition');
     // Filter
     const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionUpdate(req.body);
-    // Check Mandatory fields
-    UtilsService.checkIfPricingDefinitionValid(filteredRequest, req);
     // Check and Get Pricing
     let pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
@@ -153,7 +168,7 @@ export default class PricingService {
     await PricingStorage.savePricingDefinition(req.tenant, pricingDefinition);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdatePricingDefinition',
       message: `Pricing model '${pricingDefinition.id}' has been updated successfully`,
       action: action,
@@ -182,7 +197,7 @@ export default class PricingService {
     await PricingStorage.deletePricingDefinition(req.tenant, pricingDefinition.id);
     // Log
     await Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeletePricingDefinition',
       message: `Pricing model '${pricingDefinitionID}' has been deleted successfully`,
       action: action,
@@ -209,7 +224,7 @@ export default class PricingService {
         siteID = siteArea.siteID;
         break;
       case PricingEntity.CHARGING_STATION:
-        chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, entityID, action);
+        chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, entityID, Action.READ, action);
         siteID = chargingStation.siteID;
         break;
       default:
@@ -230,7 +245,7 @@ export default class PricingService {
         canCreate = false;
         if (!(error instanceof AppAuthError)) {
           await Logging.logError({
-            tenantID: req.user.tenantID,
+            tenantID: req.tenant.id,
             user: req.user, module: MODULE_NAME, method: 'alterCanCreate',
             message: 'Unexpected error while checking site access permissions',
             action: action,

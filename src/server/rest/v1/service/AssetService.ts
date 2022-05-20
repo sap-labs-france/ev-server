@@ -169,7 +169,7 @@ export default class AssetService {
     } catch (error) {
       // KO
       await Logging.logError({
-        tenantID: req.user.tenantID,
+        tenantID: req.tenant.id,
         user: req.user,
         module: MODULE_NAME, method: 'handleCheckAssetConnection',
         message: 'Asset connection failed',
@@ -246,8 +246,9 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
     // Check dynamic auth
-    const authorizationAssetsInErrorFilter = await AuthorizationService.checkAndGetAssetsAuthorizations(req.tenant, req.user, Action.IN_ERROR, filteredRequest);
-    if (!authorizationAssetsInErrorFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(
+      req.tenant, req.user, Action.IN_ERROR, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -259,7 +260,7 @@ export default class AssetService {
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]),
-        ...authorizationAssetsInErrorFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -267,15 +268,15 @@ export default class AssetService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationAssetsInErrorFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationAssetsInErrorFilter.projectFields) {
-      assets.projectFields = authorizationAssetsInErrorFilter.projectFields;
+    if (authorizations.projectFields) {
+      assets.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
     await AuthorizationService.addAssetsAuthorizations(
-      req.tenant, req.user, assets as AssetDataResult, authorizationAssetsInErrorFilter);
+      req.tenant, req.user, assets as AssetDataResult, authorizations);
     res.json(assets);
     next();
   }
@@ -294,7 +295,7 @@ export default class AssetService {
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getAssetProperties(asset),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteAsset',
       message: `Asset '${asset.name}' has been deleted successfully`,
@@ -326,19 +327,20 @@ export default class AssetService {
     UtilsService.assertObjectExists(action, tenant, 'Tenant does not exist', MODULE_NAME, 'handleGetAssetImage', req.user);
     // Get the image
     const assetImage = await AssetStorage.getAssetImage(tenant, filteredRequest.ID);
-    if (assetImage?.image) {
+    let image = assetImage?.image;
+    if (image) {
+      // Header
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
-      // Remove encoding header
-      if (assetImage.image.startsWith('data:image/')) {
-        header = assetImage.image.substring(5, assetImage.image.indexOf(';'));
-        encoding = assetImage.image.substring(assetImage.image.indexOf(';') + 1, assetImage.image.indexOf(',')) as BufferEncoding;
-        assetImage.image = assetImage.image.substring(assetImage.image.indexOf(',') + 1);
+      if (image.startsWith('data:image/')) {
+        header = image.substring(5, image.indexOf(';'));
+        encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+        image = image.substring(image.indexOf(',') + 1);
       }
       res.setHeader('content-type', header);
-      res.send(assetImage.image ? Buffer.from(assetImage.image, encoding) : null);
+      res.send(Buffer.from(image, encoding));
     } else {
-      res.send(null);
+      res.status(StatusCodes.NOT_FOUND);
     }
     next();
   }
@@ -350,9 +352,9 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
     // Check dynamic auth
-    const authorizationAssetsFilter = await AuthorizationService.checkAndGetAssetsAuthorizations(
-      req.tenant, req.user, Action.LIST, filteredRequest);
-    if (!authorizationAssetsFilter.authorized) {
+    const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(
+      req.tenant, req.user, Action.LIST, filteredRequest, false);
+    if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -367,7 +369,7 @@ export default class AssetService {
         withSite: filteredRequest.WithSite,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         dynamicOnly: filteredRequest.DynamicOnly,
-        ...authorizationAssetsFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -375,15 +377,15 @@ export default class AssetService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationAssetsFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationAssetsFilter.projectFields) {
-      assets.projectFields = authorizationAssetsFilter.projectFields;
+    if (authorizations.projectFields) {
+      assets.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
     await AuthorizationService.addAssetsAuthorizations(
-      req.tenant, req.user, assets as AssetDataResult, authorizationAssetsFilter);
+      req.tenant, req.user, assets as AssetDataResult, authorizations);
     res.json(assets);
     next();
   }
@@ -394,17 +396,9 @@ export default class AssetService {
       Action.CREATE, Entity.ASSET, MODULE_NAME, 'handleCreateAsset');
     // Check request is valid
     const filteredAssetRequest = AssetValidator.getInstance().validateAssetCreateReq(req.body);
-    UtilsService.checkIfAssetValid(filteredAssetRequest, req);
     // Check authorizations for current action attempt
-    const authorizationFilter = await AuthorizationService.checkAndGetAssetAuthorizations(req.tenant, req.user, Action.CREATE, {}, filteredAssetRequest);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'handleCreateAsset'
-      });
-    }
+    await AuthorizationService.checkAndGetAssetAuthorizations(
+      req.tenant, req.user, Action.CREATE, {}, filteredAssetRequest);
     // Check Site Area authorization
     let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredAssetRequest.siteAreaID) {
@@ -425,7 +419,7 @@ export default class AssetService {
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getAssetProperties(newAsset),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleCreateAsset',
       message: `Asset '${newAsset.id}' has been created successfully`,
@@ -442,7 +436,6 @@ export default class AssetService {
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleUpdateAsset');
     // Filter
     const filteredRequest = AssetValidator.getInstance().validateAssetUpdateReq(req.body);
-    UtilsService.checkIfAssetValid(filteredRequest, req);
     // Check Site Area authorization
     let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
@@ -473,7 +466,7 @@ export default class AssetService {
     // Log
     await Logging.logInfo({
       ...LoggingHelper.getAssetProperties(asset),
-      tenantID: req.user.tenantID,
+      tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME, method: 'handleUpdateAsset',
       message: `Asset '${asset.name}' has been updated successfully`,
