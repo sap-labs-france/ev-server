@@ -156,7 +156,7 @@ export default class TenantStorage {
     // Company Logo
     if (params.withLogo) {
       DatabaseUtils.pushTenantLogoLookupInAggregation({
-        tenantID: Constants.DEFAULT_TENANT, aggregation, localField: '_id', foreignField: '_id',
+        tenantID: Constants.DEFAULT_TENANT_ID, aggregation, localField: '_id', foreignField: '_id',
         asField: 'tenantLogo', oneToOneCardinality: true
       });
       aggregation.push({
@@ -230,5 +230,5 @@ export default class TenantStorage {
       id: tenant.id,
       logo: tenantLogoMDB?.logo ?? null
     };
-}
+  }
 }
