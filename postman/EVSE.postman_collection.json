@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "3b2367e7-a132-4d54-8e03-9ccaacac38a4",
+		"_postman_id": "ac2912e2-caff-45d8-82a5-08548880c3a9",
 		"name": "EVSE",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1531,7 +1531,8 @@
 						"api",
 						"charging-stations",
 						"{{chargingStation}}",
-						"composite-schedule/get"
+						"composite-schedule",
+						"get"
 					]
 				}
 			},
@@ -1573,7 +1574,8 @@
 						"api",
 						"charging-stations",
 						"{{chargingStation}}",
-						"diagnostics"
+						"diagnostics",
+						"get"
 					]
 				}
 			},
@@ -9717,6 +9719,110 @@
 			"response": []
 		},
 		{
+			"name": "FE-BillingCreateSubAccount",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userID\": \"{{userID}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/billing/sub-accounts",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"billing",
+						"sub-accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-BillingActivateSubAccount",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/util/billing/sub-accounts/628760264ecb9faff36311b2/activate?TenantID={{tenantID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"util",
+						"billing",
+						"sub-accounts",
+						"628760264ecb9faff36311b2",
+						"activate"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-BillingGetUserPaymentMethod",
 			"event": [
 				{
@@ -9769,7 +9875,7 @@
 					"query": [
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -9828,7 +9934,7 @@
 					"query": [
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -9887,7 +9993,7 @@
 					"query": [
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -9947,7 +10053,7 @@
 					"query": [
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -10003,7 +10109,7 @@
 					"query": [
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -10056,7 +10162,7 @@
 					"query": [
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -10109,7 +10215,7 @@
 					"query": [
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -10161,7 +10267,7 @@
 					"query": [
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
