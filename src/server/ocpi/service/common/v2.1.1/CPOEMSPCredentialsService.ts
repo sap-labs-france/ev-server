@@ -109,8 +109,9 @@ export default class CPOEMSPCredentialsService {
         detailedMessages: { versions: response.data }
       });
       // Check response
-      if (!response.data || !response.data.data) {
-        throw new BackendError({
+      if (!response.data?.data) {
+        throw new AppError({
+          errorCode: StatusCodes.NOT_FOUND,
           module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
           message: `Invalid response from GET ${ocpiEndpoint.baseUrl}`,
           detailedMessages: { data: response.data }
@@ -134,7 +135,8 @@ export default class CPOEMSPCredentialsService {
       }
       // If not found trigger exception
       if (!versionFound) {
-        throw new BackendError({
+        throw new AppError({
+          errorCode: StatusCodes.NOT_FOUND,
           module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
           message: 'OCPI Endpoint version 2.1.1 not found',
           detailedMessages: { data: response.data }
