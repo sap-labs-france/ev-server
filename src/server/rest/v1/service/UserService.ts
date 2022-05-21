@@ -315,6 +315,15 @@ export default class UserService {
   }
 
   public static async handleExportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!(await Authorizations.canExportUsers(req.user)).authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.EXPORT, entity: Entity.USER,
+        module: MODULE_NAME, method: 'handleExportUsers'
+      });
+    }
     // Force params
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Filter

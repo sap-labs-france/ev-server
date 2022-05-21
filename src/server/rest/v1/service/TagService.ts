@@ -607,8 +607,8 @@ export default class TagService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.IMPORT, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleImportTags'
+        action: Action.EXPORT, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'handleExportTags'
       });
     }
     // Force params
