@@ -3,6 +3,7 @@ import ChargingStation, { Connector } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
+import Transaction, { AdvenirConsumptionData, AdvenirEvseData, AdvenirPayload, AdvenirTransactionData } from '../../../../types/Transaction';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -17,20 +18,23 @@ import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
+import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import OCPIFacade from '../../../ocpi/OCPIFacade';
+import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import OCPPService from '../../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import OICPFacade from '../../../oicp/OICPFacade';
 import RefundFactory from '../../../../integration/refund/RefundFactory';
 import { RefundStatus } from '../../../../types/Refund';
+import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import TransactionValidator from '../validator/TransactionValidator';
 import User from '../../../../types/User';
@@ -538,6 +542,82 @@ export default class TransactionService {
     // Return the result
     res.json(transaction);
     next();
+  }
+
+  public static async handleGetTransactionConsumptionForAdvenir(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.TRANSACTION, MODULE_NAME, 'handleGetTransactionConsumptionForAdvenir');
+    // Filter
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionConsumptionsAdvenirGetReq(req.query);
+    // Transaction Id is mandatory
+    UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
+      'handleGetConsumptionFromTransaction', req.user);
+    const projectFields = [
+      'id', 'chargeBox.issuer', 'chargeBox.id', 'chargeBox.issuer', 'chargeBox.public', 'chargeBox.connectors', 'connectorId',
+    ];
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.TransactionId,
+      { withChargingStation: true }, projectFields);
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.TransactionId}' does not exist`,
+      MODULE_NAME, 'handleGetTransactionConsumptionForAdvenir', req.user);
+    // Check Transaction
+    if (!await Authorizations.canReadTransaction(req.user, transaction)) {
+      throw new AppAuthError({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handleGetTransactionConsumptionForAdvenir',
+        value: transaction.id.toString()
+      });
+    }
+    try {
+      const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.CPO) as CpoOCPIClient;
+      if (!ocpiClient) {
+        throw new AppError({
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'OCPI component requires at least one CPO endpoint to generate Advenir consumption data',
+          module: MODULE_NAME, method: 'handleGetTransactionConsumptionForAdvenir',
+          user: req.user, action
+        });
+      }
+      // Build EvseID
+      const evseID = RoamingUtils.buildEvseID(ocpiClient.getLocalCountryCode(action), ocpiClient.getLocalPartyID(action), transaction.chargeBox, transaction.connectorId);
+      // Get Consumption
+      const consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(req.tenant,
+        { transactionId: transaction.id },
+        // ACHTUNG - endedAt must be part of the projection to properly sort the collection result
+        ['startedAt', 'endedAt', 'cumulatedConsumptionWh']
+      );
+      // Convert consumptions to the ADVENIR format
+      const advenirValues: AdvenirConsumptionData[] = consumptions.map(
+        (consumption) => {
+          // Unix epoch format expected
+          const timestamp = Utils.createDecimal(consumption.startedAt.getTime()).div(1000).toNumber();
+          return {
+            timestamp,
+            value: consumption.cumulatedConsumptionWh
+          };
+        }
+      );
+      // Add Advenir user Id if exists
+      const userID = filteredRequest.AdvenirUserId ?? '<put-here-the-advenir-cpo-id>';
+      // Prepare ADVENIR payload
+      const transactionID = `${transaction.id}`;
+      const transactionData: AdvenirTransactionData = {
+        [transactionID]:
+          advenirValues
+      };
+      const evseData: AdvenirEvseData = {
+        [evseID]: transactionData
+      };
+      const advenirPayload: AdvenirPayload = {
+        [userID]: evseData
+      };
+      res.json(advenirPayload);
+    } catch (error) {
+      await Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
   }
 
   public static async handleGetTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

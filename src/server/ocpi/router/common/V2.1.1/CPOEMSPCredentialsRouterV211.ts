@@ -21,13 +21,13 @@ export default class CPOEMSPCredentialsRouterV211 {
 
   protected buildRouteCreateCredentials(): void {
     this.router.post(`/${OCPIServerRoute.OCPI_CREDENTIALS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleOCPIServerAction(CPOEMSPCredentialsService.handleCreateCredentials.bind(this), ServerAction.OCPI_CREATE_CREDENTIALS, req, res, next);
+      await RouterUtils.handleOCPIServerAction(CPOEMSPCredentialsService.handleUpdateCreateCredentials.bind(this), ServerAction.OCPI_CREATE_CREDENTIALS, req, res, next);
     });
   }
 
   protected buildRouteUpdateCredentials(): void {
     this.router.put(`/${OCPIServerRoute.OCPI_CREDENTIALS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleOCPIServerAction(CPOEMSPCredentialsService.handleCreateCredentials.bind(this), ServerAction.OCPI_CREATE_CREDENTIALS, req, res, next);
+      await RouterUtils.handleOCPIServerAction(CPOEMSPCredentialsService.handleUpdateCreateCredentials.bind(this), ServerAction.OCPI_UPDATE_CREDENTIALS, req, res, next);
     });
   }
 

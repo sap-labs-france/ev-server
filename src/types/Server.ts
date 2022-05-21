@@ -452,6 +452,7 @@ export enum ServerAction {
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   BILLING_TEST_DATA_CLEANUP = 'BillingTestDataCleanup',
   BILLING_BILL_PENDING_TRANSACTION = 'BillingBillPendingTransaction',
+  BILLING_SUB_ACCOUNT_CREATE = 'BillingCreateSubAccount',
 
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',
@@ -536,6 +537,7 @@ export enum RESTServerRoute {
   REST_TRANSACTION_CDR = 'transactions/:id/ocpi/cdr',
   REST_TRANSACTION_CDR_EXPORT = 'transactions/:id/ocpi/cdr/export',
   REST_TRANSACTION_CONSUMPTIONS = 'transactions/:id/consumptions',
+  REST_TRANSACTION_CONSUMPTIONS_FOR_ADVENIR = 'transactions/:id/consumptions-for-advenir',
   REST_TRANSACTION_START = 'transactions/start',
   REST_TRANSACTION_STOP = 'transactions/:id/stop',
   REST_TRANSACTION_SOFT_STOP = 'transactions/:id/soft-stop',
@@ -677,6 +679,8 @@ export enum RESTServerRoute {
   REST_BILLING_CLEAR_TEST_DATA = 'billing/clearTestData',
 
   REST_BILLING_TAXES = 'billing/taxes',
+
+  REST_BILLING_SUB_ACCOUNTS = 'billing/sub-accounts',
 
   // BILLING URLs for CRUD operations on INVOICES
   REST_BILLING_INVOICES = 'invoices',

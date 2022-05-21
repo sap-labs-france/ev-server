@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
-import { BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
+import { BillingAccount, BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';

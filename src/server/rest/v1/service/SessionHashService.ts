@@ -1,14 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
+import User, { UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import Logging from '../../../../utils/Logging';
-import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 
@@ -32,10 +30,13 @@ export default class SessionHashService {
       if (!tenant) {
         throw new AppError({
           errorCode: StatusCodes.UNAUTHORIZED,
-          message: 'Tenant does not exist',
-          module: MODULE_NAME,
-          method: 'checkUserAndTenantValidity',
-          user: req.user
+          message: `Tenant ID '${tenant.id}' does not exist`,
+          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          user: req.user,
+          detailedMessages: {
+            request: req.url,
+            headers: res.getHeaders(),
+          }
         });
       }
       // Get User
@@ -43,10 +44,25 @@ export default class SessionHashService {
       if (!user) {
         throw new AppError({
           errorCode: StatusCodes.UNAUTHORIZED,
-          message: 'User does not exist',
-          module: MODULE_NAME,
-          method: 'checkUserAndTenantValidity',
-          user: req.user
+          message: `User ID '${userID}' does not exist`,
+          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          user: req.user,
+          detailedMessages: {
+            request: req.url,
+            headers: res.getHeaders(),
+          }
+        });
+      }
+      if (user.status !== UserStatus.ACTIVE) {
+        throw new AppError({
+          errorCode: StatusCodes.UNAUTHORIZED,
+          message: 'User is not active',
+          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          user: req.user,
+          detailedMessages: {
+            request: req.url,
+            headers: res.getHeaders(),
+          }
         });
       }
       // Set in HTTP request
@@ -61,25 +77,31 @@ export default class SessionHashService {
       if (userHashID !== SessionHashService.buildUserHashID(user)) {
         throw new AppError({
           errorCode: HTTPError.USER_ACCOUNT_CHANGED,
-          message: 'User has been updated and will be logged off',
-          module: MODULE_NAME,
-          method: 'checkUserAndTenantValidity',
-          user: req.user
+          message: 'Request rejected: User data in token is outdated',
+          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          user: req.user,
+          detailedMessages: {
+            request: req.url,
+            headers: res.getHeaders(),
+          }
         });
       }
       // Check Tenant's Hash
       if (tenantHashID !== SessionHashService.buildTenantHashID(tenant)) {
         throw new AppError({
           errorCode: HTTPError.TENANT_COMPONENT_CHANGED,
-          message: 'Tenant has been updated and all users will be logged off',
-          module: MODULE_NAME,
-          method: 'checkUserAndTenantValidity',
-          user: req.user
+          message: 'Request rejected: Tenant data in token is outdated',
+          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          user: req.user,
+          detailedMessages: {
+            request: req.url,
+            headers: res.getHeaders(),
+          }
         });
       }
       next();
     } catch (err) {
-      await Logging.logActionExceptionMessageAndSendResponse(ServerAction.SESSION_HASH_SERVICE, err, req, res, next);
+      next(err);
     }
   }
 

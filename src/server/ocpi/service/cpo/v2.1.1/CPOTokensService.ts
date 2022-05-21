@@ -35,7 +35,7 @@ export default class CPOTokensService {
     if (!token) {
       throw new AppError({
         module: MODULE_NAME, method: 'handleGetToken', action,
-        errorCode: StatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `Token ID '${tokenId}' not found`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
@@ -75,7 +75,7 @@ export default class CPOTokensService {
     if (!tag) {
       throw new AppError({
         module: MODULE_NAME, method: 'handlePutToken', action,
-        errorCode: StatusCodes.BAD_REQUEST,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `Token ID '${tokenId}' not found`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
         detailedMessages: { token }

@@ -1,10 +1,8 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { BillingInvoiceDataResult, BillingPaymentMethodDataResult } from '../../../../types/DataResult';
 import { BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod } from '../../../../types/Billing';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
-import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
@@ -13,9 +11,11 @@ import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import BillingValidator from '../validator/BillingValidator';
 import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
+import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
@@ -467,6 +467,40 @@ export default class BillingService {
       await SettingStorage.saveBillingSetting(req.tenant, billingSettings);
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleCreateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.CREATE, Entity.BILLING, MODULE_NAME, 'handleCreateSubAccount');
+    const filteredRequest = BillingValidator.getInstance().validateBillingCreateSubAccountReq(req.body);
+    // Check authorization
+    await AuthorizationService.checkAndGetBillingAuthorizations(req.tenant, req.user, Action.BILLING_CREATE_SUB_ACCOUNT);
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleCreateSubAccount',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get the user
+    const user = await UserStorage.getUser(req.tenant, filteredRequest.userID);
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
+      MODULE_NAME, 'handleCreateSubAccount', req.user);
+    // Create the sub account
+    const subAccount = await billingImpl.createSubAccount();
+    subAccount.userID = user.id;
+    // Save the sub account
+    subAccount.id = await BillingStorage.saveSubAccount(req.tenant, subAccount);
+    // Notify the user
+    void NotificationHandler.sendBillingSubAccountCreationLink(
+      req.tenant, Utils.generateUUID(), user, { onboardingLink: subAccount.activationLink, evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
+    res.status(StatusCodes.CREATED).json(subAccount);
     next();
   }
 
