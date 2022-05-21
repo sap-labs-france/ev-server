@@ -66,3 +66,8 @@ export interface HttpConsumptionFromTransactionRequest {
   StartDateTime: Date;
   EndDateTime: Date;
 }
+
+export interface HttpConsumptionFromTransactionAdvenirRequest {
+  TransactionId: number;
+  AdvenirUserId?: string;
+}

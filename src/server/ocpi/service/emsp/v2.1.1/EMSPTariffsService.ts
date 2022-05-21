@@ -40,7 +40,7 @@ export default class EMSPTariffsService {
       } else {
         throw new AppError({
           module: MODULE_NAME, method: 'handleGetTariff', action,
-          errorCode: StatusCodes.BAD_REQUEST,
+          errorCode: StatusCodes.NOT_FOUND,
           message: `Simple Pricing setting not found in Tenant ${Utils.buildTenantName(tenant)}`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });

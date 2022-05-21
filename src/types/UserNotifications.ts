@@ -71,6 +71,7 @@ export enum UserNotificationType {
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
   BILLING_PERIODIC_OPERATION_FAILED = 'BillingPeriodicOperationFailed',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
+  BILLING_CREATE_SUB_ACCOUNT = 'BillingCreateSubAccount',
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
   CHECK_AND_APPLY_SMART_CHARGING_FAILED = 'ComputeAndApplyChargingProfilesFailed',
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
@@ -293,6 +294,12 @@ export interface BillingNewInvoiceNotification extends BaseNotification {
   invoiceNumber: string;
   invoiceAmount: string;
   invoiceStatus: string;
+}
+
+export interface BillingSubAccountCreationLinkNotification extends BaseNotification {
+  onboardingLink: string;
+  evseDashboardURL: string;
+  user: User;
 }
 
 export interface CarCatalogSynchronizationFailedNotification extends BaseNotification {

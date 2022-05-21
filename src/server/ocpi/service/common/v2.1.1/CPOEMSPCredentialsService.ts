@@ -48,21 +48,20 @@ export default class CPOEMSPCredentialsService {
     next();
   }
 
-  public static async handleCreateCredentials(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateCreateCredentials(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const { tenant, ocpiEndpoint } = req;
     // Get payload
-    const credential: OCPICredential = req.body;
-    // Log body
+    const credential = req.body as OCPICredential;
     await Logging.logDebug({
       tenantID: tenant.id,
-      module: MODULE_NAME, method: 'handleCreateCredentials', action,
+      module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
       message: 'Received credential object',
       detailedMessages: { credential }
     });
     // Check if valid
     if (!CPOEMSPCredentialsService.isValidOCPICredential(credential)) {
       throw new AppError({
-        module: MODULE_NAME, method: 'handleCreateCredentials', action,
+        module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Credential Object',
         ocpiError: OCPIStatusCode.CODE_2000_GENERIC_CLIENT_ERROR
@@ -76,7 +75,7 @@ export default class CPOEMSPCredentialsService {
     // Log body
     await Logging.logDebug({
       tenantID: tenant.id,
-      module: MODULE_NAME, method: 'handleCreateCredentials', action,
+      module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
       message: 'Received token',
       detailedMessages: { token }
     });
@@ -89,7 +88,7 @@ export default class CPOEMSPCredentialsService {
     // Log updated ocpi endpoint
     await Logging.logDebug({
       tenantID: tenant.id,
-      module: MODULE_NAME, method: 'handleCreateCredentials', action,
+      module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
       message: 'OCPI Server found and updated with credential object',
       detailedMessages: { ocpiEndpoint }
     });
@@ -105,14 +104,15 @@ export default class CPOEMSPCredentialsService {
       // Log available OCPI Versions
       await Logging.logDebug({
         tenantID: tenant.id,
-        module: MODULE_NAME, method: 'handleCreateCredentials', action,
+        module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
         message: 'Available OCPI Versions',
         detailedMessages: { versions: response.data }
       });
       // Check response
-      if (!response.data || !response.data.data) {
-        throw new BackendError({
-          module: MODULE_NAME, method: 'handleCreateCredentials', action,
+      if (!response.data?.data) {
+        throw new AppError({
+          errorCode: StatusCodes.NOT_FOUND,
+          module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
           message: `Invalid response from GET ${ocpiEndpoint.baseUrl}`,
           detailedMessages: { data: response.data }
         });
@@ -127,7 +127,7 @@ export default class CPOEMSPCredentialsService {
           // Log correct OCPI service found
           await Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'handleCreateCredentials', action,
+            module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
             message: 'Correct OCPI version found',
             detailedMessages: `[${ocpiEndpoint.version}]:${ocpiEndpoint.versionUrl}`
           });
@@ -135,8 +135,9 @@ export default class CPOEMSPCredentialsService {
       }
       // If not found trigger exception
       if (!versionFound) {
-        throw new BackendError({
-          module: MODULE_NAME, method: 'handleCreateCredentials', action,
+        throw new AppError({
+          errorCode: StatusCodes.NOT_FOUND,
+          module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
           message: 'OCPI Endpoint version 2.1.1 not found',
           detailedMessages: { data: response.data }
         });
@@ -150,14 +151,14 @@ export default class CPOEMSPCredentialsService {
       // Log available OCPI services
       await Logging.logDebug({
         tenantID: tenant.id,
-        module: MODULE_NAME, method: 'handleCreateCredentials', action,
+        module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
         message: 'Available OCPI services',
         detailedMessages: { endpoints: response.data }
       });
       // Check response
-      if (!response.data || !response.data.data) {
+      if (!response.data?.data) {
         throw new BackendError({
-          module: MODULE_NAME, method: 'handleCreateCredentials', action,
+          module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
           message: `Invalid response from GET ${ocpiEndpoint.versionUrl}`,
           detailedMessages: { data: response.data }
         });
@@ -166,7 +167,7 @@ export default class CPOEMSPCredentialsService {
       ocpiEndpoint.availableEndpoints = OCPIUtils.convertAvailableEndpoints(response.data.data);
     } catch (error) {
       throw new AppError({
-        module: MODULE_NAME, method: 'handleCreateCredentials', action,
+        module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to use client API: ${error.message as string}`,
         ocpiError: OCPIStatusCode.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
@@ -185,7 +186,7 @@ export default class CPOEMSPCredentialsService {
     // Log available OCPI Versions
     await Logging.logDebug({
       tenantID: tenant.id,
-      module: MODULE_NAME, method: 'handleCreateCredentials', action,
+      module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
       message: 'Response with credential object',
       detailedMessages: { respCredential }
     });
