@@ -54,9 +54,9 @@ export default class OCPIUtils {
     // Get ocpi service configuration
     const ocpiSetting = await SettingStorage.getOCPISettings(tenant);
     // Define version url
-    credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
+    credential.url = versionUrl ?? `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`;
     // Check if available
-    if (ocpiSetting && ocpiSetting.ocpi) {
+    if (ocpiSetting?.ocpi) {
       credential.token = token;
       if (role === OCPIRole.EMSP) {
         credential.country_code = ocpiSetting.ocpi.emsp.countryCode;
