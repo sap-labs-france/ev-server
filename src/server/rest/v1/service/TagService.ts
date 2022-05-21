@@ -758,6 +758,8 @@ export default class TagService {
         'id',
         'visualID',
         'description',
+        'limitKwh',
+        'kwhConsumed',
         'firstName',
         'name',
         'email',
@@ -769,9 +771,11 @@ export default class TagService {
         tag.id,
         tag.visualID,
         tag.description,
+        tag.limit?.limitKwh,
+        tag.limit?.limitKwhConsumed,
         tag.user?.firstName,
         tag.user?.name,
-        tag.user?.email
+        tag.user?.email,
       ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
