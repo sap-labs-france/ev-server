@@ -134,6 +134,7 @@ export default class CpoOCPIClient extends OCPIClient {
         // Update the tags
         await Promise.map(tokens, async (token) => {
           try {
+            result.total++;
             // Get eMSP user
             const email = OCPIUtils.buildEmspEmailFromEmspToken(
               token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
@@ -554,6 +555,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }, Constants.DB_PARAMS_MAX_LIMIT);
     if (!Utils.isEmptyArray(transactions.result)) {
       await Promise.map(transactions.result, async (transaction) => {
+        result.total++;
         if (transaction.stop && transaction.stop.timestamp) {
           try {
             if (await this.checkSession(transaction)) {
@@ -570,7 +572,6 @@ export default class CpoOCPIClient extends OCPIClient {
             );
           }
         }
-        result.total++;
       },
       { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
     }
@@ -606,6 +607,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const locations = await OCPIUtilsService.getAllCpoLocations(this.tenant, 0, 0, options, true, this.settings);
     if (!Utils.isEmptyArray(locations.result)) {
       await Promise.map(locations.result, async (location) => {
+        result.total++;
         if (location) {
           try {
             if (await this.checkLocation(location)) {
@@ -622,7 +624,6 @@ export default class CpoOCPIClient extends OCPIClient {
             );
           }
         }
-        result.total++;
       },
       { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
     }
@@ -654,6 +655,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }, Constants.DB_PARAMS_MAX_LIMIT);
     if (!Utils.isEmptyArray(transactions.result)) {
       await Promise.map(transactions.result, async (transaction) => {
+        result.total++;
         try {
           if (await this.checkCdr(transaction)) {
             result.success++;
@@ -668,7 +670,6 @@ export default class CpoOCPIClient extends OCPIClient {
             `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check CDR: ${error.message as string}`
           );
         }
-        result.total++;
       },
       { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
     }
@@ -752,7 +753,6 @@ export default class CpoOCPIClient extends OCPIClient {
           // Loop through EVSE
           if (!Utils.isEmptyArray(evses)) {
             await Promise.map(evses, async (evse) => {
-              // Total amount of EVSEs
               result.total++;
               // Process it if not empty
               if (location.id && evse?.uid) {
