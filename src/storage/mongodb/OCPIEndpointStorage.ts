@@ -61,14 +61,6 @@ export default class OCPIEndpointStorage {
       businessDetails: ocpiEndpointToSave.businessDetails,
       availableEndpoints: ocpiEndpointToSave.availableEndpoints,
       versionUrl: ocpiEndpointToSave.versionUrl,
-      lastCpoPushStatuses: Utils.convertToDate(ocpiEndpointToSave.lastCpoPushStatuses),
-      lastCpoPushStatusesResult: ocpiEndpointToSave.lastCpoPushStatusesResult,
-      lastCpoPullTokens: Utils.convertToDate(ocpiEndpointToSave.lastCpoPullTokens),
-      lastCpoPullTokensResult: ocpiEndpointToSave.lastCpoPullTokensResult,
-      lastEmspPullLocations: Utils.convertToDate(ocpiEndpointToSave.lastEmspPullLocations),
-      lastEmspPullLocationsResult: ocpiEndpointToSave.lastEmspPullLocationsResult,
-      lastEmspPushTokens: Utils.convertToDate(ocpiEndpointToSave.lastEmspPushTokens),
-      lastEmspPushTokensResult: ocpiEndpointToSave.lastEmspPushTokensResult,
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(ocpiEndpointMDB, ocpiEndpointToSave);
