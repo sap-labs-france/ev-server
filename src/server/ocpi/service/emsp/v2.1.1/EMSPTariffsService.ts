@@ -36,7 +36,7 @@ export default class EMSPTariffsService {
       // Get simple pricing settings
       const pricingSettings = await SettingStorage.getPricingSettings(tenant);
       if (pricingSettings.type === PricingSettingsType.SIMPLE && pricingSettings.simple) {
-        tariff = OCPIUtils.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
+        tariff = OCPIUtils.convertSimplePricingSettingToOcpiTariff(pricingSettings.simple);
       } else {
         throw new AppError({
           module: MODULE_NAME, method: 'handleGetTariff', action,

@@ -1,8 +1,9 @@
 import CreatedUpdatedProps from '../CreatedUpdatedProps';
+import { OCPIRegistrationStatus } from './OCPIRegistrationStatus';
 import { OCPIRole } from './OCPIRole';
 import { OcpiBusinessDetails } from '../Setting';
 
-export default interface OCPIEndpoint extends CreatedUpdatedProps {
+export default interface OCPIEndpoint extends CreatedUpdatedProps, OCPILastCpoPushStatus, OCPILastCpoPullToken, OCPILastEmspPullLocation, OCPILastEmspPushToken {
   id: string;
   role: OCPIRole;
   name: string;
@@ -12,19 +13,50 @@ export default interface OCPIEndpoint extends CreatedUpdatedProps {
   countryCode: string;
   partyId: string;
   backgroundPatchJob: boolean;
-  status?: string;
+  status?: OCPIRegistrationStatus;
   version?: string;
   businessDetails?: OcpiBusinessDetails;
   availableEndpoints?: OCPIAvailableEndpoints;
   versionUrl?: string;
-  lastPatchJobOn?: Date;
-  lastPatchJobResult?: {
+}
+
+export interface OCPILastEmspPushToken {
+  lastEmspPushTokens?: Date;
+  lastEmspPushTokensResult?: {
+    successNbr: number;
+    failureNbr: number;
+    totalNbr: number;
+    tokenIDsInFailure?: string[];
+  };
+}
+
+export interface OCPILastEmspPullLocation {
+  lastEmspPullLocations?: Date;
+  lastEmspPullLocationsResult?: {
+    successNbr: number;
+    failureNbr: number;
+    totalNbr: number;
+    locationIDsInFailure?: string[];
+  };
+}
+
+export interface OCPILastCpoPullToken {
+  lastCpoPullTokens?: Date;
+  lastCpoPullTokensResult?: {
+    successNbr: number;
+    failureNbr: number;
+    totalNbr: number;
+    tokenIDsInFailure?: string[];
+  };
+}
+
+export interface OCPILastCpoPushStatus {
+  lastCpoPushStatuses?: Date;
+  lastCpoPushStatusesResult?: {
     successNbr: number;
     failureNbr: number;
     totalNbr: number;
     chargeBoxIDsInFailure?: string[];
-    chargeBoxIDsInSuccess?: string[];
-    tokenIDsInFailure?: string[];
   };
 }
 

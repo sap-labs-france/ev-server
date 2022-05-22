@@ -89,7 +89,7 @@ export default class CPOCommandsService {
       // Check eMSP user
       const emspUser = await OCPIUtils.checkAndCreateEMSPUserFromToken(
         tenant, ocpiEndpoint.countryCode, ocpiEndpoint.partyId, startSession.token);
-      localToken = await OCPIUtilsService.updateCreateTagWithCpoToken(tenant, startSession.token, localToken, emspUser, action);
+      localToken = await OCPIUtilsService.updateCreateTagWithEmspToken(tenant, startSession.token, localToken, emspUser, action);
     }
     if (!localToken?.active || !localToken.ocpiToken?.valid) {
       await Logging.logError({
@@ -303,7 +303,7 @@ export default class CPOCommandsService {
         message: `Error while trying to Start a Transaction remotely: ${error.message as string}`,
         detailedMessages: { startSession, chargingStation },
       });
-  }
+    }
   }
 
   private static async remoteStopTransaction(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation, transactionId: number,

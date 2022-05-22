@@ -106,7 +106,7 @@ export default class OCPIEndpointService {
     }
     // Filter
     const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointsGetReq(req.query);
-    // Get all ocpiendpoints
+    // Get all ocpi endpoints
     const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(req.tenant,
       {
         'search': filteredRequest.Search
@@ -117,9 +117,11 @@ export default class OCPIEndpointService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
-        'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'lastChangedOn', 'lastPatchJobOn',
-        'backgroundPatchJob', 'localToken', 'token',
-        'lastPatchJobResult.successNbr', 'lastPatchJobResult.failureNbr', 'lastPatchJobResult.totalNbr',
+        'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'lastChangedOn', 'lastPatchJobOn', 'backgroundPatchJob', 'localToken', 'token',
+        'lastCpoPushStatuses', 'lastCpoPushStatusesResult.failureNbr', 'lastCpoPushStatusesResult.successNbr', 'lastCpoPushStatusesResult.totalNbr',
+        'lastEmspPushTokens', 'lastEmspPushTokensResult.failureNbr', 'lastEmspPushTokensResult.successNbr', 'lastEmspPushTokensResult.totalNbr',
+        'lastEmspPullLocations', 'lastEmspPullLocationsResult.failureNbr', 'lastEmspPullLocationsResult.successNbr', 'lastEmspPullLocationsResult.totalNbr',
+        'lastCpoPullTokens', 'lastCpoPullTokensResult.failureNbr', 'lastCpoPullTokensResult.successNbr', 'lastCpoPullTokensResult.totalNbr',
         ...userProject
       ]);
     res.json(ocpiEndpoints);
