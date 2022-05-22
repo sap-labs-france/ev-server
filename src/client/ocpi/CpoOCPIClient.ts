@@ -735,17 +735,21 @@ export default class CpoOCPIClient extends OCPIClient {
       for (const location of locations.result) {
         // Get the Charging Station should be processed
         let currentSkip = 0;
-        let evses: OCPIEvse[];
+        let evses: OCPIEvse[] = [];
         do {
           const startTimeLoop = new Date().getTime();
           // Limit to a subset of Charging Stations?
-          let chargingStationIDs: string[];
-          if (partial && !Utils.isEmptyArray(chargeBoxIDsToProcess)) {
-            chargingStationIDs = chargeBoxIDsToProcess;
+          if (partial) {
+            if (!Utils.isEmptyArray(chargeBoxIDsToProcess)) {
+              evses = await OCPIUtilsService.getCpoEvsesFromSite(this.tenant, location.id, options,
+                { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT },
+                { chargingStationIDs: chargeBoxIDsToProcess }, this.settings);
+            }
+          // Get all Charging Stations
+          } else {
+            evses = await OCPIUtilsService.getCpoEvsesFromSite(this.tenant, location.id, options,
+              { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT }, {}, this.settings);
           }
-          evses = await OCPIUtilsService.getCpoEvsesFromSite(this.tenant, location.id, options,
-            { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT },
-            { chargingStationIDs }, this.settings);
           totalNumberOfEvses += evses.length;
           // Loop through EVSE
           if (!Utils.isEmptyArray(evses)) {
