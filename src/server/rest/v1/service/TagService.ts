@@ -876,7 +876,7 @@ export default class TagService {
         if (ocpiClient) {
           await ocpiClient.pushToken({
             uid: tag.id,
-            type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
+            type: OCPIUtils.getOcpiTokenTypeFromID(tag.id),
             auth_id: tag.userID,
             visual_number: tag.visualID,
             issuer: tenant.name,
@@ -906,7 +906,7 @@ export default class TagService {
         if (ocpiClient) {
           await ocpiClient.pushToken({
             uid: tag.id,
-            type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
+            type: OCPIUtils.getOcpiTokenTypeFromID(tag.id),
             auth_id: tag.userID,
             visual_number: tag.visualID,
             issuer: tenant.name,

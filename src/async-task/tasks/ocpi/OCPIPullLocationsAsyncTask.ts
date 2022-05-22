@@ -28,7 +28,7 @@ export default class OCPIPullLocationsAsyncTask extends AbstractAsyncTask {
             if (!ocpiClient) {
               throw new Error(`OCPI Client not found in Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
             }
-            await ocpiClient.pullLocations(false);
+            await ocpiClient.pullLocations();
           } finally {
             // Release the lock
             await LockingManager.release(pullLocationsLock);
