@@ -783,17 +783,17 @@ export default class CpoOCPIClient extends OCPIClient {
               }
             },
             { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
+            const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
+            const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
+            await Logging.logDebug({
+              tenantID: this.tenant.id,
+              action: ServerAction.OCPI_CPO_UPDATE_STATUS,
+              message: `${evses.length} EVSE Status(es) processed in ${executionDurationLoopSecs}s in Location '${location.name}' - Total of ${totalNumberOfEvses} EVSE(s) processed in ${executionDurationTotalLoopSecs}s`,
+              module: MODULE_NAME, method: 'sendEVSEStatuses',
+              detailedMessages: { evses }
+            });
           }
           currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
-          const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
-          const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
-          await Logging.logDebug({
-            tenantID: this.tenant.id,
-            action: ServerAction.OCPI_CPO_UPDATE_STATUS,
-            message: `${evses.length} EVSE(s) processed in ${executionDurationLoopSecs}s in Location '${location.name}' - Total of ${totalNumberOfEvses} EVSE(s) processed in ${executionDurationTotalLoopSecs}s`,
-            module: MODULE_NAME, method: 'sendEVSEStatuses',
-            detailedMessages: { evses }
-          });
         } while (!Utils.isEmptyArray(evses));
       }
     }
