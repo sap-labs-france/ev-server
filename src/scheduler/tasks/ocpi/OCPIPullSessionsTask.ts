@@ -75,10 +75,8 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        // Log error
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_SESSION, error);
       } finally {
-        // Release the lock
         await LockingManager.release(ocpiLock);
       }
     }
