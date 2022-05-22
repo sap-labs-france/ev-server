@@ -75,9 +75,9 @@ export default class CpoOCPIClient extends OCPIClient {
     let momentFrom: Moment;
     if (partial) {
       // Get last job success date
-      if (this.ocpiEndpoint.lastCpoPullTokens) {
+      if (this.ocpiEndpoint.lastCpoPullTokens?.lastUpdatedOn) {
         // Last execution date
-        momentFrom = moment(this.ocpiEndpoint.lastCpoPullTokens).utc();
+        momentFrom = moment(this.ocpiEndpoint.lastCpoPullTokens.lastUpdatedOn).utc();
       } else {
         // Last hour by default
         momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
@@ -172,13 +172,12 @@ export default class CpoOCPIClient extends OCPIClient {
     } while (nextResult);
     // Save result in OCPI endpoint
     const lastCpoPullTokens: OCPILastCpoPullToken = {
-      lastCpoPullTokens: startDate,
-      lastCpoPullTokensResult: {
-        successNbr: result ? result.success : 0,
-        failureNbr: result ? result.failure : 0,
-        totalNbr: result ? result.total : 0,
-        tokenIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
-      }
+      lastUpdatedOn: startDate,
+      partial,
+      successNbr: result ? result.success : 0,
+      failureNbr: result ? result.failure : 0,
+      totalNbr: result ? result.total : 0,
+      tokenIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
     };
     await OCPIEndpointStorage.saveOcpiLastCpoPullTokens(
       this.tenant, this.ocpiEndpoint.id, lastCpoPullTokens);
@@ -701,9 +700,9 @@ export default class CpoOCPIClient extends OCPIClient {
     let momentFrom: Moment;
     if (partial) {
       // Get last job success date
-      if (this.ocpiEndpoint.lastCpoPushStatuses) {
+      if (this.ocpiEndpoint.lastCpoPushStatuses?.lastUpdatedOn) {
         // Last execution date
-        momentFrom = moment(this.ocpiEndpoint.lastCpoPushStatuses).utc();
+        momentFrom = moment(this.ocpiEndpoint.lastCpoPushStatuses.lastUpdatedOn).utc();
       } else {
         // Last hour by default
         momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
@@ -801,13 +800,12 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Save result in OCPI endpoint
     const lastCpoPushStatus: OCPILastCpoPushStatus = {
-      lastCpoPushStatuses: startDate,
-      lastCpoPushStatusesResult: {
-        successNbr: result ? result.success : 0,
-        failureNbr: result ? result.failure : 0,
-        totalNbr: result ? result.total : 0,
-        chargeBoxIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
-      }
+      lastUpdatedOn: startDate,
+      partial,
+      successNbr: result ? result.success : 0,
+      failureNbr: result ? result.failure : 0,
+      totalNbr: result ? result.total : 0,
+      chargeBoxIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
     };
     await OCPIEndpointStorage.saveOcpiLastCpoPushStatuses(
       this.tenant, this.ocpiEndpoint.id, lastCpoPushStatus);
@@ -856,8 +854,8 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   private getCpoPushChargeBoxIDsInFailure(): string[] {
-    if (this.ocpiEndpoint.lastCpoPushStatusesResult?.chargeBoxIDsInFailure) {
-      return this.ocpiEndpoint.lastCpoPushStatusesResult.chargeBoxIDsInFailure;
+    if (this.ocpiEndpoint.lastCpoPushStatuses?.chargeBoxIDsInFailure) {
+      return this.ocpiEndpoint.lastCpoPushStatuses.chargeBoxIDsInFailure;
     }
     return [];
   }

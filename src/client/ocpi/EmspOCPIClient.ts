@@ -62,9 +62,9 @@ export default class EmspOCPIClient extends OCPIClient {
     let momentFrom: Moment;
     if (partial) {
       // Get last job success date
-      if (this.ocpiEndpoint.lastEmspPushTokens) {
+      if (this.ocpiEndpoint.lastEmspPushTokens?.lastUpdatedOn) {
         // Last execution date
-        momentFrom = moment(this.ocpiEndpoint.lastEmspPushTokens).utc();
+        momentFrom = moment(this.ocpiEndpoint.lastEmspPushTokens.lastUpdatedOn).utc();
       } else {
         // Last hour by default
         momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
@@ -109,13 +109,12 @@ export default class EmspOCPIClient extends OCPIClient {
     } while (!Utils.isEmptyArray(tokens.result));
     // Save result in OCPI endpoint
     const lastEmspPushTokens: OCPILastEmspPushToken = {
-      lastEmspPushTokens: startDate,
-      lastEmspPushTokensResult: {
-        successNbr: result ? result.success : 0,
-        failureNbr: result ? result.failure : 0,
-        totalNbr: result ? result.total : 0,
-        tokenIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
-      }
+      lastUpdatedOn: startDate,
+      partial,
+      successNbr: result ? result.success : 0,
+      failureNbr: result ? result.failure : 0,
+      totalNbr: result ? result.total : 0,
+      tokenIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
     };
     await OCPIEndpointStorage.saveOcpiLastEmspPushTokens(
       this.tenant, this.ocpiEndpoint.id, lastEmspPushTokens);
@@ -150,9 +149,9 @@ export default class EmspOCPIClient extends OCPIClient {
     let momentFrom: Moment;
     if (partial) {
       // Get last job success date
-      if (this.ocpiEndpoint.lastEmspPullLocations) {
+      if (this.ocpiEndpoint.lastEmspPullLocations?.lastUpdatedOn) {
         // Last execution date
-        momentFrom = moment(this.ocpiEndpoint.lastEmspPullLocations).utc();
+        momentFrom = moment(this.ocpiEndpoint.lastEmspPullLocations.lastUpdatedOn).utc();
       } else {
         // Last hour by default
         momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
@@ -247,13 +246,12 @@ export default class EmspOCPIClient extends OCPIClient {
     } while (nextResult);
     // Save result in OCPI endpoint
     const lastEmspPushTokens: OCPILastEmspPullLocation = {
-      lastEmspPullLocations: startDate,
-      lastEmspPullLocationsResult: {
-        successNbr: result ? result.success : 0,
-        failureNbr: result ? result.failure : 0,
-        totalNbr: result ? result.total : 0,
-        locationIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
-      }
+      lastUpdatedOn: startDate,
+      partial,
+      successNbr: result ? result.success : 0,
+      failureNbr: result ? result.failure : 0,
+      totalNbr: result ? result.total : 0,
+      locationIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
     };
     await OCPIEndpointStorage.saveOcpiLastEmspPullLocation(
       this.tenant, this.ocpiEndpoint.id, lastEmspPushTokens);

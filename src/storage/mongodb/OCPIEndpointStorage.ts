@@ -82,8 +82,14 @@ export default class OCPIEndpointStorage {
       { _id: DatabaseUtils.convertToObjectID(ocpiEndpointID) },
       {
         $set: {
-          lastCpoPushStatuses: Utils.convertToDate(lastCpoPushStatus.lastCpoPushStatuses),
-          lastCpoPushStatusesResult: lastCpoPushStatus.lastCpoPushStatusesResult,
+          lastCpoPushStatuses: {
+            lastUpdatedOn: Utils.convertToDate(lastCpoPushStatus.lastUpdatedOn),
+            partial: Utils.convertToBoolean(lastCpoPushStatus.partial),
+            successNbr: Utils.convertToInt(lastCpoPushStatus.successNbr),
+            failureNbr: Utils.convertToInt(lastCpoPushStatus.failureNbr),
+            totalNbr: Utils.convertToInt(lastCpoPushStatus.totalNbr),
+            chargeBoxIDsInFailure: lastCpoPushStatus.chargeBoxIDsInFailure,
+          }
         }
       }
     );
@@ -98,8 +104,14 @@ export default class OCPIEndpointStorage {
       { _id: DatabaseUtils.convertToObjectID(ocpiEndpointID) },
       {
         $set: {
-          lastCpoPullTokens: Utils.convertToDate(lastCpoPullTokens.lastCpoPullTokens),
-          lastCpoPullTokensResult: lastCpoPullTokens.lastCpoPullTokensResult,
+          lastCpoPullTokens: {
+            lastUpdatedOn: Utils.convertToDate(lastCpoPullTokens.lastUpdatedOn),
+            partial: Utils.convertToBoolean(lastCpoPullTokens.partial),
+            successNbr: Utils.convertToInt(lastCpoPullTokens.successNbr),
+            failureNbr: Utils.convertToInt(lastCpoPullTokens.failureNbr),
+            totalNbr: Utils.convertToInt(lastCpoPullTokens.totalNbr),
+            tokenIDsInFailure: lastCpoPullTokens.tokenIDsInFailure,
+          }
         }
       }
     );
@@ -114,15 +126,21 @@ export default class OCPIEndpointStorage {
       { _id: DatabaseUtils.convertToObjectID(ocpiEndpointID) },
       {
         $set: {
-          lastEmspPushTokens: Utils.convertToDate(lastEmspPushTokens.lastEmspPushTokens),
-          lastEmspPushTokensResult: lastEmspPushTokens.lastEmspPushTokensResult,
+          lastEmspPushTokens: {
+            lastUpdatedOn: Utils.convertToDate(lastEmspPushTokens.lastUpdatedOn),
+            partial: Utils.convertToBoolean(lastEmspPushTokens.partial),
+            successNbr: Utils.convertToInt(lastEmspPushTokens.successNbr),
+            failureNbr: Utils.convertToInt(lastEmspPushTokens.failureNbr),
+            totalNbr: Utils.convertToInt(lastEmspPushTokens.totalNbr),
+            tokenIDsInFailure: lastEmspPushTokens.tokenIDsInFailure,
+          }
         }
       }
     );
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOcpiLastEmspPushTokens', startTime, ocpiEndpointID, lastEmspPushTokens);
   }
 
-  public static async saveOcpiLastEmspPullLocation(tenant: Tenant, ocpiEndpointID: string, lastEmspPullLocation: OCPILastEmspPullLocation): Promise<void> {
+  public static async saveOcpiLastEmspPullLocation(tenant: Tenant, ocpiEndpointID: string, lastEmspPullLocations: OCPILastEmspPullLocation): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
@@ -130,12 +148,18 @@ export default class OCPIEndpointStorage {
       { _id: DatabaseUtils.convertToObjectID(ocpiEndpointID) },
       {
         $set: {
-          lastEmspPullLocations: Utils.convertToDate(lastEmspPullLocation.lastEmspPullLocations),
-          lastEmspPullLocationsResult: lastEmspPullLocation.lastEmspPullLocationsResult,
+          lastEmspPullLocations: {
+            lastUpdatedOn: Utils.convertToDate(lastEmspPullLocations.lastUpdatedOn),
+            partial: Utils.convertToBoolean(lastEmspPullLocations.partial),
+            successNbr: Utils.convertToInt(lastEmspPullLocations.successNbr),
+            failureNbr: Utils.convertToInt(lastEmspPullLocations.failureNbr),
+            totalNbr: Utils.convertToInt(lastEmspPullLocations.totalNbr),
+            locationIDsInFailure: lastEmspPullLocations.locationIDsInFailure,
+          }
         }
       }
     );
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOcpiLastEmspPullLocation', startTime, ocpiEndpointID, lastEmspPullLocation);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOcpiLastEmspPullLocation', startTime, ocpiEndpointID, lastEmspPullLocations);
   }
 
   // Delegate

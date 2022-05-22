@@ -118,10 +118,10 @@ export default class OCPIEndpointService {
       },
       [
         'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'lastChangedOn', 'lastPatchJobOn', 'backgroundPatchJob', 'localToken', 'token',
-        'lastCpoPushStatuses', 'lastCpoPushStatusesResult.failureNbr', 'lastCpoPushStatusesResult.successNbr', 'lastCpoPushStatusesResult.totalNbr',
-        'lastEmspPushTokens', 'lastEmspPushTokensResult.failureNbr', 'lastEmspPushTokensResult.successNbr', 'lastEmspPushTokensResult.totalNbr',
-        'lastEmspPullLocations', 'lastEmspPullLocationsResult.failureNbr', 'lastEmspPullLocationsResult.successNbr', 'lastEmspPullLocationsResult.totalNbr',
-        'lastCpoPullTokens', 'lastCpoPullTokensResult.failureNbr', 'lastCpoPullTokensResult.successNbr', 'lastCpoPullTokensResult.totalNbr',
+        'lastCpoPushStatuses.lastUpdatedOn', 'lastCpoPushStatuses.partial', 'lastCpoPushStatuses.failureNbr', 'lastCpoPushStatuses.successNbr', 'lastCpoPushStatuses.totalNbr',
+        'lastCpoPullTokens.lastUpdatedOn', 'lastCpoPullTokens.partial', 'lastCpoPullTokens.failureNbr', 'lastCpoPullTokens.successNbr', 'lastCpoPullTokens.totalNbr',
+        'lastEmspPushTokens.lastUpdatedOn', 'lastEmspPushTokens.partial', 'lastEmspPushTokens.failureNbr', 'lastEmspPushTokens.successNbr', 'lastEmspPushTokens.totalNbr',
+        'lastEmspPullLocations.lastUpdatedOn', 'lastEmspPullLocations.partial', 'lastEmspPullLocations.failureNbr', 'lastEmspPullLocations.successNbr', 'lastEmspPullLocations.totalNbr',
         ...userProject
       ]);
     res.json(ocpiEndpoints);

@@ -1,9 +1,9 @@
 import CreatedUpdatedProps from '../CreatedUpdatedProps';
+import { OCPIBusinessDetails } from '../Setting';
 import { OCPIRegistrationStatus } from './OCPIRegistrationStatus';
 import { OCPIRole } from './OCPIRole';
-import { OcpiBusinessDetails } from '../Setting';
 
-export default interface OCPIEndpoint extends CreatedUpdatedProps, OCPILastCpoPushStatus, OCPILastCpoPullToken, OCPILastEmspPullLocation, OCPILastEmspPushToken {
+export default interface OCPIEndpoint extends CreatedUpdatedProps {
   id: string;
   role: OCPIRole;
   name: string;
@@ -15,49 +15,49 @@ export default interface OCPIEndpoint extends CreatedUpdatedProps, OCPILastCpoPu
   backgroundPatchJob: boolean;
   status?: OCPIRegistrationStatus;
   version?: string;
-  businessDetails?: OcpiBusinessDetails;
+  businessDetails?: OCPIBusinessDetails;
   availableEndpoints?: OCPIAvailableEndpoints;
   versionUrl?: string;
+  lastCpoPushStatuses?: OCPILastCpoPushStatus;
+  lastEmspPushTokens?: OCPILastEmspPushToken;
+  lastEmspPullLocations?: OCPILastEmspPullLocation;
+  lastCpoPullTokens?: OCPILastCpoPullToken;
 }
 
 export interface OCPILastEmspPushToken {
-  lastEmspPushTokens?: Date;
-  lastEmspPushTokensResult?: {
-    successNbr: number;
-    failureNbr: number;
-    totalNbr: number;
-    tokenIDsInFailure?: string[];
-  };
+  lastUpdatedOn: Date;
+  partial: boolean;
+  successNbr: number;
+  failureNbr: number;
+  totalNbr: number;
+  tokenIDsInFailure?: string[];
 }
 
 export interface OCPILastEmspPullLocation {
-  lastEmspPullLocations?: Date;
-  lastEmspPullLocationsResult?: {
-    successNbr: number;
-    failureNbr: number;
-    totalNbr: number;
-    locationIDsInFailure?: string[];
-  };
+  lastUpdatedOn: Date;
+  partial: boolean;
+  successNbr: number;
+  failureNbr: number;
+  totalNbr: number;
+  locationIDsInFailure?: string[];
 }
 
 export interface OCPILastCpoPullToken {
-  lastCpoPullTokens?: Date;
-  lastCpoPullTokensResult?: {
-    successNbr: number;
-    failureNbr: number;
-    totalNbr: number;
-    tokenIDsInFailure?: string[];
-  };
+  lastUpdatedOn: Date;
+  partial: boolean;
+  successNbr: number;
+  failureNbr: number;
+  totalNbr: number;
+  tokenIDsInFailure?: string[];
 }
 
 export interface OCPILastCpoPushStatus {
-  lastCpoPushStatuses?: Date;
-  lastCpoPushStatusesResult?: {
-    successNbr: number;
-    failureNbr: number;
-    totalNbr: number;
-    chargeBoxIDsInFailure?: string[];
-  };
+  lastUpdatedOn: Date;
+  partial: boolean;
+  successNbr: number;
+  failureNbr: number;
+  totalNbr: number;
+  chargeBoxIDsInFailure?: string[];
 }
 
 export interface OCPIAvailableEndpoints {
