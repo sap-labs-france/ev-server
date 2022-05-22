@@ -62,10 +62,9 @@ export default class EmspOCPIClient extends OCPIClient {
     let momentFrom: Moment;
     if (partial) {
       // Get last job success date
-      const lastEmspPushTokens = this.ocpiEndpoint.lastEmspPushTokens ?? new Date();
-      if (lastEmspPushTokens) {
+      if (this.ocpiEndpoint.lastEmspPushTokens) {
         // Last execution date
-        momentFrom = moment(lastEmspPushTokens).utc();
+        momentFrom = moment(this.ocpiEndpoint.lastEmspPushTokens).utc();
       } else {
         // Last hour by default
         momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
@@ -151,10 +150,9 @@ export default class EmspOCPIClient extends OCPIClient {
     let momentFrom: Moment;
     if (partial) {
       // Get last job success date
-      const lastEmspPullLocations = this.ocpiEndpoint.lastEmspPullLocations ?? new Date();
-      if (lastEmspPullLocations) {
+      if (this.ocpiEndpoint.lastEmspPullLocations) {
         // Last execution date
-        momentFrom = moment(lastEmspPullLocations).utc();
+        momentFrom = moment(this.ocpiEndpoint.lastEmspPullLocations).utc();
       } else {
         // Last hour by default
         momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');

@@ -75,10 +75,9 @@ export default class CpoOCPIClient extends OCPIClient {
     let momentFrom: Moment;
     if (partial) {
       // Get last job success date
-      const lastCpoPullTokens = this.ocpiEndpoint.lastCpoPullTokens ?? new Date();
-      if (lastCpoPullTokens) {
+      if (this.ocpiEndpoint.lastCpoPullTokens) {
         // Last execution date
-        momentFrom = moment(lastCpoPullTokens).utc();
+        momentFrom = moment(this.ocpiEndpoint.lastCpoPullTokens).utc();
       } else {
         // Last hour by default
         momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
@@ -701,10 +700,9 @@ export default class CpoOCPIClient extends OCPIClient {
     let momentFrom: Moment;
     if (partial) {
       // Get last job success date
-      const lastCpoPushStatuses = this.ocpiEndpoint.lastCpoPushStatuses ?? new Date();
-      if (lastCpoPushStatuses) {
+      if (this.ocpiEndpoint.lastCpoPushStatuses) {
         // Last execution date
-        momentFrom = moment(lastCpoPushStatuses).utc();
+        momentFrom = moment(this.ocpiEndpoint.lastCpoPushStatuses).utc();
       } else {
         // Last hour by default
         momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
