@@ -199,6 +199,7 @@ export default class EmspOCPIClient extends OCPIClient {
         // Cannot process locations in parallel (uniqueness is on site name) -> leads to dups
         for (const location of locations) {
           try {
+            result.total++;
             // Keep Evses a part from Location
             const evses = location.evses;
             delete location.evses;

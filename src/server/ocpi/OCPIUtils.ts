@@ -195,7 +195,7 @@ export default class OCPIUtils {
       issuer: tenant.name,
       valid: tag.active && tag.user?.status === UserStatus.ACTIVE,
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-      last_updated: tag.lastChangedOn ?? tag.createdOn
+      last_updated: tag.lastChangedOn ?? tag.createdOn ?? new Date()
     };
   }
 
