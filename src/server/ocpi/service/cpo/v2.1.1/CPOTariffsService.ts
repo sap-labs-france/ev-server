@@ -56,7 +56,7 @@ export default class CPOTariffsService {
       // Get simple pricing settings
       const pricingSettings = await SettingStorage.getPricingSettings(tenant, limit, skip, dateFrom, dateTo);
       if (pricingSettings.type === PricingSettingsType.SIMPLE && pricingSettings.simple) {
-        tariff = OCPIUtils.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
+        tariff = OCPIUtils.convertSimplePricingSettingToOcpiTariff(pricingSettings.simple);
         if (tariff.currency && tariff.elements[0].price_components[0].price > 0) {
           tariffs.push(tariff);
         } else if (tariff.currency && tariff.elements[0].price_components[0].price === 0) {

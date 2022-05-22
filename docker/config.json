@@ -237,7 +237,8 @@
       {
         "name": "OCPIPushTokensTask",
         "active": true,
-        "periodicity": "0 0 1 * *"
+        "periodicity": "0 0 1 * *",
+        "config": {}
       },
       {
         "name": "OCPIPullSessionsTask",

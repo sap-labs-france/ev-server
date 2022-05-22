@@ -1,3 +1,4 @@
+import { OCPIPushTokensTaskConfig, TaskConfig } from '../../../types/TaskConfig';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 
 import Constants from '../../../utils/Constants';
@@ -10,7 +11,6 @@ import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import { ServerAction } from '../../../types/Server';
-import { TaskConfig } from '../../../types/TaskConfig';
 import TenantSchedulerTask from '../../TenantSchedulerTask';
 import Utils from '../../../utils/Utils';
 
@@ -24,7 +24,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
         // Get all available endpoints
         const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const ocpiEndpoint of ocpiEndpoints.result) {
-          await this.processOCPIEndpoint(tenant, ocpiEndpoint);
+          await this.processOCPIEndpoint(tenant, ocpiEndpoint, config);
         }
       }
     } catch (error) {
@@ -33,7 +33,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
     }
   }
 
-  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
+  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIPushTokensTaskConfig): Promise<void> {
     // Get the lock
     const ocpiLock = await LockingHelper.createOCPIPushTokensLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
@@ -66,7 +66,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
         // Push the Tokens
-        const result = await ocpiClient.pushTokens();
+        const result = await ocpiClient.pushTokens(config.partial);
         await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
@@ -75,10 +75,8 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        // Log error
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_UPDATE_TOKENS, error);
       } finally {
-        // Release the lock
         await LockingManager.release(ocpiLock);
       }
     }

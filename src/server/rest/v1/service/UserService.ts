@@ -886,7 +886,7 @@ export default class UserService {
           for (const tag of tags) {
             await ocpiClient.pushToken({
               uid: tag.id,
-              type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
+              type: OCPIUtils.getOcpiTokenTypeFromID(tag.id),
               auth_id: tag.userID,
               visual_number: tag.visualID,
               issuer: tenant.name,
