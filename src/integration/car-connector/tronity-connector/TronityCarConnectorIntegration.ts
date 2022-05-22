@@ -82,7 +82,7 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
 
   private async fetchNewToken(credentials: URLSearchParams) {
     const response = await Utils.executePromiseWithTimeout(5000,
-      this.axiosInstance.post(`${this.connection.tronityConnection.apiUrl}/oauth/authentication`,
+      this.axiosInstance.post(`${this.connection.tronityConnection.apiUrl}/authentication`,
         credentials,
         {
           'axios-retry': {
@@ -90,7 +90,7 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
           },
           headers: this.buildFormHeaders()
         }),
-      `Time out error (5s) when getting the token with the connection URL '${this.connection.tronityConnection.apiUrl}/oauth/authentication'`
+      `Time out error (5s) when getting the token with the connection URL '${this.connection.tronityConnection.apiUrl}/authentication'`
     );
     const currentTime = new Date();
     const token : CarConnectorConnectionToken = {
