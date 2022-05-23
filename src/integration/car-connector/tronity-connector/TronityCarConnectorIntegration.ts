@@ -48,7 +48,7 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
       return null;
     }
     const connectionToken = await this.connect();
-    const request = `${this.connection.tronityConnection.apiUrl}/${car.carConnectorData.carConnectorMeterID}/battery`;
+    const request = `${this.connection.tronityConnection.apiUrl}/tronity/vehicles/${car.carConnectorData.carConnectorMeterID}/battery`;
     try {
       // Get consumption
       const response = await this.axiosInstance.get(
