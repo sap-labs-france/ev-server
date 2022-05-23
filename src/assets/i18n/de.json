@@ -148,8 +148,8 @@
       "body": "Eine neue Rechnung ({{invoiceNumber}}) in Höhe von {{amount}} ist jetzt verfügbar. Bitte prüfen Sie die E-Mail, um die Zahlung abzuschließen"
     },
     "billingSubAccountCreationLink": {
-      "title": "Billing Connected account",
-      "body": "You have been invited to create a Connected account for the Billing service. Please check your email to complete the process"
+      "title": "Billing account onboarding",
+      "body": "You have been invited to create a billing account. Please check your email to complete the process"
     },
     "billingSubAccountActivated": {
       "title": "Billing account activated",
