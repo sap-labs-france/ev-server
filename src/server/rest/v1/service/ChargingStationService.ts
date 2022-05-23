@@ -757,7 +757,7 @@ export default class ChargingStationService {
     if (chargingStation.deleted) {
       throw new AppError({
         action,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `Charging Station with ID '${chargingStationID}' is already deleted`,
         module: MODULE_NAME,
         method: 'handleDeleteChargingStation',
