@@ -111,7 +111,7 @@ export interface OcpiSetting {
   cpo: OcpiIdentifier;
   emsp: OcpiIdentifier;
   currency: string;
-  businessDetails: OcpiBusinessDetails;
+  businessDetails: OCPIBusinessDetails;
   tariffID?: string;
 }
 
@@ -136,7 +136,7 @@ export interface OicpIdentifier extends RoamingIdentifier {
   cert?: string;
 }
 
-export interface OcpiBusinessDetails {
+export interface OCPIBusinessDetails {
   name: string;
   website: string;
   logo?: {

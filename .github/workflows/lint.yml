@@ -10,6 +10,9 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.head_ref || github.ref_name }}
+      cancel-in-progress: true
     strategy:
       matrix:
         node-version: [16.x]

@@ -34,14 +34,18 @@ export interface OCPIPullLocationsTaskConfig extends TaskConfig {
   partial?: boolean;
 }
 
+export interface OCPIPushTokensTaskConfig extends TaskConfig {
+  partial?: boolean;
+}
+
 export interface OCPIPushEVSEStatusesTaskConfig extends TaskConfig {
-  processAllEVSEs?: boolean;
+  partial?: boolean;
 }
 
 export interface OICPPushEvseDataTaskConfig extends TaskConfig {
-  processAllEVSEs?: boolean;
+  partial?: boolean;
 }
 
 export interface OICPPushEvseStatusTaskConfig extends TaskConfig {
-  processAllEVSEs?: boolean;
+  partial?: boolean;
 }
