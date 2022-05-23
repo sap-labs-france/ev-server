@@ -67,7 +67,7 @@ export default class TransactionCommonTests {
 
   public async testReadNonExistingTransaction() {
     const response = await this.transactionUserService.transactionApi.readById(faker.datatype.number(100000));
-    expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+    expect(response.status).to.equal(StatusCodes.NOT_FOUND);
   }
 
   public async testReadTransactionWithInvalidId() {
@@ -1047,7 +1047,7 @@ export default class TransactionCommonTests {
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {
-      expect(transactionResponse.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      expect(transactionResponse.status).to.equal(StatusCodes.NOT_FOUND);
     } else {
       expect(transactionResponse.status).to.equal(StatusCodes.OK);
     }
@@ -1074,7 +1074,7 @@ export default class TransactionCommonTests {
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {
-      expect(transactionResponse.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      expect(transactionResponse.status).to.equal(StatusCodes.NOT_FOUND);
     } else {
       expect(transactionResponse.status).to.equal(StatusCodes.OK);
     }
@@ -1110,7 +1110,7 @@ export default class TransactionCommonTests {
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {
-      expect(transactionResponse.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      expect(transactionResponse.status).to.equal(StatusCodes.NOT_FOUND);
     } else {
       expect(transactionResponse.status).to.equal(StatusCodes.OK);
     }
@@ -1138,9 +1138,9 @@ export default class TransactionCommonTests {
     expect(transactionsDeleted.data.inSuccess).to.equal(2);
     expect(transactionsDeleted.data.inError).to.equal(0);
     let transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
-    expect(transactionResponse.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+    expect(transactionResponse.status).to.equal(StatusCodes.NOT_FOUND);
     transactionResponse = await this.transactionUserService.transactionApi.readById(secondTransactionId);
-    expect(transactionResponse.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+    expect(transactionResponse.status).to.equal(StatusCodes.NOT_FOUND);
 
   }
 

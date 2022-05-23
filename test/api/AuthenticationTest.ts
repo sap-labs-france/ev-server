@@ -260,7 +260,7 @@ describe('Authentication Service (utall)', () => {
       async () => {
         // Call
         const response = await CentralServerService.defaultInstance.authenticationApi.login(testData.adminEmail, 'A_M4tch1ng_P4ssw0rd', true);
-        expect(response.status).to.be.eql(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        expect(response.status).to.be.eql(StatusCodes.NOT_FOUND);
         expect(response.data).to.not.have.property('token');
       }
     );
@@ -300,19 +300,19 @@ describe('Authentication Service (utall)', () => {
     it('Should not allow authentication of unknown email', async () => {
       // Call
       const response = await CentralServerService.defaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true);
-      expect(response.status).to.be.eql(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      expect(response.status).to.be.eql(StatusCodes.NOT_FOUND);
       expect(response.data).to.not.have.property('token');
     });
 
     it('should not allow authentication without tenant', async () => {
       const response = await CentralServerService.defaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true, null);
-      expect(response.status).to.be.eql(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      expect(response.status).to.be.eql(StatusCodes.NOT_FOUND);
       expect(response.data).to.not.have.property('token');
     });
 
     it('should not allow authentication of unknown tenant', async () => {
       const response = await CentralServerService.defaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true, 'unknown');
-      expect(response.status).to.be.eql(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      expect(response.status).to.be.eql(StatusCodes.NOT_FOUND);
       expect(response.data).to.not.have.property('token');
     });
 

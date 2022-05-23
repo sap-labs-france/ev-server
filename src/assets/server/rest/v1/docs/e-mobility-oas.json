@@ -253,7 +253,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -286,7 +286,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -335,7 +335,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -378,7 +378,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -601,7 +601,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -680,7 +680,7 @@
           "547": {
             "$ref": "#/components/responses/SiteAreaTreeChildrenMaxPower"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -723,7 +723,7 @@
           "543": {
             "$ref": "#/components/responses/SiteAreaHierarchyDependencyError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -767,7 +767,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -866,7 +866,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -925,7 +925,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -984,7 +984,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -1043,7 +1043,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -1102,7 +1102,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -1157,7 +1157,7 @@
           "520": {
             "description": "The End-user License Agreement is mandatory"
           },
-          "550": {
+          "404": {
             "description": "Unknown tenant, user does not exists, or credentials are invalid"
           },
           "590": {
@@ -1250,7 +1250,7 @@
           "520": {
             "description": "End-user License Agreement has not been accepted"
           },
-          "550": {
+          "404": {
             "description": "User tried to register with an unknown tenant"
           }
         }
@@ -1335,7 +1335,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "description": "Unknown tenant or user does not exist"
           }
         }
@@ -1381,7 +1381,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "description": "Unknown tenant"
           }
         }
@@ -1436,7 +1436,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "description": "Unknown tenant"
           }
         }
@@ -1486,7 +1486,7 @@
           "540": {
             "description": "Invalid verification token"
           },
-          "550": {
+          "404": {
             "description": "Unknown tenant or user does not exist"
           },
           "591": {
@@ -1536,7 +1536,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "description": "Unknown tenant or user does not exist"
           },
           "591": {
@@ -3714,7 +3714,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "description": "Charging Station does not exist"
           },
           "570": {
@@ -6555,7 +6555,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -6684,7 +6684,7 @@
           "510": {
             "$ref": "#/components/responses/EmailAlreadyUsed"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -6727,7 +6727,7 @@
           "510": {
             "description": "User cannot be deleted due to billing constraints"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -6792,7 +6792,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -6848,7 +6848,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -6904,7 +6904,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -6960,7 +6960,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -7021,7 +7021,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -7079,7 +7079,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -7402,7 +7402,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -7465,7 +7465,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -7518,7 +7518,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -7563,7 +7563,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -7619,7 +7619,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -7664,7 +7664,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -7709,7 +7709,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -7842,7 +7842,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "description": "User does not exist"
           },
           "576": {
@@ -7902,7 +7902,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -7965,7 +7965,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -8043,7 +8043,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           },
           "575": {
@@ -8086,7 +8086,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -8156,7 +8156,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           },
           "576": {
@@ -8207,7 +8207,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -8261,7 +8261,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -8706,7 +8706,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -8755,7 +8755,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           },
           "585": {
@@ -8793,7 +8793,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -8843,7 +8843,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -8900,7 +8900,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -8957,7 +8957,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -9015,7 +9015,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -9073,7 +9073,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -9112,7 +9112,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -9275,7 +9275,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -9526,7 +9526,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -9566,7 +9566,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -9766,7 +9766,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -9820,7 +9820,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -10143,7 +10143,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -10278,7 +10278,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -10502,7 +10502,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -10551,7 +10551,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -10591,7 +10591,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -10721,7 +10721,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -10763,7 +10763,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -10823,7 +10823,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -10873,7 +10873,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "description": "Asset does not exist"
           }
         }
@@ -10908,7 +10908,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11093,7 +11093,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11137,7 +11137,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11170,7 +11170,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11330,7 +11330,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11374,7 +11374,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11407,7 +11407,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11460,7 +11460,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11502,7 +11502,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11544,7 +11544,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11586,7 +11586,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11628,7 +11628,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11670,7 +11670,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11712,7 +11712,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11754,7 +11754,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11796,7 +11796,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11838,7 +11838,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11897,7 +11897,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11941,7 +11941,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -11985,7 +11985,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12029,7 +12029,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12115,7 +12115,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12159,7 +12159,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12192,7 +12192,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12245,7 +12245,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12291,7 +12291,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12337,7 +12337,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12381,7 +12381,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12425,7 +12425,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12610,7 +12610,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12659,7 +12659,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12692,7 +12692,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12847,7 +12847,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12896,7 +12896,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12929,7 +12929,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -12971,7 +12971,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -13902,7 +13902,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -14022,7 +14022,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -14060,7 +14060,7 @@
           "500": {
             "$ref": "#/components/responses/BackendError"
           },
-          "550": {
+          "404": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
