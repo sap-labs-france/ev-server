@@ -150,6 +150,7 @@ export default class UtilsService {
 
   public static async checkAndGetChargingStationTemplateAuthorization(tenant: Tenant, userToken: UserToken, chargingStationTemplateID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStationTemplate> {
+    UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
     // Check static auth for reading Charging Station
     if (!await Authorizations.canReadChargingStationTemplate(userToken)) {
       throw new AppAuthError({
@@ -162,7 +163,6 @@ export default class UtilsService {
       });
     }
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       tenant, userToken, { id: chargingStationTemplateID }, authAction, entityData);
@@ -184,17 +184,6 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, chargingStationTemplate, `ChargingStationTemplate ID '${chargingStationTemplateID}' does not exist`,
       MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
-    // Deleted?
-    // if (chargingStationTemplate?.deleted) {
-    //   throw new AppError({
-    //     ...LoggingHelper.getChargingStationTemplateProperties(chargingStationTemplate),
-    //     errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-    //     message: `ChargingStationTemplate with ID '${chargingStationTemplate.id}' is logically deleted`,
-    //     module: MODULE_NAME,
-    //     method: 'checkAndGetChargingStationTemplateAuthorization',
-    //     user: userToken,
-    //   });
-    // }
     return chargingStationTemplate;
   }
 

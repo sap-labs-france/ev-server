@@ -13,11 +13,7 @@ import ChargingStationTemplateValidator from '../validator/ChargingStationTempla
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
-import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
-import { TenantComponents } from '../../../../types/Tenant';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'ChargingStationTemplateService';
