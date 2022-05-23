@@ -1988,7 +1988,7 @@ export default class ChargingStationService {
           status = OCPIEvseStatus.REMOVED;
         }
         if (ocpiClient) {
-          await ocpiClient.updateChargingStationStatus(chargingStation, status);
+          await ocpiClient.patchChargingStationStatus(chargingStation, status);
         }
       } catch (error) {
         await Logging.logError({
