@@ -973,29 +973,31 @@ export default class OCPPUtils {
       inError: 0,
       inSuccess: 0
     };
-    for (const chargingStation of siteArea.chargingStations) {
-      const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenant, {
-        chargingStationIDs: [chargingStation.id],
-        profilePurposeType: params.profilePurposeType,
-        transactionId: params.transactionId
-      }, Constants.DB_PARAMS_MAX_LIMIT);
-      for (const chargingProfile of chargingProfiles.result) {
-        try {
-          await this.clearAndDeleteChargingProfile(tenant, chargingProfile);
-          actionsResponse.inSuccess++;
-        } catch (error) {
-          await Logging.logError({
-            tenantID: tenant.id,
-            siteID: chargingProfile.chargingStation?.siteID,
-            siteAreaID: chargingProfile.chargingStation?.siteAreaID,
-            companyID: chargingProfile.chargingStation?.companyID,
-            chargingStationID: chargingProfile.chargingStationID,
-            action: ServerAction.CHARGING_PROFILE_DELETE,
-            module: MODULE_NAME, method: 'clearAndDeleteChargingProfilesForSiteArea',
-            message: `Error while clearing the charging profile for chargingStation ${chargingProfile.chargingStationID}`,
-            detailedMessages: { error: error.stack }
-          });
-          actionsResponse.inError++;
+    if (!Utils.isEmptyArray(siteArea.chargingStations)) {
+      for (const chargingStation of siteArea.chargingStations) {
+        const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenant, {
+          chargingStationIDs: [chargingStation.id],
+          profilePurposeType: params.profilePurposeType,
+          transactionId: params.transactionId
+        }, Constants.DB_PARAMS_MAX_LIMIT);
+        for (const chargingProfile of chargingProfiles.result) {
+          try {
+            await this.clearAndDeleteChargingProfile(tenant, chargingProfile);
+            actionsResponse.inSuccess++;
+          } catch (error) {
+            await Logging.logError({
+              tenantID: tenant.id,
+              siteID: chargingProfile.chargingStation?.siteID,
+              siteAreaID: chargingProfile.chargingStation?.siteAreaID,
+              companyID: chargingProfile.chargingStation?.companyID,
+              chargingStationID: chargingProfile.chargingStationID,
+              action: ServerAction.CHARGING_PROFILE_DELETE,
+              module: MODULE_NAME, method: 'clearAndDeleteChargingProfilesForSiteArea',
+              message: `Error while clearing the charging profile for chargingStation ${chargingProfile.chargingStationID}`,
+              detailedMessages: { error: error.stack }
+            });
+            actionsResponse.inError++;
+          }
         }
       }
     }
