@@ -100,7 +100,7 @@ export default class EMSPSessionsService {
     if (!transaction) {
       throw new AppError({
         module: MODULE_NAME, method: 'handlePatchSession', action,
-        errorCode: HTTPError.GENERAL_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `Transaction not found with OCPI Session ID '${sessionID}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });

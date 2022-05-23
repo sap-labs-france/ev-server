@@ -407,6 +407,10 @@ export default class Authorizations {
     return Authorizations.can(loggedUser, Entity.USER, Action.IMPORT, authContext);
   }
 
+  public static async canExportUsers(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.EXPORT, authContext);
+  }
+
   public static async canUpdateUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.USER, Action.UPDATE, authContext);
   }

@@ -89,7 +89,7 @@ export default class OCPIUtilsService {
     return ocpiLocationsResult;
   }
 
-  public static async getEmspTokens(tenant: Tenant, limit: number, skip: number,
+  public static async getEmspTokensFromTags(tenant: Tenant, limit: number, skip: number,
       dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPIToken>> {
     // Result
     const tokens: OCPIToken[] = [];
@@ -101,7 +101,7 @@ export default class OCPIUtilsService {
     // Convert Sites to Locations
     for (const tag of tags.result) {
       // Create Token
-      const ocpiToken = OCPIUtils.buildOCPITokenFromTag(tenant, tag);
+      const ocpiToken = OCPIUtils.buildEmspTokenFromTag(tenant, tag);
       tokens.push(ocpiToken);
     }
     let nbrOfTags = tags.count;
@@ -431,7 +431,7 @@ export default class OCPIUtilsService {
     // Set the connector
     const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
     if (connector) {
-      connector.status = OCPIUtils.convertOCPISessionStatus2ConnectorStatus(session.status);
+      connector.status = OCPIUtils.convertOcpiSessionStatusToConnectorStatus(session.status);
     }
     // Create the last consumption (first time)
     if (!transaction.lastConsumption) {
@@ -561,7 +561,7 @@ export default class OCPIUtilsService {
     await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction, true);
   }
 
-  public static async updateCreateTagWithCpoToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User, action: ServerAction): Promise<Tag> {
+  public static async updateCreateTagWithEmspToken(tenant: Tenant, token: OCPIToken, tag: Tag, emspUser: User, action: ServerAction): Promise<Tag> {
     if (!OCPIUtilsService.validateCpoToken(token)) {
       throw new AppError({
         module: MODULE_NAME, method: 'updateCpoToken', action,
@@ -711,7 +711,7 @@ export default class OCPIUtilsService {
         uid: RoamingUtils.buildEvseUID(chargingStation, connector.connectorId),
         evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector.connectorId),
         location_id: chargingStation.siteID,
-        status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtils.convertStatus2OCPIStatus(connector.status),
+        status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtils.convertStatusToOcpiStatus(connector.status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: [OCPIUtilsService.convertConnector2OcpiConnector(
           tenant, chargingStation, connector, options.countryID, options.partyID, settings)],
@@ -753,7 +753,7 @@ export default class OCPIUtilsService {
       uid: RoamingUtils.buildEvseUID(chargingStation, connectors[0].connectorId),
       evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connectors[0].connectorId),
       location_id: chargingStation.siteID,
-      status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtils.convertStatus2OCPIStatus(connectorOneStatus),
+      status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtils.convertStatusToOcpiStatus(connectorOneStatus),
       capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
       connectors: ocpiConnectors,
       last_updated: chargingStation.lastSeen,

@@ -3,7 +3,7 @@ import { OCPILocation, OCPILocationOptions } from '../../../../../types/ocpi/OCP
 
 import AppError from '../../../../../exception/AppError';
 import Constants from '../../../../../utils/Constants';
-import { HTTPError } from '../../../../../types/HTTPError';
+import DatabaseUtils from '../../../../../storage/mongodb/DatabaseUtils';
 import OCPIClientFactory from '../../../../../client/ocpi/OCPIClientFactory';
 import { OCPIConnector } from '../../../../../types/ocpi/OCPIConnector';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
@@ -12,6 +12,7 @@ import OCPIUtilsService from '../../OCPIUtilsService';
 import { OcpiSetting } from '../../../../../types/Setting';
 import { ServerAction } from '../../../../../types/Server';
 import SiteStorage from '../../../../../storage/mongodb/SiteStorage';
+import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../../types/Tenant';
 import Utils from '../../../../../utils/Utils';
 
@@ -31,7 +32,7 @@ export default class CPOLocationsService {
     const locationId = urlSegment.shift();
     const evseUid = urlSegment.shift();
     const evseConnectorId = urlSegment.shift();
-    let evseConnector = {};
+    let ociResult = {};
     const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
     // Define get option
     const options: OCPILocationOptions = {
@@ -39,26 +40,35 @@ export default class CPOLocationsService {
       countryID: ocpiClient.getLocalCountryCode(action),
       partyID: ocpiClient.getLocalPartyID(action)
     };
+    if (locationId && !DatabaseUtils.isObjectID(locationId)) {
+      throw new AppError({
+        module: MODULE_NAME, method: 'handleGetLocations', action,
+        errorCode: StatusCodes.UNPROCESSABLE_ENTITY,
+        message: `Location ID '${locationId}' has a wrong format`,
+        ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
+        detailedMessages: { locationId, evseUid, evseConnectorId }
+      });
+    }
     // Process request
     if (locationId && evseUid && evseConnectorId) {
-      evseConnector = await CPOLocationsService.getConnector(tenant, locationId, evseUid, evseConnectorId, options, ocpiClient.getSettings());
+      ociResult = await CPOLocationsService.getConnector(tenant, locationId, evseUid, evseConnectorId, options, ocpiClient.getSettings());
       // Check if at least of site found
-      if (!evseConnector) {
+      if (!ociResult) {
         throw new AppError({
           module: MODULE_NAME, method: 'handleGetLocations', action,
-          errorCode: HTTPError.GENERAL_ERROR,
+          errorCode: StatusCodes.NOT_FOUND,
           message: `EVSE Connector ID '${evseConnectorId}' not found on Charging Station ID '${evseUid}' and Location ID '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-          detailedMessages: { locationId, evseUid, connectorId: evseConnectorId }
+          detailedMessages: { locationId, evseUid, evseConnectorId }
         });
       }
     } else if (locationId && evseUid) {
-      evseConnector = await OCPIUtilsService.getCpoEvse(tenant, locationId, evseUid, options, ocpiClient.getSettings());
+      ociResult = await OCPIUtilsService.getCpoEvse(tenant, locationId, evseUid, options, ocpiClient.getSettings());
       // Check if at least of site found
-      if (!evseConnector) {
+      if (!ociResult) {
         throw new AppError({
           module: MODULE_NAME, method: 'handleGetLocations', action,
-          errorCode: HTTPError.GENERAL_ERROR,
+          errorCode: StatusCodes.NOT_FOUND,
           message: `EVSE UID not found '${evseUid}' in Location ID '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
           detailedMessages: { locationId, evseUid }
@@ -66,12 +76,12 @@ export default class CPOLocationsService {
       }
     } else if (locationId) {
       // Get single location
-      evseConnector = await CPOLocationsService.getLocation(tenant, locationId, options, ocpiClient.getSettings());
+      ociResult = await CPOLocationsService.getLocation(tenant, locationId, options, ocpiClient.getSettings());
       // Check if at least of site found
-      if (!evseConnector) {
+      if (!ociResult) {
         throw new AppError({
           module: MODULE_NAME, method: 'handleGetLocations', action,
-          errorCode: HTTPError.GENERAL_ERROR,
+          errorCode: StatusCodes.NOT_FOUND,
           message: `Location ID '${locationId}' not found`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
           detailedMessages: { locationId }
@@ -83,7 +93,7 @@ export default class CPOLocationsService {
       const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : Constants.OCPI_RECORDS_LIMIT;
       // Get all locations
       const locations = await OCPIUtilsService.getAllCpoLocations(tenant, limit, offset, options, true, ocpiClient.getSettings());
-      evseConnector = locations.result;
+      ociResult = locations.result;
       // Set header
       res.set({
         'X-Total-Count': locations.count,
@@ -97,7 +107,7 @@ export default class CPOLocationsService {
         });
       }
     }
-    res.json(OCPIUtils.success(evseConnector));
+    res.json(OCPIUtils.success(ociResult));
     next();
   }
 

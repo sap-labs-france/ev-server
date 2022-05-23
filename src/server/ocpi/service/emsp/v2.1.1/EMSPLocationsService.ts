@@ -119,11 +119,11 @@ export default class EMSPLocationsService {
     delete location.evses;
     // Process Site
     const siteName = OCPIUtils.buildOperatorName(countryCode, partyID);
-    site = await OCPIUtils.updateEMSPLocationSite(tenant, location, company, site, siteName);
+    site = await OCPIUtils.updateCreateSiteWithEmspLocation(tenant, location, company, site, siteName);
     // Process Site Area
-    siteArea = await OCPIUtils.updateEMSPLocationSiteArea(tenant, location, site, siteArea);
+    siteArea = await OCPIUtils.updateCreateSiteAreaWithEmspLocation(tenant, location, site, siteArea);
     // Process Charging Station
-    await OCPIUtils.processEMSPLocationChargingStations(tenant, location, site, siteArea, evses, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
+    await OCPIUtils.updateCreateChargingStationsWithEmspLocation(tenant, location, site, siteArea, evses, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
   }
 
   private static async putEvse(action: ServerAction, tenant: Tenant, locationID: string, evseUID: string, evse: OCPIEvse,
@@ -150,7 +150,7 @@ export default class EMSPLocationsService {
       });
     }
     // Process Charging Station
-    await OCPIUtils.processEMSPLocationChargingStation(
+    await OCPIUtils.updateCreateChargingStationWithEmspLocation(
       tenant, siteArea.ocpiData.location, site, siteArea, evse, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
   }
 
@@ -186,7 +186,7 @@ export default class EMSPLocationsService {
     // Put the new one
     evse.connectors.push(evseConnector);
     // Process Charging Station
-    await OCPIUtils.processEMSPLocationChargingStation(
+    await OCPIUtils.updateCreateChargingStationWithEmspLocation(
       tenant, siteArea.ocpiData.location, site, siteArea, evse, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
   }
 
@@ -208,9 +208,9 @@ export default class EMSPLocationsService {
       ...location,
     };
     // Process Site
-    await OCPIUtils.updateEMSPLocationSite(tenant, patchedLocation, company, site);
+    await OCPIUtils.updateCreateSiteWithEmspLocation(tenant, patchedLocation, company, site);
     // Process Site Area
-    await OCPIUtils.updateEMSPLocationSiteArea(tenant, patchedLocation, site, siteArea);
+    await OCPIUtils.updateCreateSiteAreaWithEmspLocation(tenant, patchedLocation, site, siteArea);
   }
 
   private static async patchEvse(action: ServerAction, tenant: Tenant, locationID: string, evseUID: string, evse: OCPIEvse,
@@ -224,7 +224,7 @@ export default class EMSPLocationsService {
       ...evse,
     };
     // Process Charging Station
-    await OCPIUtils.processEMSPLocationChargingStation(
+    await OCPIUtils.updateCreateChargingStationWithEmspLocation(
       tenant, siteArea.ocpiData.location, site, siteArea, patchedEvse, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
   }
 
@@ -260,14 +260,14 @@ export default class EMSPLocationsService {
     // Patch
     _.merge(foundEvseConnector, evseConnector);
     // Process Charging Station
-    await OCPIUtils.processEMSPLocationChargingStation(
+    await OCPIUtils.updateCreateChargingStationWithEmspLocation(
       tenant, siteArea.ocpiData.location, site, siteArea, evse, ServerAction.OCPI_EMSP_UPDATE_LOCATION);
   }
 
   private static async getOrganizationsFromLocationID(action: ServerAction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint, locationID: string,
       orgMustExist: boolean): Promise<{ company: Company; site: Site; siteArea: SiteArea; }> {
     // Get Company
-    const company = await OCPIUtils.checkAndGetEMSPCompany(tenant, ocpiEndpoint);
+    const company = await OCPIUtils.checkAndGetEmspCompany(tenant, ocpiEndpoint);
     if (orgMustExist && !company) {
       throw new AppError({
         module: MODULE_NAME, method: 'getOrganizationsFromLocationID', action,
