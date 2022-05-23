@@ -181,7 +181,7 @@
     "@types/jest": "^27.4.0",
     "@types/jsonstream": "^0.8.30",
     "@types/jsonwebtoken": "^8.5.8",
-    "@types/lodash": "^4.14.178",
+    "@types/lodash": "^4.14.182",
     "@types/moment-duration-format": "^2.2.3",
     "@types/moment-timezone": "^0.5.30",
     "@types/mongo-sanitize": "^1.0.1",
