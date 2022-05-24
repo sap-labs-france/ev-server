@@ -17,6 +17,7 @@ export enum IntegrationSettings {
   ASSET = 'asset',
   CAR_CONNECTOR = 'carConnector',
   BILLING = 'billing',
+  BILLING_PLATFORM = 'billingPlatform',
   CAR = 'car',
   ORGANIZATION = 'organization',
   STATISTICS = 'statistics'
