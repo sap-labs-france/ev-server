@@ -164,7 +164,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.COMPANY, action: Action.LIST,
         attributes: [
-          'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
+          'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country',
+          'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
       },
@@ -225,7 +227,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE, action: Action.LIST,
         attributes: [
-          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country',
+          'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectors'
         ]
@@ -271,7 +275,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREA, action: Action.LIST,
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
-          'address', 'site.id', 'site.name', 'site.public', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country',
+          'address.coordinates', 'site.id', 'site.name', 'site.public', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters',
           'createdOn', 'createdBy.name', 'createdBy.firstName', 'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectors'
         ]
       },
@@ -647,7 +653,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country',
+          'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ]
       },
       {
@@ -729,7 +737,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country',
+          'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'connectors'
         ],
       },
@@ -758,7 +768,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
-          'address','site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country',
+          'address.coordinates', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer',
           'distanceMeters', 'createdOn', 'lastChangedOn', 'connectors'
         ],
       },
@@ -991,7 +1003,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.COMPANY, action: Action.LIST,
         attributes: [
-          'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country',
+          'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ]
       },
       {
@@ -1003,7 +1017,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE, action: Action.LIST,
         attributes: [
-          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country',
+          'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'connectors'
         ]
       },
@@ -1018,7 +1034,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREA, action: Action.LIST,
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
-          'address', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country',
+          'address.coordinates', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer',
           'distanceMeters', 'createdOn', 'lastChangedOn', 'connectors'
         ]
       },
