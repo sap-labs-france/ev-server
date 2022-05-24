@@ -5,7 +5,6 @@ import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import EmailConfiguration from '../../types/configuration/EmailConfiguration';
-import { HttpBillingActivateSubAccount } from '../../types/requests/HttpBillingRequest';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
 import { ServerAction } from '../../types/Server';

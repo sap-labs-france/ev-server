@@ -287,7 +287,7 @@ export default abstract class OCPIClient {
   private async postCredentials(): Promise<OCPICredential> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
-    const credentials = await OCPIUtils.buildOCPICredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
+    const credentials = await OCPIUtils.buildOcpiCredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CREATE_CREDENTIALS,
@@ -309,7 +309,7 @@ export default abstract class OCPIClient {
   private async putCredentials(): Promise<OCPICredential> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_UPDATE_CREDENTIALS);
-    const credentials = await OCPIUtils.buildOCPICredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
+    const credentials = await OCPIUtils.buildOcpiCredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_UPDATE_CREDENTIALS,

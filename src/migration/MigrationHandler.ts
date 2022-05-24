@@ -8,6 +8,7 @@ import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import MigrationTask from './MigrationTask';
+import OCPIEndpointCleanUpTask from './tasks/OCPIEndpointCleanUpTask';
 import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDsTask';
 import RemoveLogoFromTenantTask from './tasks/RemoveLogoFromTenantTask';
 import RepairInvoiceInconsistencies from './tasks/RepairInvoiceInconsistencies';
@@ -152,6 +153,7 @@ export default class MigrationHandler {
     currentMigrationTasks.push(new UserCleanUpTask());
     currentMigrationTasks.push(new AlignEntitiesWithOrganizationIDsTask());
     currentMigrationTasks.push(new RemoveLogoFromTenantTask());
+    currentMigrationTasks.push(new OCPIEndpointCleanUpTask());
     return currentMigrationTasks;
   }
 }

@@ -148,8 +148,12 @@
          "body":"Nová faktura (č. {{invoiceNumber}}) ve výši {{amount}} € je nyní k dispozici. Zkontrolujte prosím svůj e-mail kvůli dokončení platby"
       },
       "billingSubAccountCreationLink": {
-        "title": "Billing Connected account",
-        "body": "You have been invited to create a billing Connected account. Please check your email to complete the process"
+        "title": "Billing account onboarding",
+        "body": "You have been invited to create a billing account. Please check your email to complete the process"
+      },
+      "billingSubAccountActivated": {
+        "title": "Billing account activated",
+        "body": "Your billing account has been activated"
       },
       "endUserErrorNotification":{
          "title":"Uživatel oznámil chybu",

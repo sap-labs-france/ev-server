@@ -20,6 +20,7 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
@@ -473,7 +474,7 @@ export default class BillingService {
   public static async handleCreateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CREATE, Entity.BILLING, MODULE_NAME, 'handleCreateSubAccount');
+      Action.BILLING_CREATE_SUB_ACCOUNT, Entity.BILLING, MODULE_NAME, 'handleCreateSubAccount');
     const filteredRequest = BillingValidator.getInstance().validateBillingCreateSubAccountReq(req.body);
     // Check authorization
     await AuthorizationService.checkAndGetBillingAuthorizations(req.tenant, req.user, Action.BILLING_CREATE_SUB_ACCOUNT);
@@ -505,23 +506,22 @@ export default class BillingService {
   }
 
   public static async handleActivateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CREATE, Entity.BILLING, MODULE_NAME, 'handleActivateSubAccount');
-    const filteredRequest = BillingValidator.getInstance().validateBillingActivateSubAccountReq(req.params);
+    const filteredRequest = BillingValidator.getInstance().validateBillingActivateSubAccountReq({ ...req.params, ...req.query });
+    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
+    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount');
     // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (!billingImpl) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleCreateSubAccount',
+        module: MODULE_NAME, method: 'handleActivateSubAccount',
         action: action,
         user: req.user
       });
     }
-    const subAccount = await BillingStorage.getSubAccountByAccountID(req.tenant, filteredRequest.subAccountID);
-    UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.subAccountID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
+    const subAccount = await BillingStorage.getSubAccountByID(tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
     // Check if the sub account is already activated
     if (!subAccount.pending) {
       throw new AppError({
@@ -534,13 +534,13 @@ export default class BillingService {
     }
     // Activate and save the sub account
     subAccount.pending = false;
-    await BillingStorage.saveSubAccount(req.tenant, subAccount);
+    await BillingStorage.saveSubAccount(tenant, subAccount);
     // Get the sub account owner
-    const user = await UserStorage.getUser(req.tenant, subAccount.userID);
+    const user = await UserStorage.getUser(tenant, subAccount.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${subAccount.userID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
     // Notify the user
     void NotificationHandler.sendBillingSubAccountActivationNotification(
-      req.tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
+      tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(tenant.subdomain), user });
     res.status(StatusCodes.OK).json(subAccount);
     next();
   }

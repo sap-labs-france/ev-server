@@ -148,12 +148,12 @@
       "body": "A new invoice ({{invoiceNumber}}) amounting {{amount}} is now available. Please check your email to finalize the payment"
     },
     "billingSubAccountCreationLink": {
-      "title": "Billing Connected account",
-      "body": "You have been invited to create a Connected account for the Billing service. Please check your email to complete the process"
+      "title": "Billing account onboarding",
+      "body": "You have been invited to create a billing account. Please check your email to complete the process"
     },
     "billingSubAccountActivated": {
-      "title": "Billing sub-account activated",
-      "body": "Your billing sub-account has been activated"
+      "title": "Billing account activated",
+      "body": "Your billing account has been activated"
     },
     "endUserErrorNotification": {
       "title": "A User Reported an Error",

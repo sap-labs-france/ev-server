@@ -1,4 +1,4 @@
-import { HttpBillingActivateSubAccount, HttpBillingCreateSubAccount, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingSubAccountActivate, HttpBillingSubAccountCreate, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 
 import { BillingSettings } from '../../../../types/Setting';
 import Schema from '../../../../types/validator/Schema';
@@ -52,11 +52,11 @@ export default class BillingValidator extends SchemaValidator {
     return this.validate(this.billingInvoiceGet, data);
   }
 
-  public validateBillingCreateSubAccountReq(data: Record<string, unknown>): HttpBillingCreateSubAccount {
+  public validateBillingCreateSubAccountReq(data: Record<string, unknown>): HttpBillingSubAccountCreate {
     return this.validate(this.billingCreateSubAccount, data);
   }
 
-  public validateBillingActivateSubAccountReq(data: Record<string, unknown>): HttpBillingActivateSubAccount {
+  public validateBillingActivateSubAccountReq(data: Record<string, unknown>): HttpBillingSubAccountActivate {
     return this.validate(this.billingActivateSubAccount, data);
   }
 }

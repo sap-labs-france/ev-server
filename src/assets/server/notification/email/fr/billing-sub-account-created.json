@@ -1,10 +1,10 @@
 {
-  "subject": "Facturation - Initialisation Compte connecté",
+  "subject": "Initialisation du compte de facturation",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Facturation - Intégration Compte connecté",
+      "title": "Initialisation du compte de facturation",
       "image": {
         "left": {
           "height": 60,
@@ -19,14 +19,14 @@
     "beforeActionLines": [
       "Cher <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "L'initialisation de votre Compte Connecté doit être complétée en suivant le lien ci-dessous:"
+      "L'initialisation de votre compte de facturation doit être complétée en suivant le lien ci-dessous:"
     ],
     "actions": [{
-        "title": "Finaliser l'initialisation du compte connecté",
+        "title": "Finaliser l'initialisation du compte de facturation",
         "url": "<%- onboardingLink %>"
       }],
     "afterActionLines": [
-      "Best Regards,",
+      "Cordialement,",
       "EV Admins."
     ],
     "footer": {
