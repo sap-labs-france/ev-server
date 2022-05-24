@@ -39,7 +39,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USER, action: [Action.READ, Action.CREATE],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -53,7 +55,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -144,7 +148,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USER, action: [Action.READ, Action.CREATE],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical', 'freeAccess'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'technical', 'freeAccess',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -158,7 +164,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical', 'freeAccess'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'technical', 'freeAccess',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -208,7 +216,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.COMPANY, action: Action.READ,
         attributes: [
-          'id', 'name', 'issuer', 'logo', 'address'
+          'id', 'name', 'issuer', 'logo',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -237,8 +247,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE, action: Action.READ,
         attributes: [
-          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID'
+          'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -285,8 +297,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREA,
         action: [Action.READ, Action.READ_CHARGING_STATIONS_FROM_SITE_AREA],
         attributes: [
-          'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name', 'site.public', 'parentSiteAreaID', 'parentSiteArea.name', 'tariffID'
+          'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases', 'voltage', 'smartCharging', 'accessControl',
+          'connectorStats', 'siteID', 'site.name', 'site.public', 'parentSiteAreaID', 'parentSiteArea.name', 'tariffID',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -547,8 +561,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'issuer', 'locale',
-          'notificationsActive', 'notifications', 'phone', 'mobile',
-          'iNumber', 'costCenter', 'address'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -562,8 +577,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'issuer', 'locale',
-          'notificationsActive', 'notifications', 'phone', 'mobile',
-          'iNumber', 'costCenter', 'address'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       { resource: Entity.SETTING, action: Action.READ },
@@ -668,7 +684,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'name', 'issuer', 'logo', 'address'
+          'id', 'name', 'issuer', 'logo',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -753,8 +771,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
       },
       {
@@ -785,8 +805,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'parentSiteAreaID', 'site.name', 'parentSiteArea.name'
+          'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID',
+          'parentSiteAreaID', 'site.name', 'parentSiteArea.name',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
       },
       {
@@ -935,7 +958,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'issuer', 'locale', 'notificationsActive',
-          'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'notifications', 'phone', 'mobile', 'iNumber', 'costCenter',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
       },
       {
@@ -1011,7 +1036,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.COMPANY, action: Action.READ,
         attributes: [
-          'id', 'name', 'issuer', 'logo', 'address'
+          'id', 'name', 'issuer', 'logo',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -1026,8 +1053,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE, action: Action.READ,
         attributes: [
-          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -1043,8 +1072,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE_AREA, action: Action.READ,
         attributes: [
-          'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'parentSiteAreaID', 'site.name', 'parentSiteArea.name'
+          'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats',
+          'siteID', 'parentSiteAreaID', 'site.name', 'parentSiteArea.name',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -1110,7 +1142,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'technical',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
       },
       {
@@ -1124,7 +1158,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'technical',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
       },
       {
@@ -1138,7 +1174,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address', 'technical'
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'technical',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
       },
       { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
@@ -1190,8 +1228,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID'
+          'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
       },
       {
@@ -1214,8 +1254,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREA,
         action: [Action.READ],
         attributes: [
-          'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name', 'site.public', 'tariffID'
+          'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats',
+          'siteID', 'site.name', 'site.public', 'tariffID',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
       },
       {
@@ -1229,8 +1272,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
+          'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
       },
       {
@@ -1588,8 +1633,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'name', 'firstName', 'email', 'issuer', 'locale', 'notificationsActive', 'notifications',
-          'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+          'id', 'name', 'firstName', 'email', 'issuer', 'locale', 'notificationsActive',
+          'notifications', 'phone', 'mobile', 'iNumber', 'costCenter',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
       },
       {
