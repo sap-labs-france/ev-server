@@ -118,7 +118,7 @@ export default class OCPIFacade {
         const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
         // Patch status
         if (ocpiClient) {
-          await ocpiClient.patchChargingStationStatus(chargingStation, connector);
+          await ocpiClient.patchChargingStationConnectorStatus(chargingStation, connector);
         }
       }
     } catch (error) {

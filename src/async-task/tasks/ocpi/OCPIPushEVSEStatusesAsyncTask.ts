@@ -28,7 +28,7 @@ export default class OCPIPushEVSEStatusesAsyncTask extends AbstractAsyncTask {
             if (!ocpiClient) {
               throw new Error(`OCPI Client not found in Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
             }
-            await ocpiClient.sendEVSEStatuses();
+            await ocpiClient.pushChargingStationStatuses();
           } finally {
             // Release the lock
             await LockingManager.release(patchStatusesLock);

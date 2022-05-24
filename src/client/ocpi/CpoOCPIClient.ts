@@ -267,7 +267,7 @@ export default class CpoOCPIClient extends OCPIClient {
       location: ocpiLocation,
       currency: this.settings.currency,
       status: OCPISessionStatus.PENDING,
-      total_cost: 0, // Never calculate the cost of OCPI transaction
+      total_cost: null, // Never calculate the cost of OCPI transaction
       last_updated: transaction.timestamp
     };
     // Call IOP
@@ -317,7 +317,7 @@ export default class CpoOCPIClient extends OCPIClient {
       kwh: transaction.ocpiData.session.kwh,
       last_updated: transaction.ocpiData.session.last_updated,
       currency: transaction.ocpiData.session.currency,
-      total_cost: 0, // Never calculate the cost of OCPI transaction
+      total_cost: null, // Never calculate the cost of OCPI transaction
       status: transaction.ocpiData.session.status,
       charging_periods: transaction.ocpiData.session.charging_periods
     };
@@ -424,7 +424,7 @@ export default class CpoOCPIClient extends OCPIClient {
       auth_method: transaction.ocpiData.session.auth_method,
       location: transaction.ocpiData.session.location,
       authorization_id: transaction.ocpiData.session.authorization_id,
-      total_cost: 0, // Never calculate the cost of OCPI transaction
+      total_cost: null, // Never calculate the cost of OCPI transaction
       charging_periods: await this.buildChargingPeriods(this.tenant, transaction),
       last_updated: transaction.stop.timestamp
     };
@@ -461,47 +461,17 @@ export default class CpoOCPIClient extends OCPIClient {
     }
   }
 
-  public async updateChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
-    if (!chargingStation.siteAreaID) {
-      throw new BackendError({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
-        message: 'Charging Station must be associated to a Site Area',
-        module: MODULE_NAME, method: 'removeChargingStation',
-      });
-    }
-    if (!chargingStation.issuer) {
-      throw new BackendError({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
-        message: 'Only charging Station issued locally can be exposed to IOP',
-        module: MODULE_NAME, method: 'removeChargingStation',
-      });
-    }
+  public async patchChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
     const results: any[] = [];
     for (const connector of chargingStation.connectors) {
-      const result = await this.patchEVSEStatus(
-        {
-          id: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID
-        }, chargingStation.siteID, RoamingUtils.buildEvseUID(chargingStation, connector.connectorId),
-        status ?? OCPIUtils.convertStatusToOcpiStatus(connector.status));
+      const result = await this.patchChargingStationConnectorStatus(chargingStation, connector, status);
       results.push(result.data);
     }
-    await Logging.logInfo({
-      ...LoggingHelper.getChargingStationProperties(chargingStation),
-      tenantID: this.tenant.id,
-      action: ServerAction.OCPI_CPO_UPDATE_STATUS,
-      message: 'Charging Station has been removed successfully',
-      module: MODULE_NAME, method: 'removeChargingStation',
-      detailedMessages: { responses: results }
-    });
   }
 
-  public async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector): Promise<void> {
-    if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
+  public async patchChargingStationConnectorStatus(chargingStation: ChargingStation,
+      connector: Connector, status?: OCPIEvseStatus): Promise<AxiosResponse<any>> {
+    if (!chargingStation.siteAreaID) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_CPO_UPDATE_STATUS,
@@ -525,7 +495,7 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'patchChargingStationStatus',
       });
     }
-    await this.patchEVSEStatus(
+    return this.patchEVSEStatus(
       {
         id: chargingStation.id,
         siteID: chargingStation.siteID,
@@ -533,7 +503,8 @@ export default class CpoOCPIClient extends OCPIClient {
         companyID: chargingStation.companyID,
       },
       chargingStation.siteID,
-      RoamingUtils.buildEvseUID(chargingStation, connector.connectorId), OCPIUtils.convertStatusToOcpiStatus(connector.status)
+      RoamingUtils.buildEvseUID(chargingStation, connector.connectorId),
+      status ?? OCPIUtils.convertStatusToOcpiStatus(connector.status)
     );
   }
 
@@ -683,7 +654,7 @@ export default class CpoOCPIClient extends OCPIClient {
     return result;
   }
 
-  public async sendEVSEStatuses(partial = false): Promise<OCPIResult> {
+  public async pushChargingStationStatuses(partial = false): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
       success: 0,

@@ -493,7 +493,7 @@ describe('Site Area', () => {
           testData.userService.siteAreaApi,
           testData.siteAreaWithoutSiteAdmin, false
         );
-        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        expect(response.status).to.equal(StatusCodes.NOT_FOUND);
       });
 
       it(
@@ -565,7 +565,7 @@ describe('Site Area', () => {
           expect(chargingStations.status).to.equal(StatusCodes.OK);
           const response = await testData.userService.siteAreaApi.removeChargingStations(
             testData.siteAreaWithoutSiteAdmin.id, [chargingStations.data.result[0].id]);
-          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+          expect(response.status).to.equal(StatusCodes.NOT_FOUND);
         }
       );
 
@@ -578,7 +578,7 @@ describe('Site Area', () => {
       it('Should not be able to remove Assets from SiteArea', async () => {
         const response = await testData.userService.siteAreaApi.removeAssets(
           testData.siteAreaWithoutSiteAdmin.id, [testData.testAsset.id]);
-        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        expect(response.status).to.equal(StatusCodes.NOT_FOUND);
       });
 
       it(
@@ -609,7 +609,7 @@ describe('Site Area', () => {
           testData.siteAreaWithoutSiteAdmin,
           false
         );
-        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        expect(response.status).to.equal(StatusCodes.NOT_FOUND);
       });
 
       it(
@@ -691,7 +691,7 @@ describe('Site Area', () => {
           testData.userService.siteAreaApi,
           testData.newSubSubSiteArea, false
         );
-        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        expect(response.status).to.equal(StatusCodes.NOT_FOUND);
         const newSubSubSiteAreaResponse = testData.newSubSubSiteArea = await testData.userService.getEntityById(
           testData.userService.siteAreaApi,
           testData.newSubSubSiteArea, false
