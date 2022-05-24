@@ -677,6 +677,8 @@ export default class ContextDefinition {
       numberOfPhases: 3,
       accessControl: true,
       maximumPower: 100000,
+      smartCharging: true,
+      parentSiteAreaID: '5ce249a2372f0b1c8caf5444',
       voltage: Voltage.VOLTAGE_230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
@@ -685,6 +687,7 @@ export default class ContextDefinition {
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED}`,
       numberOfPhases: 1,
       maximumPower: 100000,
+      smartCharging: true,
       voltage: Voltage.VOLTAGE_230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
@@ -694,6 +697,7 @@ export default class ContextDefinition {
       numberOfPhases: 3,
       accessControl: true,
       maximumPower: 200000,
+      smartCharging: true,
       voltage: Voltage.VOLTAGE_230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     }

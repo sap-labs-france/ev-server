@@ -19,6 +19,7 @@ export default class TransactionRouter {
     this.buildRouteTransactionsGetRefund();
     this.buildRouteTransaction();
     this.buildRouteTransactionConsumption();
+    this.buildRouteTransactionConsumptionForAdvenir();
     this.buildRouteDeleteTransaction();
     this.buildRouteDeleteTransactions();
     this.buildRoutePushTransactionCDR();
@@ -102,6 +103,13 @@ export default class TransactionRouter {
     this.router.get(`/${RESTServerRoute.REST_TRANSACTION_CONSUMPTIONS}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.TransactionId = req.params.id;
       void RouterUtils.handleRestServerAction(TransactionService.handleGetTransactionConsumption.bind(this), ServerAction.TRANSACTION_CONSUMPTION, req, res, next);
+    });
+  }
+
+  private buildRouteTransactionConsumptionForAdvenir(): void {
+    this.router.get(`/${RESTServerRoute.REST_TRANSACTION_CONSUMPTIONS_FOR_ADVENIR}`, (req: Request, res: Response, next: NextFunction) => {
+      req.query.TransactionId = req.params.id;
+      void RouterUtils.handleRestServerAction(TransactionService.handleGetTransactionConsumptionForAdvenir.bind(this), ServerAction.TRANSACTION_CONSUMPTION, req, res, next);
     });
   }
 

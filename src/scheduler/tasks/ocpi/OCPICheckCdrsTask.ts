@@ -74,10 +74,8 @@ export default class OCPICheckCdrsTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        // Log error
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_CDRS, error);
       } finally {
-        // Release the lock
         await LockingManager.release(ocpiLock);
       }
     }

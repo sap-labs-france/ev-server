@@ -48,15 +48,15 @@ export default class OCPIUtils {
     return evseUID.split(Constants.OCPI_SEPARATOR).pop();
   }
 
-  public static async buildOCPICredentialObject(tenant: Tenant, token: string, role: string, versionUrl?: string): Promise<OCPICredential> {
+  public static async buildOcpiCredentialObject(tenant: Tenant, token: string, role: string, versionUrl?: string): Promise<OCPICredential> {
     // Credential
     const credential = {} as OCPICredential;
     // Get ocpi service configuration
     const ocpiSetting = await SettingStorage.getOCPISettings(tenant);
     // Define version url
-    credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
+    credential.url = versionUrl ?? `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`;
     // Check if available
-    if (ocpiSetting && ocpiSetting.ocpi) {
+    if (ocpiSetting?.ocpi) {
       credential.token = token;
       if (role === OCPIRole.EMSP) {
         credential.country_code = ocpiSetting.ocpi.emsp.countryCode;
@@ -123,7 +123,6 @@ export default class OCPIUtils {
   }
 
   public static buildLocationUrl(req: Request, baseUrl: string, id: string): string {
-    // Build url
     return `${baseUrl + req.originalUrl.split('?')[0]}/${id}`;
   }
 
@@ -145,13 +144,13 @@ export default class OCPIUtils {
     return evseUIDs;
   }
 
-  public static buildEmspEmailFromOCPIToken(token: OCPIToken, countryCode: string, partyId: string): string {
+  public static buildEmspEmailFromEmspToken(token: OCPIToken, countryCode: string, partyId: string): string {
     return `${token.issuer}@${partyId}.${countryCode}`.toLowerCase();
   }
 
   public static async checkAndCreateEMSPUserFromToken(tenant: Tenant, countryCode: string, partyId: string, token: OCPIToken): Promise<User> {
     // Get eMSP user
-    const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, countryCode, partyId);
+    const email = OCPIUtils.buildEmspEmailFromEmspToken(token, countryCode, partyId);
     // Get User from DB
     let emspUser = await UserStorage.getUserByEmail(tenant, email);
     // Create user
@@ -182,21 +181,21 @@ export default class OCPIUtils {
     return Buffer.from(str).toString('base64');
   }
 
-  public static getOCPITokenTypeFromID(tagID: string): OCPITokenType {
+  public static getOcpiTokenTypeFromID(tagID: string): OCPITokenType {
     // Virtual badges handling
     return tagID.length % 8 === 0 ? OCPITokenType.RFID : OCPITokenType.OTHER;
   }
 
-  public static buildOCPITokenFromTag(tenant: Tenant, tag: Tag): OCPIToken {
+  public static buildEmspTokenFromTag(tenant: Tenant, tag: Tag): OCPIToken {
     return {
       uid: tag.id,
-      type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
+      type: OCPIUtils.getOcpiTokenTypeFromID(tag.id),
       auth_id: tag.id,
       visual_number: tag.visualID,
       issuer: tenant.name,
       valid: tag.active && tag.user?.status === UserStatus.ACTIVE,
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-      last_updated: tag.lastChangedOn ?? new Date()
+      last_updated: tag.lastChangedOn ?? tag.createdOn ?? new Date()
     };
   }
 
@@ -217,7 +216,7 @@ export default class OCPIUtils {
       Constants.ROAMING_AUTHORIZATION_TIMEOUT_MINS, 'minutes'));
   }
 
-  public static async checkAndGetEMSPCompany(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<Company> {
+  public static async checkAndGetEmspCompany(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<Company> {
     let company = await CompanyStorage.getCompany(tenant, ocpiEndpoint.id);
     if (!company) {
       company = {
@@ -231,13 +230,13 @@ export default class OCPIUtils {
     return company;
   }
 
-  public static async processEMSPLocationChargingStations(tenant: Tenant, location: OCPILocation, site: Site,
+  public static async updateCreateChargingStationsWithEmspLocation(tenant: Tenant, location: OCPILocation, site: Site,
       siteArea: SiteArea, evses: OCPIEvse[], action: ServerAction): Promise<void> {
     // Process Charging Stations
     if (!Utils.isEmptyArray(evses)) {
       for (const evse of evses) {
         try {
-          await OCPIUtils.processEMSPLocationChargingStation(tenant, location, site, siteArea, evse, action);
+          await OCPIUtils.updateCreateChargingStationWithEmspLocation(tenant, location, site, siteArea, evse, action);
         } catch (error) {
           await Logging.logError({
             tenantID: tenant.id,
@@ -250,7 +249,7 @@ export default class OCPIUtils {
     }
   }
 
-  public static async processEMSPLocationChargingStation(tenant: Tenant, location: OCPILocation, site: Site,
+  public static async updateCreateChargingStationWithEmspLocation(tenant: Tenant, location: OCPILocation, site: Site,
       siteArea: SiteArea, evse: OCPIEvse, action: ServerAction): Promise<void> {
     if (!evse.uid) {
       throw new BackendError({
@@ -352,7 +351,7 @@ export default class OCPIUtils {
   public static convertEvseToChargingStationConnector(evse: OCPIEvse, evseConnector: OCPIConnector, connectorID: number): Connector {
     return {
       id: evseConnector.id,
-      status: OCPIUtils.convertOCPIStatus2Status(evse.status),
+      status: OCPIUtils.convertOcpiStatusToStatus(evse.status),
       amperage: evseConnector.amperage,
       voltage: evseConnector.voltage,
       currentType: evseConnector.power_type === OCPIPowerType.DC ? CurrentType.DC : CurrentType.AC,
@@ -360,11 +359,11 @@ export default class OCPIUtils {
       currentInstantWatts: 0,
       tariffID: evseConnector.tariff_id,
       power: evseConnector.amperage * evseConnector.voltage,
-      type: OCPIUtils.convertOCPIConnectorType2ConnectorType(evseConnector.standard),
+      type: OCPIUtils.convertOcpiConnectorTypeToConnectorType(evseConnector.standard),
     };
   }
 
-  public static convertOCPIConnectorType2ConnectorType(ocpiConnectorType: OCPIConnectorType): ConnectorType {
+  public static convertOcpiConnectorTypeToConnectorType(ocpiConnectorType: OCPIConnectorType): ConnectorType {
     switch (ocpiConnectorType) {
       case OCPIConnectorType.CHADEMO:
         return ConnectorType.CHADEMO;
@@ -397,7 +396,7 @@ export default class OCPIUtils {
     }
   }
 
-  public static convertOCPIStatus2Status(status: OCPIEvseStatus): ChargePointStatus {
+  public static convertOcpiStatusToStatus(status: OCPIEvseStatus): ChargePointStatus {
     switch (status) {
       case OCPIEvseStatus.AVAILABLE:
         return ChargePointStatus.AVAILABLE;
@@ -416,7 +415,7 @@ export default class OCPIUtils {
     }
   }
 
-  public static convertOCPISessionStatus2ConnectorStatus(status: OCPISessionStatus): ChargePointStatus {
+  public static convertOcpiSessionStatusToConnectorStatus(status: OCPISessionStatus): ChargePointStatus {
     switch (status) {
       case OCPISessionStatus.PENDING:
         return ChargePointStatus.PREPARING;
@@ -429,7 +428,7 @@ export default class OCPIUtils {
     }
   }
 
-  public static convertStatus2OCPIStatus(status: ChargePointStatus): OCPIEvseStatus {
+  public static convertStatusToOcpiStatus(status: ChargePointStatus): OCPIEvseStatus {
     switch (status) {
       case ChargePointStatus.PREPARING:
       case ChargePointStatus.AVAILABLE:
@@ -450,7 +449,7 @@ export default class OCPIUtils {
     }
   }
 
-  public static convertSimplePricingSetting2OCPITariff(simplePricingSetting: SimplePricingSetting): OCPITariff {
+  public static convertSimplePricingSettingToOcpiTariff(simplePricingSetting: SimplePricingSetting): OCPITariff {
     const tariff = {} as OCPITariff;
     tariff.id = '1';
     tariff.currency = simplePricingSetting.currency;
@@ -469,7 +468,7 @@ export default class OCPIUtils {
     return tariff;
   }
 
-  public static async updateEMSPLocationSite(tenant: Tenant, location: OCPILocation, company: Company, site: Site, siteName?: string): Promise<Site> {
+  public static async updateCreateSiteWithEmspLocation(tenant: Tenant, location: OCPILocation, company: Company, site: Site, siteName?: string): Promise<Site> {
     // Create Site
     if (!site) {
       site = {
@@ -510,7 +509,7 @@ export default class OCPIUtils {
     return site;
   }
 
-  public static async updateEMSPLocationSiteArea(tenant: Tenant, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<SiteArea> {
+  public static async updateCreateSiteAreaWithEmspLocation(tenant: Tenant, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<SiteArea> {
     // Create Site Area
     if (!siteArea) {
       siteArea = {

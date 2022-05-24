@@ -85,6 +85,15 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         await stripeTestHelper.forceBillingSettings(immediateBilling);
       });
 
+      describe('Sub-accounts', () => {
+        it('Should create a sub-account with its associated activation link', async () => {
+          const subAccount = await stripeTestHelper.createSubAccount();
+          expect(subAccount.accountID).to.exist;
+          expect(subAccount.activationLink).to.include('https://connect.stripe.com/setup/s/');
+          expect(subAccount.pending).to.be.true;
+        });
+      });
+
       it('Should add a different source to BILLING-TEST user', async () => {
         await stripeTestHelper.assignPaymentMethod('tok_fr');
       });
@@ -383,6 +392,18 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.result.length).to.be.gt(0);
         });
+
+        it('should create a sub account', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(response.status).to.be.eq(StatusCodes.CREATED);
+          expect(response.data.id).to.not.be.null;
+          expect(response.data.accountID).to.not.be.null;
+          expect(response.data.userID).to.eq(billingTestHelper.userContext.id);
+          expect(response.data.activationLink).to.not.be.null;
+          expect(response.data.pending).to.be.true;
+        });
       });
 
       describe('Where basic user', () => {
@@ -441,6 +462,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           assert(transactionID, 'transactionID should not be null');
           const itemsAfter = await billingTestHelper.getNumberOfSessions(basicUser.id);
           expect(itemsAfter).to.be.eq(itemsBefore + 1);
+        });
+
+        it('should not be able to create a sub account', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
       });
 
@@ -950,7 +978,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 19.49);
       });
     });
-
   });
 
   describe('Billing Test Data Cleanup (utbilling)', () => {

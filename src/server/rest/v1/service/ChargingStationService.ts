@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, OCPPParams, OcppParameter, StaticLimitAmps } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, ConnectorType, OCPPParams, OcppParameter, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { HttpChargingStationChangeConfigurationRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
@@ -11,6 +11,7 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import BackendError from '../../../../exception/BackendError';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
@@ -756,7 +757,7 @@ export default class ChargingStationService {
     if (chargingStation.deleted) {
       throw new AppError({
         action,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `Charging Station with ID '${chargingStationID}' is already deleted`,
         module: MODULE_NAME,
         method: 'handleDeleteChargingStation',
@@ -1514,8 +1515,8 @@ export default class ChargingStationService {
         withSiteArea: filteredRequest.WithSiteArea,
         withUser: filteredRequest.WithUser,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
-        connectorStatuses: filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null,
-        connectorTypes: filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null,
+        connectorStatuses: (filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null) as ChargePointStatus[],
+        connectorTypes: (filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null) as ConnectorType[],
         issuer: filteredRequest.Issuer,
         siteIDs: siteIDs,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
@@ -1987,7 +1988,7 @@ export default class ChargingStationService {
           status = OCPIEvseStatus.REMOVED;
         }
         if (ocpiClient) {
-          await ocpiClient.updateChargingStationStatus(chargingStation, status);
+          await ocpiClient.patchChargingStationStatus(chargingStation, status);
         }
       } catch (error) {
         await Logging.logError({

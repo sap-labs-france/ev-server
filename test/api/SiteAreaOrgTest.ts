@@ -13,6 +13,7 @@ import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
+import { Voltage } from '../../src/types/ChargingStation';
 import chaiSubset from 'chai-subset';
 
 chai.use(chaiSubset);
@@ -27,6 +28,8 @@ class TestData {
   public siteContext: SiteContext;
   public siteAreaContext: SiteAreaContext;
   public newSiteArea: any;
+  public newSubSiteArea: any;
+  public newSubSubSiteArea: any;
   public newUser: any;
   public siteWithSiteAdmin: Site;
   public siteWithoutSiteAdmin: Site;
@@ -490,7 +493,7 @@ describe('Site Area', () => {
           testData.userService.siteAreaApi,
           testData.siteAreaWithoutSiteAdmin, false
         );
-        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        expect(response.status).to.equal(StatusCodes.NOT_FOUND);
       });
 
       it(
@@ -562,7 +565,7 @@ describe('Site Area', () => {
           expect(chargingStations.status).to.equal(StatusCodes.OK);
           const response = await testData.userService.siteAreaApi.removeChargingStations(
             testData.siteAreaWithoutSiteAdmin.id, [chargingStations.data.result[0].id]);
-          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+          expect(response.status).to.equal(StatusCodes.NOT_FOUND);
         }
       );
 
@@ -575,7 +578,7 @@ describe('Site Area', () => {
       it('Should not be able to remove Assets from SiteArea', async () => {
         const response = await testData.userService.siteAreaApi.removeAssets(
           testData.siteAreaWithoutSiteAdmin.id, [testData.testAsset.id]);
-        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        expect(response.status).to.equal(StatusCodes.NOT_FOUND);
       });
 
       it(
@@ -606,7 +609,7 @@ describe('Site Area', () => {
           testData.siteAreaWithoutSiteAdmin,
           false
         );
-        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        expect(response.status).to.equal(StatusCodes.NOT_FOUND);
       });
 
       it(
@@ -621,6 +624,154 @@ describe('Site Area', () => {
           expect(response.status).to.equal(StatusCodes.OK);
         }
       );
+    });
+
+    describe('Sub Site Area Tests', () => {
+
+      beforeAll(async () => {
+        login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        // Create the entity
+        testData.newSiteArea = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build({ siteID: testData.siteContext.getSite().id })
+        );
+        testData.createdSiteAreas.push(testData.newSiteArea);
+      });
+
+      it('Should be able to create a new sub site area', async () => {
+        const newSubSiteArea = Factory.siteArea.build({ siteID: testData.siteContext.getSite().id });
+        newSubSiteArea.parentSiteAreaID = testData.newSiteArea.id;
+        testData.newSubSiteArea = await testData.userService.createEntity(
+          testData.userService.siteAreaApi, newSubSiteArea
+        );
+        testData.createdSiteAreas.push(testData.newSubSiteArea);
+      });
+
+      it('Should not be able to create a new sub site area with different smart charging enablement', async () => {
+        const newSubSiteArea = Factory.siteArea.build({ siteID: testData.siteContext.getSite().id });
+        newSubSiteArea.parentSiteAreaID = testData.newSiteArea.id;
+        newSubSiteArea.smartCharging = true;
+        const response = await testData.userService.createEntity(testData.userService.siteAreaApi, newSubSiteArea, false);
+        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_SMART_CHARGING);
+      });
+
+      it('Should be able to create a new sub site area for sub site area', async () => {
+        const newSubSubSiteArea = Factory.siteArea.build({ siteID: testData.siteContext.getSite().id });
+        newSubSubSiteArea.parentSiteAreaID = testData.newSubSiteArea.id;
+        testData.newSubSubSiteArea = await testData.userService.createEntity(testData.userService.siteAreaApi, newSubSubSiteArea);
+        testData.createdSiteAreas.push(testData.newSubSubSiteArea);
+      });
+
+      it('Should be able to update a sub site area of a sub site area', async () => {
+        // Change entity
+        testData.newSubSubSiteArea.name = 'New Name';
+        // Update
+        await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea
+        );
+      });
+
+      it('Should not be able to create circular structure in site area chain', async () => {
+        // Change entity
+        testData.newSiteArea.parentSiteAreaID = testData.newSubSubSiteArea.id;
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR);
+      });
+
+      it('Should not be able to set undefined parent', async () => {
+        // Change entity
+        testData.newSubSubSiteArea.parentSiteAreaID = '5ce249a2372f0b1c8caf6532';
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        expect(response.status).to.equal(StatusCodes.NOT_FOUND);
+        const newSubSubSiteAreaResponse = testData.newSubSubSiteArea = await testData.userService.getEntityById(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
+      });
+
+      it('Should not be able to update number of phases in site area chain', async () => {
+        // Change entity
+        testData.newSubSubSiteArea.numberOfPhases = 1;
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_SMART_NBR_PHASES);
+        const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
+      });
+
+      it('Should not be able to update voltage in site area chain', async () => {
+        // Change entity
+        testData.newSubSubSiteArea.voltage = Voltage.VOLTAGE_110;
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_VOLTAGE);
+        const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
+      });
+
+      it('Should not be able to update site in the site area chain', async () => {
+        // Change entity
+        testData.newSubSubSiteArea.siteID = '5ce249a2372f0b1c8caf6532';
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_SITE);
+        const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea, false
+        );
+        testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
+      });
+
+      it('Should not be able to delete root site area, which still has children', async () => {
+        // Delete the created entity
+        const response = await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.newSiteArea, false
+        );
+        expect(response.status).to.equal(StatusCodes.OK);
+      });
+
+      it('Should be able to delete sub site area, which still has children', async () => {
+        // Delete the created entity
+        const response = await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSiteArea, false
+        );
+        expect(response.status).to.equal(StatusCodes.OK);
+      });
+
+      it('Should be able to delete sub site area, which do not have children', async () => {
+        // Delete the created entity
+        await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.newSubSubSiteArea
+        );
+      });
     });
   });
 });

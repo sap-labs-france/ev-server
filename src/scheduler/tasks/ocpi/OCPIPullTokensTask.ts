@@ -75,10 +75,8 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        // Log error
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_GET_TOKENS, error);
       } finally {
-        // Release the lock
         await LockingManager.release(ocpiLock);
       }
     }

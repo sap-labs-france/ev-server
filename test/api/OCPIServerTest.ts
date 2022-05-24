@@ -406,7 +406,7 @@ describe('OCPI Service Tests (utocpi)', () => {
           // Call
           const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67');
           // Check status
-          expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(locationResponse.status).to.be.eql(StatusCodes.NOT_FOUND);
           expect(locationResponse.data).to.have.property('timestamp');
           expect(locationResponse.data).to.have.property('status_code', 3000);
           expect(locationResponse.data).to.have.property('status_message', 'Location ID \'5abeba9e4bae1457eb565e67\' not found');
@@ -420,7 +420,7 @@ describe('OCPI Service Tests (utocpi)', () => {
           // Call
           const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/NonExistingSite');
           // Check status
-          expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(locationResponse.status).to.be.eql(StatusCodes.NOT_FOUND);
           expect(locationResponse.data).to.have.property('timestamp');
           expect(locationResponse.data).to.have.property('status_code', 3000);
           expect(locationResponse.data).to.have.property('status_message', 'EVSE UID not found \'NonExistingSite\' in Location ID \'5ce249a2372f0b1c8caf9294\'');
@@ -434,7 +434,7 @@ describe('OCPI Service Tests (utocpi)', () => {
           // Call
           const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/cs-15-ut-site-withoutACL/0');
           // Check status
-          expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(locationResponse.status).to.be.eql(StatusCodes.NOT_FOUND);
           expect(locationResponse.data).to.have.property('timestamp');
           expect(locationResponse.data).to.have.property('status_code', 3000);
           expect(locationResponse.data).to.have.property('status_message', 'EVSE Connector ID \'0\' not found on Charging Station ID \'cs-15-ut-site-withoutACL\' and Location ID \'5ce249a2372f0b1c8caf9294\'');

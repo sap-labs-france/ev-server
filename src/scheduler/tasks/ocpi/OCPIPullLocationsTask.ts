@@ -75,10 +75,8 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        // Log error
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_LOCATIONS, error);
       } finally {
-        // Release the lock
         await LockingManager.release(ocpiLock);
       }
     }

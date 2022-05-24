@@ -1,6 +1,4 @@
 export default interface ConnectorStats {
-  totalChargers: number;
-  availableChargers: number;
   totalConnectors: number;
   unavailableConnectors: number;
   chargingConnectors: number;
