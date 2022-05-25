@@ -86,7 +86,7 @@ export default class OCPIFacade {
     const ocpiClient = await OCPIFacade.checkAndGetOcpiCpoClient(
       tenant, transaction, user, action);
     // Send OCPI CDR
-    await ocpiClient.postCdr(transaction);
+    await ocpiClient.pushCdr(transaction);
   }
 
   public static async checkAndSendTransactionCdr(tenant: Tenant, transaction: Transaction,
