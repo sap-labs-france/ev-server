@@ -419,7 +419,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should not activate an inexistent sub account', async () => {
           const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: '5ce249a1a39ae1c056c389bd', TenantID: billingTestHelper.tenantContext.getTenant().id });
-          expect(activationResponse.status).to.be.eq(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+          expect(activationResponse.status).to.be.eq(StatusCodes.NOT_FOUND);
         });
 
         it('should not activate a sub account twice', async () => {
@@ -502,7 +502,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should not activate an inexistent sub account', async () => {
           const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: '5ce249a1a39ae1c056c389bd', TenantID: billingTestHelper.tenantContext.getTenant().id });
-          expect(activationResponse.status).to.be.eq(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+          expect(activationResponse.status).to.be.eq(StatusCodes.NOT_FOUND);
         });
       });
 
