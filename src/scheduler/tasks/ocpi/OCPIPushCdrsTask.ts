@@ -115,14 +115,12 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                       detailedMessages: { error: error.stack, transaction: transactionMDB }
                     });
                   } finally {
-                    // Release the lock
                     await LockingManager.release(ocpiTransactionLock);
                   }
                 }
               }
             }
           } finally {
-            // Release the lock
             await LockingManager.release(ocpiLock);
           }
         }

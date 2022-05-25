@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppError from '../../../../../exception/AppError';
 import Logging from '../../../../../utils/Logging';
+import { OCPICommandResponseType } from '../../../../../types/ocpi/OCPICommandResponse';
 import { OCPICommandType } from '../../../../../types/ocpi/OCPICommandType';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
@@ -37,13 +38,23 @@ export default class EMSPCommandsService {
       case OCPICommandType.STOP_SESSION:
       case OCPICommandType.RESERVE_NOW:
       case OCPICommandType.UNLOCK_CONNECTOR:
-        await Logging.logInfo({
-          tenantID: tenant.id,
-          action: EMSPCommandsService.getAction(command),
-          message: `OCPI response received for Command '${command}' with ID '${commandId}' - No action to be done` ,
-          module: MODULE_NAME, method: 'process',
-          detailedMessages: { response: req.body }
-        });
+        if (req.body?.result !== OCPICommandResponseType.ACCEPTED) {
+          await Logging.logError({
+            tenantID: tenant.id,
+            action: EMSPCommandsService.getAction(command),
+            message: `OCPI Response '${req.body?.result as string}' received for '${command}' with ID '${commandId}'`,
+            module: MODULE_NAME, method: 'process',
+            detailedMessages: { response: req.body }
+          });
+        } else {
+          await Logging.logInfo({
+            tenantID: tenant.id,
+            action: EMSPCommandsService.getAction(command),
+            message: `OCPI Response '${req.body?.result as string}' received for '${command}' with ID '${commandId}'`,
+            module: MODULE_NAME, method: 'process',
+            detailedMessages: { response: req.body }
+          });
+        }
         res.json(OCPIUtils.success());
         next();
     }

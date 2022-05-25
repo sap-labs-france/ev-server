@@ -607,8 +607,8 @@ export default class TagService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.IMPORT, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleImportTags'
+        action: Action.EXPORT, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'handleExportTags'
       });
     }
     // Force params
@@ -863,7 +863,7 @@ export default class TagService {
         if (ocpiClient) {
           await ocpiClient.pushToken({
             uid: tag.id,
-            type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
+            type: OCPIUtils.getOcpiTokenTypeFromID(tag.id),
             auth_id: tag.userID,
             visual_number: tag.visualID,
             issuer: tenant.name,
@@ -893,7 +893,7 @@ export default class TagService {
         if (ocpiClient) {
           await ocpiClient.pushToken({
             uid: tag.id,
-            type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
+            type: OCPIUtils.getOcpiTokenTypeFromID(tag.id),
             auth_id: tag.userID,
             visual_number: tag.visualID,
             issuer: tenant.name,

@@ -40,8 +40,7 @@ import _ from 'lodash';
 const MODULE_NAME = 'CpoOICPClient';
 
 export default class CpoOICPClient extends OICPClient {
-
-  constructor(tenant: Tenant, settings: OicpSetting, oicpEndpoint: OICPEndpoint) {
+  public constructor(tenant: Tenant, settings: OicpSetting, oicpEndpoint: OICPEndpoint) {
     super(tenant, settings, oicpEndpoint, OICPRole.CPO);
     if (oicpEndpoint.role !== OICPRole.CPO) {
       throw new BackendError({
@@ -171,11 +170,11 @@ export default class CpoOICPClient extends OICPClient {
     }
   }
 
-  public async sendEVSEs(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
+  public async sendEVSEs(partial = false, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
       actionType = OICPActionType.FULL_LOAD;
     }
-    if (!processAllEVSEs) {
+    if (partial) {
       actionType = OICPActionType.INSERT;
     }
     // Result
@@ -218,7 +217,7 @@ export default class CpoOICPClient extends OICPClient {
               // Check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
               //    - EVSEs (ChargingStations) in error from previous push
               //    - EVSEs (ChargingStations) with status notification from latest pushDate
-              if (processAllEVSEs) {
+              if (!partial) {
                 evsesToProcess = evses;
                 chargeBoxIDsToProcessFromInput = evsesToProcess.map((evse) => evse.ChargingStationID);
               } else {
@@ -233,7 +232,7 @@ export default class CpoOICPClient extends OICPClient {
                 for (const evse of evses) {
                   if (evse) {
                     // Check if Charging Station should be processed
-                    if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.ChargingStationID)) {
+                    if (!chargeBoxIDsToProcess.includes(evse.ChargingStationID)) {
                       continue;
                     }
                     // Process
@@ -318,11 +317,11 @@ export default class CpoOICPClient extends OICPClient {
     return result;
   }
 
-  public async sendEVSEStatuses(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
+  public async sendEVSEStatuses(partial = false, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
       actionType = OICPActionType.FULL_LOAD;
     }
-    if (!processAllEVSEs) {
+    if (partial) {
       actionType = OICPActionType.INSERT;
     }
     // Result
@@ -365,7 +364,7 @@ export default class CpoOICPClient extends OICPClient {
               // Check if all EVSE Statuses should be processed - in case of delta send - process only following EVSEs:
               //    - EVSEs (ChargingStations) in error from previous push
               //    - EVSEs (ChargingStations) with status notification from latest pushDate
-              if (processAllEVSEs) {
+              if (!partial) {
                 evseStatusesToProcess = evseStatuses;
                 chargeBoxIDsToProcessFromInput = evseStatusesToProcess.map((evseStatus) => evseStatus.ChargingStationID);
               } else {
@@ -380,7 +379,7 @@ export default class CpoOICPClient extends OICPClient {
                 for (const evseStatus of evseStatuses) {
                   if (evseStatus) {
                     // Check if Charging Station should be processed
-                    if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evseStatus.ChargingStationID)) {
+                    if (!chargeBoxIDsToProcess.includes(evseStatus.ChargingStationID)) {
                       continue;
                     }
                     // Process

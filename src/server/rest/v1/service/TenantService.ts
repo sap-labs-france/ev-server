@@ -52,7 +52,7 @@ export default class TenantService {
     // Check if current tenant
     if (tenant.id === req.tenant.id) {
       throw new AppError({
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `Your own tenant with id '${tenant.id}' cannot be deleted`,
         module: MODULE_NAME, method: 'handleDeleteTenant',
         user: req.user,

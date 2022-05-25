@@ -1,6 +1,7 @@
 import CreatedUpdatedProps from '../CreatedUpdatedProps';
+import { OCPIBusinessDetails } from '../Setting';
+import { OCPIRegistrationStatus } from './OCPIRegistrationStatus';
 import { OCPIRole } from './OCPIRole';
-import { OcpiBusinessDetails } from '../Setting';
 
 export default interface OCPIEndpoint extends CreatedUpdatedProps {
   id: string;
@@ -12,20 +13,51 @@ export default interface OCPIEndpoint extends CreatedUpdatedProps {
   countryCode: string;
   partyId: string;
   backgroundPatchJob: boolean;
-  status?: string;
+  status?: OCPIRegistrationStatus;
   version?: string;
-  businessDetails?: OcpiBusinessDetails;
+  businessDetails?: OCPIBusinessDetails;
   availableEndpoints?: OCPIAvailableEndpoints;
   versionUrl?: string;
-  lastPatchJobOn?: Date;
-  lastPatchJobResult?: {
-    successNbr: number;
-    failureNbr: number;
-    totalNbr: number;
-    chargeBoxIDsInFailure?: string[];
-    chargeBoxIDsInSuccess?: string[];
-    tokenIDsInFailure?: string[];
-  };
+  lastCpoPushStatuses?: OCPILastCpoPushStatus;
+  lastEmspPushTokens?: OCPILastEmspPushToken;
+  lastEmspPullLocations?: OCPILastEmspPullLocation;
+  lastCpoPullTokens?: OCPILastCpoPullToken;
+}
+
+export interface OCPILastEmspPushToken {
+  lastUpdatedOn: Date;
+  partial: boolean;
+  successNbr: number;
+  failureNbr: number;
+  totalNbr: number;
+  tokenIDsInFailure?: string[];
+}
+
+export interface OCPILastEmspPullLocation {
+  lastUpdatedOn: Date;
+  partial: boolean;
+  successNbr: number;
+  failureNbr: number;
+  totalNbr: number;
+  locationIDsInFailure?: string[];
+}
+
+export interface OCPILastCpoPullToken {
+  lastUpdatedOn: Date;
+  partial: boolean;
+  successNbr: number;
+  failureNbr: number;
+  totalNbr: number;
+  tokenIDsInFailure?: string[];
+}
+
+export interface OCPILastCpoPushStatus {
+  lastUpdatedOn: Date;
+  partial: boolean;
+  successNbr: number;
+  failureNbr: number;
+  totalNbr: number;
+  chargeBoxIDsInFailure?: string[];
 }
 
 export interface OCPIAvailableEndpoints {

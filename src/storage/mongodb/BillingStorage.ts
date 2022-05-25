@@ -1,4 +1,4 @@
-import { BillingAdditionalData, BillingInvoice, BillingInvoiceStatus, BillingSessionData } from '../../types/Billing';
+import { BillingAccount, BillingAdditionalData, BillingInvoice, BillingInvoiceStatus, BillingSessionData } from '../../types/Billing';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -215,5 +215,25 @@ export default class BillingStorage {
     await global.database.getCollection<any>(tenant.id, 'invoices')
       .findOneAndDelete({ 'invoiceID': id });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteInvoiceByInvoiceID', startTime, { id });
+  }
+
+  public static async saveSubAccount(tenant: Tenant, subAccount: BillingAccount): Promise<string> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    // Build Request
+    // Properties to save
+    const subAccountMDB: any = {
+      _id: subAccount.id ? DatabaseUtils.convertToObjectID(subAccount.id) : new ObjectId(),
+      accountID: subAccount.accountID,
+      pending: subAccount.pending,
+      userID: DatabaseUtils.convertToObjectID(subAccount.userID)
+    };
+    // Modify and return the modified document
+    await global.database.getCollection<any>(tenant.id, 'billingsubaccounts').findOneAndUpdate(
+      { _id: subAccountMDB._id },
+      { $set: subAccountMDB },
+      { upsert: true, returnDocument: 'after' }
+    );
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoice', startTime, subAccountMDB);
+    return subAccountMDB._id.toString();
   }
 }

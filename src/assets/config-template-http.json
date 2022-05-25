@@ -157,7 +157,7 @@
         "active": false,
         "periodicity": "*/10 * * * *",
         "config": {
-          "processAllEVSEs": true
+          "partial": false
         }
       },
       {
@@ -165,7 +165,7 @@
         "active": false,
         "periodicity": "*/5 * * * *",
         "config": {
-          "processAllEVSEs": true
+          "partial": false
         }
       }
     ]

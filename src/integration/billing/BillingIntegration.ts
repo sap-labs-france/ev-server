@@ -1,4 +1,4 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser } from '../../types/Billing';
+import { BillingAccount, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser } from '../../types/Billing';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
@@ -685,4 +685,6 @@ export default abstract class BillingIntegration {
   abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 
   abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]>;
+
+  abstract createSubAccount(): Promise<BillingAccount>;
 }

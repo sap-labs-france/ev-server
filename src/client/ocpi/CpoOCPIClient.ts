@@ -5,7 +5,9 @@ import ChargingStation, { Connector } from '../../types/ChargingStation';
 import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import OCPIEndpoint, { OCPILastCpoPullToken, OCPILastCpoPushStatus } from '../../types/ocpi/OCPIEndpoint';
 import { OCPILocation, OCPILocationOptions, OCPILocationReference, OCPILocationType } from '../../types/ocpi/OCPILocation';
+import moment, { Moment } from 'moment';
 
 import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
@@ -19,7 +21,6 @@ import NotificationHandler from '../../notification/NotificationHandler';
 import { OCPICdr } from '../../types/ocpi/OCPICdr';
 import OCPIClient from './OCPIClient';
 import { OCPIConnector } from '../../types/ocpi/OCPIConnector';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIResult } from '../../types/ocpi/OCPIResult';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
@@ -42,7 +43,6 @@ import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
 import countries from 'i18n-iso-countries';
-import moment from 'moment';
 
 const MODULE_NAME = 'CpoOCPIClient';
 
@@ -57,32 +57,45 @@ export default class CpoOCPIClient extends OCPIClient {
     }
   }
 
-  public async pullTokens(partial = true): Promise<OCPIResult> {
+  public async pullTokens(partial = false): Promise<OCPIResult> {
     const result: OCPIResult = {
       success: 0,
       failure: 0,
       total: 0,
-      logs: []
+      logs: [],
+      objectIDsInFailure: [],
     };
-    // If partial (keep it global for logs)
-    const momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
+    // Get tokens endpoint url
+    let tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_CPO_GET_TOKENS);
+    // Perfs trace
+    const startTime = new Date().getTime();
+    // Get timestamp before starting process - to be saved in DB at the end of the process
+    const startDate = new Date();
+    // Build last execution date
+    let momentFrom: Moment;
+    if (partial) {
+      // Get last job success date
+      if (this.ocpiEndpoint.lastCpoPullTokens?.lastUpdatedOn) {
+        // Last execution date
+        momentFrom = moment(this.ocpiEndpoint.lastCpoPullTokens.lastUpdatedOn).utc();
+      } else {
+        // Last hour by default
+        momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
+      }
+      // Update URL
+      tokensUrl = `${tokensUrl}?date_from=${momentFrom.format()}&limit=1000`;
+    } else {
+      // Update URL
+      tokensUrl = `${tokensUrl}?limit=1000`;
+    }
     // Get all the EMSP Users
     const emspUsersMap = new Map<string, User>();
     const emspUsers = (await UserStorage.getUsers(this.tenant, { issuer: false }, Constants.DB_PARAMS_MAX_LIMIT)).result;
     for (const emspUser of emspUsers) {
       emspUsersMap.set(emspUser.email, emspUser);
     }
-    // Perfs trace
-    const startTime = new Date().getTime();
-    // Get tokens endpoint url
-    let tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_CPO_GET_TOKENS);
-    if (partial) {
-      tokensUrl = `${tokensUrl}?date_from=${momentFrom.format()}&limit=1000`;
-    } else {
-      tokensUrl = `${tokensUrl}?limit=1000`;
-    }
     let nextResult = true;
-    let totalNumberOfToken = 0;
+    let totalNumberOfTags = 0;
     do {
       const startTimeLoop = new Date().getTime();
       // Call IOP
@@ -94,47 +107,46 @@ export default class CpoOCPIClient extends OCPIClient {
           },
         }
       );
-      if (!response.data.data) {
+      if (!response.data?.data) {
         throw new BackendError({
           action: ServerAction.OCPI_CPO_GET_TOKENS,
-          message: 'Invalid response from Pull tokens',
+          message: 'Invalid response from Pull Tokens',
           module: MODULE_NAME, method: 'pullTokens',
-          detailedMessages: { data: response.data }
+          detailedMessages: { tokensUrl }
         });
       }
-      const numberOfTags: number = response.data.data.length;
-      totalNumberOfToken += numberOfTags;
+      const numberOfTags = response.data.data.length as number;
+      totalNumberOfTags += numberOfTags;
       await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_CPO_GET_TOKENS,
         message: `${numberOfTags.toString()} Tokens retrieved from ${tokensUrl}`,
         module: MODULE_NAME, method: 'pullTokens'
       });
+      const tokens = response.data.data as OCPIToken[];
       // Get all Tags at once from the DB
-      const tagIDs: string[] = [];
-      for (const token of response.data.data as OCPIToken[]) {
-        tagIDs.push(token.uid);
-      }
+      const tagIDs = tokens.map((token) => token.uid);
       const tags = await TagStorage.getTags(this.tenant,
         { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT);
-      const tokens = response.data.data as OCPIToken[];
       if (!Utils.isEmptyArray(tokens)) {
         // Check and get eMSP users from Tokens
         await this.checkAndCreateEMSPUsersFromTokens(tokens, emspUsersMap);
         // Update the tags
         await Promise.map(tokens, async (token) => {
           try {
+            result.total++;
             // Get eMSP user
-            const email = OCPIUtils.buildEmspEmailFromOCPIToken(
+            const email = OCPIUtils.buildEmspEmailFromEmspToken(
               token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
             const emspUser = emspUsersMap.get(email);
             // Get the Tag
             const emspTag = tags.result.find((tag) => tag.id === token.uid);
-            await OCPIUtilsService.updateCreateTagWithCpoToken(
+            await OCPIUtilsService.updateCreateTagWithEmspToken(
               this.tenant, token, emspTag, emspUser, ServerAction.OCPI_CPO_GET_TOKENS);
             result.success++;
           } catch (error) {
             result.failure++;
+            result.objectIDsInFailure.push(token.uid);
             result.logs.push(
               `Failed to update Issuer '${token.issuer}' - ID '${token.uid}': ${error.message as string}`
             );
@@ -153,11 +165,23 @@ export default class CpoOCPIClient extends OCPIClient {
       await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_CPO_GET_TOKENS,
-        message: `${numberOfTags.toString()} token(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfToken} token(s) processed in ${executionDurationTotalLoopSecs}s`,
+        message: `${numberOfTags.toString()} token(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfTags} token(s) processed in ${executionDurationTotalLoopSecs}s`,
         module: MODULE_NAME, method: 'pullTokens',
         detailedMessages: { tokens }
       });
     } while (nextResult);
+    // Save result in OCPI endpoint
+    const lastCpoPullTokens: OCPILastCpoPullToken = {
+      lastUpdatedOn: startDate,
+      partial,
+      successNbr: result ? result.success : 0,
+      failureNbr: result ? result.failure : 0,
+      totalNbr: result ? result.total : 0,
+      tokenIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
+    };
+    await OCPIEndpointStorage.saveOcpiLastCpoPullTokens(
+      this.tenant, this.ocpiEndpoint.id, lastCpoPullTokens);
+    // Log
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CPO_GET_TOKENS,
       MODULE_NAME, 'pullTokens', result,
@@ -243,7 +267,7 @@ export default class CpoOCPIClient extends OCPIClient {
       location: ocpiLocation,
       currency: this.settings.currency,
       status: OCPISessionStatus.PENDING,
-      total_cost: 0, // Never calculate the cost of OCPI transaction
+      total_cost: null, // Never calculate the cost of OCPI transaction
       last_updated: transaction.timestamp
     };
     // Call IOP
@@ -293,7 +317,7 @@ export default class CpoOCPIClient extends OCPIClient {
       kwh: transaction.ocpiData.session.kwh,
       last_updated: transaction.ocpiData.session.last_updated,
       currency: transaction.ocpiData.session.currency,
-      total_cost: 0, // Never calculate the cost of OCPI transaction
+      total_cost: null, // Never calculate the cost of OCPI transaction
       status: transaction.ocpiData.session.status,
       charging_periods: transaction.ocpiData.session.charging_periods
     };
@@ -400,7 +424,7 @@ export default class CpoOCPIClient extends OCPIClient {
       auth_method: transaction.ocpiData.session.auth_method,
       location: transaction.ocpiData.session.location,
       authorization_id: transaction.ocpiData.session.authorization_id,
-      total_cost: 0, // Never calculate the cost of OCPI transaction
+      total_cost: null, // Never calculate the cost of OCPI transaction
       charging_periods: await this.buildChargingPeriods(this.tenant, transaction),
       last_updated: transaction.stop.timestamp
     };
@@ -437,47 +461,17 @@ export default class CpoOCPIClient extends OCPIClient {
     }
   }
 
-  public async updateChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
-    if (!chargingStation.siteAreaID) {
-      throw new BackendError({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
-        message: 'Charging Station must be associated to a Site Area',
-        module: MODULE_NAME, method: 'removeChargingStation',
-      });
-    }
-    if (!chargingStation.issuer) {
-      throw new BackendError({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action: ServerAction.OCPI_CPO_UPDATE_STATUS,
-        message: 'Only charging Station issued locally can be exposed to IOP',
-        module: MODULE_NAME, method: 'removeChargingStation',
-      });
-    }
+  public async patchChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
     const results: any[] = [];
     for (const connector of chargingStation.connectors) {
-      const result = await this.patchEVSEStatus(
-        {
-          id: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID
-        }, chargingStation.siteID, RoamingUtils.buildEvseUID(chargingStation, connector.connectorId),
-        status ?? OCPIUtils.convertStatus2OCPIStatus(connector.status));
+      const result = await this.patchChargingStationConnectorStatus(chargingStation, connector, status);
       results.push(result.data);
     }
-    await Logging.logInfo({
-      ...LoggingHelper.getChargingStationProperties(chargingStation),
-      tenantID: this.tenant.id,
-      action: ServerAction.OCPI_CPO_UPDATE_STATUS,
-      message: 'Charging Station has been removed successfully',
-      module: MODULE_NAME, method: 'removeChargingStation',
-      detailedMessages: { responses: results }
-    });
   }
 
-  public async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector): Promise<void> {
-    if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
+  public async patchChargingStationConnectorStatus(chargingStation: ChargingStation,
+      connector: Connector, status?: OCPIEvseStatus): Promise<AxiosResponse<any>> {
+    if (!chargingStation.siteAreaID) {
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         action: ServerAction.OCPI_CPO_UPDATE_STATUS,
@@ -501,7 +495,7 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'patchChargingStationStatus',
       });
     }
-    await this.patchEVSEStatus(
+    return this.patchEVSEStatus(
       {
         id: chargingStation.id,
         siteID: chargingStation.siteID,
@@ -509,7 +503,8 @@ export default class CpoOCPIClient extends OCPIClient {
         companyID: chargingStation.companyID,
       },
       chargingStation.siteID,
-      RoamingUtils.buildEvseUID(chargingStation, connector.connectorId), OCPIUtils.convertStatus2OCPIStatus(connector.status)
+      RoamingUtils.buildEvseUID(chargingStation, connector.connectorId),
+      status ?? OCPIUtils.convertStatusToOcpiStatus(connector.status)
     );
   }
 
@@ -530,6 +525,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }, Constants.DB_PARAMS_MAX_LIMIT);
     if (!Utils.isEmptyArray(transactions.result)) {
       await Promise.map(transactions.result, async (transaction) => {
+        result.total++;
         if (transaction.stop && transaction.stop.timestamp) {
           try {
             if (await this.checkSession(transaction)) {
@@ -546,7 +542,6 @@ export default class CpoOCPIClient extends OCPIClient {
             );
           }
         }
-        result.total++;
       },
       { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
     }
@@ -582,6 +577,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const locations = await OCPIUtilsService.getAllCpoLocations(this.tenant, 0, 0, options, true, this.settings);
     if (!Utils.isEmptyArray(locations.result)) {
       await Promise.map(locations.result, async (location) => {
+        result.total++;
         if (location) {
           try {
             if (await this.checkLocation(location)) {
@@ -598,7 +594,6 @@ export default class CpoOCPIClient extends OCPIClient {
             );
           }
         }
-        result.total++;
       },
       { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
     }
@@ -630,6 +625,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }, Constants.DB_PARAMS_MAX_LIMIT);
     if (!Utils.isEmptyArray(transactions.result)) {
       await Promise.map(transactions.result, async (transaction) => {
+        result.total++;
         try {
           if (await this.checkCdr(transaction)) {
             result.success++;
@@ -644,7 +640,6 @@ export default class CpoOCPIClient extends OCPIClient {
             `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check CDR: ${error.message as string}`
           );
         }
-        result.total++;
       },
       { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
     }
@@ -659,7 +654,7 @@ export default class CpoOCPIClient extends OCPIClient {
     return result;
   }
 
-  public async sendEVSEStatuses(processAllEVSEs = true): Promise<OCPIResult> {
+  public async pushChargingStationStatuses(partial = false): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
       success: 0,
@@ -670,46 +665,64 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     // Perfs trace
     const startTime = new Date().getTime();
+    // Get timestamp before starting process - to be saved in DB at the end of the process
+    const startDate = new Date();
+    // Build last execution date
+    let momentFrom: Moment;
+    if (partial) {
+      // Get last job success date
+      if (this.ocpiEndpoint.lastCpoPushStatuses?.lastUpdatedOn) {
+        // Last execution date
+        momentFrom = moment(this.ocpiEndpoint.lastCpoPushStatuses.lastUpdatedOn).utc();
+      } else {
+        // Last hour by default
+        momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
+      }
+    }
     // Define get option
     const options: OCPILocationOptions = {
       addChargeBoxAndOrgIDs: true,
       countryID: this.getLocalCountryCode(ServerAction.OCPI_CPO_UPDATE_STATUS),
       partyID: this.getLocalPartyID(ServerAction.OCPI_CPO_UPDATE_STATUS)
     };
-    // Get timestamp before starting process - to be saved in DB at the end of the process
-    const startDate = new Date();
     // Check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
     //    - EVSEs (ChargingStations) in error from previous push
     //    - EVSEs (ChargingStations) with status notification from latest pushDate
     let chargeBoxIDsToProcess = [];
-    if (!processAllEVSEs) {
+    if (partial) {
       // Get ChargingStation in Failure from previous run
-      chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
+      chargeBoxIDsToProcess.push(...this.getCpoPushChargeBoxIDsInFailure());
       // Get ChargingStation with new status notification
-      chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications());
+      chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications(momentFrom.toDate()));
       // Remove duplicates
       chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
     }
     // Get all locations
     const locations = await OCPIUtilsService.getAllCpoLocations(this.tenant, 0, 0, options, false, this.settings);
     if (!Utils.isEmptyArray(locations.result)) {
-      await Promise.map(locations.result, async (location) => {
+      let totalNumberOfEvses = 0;
+      for (const location of locations.result) {
         // Get the Charging Station should be processed
         let currentSkip = 0;
-        let evses: OCPIEvse[];
+        let evses: OCPIEvse[] = [];
         do {
+          const startTimeLoop = new Date().getTime();
           // Limit to a subset of Charging Stations?
-          let chargingStationIDs: string[];
-          if (!processAllEVSEs && !Utils.isEmptyArray(chargeBoxIDsToProcess)) {
-            chargingStationIDs = chargeBoxIDsToProcess;
+          if (partial) {
+            if (!Utils.isEmptyArray(chargeBoxIDsToProcess)) {
+              evses = await OCPIUtilsService.getCpoEvsesFromSite(this.tenant, location.id, options,
+                { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT },
+                { chargingStationIDs: chargeBoxIDsToProcess }, this.settings);
+            }
+          // Get all Charging Stations
+          } else {
+            evses = await OCPIUtilsService.getCpoEvsesFromSite(this.tenant, location.id, options,
+              { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT }, {}, this.settings);
           }
-          evses = await OCPIUtilsService.getCpoEvsesFromSite(this.tenant, location.id, options,
-            { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT },
-            { chargingStationIDs }, this.settings);
+          totalNumberOfEvses += evses.length;
           // Loop through EVSE
           if (!Utils.isEmptyArray(evses)) {
             await Promise.map(evses, async (evse) => {
-              // Total amount of EVSEs
               result.total++;
               // Process it if not empty
               if (location.id && evse?.uid) {
@@ -742,41 +755,39 @@ export default class CpoOCPIClient extends OCPIClient {
               }
             },
             { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
+            const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
+            const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
+            await Logging.logDebug({
+              tenantID: this.tenant.id,
+              action: ServerAction.OCPI_CPO_UPDATE_STATUS,
+              message: `${evses.length} EVSE Status(es) processed in ${executionDurationLoopSecs}s in Location '${location.name}' - Total of ${totalNumberOfEvses} EVSE(s) processed in ${executionDurationTotalLoopSecs}s`,
+              module: MODULE_NAME, method: 'sendEVSEStatuses',
+              detailedMessages: { evses }
+            });
           }
           currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
         } while (!Utils.isEmptyArray(evses));
-      },
-      { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
+      }
     }
-    // Save result in ocpi endpoint
-    this.ocpiEndpoint.lastPatchJobOn = startDate;
-    // Set result
-    if (result) {
-      this.ocpiEndpoint.lastPatchJobResult = {
-        successNbr: result.success,
-        failureNbr: result.failure,
-        totalNbr: result.total,
-        chargeBoxIDsInFailure: _.uniq(result.objectIDsInFailure),
-        chargeBoxIDsInSuccess: []
-      };
-    } else {
-      this.ocpiEndpoint.lastPatchJobResult = {
-        successNbr: 0,
-        failureNbr: 0,
-        totalNbr: 0,
-        chargeBoxIDsInFailure: [],
-        chargeBoxIDsInSuccess: []
-      };
-    }
-    // Save
+    // Save result in OCPI endpoint
+    const lastCpoPushStatus: OCPILastCpoPushStatus = {
+      lastUpdatedOn: startDate,
+      partial,
+      successNbr: result ? result.success : 0,
+      failureNbr: result ? result.failure : 0,
+      totalNbr: result ? result.total : 0,
+      chargeBoxIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
+    };
+    await OCPIEndpointStorage.saveOcpiLastCpoPushStatuses(
+      this.tenant, this.ocpiEndpoint.id, lastCpoPushStatus);
+    // Log
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant, this.ocpiEndpoint);
     await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CPO_UPDATE_STATUS,
       MODULE_NAME, 'sendEVSEStatuses', result,
-      `{{inSuccess}} EVSE Status(es) were successfully patched in ${executionDurationSecs}s`,
-      `{{inError}} EVSE Status(es) failed to be patched in ${executionDurationSecs}s`,
-      `{{inSuccess}} EVSE Status(es) were successfully patched and {{inError}} failed to be patched in ${executionDurationSecs}s`,
-      'No EVSE Status have been patched'
+      `{{inSuccess}} EVSE Status(es) were successfully patched in ${executionDurationSecs}s ${partial ? 'from ' + momentFrom.format() : ''}`,
+      `{{inError}} EVSE Status(es) failed to be patched in ${executionDurationSecs}s ${partial ? 'from ' + momentFrom.format() : ''}`,
+      `{{inSuccess}} EVSE Status(es) were successfully patched and {{inError}} failed to be patched in ${executionDurationSecs}s ${partial ? 'from ' + momentFrom.format() : ''}`,
+      `No EVSE Status have been patched ${partial ? 'from ' + momentFrom.format() : ''}`
     );
     return result;
   }
@@ -785,7 +796,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!Utils.isEmptyArray(tokens)) {
       for (const token of tokens) {
         // Get eMSP user
-        const email = OCPIUtils.buildEmspEmailFromOCPIToken(
+        const email = OCPIUtils.buildEmspEmailFromEmspToken(
           token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
         // Check from cache
         let emspUser = emspUsers.get(email);
@@ -802,13 +813,10 @@ export default class CpoOCPIClient extends OCPIClient {
     }
   }
 
-  private async getChargeBoxIDsWithNewStatusNotifications(): Promise<string[]> {
-    // Get last job
-    const lastPatchJobOn = this.ocpiEndpoint.lastPatchJobOn ? this.ocpiEndpoint.lastPatchJobOn : new Date();
-    // Build params
-    const params = { 'dateFrom': lastPatchJobOn };
+  private async getChargeBoxIDsWithNewStatusNotifications(lastCpoPushStatuses: Date): Promise<string[]> {
     // Get last status notifications
-    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(this.tenant, params, Constants.DB_PARAMS_MAX_LIMIT);
+    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(
+      this.tenant, { dateFrom: lastCpoPushStatuses }, Constants.DB_PARAMS_MAX_LIMIT);
     // Loop through notifications
     if (statusNotificationsResult.count > 0) {
       return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);
@@ -816,9 +824,9 @@ export default class CpoOCPIClient extends OCPIClient {
     return [];
   }
 
-  private getChargeBoxIDsInFailure(): string[] {
-    if (this.ocpiEndpoint.lastPatchJobResult?.chargeBoxIDsInFailure) {
-      return this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure;
+  private getCpoPushChargeBoxIDsInFailure(): string[] {
+    if (this.ocpiEndpoint.lastCpoPushStatuses?.chargeBoxIDsInFailure) {
+      return this.ocpiEndpoint.lastCpoPushStatuses.chargeBoxIDsInFailure;
     }
     return [];
   }
@@ -1090,7 +1098,7 @@ export default class CpoOCPIClient extends OCPIClient {
         uid: RoamingUtils.buildEvseUID(chargingStation, connectorID),
         evse_id: RoamingUtils.buildEvseID(countryID, partyID, chargingStation, connectorID),
         location_id: chargingStation.siteID,
-        status: OCPIUtils.convertStatus2OCPIStatus(status),
+        status: OCPIUtils.convertStatusToOcpiStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
         coordinates: {
