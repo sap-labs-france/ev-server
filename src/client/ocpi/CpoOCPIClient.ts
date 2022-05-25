@@ -267,7 +267,7 @@ export default class CpoOCPIClient extends OCPIClient {
       location: ocpiLocation,
       currency: this.settings.currency,
       status: OCPISessionStatus.PENDING,
-      total_cost: null, // Never calculate the cost of OCPI transaction
+      total_cost: 0, // Never calculate the cost of OCPI transaction
       last_updated: transaction.timestamp
     };
     // Call IOP
@@ -317,7 +317,7 @@ export default class CpoOCPIClient extends OCPIClient {
       kwh: transaction.ocpiData.session.kwh,
       last_updated: transaction.ocpiData.session.last_updated,
       currency: transaction.ocpiData.session.currency,
-      total_cost: null, // Never calculate the cost of OCPI transaction
+      total_cost: 0, // Never calculate the cost of OCPI transaction
       status: transaction.ocpiData.session.status,
       charging_periods: transaction.ocpiData.session.charging_periods
     };
@@ -424,7 +424,7 @@ export default class CpoOCPIClient extends OCPIClient {
       auth_method: transaction.ocpiData.session.auth_method,
       location: transaction.ocpiData.session.location,
       authorization_id: transaction.ocpiData.session.authorization_id,
-      total_cost: null, // Never calculate the cost of OCPI transaction
+      total_cost: 0, // Never calculate the cost of OCPI transaction
       charging_periods: await this.buildChargingPeriods(this.tenant, transaction),
       last_updated: transaction.stop.timestamp
     };
