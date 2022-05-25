@@ -1,5 +1,5 @@
 import User, { UserRole } from '../types/User';
-import UserNotifications, { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingSubAccountCreationLinkNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingSubAccountActivationNotification, BillingSubAccountCreationLinkNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
@@ -1389,6 +1389,34 @@ export default class NotificationHandler {
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_SUB_ACCOUNT_CREATE, error);
+          }
+        }
+      }
+    }
+  }
+
+  public static async sendBillingSubAccountActivationNotification(tenant: Tenant, notificationID: string, user: User,
+      sourceData: BillingSubAccountActivationNotification): Promise<void> {
+    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
+      // Get the Tenant logo
+      if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
+        const tenantLogo = await TenantStorage.getTenantLogo(tenant);
+        tenant.logo = tenantLogo.logo;
+      }
+      sourceData.tenantLogoURL = tenant.logo;
+      // For each Sources
+      for (const notificationSource of NotificationHandler.notificationSources) {
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Save
+            await NotificationHandler.saveNotification(
+              tenant, notificationSource.channel, notificationID, ServerAction.BILLING_SUB_ACCOUNT_ACTIVATE, { user });
+            // Send
+            void notificationSource.notificationTask.sendBillingSubAccountActivationNotification(
+              sourceData, user, tenant, NotificationSeverity.INFO);
+          } catch (error) {
+            await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_SUB_ACCOUNT_ACTIVATE, error);
           }
         }
       }

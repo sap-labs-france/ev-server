@@ -385,7 +385,7 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
-  public async postCdr(transaction: Transaction): Promise<void> {
+  public async pushCdr(transaction: Transaction): Promise<void> {
     if (!transaction.stop) {
       throw new BackendError({
         ...LoggingHelper.getTransactionProperties(transaction),

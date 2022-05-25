@@ -2,6 +2,7 @@ import { RESTServerRoute, ServerAction } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
 import AssetService from '../../service/AssetService';
+import BillingService from '../../service/BillingService';
 import CarService from '../../service/CarService';
 import ChargingStationService from '../../service/ChargingStationService';
 import CompanyService from '../../service/CompanyService';
@@ -27,6 +28,7 @@ export default class UtilRouter {
     this.buildRouteChargingStationDownloadFirmware();
     this.buildRouteGetSiteImage();
     this.buildRouteGetTenantLogo();
+    this.buildRouteBillingActivateSubAccount();
     return this.router;
   }
 
@@ -82,6 +84,13 @@ export default class UtilRouter {
     this.router.get(`/${RESTServerRoute.REST_SITE_IMAGE}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       void RouterUtils.handleRestServerAction(SiteService.handleGetSiteImage.bind(this), ServerAction.SITE_IMAGE, req, res, next);
+    });
+  }
+
+  private buildRouteBillingActivateSubAccount(): void {
+    this.router.get(`/${RESTServerRoute.REST_BILLING_SUB_ACCOUNT_ACTIVATE}`, (req: Request, res: Response, next: NextFunction) => {
+      req.params.ID = req.params.id;
+      void RouterUtils.handleRestServerAction(BillingService.handleActivateSubAccount.bind(this), ServerAction.BILLING_SUB_ACCOUNT_ACTIVATE, req, res, next);
     });
   }
 }

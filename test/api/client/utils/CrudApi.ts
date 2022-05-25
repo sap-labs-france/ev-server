@@ -65,6 +65,10 @@ export default class CrudApi {
     });
   }
 
+  protected buildUtilRestEndpointUrl(urlPatternAsString: RESTServerRoute, params: { [name: string]: string | number | null } = {}): string {
+    return this.buildRestEndpointUrl(urlPatternAsString, params, 'util');
+  }
+
   protected buildRestEndpointUrl(urlPatternAsString: RESTServerRoute, params: { [name: string]: string | number | null } = {}, urlPrefix = 'api'): string {
     let resolvedUrlPattern = urlPatternAsString as string;
     for (const key in params) {

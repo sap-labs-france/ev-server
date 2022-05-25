@@ -23,7 +23,7 @@ export interface AuthorizationDefinitionGrant {
 
 export interface AuthorizationDefinitionCondition {
   Fn: string;
-  args: AuthorizationDefinitionConditionArgs|AuthorizationDefinitionConditionArgs[]|AuthorizationDefinitionCondition[]|Record<string, unknown>;
+  args: AuthorizationDefinitionConditionArgs | AuthorizationDefinitionConditionArgs[] | AuthorizationDefinitionCondition[] | Record<string, unknown>;
 }
 
 export interface AuthorizationDefinitionConditionArgs {
@@ -36,8 +36,8 @@ export interface AuthorizationDefinitionFieldMetadata {
   visible: boolean;
   enabled: boolean;
   mandatory: boolean;
-  values: string[]|boolean[]|number[],
-  defaultValue: string|boolean|number,
+  values: string[] | boolean[] | number[],
+  defaultValue: string | boolean | number,
 }
 
 export interface AuthorizationResult {
@@ -134,7 +134,8 @@ export enum Action {
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
-  BILLING_CREATE_SUB_ACCOUNT = 'BillingCreateSubAccount',
+  BILLING_CREATE_SUB_ACCOUNT = 'BillingSubAccountCreate',
+  BILLING_ACTIVATE_SUB_ACCOUNT = 'BillingSubAccountActivate',
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
@@ -199,10 +200,10 @@ export interface RegistrationTokenAuthorizationActions extends AuthorizationActi
 }
 
 export interface AssetAuthorizationActions extends AuthorizationActions {
-  canRetrieveConsumption?:boolean;
-  canReadConsumption?:boolean;
-  canCheckConnection?:boolean;
-  canCreateConsumption?:boolean;
+  canRetrieveConsumption?: boolean;
+  canReadConsumption?: boolean;
+  canCheckConnection?: boolean;
+  canCreateConsumption?: boolean;
 }
 
 export interface SiteAreaAuthorizationActions extends AuthorizationActions {
@@ -226,7 +227,7 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
 }
 
 export interface BillingInvoiceAuthorizationActions extends AuthorizationActions {
-  canDownload?:boolean;
+  canDownload?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {
