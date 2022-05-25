@@ -18,7 +18,7 @@ export interface HttpSiteAreasRequest extends HttpDatabaseRequest {
   CompanyID?: string;
   WithSite?: boolean;
   WithParentSiteArea?: boolean;
-  WithChargeBoxes?: boolean;
+  WithChargingStations?: boolean;
   WithAvailableChargers: boolean;
   LocLongitude?: number;
   LocLatitude?: number;
