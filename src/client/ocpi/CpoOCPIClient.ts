@@ -385,7 +385,7 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
-  public async pushCdr(transaction: Transaction): Promise<void> {
+  public async pushCdr(transaction: Transaction): Promise<boolean> {
     if (!transaction.stop) {
       throw new BackendError({
         ...LoggingHelper.getTransactionProperties(transaction),
@@ -449,16 +449,17 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'postCdr',
         detailedMessages: { response: response.data, transaction }
       });
-    } else {
-      await Logging.logWarning({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_CPO_PUSH_CDRS,
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI CDR has no consumption and will be be ignored`,
-        module: MODULE_NAME, method: 'postCdr',
-        detailedMessages: { transaction }
-      });
+      return true;
     }
+    await Logging.logWarning({
+      ...LoggingHelper.getTransactionProperties(transaction),
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CPO_PUSH_CDRS,
+      message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI CDR has no consumption and will be be ignored`,
+      module: MODULE_NAME, method: 'postCdr',
+      detailedMessages: { transaction }
+    });
+    return false;
   }
 
   public async patchChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
