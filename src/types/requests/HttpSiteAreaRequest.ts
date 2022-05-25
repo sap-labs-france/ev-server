@@ -1,7 +1,6 @@
-import SiteArea, { SubSiteAreaAction } from '../SiteArea';
-
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+import SiteArea from '../SiteArea';
 
 export interface HttpSiteAreaRequest extends HttpByIDRequest {
   ID: string;
