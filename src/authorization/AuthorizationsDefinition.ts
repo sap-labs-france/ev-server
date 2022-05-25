@@ -614,11 +614,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-          'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
-          'user.id', 'user.name', 'user.firstName', 'userID'
+          'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
         ],
       },
       {
@@ -1010,7 +1008,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       }, {
         resource: Entity.CAR, action: Action.READ,
         attributes: [
-          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
           'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
@@ -1020,7 +1018,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.CAR, action: Action.LIST,
         attributes: [
-          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
           'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
         ]
@@ -1030,7 +1028,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country',
-          'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'address.coordinates', 'logo', 'issuer', 'distanceMeters'
         ]
       },
       {
@@ -1047,14 +1045,14 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'connectors'
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'connectors'
         ]
       },
       {
         resource: Entity.SITE, action: Action.READ,
         attributes: [
           'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+          'autoUserSiteAssignment', 'distanceMeters', 'public',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
         ]
@@ -1066,7 +1064,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country',
           'address.coordinates', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer',
-          'distanceMeters', 'createdOn', 'lastChangedOn', 'connectors'
+          'distanceMeters', 'connectors'
         ]
       },
       {
@@ -1087,7 +1085,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'site.id', 'site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
           'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
           'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
-          'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
+          'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
         ]
       },
       { resource: Entity.CHARGING_STATION, action: Action.READ },
@@ -1333,6 +1331,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             metadata: {
               createPoolCar: {
                 visible: true
+              },
+              userID: {
+                mandatory: true
               }
             }
           }
