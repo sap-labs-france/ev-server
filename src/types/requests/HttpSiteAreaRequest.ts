@@ -1,7 +1,6 @@
-import SiteArea, { SubSiteAreaAction } from '../SiteArea';
-
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+import SiteArea from '../SiteArea';
 
 export interface HttpSiteAreaRequest extends HttpByIDRequest {
   ID: string;
@@ -18,7 +17,7 @@ export interface HttpSiteAreasRequest extends HttpDatabaseRequest {
   CompanyID?: string;
   WithSite?: boolean;
   WithParentSiteArea?: boolean;
-  WithChargeBoxes?: boolean;
+  WithChargingStations?: boolean;
   WithAvailableChargers: boolean;
   LocLongitude?: number;
   LocLatitude?: number;

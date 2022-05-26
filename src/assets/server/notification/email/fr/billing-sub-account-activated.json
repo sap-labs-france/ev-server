@@ -1,10 +1,10 @@
 {
-  "subject": "Initialisation du compte de facturation",
+  "subject": "Compte de facturation activé",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Initialisation du compte de facturation",
+      "title": "Compte de facturation activé",
       "image": {
         "left": {
           "height": 60,
@@ -17,14 +17,10 @@
       }
     },
     "beforeActionLines": [
-      "Cher <%- (user.firstName ? user.firstName : user.name) %>,",
+      "Dear <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "L'initialisation de votre compte de facturation doit être complétée en suivant le lien ci-dessous:"
+      "Votre compte de facturation a été activé."
     ],
-    "actions": [{
-        "title": "Finaliser l'initialisation du compte de facturation",
-        "url": "<%- onboardingLink %>"
-      }],
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

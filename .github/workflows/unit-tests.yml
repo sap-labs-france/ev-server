@@ -13,7 +13,7 @@ jobs:
   unit-tests-submodules:
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.head_ref || github.ref_name }}
+      group: ut-${{ github.head_ref || github.ref_name }}
       cancel-in-progress: true
     strategy:
       matrix:

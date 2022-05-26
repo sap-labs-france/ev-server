@@ -69,10 +69,10 @@ export default class DatabaseUtils {
     DatabaseUtils.addConnectorStatusFields(aggregation);
     // Group back Connectors
     DatabaseUtils.groupBackToArray(aggregation, 'chargingStations.connectors', 'chargingStations.id',
-      DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
+      DatabaseUtils.getConnectorStatusAggregationFields(), 'connectorStats');
     // Group back Charging Stations
     DatabaseUtils.groupBackToArray(aggregation, 'chargingStations', 'id',
-      DatabaseUtils.getConnectorStatusAggregationFields(), 'connectors');
+      DatabaseUtils.getConnectorStatusAggregationFields(), 'connectorStats');
   }
 
   public static addConnectorStatusFields(aggregation: any[]): void {

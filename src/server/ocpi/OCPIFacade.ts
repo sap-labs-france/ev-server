@@ -86,12 +86,11 @@ export default class OCPIFacade {
     const ocpiClient = await OCPIFacade.checkAndGetOcpiCpoClient(
       tenant, transaction, user, action);
     // Send OCPI CDR
-    await ocpiClient.postCdr(transaction);
+    return ocpiClient.pushCdr(transaction);
   }
 
   public static async checkAndSendTransactionCdr(tenant: Tenant, transaction: Transaction,
       chargingStation: ChargingStation, siteArea: SiteArea, action: ServerAction): Promise<boolean> {
-    let ocpiCdrSent = false;
     // CDR not already pushed
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) &&
         transaction.ocpiData?.session && !transaction.ocpiData.cdr?.id) {
@@ -100,7 +99,7 @@ export default class OCPIFacade {
       if (ocpiLock) {
         try {
           // Roaming
-          ocpiCdrSent = await OCPIFacade.processEndTransaction(
+          return OCPIFacade.processEndTransaction(
             tenant, transaction, chargingStation, siteArea, transaction.user, action);
         } finally {
           // Release the lock
@@ -108,7 +107,6 @@ export default class OCPIFacade {
         }
       }
     }
-    return ocpiCdrSent;
   }
 
   public static async updateConnectorStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<void> {

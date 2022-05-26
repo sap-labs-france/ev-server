@@ -29,6 +29,11 @@ export interface HttpDeletePaymentMethod {
   paymentMethodId: string;
 }
 
-export interface HttpBillingCreateSubAccount {
+export interface HttpBillingSubAccountCreate {
   userID: string;
+}
+
+export interface HttpBillingSubAccountActivate {
+  ID: string;
+  TenantID: string;
 }
