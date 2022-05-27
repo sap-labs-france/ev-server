@@ -55,6 +55,7 @@ export default class DatabaseUtils {
 
   public static addConnectorStatsInOrg(tenant: Tenant, aggregation: any[],
       organizationID: string, addChargingStationLookup = true): void {
+    const rootAggregationName = 'connectorStats';
     if (addChargingStationLookup) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID: tenant.id, aggregation, localField: '_id', foreignField: organizationID,
@@ -66,26 +67,26 @@ export default class DatabaseUtils {
       { $unwind: { path: '$chargingStations.connectors', preserveNullAndEmptyArrays: true } }
     );
     // Add Status fields
-    DatabaseUtils.addConnectorStatusFields(aggregation);
+    DatabaseUtils.addConnectorStatusFields(rootAggregationName, aggregation);
     // Group back Connectors
     DatabaseUtils.groupBackToArray(aggregation, 'chargingStations.connectors', 'chargingStations.id',
-      DatabaseUtils.getConnectorStatusAggregationFields(), 'connectorStats');
+      DatabaseUtils.getConnectorStatusAggregationFields(rootAggregationName), rootAggregationName);
     // Group back Charging Stations
     DatabaseUtils.groupBackToArray(aggregation, 'chargingStations', 'id',
-      DatabaseUtils.getConnectorStatusAggregationFields(), 'connectorStats');
+      DatabaseUtils.getConnectorStatusAggregationFields(rootAggregationName), rootAggregationName);
   }
 
-  public static addConnectorStatusFields(aggregation: any[]): void {
-    DatabaseUtils.addConnectorStatusField(aggregation, 'availableConnectors', ChargePointStatus.AVAILABLE);
-    DatabaseUtils.addConnectorStatusField(aggregation, 'unavailableConnectors', ChargePointStatus.UNAVAILABLE);
-    DatabaseUtils.addConnectorStatusField(aggregation, 'preparingConnectors', ChargePointStatus.PREPARING);
-    DatabaseUtils.addConnectorStatusField(aggregation, 'finishingConnectors', ChargePointStatus.FINISHING);
-    DatabaseUtils.addConnectorStatusField(aggregation, 'faultedConnectors', ChargePointStatus.FAULTED);
-    DatabaseUtils.addConnectorStatusesField(aggregation, 'chargingConnectors', [ChargePointStatus.CHARGING, ChargePointStatus.OCCUPIED]);
-    DatabaseUtils.addConnectorStatusesField(aggregation, 'suspendedConnectors', [ChargePointStatus.SUSPENDED_EVSE, ChargePointStatus.SUSPENDED_EV]);
+  public static addConnectorStatusFields(rootAggregationName: string, aggregation: any[]): void {
+    DatabaseUtils.addConnectorStatusField(aggregation, rootAggregationName, 'availableConnectors', ChargePointStatus.AVAILABLE);
+    DatabaseUtils.addConnectorStatusField(aggregation, rootAggregationName, 'unavailableConnectors', ChargePointStatus.UNAVAILABLE);
+    DatabaseUtils.addConnectorStatusField(aggregation, rootAggregationName, 'preparingConnectors', ChargePointStatus.PREPARING);
+    DatabaseUtils.addConnectorStatusField(aggregation, rootAggregationName, 'finishingConnectors', ChargePointStatus.FINISHING);
+    DatabaseUtils.addConnectorStatusField(aggregation, rootAggregationName, 'faultedConnectors', ChargePointStatus.FAULTED);
+    DatabaseUtils.addConnectorStatusesField(aggregation, rootAggregationName, 'chargingConnectors', [ChargePointStatus.CHARGING, ChargePointStatus.OCCUPIED]);
+    DatabaseUtils.addConnectorStatusesField(aggregation, rootAggregationName, 'suspendedConnectors', [ChargePointStatus.SUSPENDED_EVSE, ChargePointStatus.SUSPENDED_EV]);
     aggregation.push({
       $addFields: {
-        'connectors.totalConnectors' : {
+        [`${rootAggregationName}.totalConnectors`]: {
           $cond : {
             if : { $gt : [ '$chargingStations.connectors', null ] },
             then : 1, else : 0
@@ -95,23 +96,23 @@ export default class DatabaseUtils {
     });
   }
 
-  public static getConnectorStatusAggregationFields(): Record<string, any> {
+  public static getConnectorStatusAggregationFields(rootAggregationName: string): Record<string, any> {
     return {
-      totalConnectors : { $sum : '$connectors.totalConnectors' },
-      unavailableConnectors : { $sum : '$connectors.unavailableConnectors' },
-      chargingConnectors : { $sum : '$connectors.chargingConnectors' },
-      suspendedConnectors : { $sum : '$connectors.suspendedConnectors' },
-      availableConnectors : { $sum : '$connectors.availableConnectors' },
-      faultedConnectors : { $sum : '$connectors.faultedConnectors' },
-      preparingConnectors : { $sum : '$connectors.preparingConnectors' },
-      finishingConnectors : { $sum : '$connectors.finishingConnectors' },
+      totalConnectors : { $sum : `$${rootAggregationName}.totalConnectors` },
+      unavailableConnectors : { $sum : `$${rootAggregationName}.unavailableConnectors` },
+      chargingConnectors : { $sum : `$${rootAggregationName}.chargingConnectors` },
+      suspendedConnectors : { $sum : `$${rootAggregationName}.suspendedConnectors` },
+      availableConnectors : { $sum : `$${rootAggregationName}.availableConnectors` },
+      faultedConnectors : { $sum : `$${rootAggregationName}.faultedConnectors` },
+      preparingConnectors : { $sum : `$${rootAggregationName}.preparingConnectors` },
+      finishingConnectors : { $sum : `$${rootAggregationName}.finishingConnectors` },
     };
   }
 
-  public static addConnectorStatusField(aggregation: any[], fieldName: string, connectorStatus: ChargePointStatus): void {
+  public static addConnectorStatusField(aggregation: any[], rootAggregationName: string, fieldName: string, connectorStatus: ChargePointStatus): void {
     aggregation.push({
       $addFields: {
-        [`connectors.${fieldName}`]: {
+        [`${rootAggregationName}.${fieldName}`]: {
           $cond: {
             if: { $eq: ['$chargingStations.connectors.status', connectorStatus] },
             then: 1, else: 0
@@ -121,10 +122,10 @@ export default class DatabaseUtils {
     });
   }
 
-  public static addConnectorStatusesField(aggregation: any[], fieldName: string, connectorStatuses: ChargePointStatus[]): void {
+  public static addConnectorStatusesField(aggregation: any[], rootAggregationName: string, fieldName: string, connectorStatuses: ChargePointStatus[]): void {
     aggregation.push({
       $addFields: {
-        [`connectors.${fieldName}`]: {
+        [`${rootAggregationName}.${fieldName}`]: {
           $cond: {
             if : {
               $or : connectorStatuses.map((connectorStatus) =>
