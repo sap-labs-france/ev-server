@@ -24,8 +24,15 @@ export default class ChargingStationTemplateService {
     await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     const foundTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(filteredRequest.id);
-    UtilsService.assertObjectExists(action, foundTemplate, `Charging Station Template '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleCreateChargingStationTemplate', req.user);
+    if (foundTemplate) {
+      throw new AppError({
+        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
+        message: `id '${filteredRequest.id}' already exists`,
+        module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
+        user: req.user,
+        action: action
+      });
+    }
     // Check auth
     if (!(await Authorizations.canCreateChargingStationTemplate(req.user))) {
       throw new AppAuthError({
