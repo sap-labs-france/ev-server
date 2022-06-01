@@ -1,8 +1,8 @@
 import { BillingInvoice, BillingPaymentMethod } from './Billing';
 import { Car, CarCatalog } from './Car';
+import ChargingStation, { Connector } from './ChargingStation';
 
 import { ChargingProfile } from './ChargingProfile';
-import ChargingStation from './ChargingStation';
 import Company from './Company';
 import JsonOCPPServer from '../server/ocpp/json/JsonOCPPServer';
 import { Log } from './Log';
@@ -77,7 +77,7 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting|ChargingProfile;
+export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting|ChargingProfile|Connector;
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;

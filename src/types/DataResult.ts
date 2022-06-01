@@ -117,6 +117,7 @@ export interface ChargingStationDataResult extends DataResult<ChargingStation> {
   canListSites?:boolean;
   canListSiteAreas?:boolean;
   canListCompanies?:boolean;
+  canListUsers?:boolean;
 }
 export interface ChargingProfileDataResult extends DataResult<ChargingProfile> {
   canUpdate?: boolean;

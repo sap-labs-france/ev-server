@@ -164,6 +164,8 @@ export interface Connector {
   chargePointID?: number;
   phaseAssignmentToGrid?: PhaseAssignmentToGrid;
   tariffID?: string;
+  canStopTransaction?:boolean;
+  canStartTransaction?:boolean;
 }
 
 export interface PhaseAssignmentToGrid {

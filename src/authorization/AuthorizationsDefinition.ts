@@ -394,6 +394,17 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.CHANGE_AVAILABILITY, Action.TRIGGER_DATA_TRANSFER
         ]
       },
+      {
+        resource: Entity.CONNECTOR,
+        action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION, Action.REMOTE_START_TRANSACTION, Action.START_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+      },
       { resource: Entity.TRANSACTION, action: [Action.LIST, Action.EXPORT, Action.IN_ERROR] },
       {
         resource: Entity.TRANSACTION,
@@ -858,7 +869,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
           }
         },
         attributes: [
@@ -926,6 +937,27 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: {
             asserts: [],
             filters: ['AssignedSites', 'LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.CONNECTOR,
+        action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: ['OwnUser'],
+            filters: ['OwnUser']
+          }
+        },
+      },
+      {
+        resource: Entity.CONNECTOR, action: [Action.REMOTE_START_TRANSACTION, Action.START_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [['AssignedSites', 'IncludeAllExternalSites']],
           }
         },
       },
@@ -1510,6 +1542,27 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'chargePointVendor', 'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'firmwareVersion', 'ocppVersion',
           'ocppProtocol', 'endpoint', 'timestamp', 'chargeBoxID', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
+      },
+      {
+        resource: Entity.CONNECTOR,
+        action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+          }
+        },
+      },
+      {
+        resource: Entity.CONNECTOR, action: [Action.REMOTE_START_TRANSACTION, Action.START_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+          }
+        },
       },
       {
         resource: Entity.CHARGING_PROFILE, action: Action.LIST,

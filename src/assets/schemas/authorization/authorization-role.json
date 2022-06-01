@@ -47,7 +47,17 @@
                           "filters": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "anyOf": [
+                                { 
+                                  "type": "string" 
+                                },
+                                {  
+                                  "type": "array",
+                                  "items": {
+                                    "type":"string"
+                                  }                        
+                                }
+                              ]
                             }
                           },
                           "metadata": {

@@ -67,6 +67,7 @@ export enum Entity {
   SITE_AREA = 'SiteArea',
   COMPANY = 'Company',
   CHARGING_STATION = 'ChargingStation',
+  CONNECTOR = 'Connector',
   TENANT = 'Tenant',
   TRANSACTION = 'Transaction',
   REPORT = 'Report',
@@ -265,6 +266,7 @@ export enum DynamicAuthorizationFilterName {
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
   EXCLUDE_ACTION = 'ExcludeAction',
+  INCLUDE_ALL_EXTERNAL_SITES = 'IncludeAllExternalSites',
 }
 
 export enum DynamicAuthorizationAssertName {
@@ -282,6 +284,7 @@ export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
   EXCLUDE_ACTION = 'ExcludeAction',
+  INCLUDE_ALL_EXTERNAL_SITES = 'IncludeAllExternalSites',
 }
 
 export interface DynamicAuthorizationDataSourceData { }

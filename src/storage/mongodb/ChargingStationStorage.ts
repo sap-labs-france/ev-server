@@ -149,7 +149,7 @@ export default class ChargingStationStorage {
   public static async getChargingStations(tenant: Tenant,
       params: {
         search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
-        connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
+        includeAllExternalSites?: boolean; connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
         ocpiEvseUid?: string; ocpiLocationID?: string; oicpEvseID?: string;
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
@@ -282,11 +282,40 @@ export default class ChargingStationStorage {
       // Query by siteAreaID
       filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
-    // Check Site ID
-    if (!Utils.isEmptyArray(params.siteIDs)) {
-      // Query by siteID
+
+    // Query by siteID
+    const includeAllExternalSites = Utils.convertToBoolean(params.includeAllExternalSites);
+    const siteIDsFilterProvided = !Utils.isEmptyArray(params.siteIDs);
+
+    // Site ID filter provided and include ext sites false => apply site filter
+    if (siteIDsFilterProvided && !includeAllExternalSites) {
       filters.siteID = { $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
+    // Site ID filter provided and include ext sites true => apply site filter and include ext sites
+    if (siteIDsFilterProvided && includeAllExternalSites) {
+      // If issuer filter is set we don't override it
+      if (filters.issuer) {
+        filters.siteID = { $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
+      } else {
+        // Issuer filter is not set => we include external sites
+        aggregation.push({
+          $match: {
+            $or: [
+              { 'siteID': { $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) } },
+              { 'issuer': false },
+            ]
+          }
+        });
+      }
+    }
+    // SiteIds filters not provided but include external site provided => include external sites
+    if (!siteIDsFilterProvided && includeAllExternalSites) {
+      if (!filters.issuer) {
+        filters.siteID = { issuer: true };
+      }
+    }
+
+
     // Check Company ID
     if (!Utils.isEmptyArray(params.companyIDs)) {
       // Query by siteID
