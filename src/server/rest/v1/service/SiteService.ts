@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
+import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
@@ -305,6 +306,14 @@ export default class SiteService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Site;
+    // If the site is assigned to a billing sub-account, check if the billing is active
+    if (filteredRequest.billing) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+        Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
+      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.billing.id);
+      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.billing.id}' does not exist`, MODULE_NAME, 'handleCreateSite', req.user);
+      site.billing = { id: billingSubAccount.id };
+    }
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
@@ -369,6 +378,14 @@ export default class SiteService {
     }
     site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
+    // If the site is assigned to a billing sub-account, check if the billing is active
+    if (filteredRequest.billing) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+        Action.CREATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
+      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.billing.id);
+      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.billing.id}' does not exist`, MODULE_NAME, 'handleUpdateSite', req.user);
+      site.billing = { id: billingSubAccount.id };
+    }
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     // Update all refs

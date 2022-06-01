@@ -190,9 +190,9 @@ export default class CompanyService {
     // If the company is assigned to a billing sub-account, check if the billing is active
     if (filteredRequest.billing) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-        Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
+        Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
       const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.billing.id);
-      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.billing.id}' does not exist`, MODULE_NAME, 'handleCreateCompany', req.user);
+      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.billing.id}' does not exist`, MODULE_NAME, 'handleUpdateCompany', req.user);
       company.billing = { id: billingSubAccount.id };
     }
     // Update Company

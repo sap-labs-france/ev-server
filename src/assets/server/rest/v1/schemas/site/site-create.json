@@ -24,8 +24,8 @@
     "image": {
       "$ref": "site#/definitions/image"
     },
-    "subAccountID": {
-      "$ref": "common#/definitions/id"
+    "billing": {
+      "$ref": "billing#/definitions/subAccount"
     }
   },
   "required": [

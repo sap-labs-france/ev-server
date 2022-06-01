@@ -11,8 +11,8 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import { HTTPError } from '../../src/types/HTTPError';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
+import SiteFactory from '../factories/SiteFactory';
 import { StatusCodes } from 'http-status-codes';
 import StripeTestHelper from './StripeTestHelper';
 import TestConstants from './client/utils/TestConstants';
@@ -1048,6 +1048,57 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyID);
           expect(companyResponse.data.billing.id).to.eq(subAccountResponse.data.id);
+        });
+
+        it('should create a site assigned to a sub-account', async () => {
+          const subAccountResponse = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
+
+          // Create a company
+          const companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
+          expect(companyResponse.status).to.be.eq(StatusCodes.CREATED);
+          // Create a site
+          let siteResponse = await billingTestHelper.userService.siteApi.create({
+            ...SiteFactory.build(),
+            companyID: companyResponse.data.id,
+            billing: {
+              id: subAccountResponse.data.id
+            }
+          });
+          expect(siteResponse.status).to.be.eq(StatusCodes.OK);
+          siteResponse = await billingTestHelper.userService.siteApi.readById(siteResponse.data.id);
+          expect(siteResponse.data.billing.id).to.eq(subAccountResponse.data.id);
+        });
+
+        it('should update a site to assign a sub-account', async () => {
+          const subAccountResponse = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
+
+          // Create a company
+          const companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
+          expect(companyResponse.status).to.be.eq(StatusCodes.CREATED);
+          // Create a site
+          let siteResponse = await billingTestHelper.userService.siteApi.create({
+            ...SiteFactory.build(),
+            companyID: companyResponse.data.id,
+          });
+          expect(siteResponse.status).to.be.eq(StatusCodes.OK);
+          const siteID = siteResponse.data.id;
+
+          siteResponse = await billingTestHelper.userService.siteApi.update({
+            id: siteID,
+            ...SiteFactory.build(),
+            companyID: companyResponse.data.id,
+            billing: { id: subAccountResponse.data.id }
+          });
+          expect(siteResponse.status).to.be.eq(StatusCodes.OK);
+
+          siteResponse = await billingTestHelper.userService.siteApi.readById(siteID);
+          expect(siteResponse.data.billing.id).to.eq(subAccountResponse.data.id);
         });
       });
     });
