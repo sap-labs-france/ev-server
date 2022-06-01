@@ -287,16 +287,20 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION_TEMPLATE, Action.CREATE);
   }
 
-  public static async canUpdateChargingStationTemplate(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION_TEMPLATE, Action.UPDATE);
-  }
-
   public static async canReadChargingStationTemplate(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION_TEMPLATE, Action.READ);
   }
 
   public static async canListChargingStations(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.LIST);
+  }
+
+  public static async canUpdateChargingStationTemplate(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION_TEMPLATE, Action.UPDATE);
+  }
+
+  public static async canDeleteChargingStationTemplate(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION_TEMPLATE, Action.DELETE);
   }
 
   public static async canListChargingStationsInError(loggedUser: UserToken): Promise<boolean> {
@@ -333,10 +337,6 @@ export default class Authorizations {
       site: siteID,
       sitesAdmin: loggedUser.sitesAdmin
     });
-  }
-
-  public static async canDeleteChargingStationTemplate(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION_TEMPLATE, Action.DELETE);
   }
 
   public static async canExportParams(loggedUser: UserToken, siteID: string): Promise<boolean> {
@@ -405,6 +405,10 @@ export default class Authorizations {
 
   public static async canImportUsers(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.USER, Action.IMPORT, authContext);
+  }
+
+  public static async canExportUsers(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.EXPORT, authContext);
   }
 
   public static async canUpdateUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {

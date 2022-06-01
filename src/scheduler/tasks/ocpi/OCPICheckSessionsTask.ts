@@ -74,10 +74,8 @@ export default class OCPICheckSessionsTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        // Log error
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_SESSIONS, error);
       } finally {
-        // Release the lock
         await LockingManager.release(ocpiLock);
       }
     }

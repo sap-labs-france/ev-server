@@ -1,3 +1,6 @@
+import OCPIEndpoint, { OCPILastEmspPullLocation, OCPILastEmspPushToken } from '../../types/ocpi/OCPIEndpoint';
+import moment, { Moment } from 'moment';
+
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
@@ -8,7 +11,6 @@ import { OCPICdr } from '../../types/ocpi/OCPICdr';
 import OCPIClient from './OCPIClient';
 import { OCPICommandResponse } from '../../types/ocpi/OCPICommandResponse';
 import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { OCPIResult } from '../../types/ocpi/OCPIResult';
@@ -29,7 +31,6 @@ import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
-import moment from 'moment';
 
 const MODULE_NAME = 'EmspOCPIClient';
 
@@ -44,7 +45,7 @@ export default class EmspOCPIClient extends OCPIClient {
     }
   }
 
-  public async pushTokens(): Promise<OCPIResult> {
+  public async pushTokens(partial = false): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
       success: 0,
@@ -56,14 +57,30 @@ export default class EmspOCPIClient extends OCPIClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Get timestamp before starting process - to be saved in DB at the end of the process
-    const lastPatchJobOn = new Date();
+    const startDate = new Date();
+    // Build last execution date
+    let momentFrom: Moment;
+    if (partial) {
+      // Get last job success date
+      if (this.ocpiEndpoint.lastEmspPushTokens?.lastUpdatedOn) {
+        // Last execution date
+        momentFrom = moment(this.ocpiEndpoint.lastEmspPushTokens.lastUpdatedOn).utc();
+      } else {
+        // Last hour by default
+        momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
+      }
+    }
     let currentSkip = 0;
     let tokens: DataResult<OCPIToken>;
+    let totalNumberOfTokens = 0;
     do {
+      const startTimeLoop = new Date().getTime();
       // Get all tokens
-      tokens = await OCPIUtilsService.getEmspTokens(
-        this.tenant, Constants.DB_RECORD_COUNT_DEFAULT, currentSkip);
+      tokens = await OCPIUtilsService.getEmspTokensFromTags(
+        this.tenant, Constants.DB_RECORD_COUNT_DEFAULT, currentSkip,
+        momentFrom ? momentFrom.toDate() : null);
       if (!Utils.isEmptyArray(tokens.result)) {
+        totalNumberOfTokens += tokens.count;
         await Promise.map(tokens.result, async (token: OCPIToken) => {
           result.total++;
           try {
@@ -73,34 +90,35 @@ export default class EmspOCPIClient extends OCPIClient {
             result.failure++;
             result.objectIDsInFailure.push(token.uid);
             result.logs.push(
-              `Failed to update ID '${token.uid}': ${error.message as string}`
+              `Failed to update Token ID '${token.uid}': ${error.message as string}`
             );
           }
         },
         { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
       }
       currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
+      const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
+      const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
+      await Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
+        message: `${tokens.count.toString()} token(s) pushed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfTokens} token(s) pushed in ${executionDurationTotalLoopSecs}s`,
+        module: MODULE_NAME, method: 'pushTokens',
+        detailedMessages: { tokens: tokens.result }
+      });
     } while (!Utils.isEmptyArray(tokens.result));
-    // Save result in ocpi endpoint
-    this.ocpiEndpoint.lastPatchJobOn = lastPatchJobOn;
-    // Set result
-    if (result) {
-      this.ocpiEndpoint.lastPatchJobResult = {
-        'successNbr': result.success,
-        'failureNbr': result.failure,
-        'totalNbr': result.total,
-        'tokenIDsInFailure': _.uniq(result.objectIDsInFailure),
-      };
-    } else {
-      this.ocpiEndpoint.lastPatchJobResult = {
-        'successNbr': 0,
-        'failureNbr': 0,
-        'totalNbr': 0,
-        'tokenIDsInFailure': [],
-      };
-    }
-    // Save
-    await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant, this.ocpiEndpoint);
+    // Save result in OCPI endpoint
+    const lastEmspPushTokens: OCPILastEmspPushToken = {
+      lastUpdatedOn: startDate,
+      partial,
+      successNbr: result ? result.success : 0,
+      failureNbr: result ? result.failure : 0,
+      totalNbr: result ? result.total : 0,
+      tokenIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
+    };
+    await OCPIEndpointStorage.saveOcpiLastEmspPushTokens(
+      this.tenant, this.ocpiEndpoint.id, lastEmspPushTokens);
+    // Log
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_EMSP_UPDATE_TOKENS,
       MODULE_NAME, 'sendTokens', result,
@@ -112,31 +130,45 @@ export default class EmspOCPIClient extends OCPIClient {
     return result;
   }
 
-  public async pullLocations(partial = true): Promise<OCPIResult> {
+  public async pullLocations(partial = false): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
       success: 0,
       failure: 0,
       total: 0,
-      logs: []
+      logs: [],
+      objectIDsInFailure: [],
     };
-    // Perfs trace
-    const startTime = new Date().getTime();
     // Get locations endpoint url
     let locationsUrl = this.getEndpointUrl('locations', ServerAction.OCPI_EMSP_GET_LOCATIONS);
+    // Perfs trace
+    const startTime = new Date().getTime();
+    // Get timestamp before starting process - to be saved in DB at the end of the process
+    const startDate = new Date();
+    // Build last execution date
+    let momentFrom: Moment;
     if (partial) {
-      // Take the last day
-      const momentFrom = moment().utc().subtract(1, 'days').startOf('day');
-      locationsUrl = `${locationsUrl}?date_from=${momentFrom.format()}&limit=50`;
+      // Get last job success date
+      if (this.ocpiEndpoint.lastEmspPullLocations?.lastUpdatedOn) {
+        // Last execution date
+        momentFrom = moment(this.ocpiEndpoint.lastEmspPullLocations.lastUpdatedOn).utc();
+      } else {
+        // Last hour by default
+        momentFrom = moment().utc().subtract(1, 'hours').startOf('hour');
+      }
+      // Update URL
+      locationsUrl = `${locationsUrl}?date_from=${momentFrom.format()}&limit=1000`;
     } else {
-      // Take them all
-      locationsUrl = `${locationsUrl}?limit=50`;
+      // Update URL
+      locationsUrl = `${locationsUrl}?limit=1000`;
     }
-    const company = await OCPIUtils.checkAndGetEMSPCompany(this.tenant, this.ocpiEndpoint);
+    const company = await OCPIUtils.checkAndGetEmspCompany(this.tenant, this.ocpiEndpoint);
     const sites = await SiteStorage.getSites(this.tenant,
       { companyIDs: [ company.id ] }, Constants.DB_PARAMS_MAX_LIMIT);
     let nextResult = true;
+    let totalNumberOfLocations = 0;
     do {
+      const startTimeLoop = new Date().getTime();
       // Call IOP
       const response = await this.axiosInstance.get(
         locationsUrl,
@@ -144,26 +176,44 @@ export default class EmspOCPIClient extends OCPIClient {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
+        }
+      );
+      if (!response.data?.data) {
+        throw new BackendError({
+          action: ServerAction.OCPI_EMSP_GET_LOCATIONS,
+          message: 'Invalid response from Pull Locations',
+          module: MODULE_NAME, method: 'pullTokens',
+          detailedMessages: { locationsUrl }
         });
+      }
+      const numberOfLocations = response.data.data.length as number;
+      totalNumberOfLocations += numberOfLocations;
+      await Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: ServerAction.OCPI_CPO_GET_TOKENS,
+        message: `${numberOfLocations.toString()} Tokens retrieved from ${locationsUrl}`,
+        module: MODULE_NAME, method: 'pullTokens'
+      });
       const locations = response.data.data as OCPILocation[];
       if (!Utils.isEmptyArray(locations)) {
         // Cannot process locations in parallel (uniqueness is on site name) -> leads to dups
         for (const location of locations) {
           try {
+            result.total++;
             // Keep Evses a part from Location
             const evses = location.evses;
             delete location.evses;
             // Process Site
             const siteName = location.operator.name;
             const foundSite = sites.result.find((existingSite) => existingSite.name === siteName);
-            const site = await OCPIUtils.updateEMSPLocationSite(
+            const site = await OCPIUtils.updateCreateSiteWithEmspLocation(
               this.tenant, location, company, foundSite, siteName);
             // Get Site Area
             const foundSiteArea = await SiteAreaStorage.getSiteAreaByOcpiLocationUid(this.tenant, location.id);
             // Process Site Area
-            const siteArea = await OCPIUtils.updateEMSPLocationSiteArea(this.tenant, location, site, foundSiteArea);
+            const siteArea = await OCPIUtils.updateCreateSiteAreaWithEmspLocation(this.tenant, location, site, foundSiteArea);
             // Process Charging Station
-            await OCPIUtils.processEMSPLocationChargingStations(
+            await OCPIUtils.updateCreateChargingStationsWithEmspLocation(
               this.tenant, location, site, siteArea, evses, ServerAction.OCPI_EMSP_GET_LOCATIONS);
             // Push the Site then it can be retrieve in the next round
             if (!foundSite && site) {
@@ -172,8 +222,9 @@ export default class EmspOCPIClient extends OCPIClient {
             result.success++;
           } catch (error) {
             result.failure++;
+            result.objectIDsInFailure.push(location.id);
             result.logs.push(
-              `Failed to update Location '${location.name}': ${error.message as string}`
+              `Failed to update Location '${location.name}' with ID '${location.id}': ${error.message as string}`
             );
           }
         }
@@ -184,7 +235,28 @@ export default class EmspOCPIClient extends OCPIClient {
       } else {
         nextResult = false;
       }
+      const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
+      const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
+      await Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: ServerAction.OCPI_EMSP_GET_LOCATIONS,
+        message: `${numberOfLocations.toString()} location(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfLocations} location(s) processed in ${executionDurationTotalLoopSecs}s`,
+        module: MODULE_NAME, method: 'pullLocations',
+        detailedMessages: { locations }
+      });
     } while (nextResult);
+    // Save result in OCPI endpoint
+    const lastEmspPushTokens: OCPILastEmspPullLocation = {
+      lastUpdatedOn: startDate,
+      partial,
+      successNbr: result ? result.success : 0,
+      failureNbr: result ? result.failure : 0,
+      totalNbr: result ? result.total : 0,
+      locationIDsInFailure: result ? _.uniq(result.objectIDsInFailure) : [],
+    };
+    await OCPIEndpointStorage.saveOcpiLastEmspPullLocation(
+      this.tenant, this.ocpiEndpoint.id, lastEmspPushTokens);
+    // Log
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_EMSP_GET_LOCATIONS,
       MODULE_NAME, 'pullLocations', result,
@@ -366,7 +438,7 @@ export default class EmspOCPIClient extends OCPIClient {
       });
     }
     const evse = chargingStation.ocpiData.evses[0];
-    const token = OCPIUtils.buildOCPITokenFromTag(this.tenant, tag);
+    const token = OCPIUtils.buildEmspTokenFromTag(this.tenant, tag);
     const authorizationId = Utils.generateUUID();
     const remoteStart: OCPIStartSession = {
       response_url: callbackUrl + '/' + authorizationId,

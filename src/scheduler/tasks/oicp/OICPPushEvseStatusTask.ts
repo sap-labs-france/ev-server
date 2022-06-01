@@ -66,7 +66,7 @@ export default class OICPPushEvseStatusTask extends TenantSchedulerTask {
         // Build OICP Client
         const oicpClient = await OICPClientFactory.getCpoOicpClient(tenant, oicpEndpoint);
         // Send EVSE statuses
-        const sendEVSEStatusResult = await oicpClient.sendEVSEStatuses(!Utils.isUndefined(config.processAllEVSEs) ? config.processAllEVSEs : false);
+        const sendEVSEStatusResult = await oicpClient.sendEVSEStatuses(config.partial);
         await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOICPEndpoint',

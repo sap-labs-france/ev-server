@@ -132,7 +132,7 @@ export default class ChargingStationTemplateStorage {
   public static async deleteChargingStationTemplate(tenant: Tenant, chargingStationTemplateID: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete singular CST
-    await global.database.getCollection(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates')
       .deleteOne({ '_id': chargingStationTemplateID });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteChargingStationTemplate', startTime, { chargingStationTemplateID });
   }
