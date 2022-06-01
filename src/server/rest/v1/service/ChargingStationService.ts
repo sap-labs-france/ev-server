@@ -852,7 +852,7 @@ export default class ChargingStationService {
 
   public static async handleGetChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetReq({ ...req.params, ...req.query });
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetReq(req.body);
     // Check ID is provided
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetChargingStation', req.user);
     // Check auth

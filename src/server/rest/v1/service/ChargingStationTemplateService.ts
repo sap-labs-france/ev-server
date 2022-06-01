@@ -27,22 +27,15 @@ export default class ChargingStationTemplateService {
     const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateCreateReq(req.body);
     await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    const foundCST = await ChargingStationTemplateStorage.getChargingStationTemplate(filteredRequest.id);
-    if (foundCST) {
-      throw new AppError({
-        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
-        message: `id '${filteredRequest.id}' already exists`,
-        module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
-        user: req.user,
-        action: action
-      });
-    }
+    const foundTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(filteredRequest.id);
+    UtilsService.assertObjectExists(action, foundTemplate, `Charging Station Template '${filteredRequest.id}' does not exist`,
+      MODULE_NAME, 'handleCreateChargingStationTemplate', req.user);
     // Check auth
     if (!(await Authorizations.canCreateChargingStationTemplate(req.user))) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.IMPORT, entity: Entity.CHARGING_STATION_TEMPLATE,
+        action: Action.CREATE, entity: Entity.CHARGING_STATION_TEMPLATE,
         module: MODULE_NAME, method: 'handleCreateChargingStationTemplate'
       });
     }
@@ -67,9 +60,9 @@ export default class ChargingStationTemplateService {
       tenantID: req.tenant.id,
       ...LoggingHelper.getChargingStationTemplateProperties(newChargingStationTemplate),
       user: req.user, module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
-      message: `newChargingStationTemplate '${newChargingStationTemplate.id}' has been created successfully`,
+      message: `ChargingStationTemplate '${newChargingStationTemplate.id}' has been created successfully`,
       action: action,
-      detailedMessages: { car: newChargingStationTemplate }
+      detailedMessages: { chargingStationTemplate: newChargingStationTemplate }
     });
     res.json(Object.assign({ id: newChargingStationTemplate.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
@@ -145,8 +138,8 @@ export default class ChargingStationTemplateService {
     await ChargingStationTemplateStorage.deleteChargingStationTemplate(req.tenant, chargingStationTemplate.id);
     await Logging.logInfo({
       tenantID: req.tenant.id,
-      user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStation',
-      message: `Charging Station '${chargingStationTemplate.id}' has been deleted successfully`,
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStationTemplate',
+      message: `Charging Station Template'${chargingStationTemplate.id}' has been deleted successfully`,
       action,
       detailedMessages: { chargingStationTemplate }
     });
@@ -158,16 +151,9 @@ export default class ChargingStationTemplateService {
     const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateUpdateReq(req.body);
     await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       req.tenant, req.user, filteredRequest, Action.UPDATE);
-    const foundCST = await ChargingStationTemplateStorage.getChargingStationTemplate(filteredRequest.id);
-    if (!foundCST) {
-      throw new AppError({
-        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
-        message: `id '${filteredRequest.id}' don't already exists`,
-        module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
-        user: req.user,
-        action: action
-      });
-    }
+    const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(filteredRequest.id);
+    UtilsService.assertObjectExists(action, chargingStationTemplate, `Charging Station Template '${filteredRequest.id}' does not exist`,
+      MODULE_NAME, 'handleUpdateChargingStationTemplate', req.user);
     // Check auth
     if (!(await Authorizations.canUpdateChargingStationTemplate(req.user))) {
       throw new AppAuthError({

@@ -123,10 +123,10 @@ export default class ChargingStationTemplateStorage {
   public static async getChargingStationTemplate(id: string = Constants.UNKNOWN_OBJECT_ID,
       params = {},
       projectFields?: string[]): Promise<HttpGetChargingStationTemplateRequest> {
-    const chargingstationtemplatessMDB = await ChargingStationTemplateStorage.getChargingStationTemplates({
+    const chargingStationTemplateMDB = await ChargingStationTemplateStorage.getChargingStationTemplates({
       IDs: [id],
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    return chargingstationtemplatessMDB.count === 1 ? chargingstationtemplatessMDB.result[0] : null;
+    return chargingStationTemplateMDB.count === 1 ? chargingStationTemplateMDB.result[0] : null;
   }
 
   public static async deleteChargingStationTemplate(tenant: Tenant, chargingStationTemplateID: string): Promise<void> {

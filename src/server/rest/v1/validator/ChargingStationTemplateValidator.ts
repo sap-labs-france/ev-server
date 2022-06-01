@@ -1,6 +1,5 @@
 import { HttpCreateChargingStationTemplateRequest, HttpDeleteChargingStationTemplateRequest, HttpGetChargingStationTemplateRequest, HttpGetChargingStationTemplatesRequest, HttpUpdateChargingStationTemplateRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
 
-import { ChargingStationTemplate } from '../../../../types/ChargingStation';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
@@ -9,8 +8,8 @@ import global from '../../../../types/GlobalType';
 export default class ChargingStationTemplateValidator extends SchemaValidator {
   private static instance: ChargingStationTemplateValidator | null = null;
   private chargingStationTemplateCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/chargingstation/chargingstation-template.json`, 'utf8'));
-  private chargingStationTemplateGetByID: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstationtemplate/charging-station-template-get.json`, 'utf8'));
-  private chargingStationsTemplateGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstationtemplate/charging-station-templates-get.json`, 'utf8'));
+  private chargingStationTemplateGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstationtemplate/charging-station-template-get.json`, 'utf8'));
+  private chargingStationTemplatesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstationtemplate/charging-station-templates-get.json`, 'utf8'));
   private chargingStationTemplateUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstationtemplate/charging-station-template-update.json`, 'utf8'));
   private chargingStationsTemplateDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstationtemplate/charging-station-template-delete.json`, 'utf8'));
 
@@ -31,11 +30,11 @@ export default class ChargingStationTemplateValidator extends SchemaValidator {
   }
 
   public validateChargingStationTemplateGetReq(data: Record<string, unknown>): HttpGetChargingStationTemplateRequest {
-    return this.validate(this.chargingStationTemplateGetByID, data);
+    return this.validate(this.chargingStationTemplateGet, data);
   }
 
   public validateChargingStationTemplatesGetReq(data: Record<string, unknown>): HttpGetChargingStationTemplatesRequest {
-    return this.validate(this.chargingStationsTemplateGet, data);
+    return this.validate(this.chargingStationTemplatesGet, data);
   }
 
   public validateChargingStationTemplateDeleteReq(data: Record<string, unknown>): HttpDeleteChargingStationTemplateRequest {

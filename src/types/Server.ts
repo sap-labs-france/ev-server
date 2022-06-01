@@ -60,11 +60,11 @@ export enum ServerAction {
   REGISTRATION_TOKEN_REVOKE = 'RegistrationTokenRevoke',
   REGISTRATION_TOKEN_UPDATE = 'RegistrationTokenUpdate',
 
-  CHARGING_STATION_TEMPLATE = 'CharginStationTemplate',
-  CHARGING_STATION_TEMPLATES = 'CharginStationTemplates',
-  CHARGING_STATION_TEMPLATE_DELETE = 'CharginStationTemplateDelete',
-  CHARGING_STATION_TEMPLATE_UPDATE = 'CharginStationTemplateUpdate',
-  CHARGING_STATION_TEMPLATE_CREATE = 'CharginStationTemplateCreate',
+  CHARGING_STATION_TEMPLATE = 'ChargingStationTemplate',
+  CHARGING_STATION_TEMPLATES = 'ChargingStationTemplates',
+  CHARGING_STATION_TEMPLATE_DELETE = 'ChargingStationTemplateDelete',
+  CHARGING_STATION_TEMPLATE_UPDATE = 'ChargingStationTemplateUpdate',
+  CHARGING_STATION_TEMPLATE_CREATE = 'ChargingStationTemplateCreate',
 
   BOOT_NOTIFICATIONS = 'BootNotifications',
   STATUS_NOTIFICATIONS = 'StatusNotifications',

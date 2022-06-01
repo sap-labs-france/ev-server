@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import ChargingStationService from '../../service/ChargingStationService';
 import RouterUtils from '../../../../../utils/RouterUtils';
 import TransactionService from '../../service/TransactionService';
+import sanitize from 'mongo-sanitize';
 
 export default class ChargingStationRouter {
   private router: express.Router;
@@ -59,7 +60,7 @@ export default class ChargingStationRouter {
 
   private buildRouteChargingStation(): void {
     this.router.get(`/${RESTServerRoute.REST_CHARGING_STATION}`, (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
+      req.body.ID = sanitize(req.params.id);
       void RouterUtils.handleRestServerAction(ChargingStationService.handleGetChargingStation.bind(this), ServerAction.CHARGING_STATION, req, res, next);
     });
   }

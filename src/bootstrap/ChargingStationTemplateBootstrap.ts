@@ -21,7 +21,6 @@ export default class ChargingStationTemplateBootstrap {
     }
     // Delete all previous templates
     await ChargingStationStorage.deleteChargingStationTemplates();
-    // Read File
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {

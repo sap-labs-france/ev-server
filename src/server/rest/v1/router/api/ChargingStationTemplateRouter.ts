@@ -15,11 +15,11 @@ export default class ChargingStationTemplateRouter {
   }
 
   public buildRoutes(): express.Router {
-    this.buildRouteChargingStationTemplatesCreate();
+    this.buildRouteChargingStationTemplateCreate();
     this.buildRouteChargingStationTemplates();
     this.buildRouteChargingStationTemplate();
-    this.buildRouteChargingStationTemplatesDelete();
-    this.buildRouteChargingStationTemplatesUpdate();
+    this.buildRouteChargingStationTemplateDelete();
+    this.buildRouteChargingStationTemplateUpdate();
     return this.router;
   }
 
@@ -36,21 +36,21 @@ export default class ChargingStationTemplateRouter {
     });
   }
 
-  private buildRouteChargingStationTemplatesCreate(): void {
-    this.router.post(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE_CREATE}`, async (req: Request, res: Response, next: NextFunction) => {
+  private buildRouteChargingStationTemplateCreate(): void {
+    this.router.post(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleCreateChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE_CREATE, req, res, next);
     });
   }
 
-  private buildRouteChargingStationTemplatesDelete(): void {
-    this.router.delete(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE_DELETE}`, async (req: Request, res: Response, next: NextFunction) => {
+  private buildRouteChargingStationTemplateDelete(): void {
+    this.router.delete(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = sanitize(req.params.id);
       await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleDeleteChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE_DELETE, req, res, next);
     });
   }
 
-  private buildRouteChargingStationTemplatesUpdate(): void {
-    this.router.put(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE_UPDATE}`, async (req: Request, res: Response, next: NextFunction) => {
+  private buildRouteChargingStationTemplateUpdate(): void {
+    this.router.put(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.id = sanitize(req.params.id);
       await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleUpdateChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE_UPDATE, req, res, next);
     });
