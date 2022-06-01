@@ -90,6 +90,14 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
           siteArea.chargingStations = chargingStations.result.filter(
             (chargingStation) => chargingStation.siteAreaID === siteArea.id);
         }
+      } else {
+        await Logging.logDebug({
+          tenantID: this.tenant.id,
+          action: ServerAction.SMART_CHARGING,
+          message: `${sourceSiteArea.name} > No charging station used, so no need to call the Smart Charging service`,
+          module: MODULE_NAME, method: 'buildChargingProfiles',
+        });
+        return;
       }
     }
     // Build site area trees

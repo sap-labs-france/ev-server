@@ -212,7 +212,7 @@ export default class SiteAreaService {
         search: filteredRequest.Search,
         withSite: filteredRequest.WithSite,
         withParentSiteArea: filteredRequest.WithParentSiteArea,
-        withChargingStations: filteredRequest.WithChargeBoxes,
+        withChargingStations: filteredRequest.WithChargingStations,
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,

@@ -64,6 +64,7 @@ describe('Tenant Settings', () => {
         pricing: { active: false, type: null },
         refund: { active: false, type: null },
         billing: { active: false, type: null },
+        billingPlatform: { active: false, type: null },
         smartCharging: { active: false, type: null },
         statistics: { active: false, type: null },
         analytics: { active: false, type: null },
@@ -195,6 +196,62 @@ describe('Tenant Settings', () => {
         expect(settings.data.count).to.equal(4);
         expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.BILLING, BillingSettingsType.STRIPE);
         expect(settings.data.result[2]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
+      }
+    );
+
+    it(
+      'Billing sub-accounts : Check that the setting has been created in the tenant after activation',
+      async () => {
+        // Fill in the data
+        testData.data = {
+          id: testData.credentials.tenantId,
+          name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+          email: testData.credentials.email,
+          subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+          components: {
+            ocpi: { active: false, type: null },
+            organization: { active: false, type: null },
+            pricing: { active: false, type: null },
+            refund: { active: false, type: null },
+            billing: { active: false, type: null },
+            billingPlatform: { active: true, type: null },
+            smartCharging: { active: false, type: null },
+            statistics: { active: false, type: null },
+            analytics: { active: false, type: null },
+            asset: { active: false, type: null }
+          }
+        };
+        let res = await testData.superAdminCentralService.updateEntity(
+          testData.centralService.tenantApi, testData.data, false);
+        expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+
+        // Fill in the data
+        testData.data = {
+          id: testData.credentials.tenantId,
+          name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+          email: testData.credentials.email,
+          subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+          components: {
+            ocpi: { active: false, type: null },
+            organization: { active: false, type: null },
+            pricing: { active: true, type: PricingSettingsType.SIMPLE },
+            refund: { active: false, type: null },
+            billing: { active: true, type: BillingSettingsType.STRIPE },
+            billingPlatform: { active: true, type: null },
+            smartCharging: { active: false, type: null },
+            statistics: { active: false, type: null },
+            analytics: { active: false, type: null },
+            asset: { active: false, type: null }
+          }
+        };
+        res = await testData.superAdminCentralService.updateEntity(
+          testData.centralService.tenantApi, testData.data);
+        expect(res.status).to.equal(StatusCodes.OK);
+        testData.connectUser();
+        const tenant = await testData.superAdminCentralService.tenantApi.readById(testData.data.id);
+        expect(tenant.status).to.equal(StatusCodes.OK);
+        expect(tenant.data.components.billingPlatform).to.exist;
+        expect(tenant.data.components.billingPlatform.active).to.be.true;
       }
     );
 

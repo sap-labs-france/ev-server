@@ -233,7 +233,7 @@ export default class BillingStorage {
       { $set: subAccountMDB },
       { upsert: true, returnDocument: 'after' }
     );
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoice', startTime, subAccountMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSubAccount', startTime, subAccountMDB);
     return subAccountMDB._id.toString();
   }
 

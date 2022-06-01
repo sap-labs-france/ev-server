@@ -239,7 +239,7 @@ export default class CentralServerService {
     const response = await entityApi.readById(entity.id);
     if (performCheck) {
       // Check if not found
-      expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      expect(response.status).to.equal(StatusCodes.NOT_FOUND);
     } else {
       // Let the caller to handle response
       return response;

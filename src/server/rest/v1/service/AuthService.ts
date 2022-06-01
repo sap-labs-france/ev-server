@@ -63,7 +63,7 @@ export default class AuthService {
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {
       throw new AppError({
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `User with Email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
         module: MODULE_NAME,
         method: 'handleLogIn',
@@ -130,7 +130,7 @@ export default class AuthService {
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant.id) {
       throw new AppError({
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `User is trying to register with an unknown tenant '${filteredRequest.tenant}'!`,
         module: MODULE_NAME,
         method: 'handleRegisterUser'
@@ -319,7 +319,7 @@ export default class AuthService {
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {
       throw new AppError({
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
         module: MODULE_NAME,
         method: 'handleUserPasswordReset',
@@ -386,7 +386,7 @@ export default class AuthService {
     const tenant = await AuthService.getTenant(filteredRequest.Tenant);
     if (!tenant) {
       throw new AppError({
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         action: action,
         module: MODULE_NAME,
         method: 'handleVerifyEmail',
@@ -404,7 +404,7 @@ export default class AuthService {
     }
     if (!tenant) {
       throw new AppError({
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         action: action,
         module: MODULE_NAME,
         method: 'handleVerifyEmail',
@@ -503,7 +503,7 @@ export default class AuthService {
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {
       throw new AppError({
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
         module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
@@ -613,7 +613,7 @@ export default class AuthService {
       // Save User Nbr Password Trials
       await UserStorage.saveUserPassword(tenant, user.id, { passwordWrongNbrTrials });
       throw new AppError({
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `User failed to log in, ${centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,
         module: MODULE_NAME,
         method: 'checkUserLogin',
@@ -693,7 +693,7 @@ export default class AuthService {
     // User Found?
     if (!user) {
       throw new AppError({
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `Unknown user tried to log in with email '${filteredRequest.email}'`,
         module: MODULE_NAME,
         method: 'checkUserLogin',

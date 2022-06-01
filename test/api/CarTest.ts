@@ -296,7 +296,7 @@ describe('Car', () => {
           testData.createdCars[1],
           false
         );
-        expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+        expect(response.status).to.equal(StatusCodes.NOT_FOUND);
       });
 
       it('Should not be able to update a car to a pool car', async () => {
