@@ -324,15 +324,6 @@ export default class TagStorage {
     if (params.defaultTag) {
       filters.default = true;
     }
-    // Sites
-    if (!Utils.isEmptyArray(params.siteIDs)) {
-      DatabaseUtils.pushSiteUserLookupInAggregation({
-        tenantID: tenant.id, aggregation, localField: 'userID', foreignField: 'userID', asField: 'siteUsers'
-      });
-      aggregation.push({
-        $match: { 'siteUsers.siteID': { $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site)) } }
-      });
-    }
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
@@ -346,14 +337,34 @@ export default class TagStorage {
       filters.active = params.active;
     }
     // Dates
-    if (params.dateFrom && moment(params.dateFrom).isValid()) {
-      filters.lastChangedOn = { $gte: new Date(params.dateFrom) };
-    }
-    if (params.dateTo && moment(params.dateTo).isValid()) {
-      filters.lastChangedOn = { $lte: new Date(params.dateTo) };
+    if ((params.dateFrom && moment(params.dateFrom).isValid()) ||
+        (params.dateTo && moment(params.dateTo).isValid())) {
+      const lastChangedOn: any = {};
+      const createdOn: any = {};
+      if (params.dateFrom) {
+        lastChangedOn.$gte = Utils.convertToDate(params.dateFrom);
+        createdOn.$gte = Utils.convertToDate(params.dateFrom);
+      }
+      if (params.dateTo) {
+        lastChangedOn.$lte = Utils.convertToDate(params.dateTo);
+        createdOn.$lte = Utils.convertToDate(params.dateTo);
+      }
+      filters.$or = [
+        { lastChangedOn },
+        { createdOn },
+      ];
     }
     if (!Utils.isEmptyJSon(filters)) {
       aggregation.push({ $match: filters });
+    }
+    // Sites
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      DatabaseUtils.pushSiteUserLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: 'userID', foreignField: 'userID', asField: 'siteUsers'
+      });
+      aggregation.push({
+        $match: { 'siteUsers.siteID': { $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site)) } }
+      });
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {

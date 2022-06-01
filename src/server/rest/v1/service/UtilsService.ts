@@ -42,6 +42,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import { TransactionInErrorType } from '../../../../types/InError';
@@ -138,7 +139,7 @@ export default class UtilsService {
     if (chargingStation?.deleted) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: `ChargingStation with ID '${chargingStation.id}' is logically deleted`,
         module: MODULE_NAME,
         method: 'checkAndGetChargingStationAuthorization',
@@ -901,7 +902,7 @@ export default class UtilsService {
     if (!object) {
       throw new AppError({
         action,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: StatusCodes.NOT_FOUND,
         message: errorMsg,
         module: module,
         method: method,

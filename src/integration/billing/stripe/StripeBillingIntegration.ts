@@ -1706,7 +1706,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     try {
       activationLink = await this.stripe.accountLinks.create({
         account: subAccount.id,
-        return_url: Utils.buildEvseBillingSubAccountActivationURL(this.tenant.subdomain, subAccount.id),
+        return_url: Utils.buildEvseBillingSubAccountActivationURL(this.tenant, subAccount.id),
         refresh_url: Utils.buildEvseURL(),
         type: 'account_onboarding',
       });
