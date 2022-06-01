@@ -1,6 +1,6 @@
 {
   "$id": "charging-station-template-delete",
-  "title": "charging station template by id delete",
+  "title": "Delete a charging station template",
   "description": "",
   "type": "object",
   "properties": {

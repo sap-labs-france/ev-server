@@ -1,6 +1,6 @@
 {
   "$id": "charging-station-templates-get",
-  "title": "List all charging station templates Request",
+  "title": "List all the charging station templates",
   "description": "",
   "type": "object",
   "properties": {

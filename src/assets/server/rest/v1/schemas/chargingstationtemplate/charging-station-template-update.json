@@ -1,6 +1,6 @@
 {
   "$id": "charging-station-template-update",
-  "title": "update charging station template by id Request",
+  "title": "Update a charging station template",
   "type": "object",
   "properties": {
     "id": {
