@@ -218,7 +218,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'issuer', 'logo',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
-          'address.department', 'address.region', 'address.country', 'address.coordinates', 'billingSubAccountID'
+          'address.department', 'address.region', 'address.country', 'address.coordinates', 'billing.id'
         ]
       },
       {

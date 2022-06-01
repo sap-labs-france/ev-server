@@ -1,0 +1,13 @@
+{
+  "$id": "billing",
+  "definitions": {
+    "subAccount": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "common#/definitions/id"
+        }
+      }
+    }
+  }
+}

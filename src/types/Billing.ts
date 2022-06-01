@@ -161,3 +161,7 @@ export interface BillingAccount {
   pending: boolean;
 }
 
+export interface BillingAccountSetting {
+  id: string;
+}
+

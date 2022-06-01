@@ -35,6 +35,7 @@ export default class SchemaValidator {
   private static registrationTokenSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/registration-token/registration-token.json`, 'utf8'));
   private static siteAreasSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site-area/site-area.json`, 'utf8'));
   private static siteSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site/site.json`, 'utf8'));
+  private static billingSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/billing/billing.json`, 'utf8'));
 
   protected moduleName: string;
   private readonly ajv: Ajv;
@@ -79,6 +80,7 @@ export default class SchemaValidator {
       SchemaValidator.registrationTokenSchema,
       SchemaValidator.siteAreasSchema,
       SchemaValidator.siteSchema,
+      SchemaValidator.billingSchema
     ]);
   }
 

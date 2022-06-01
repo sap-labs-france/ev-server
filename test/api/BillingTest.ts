@@ -1023,12 +1023,31 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           });
           expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
 
-          let companyResponse = await billingTestHelper.userService.companyApi.create(
-            { ...CompanyFactory.build(), billingSubAccountID: subAccountResponse.data.id }
-          );
+          let companyResponse = await billingTestHelper.userService.companyApi.create({
+            ...CompanyFactory.build(),
+            billing: {
+              id: subAccountResponse.data.id
+            }
+          });
           expect(companyResponse.status).to.be.eq(StatusCodes.CREATED);
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyResponse.data.id);
-          expect(companyResponse.data.billingSubAccountID).to.eq(subAccountResponse.data.id);
+          expect(companyResponse.data.billing.id).to.eq(subAccountResponse.data.id);
+        });
+
+        it('should update a company to assign a sub-account', async () => {
+          const subAccountResponse = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
+
+          let companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
+          expect(companyResponse.status).to.be.eq(StatusCodes.CREATED);
+          const companyID = companyResponse.data.id;
+          companyResponse = await billingTestHelper.userService.companyApi.update({ id: companyID, ...CompanyFactory.build(), billing: { id: subAccountResponse.data.id } });
+          expect(companyResponse.status).to.be.eq(StatusCodes.OK);
+
+          companyResponse = await billingTestHelper.userService.companyApi.readById(companyID);
+          expect(companyResponse.data.billing.id).to.eq(subAccountResponse.data.id);
         });
       });
     });

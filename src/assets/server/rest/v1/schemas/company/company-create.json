@@ -12,8 +12,8 @@
     "logo": {
       "$ref": "common#/definitions/logo"
     },
-    "billingSubAccountID": {
-      "$ref": "common#/definitions/id"
+    "billing": {
+      "$ref": "billing#/definitions/subAccount"
     }
   },
   "required": [
