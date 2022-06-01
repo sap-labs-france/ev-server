@@ -145,7 +145,7 @@
     "stripe": "^8.194.0",
     "strong-soap": "^3.3.1",
     "swagger-ui-express": "^4.3.0",
-    "tslib": "^2.2.0",
+    "tslib": "^2.4.0",
     "tz-lookup": "^6.1.25",
     "urlencode": "^1.1.0",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.6.0",
