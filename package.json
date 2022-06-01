@@ -153,7 +153,7 @@
     "ws": "^8.4.2"
   },
   "optionalDependencies": {
-    "bufferutil": "^4.0.4",
+    "bufferutil": "^4.0.6",
     "utf-8-validate": "^5.0.9"
   },
   "devDependencies": {
@@ -208,7 +208,7 @@
     "circular-dependency-plugin": "^5.2.2",
     "clean-webpack-plugin": "^4.0.0",
     "clinic": "^10.0.0",
-    "convict": "^6.2.2",
+    "convict": "^6.2.3",
     "copy-webpack-plugin": "^9.0.1",
     "cross-env": "^7.0.3",
     "deep-object-diff": "^1.1.0",
