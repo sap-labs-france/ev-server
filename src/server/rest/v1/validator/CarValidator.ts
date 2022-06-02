@@ -15,6 +15,7 @@ export default class CarValidator extends SchemaValidator {
   private carUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-update.json`, 'utf8'));
   private carsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/cars-get.json`, 'utf8'));
   private carGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-get.json`, 'utf8'));
+  private carDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-delete.json`, 'utf8'));
 
   private constructor() {
     super('CarValidator');
@@ -57,5 +58,9 @@ export default class CarValidator extends SchemaValidator {
 
   public validateCarGetReq(data: Record<string, unknown>): HttpCarRequest {
     return this.validate(this.carGet, data);
+  }
+
+  public validateCarDeleteReq(data: Record<string, unknown>): HttpCarRequest {
+    return this.validate(this.carDelete, data);
   }
 }

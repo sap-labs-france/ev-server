@@ -1,11 +1,9 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
-import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
@@ -14,6 +12,7 @@ import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CarValidator from '../validator/CarValidator';
 import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -394,7 +393,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.DELETE, Entity.CAR, MODULE_NAME, 'handleDeleteCar');
     // Filter
-    const carID = CarValidator.getInstance().validateCarGetReq(req.query).ID;
+    const carID = CarValidator.getInstance().validateCarDeleteReq(req.query).ID;
     // Check and Get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
       req.tenant, req.user, carID, Action.DELETE, action);
