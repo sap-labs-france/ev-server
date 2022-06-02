@@ -1,14 +1,12 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
 
-import AppAuthError from '../../../../exception/AppAuthError';
 import AuthorizationService from './AuthorizationService';
 import Company from '../../../../types/Company';
 import { CompanyDataResult } from '../../../../types/DataResult';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import CompanyValidator from '../validator/CompanyValidator';
 import Constants from '../../../../utils/Constants';
-import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
@@ -25,7 +23,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
     // Filter
-    const companyID = CompanyValidator.getInstance().validateCompanyGetReq(req.query).ID;
+    const companyID = CompanyValidator.getInstance().validateCompanyDeleteReq(req.query).ID;
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, companyID, Action.DELETE, action);

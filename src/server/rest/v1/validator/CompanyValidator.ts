@@ -10,6 +10,7 @@ export default class CompanyValidator extends SchemaValidator {
   private static instance: CompanyValidator|null = null;
   private companiesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/companies-get.json`, 'utf8'));
   private companyGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-get.json`, 'utf8'));
+  private companyDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-delete.json`, 'utf8'));
   private companyCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-create.json`, 'utf8'));
   private companyUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-update.json`, 'utf8'));
   private companyLogoGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-logo-get.json`, 'utf8'));
@@ -27,6 +28,10 @@ export default class CompanyValidator extends SchemaValidator {
 
   public validateCompaniesGetReq(data: Record<string, unknown>): HttpCompaniesRequest {
     return this.validate(this.companiesGet, data);
+  }
+
+  public validateCompanyDeleteReq(data: Record<string, unknown>): HttpCompanyRequest {
+    return this.validate(this.companyDelete, data);
   }
 
   public validateCompanyGetReq(data: Record<string, unknown>): HttpCompanyRequest {
