@@ -31,7 +31,7 @@ jobs:
   build-submodules:
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.head_ref || github.ref_name }}
+      group: build-sub-modules-${{ github.head_ref || github.ref_name }}
       cancel-in-progress: true
     strategy:
       matrix:
@@ -53,7 +53,7 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.head_ref || github.ref_name }}
+      group: build-docker-${{ github.head_ref || github.ref_name }}
       cancel-in-progress: true
     steps:
     - uses: actions/checkout@v2

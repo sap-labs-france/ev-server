@@ -1,7 +1,7 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
+import { OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
 import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
 import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenant';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
@@ -13,7 +13,6 @@ import Address from '../types/Address';
 import { AxiosError } from 'axios';
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
-import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import { Decimal } from 'decimal.js';
 import LoggingHelper from './LoggingHelper';
@@ -976,8 +975,8 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
-  public static buildEvseBillingSubAccountActivationURL(tenantSubdomain: string, subAccountID: string): string {
-    return `${Utils.buildEvseURL(tenantSubdomain)}/billing/sub-accounts/${subAccountID}`;
+  public static buildEvseBillingSubAccountActivationURL(tenant: Tenant, subAccountID: string): string {
+    return `${Utils.buildEvseURL(tenant.subdomain)}/billing/sub-accounts/${subAccountID}?TenantID=${tenant.id}`;
   }
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {

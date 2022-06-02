@@ -324,15 +324,6 @@ export default class TagStorage {
     if (params.defaultTag) {
       filters.default = true;
     }
-    // Sites
-    if (!Utils.isEmptyArray(params.siteIDs)) {
-      DatabaseUtils.pushSiteUserLookupInAggregation({
-        tenantID: tenant.id, aggregation, localField: 'userID', foreignField: 'userID', asField: 'siteUsers'
-      });
-      aggregation.push({
-        $match: { 'siteUsers.siteID': { $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site)) } }
-      });
-    }
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
@@ -365,6 +356,15 @@ export default class TagStorage {
     }
     if (!Utils.isEmptyJSon(filters)) {
       aggregation.push({ $match: filters });
+    }
+    // Sites
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      DatabaseUtils.pushSiteUserLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: 'userID', foreignField: 'userID', asField: 'siteUsers'
+      });
+      aggregation.push({
+        $match: { 'siteUsers.siteID': { $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site)) } }
+      });
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
