@@ -1,0 +1,13 @@
+{
+  "$id": "tag-delete",
+  "title": "Delete a Tag",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "tag#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

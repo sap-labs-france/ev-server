@@ -289,7 +289,7 @@ export default class AssetService {
     const filteredRequest = AssetValidator.getInstance().validateAssetDeleteReq(req.query);
     // Check and get Asset
     const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.ID,
-      Action.DELETE, action, null, { withSiteArea: filteredRequest.WithSiteArea });
+      Action.DELETE, action);
     // Delete
     await AssetStorage.deleteAsset(req.tenant, asset.id);
     // Log

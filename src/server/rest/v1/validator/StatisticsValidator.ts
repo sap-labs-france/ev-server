@@ -1,4 +1,4 @@
-import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticRequest';
+import HttpStatisticsGetRequest from '../../../../types/requests/HttpStatisticRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
@@ -20,11 +20,11 @@ export default class StatisticsValidator extends SchemaValidator {
     return StatisticsValidator.instance;
   }
 
-  public validateStatisticsGet(data: Record<string, unknown>): HttpStatisticsRequest {
+  public validateStatisticsGet(data: Record<string, unknown>): HttpStatisticsGetRequest {
     return this.validate(this.statisticsGet, data);
   }
 
-  public validateStatisticsExport(data: Record<string, unknown>): HttpStatisticsRequest {
+  public validateStatisticsExport(data: Record<string, unknown>): HttpStatisticsGetRequest {
     return this.validate(this.statisticsExport, data);
   }
 }

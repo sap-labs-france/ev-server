@@ -6,7 +6,6 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AuthorizationService from './AuthorizationService';
 import ChargingStation from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
-import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { PricingDefinitionDataResult } from '../../../../types/DataResult';
 import PricingFactory from '../../../../integration/pricing/PricingFactory';
@@ -183,7 +182,7 @@ export default class PricingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.DELETE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleDeletePricingDefinition');
     // Filter
-    const pricingDefinitionID = PricingValidator.getInstance().validatePricingDefinitionGet(req.query).ID.toString();
+    const pricingDefinitionID = PricingValidator.getInstance().validatePricingDefinitionDelete(req.query).ID;
     // Check and Get Pricing
     const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, pricingDefinitionID, Action.DELETE, action);

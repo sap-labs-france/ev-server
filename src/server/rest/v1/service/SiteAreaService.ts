@@ -122,7 +122,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE_AREA, MODULE_NAME, 'handleDeleteSiteArea');
     // Filter request
-    const siteAreaID = SiteAreaValidator.getInstance().validateSiteAreaGetReq(req.query).ID;
+    const siteAreaID = SiteAreaValidator.getInstance().validateSiteAreaDeleteReq(req.query).ID;
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);

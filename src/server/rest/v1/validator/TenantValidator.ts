@@ -1,4 +1,4 @@
-import { HttpTenantLogoRequest, HttpTenantRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
+import { HttpTenantDeleteRequest, HttpTenantGetRequest, HttpTenantLogoGetRequest, HttpTenantsGetRequest } from '../../../../types/requests/HttpTenantRequest';
 
 import AppError from '../../../../exception/AppError';
 import { HTTPError } from '../../../../types/HTTPError';
@@ -14,6 +14,7 @@ export default class TenantValidator extends SchemaValidator {
   private tenantUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update.json`, 'utf8'));
   private tenantLogoGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-logo-get.json`, 'utf8'));
   private tenantGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get.json`, 'utf8'));
+  private tenantDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete.json`, 'utf8'));
   private tenantsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenants-get.json`, 'utf8'));
 
   private constructor() {
@@ -39,15 +40,19 @@ export default class TenantValidator extends SchemaValidator {
     return tenant;
   }
 
-  public validateLogoGetReq(data: Record<string, unknown>): HttpTenantLogoRequest {
+  public validateLogoGetReq(data: Record<string, unknown>): HttpTenantLogoGetRequest {
     return this.validate(this.tenantLogoGet, data);
   }
 
-  public validateTenantGetReq(data: Record<string, unknown>): HttpTenantRequest {
+  public validateTenantGetReq(data: Record<string, unknown>): HttpTenantGetRequest {
     return this.validate(this.tenantGet, data);
   }
 
-  public validateTenantsGetReq(data: Record<string, unknown>): HttpTenantsRequest {
+  public validateTenantDeleteReq(data: Record<string, unknown>): HttpTenantDeleteRequest {
+    return this.validate(this.tenantDelete, data);
+  }
+
+  public validateTenantsGetReq(data: Record<string, unknown>): HttpTenantsGetRequest {
     return this.validate(this.tenantsGet, data);
   }
 

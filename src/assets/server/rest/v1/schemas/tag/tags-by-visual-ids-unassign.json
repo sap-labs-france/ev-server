@@ -1,5 +1,5 @@
 {
-  "$id": "tags-unassign",
+  "$id": "tags-by-visual-ids-unassign",
   "title": "Unassign several Tags",
   "type": "object",
   "properties": {

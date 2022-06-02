@@ -26,7 +26,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.DELETE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleDeleteOicpEndpoint');
     // Filter
-    const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointGetReq(req.query);
+    const filteredRequest = OICPEndpointValidator.getInstance().validateOICPEndpointDeleteReq(req.query);
     // Check auth
     if (!await Authorizations.canDeleteOicpEndpoint(req.user)) {
       throw new AppAuthError({

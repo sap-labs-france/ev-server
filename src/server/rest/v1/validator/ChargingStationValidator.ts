@@ -1,4 +1,4 @@
-import { HttpChargingProfilesRequest, HttpChargingStationCacheClearCommandRequest, HttpChargingStationChangeAvailabilityRequest, HttpChargingStationChangeConfigurationRequest, HttpChargingStationCommandDataTransferRequest, HttpChargingStationCommandGetConfigurationRequest, HttpChargingStationCommandUnlockConnectorRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationGetDiagnosticsRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationReservationCancelRequest, HttpChargingStationReserveNowRequest, HttpChargingStationResetRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationUpdateFirmwareRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesGetRequest, HttpChargingStationAvailabilityChangeRequest, HttpChargingStationCacheClearCommandRequest, HttpChargingStationCommandConfigurationGetRequest, HttpChargingStationCommandConnectorUnlockRequest, HttpChargingStationCommandDataTransferRequest, HttpChargingStationCompositeScheduleGetRequest, HttpChargingStationConfigurationChangeRequest, HttpChargingStationConnectorGetRequest, HttpChargingStationDiagnosticsGetRequest, HttpChargingStationFirmwareGetRequest, HttpChargingStationFirmwareUpdateRequest, HttpChargingStationGetRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppGetRequest, HttpChargingStationOcppParametersGetRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationReservationCancelRequest, HttpChargingStationReserveNowRequest, HttpChargingStationResetRequest, HttpChargingStationTransactionStartRequest, HttpChargingStationTransactionStopRequest, HttpChargingStationsGetRequest, HttpChargingStationsInErrorGetRequest, HttpDownloadQrCodeRequest, HttpSmartChargingTriggerRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
@@ -52,23 +52,23 @@ export default class ChargingStationValidator extends SchemaValidator {
     return ChargingStationValidator.instance;
   }
 
-  public validateChargingStationsGetReq(data: Record<string, unknown>): HttpChargingStationsRequest {
+  public validateChargingStationsGetReq(data: Record<string, unknown>): HttpChargingStationsGetRequest {
     return this.validate(this.chargingStationsGet, data);
   }
 
-  public validateChargingStationGetReq(data: Record<string, unknown>): HttpChargingStationRequest {
+  public validateChargingStationGetReq(data: Record<string, unknown>): HttpChargingStationGetRequest {
     return this.validate(this.chargingStationGet, data);
   }
 
-  public validateChargingStationDeleteReq(data: Record<string, unknown>): HttpChargingStationRequest {
+  public validateChargingStationDeleteReq(data: Record<string, unknown>): HttpChargingStationGetRequest {
     return this.validate(this.chargingStationDelete, data);
   }
 
-  public validateChargingStationActionAvailabilityChangeReq(data: Record<string, unknown>): HttpChargingStationChangeAvailabilityRequest {
+  public validateChargingStationActionAvailabilityChangeReq(data: Record<string, unknown>): HttpChargingStationAvailabilityChangeRequest {
     return this.validate(this.chargingStationActionAvailabilityChange, data);
   }
 
-  public validateChargingStationActionConfigurationChangeReq(data: Record<string, unknown>): HttpChargingStationChangeConfigurationRequest {
+  public validateChargingStationActionConfigurationChangeReq(data: Record<string, unknown>): HttpChargingStationConfigurationChangeRequest {
     return this.validate(this.chargingStationActionChangeConfiguration, data);
   }
 
@@ -84,27 +84,27 @@ export default class ChargingStationValidator extends SchemaValidator {
     return this.validate(this.chargingStationActionReservationCancel, data);
   }
 
-  public validateChargingStationActionTransactionStartReq(data: Record<string, unknown>): HttpChargingStationStartTransactionRequest {
+  public validateChargingStationActionTransactionStartReq(data: Record<string, unknown>): HttpChargingStationTransactionStartRequest {
     return this.validate(this.chargingStationActionTransactionStart, data);
   }
 
-  public validateChargingStationActionTransactionStopReq(data: Record<string, unknown>): HttpChargingStationStopTransactionRequest {
+  public validateChargingStationActionTransactionStopReq(data: Record<string, unknown>): HttpChargingStationTransactionStopRequest {
     return this.validate(this.chargingStationActionTransactionStop, data);
   }
 
-  public validateChargingStationActionConfigurationGetReq(data: Record<string, unknown>): HttpChargingStationCommandGetConfigurationRequest {
+  public validateChargingStationActionConfigurationGetReq(data: Record<string, unknown>): HttpChargingStationCommandConfigurationGetRequest {
     return this.validate(this.chargingStationActionConfigurationGet, data);
   }
 
-  public validateChargingStationActionCompositeScheduleGetReq(data: Record<string, unknown>): HttpChargingStationGetCompositeScheduleRequest {
+  public validateChargingStationActionCompositeScheduleGetReq(data: Record<string, unknown>): HttpChargingStationCompositeScheduleGetRequest {
     return this.validate(this.chargingStationActionCompositeScheduleGet, data);
   }
 
-  public validateChargingStationActionConnectorUnlockReq(data: Record<string, unknown>): HttpChargingStationCommandUnlockConnectorRequest {
+  public validateChargingStationActionConnectorUnlockReq(data: Record<string, unknown>): HttpChargingStationCommandConnectorUnlockRequest {
     return this.validate(this.chargingStationActionConnectorUnlock, data);
   }
 
-  public validateChargingStationActionFirmwareUpdateReq(data: Record<string, unknown>): HttpChargingStationUpdateFirmwareRequest {
+  public validateChargingStationActionFirmwareUpdateReq(data: Record<string, unknown>): HttpChargingStationFirmwareUpdateRequest {
     return this.validate(this.chargingStationActionFirmwareUpdate, data);
   }
 
@@ -116,7 +116,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return this.validate(this.chargingStationActionReset, data);
   }
 
-  public validateChargingStationQRCodeGenerateReq(data: Record<string, unknown>): HttpChargingStationConnectorRequest {
+  public validateChargingStationQRCodeGenerateReq(data: Record<string, unknown>): HttpChargingStationConnectorGetRequest {
     return this.validate(this.chargingStationQRCodeGenerate, data);
   }
 
@@ -124,11 +124,11 @@ export default class ChargingStationValidator extends SchemaValidator {
     return this.validate(this.chargingStationQRCodeDownload, data);
   }
 
-  public validateChargingStationOcppParametersGetReq(data: Record<string, unknown>): HttpChargingStationOcppRequest {
+  public validateChargingStationOcppParametersGetReq(data: Record<string, unknown>): HttpChargingStationOcppGetRequest {
     return this.validate(this.chargingStationOcppParametersGet, data);
   }
 
-  public validateChargingStationOcppParametersRequestReq(data: Record<string, unknown>): HttpChargingStationOcppParametersRequest {
+  public validateChargingStationOcppParametersRequestReq(data: Record<string, unknown>): HttpChargingStationOcppParametersGetRequest {
     return this.validate(this.chargingStationOcppParametersRequest, data);
   }
 
@@ -140,19 +140,19 @@ export default class ChargingStationValidator extends SchemaValidator {
     return this.validate(this.chargingStationPowerLimit, data);
   }
 
-  public validateChargingStationFirmwareDownloadReq(data: Record<string, unknown>): HttpChargingStationGetFirmwareRequest {
+  public validateChargingStationFirmwareDownloadReq(data: Record<string, unknown>): HttpChargingStationFirmwareGetRequest {
     return this.validate(this.chargingStationFirmwareDownload, data);
   }
 
-  public validateChargingStationDiagnosticsGetReq(data: Record<string, unknown>): HttpChargingStationGetDiagnosticsRequest {
+  public validateChargingStationDiagnosticsGetReq(data: Record<string, unknown>): HttpChargingStationDiagnosticsGetRequest {
     return this.validate(this.chargingStationDiagnosticsGet, data);
   }
 
-  public validateSmartChargingTriggerReq(data: Record<string, unknown>): HttpTriggerSmartChargingRequest {
+  public validateSmartChargingTriggerReq(data: Record<string, unknown>): HttpSmartChargingTriggerRequest {
     return this.validate(this.smartChargingTrigger, data);
   }
 
-  public validateChargingStationInErrorReq(data: Record<string, unknown>): HttpChargingStationsInErrorRequest {
+  public validateChargingStationInErrorReq(data: Record<string, unknown>): HttpChargingStationsInErrorGetRequest {
     return this.validate(this.chargingStationInErrorGet, data);
   }
 
@@ -160,7 +160,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return this.validate(this.chargingStationNotificationsGet, data);
   }
 
-  public validateChargingProfilesGetReq(data: Record<string, unknown>): HttpChargingProfilesRequest {
+  public validateChargingProfilesGetReq(data: Record<string, unknown>): HttpChargingProfilesGetRequest {
     return this.validate(this.chargingProfilesGet, data);
   }
 
@@ -168,7 +168,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return this.validate(this.chargingProfileCreate, data);
   }
 
-  public validateChargingProfileDeleteReq(data: Record<string, unknown>): HttpChargingStationRequest {
+  public validateChargingProfileDeleteReq(data: Record<string, unknown>): HttpChargingStationGetRequest {
     return this.validate(this.chargingProfileDelete, data);
   }
 

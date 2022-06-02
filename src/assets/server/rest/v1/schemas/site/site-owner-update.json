@@ -1,6 +1,6 @@
 {
-  "$id": "site-admin",
-  "title": "Set / unset site admin Request",
+  "$id": "site-owner-update",
+  "title": "Set / unset site owner Request",
   "type": "object",
   "properties": {
     "siteID": {
@@ -9,7 +9,7 @@
     "userID": {
       "$ref": "user#/definitions/id"
     },
-    "siteAdmin": {
+    "siteOwner": {
       "type": "boolean",
       "sanitize": "mongo"
     }
@@ -17,6 +17,6 @@
   "required": [
     "siteID",
     "userID",
-    "siteAdmin"
+    "siteOwner"
   ]
 }

@@ -1,6 +1,6 @@
 {
-  "$id": "setting-by-id",
-  "title": "Setting by id Request",
+  "$id": "setting-delete",
+  "title": "Delete Setting Request",
   "description": "",
   "type": "object",
   "properties": {

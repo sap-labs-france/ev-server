@@ -7,7 +7,7 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticRequest';
+import HttpStatisticsGetRequest from '../../../../types/requests/HttpStatisticRequest';
 import { ServerAction } from '../../../../types/Server';
 import StatisticsStorage from '../../../../storage/mongodb/StatisticsStorage';
 import StatisticsValidator from '../validator/StatisticsValidator';
@@ -367,7 +367,7 @@ export default class StatisticService {
   }
 
   // Only completed transactions
-  static buildFilter(filteredRequest: HttpStatisticsRequest, loggedUser: UserToken): StatisticFilter {
+  static buildFilter(filteredRequest: HttpStatisticsGetRequest, loggedUser: UserToken): StatisticFilter {
     const filter: StatisticFilter = { stop: { $exists: true } };
     // Date
     if ('Year' in filteredRequest) {

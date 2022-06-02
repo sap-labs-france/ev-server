@@ -1,11 +1,10 @@
-import { Action, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
-import AppAuthError from '../../../../exception/AppAuthError';
+import { Action } from '../../../../types/Authorization';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import RegistrationToken from '../../../../types/RegistrationToken';
@@ -86,7 +85,7 @@ export default class RegistrationTokenService {
 
   public static async handleDeleteRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const registrationTokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenGetReq(req.query).ID;
+    const registrationTokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenDeleteReq(req.query).ID;
     // Check and Get Registration Token
     const registrationToken = await UtilsService.checkAndGetRegistrationTokenAuthorization(
       req.tenant, req.user, registrationTokenID, Action.DELETE, action);
@@ -106,7 +105,7 @@ export default class RegistrationTokenService {
 
   public static async handleRevokeRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const registrationTokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenGetReq(req.query).ID;
+    const registrationTokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenRevokeReq(req.query).ID;
     // Check and Get Registration Token
     const registrationToken = await UtilsService.checkAndGetRegistrationTokenAuthorization(
       req.tenant, req.user, registrationTokenID, Action.REVOKE, action, null, {}, true);

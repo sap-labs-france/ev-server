@@ -1,4 +1,4 @@
-import { HttpConnectionRequest, HttpConnectionsRequest } from '../../../../types/requests/HttpConnectionRequest';
+import { HttpConnectionDeleteRequest, HttpConnectionGetRequest, HttpConnectionsGetRequest } from '../../../../types/requests/HttpConnectionRequest';
 
 import Connection from '../../../../types/Connection';
 import Schema from '../../../../types/validator/Schema';
@@ -11,6 +11,7 @@ export default class ConnectionValidator extends SchemaValidator {
   private connectionCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-create.json`, 'utf8'));
   private connectionsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connections-get.json`, 'utf8'));
   private connectionGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-get.json`, 'utf8'));
+  private connectionDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-delete.json`, 'utf8'));
 
   private constructor() {
     super('ConnectionValidator');
@@ -23,16 +24,20 @@ export default class ConnectionValidator extends SchemaValidator {
     return ConnectionValidator.instance;
   }
 
-  validateConnectionCreateReq(data: Record<string, unknown>): Connection {
+  public validateConnectionCreateReq(data: Record<string, unknown>): Connection {
     return this.validate(this.connectionCreate, data);
   }
 
-  validateConnectionsGetReq(data: Record<string, unknown>): HttpConnectionsRequest {
+  public validateConnectionsGetReq(data: Record<string, unknown>): HttpConnectionsGetRequest {
     return this.validate(this.connectionsGet, data);
   }
 
-  validateConnectionGetReq(data: Record<string, unknown>): HttpConnectionRequest {
+  public validateConnectionGetReq(data: Record<string, unknown>): HttpConnectionGetRequest {
     return this.validate(this.connectionGet, data);
+  }
+
+  public validateConnectionDeleteReq(data: Record<string, unknown>): HttpConnectionDeleteRequest {
+    return this.validate(this.connectionDelete, data);
   }
 }
 

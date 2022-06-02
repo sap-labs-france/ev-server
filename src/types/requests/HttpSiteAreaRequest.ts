@@ -2,14 +2,18 @@ import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 import SiteArea from '../SiteArea';
 
-export interface HttpSiteAreaRequest extends HttpByIDRequest {
+export interface HttpSiteAreaGetRequest extends HttpByIDRequest {
   ID: string;
   WithSite?: boolean;
   WithParentSiteArea?: boolean;
   WithChargingStations?: boolean;
 }
 
-export interface HttpSiteAreasRequest extends HttpDatabaseRequest {
+export interface HttpSiteAreaDeleteRequest extends HttpByIDRequest {
+  ID: string;
+}
+
+export interface HttpSiteAreasGetRequest extends HttpDatabaseRequest {
   Issuer: boolean;
   Search: string;
   SiteID?: string;
@@ -25,7 +29,7 @@ export interface HttpSiteAreasRequest extends HttpDatabaseRequest {
   LocMaxDistanceMeters?: number;
 }
 
-export interface HttpSiteAreaConsumptionsRequest {
+export interface HttpSiteAreaConsumptionsGetRequest {
   SiteAreaID: string;
   StartDate: Date;
   EndDate: Date;
@@ -36,7 +40,7 @@ export interface HttpAssignChargingStationToSiteAreaRequest {
   chargingStationIDs: string[];
 }
 
-export interface HttpSiteAreaImageRequest extends HttpByIDRequest {
+export interface HttpSiteAreaImageGetRequest extends HttpByIDRequest {
   ID: string;
   TenantID: string;
 }

@@ -16,7 +16,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import CSVError from 'csvtojson/v2/CSVError';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
-import { HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
+import { HttpTagsGetRequest } from '../../../../types/requests/HttpTagRequest';
 import { ImportedUser } from '../../../../types/User';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -45,7 +45,7 @@ export default class TagService {
 
   public static async handleGetTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter request
-    const filteredRequest = TagValidator.getInstance().validateTagByIDGetReq(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagGetReq(req.query);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withUser: filteredRequest.WithUser }, true);
@@ -72,7 +72,7 @@ export default class TagService {
 
   public static async handleUnassignTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagsUnassignReq(req.body);
+    const filteredRequest = TagValidator.getInstance().validateTagsByVisualIDsUnassignReq(req.body);
     // Delete
     const result = await TagService.unassignTags(req.tenant, action, req.user, filteredRequest.visualIDs);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
@@ -81,7 +81,7 @@ export default class TagService {
 
   public static async handleUnassignTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagUnassignReq(req.body);
+    const filteredRequest = TagValidator.getInstance().validateTagByVisualIDUnassignReq(req.body);
     // Delete
     const response = await TagService.unassignTags(req.tenant, action, req.user, [filteredRequest.visualID]);
     if (response.inSuccess === 0) {
@@ -98,7 +98,7 @@ export default class TagService {
 
   public static async handleGetTagByVisualID(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter request
-    const filteredRequest = TagValidator.getInstance().validateTagVisualIDGetReq(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagByVisualIDGetReq(req.query);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(
       req.tenant, req.user, filteredRequest.VisualID, Action.READ, action, null, { withUser: filteredRequest.WithUser }, true);
@@ -108,7 +108,7 @@ export default class TagService {
 
   public static async handleDeleteTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagValidator.getInstance().validateTagByIDGetReq(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagDeleteReq(req.query);
     // Delete
     const response = await TagService.deleteTags(req.tenant, action, req.user, [filteredRequest.ID]);
     if (response.inSuccess === 0) {
@@ -770,7 +770,7 @@ export default class TagService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getTags(req: Request, filteredRequest: HttpTagsRequest): Promise<DataResult<Tag>> {
+  private static async getTags(req: Request, filteredRequest: HttpTagsGetRequest): Promise<DataResult<Tag>> {
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetTagsAuthorizations(
       req.tenant, req.user, filteredRequest, false);

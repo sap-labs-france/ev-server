@@ -29,7 +29,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteUserAdmin');
     // Filter request
-    const filteredRequest = SiteValidator.getInstance().validateSiteAdminReq(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteAdminUpdateReq(req.body);
     if (req.user.id === filteredRequest.userID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -64,7 +64,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteOwner');
     // Filter request
-    const filteredRequest = SiteValidator.getInstance().validateSiteOwnerReq(req.body);
+    const filteredRequest = SiteValidator.getInstance().validateSiteOwnerUpdateReq(req.body);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
@@ -155,7 +155,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE, MODULE_NAME, 'handleDeleteSite');
     // Filter request
-    const siteID = SiteValidator.getInstance().validateSiteGetReq(req.query).ID;
+    const siteID = SiteValidator.getInstance().validateSiteDeleteReq(req.query).ID;
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, siteID, Action.DELETE, action);

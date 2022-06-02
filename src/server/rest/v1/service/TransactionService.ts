@@ -20,7 +20,7 @@ import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpTransactionsGetRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
@@ -65,6 +65,9 @@ export default class TransactionService {
   }
 
   public static async handleSynchronizeRefundedTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
+      Action.REFUND_TRANSACTION, Entity.TRANSACTION, MODULE_NAME, 'handleSynchronizeRefundedTransactions');
     try {
       if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError({
@@ -339,7 +342,7 @@ export default class TransactionService {
 
   public static async handleDeleteTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.query).ID;
+    const transactionID = TransactionValidator.getInstance().validateTransactionDeleteReq(req.query).ID;
     // Check auth
     if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
@@ -347,22 +350,22 @@ export default class TransactionService {
         user: req.user,
         action: Action.DELETE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleDeleteTransaction',
-        value: transactionId.toString()
+        value: transactionID.toString()
       });
     }
     // Get
-    const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId);
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${transactionId}' does not exist`,
+    const transaction = await TransactionStorage.getTransaction(req.tenant, transactionID);
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${transactionID}' does not exist`,
       MODULE_NAME, 'handleDeleteTransaction', req.user);
     // Delete
-    const result = await TransactionService.deleteTransactions(action, req.tenant, req.user, [transactionId]);
+    const result = await TransactionService.deleteTransactions(action, req.tenant, req.user, [transactionID]);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
 
   public static async handleDeleteTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionsIds = TransactionValidator.getInstance().validateTransactionsByIDsGetReq(req.body).transactionsIDs;
+    const transactionsIDs = TransactionValidator.getInstance().validateTransactionsByIDsGetReq(req.body).transactionsIDs;
     // Check auth
     if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
@@ -370,11 +373,11 @@ export default class TransactionService {
         user: req.user,
         action: Action.DELETE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleDeleteTransactions',
-        value: transactionsIds.toString()
+        value: transactionsIDs.toString()
       });
     }
     // Delete
-    const result = await TransactionService.deleteTransactions(action, req.tenant, req.user, transactionsIds);
+    const result = await TransactionService.deleteTransactions(action, req.tenant, req.user, transactionsIDs);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
@@ -399,7 +402,7 @@ export default class TransactionService {
 
   public static async handleTransactionStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionID = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
+    const transactionID = TransactionValidator.getInstance().validateTransactionStopReq(req.body).ID;
     UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'handleTransactionStop', req.user);
     // Get data
     const { transaction, chargingStation, connector } =
@@ -430,7 +433,7 @@ export default class TransactionService {
 
   public static async handleTransactionSoftStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionID = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
+    const transactionID = TransactionValidator.getInstance().validateTransactionStopReq(req.body).ID;
     UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get data
     const { transaction, chargingStation, connector } =
@@ -1074,7 +1077,7 @@ export default class TransactionService {
   }
 
   private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean, withTag?: boolean } = {},
-      filteredRequest: HttpTransactionsRequest, projectFields): Promise<DataResult<Transaction>> {
+      filteredRequest: HttpTransactionsGetRequest, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
     if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -1164,7 +1167,7 @@ export default class TransactionService {
     return transactions;
   }
 
-  private static async getCompletedTransactionsToExport(req: Request, filteredRequest: HttpTransactionsRequest): Promise<DataResult<Transaction>> {
+  private static async getCompletedTransactionsToExport(req: Request, filteredRequest: HttpTransactionsGetRequest): Promise<DataResult<Transaction>> {
     // Get Transactions
     return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, {}, filteredRequest, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
@@ -1174,7 +1177,7 @@ export default class TransactionService {
     ]);
   }
 
-  private static async getRefundedTransactionsToExport(req: Request, filteredRequest: HttpTransactionsRequest): Promise<DataResult<Transaction>> {
+  private static async getRefundedTransactionsToExport(req: Request, filteredRequest: HttpTransactionsGetRequest): Promise<DataResult<Transaction>> {
     // Get Transactions
     return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, {}, filteredRequest, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',

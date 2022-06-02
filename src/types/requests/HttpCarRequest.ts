@@ -3,24 +3,28 @@ import { CarConverter, CarType } from '../Car';
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpCarCatalogsRequest extends HttpDatabaseRequest {
+export interface HttpCarCatalogsGetRequest extends HttpDatabaseRequest {
   Search?: string;
   CarMaker?: string;
 }
 
-export interface HttpCarMakersRequest extends HttpDatabaseRequest {
+export interface HttpCarMakersGetRequest extends HttpDatabaseRequest {
   Search?: string;
 }
 
-export interface HttpCarCatalogImagesRequest extends HttpByIDRequest, HttpDatabaseRequest {
+export interface HttpCarCatalogImagesGetRequest extends HttpByIDRequest, HttpDatabaseRequest {
   ID: number;
 }
 
-export interface HttpCarCatalogRequest extends HttpByIDRequest {
+export interface HttpCarCatalogGetRequest extends HttpByIDRequest {
   ID: number;
 }
 
-export interface HttpCarRequest extends HttpByIDRequest {
+export interface HttpCarGetRequest extends HttpByIDRequest {
+  ID: string;
+}
+
+export interface HttpCarDeleteRequest extends HttpByIDRequest {
   ID: string;
 }
 
@@ -56,7 +60,7 @@ export interface HttpCarUpdateRequest {
   }
 }
 
-export interface HttpCarsRequest extends HttpDatabaseRequest {
+export interface HttpCarsGetRequest extends HttpDatabaseRequest {
   Search: string;
   CarMaker: string;
   WithUser: boolean;

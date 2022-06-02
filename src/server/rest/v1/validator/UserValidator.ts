@@ -1,7 +1,6 @@
-import { HttpUserAssignSitesRequest, HttpUserDefaultTagCar, HttpUserMobileTokenRequest, HttpUserSitesRequest, HttpUsersInErrorRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
-import User, { ImportedUser } from '../../../../types/User';
+import { HttpUserCreateRequest, HttpUserDefaultTagCarGetRequest, HttpUserDeleteRequest, HttpUserGetRequest, HttpUserMobileTokenUpdateRequest, HttpUserSitesAssignRequest, HttpUserSitesGetRequest, HttpUserUpdateRequest, HttpUsersGetRequest, HttpUsersInErrorGetRequest } from '../../../../types/requests/HttpUserRequest';
 
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { ImportedUser } from '../../../../types/User';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
@@ -12,7 +11,8 @@ export default class UserValidator extends SchemaValidator {
   private userImportCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-import-create.json`, 'utf8'));
   private userCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-create.json`, 'utf8'));
   private userSitesAssign: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-sites-assign.json`, 'utf8'));
-  private userByIDGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get.json`, 'utf8'));
+  private userGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get.json`, 'utf8'));
+  private userDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-delete.json`, 'utf8'));
   private usersGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/users-get.json`, 'utf8'));
   private usersInErrorGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/users-inerror-get.json`, 'utf8'));
   private userSitesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-sites-get.json`, 'utf8'));
@@ -35,39 +35,43 @@ export default class UserValidator extends SchemaValidator {
     this.validate(this.userImportCreate, data);
   }
 
-  public validateUserCreateReq(data: Record<string, unknown>): User {
+  public validateUserCreateReq(data: Record<string, unknown>): HttpUserCreateRequest {
     return this.validate(this.userCreate, data);
   }
 
-  public validateUserToSitesAssignReq(data: Record<string, unknown>): HttpUserAssignSitesRequest {
+  public validateUserSitesAssignReq(data: Record<string, unknown>): HttpUserSitesAssignRequest {
     return this.validate(this.userSitesAssign, data);
   }
 
-  public validateUserByIDGetReq(data: Record<string, unknown>): HttpByIDRequest {
-    return this.validate(this.userByIDGet, data);
+  public validateUserGetReq(data: Record<string, unknown>): HttpUserGetRequest {
+    return this.validate(this.userGet, data);
   }
 
-  public validateUsersGetReq(data: Record<string, unknown>): HttpUsersRequest {
+  public validateUserDeleteReq(data: Record<string, unknown>): HttpUserDeleteRequest {
+    return this.validate(this.userDelete, data);
+  }
+
+  public validateUsersGetReq(data: Record<string, unknown>): HttpUsersGetRequest {
     return this.validate(this.usersGet, data);
   }
 
-  public validateUsersInErrorGetReq(data: Record<string, unknown>): HttpUsersInErrorRequest {
+  public validateUsersInErrorGetReq(data: Record<string, unknown>): HttpUsersInErrorGetRequest {
     return this.validate(this.usersInErrorGet, data);
   }
 
-  public validateUserSitesGetReq(data: Record<string, unknown>): HttpUserSitesRequest {
+  public validateUserSitesGetReq(data: Record<string, unknown>): HttpUserSitesGetRequest {
     return this.validate(this.userSitesGet, data);
   }
 
-  public validateUserUpdateReq(data: Record<string, unknown>): User {
+  public validateUserUpdateReq(data: Record<string, unknown>): HttpUserUpdateRequest {
     return this.validate(this.userUpdate, data);
   }
 
-  public validateUserMobileTokenUpdateReq(data: Record<string, unknown>): HttpUserMobileTokenRequest {
+  public validateUserMobileTokenUpdateReq(data: Record<string, unknown>): HttpUserMobileTokenUpdateRequest {
     return this.validate(this.userMobileTokenUpdate, data);
   }
 
-  public validateUserDefaultTagCarGetReq(data: Record<string, unknown>): HttpUserDefaultTagCar {
+  public validateUserDefaultTagCarGetReq(data: Record<string, unknown>): HttpUserDefaultTagCarGetRequest {
     return this.validate(this.userDefaultTagCarGet, data);
   }
 }

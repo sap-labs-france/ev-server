@@ -20,7 +20,7 @@ import CarStorage from '../../../../storage/mongodb/CarStorage';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
-import { HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -108,7 +108,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, 'SiteService', 'handleAssignSitesToUser');
     // Filter request
-    const filteredRequest = UserValidator.getInstance().validateUserToSitesAssignReq(req.body);
+    const filteredRequest = UserValidator.getInstance().validateUserSitesAssignReq(req.body);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
@@ -135,7 +135,7 @@ export default class UserService {
 
   public static async handleDeleteUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserValidator.getInstance().validateUserByIDGetReq(req.query).ID.toString();
+    const userID = UserValidator.getInstance().validateUserDeleteReq(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, userID, Action.DELETE, action, null, {}, false, false);
@@ -291,7 +291,7 @@ export default class UserService {
 
   public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserByIDGetReq(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
@@ -304,7 +304,7 @@ export default class UserService {
 
   public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserValidator.getInstance().validateUserByIDGetReq(req.query).ID.toString();
+    const userID = UserValidator.getInstance().validateUserGetReq(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, userID, Action.READ, action, null, null, null, false);
@@ -741,7 +741,7 @@ export default class UserService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getUsers(req: Request, filteredRequest: HttpUsersRequest): Promise<DataResult<User>> {
+  private static async getUsers(req: Request, filteredRequest: HttpUsersGetRequest): Promise<DataResult<User>> {
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetUsersAuthorizations(
       req.tenant, req.user, filteredRequest, false);

@@ -1,7 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, ConnectorType, OCPPParams, OcppParameter, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { HttpChargingStationChangeConfigurationRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationCompositeScheduleGetRequest, HttpChargingStationConfigurationChangeRequest, HttpChargingStationTransactionStartRequest, HttpChargingStationTransactionStopRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
 import { OCPICommandResponse, OCPICommandResponseType } from '../../../../types/ocpi/OCPICommandResponse';
 import { OCPPChangeConfigurationResponse, OCPPConfigurationStatus, OCPPGetCompositeScheduleResponse, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
@@ -1457,7 +1457,7 @@ export default class ChargingStationService {
     next();
   }
 
-  private static async getChargingStations(req: Request, filteredRequest: HttpChargingStationsRequest, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
+  private static async getChargingStations(req: Request, filteredRequest: HttpChargingStationsGetRequest, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Check auth
     if (!await Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -1750,7 +1750,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationGetCompositeSchedule(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationGetCompositeScheduleRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
+      filteredRequest: HttpChargingStationCompositeScheduleGetRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
     // Get the Vendor instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (!chargingStationVendor) {
@@ -1784,7 +1784,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationStartTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationStartTransactionRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
+      filteredRequest: HttpChargingStationTransactionStartRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
     // Check Tag ID
     if (!filteredRequest.args || (!filteredRequest.args.visualTagID && !filteredRequest.args.tagID)) {
       throw new AppError({
@@ -1873,7 +1873,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationStopTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationStopTransactionRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
+      filteredRequest: HttpChargingStationTransactionStopRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
       req.tenant, filteredRequest.args.transactionId, { withUser: true });
@@ -1911,7 +1911,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationChangeConfiguration(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationChangeConfigurationRequest, req: Request, res: Response, next: NextFunction,
+      filteredRequest: HttpChargingStationConfigurationChangeRequest, req: Request, res: Response, next: NextFunction,
       chargingStationClient: ChargingStationClient): Promise<OCPPChangeConfigurationResponse> {
     // Change the config
     const result = await chargingStationClient.changeConfiguration({

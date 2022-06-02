@@ -1,4 +1,4 @@
-import { HttpAssetCheckConnection, HttpAssetConsumptionRequest, HttpAssetImageRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
+import { HttpAssetCheckConnection, HttpAssetConsumptionGetRequest, HttpAssetDeleteRequest, HttpAssetGetRequest, HttpAssetImageGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
 
 import Asset from '../../../../types/Asset';
 import Consumption from '../../../../types/Consumption';
@@ -34,15 +34,15 @@ export default class AssetValidator extends SchemaValidator {
     return this.validate(this.assetConsumptionCreate, data);
   }
 
-  public validateAssetGetReq(data: Record<string, unknown>): HttpAssetRequest {
+  public validateAssetGetReq(data: Record<string, unknown>): HttpAssetGetRequest {
     return this.validate(this.assetGet, data);
   }
 
-  public validateAssetDeleteReq(data: Record<string, unknown>): HttpAssetRequest {
+  public validateAssetDeleteReq(data: Record<string, unknown>): HttpAssetDeleteRequest {
     return this.validate(this.assetsDelete, data);
   }
 
-  public validateAssetsGetReq(data: Record<string, unknown>): HttpAssetsRequest {
+  public validateAssetsGetReq(data: Record<string, unknown>): HttpAssetsGetRequest {
     return this.validate(this.assetsGet, data);
   }
 
@@ -54,7 +54,7 @@ export default class AssetValidator extends SchemaValidator {
     return this.validate(this.assetUpdate, data);
   }
 
-  public validateAssetGetConsumptionsReq(data: Record<string, unknown>): HttpAssetConsumptionRequest {
+  public validateAssetGetConsumptionsReq(data: Record<string, unknown>): HttpAssetConsumptionGetRequest {
     return this.validate(this.assetConsumptionsGet, data);
   }
 
@@ -62,7 +62,7 @@ export default class AssetValidator extends SchemaValidator {
     return this.validate(this.assetConnectionCheck, data);
   }
 
-  public validateAssetGetImageReq(data: Record<string, unknown>): HttpAssetImageRequest {
+  public validateAssetGetImageReq(data: Record<string, unknown>): HttpAssetImageGetRequest {
     return this.validate(this.assetGetImage, data);
   }
 }

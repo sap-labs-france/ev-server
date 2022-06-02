@@ -1,4 +1,4 @@
-import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaConsumptionsRequest, HttpSiteAreaCreateRequest, HttpSiteAreaImageRequest, HttpSiteAreaRequest, HttpSiteAreaUpdateRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaConsumptionsGetRequest, HttpSiteAreaCreateRequest, HttpSiteAreaDeleteRequest, HttpSiteAreaGetRequest, HttpSiteAreaImageGetRequest, HttpSiteAreaUpdateRequest, HttpSiteAreasGetRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -12,6 +12,7 @@ export default class SiteAreaValidator extends SchemaValidator {
   private siteAreaGetImage: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site-area/site-area-get-image.json`, 'utf8'));
   private siteAreaCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site-area/site-area-create.json`, 'utf8'));
   private siteAreaUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site-area/site-area-update.json`, 'utf8'));
+  private siteAreaDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site-area/site-area-delete.json`, 'utf8'));
   private siteAreaAssignChargingStations: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site-area/site-area-assign-charging-stations.json`, 'utf8'));
   private siteAreaAssignAssets: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site-area/site-area-assign-assets.json`, 'utf8'));
   private siteAreaGetConsumption: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site-area/site-area-get-consumption.json`, 'utf8'));
@@ -28,15 +29,19 @@ export default class SiteAreaValidator extends SchemaValidator {
     return SiteAreaValidator.instance;
   }
 
-  public validateSiteAreasGetReq(data: Record<string, unknown>): HttpSiteAreasRequest {
+  public validateSiteAreasGetReq(data: Record<string, unknown>): HttpSiteAreasGetRequest {
     return this.validate(this.siteAreasGet, data);
   }
 
-  public validateSiteAreaGetReq(data: Record<string, unknown>): HttpSiteAreaRequest {
+  public validateSiteAreaGetReq(data: Record<string, unknown>): HttpSiteAreaGetRequest {
     return this.validate(this.siteAreaGet, data);
   }
 
-  public validateSiteAreaGetImageReq(data: Record<string, unknown>): HttpSiteAreaImageRequest {
+  public validateSiteAreaDeleteReq(data: Record<string, unknown>): HttpSiteAreaDeleteRequest {
+    return this.validate(this.siteAreaDelete, data);
+  }
+
+  public validateSiteAreaGetImageReq(data: Record<string, unknown>): HttpSiteAreaImageGetRequest {
     return this.validate(this.siteAreaGetImage, data);
   }
 
@@ -56,7 +61,7 @@ export default class SiteAreaValidator extends SchemaValidator {
     return this.validate(this.siteAreaAssignAssets, data);
   }
 
-  public validateSiteAreaGetConsumptionReq(data: Record<string, unknown>): HttpSiteAreaConsumptionsRequest {
+  public validateSiteAreaGetConsumptionReq(data: Record<string, unknown>): HttpSiteAreaConsumptionsGetRequest {
     return this.validate(this.siteAreaGetConsumption, data);
   }
 }

@@ -1,8 +1,7 @@
-import { HttpSettingByIdentifierRequest, HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
+import { HttpSettingByIdentifierGetRequest, HttpSettingDeleteRequest, HttpSettingGetRequest, HttpSettingUpdateRequest, HttpSettingsGetRequest } from '../../../../types/requests/HttpSettingRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
-import { SettingDB } from '../../../../types/Setting';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
@@ -22,8 +21,9 @@ export default class SettingValidator extends SchemaValidator {
   private settingCarSet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-car-set.json`, 'utf8'));
   private settingOrganizationSet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-organization-set.json`, 'utf8'));
   private settingStatisticsSet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-statistics-set.json`, 'utf8'));
-  private settingGetByID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-by-id.json`, 'utf8'));
-  private settingGetByIdentifier = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-by-identifier.json`, 'utf8'));
+  private settingGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-get.json`, 'utf8'));
+  private settingDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-delete.json`, 'utf8'));
+  private settingByIdentifierGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-by-identifier-get.json`, 'utf8'));
   private settingsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/settings-get.json`, 'utf8'));
 
   private constructor() {
@@ -37,71 +37,75 @@ export default class SettingValidator extends SchemaValidator {
     return SettingValidator.instance;
   }
 
-  public validateSettingGetByIDReq(data: Record<string, unknown>): HttpSettingRequest {
-    return this.validate(this.settingGetByID, data);
+  public validateSettingGetReq(data: Record<string, unknown>): HttpSettingGetRequest {
+    return this.validate(this.settingGet, data);
   }
 
-  public validateSettingGetByIdentifierReq(data: Record<string, unknown>): HttpSettingByIdentifierRequest {
-    return this.validate(this.settingGetByIdentifier, data);
+  public validateSettingDeleteReq(data: Record<string, unknown>): HttpSettingDeleteRequest {
+    return this.validate(this.settingDelete, data);
   }
 
-  public validateSettingsGetReq(data: Record<string, unknown>): HttpSettingsRequest {
+  public validateSettingGetByIdentifierReq(data: Record<string, unknown>): HttpSettingByIdentifierGetRequest {
+    return this.validate(this.settingByIdentifierGet, data);
+  }
+
+  public validateSettingsGetReq(data: Record<string, unknown>): HttpSettingsGetRequest {
     return this.validate(this.settingsGet, data);
   }
 
-  public validateSettingOCPISetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingOCPISetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingOCPISet, data);
   }
 
-  public validateSettingUserSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingUserSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingUserSet, data);
   }
 
-  public validateSettingSmartChargingSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingSmartChargingSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingSmartChargingSet, data);
   }
 
-  public validateSettingRefundSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingRefundSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingRefundSet, data);
   }
 
-  public validateSettingPricingSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingPricingSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingPricingSet, data);
   }
 
-  public validateSettingCryptoSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingCryptoSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingCryptoSet, data);
   }
 
-  public validateSettingAnalyticsSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingAnalyticsSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingAnalyticsSet, data);
   }
 
-  public validateSettingOICPSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingOICPSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingOICPSet, data);
   }
 
-  public validateSettingBillingSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingBillingSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingBillingSet, data);
   }
 
-  public validateSettingAssetSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingAssetSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingAssetSet, data);
   }
 
-  public validateSettingCarConnectorSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingCarConnectorSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingCarConnectorSet, data);
   }
 
-  public validateSettingCarSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingCarSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingCarSet, data);
   }
 
-  public validateSettingOrganizationSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingOrganizationSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingOrganizationSet, data);
   }
 
-  public validateSettingStatisticsSetReq(data: Record<string, unknown>): SettingDB {
+  public validateSettingStatisticsSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingStatisticsSet, data);
   }
 }

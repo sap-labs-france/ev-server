@@ -1,4 +1,4 @@
-import { HttpLogRequest, HttpLogsRequest } from '../../../../types/requests/HttpLogRequest';
+import { HttpLogGetRequest, HttpLogsGetRequest } from '../../../../types/requests/HttpLogRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -21,11 +21,11 @@ export default class LogValidator extends SchemaValidator {
     return LogValidator.instance;
   }
 
-  public validateLogsGetReq(data: Record<string, unknown>): HttpLogsRequest {
+  public validateLogsGetReq(data: Record<string, unknown>): HttpLogsGetRequest {
     return this.validate(this.logsGet, data);
   }
 
-  public validateLogGetReq(data: Record<string, unknown>): HttpLogRequest {
+  public validateLogGetReq(data: Record<string, unknown>): HttpLogGetRequest {
     return this.validate(this.logGet, data);
   }
 }

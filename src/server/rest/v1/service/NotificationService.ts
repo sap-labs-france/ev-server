@@ -10,14 +10,13 @@ import NotificationHandler from '../../../../notification/NotificationHandler';
 import NotificationStorage from '../../../../storage/mongodb/NotificationStorage';
 import NotificationValidator from '../validator/NotificationValidator';
 import { ServerAction } from '../../../../types/Server';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'NotificationService';
 
 export default class NotificationService {
-  static async handleGetNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = NotificationValidator.getInstance().validateNotificationsGetReq(req.query);
     // Check User
@@ -48,7 +47,7 @@ export default class NotificationService {
     next();
   }
 
-  static async handleEndUserReportError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleEndUserReportError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!(await Authorizations.canEndUserReportError(req.user)).authorized) {
       throw new AppAuthError({

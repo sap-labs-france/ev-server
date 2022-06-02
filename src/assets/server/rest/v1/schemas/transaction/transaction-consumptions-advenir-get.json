@@ -1,5 +1,5 @@
 {
-  "$id": "transaction-for-advenir-consumptions-get",
+  "$id": "transaction-consumptions-advenir-get",
   "title": "Get Transaction Consumptions For Advenir Request",
   "type": "object",
   "properties": {

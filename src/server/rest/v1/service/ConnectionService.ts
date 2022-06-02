@@ -125,7 +125,7 @@ export default class ConnectionService {
 
   public static async handleDeleteConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const connectionID = ConnectionValidator.getInstance().validateConnectionGetReq(req.query).ID;
+    const connectionID = ConnectionValidator.getInstance().validateConnectionDeleteReq(req.query).ID;
     if (!connectionID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,

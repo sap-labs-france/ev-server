@@ -1,6 +1,6 @@
 {
-  "$id": "registration-token-by-id",
-  "title": "Registration Token by id Request",
+  "$id": "registration-token-revoke",
+  "title": "Revoke Registration Token Request",
   "description": "",
   "type": "object",
   "properties": {

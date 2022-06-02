@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { BillingSettingsType, IntegrationSettings, PricingSettingsType, SettingDB, TechnicalSettings } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import { IntegrationSettings, PricingSettingsType, SettingDB, TechnicalSettings } from '../../../../types/Setting';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -23,7 +23,7 @@ const MODULE_NAME = 'SettingService';
 export default class SettingService {
   public static async handleDeleteSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingValidator.getInstance().validateSettingGetByIDReq(req.query).ID;
+    const settingID = SettingValidator.getInstance().validateSettingDeleteReq(req.query).ID;
     // Check auth
     if (!await Authorizations.canDeleteSetting(req.user)) {
       throw new AppAuthError({
@@ -54,7 +54,7 @@ export default class SettingService {
 
   public static async handleGetSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingValidator.getInstance().validateSettingGetByIDReq(req.query).ID;
+    const settingID = SettingValidator.getInstance().validateSettingGetReq(req.query).ID;
     // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({

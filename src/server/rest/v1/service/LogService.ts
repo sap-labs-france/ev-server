@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 import { Action } from '../../../../types/Authorization';
 import AuthorizationService from './AuthorizationService';
 import Constants from '../../../../utils/Constants';
-import { HttpLogsRequest } from '../../../../types/requests/HttpLogRequest';
+import { HttpLogsGetRequest } from '../../../../types/requests/HttpLogRequest';
 import { Log } from '../../../../types/Log';
 import LogStorage from '../../../../storage/mongodb/LogStorage';
 import LogValidator from '../validator/LogValidator';
@@ -83,7 +83,7 @@ export default class LogService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getLogs(req: Request, filteredRequest: HttpLogsRequest): Promise<DataResult<Log>> {
+  private static async getLogs(req: Request, filteredRequest: HttpLogsGetRequest): Promise<DataResult<Log>> {
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetLoggingsAuthorizations(
       req.tenant, req.user, filteredRequest, false);

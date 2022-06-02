@@ -1,4 +1,4 @@
-import { HttpEndUserReportErrorRequest, HttpNotificationRequest } from '../../../../types/requests/HttpNotificationRequest';
+import { HttpEndUserReportErrorGetRequest, HttpNotificationGetRequest } from '../../../../types/requests/HttpNotificationRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -21,11 +21,11 @@ export default class NotificationValidator extends SchemaValidator {
     return NotificationValidator.instance;
   }
 
-  public validateNotificationsGetReq(data: Record<string, unknown>): HttpNotificationRequest {
+  public validateNotificationsGetReq(data: Record<string, unknown>): HttpNotificationGetRequest {
     return this.validate(this.notificationsGet, data);
   }
 
-  public validateEndUserErrorReportReq(data: Record<string, unknown>): HttpEndUserReportErrorRequest {
+  public validateEndUserErrorReportReq(data: Record<string, unknown>): HttpEndUserReportErrorGetRequest {
     return this.validate(this.notificationsEndUserErrorReport, data);
   }
 }
