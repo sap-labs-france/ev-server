@@ -12,6 +12,7 @@ export default class AssetValidator extends SchemaValidator {
   private assetConsumptionCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-consumption-create.json`, 'utf8'));
   private assetGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-get.json`, 'utf8'));
   private assetsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/assets-get.json`, 'utf8'));
+  private assetsDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-delete.json`, 'utf8'));
   private assetCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-create.json`, 'utf8'));
   private assetUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-update.json`, 'utf8'));
   private assetConsumptionsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-consumptions-get.json`, 'utf8'));
@@ -35,6 +36,10 @@ export default class AssetValidator extends SchemaValidator {
 
   public validateAssetGetReq(data: Record<string, unknown>): HttpAssetRequest {
     return this.validate(this.assetGet, data);
+  }
+
+  public validateAssetDeleteReq(data: Record<string, unknown>): HttpAssetRequest {
+    return this.validate(this.assetsDelete, data);
   }
 
   public validateAssetsGetReq(data: Record<string, unknown>): HttpAssetsRequest {

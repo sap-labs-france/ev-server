@@ -286,7 +286,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.DELETE, Entity.ASSET, MODULE_NAME, 'handleDeleteAsset');
     // Filter
-    const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
+    const filteredRequest = AssetValidator.getInstance().validateAssetDeleteReq(req.query);
     // Check and get Asset
     const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.ID,
       Action.DELETE, action, null, { withSiteArea: filteredRequest.WithSiteArea });
