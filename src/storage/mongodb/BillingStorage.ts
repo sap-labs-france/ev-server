@@ -1,4 +1,4 @@
-import { BillingAdditionalData, BillingInvoice, BillingInvoiceStatus, BillingSessionData } from '../../types/Billing';
+import { BillingAccount, BillingAdditionalData, BillingInvoice, BillingInvoiceStatus, BillingSessionData } from '../../types/Billing';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -215,5 +215,134 @@ export default class BillingStorage {
     await global.database.getCollection<any>(tenant.id, 'invoices')
       .findOneAndDelete({ 'invoiceID': id });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteInvoiceByInvoiceID', startTime, { id });
+  }
+
+  public static async saveSubAccount(tenant: Tenant, subAccount: BillingAccount): Promise<string> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    // Build Request
+    // Properties to save
+    const subAccountMDB: any = {
+      _id: subAccount.id ? DatabaseUtils.convertToObjectID(subAccount.id) : new ObjectId(),
+      accountID: subAccount.accountID,
+      pending: subAccount.pending,
+      userID: DatabaseUtils.convertToObjectID(subAccount.userID)
+    };
+    // Modify and return the modified document
+    await global.database.getCollection<any>(tenant.id, 'billingsubaccounts').findOneAndUpdate(
+      { _id: subAccountMDB._id },
+      { $set: subAccountMDB },
+      { upsert: true, returnDocument: 'after' }
+    );
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSubAccount', startTime, subAccountMDB);
+    return subAccountMDB._id.toString();
+  }
+
+  public static async getSubAccounts(tenant: Tenant,
+      params: {
+        subAccountIDs?: string[], subAccountAccountIDs?: string[], search?: string, userIDs?: string[]
+      } = {},
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingAccount>> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Clone before updating the values
+    dbParams = Utils.cloneObject(dbParams);
+    // Check Limit
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation = [];
+    // Search filters
+    const filters: FilterParams = {};
+    // Search
+    // Filter by other properties
+    if (params.search) {
+      filters.$or = [
+        { 'accountID': { $regex: params.search, $options: 'i' } }
+      ];
+    }
+    if (!Utils.isEmptyArray(params.subAccountIDs)) {
+      filters._id = {
+        $in: params.subAccountIDs.map((subAccountID) => DatabaseUtils.convertToObjectID(subAccountID))
+      };
+    }
+    if (!Utils.isEmptyArray(params.subAccountAccountIDs)) {
+      filters.accountID = {
+        $in: params.subAccountAccountIDs
+      };
+    }
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters.userID = {
+        $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
+      };
+    }
+    // Set filters
+    if (!Utils.isEmptyJSon(filters)) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
+    // Count Records
+    const subAccountCountMDB = await global.database.getCollection<any>(tenant.id, 'billingsubaccounts')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
+      .toArray() as DatabaseCount[];
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSubAccounts', startTime, aggregation, subAccountCountMDB);
+      return {
+        count: (subAccountCountMDB.length > 0 ? subAccountCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
+    // Sort
+    if (!dbParams.sort) {
+      dbParams.sort = { _id: 1 };
+    }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
+    // Skip
+    aggregation.push({
+      $skip: dbParams.skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: dbParams.limit
+    });
+    // Add Users
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Add Last Changed / Created
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
+    // Read DB
+    const subAccountMDB = await global.database.getCollection<any>(tenant.id, 'billingsubaccounts')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as BillingAccount[];
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSubAccounts', startTime, aggregation, subAccountMDB);
+    return {
+      count: DatabaseUtils.getCountFromDatabaseCount(subAccountCountMDB[0]),
+      result: subAccountMDB
+    };
+  }
+
+  public static async getSubAccountByID(tenant: Tenant, id: string): Promise<BillingAccount> {
+    const subAccountMDB = await BillingStorage.getSubAccounts(tenant, {
+      subAccountIDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return subAccountMDB.count === 1 ? subAccountMDB.result[0] : null;
   }
 }

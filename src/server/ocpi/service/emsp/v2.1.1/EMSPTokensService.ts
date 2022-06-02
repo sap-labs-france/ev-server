@@ -24,7 +24,7 @@ export default class EMSPTokensService {
     const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
     const limit = Utils.convertToInt(req.query.limit) > 0 ? Utils.convertToInt(req.query.limit) : Constants.DB_RECORD_COUNT_NO_LIMIT;
     // Get all tokens
-    const tokens = await OCPIUtilsService.getEmspTokens(
+    const tokens = await OCPIUtilsService.getEmspTokensFromTags(
       tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     // Set header
     res.set({

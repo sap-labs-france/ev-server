@@ -7,6 +7,10 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
+    "WithParentSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "WithChargingStations": {
       "type": "boolean",
       "sanitize": "mongo"
@@ -16,6 +20,9 @@
       "sanitize": "mongo"
     },
     "SiteID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "ExcludeSiteAreaID": {
       "$ref": "common#/definitions/ids"
     },
     "CompanyID": {

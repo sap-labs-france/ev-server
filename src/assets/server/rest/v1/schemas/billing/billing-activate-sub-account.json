@@ -1,0 +1,17 @@
+{
+  "$id": "billing-activate-sub-account",
+  "title": "Activate a Billing sub-account Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/id"
+    },
+    "TenantID": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+    "ID",
+    "TenantID"
+  ]
+}

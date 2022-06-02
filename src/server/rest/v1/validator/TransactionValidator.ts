@@ -1,4 +1,4 @@
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpExportTransactionCdrRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionAdvenirRequest, HttpConsumptionFromTransactionRequest, HttpExportTransactionCdrRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../types/requests/HttpTransactionRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -13,6 +13,7 @@ export default class TransactionValidator extends SchemaValidator {
   private transactionCdrPush: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-cdr-push.json`, 'utf8'));
   private transactionCdrExport: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-cdr-export.json`, 'utf8'));
   private transactionConsumptionsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-consumptions-get.json`, 'utf8'));
+  private transactionConsumptionsAdvenirGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-for-advenir-consumptions-get.json`, 'utf8'));
   private transactionsUserAssign: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-user-assign.json`, 'utf8'));
   private transactionsUnassignedCountGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-unassigned-count-get.json`, 'utf8'));
   private transactionsInErrorGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-inerror-get.json`, 'utf8'));
@@ -51,6 +52,10 @@ export default class TransactionValidator extends SchemaValidator {
 
   public validateTransactionConsumptionsGetReq(data: Record<string, unknown>): HttpConsumptionFromTransactionRequest {
     return this.validate(this.transactionConsumptionsGet, data);
+  }
+
+  public validateTransactionConsumptionsAdvenirGetReq(data: Record<string, unknown>): HttpConsumptionFromTransactionAdvenirRequest {
+    return this.validate(this.transactionConsumptionsAdvenirGet, data);
   }
 
   public validateTransactionsUserAssignReq(data: Record<string, unknown>): HttpAssignTransactionsToUserRequest {

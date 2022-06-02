@@ -4,7 +4,7 @@ import UserToken from '../types/UserToken';
 
 export default class BackendError extends Error {
 
-  public constructor(readonly params: {
+  public constructor(public readonly params: {
     source?: string;
     message: string;
     module?: string;

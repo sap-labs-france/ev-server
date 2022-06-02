@@ -3,6 +3,7 @@ import ChargingStation, { Connector } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
+import Transaction, { AdvenirConsumptionData, AdvenirEvseData, AdvenirPayload, AdvenirTransactionData } from '../../../../types/Transaction';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -17,20 +18,23 @@ import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
+import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import OCPIFacade from '../../../ocpi/OCPIFacade';
+import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import OCPPService from '../../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import OICPFacade from '../../../oicp/OICPFacade';
 import RefundFactory from '../../../../integration/refund/RefundFactory';
 import { RefundStatus } from '../../../../types/Refund';
+import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import TransactionValidator from '../validator/TransactionValidator';
 import User from '../../../../types/User';
@@ -114,6 +118,7 @@ export default class TransactionService {
       }
       if (transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== RefundStatus.CANCELLED) {
         await Logging.logError({
+          ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: req.tenant.id,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -126,6 +131,7 @@ export default class TransactionService {
       // Check auth
       if (!await Authorizations.canRefundTransaction(req.user, transaction)) {
         throw new AppAuthError({
+          ...LoggingHelper.getTransactionProperties(transaction),
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.REFUND_TRANSACTION, entity: Entity.TRANSACTION,
@@ -175,6 +181,17 @@ export default class TransactionService {
   }
 
   public static async handlePushTransactionCdr(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    if (!Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) &&
+        !Utils.isComponentActiveFromToken(req.user, TenantComponents.OICP)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        entity: Entity.TRANSACTION, action: Action.UPDATE,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        inactiveComponent: `${TenantComponents.OCPI}, ${TenantComponents.OICP}` as TenantComponents,
+        user: req.user
+      });
+    }
     // Filter
     const filteredRequest = TransactionValidator.getInstance().validateTransactionCdrPushReq(req.body);
     // Check Mandatory fields
@@ -186,6 +203,7 @@ export default class TransactionService {
     // Check auth
     if (!await Authorizations.canUpdateTransaction(req.user, transaction)) {
       throw new AppAuthError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TRANSACTION,
@@ -197,9 +215,38 @@ export default class TransactionService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID, { withSiteArea: true });
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handlePushTransactionCdr', req.user);
-    // Check Issuer
+    // Check Charging Station
+    if (!chargingStation.issuer) {
+      throw new AppError({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Charging Station belongs to an external organization`,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user, action
+      });
+    }
+    if (!chargingStation.public) {
+      throw new AppError({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Charging Station is not public`,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user, action
+      });
+    }
+    if (chargingStation.siteArea && !chargingStation.siteArea.accessControl) {
+      throw new AppError({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Charging Station access control is inactive on Site Area '${chargingStation.siteArea.name}'`,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user, action
+      });
+    }
+    // Check Transaction
     if (!transaction.issuer) {
       throw new AppError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         errorCode: HTTPError.TRANSACTION_NOT_FROM_TENANT,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to an external organization`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -209,6 +256,7 @@ export default class TransactionService {
     // No Roaming Cdr to push
     if (!transaction.oicpData?.session && !transaction.ocpiData?.session) {
       throw new AppError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} No OCPI or OICP Session data`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -220,6 +268,7 @@ export default class TransactionService {
       // CDR already pushed
       if (transaction.ocpiData.cdr?.id) {
         throw new AppError({
+          ...LoggingHelper.getTransactionProperties(transaction),
           errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
           message: `The CDR of the Transaction ID '${transaction.id}' has already been pushed`,
           module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -227,25 +276,34 @@ export default class TransactionService {
         });
       }
       // OCPI: Post the CDR
-      const ocpiUpdated = await OCPIFacade.checkAndSendTransactionCdr(
+      const ocpiCdrSent = await OCPIFacade.checkAndSendTransactionCdr(
         req.tenant, transaction, chargingStation, chargingStation.siteArea, action);
-      if (ocpiUpdated) {
-        // Save
-        await TransactionStorage.saveTransactionOcpiData(req.tenant, transaction.id, transaction.ocpiData);
-        await Logging.logInfo({
-          tenantID: req.tenant.id,
-          action, module: MODULE_NAME, method: 'handlePushTransactionCdr',
-          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-          message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
-          detailedMessages: { cdr: transaction.ocpiData.cdr }
+      if (!ocpiCdrSent) {
+        throw new AppError({
+          ...LoggingHelper.getTransactionProperties(transaction),
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `The CDR of the Transaction ID '${transaction.id}' has not been sent`,
+          module: MODULE_NAME, method: 'handlePushTransactionCdr',
+          user: req.user, action
         });
       }
+      // Save
+      await TransactionStorage.saveTransactionOcpiData(req.tenant, transaction.id, transaction.ocpiData);
+      await Logging.logInfo({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        tenantID: req.tenant.id,
+        action, module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+        message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+        detailedMessages: { cdr: transaction.ocpiData.cdr }
+      });
     }
     // Check OICP
     if (transaction.oicpData?.session) {
       // CDR already pushed
       if (transaction.oicpData.cdr?.SessionID) {
         throw new AppError({
+          ...LoggingHelper.getTransactionProperties(transaction),
           errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
           message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
           module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -253,20 +311,27 @@ export default class TransactionService {
         });
       }
       // OICP: Post the CDR
-      const oicpUpdated = await OICPFacade.checkAndSendTransactionCdr(
+      const oicpCdrSent = await OICPFacade.checkAndSendTransactionCdr(
         req.tenant, transaction, chargingStation, chargingStation.siteArea, action);
-      if (oicpUpdated) {
-        // Save
-        await TransactionStorage.saveTransactionOicpData(req.tenant, transaction.id, transaction.oicpData);
-        await Logging.logInfo({
-          tenantID: req.tenant.id,
-          action,
-          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+      if (!oicpCdrSent) {
+        throw new AppError({
+          ...LoggingHelper.getTransactionProperties(transaction),
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `The CDR of the Transaction ID '${transaction.id}' has not been sent`,
           module: MODULE_NAME, method: 'handlePushTransactionCdr',
-          message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
-          detailedMessages: { cdr: transaction.ocpiData.cdr }
+          user: req.user, action
         });
       }
+      // Save
+      await TransactionStorage.saveTransactionOicpData(req.tenant, transaction.id, transaction.oicpData);
+      await Logging.logInfo({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        tenantID: req.tenant.id,
+        user: req.user, actionOnUser: (transaction.user ?? null),
+        action, module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+        detailedMessages: { cdr: transaction.ocpiData.cdr }
+      });
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -418,6 +483,7 @@ export default class TransactionService {
     // Check Transaction
     if (!await Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.TRANSACTION,
@@ -441,6 +507,7 @@ export default class TransactionService {
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime &&
       moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
       throw new AppError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `,
         module: MODULE_NAME, method: 'handleGetConsumptionFromTransaction',
@@ -477,6 +544,82 @@ export default class TransactionService {
     next();
   }
 
+  public static async handleGetTransactionConsumptionForAdvenir(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
+      Action.READ, Entity.TRANSACTION, MODULE_NAME, 'handleGetTransactionConsumptionForAdvenir');
+    // Filter
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionConsumptionsAdvenirGetReq(req.query);
+    // Transaction Id is mandatory
+    UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
+      'handleGetConsumptionFromTransaction', req.user);
+    const projectFields = [
+      'id', 'chargeBox.issuer', 'chargeBox.id', 'chargeBox.issuer', 'chargeBox.public', 'chargeBox.connectors', 'connectorId',
+    ];
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.TransactionId,
+      { withChargingStation: true }, projectFields);
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.TransactionId}' does not exist`,
+      MODULE_NAME, 'handleGetTransactionConsumptionForAdvenir', req.user);
+    // Check Transaction
+    if (!await Authorizations.canReadTransaction(req.user, transaction)) {
+      throw new AppAuthError({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handleGetTransactionConsumptionForAdvenir',
+        value: transaction.id.toString()
+      });
+    }
+    try {
+      const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.CPO) as CpoOCPIClient;
+      if (!ocpiClient) {
+        throw new AppError({
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'OCPI component requires at least one CPO endpoint to generate Advenir consumption data',
+          module: MODULE_NAME, method: 'handleGetTransactionConsumptionForAdvenir',
+          user: req.user, action
+        });
+      }
+      // Build EvseID
+      const evseID = RoamingUtils.buildEvseID(ocpiClient.getLocalCountryCode(action), ocpiClient.getLocalPartyID(action), transaction.chargeBox, transaction.connectorId);
+      // Get Consumption
+      const consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(req.tenant,
+        { transactionId: transaction.id },
+        // ACHTUNG - endedAt must be part of the projection to properly sort the collection result
+        ['startedAt', 'endedAt', 'cumulatedConsumptionWh']
+      );
+      // Convert consumptions to the ADVENIR format
+      const advenirValues: AdvenirConsumptionData[] = consumptions.map(
+        (consumption) => {
+          // Unix epoch format expected
+          const timestamp = Utils.createDecimal(consumption.startedAt.getTime()).div(1000).toNumber();
+          return {
+            timestamp,
+            value: consumption.cumulatedConsumptionWh
+          };
+        }
+      );
+      // Add Advenir user Id if exists
+      const userID = filteredRequest.AdvenirUserId ?? '<put-here-the-advenir-cpo-id>';
+      // Prepare ADVENIR payload
+      const transactionID = `${transaction.id}`;
+      const transactionData: AdvenirTransactionData = {
+        [transactionID]:
+          advenirValues
+      };
+      const evseData: AdvenirEvseData = {
+        [evseID]: transactionData
+      };
+      const advenirPayload: AdvenirPayload = {
+        [userID]: evseData
+      };
+      res.json(advenirPayload);
+    } catch (error) {
+      await Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   public static async handleGetTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
@@ -503,6 +646,7 @@ export default class TransactionService {
     // Check Transaction
     if (!await Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.TRANSACTION,
@@ -711,6 +855,7 @@ export default class TransactionService {
       MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     if (!transaction?.ocpiData) {
       throw new AppError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Transaction ID '${transaction.id}' does not contain roaming data`,
         module: MODULE_NAME, method: 'handleExportTransactionOcpiCdr',
@@ -868,28 +1013,36 @@ export default class TransactionService {
           message: `Transaction ID '${transactionID}' does not exist`,
           detailedMessages: { transaction }
         });
-        // Already Refunded
-      } else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
+        continue;
+      }
+      // Already Refunded
+      if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
         result.inError++;
         await Logging.logError({
+          ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           action, module: MODULE_NAME, method: 'handleDeleteTransactions',
           message: `Transaction ID '${transactionID}' has been refunded and cannot be deleted`,
           detailedMessages: { transaction }
         });
-        // Billed
-      } else if (billingImpl && transaction.billingData?.stop?.status === BillingStatus.BILLED) {
+        continue;
+      }
+      // Billed
+      if (billingImpl && transaction.billingData?.stop?.status === BillingStatus.BILLED) {
         result.inError++;
         await Logging.logError({
+          ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           action, module: MODULE_NAME, method: 'handleDeleteTransactions',
           message: `Transaction ID '${transactionID}' has been billed and cannot be deleted`,
           detailedMessages: { transaction }
         });
-        // Transaction in progress
-      } else if (!transaction.stop) {
+        continue;
+      }
+      // Transaction in progress
+      if (!transaction.stop) {
         if (!transaction.chargeBox) {
           transactionsIDsToDelete.push(transactionID);
         } else {
@@ -903,13 +1056,12 @@ export default class TransactionService {
           // To Delete
           transactionsIDsToDelete.push(transactionID);
         }
-      } else {
-        transactionsIDsToDelete.push(transactionID);
+        continue;
       }
+      transactionsIDsToDelete.push(transactionID);
     }
     // Delete All Transactions
     result.inSuccess = await TransactionStorage.deleteTransactions(tenant, transactionsIDsToDelete);
-    // Log
     await Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TRANSACTIONS_DELETE,
       MODULE_NAME, 'deleteTransactions', result,
@@ -1043,6 +1195,7 @@ export default class TransactionService {
         await ChargingStationStorage.saveChargingStationConnectors(req.tenant, chargingStation.id, chargingStation.connectors);
       }
       await Logging.logInfo({
+        ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: req.tenant.id,
         user: req.user, actionOnUser: transaction.userID,
         action, module: MODULE_NAME, method: 'transactionSoftStop',
@@ -1052,7 +1205,7 @@ export default class TransactionService {
       // Transaction is still ongoing
       if (!chargingStation.inactive && connector.currentTransactionID === transaction.id) {
         throw new AppError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          ...LoggingHelper.getTransactionProperties(transaction),
           errorCode: HTTPError.GENERAL_ERROR,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot soft stop an ongoing Transaction`,
           module: MODULE_NAME, method: 'transactionSoftStop',
@@ -1064,7 +1217,7 @@ export default class TransactionService {
         req.tenant, transaction, chargingStation, chargingStation.siteArea);
       if (!success) {
         throw new AppError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          ...LoggingHelper.getTransactionProperties(transaction),
           errorCode: HTTPError.GENERAL_ERROR,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
           module: MODULE_NAME, method: 'transactionSoftStop',
@@ -1072,7 +1225,7 @@ export default class TransactionService {
         });
       }
       await Logging.logInfo({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: req.tenant.id,
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'transactionSoftStop',
@@ -1093,6 +1246,7 @@ export default class TransactionService {
     // Check auth
     if (!await Authorizations.canUpdateTransaction(user, transaction)) {
       throw new AppAuthError({
+        ...LoggingHelper.getTransactionProperties(transaction),
         errorCode: HTTPAuthError.FORBIDDEN,
         user, action: Action.UPDATE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'checkAndGetTransactionChargingStationConnector',

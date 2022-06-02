@@ -198,7 +198,7 @@ describe('Tag', () => {
           response = await testData.userService.tagApi.deleteTag(testData.newTag.id);
           expect(response.status).to.equal(StatusCodes.OK);
           response = (await testData.userService.tagApi.readTag(testData.newTag.id));
-          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+          expect(response.status).to.equal(StatusCodes.NOT_FOUND);
         });
 
         it('Should be able to export tag list', async () => {
@@ -303,7 +303,7 @@ describe('Tag', () => {
           let response = await testData.userService.tagApi.unassignTag(testData.newTagUnassigned);
           expect(response.status).to.equal(StatusCodes.OK);
           response = await testData.userService.tagApi.readTagByVisualID(testData.newTagUnassigned.visualID);
-          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+          expect(response.status).to.equal(StatusCodes.NOT_FOUND);
         });
       });
 
@@ -346,7 +346,7 @@ describe('Tag', () => {
           'Should be not be able to read badge of user not assigned to his site',
           async () => {
             const response = await testData.userService.tagApi.readTag(testData.newTag.id);
-            expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+            expect(response.status).to.equal(StatusCodes.NOT_FOUND);
           }
         );
 

@@ -1,3 +1,4 @@
+import OCPIEndpoint, { OCPILastCpoPullToken, OCPILastCpoPushStatus, OCPILastEmspPullLocation, OCPILastEmspPushToken } from '../../types/ocpi/OCPIEndpoint';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -6,7 +7,6 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
@@ -61,8 +61,6 @@ export default class OCPIEndpointStorage {
       businessDetails: ocpiEndpointToSave.businessDetails,
       availableEndpoints: ocpiEndpointToSave.availableEndpoints,
       versionUrl: ocpiEndpointToSave.versionUrl,
-      lastPatchJobOn: Utils.convertToDate(ocpiEndpointToSave.lastPatchJobOn),
-      lastPatchJobResult: ocpiEndpointToSave.lastPatchJobResult
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(ocpiEndpointMDB, ocpiEndpointToSave);
@@ -74,6 +72,94 @@ export default class OCPIEndpointStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOcpiEndpoint', startTime, ocpiEndpointMDB);
     // Create
     return ocpiEndpointFilter._id.toString();
+  }
+
+  public static async saveOcpiLastCpoPushStatuses(tenant: Tenant, ocpiEndpointID: string, lastCpoPushStatus: OCPILastCpoPushStatus): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Modify
+    await global.database.getCollection<any>(tenant.id, 'ocpiendpoints').findOneAndUpdate(
+      { _id: DatabaseUtils.convertToObjectID(ocpiEndpointID) },
+      {
+        $set: {
+          lastCpoPushStatuses: {
+            lastUpdatedOn: Utils.convertToDate(lastCpoPushStatus.lastUpdatedOn),
+            partial: Utils.convertToBoolean(lastCpoPushStatus.partial),
+            successNbr: Utils.convertToInt(lastCpoPushStatus.successNbr),
+            failureNbr: Utils.convertToInt(lastCpoPushStatus.failureNbr),
+            totalNbr: Utils.convertToInt(lastCpoPushStatus.totalNbr),
+            chargeBoxIDsInFailure: lastCpoPushStatus.chargeBoxIDsInFailure,
+          }
+        }
+      }
+    );
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOcpiLastCpoPushStatuses', startTime, ocpiEndpointID, lastCpoPushStatus);
+  }
+
+  public static async saveOcpiLastCpoPullTokens(tenant: Tenant, ocpiEndpointID: string, lastCpoPullTokens: OCPILastCpoPullToken): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Modify
+    await global.database.getCollection<any>(tenant.id, 'ocpiendpoints').findOneAndUpdate(
+      { _id: DatabaseUtils.convertToObjectID(ocpiEndpointID) },
+      {
+        $set: {
+          lastCpoPullTokens: {
+            lastUpdatedOn: Utils.convertToDate(lastCpoPullTokens.lastUpdatedOn),
+            partial: Utils.convertToBoolean(lastCpoPullTokens.partial),
+            successNbr: Utils.convertToInt(lastCpoPullTokens.successNbr),
+            failureNbr: Utils.convertToInt(lastCpoPullTokens.failureNbr),
+            totalNbr: Utils.convertToInt(lastCpoPullTokens.totalNbr),
+            tokenIDsInFailure: lastCpoPullTokens.tokenIDsInFailure,
+          }
+        }
+      }
+    );
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOcpiLastCpoPullTokens', startTime, ocpiEndpointID, lastCpoPullTokens);
+  }
+
+  public static async saveOcpiLastEmspPushTokens(tenant: Tenant, ocpiEndpointID: string, lastEmspPushTokens: OCPILastEmspPushToken): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Modify
+    await global.database.getCollection<any>(tenant.id, 'ocpiendpoints').findOneAndUpdate(
+      { _id: DatabaseUtils.convertToObjectID(ocpiEndpointID) },
+      {
+        $set: {
+          lastEmspPushTokens: {
+            lastUpdatedOn: Utils.convertToDate(lastEmspPushTokens.lastUpdatedOn),
+            partial: Utils.convertToBoolean(lastEmspPushTokens.partial),
+            successNbr: Utils.convertToInt(lastEmspPushTokens.successNbr),
+            failureNbr: Utils.convertToInt(lastEmspPushTokens.failureNbr),
+            totalNbr: Utils.convertToInt(lastEmspPushTokens.totalNbr),
+            tokenIDsInFailure: lastEmspPushTokens.tokenIDsInFailure,
+          }
+        }
+      }
+    );
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOcpiLastEmspPushTokens', startTime, ocpiEndpointID, lastEmspPushTokens);
+  }
+
+  public static async saveOcpiLastEmspPullLocation(tenant: Tenant, ocpiEndpointID: string, lastEmspPullLocations: OCPILastEmspPullLocation): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Modify
+    await global.database.getCollection<any>(tenant.id, 'ocpiendpoints').findOneAndUpdate(
+      { _id: DatabaseUtils.convertToObjectID(ocpiEndpointID) },
+      {
+        $set: {
+          lastEmspPullLocations: {
+            lastUpdatedOn: Utils.convertToDate(lastEmspPullLocations.lastUpdatedOn),
+            partial: Utils.convertToBoolean(lastEmspPullLocations.partial),
+            successNbr: Utils.convertToInt(lastEmspPullLocations.successNbr),
+            failureNbr: Utils.convertToInt(lastEmspPullLocations.failureNbr),
+            totalNbr: Utils.convertToInt(lastEmspPullLocations.totalNbr),
+            locationIDsInFailure: lastEmspPullLocations.locationIDsInFailure,
+          }
+        }
+      }
+    );
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOcpiLastEmspPullLocation', startTime, ocpiEndpointID, lastEmspPullLocations);
   }
 
   // Delegate

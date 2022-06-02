@@ -159,7 +159,7 @@ describe('Tenant', () => {
       // Exec
       const response = await CentralServerService.defaultInstance.getEntityById(
         CentralServerService.defaultInstance.tenantApi, { id: '123456789012345678901234' }, false);
-      expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      expect(response.status).to.equal(StatusCodes.NOT_FOUND);
     });
 
     it('Should not be possible to create a tenant without email', async () => {

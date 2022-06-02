@@ -7,9 +7,13 @@ on:
   pull_request:
     branches:
       - master-qa
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    concurrency:
+      group: build-${{ github.head_ref || github.ref_name }}
+      cancel-in-progress: true
     strategy:
       matrix:
         node-version: [16.x]
@@ -26,6 +30,9 @@ jobs:
 
   build-submodules:
     runs-on: ubuntu-latest
+    concurrency:
+      group: build-sub-modules-${{ github.head_ref || github.ref_name }}
+      cancel-in-progress: true
     strategy:
       matrix:
         node-version: [16.x]
@@ -45,6 +52,9 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    concurrency:
+      group: build-docker-${{ github.head_ref || github.ref_name }}
+      cancel-in-progress: true
     steps:
     - uses: actions/checkout@v2
     - name: Set up Docker Buildx

@@ -10,6 +10,7 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import { HTTPError } from '../../src/types/HTTPError';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { StatusCodes } from 'http-status-codes';
 import StripeTestHelper from './StripeTestHelper';
@@ -83,6 +84,15 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           -------------------------------------------------------*/
         const immediateBilling = true;
         await stripeTestHelper.forceBillingSettings(immediateBilling);
+      });
+
+      describe('Sub-accounts', () => {
+        it('Should create a sub-account with its associated activation link', async () => {
+          const subAccount = await stripeTestHelper.createSubAccount();
+          expect(subAccount.accountID).to.exist;
+          expect(subAccount.activationLink).to.include('https://connect.stripe.com/setup/s/');
+          expect(subAccount.pending).to.be.true;
+        });
       });
 
       it('Should add a different source to BILLING-TEST user', async () => {
@@ -383,6 +393,46 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.result.length).to.be.gt(0);
         });
+
+        it('should create a sub account', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(response.status).to.be.eq(StatusCodes.CREATED);
+          expect(response.data.id).to.not.be.null;
+          expect(response.data.accountID).to.not.be.null;
+          expect(response.data.userID).to.eq(billingTestHelper.userContext.id);
+          expect(response.data.activationLink).to.not.be.null;
+          expect(response.data.pending).to.be.true;
+        });
+
+        it('should create a sub account and activate it', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(response.status).to.be.eq(StatusCodes.CREATED);
+
+          const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
+          expect(activationResponse.status).to.be.eq(StatusCodes.OK);
+          expect(activationResponse.data.pending).to.be.false;
+        });
+
+        it('should not activate an inexistent sub account', async () => {
+          const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: '5ce249a1a39ae1c056c389bd', TenantID: billingTestHelper.tenantContext.getTenant().id });
+          expect(activationResponse.status).to.be.eq(StatusCodes.NOT_FOUND);
+        });
+
+        it('should not activate a sub account twice', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(response.status).to.be.eq(StatusCodes.CREATED);
+
+          let activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
+          expect(activationResponse.status).to.be.eq(StatusCodes.OK);
+          activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
+          expect(activationResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+        });
       });
 
       describe('Where basic user', () => {
@@ -441,6 +491,18 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           assert(transactionID, 'transactionID should not be null');
           const itemsAfter = await billingTestHelper.getNumberOfSessions(basicUser.id);
           expect(itemsAfter).to.be.eq(itemsBefore + 1);
+        });
+
+        it('should not be able to create a sub account', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
+        });
+
+        it('should not activate an inexistent sub account', async () => {
+          const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: '5ce249a1a39ae1c056c389bd', TenantID: billingTestHelper.tenantContext.getTenant().id });
+          expect(activationResponse.status).to.be.eq(StatusCodes.NOT_FOUND);
         });
       });
 
@@ -950,7 +1012,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 19.49);
       });
     });
-
   });
 
   describe('Billing Test Data Cleanup (utbilling)', () => {

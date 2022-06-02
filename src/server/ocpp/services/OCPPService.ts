@@ -239,7 +239,7 @@ export default class OCPPService {
       // First Meter Value -> Trigger Smart Charging to adjust the limit
       if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed) {
         // Yes: Trigger Smart Charging
-        await this.triggerSmartCharging(tenant, chargingStation);
+        await this.triggerSmartCharging(tenant, chargingStation.siteArea);
       }
       await Logging.logInfo({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -637,7 +637,7 @@ export default class OCPPService {
       setTimeout(async () => {
         try {
           // Trigger Smart Charging
-          await this.triggerSmartCharging(tenant, chargingStation);
+          await this.triggerSmartCharging(tenant, chargingStation.siteArea);
         } catch (error) {
           await Logging.logError({
             ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -732,7 +732,7 @@ export default class OCPPService {
       connector.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging
-        await this.triggerSmartCharging(tenant, chargingStation);
+        await this.triggerSmartCharging(tenant, chargingStation.siteArea);
       } catch (error) {
         await Logging.logError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -799,35 +799,46 @@ export default class OCPPService {
       const lastTransaction = await TransactionStorage.getLastTransactionFromChargingStation(
         tenant, chargingStation.id, connector.connectorId, { withUser: true });
       if (lastTransaction) {
-        // Transaction completed
-        if (lastTransaction.stop) {
-          // Check Inactivity
-          const transactionUpdated = await this.checkAndComputeTransactionExtraInactivityFromStatusNotification(
-            tenant, chargingStation, lastTransaction, lastTransaction.user, connector, statusNotification);
-          // Billing: Trigger the asynchronous billing task
-          const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction);
-          // OCPI: Post the CDR
-          const ocpiUpdated = await OCPIFacade.checkAndSendTransactionCdr(
-            tenant, lastTransaction, chargingStation, chargingStation.siteArea, ServerAction.OCPP_STATUS_NOTIFICATION);
-          // OICP: Post the CDR
-          const oicpUpdated = await OICPFacade.checkAndSendTransactionCdr(
-            tenant, lastTransaction, chargingStation, chargingStation.siteArea, ServerAction.OCPP_STATUS_NOTIFICATION);
-          // Save
-          if (transactionUpdated || billingDataUpdated || ocpiUpdated || oicpUpdated) {
-            await TransactionStorage.saveTransaction(tenant, lastTransaction);
+        try {
+          // Transaction completed
+          if (lastTransaction.stop) {
+            // Check Inactivity
+            const transactionUpdated = await this.checkAndComputeTransactionExtraInactivityFromStatusNotification(
+              tenant, chargingStation, lastTransaction, lastTransaction.user, connector, statusNotification);
+            // Billing: Trigger the asynchronous billing task
+            const billingDataUpdated = await this.checkAndBillTransaction(tenant, lastTransaction);
+            // OCPI: Post the CDR
+            const ocpiUpdated = await OCPIFacade.checkAndSendTransactionCdr(
+              tenant, lastTransaction, chargingStation, chargingStation.siteArea, ServerAction.OCPP_STATUS_NOTIFICATION);
+            // OICP: Post the CDR
+            const oicpUpdated = await OICPFacade.checkAndSendTransactionCdr(
+              tenant, lastTransaction, chargingStation, chargingStation.siteArea, ServerAction.OCPP_STATUS_NOTIFICATION);
+            // Save
+            if (transactionUpdated || billingDataUpdated || ocpiUpdated || oicpUpdated) {
+              await TransactionStorage.saveTransaction(tenant, lastTransaction);
+            }
+          } else {
+            await Logging.logWarning({
+              ...LoggingHelper.getChargingStationProperties(chargingStation),
+              tenantID: tenant.id,
+              module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransactionFromStatusNotification',
+              action: ServerAction.OCPP_STATUS_NOTIFICATION,
+              message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' while a transaction is ongoing`,
+              detailedMessages: { statusNotification }
+            });
           }
-        } else {
+          // Clear Connector Runtime Data
+          OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, lastTransaction.connectorId);
+        } catch (error) {
           await Logging.logWarning({
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
+            ...LoggingHelper.getTransactionProperties(lastTransaction),
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+            module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransactionFromStatusNotification',
             action: ServerAction.OCPP_STATUS_NOTIFICATION,
-            message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' while a transaction is ongoing`,
-            detailedMessages: { statusNotification }
+            message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Error while trying to update the last Transaction`,
+            detailedMessages: { error: error.stack, statusNotification, lastTransaction }
           });
         }
-        // Clear Connector Runtime Data
-        OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, lastTransaction.connectorId);
       }
     }
   }
@@ -1331,11 +1342,10 @@ export default class OCPPService {
     return transaction.tagID;
   }
 
-  private async triggerSmartCharging(tenant: Tenant, chargingStation: ChargingStation) {
+  private async triggerSmartCharging(tenant: Tenant, siteArea: SiteArea) {
     // Smart Charging must be active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
       // Get Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant, chargingStation.siteAreaID);
       if (siteArea && siteArea.smartCharging) {
         const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea);
         if (siteAreaLock) {

@@ -149,10 +149,10 @@ export default class ChargingStationStorage {
   public static async getChargingStations(tenant: Tenant,
       params: {
         search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
-        includeAllExternalSites?: boolean; connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
+        connectorStatuses?: ChargePointStatus[]; connectorTypes?: ConnectorType[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
         ocpiEvseUid?: string; ocpiLocationID?: string; oicpEvseID?: string;
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
-        locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean; includeAllExternalSites?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<ChargingStationDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -239,41 +239,14 @@ export default class ChargingStationStorage {
       $match: filters
     });
     // Connector Status
-    if (params.connectorStatuses) {
-      filters['connectors.status'] = { $in: params.connectorStatuses };
-      filters.inactive = false;
-      // Filter connectors array
-      aggregation.push({
-        '$addFields': {
-          'connectors': {
-            '$filter': {
-              input: '$connectors',
-              as: 'connector',
-              cond: {
-                $in: ['$$connector.status', params.connectorStatuses]
-              }
-            }
-          }
-        }
-      });
+    if (!Utils.isEmptyArray(params.connectorStatuses)) {
+      DatabaseUtils.pushArrayFilterInAggregation(aggregation, 'connectors',
+        { 'connectors.status': { $in: params.connectorStatuses } });
     }
     // Connector Type
-    if (params.connectorTypes) {
-      filters['connectors.type'] = { $in: params.connectorTypes };
-      // Filter connectors array
-      aggregation.push({
-        '$addFields': {
-          'connectors': {
-            '$filter': {
-              input: '$connectors',
-              as: 'connector',
-              cond: {
-                $in: ['$$connector.type', params.connectorTypes]
-              }
-            }
-          }
-        }
-      });
+    if (!Utils.isEmptyArray(params.connectorTypes)) {
+      DatabaseUtils.pushArrayFilterInAggregation(aggregation, 'connectors',
+        { 'connectors.type': { $in: params.connectorTypes } });
     }
     // With no Site Area
     if (params.withNoSiteArea) {

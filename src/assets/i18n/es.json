@@ -147,6 +147,14 @@
       "title": "Nueva factura a pagar",
       "body": "u factura ({{invoiceNumber}}) importe {{amount}} está disponible. Revise su correo para finalizar la operación"
     },
+    "billingSubAccountCreationLink": {
+      "title": "Billing account onboarding",
+      "body": "You have been invited to create a billing account. Please check your email to complete the process"
+    },
+    "billingSubAccountActivated": {
+      "title": "Billing account activated",
+      "body": "Your billing account has been activated"
+    },
     "endUserErrorNotification": {
       "title": "Un usuario ha reportado un error",
       "body": "'{{userName}}' reportó: '{{errorTitle}}' - '{{errorDescription}}' en la organización '{{tenantName}}'"

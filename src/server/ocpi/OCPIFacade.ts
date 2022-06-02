@@ -77,21 +77,20 @@ export default class OCPIFacade {
   }
 
   public static async processEndTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation,
-      siteArea: SiteArea, user: User, action: ServerAction): Promise<void> {
+      siteArea: SiteArea, user: User, action: ServerAction): Promise<boolean> {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) ||
         !chargingStation.issuer || !chargingStation.public || !siteArea.accessControl || user.issuer) {
-      return;
+      return false;
     }
     // Get OCPI CPO client
     const ocpiClient = await OCPIFacade.checkAndGetOcpiCpoClient(
       tenant, transaction, user, action);
     // Send OCPI CDR
-    await ocpiClient.postCdr(transaction);
+    return ocpiClient.pushCdr(transaction);
   }
 
   public static async checkAndSendTransactionCdr(tenant: Tenant, transaction: Transaction,
       chargingStation: ChargingStation, siteArea: SiteArea, action: ServerAction): Promise<boolean> {
-    let ocpiCdrSent = false;
     // CDR not already pushed
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI) &&
         transaction.ocpiData?.session && !transaction.ocpiData.cdr?.id) {
@@ -100,15 +99,14 @@ export default class OCPIFacade {
       if (ocpiLock) {
         try {
           // Roaming
-          ocpiCdrSent = true;
-          await OCPIFacade.processEndTransaction(tenant, transaction, chargingStation, siteArea, transaction.user, action);
+          return OCPIFacade.processEndTransaction(
+            tenant, transaction, chargingStation, siteArea, transaction.user, action);
         } finally {
           // Release the lock
           await LockingManager.release(ocpiLock);
         }
       }
     }
-    return ocpiCdrSent;
   }
 
   public static async updateConnectorStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<void> {
@@ -118,7 +116,7 @@ export default class OCPIFacade {
         const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
         // Patch status
         if (ocpiClient) {
-          await ocpiClient.patchChargingStationStatus(chargingStation, connector);
+          await ocpiClient.patchChargingStationConnectorStatus(chargingStation, connector);
         }
       }
     } catch (error) {

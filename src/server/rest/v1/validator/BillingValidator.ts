@@ -1,4 +1,4 @@
-import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingSubAccountActivate, HttpBillingSubAccountCreate, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 
 import { BillingSettings } from '../../../../types/Setting';
 import Schema from '../../../../types/validator/Schema';
@@ -14,6 +14,8 @@ export default class BillingValidator extends SchemaValidator {
   private billingSetupUserPaymentMethod: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-setup-payment-method.json`, 'utf8'));
   private billingInvoicesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoices-get.json`, 'utf8'));
   private billingInvoiceGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoice-get.json`, 'utf8'));
+  private billingCreateSubAccount: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-create-sub-account.json`, 'utf8'));
+  private billingActivateSubAccount: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-activate-sub-account.json`, 'utf8'));
 
   private constructor() {
     super('BillingValidator');
@@ -48,5 +50,13 @@ export default class BillingValidator extends SchemaValidator {
 
   public validateBillingInvoiceGetReq(data: Record<string, unknown>): HttpBillingInvoiceRequest {
     return this.validate(this.billingInvoiceGet, data);
+  }
+
+  public validateBillingCreateSubAccountReq(data: Record<string, unknown>): HttpBillingSubAccountCreate {
+    return this.validate(this.billingCreateSubAccount, data);
+  }
+
+  public validateBillingActivateSubAccountReq(data: Record<string, unknown>): HttpBillingSubAccountActivate {
+    return this.validate(this.billingActivateSubAccount, data);
   }
 }

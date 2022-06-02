@@ -1,7 +1,9 @@
+import { ObjectId, UpdateResult } from 'mongodb';
 import SiteArea, { SiteAreaOcpiData } from '../../types/SiteArea';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import AssetStorage from './AssetStorage';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import ConsumptionStorage from './ConsumptionStorage';
@@ -9,7 +11,6 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectId } from 'mongodb';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from './TransactionStorage';
@@ -30,6 +31,44 @@ export default class SiteAreaStorage {
     updated += await ConsumptionStorage.updateConsumptionsWithOrganizationIDs(tenant, siteID, siteAreaID);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateEntitiesWithOrganizationIDs', startTime, { companyID, siteID, siteAreaID });
     return updated;
+  }
+
+  public static async attachSiteAreaChildrenToNewParent(tenant: Tenant, oldParentSiteAreaID: string, newParentSiteAreaID: string): Promise<number> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    const result = await global.database.getCollection<any>(tenant.id, 'siteareas').updateMany(
+      {
+        parentSiteAreaID: DatabaseUtils.convertToObjectID(oldParentSiteAreaID),
+      },
+      {
+        $set: {
+          parentSiteAreaID: DatabaseUtils.convertToObjectID(newParentSiteAreaID),
+        }
+      }) as UpdateResult;
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'attachSiteAreaChildrenToNewParent', startTime, { oldParentSiteAreaID, newParentSiteAreaID });
+    return result.modifiedCount;
+  }
+
+  public static async updateSmartCharging(tenant: Tenant, siteAreaID: string, smartCharging: boolean): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    await global.database.getCollection<any>(tenant.id, 'siteareas').updateOne(
+      { _id: DatabaseUtils.convertToObjectID(siteAreaID) },
+      {
+        $set: { smartCharging: Utils.convertToBoolean(smartCharging) }
+      });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateSmartCharging', startTime, { siteAreaID, smartCharging });
+  }
+
+  public static async updateSiteID(tenant: Tenant, siteAreaID: string, siteID: string): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    const result = await global.database.getCollection<any>(tenant.id, 'siteareas').updateOne(
+      { _id: DatabaseUtils.convertToObjectID(siteAreaID) },
+      {
+        $set: { siteID: DatabaseUtils.convertToObjectID(siteID) }
+      });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateSiteID', startTime, { siteAreaID, siteID });
   }
 
   public static async addAssetsToSiteArea(tenant: Tenant, siteAreaID: string, siteID: string, companyID: string, assetIDs: string[]): Promise<void> {
@@ -104,11 +143,13 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withSite?: boolean; withChargingStations?: boolean; withAvailableChargingStations?: boolean; withImage?: boolean; siteIDs?: string[]; issuer?: boolean; } = {},
+      params: { withSite?: boolean; withChargingStations?: boolean; withAvailableChargingStations?: boolean; withImage?: boolean;
+        siteIDs?: string[]; issuer?: boolean; withParentSiteArea?: boolean; } = {},
       projectFields?: string[]): Promise<SiteArea> {
     const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenant, {
       siteAreaIDs: [id],
       withSite: params.withSite,
+      withParentSiteArea: params.withParentSiteArea,
       withChargingStations: params.withChargingStations,
       withAvailableChargingStations: params.withAvailableChargingStations,
       withImage: params.withImage,
@@ -129,6 +170,7 @@ export default class SiteAreaStorage {
       accessControl: Utils.convertToBoolean(siteAreaToSave.accessControl),
       smartCharging: Utils.convertToBoolean(siteAreaToSave.smartCharging),
       siteID: DatabaseUtils.convertToObjectID(siteAreaToSave.siteID),
+      parentSiteAreaID: DatabaseUtils.convertToObjectID(siteAreaToSave.parentSiteAreaID),
       maximumPower: Utils.convertToFloat(siteAreaToSave.maximumPower),
       voltage: Utils.convertToInt(siteAreaToSave.voltage),
       numberOfPhases: Utils.convertToInt(siteAreaToSave.numberOfPhases),
@@ -179,12 +221,14 @@ export default class SiteAreaStorage {
 
   public static async getSiteAreas(tenant: Tenant,
       params: {
-        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; issuer?: boolean; name?: string;
-        withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
-        locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean; ocpiLocationID?: string;
+        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; parentSiteAreaIDs?: string[]; companyIDs?: string[]; withSite?: boolean; withParentSiteArea?: boolean;
+        issuer?: boolean; name?: string; withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
+        chargingStationConnectorStatuses?: ChargePointStatus[]; locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
+        ocpiLocationID?: string; withAssets?: boolean; withNoParentSiteArea?: boolean; excludeSiteAreaIDs?: string[];
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     const startTime = Logging.traceDatabaseRequestStart();
+    let withChargingStations = params.withChargingStations || params.withOnlyChargingStations || params.withAvailableChargingStations;
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -231,6 +275,18 @@ export default class SiteAreaStorage {
         $in: params.siteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
       };
     }
+    // Exclude Site Area
+    if (!Utils.isEmptyArray(params.excludeSiteAreaIDs)) {
+      filters._id = {
+        $nin: params.excludeSiteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
+      };
+    }
+    // Parent Site Area
+    if (!Utils.isEmptyArray(params.parentSiteAreaIDs)) {
+      filters.parentSiteAreaID = {
+        $in: params.parentSiteAreaIDs.map((parentSiteAreaID) => DatabaseUtils.convertToObjectID(parentSiteAreaID))
+      };
+    }
     // Site
     if (!Utils.isEmptyArray(params.siteIDs)) {
       filters.siteID = {
@@ -248,9 +304,11 @@ export default class SiteAreaStorage {
       };
       params.withSite = false;
     }
+    // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
     }
+    // Smart Charging
     if (Utils.objectHasProperty(params, 'smartCharging') && Utils.isBoolean(params.smartCharging)) {
       filters.smartCharging = params.smartCharging;
     }
@@ -262,11 +320,41 @@ export default class SiteAreaStorage {
     if (params.name) {
       filters.name = params.name;
     }
+    if (params.withNoParentSiteArea) {
+      const noParentFilter = {
+        $or: [
+          { parentSiteAreaID: { $exists: false } },
+          { parentSiteAreaID: { $eq: null } },
+        ]
+      };
+      if (filters.$and) {
+        filters.$and.push(noParentFilter);
+      } else {
+        filters.$and = [ noParentFilter ];
+      }
+    }
     // Filters
     if (filters) {
       aggregation.push({
         $match: filters
       });
+    }
+    // Connector statuses
+    if (!Utils.isEmptyArray(params.chargingStationConnectorStatuses)) {
+      if (withChargingStations) {
+        DatabaseUtils.pushChargingStationLookupInAggregation({
+          tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteAreaID',
+          asField: 'chargingStations' });
+      }
+      // Filter
+      DatabaseUtils.push2ArraysFilterInAggregation(aggregation, 'chargingStations', 'chargingStations.id', 'chargingStations.connectors',
+        { 'chargingStations.connectors.status' : { $in: params.chargingStationConnectorStatuses } });
+      withChargingStations = false;
+    }
+    // Charging Station Connnector stats
+    if (params.withAvailableChargingStations) {
+      DatabaseUtils.addConnectorStatsInOrg(tenant, aggregation, 'siteAreaID', withChargingStations);
+      withChargingStations = false;
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -314,11 +402,25 @@ export default class SiteAreaStorage {
         asField: 'site', oneToOneCardinality: true
       });
     }
+    // Site Area Parent
+    if (params.withParentSiteArea) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: 'parentSiteAreaID', foreignField: '_id',
+        asField: 'parentSiteArea', oneToOneCardinality: true
+      });
+    }
     // Charging Stations
-    if (params.withChargingStations || params.withOnlyChargingStations || params.withAvailableChargingStations) {
+    if (withChargingStations) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteAreaID',
         asField: 'chargingStations'
+      });
+    }
+    // Assets
+    if (params.withAssets) {
+      DatabaseUtils.pushAssetLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteAreaID',
+        asField: 'assets'
       });
     }
     // Site Area Image
@@ -341,47 +443,22 @@ export default class SiteAreaStorage {
     }
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'parentSiteAreaID');
     // Add Last Changed / Created
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Project
-    if (projectFields) {
-      DatabaseUtils.projectFields(aggregation,
-        [...projectFields, 'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastSeen',
-          'chargingStations.deleted', 'chargingStations.cannotChargeInParallel', 'chargingStations.public', 'chargingStations.inactive']);
-    }
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const siteAreasMDB = await global.database.getCollection<any>(tenant.id, 'siteareas')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray() as SiteArea[];
-    const siteAreas: SiteArea[] = [];
-    // TODO: Handle this coding into the MongoDB request
-    if (siteAreasMDB && siteAreasMDB.length > 0) {
-      // Create
-      for (const siteAreaMDB of siteAreasMDB) {
-        // Skip site area with no charging stations if asked
-        if (params.withOnlyChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
-          continue;
-        }
-        // Add counts of Available/Occupied Chargers/Connectors
-        if (params.withAvailableChargingStations) {
-          // Set the Charging Stations' Connector statuses
-          siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
-        }
-        // Charging stations
-        if (!params.withChargingStations && siteAreaMDB.chargingStations) {
-          delete siteAreaMDB.chargingStations;
-        }
-        // Add
-        siteAreas.push(siteAreaMDB);
-      }
-    }
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSiteAreas', startTime, aggregation, siteAreasMDB);
     return {
       projectFields: projectFields,
       count: DatabaseUtils.getCountFromDatabaseCount(siteAreasCountMDB[0]),
-      result: siteAreas
+      result: siteAreasMDB
     };
   }
 
