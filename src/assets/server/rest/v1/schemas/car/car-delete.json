@@ -1,0 +1,13 @@
+{
+  "$id": "car-delete",
+  "title": "Delete Car Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

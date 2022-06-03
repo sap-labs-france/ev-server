@@ -1,13 +1,18 @@
 import HttpDatabaseRequest, { HttpDatabaseProjectRequest } from './HttpDatabaseRequest';
 
 import HttpByIDRequest from './HttpByIDRequest';
+import Site from '../Site';
 
-export interface HttpSiteRequest extends HttpByIDRequest {
+export interface HttpSiteGetRequest extends HttpByIDRequest {
   ID: string;
   WithCompany?: boolean;
 }
 
-export interface HttpSitesRequest extends HttpDatabaseRequest {
+export interface HttpSiteDeleteRequest extends HttpByIDRequest {
+  ID: string;
+}
+
+export interface HttpSitesGetRequest extends HttpDatabaseRequest {
   Search: string;
   Issuer: boolean;
   WithAvailableChargers: boolean;
@@ -23,7 +28,7 @@ export interface HttpSitesRequest extends HttpDatabaseRequest {
   LocMaxDistanceMeters?: number;
 }
 
-export interface HttpSiteImageRequest extends HttpByIDRequest {
+export interface HttpSiteImageGetRequest extends HttpByIDRequest {
   ID: string;
   TenantID: string;
 }
@@ -33,13 +38,21 @@ export interface HttpSiteAssignUsersRequest extends HttpDatabaseProjectRequest {
   userIDs: string[];
 }
 
-export interface HttpSiteUserAdminRequest {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HttpSiteUpdateRequest extends Site {
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HttpSiteCreateRequest extends Site {
+}
+
+export interface HttpSiteAdminUpdateRequest {
   userID: string;
   siteID: string;
   siteAdmin: boolean;
 }
 
-export interface HttpSiteOwnerRequest {
+export interface HttpSiteOwnerUpdateRequest {
   userID: string;
   siteID: string;
   siteOwner: boolean;

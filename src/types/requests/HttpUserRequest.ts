@@ -1,8 +1,13 @@
 import HttpDatabaseRequest, { HttpDatabaseProjectRequest } from './HttpDatabaseRequest';
 
 import HttpByIDRequest from './HttpByIDRequest';
+import User from '../User';
 
-export interface HttpUserRequest extends HttpByIDRequest {
+export interface HttpUserGetRequest extends HttpByIDRequest {
+  ID: string;
+}
+
+export interface HttpUserDeleteRequest extends HttpByIDRequest {
   ID: string;
 }
 
@@ -19,18 +24,26 @@ export interface HttpCreateTransactionInvoiceRequest {
   transactionID?: string;
 }
 
-export interface HttpUserMobileTokenRequest {
+export interface HttpUserMobileTokenUpdateRequest {
   id: string;
   mobileToken: string;
   mobileOS: string;
 }
 
-export interface HttpUserAssignSitesRequest extends HttpDatabaseProjectRequest {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HttpUserCreateRequest extends User {
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HttpUserUpdateRequest extends User {
+}
+
+export interface HttpUserSitesAssignRequest extends HttpDatabaseProjectRequest {
   userID: string;
   siteIDs: string[];
 }
 
-export interface HttpUsersRequest extends HttpDatabaseRequest {
+export interface HttpUsersGetRequest extends HttpDatabaseRequest {
   Issuer: boolean;
   WithTag?: boolean;
   Search: string;
@@ -46,13 +59,13 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   NotAssignedToCarID: string;
 }
 
-export interface HttpUsersInErrorRequest extends HttpDatabaseRequest {
+export interface HttpUsersInErrorGetRequest extends HttpDatabaseRequest {
   Search: string;
   Role?: string;
   ErrorType?: string;
 }
 
-export interface HttpUserSitesRequest extends HttpDatabaseRequest {
+export interface HttpUserSitesGetRequest extends HttpDatabaseRequest {
   Search: string;
   UserID: string;
 }
@@ -101,7 +114,7 @@ export interface HttpEulaRequest {
   Language: string;
 }
 
-export interface HttpUserDefaultTagCar {
+export interface HttpUserDefaultTagCarGetRequest {
   UserID: string;
   ChargingStationID?: string; // TODO: Backward-compatibility issue - This should be mandatory! - change it as soon as possible
 }

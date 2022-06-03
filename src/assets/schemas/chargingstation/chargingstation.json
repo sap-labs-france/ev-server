@@ -172,7 +172,7 @@
           "sanitize": "mongo"
         },
         "voltage": {
-          "type": "number",
+          "type": "integer",
           "enum": [
             110,
             230

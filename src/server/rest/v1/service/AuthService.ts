@@ -4,7 +4,7 @@ import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/re
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
-import AuthValidator from '../validator/AuthValidator';
+import AuthValidatorRest from '../validator/AuthValidatorRest';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Configuration from '../../../../utils/Configuration';
@@ -58,7 +58,7 @@ export default class AuthService {
 
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthSignInReq(req.body);
+    const filteredRequest = AuthValidatorRest.getInstance().validateAuthSignInReq(req.body);
     // Get Tenant
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {
@@ -120,7 +120,7 @@ export default class AuthService {
 
   public static async handleRegisterUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthSignOnReq(req.body);
+    const filteredRequest = AuthValidatorRest.getInstance().validateAuthSignOnReq(req.body);
     // Override
     filteredRequest.status = UserStatus.PENDING;
     if (!filteredRequest.locale) {
@@ -314,7 +314,7 @@ export default class AuthService {
   }
 
   public static async handleUserPasswordReset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = AuthValidator.getInstance().validateAuthPasswordResetReq(req.body);
+    const filteredRequest = AuthValidatorRest.getInstance().validateAuthPasswordResetReq(req.body);
     // Get Tenant
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {
@@ -338,7 +338,7 @@ export default class AuthService {
 
   public static async handleCheckEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthEulaCheckReq(req.query);
+    const filteredRequest = AuthValidatorRest.getInstance().validateAuthEulaCheckReq(req.query);
     // Get Tenant
     const tenant = await AuthService.getTenant(filteredRequest.Tenant);
     if (!tenant) {
@@ -372,7 +372,7 @@ export default class AuthService {
 
   public static async handleGetEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthEulaReq(req.query);
+    const filteredRequest = AuthValidatorRest.getInstance().validateAuthEulaReq(req.query);
     // Get it
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(Constants.DEFAULT_TENANT_OBJECT, filteredRequest.Language);
     res.json(endUserLicenseAgreement);
@@ -381,7 +381,7 @@ export default class AuthService {
 
   public static async handleVerifyEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AuthValidator.getInstance().validateAuthEmailVerifyReq(req.query);
+    const filteredRequest = AuthValidatorRest.getInstance().validateAuthEmailVerifyReq(req.query);
     // Get Tenant
     const tenant = await AuthService.getTenant(filteredRequest.Tenant);
     if (!tenant) {
@@ -498,7 +498,7 @@ export default class AuthService {
   }
 
   public static async handleResendVerificationEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = AuthValidator.getInstance().validateAuthVerificationEmailResendReq(req.body);
+    const filteredRequest = AuthValidatorRest.getInstance().validateAuthVerificationEmailResendReq(req.body);
     // Get the tenant
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
     if (!tenant) {

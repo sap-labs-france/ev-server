@@ -1,16 +1,13 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
 
-import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
-import BillingFactory from '../../../../integration/billing/BillingFactory';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import Company from '../../../../types/Company';
 import { CompanyDataResult } from '../../../../types/DataResult';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
-import CompanyValidator from '../validator/CompanyValidator';
+import CompanyValidatorRest from '../validator/CompanyValidatorRest';
 import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
@@ -27,7 +24,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
     // Filter
-    const companyID = CompanyValidator.getInstance().validateCompanyGetReq(req.query).ID;
+    const companyID = CompanyValidatorRest.getInstance().validateCompanyDeleteReq(req.query).ID;
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, companyID, Action.DELETE, action);
@@ -49,7 +46,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompany');
     // Filter
-    const filteredRequest = CompanyValidator.getInstance().validateCompanyGetReq(req.query);
+    const filteredRequest = CompanyValidatorRest.getInstance().validateCompanyGetReq(req.query);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null,
       { withLogo: true }, true);
@@ -59,7 +56,7 @@ export default class CompanyService {
 
   public static async handleGetCompanyLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = CompanyValidator.getInstance().validateCompanyLogoGetReq(req.query);
+    const filteredRequest = CompanyValidatorRest.getInstance().validateCompanyLogoGetReq(req.query);
     // Fetch Tenant Object by Tenant ID
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`,
@@ -89,7 +86,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.COMPANY, MODULE_NAME, 'handleGetCompanies');
     // Filter
-    const filteredRequest = CompanyValidator.getInstance().validateCompaniesGetReq(req.query);
+    const filteredRequest = CompanyValidatorRest.getInstance().validateCompaniesGetReq(req.query);
     // Create GPS Coordinates
     if (filteredRequest.LocLongitude && filteredRequest.LocLatitude) {
       filteredRequest.LocCoordinates = [
@@ -138,7 +135,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
     // Filter
-    const filteredRequest = CompanyValidator.getInstance().validateCompanyCreateReq(req.body);
+    const filteredRequest = CompanyValidatorRest.getInstance().validateCompanyCreateReq(req.body);
     // Get dynamic auth
     await AuthorizationService.checkAndGetCompanyAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
@@ -175,7 +172,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
     // Filter
-    const filteredRequest = CompanyValidator.getInstance().validateCompanyUpdateReq(req.body);
+    const filteredRequest = CompanyValidatorRest.getInstance().validateCompanyUpdateReq(req.body);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
