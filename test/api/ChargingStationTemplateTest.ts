@@ -27,7 +27,7 @@ describe('Charging Station Template', () => {
 
   beforeAll(async () => {
     testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-    testData.adminUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+    testData.adminUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.SUPER_ADMIN);
     testData.adminCentralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, testData.adminUserContext);
   });
 

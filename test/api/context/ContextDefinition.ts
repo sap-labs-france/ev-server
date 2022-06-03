@@ -75,6 +75,9 @@ export default class ContextDefinition {
     DEFAULT_ADMIN: {
       role: 'A', status: 'A', assignedToSite: true, withTags: true, issuer: true
     },
+    SUPER_ADMIN: {
+      role: 'S', status: 'S', assignedToSite: true, withTags: true, issuer: true
+    },
     ADMIN_UNASSIGNED: {
       role: 'A', status: 'A', assignedToSite: false, withTags: true, issuer: true
     },

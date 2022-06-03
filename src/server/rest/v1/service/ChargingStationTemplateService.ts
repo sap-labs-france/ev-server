@@ -9,10 +9,11 @@ import Authorizations from '../../../../authorization/Authorizations';
 import { ChargingStationTemplate } from '../../../../types/ChargingStation';
 import { ChargingStationTemplateDataResult } from '../../../../types/DataResult';
 import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
-import ChargingStationTemplateValidator from '../validator/ChargingStationTemplateValidator';
+import ChargingStationTemplateValidator from '../validator/ChargingStationTemplateValidatorRest';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
+import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'ChargingStationTemplateService';
@@ -43,11 +44,11 @@ export default class ChargingStationTemplateService {
     }
     const newChargingStationTemplate: ChargingStationTemplate = {
       id: filteredRequest.id,
-      hash: filteredRequest.hash,
-      hashCapabilities: filteredRequest.hashCapabilities,
-      hashTechnical: filteredRequest.hashTechnical,
-      hashOcppStandard: filteredRequest.hashOcppStandard,
-      hashOcppVendor: filteredRequest.hashOcppVendor,
+      hash : Utils.hash(JSON.stringify(filteredRequest)),
+      hashTechnical : Utils.hash(JSON.stringify(filteredRequest.technical)),
+      hashCapabilities : Utils.hash(JSON.stringify(filteredRequest.capabilities)),
+      hashOcppStandard : Utils.hash(JSON.stringify(filteredRequest.ocppStandardParameters)),
+      hashOcppVendor : Utils.hash(JSON.stringify(filteredRequest.ocppVendorParameters)),
       chargePointVendor: filteredRequest.chargePointVendor,
       capabilities: filteredRequest.capabilities,
       ocppStandardParameters: filteredRequest.ocppStandardParameters,
@@ -165,11 +166,11 @@ export default class ChargingStationTemplateService {
     }
     const newChargingStationTemplate: ChargingStationTemplate = {
       id: filteredRequest.id,
-      hash: filteredRequest.hash,
-      hashCapabilities: filteredRequest.hashCapabilities,
-      hashTechnical: filteredRequest.hashTechnical,
-      hashOcppStandard: filteredRequest.hashOcppStandard,
-      hashOcppVendor: filteredRequest.hashOcppVendor,
+      hash : Utils.hash(JSON.stringify(filteredRequest)),
+      hashTechnical : Utils.hash(JSON.stringify(filteredRequest.technical)),
+      hashCapabilities : Utils.hash(JSON.stringify(filteredRequest.capabilities)),
+      hashOcppStandard : Utils.hash(JSON.stringify(filteredRequest.ocppStandardParameters)),
+      hashOcppVendor : Utils.hash(JSON.stringify(filteredRequest.ocppVendorParameters)),
       chargePointVendor: filteredRequest.chargePointVendor,
       capabilities: filteredRequest.capabilities,
       ocppStandardParameters: filteredRequest.ocppStandardParameters,

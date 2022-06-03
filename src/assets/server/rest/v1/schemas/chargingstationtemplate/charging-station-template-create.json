@@ -1,6 +1,6 @@
 {
-  "$id": "charging-station-template-update",
-  "title": "Update a charging station template",
+  "$id": "charging-station-template-create",
+  "title": "Create a charging station template",
   "type": "object",
   "properties": {
     "id": {
