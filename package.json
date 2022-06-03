@@ -190,7 +190,7 @@
     "@types/node-cron": "^2.0.3",
     "@types/passport": "^1.0.7",
     "@types/passport-jwt": "^3.0.6",
-    "@types/pdfkit": "^0.12.3",
+    "@types/pdfkit": "^0.12.6",
     "@types/qrcode": "^1.4.2",
     "@types/rfc2047": "^2.0.1",
     "@types/rosie": "0.0.40",
