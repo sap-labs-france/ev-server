@@ -1029,7 +1029,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
               id: subAccountResponse.data.id
             }
           });
-          expect(companyResponse.status).to.be.eq(StatusCodes.CREATED);
+          expect(companyResponse.status).to.be.eq(StatusCodes.OK);
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyResponse.data.id);
           expect(companyResponse.data.billing.id).to.eq(subAccountResponse.data.id);
         });
