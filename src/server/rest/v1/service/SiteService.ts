@@ -307,12 +307,12 @@ export default class SiteService {
       createdOn: new Date()
     } as Site;
     // If the site is assigned to a billing sub-account, check if the billing is active
-    if (filteredRequest.billing) {
+    if (filteredRequest.billingData) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
         Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
-      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.billing.id);
-      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.billing.id}' does not exist`, MODULE_NAME, 'handleCreateSite', req.user);
-      site.billing = { id: billingSubAccount.id };
+      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.billingData.accountID);
+      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.billingData.accountID}' does not exist`, MODULE_NAME, 'handleCreateSite', req.user);
+      site.billingData = { accountID: billingSubAccount.id };
     }
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
@@ -379,12 +379,12 @@ export default class SiteService {
     site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
     // If the site is assigned to a billing sub-account, check if the billing is active
-    if (filteredRequest.billing) {
+    if (filteredRequest.billingData) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
         Action.CREATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
-      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.billing.id);
-      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.billing.id}' does not exist`, MODULE_NAME, 'handleUpdateSite', req.user);
-      site.billing = { id: billingSubAccount.id };
+      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.billingData.accountID);
+      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.billingData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateSite', req.user);
+      site.billingData = { accountID: billingSubAccount.id };
     }
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));

@@ -12,8 +12,13 @@
     "logo": {
       "$ref": "common#/definitions/logo"
     },
-    "billing": {
-      "$ref": "billing#/definitions/subAccount"
+    "billingData": {
+      "type": "object",
+      "properties": {
+        "accountID": {
+          "$ref": "billing-subaccount#/definitions/accountID"
+        }
+      }
     }
   },
   "required": [

@@ -162,6 +162,6 @@ export interface BillingAccount {
 }
 
 export interface BillingAccountSetting {
-  id: string;
+  accountID: string;
 }
 

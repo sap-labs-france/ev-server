@@ -24,8 +24,13 @@
     "image": {
       "$ref": "site#/definitions/image"
     },
-    "billing": {
-      "$ref": "billing#/definitions/subAccount"
+    "billingData": {
+      "type": "object",
+      "properties": {
+        "accountID": {
+          "$ref": "billing-subaccount#/definitions/accountID"
+        }
+      }
     }
   },
   "required": [

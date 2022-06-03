@@ -1025,13 +1025,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
           let companyResponse = await billingTestHelper.userService.companyApi.create({
             ...CompanyFactory.build(),
-            billing: {
-              id: subAccountResponse.data.id
+            billingData: {
+              accountID: subAccountResponse.data.id
             }
           });
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyResponse.data.id);
-          expect(companyResponse.data.billing.id).to.eq(subAccountResponse.data.id);
+          expect(companyResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
         });
 
         it('should update a company to assign a sub-account', async () => {
@@ -1043,11 +1043,15 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           let companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
           const companyID = companyResponse.data.id;
-          companyResponse = await billingTestHelper.userService.companyApi.update({ id: companyID, ...CompanyFactory.build(), billing: { id: subAccountResponse.data.id } });
+          companyResponse = await billingTestHelper.userService.companyApi.update({
+            id: companyID,
+            ...CompanyFactory.build(),
+            billingData: { accountID: subAccountResponse.data.id }
+          });
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
 
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyID);
-          expect(companyResponse.data.billing.id).to.eq(subAccountResponse.data.id);
+          expect(companyResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
         });
 
         it('should create a site assigned to a sub-account', async () => {
@@ -1063,13 +1067,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           let siteResponse = await billingTestHelper.userService.siteApi.create({
             ...SiteFactory.build(),
             companyID: companyResponse.data.id,
-            billing: {
-              id: subAccountResponse.data.id
+            billingData: {
+              accountID: subAccountResponse.data.id
             }
           });
           expect(siteResponse.status).to.be.eq(StatusCodes.OK);
           siteResponse = await billingTestHelper.userService.siteApi.readById(siteResponse.data.id);
-          expect(siteResponse.data.billing.id).to.eq(subAccountResponse.data.id);
+          expect(siteResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
         });
 
         it('should update a site to assign a sub-account', async () => {
@@ -1093,12 +1097,12 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             id: siteID,
             ...SiteFactory.build(),
             companyID: companyResponse.data.id,
-            billing: { id: subAccountResponse.data.id }
+            billingData: { accountID: subAccountResponse.data.id }
           });
           expect(siteResponse.status).to.be.eq(StatusCodes.OK);
 
           siteResponse = await billingTestHelper.userService.siteApi.readById(siteID);
-          expect(siteResponse.data.billing.id).to.eq(subAccountResponse.data.id);
+          expect(siteResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
         });
       });
     });
