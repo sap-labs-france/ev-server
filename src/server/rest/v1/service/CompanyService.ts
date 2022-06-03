@@ -166,7 +166,7 @@ export default class CompanyService {
       action: action,
       detailedMessages: { company: newCompany }
     });
-    res.status(StatusCodes.CREATED).json(Object.assign({ id: newCompany.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign({ id: newCompany.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 

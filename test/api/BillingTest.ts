@@ -1041,7 +1041,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
 
           let companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
-          expect(companyResponse.status).to.be.eq(StatusCodes.CREATED);
+          expect(companyResponse.status).to.be.eq(StatusCodes.OK);
           const companyID = companyResponse.data.id;
           companyResponse = await billingTestHelper.userService.companyApi.update({ id: companyID, ...CompanyFactory.build(), billing: { id: subAccountResponse.data.id } });
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
@@ -1058,7 +1058,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
           // Create a company
           const companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
-          expect(companyResponse.status).to.be.eq(StatusCodes.CREATED);
+          expect(companyResponse.status).to.be.eq(StatusCodes.OK);
           // Create a site
           let siteResponse = await billingTestHelper.userService.siteApi.create({
             ...SiteFactory.build(),
@@ -1080,7 +1080,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
           // Create a company
           const companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
-          expect(companyResponse.status).to.be.eq(StatusCodes.CREATED);
+          expect(companyResponse.status).to.be.eq(StatusCodes.OK);
           // Create a site
           let siteResponse = await billingTestHelper.userService.siteApi.create({
             ...SiteFactory.build(),
