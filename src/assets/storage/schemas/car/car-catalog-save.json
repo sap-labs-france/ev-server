@@ -1,5 +1,5 @@
 {
-  "$id": "car-catalog",
+  "$id": "car-catalog-save",
   "title": "Validate the Car Catalog",
   "type": "object",
   "properties": {

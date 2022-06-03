@@ -6,7 +6,7 @@ import global from '../../types/GlobalType';
 
 export default class CarValidatorStorage extends SchemaValidator {
   private static instance: CarValidatorStorage | null = null;
-  private carCatalog: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/car/car-catalog.json`, 'utf8'));
+  private carCatalogSave: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/storage/schemas/car/car-catalog-save.json`, 'utf8'));
 
   private constructor() {
     super('CarValidatorStorage', {
@@ -26,7 +26,7 @@ export default class CarValidatorStorage extends SchemaValidator {
     return CarValidatorStorage.instance;
   }
 
-  public validateCarCatalog(data: any): ChargingStationTemplate {
-    return this.validate(this.carCatalog, data);
+  public validateCarCatalogSave(data: any): ChargingStationTemplate {
+    return this.validate(this.carCatalogSave, data, true);
   }
 }

@@ -26,14 +26,13 @@ export default class PerformanceStorage {
 
   public static async updatePerformanceRecord(performanceRecord: PerformanceRecord): Promise<void> {
     // // Validate
-    // performanceRecord = PerformanceValidatorStorage.getInstance().validatePerformance(performanceRecord);
+    // const performanceRecordMDB = PerformanceValidatorStorage.getInstance().validatePerformance(performanceRecord);
     // // Convert to ObjectID
-    // performanceRecord['_id'] = DatabaseUtils.convertToObjectID(performanceRecord.id);
-    // delete performanceRecord.id;
+    // DatabaseUtils.switchIDToMongoDBID(performanceRecordMDB);
     // // Update
     // await global.database.getCollection(Constants.DEFAULT_TENANT, 'performances').findOneAndUpdate(
-    //   { _id: performanceRecord['_id'] },
-    //   { $set: performanceRecord },
+    //   { _id: performanceRecordMDB['_id'] },
+    //   { $set: performanceRecordMDB },
     //   { upsert: true, returnDocument: 'after' }
     // );
   }

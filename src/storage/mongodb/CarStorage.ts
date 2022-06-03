@@ -134,27 +134,21 @@ export default class CarStorage {
     };
   }
 
-  public static async saveCarCatalog(carToSave: CarCatalog): Promise<number> {
+  public static async saveCarCatalog(carCatalogToSave: CarCatalog): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Validate
-    const carCatalog = CarValidatorStorage.getInstance().validateCarCatalog(carToSave);
-    // Properties to save
-    const carMDB: any = {
-      _id: carToSave.id,
-      ...carCatalog,
-    };
-    // Remove ID
-    delete carMDB.id;
+    const carCatalogMDB = CarValidatorStorage.getInstance().validateCarCatalogSave(carCatalogToSave);
+    DatabaseUtils.switchIDToMongoDBID(carCatalogMDB);
     // Add Last Changed/Created props
-    DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);
+    DatabaseUtils.addLastChangedCreatedProps(carCatalogMDB, carCatalogToSave);
     // Modify and return the modified document
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'carcatalogs').findOneAndReplace(
-      { _id: Utils.convertToInt(carToSave.id) },
-      carMDB,
+      { _id: carCatalogMDB['_id'] },
+      carCatalogMDB,
       { upsert: true }
     );
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveCarCatalog', startTime, carMDB);
-    return carToSave.id;
+    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveCarCatalog', startTime, carCatalogMDB);
+    return carCatalogMDB['_id'];
   }
 
   public static async saveCarCatalogImage(id: number, carImageToSave: string): Promise<void> {

@@ -19,7 +19,7 @@ export default class AuthorizationsManager {
       const role = AUTHORIZATION_DEFINITION[roleName];
       try {
         // Validate the role
-        AUTHORIZATION_DEFINITION[roleName] = AuthorizationValidatorStorage.getInstance().validateAuthorizationDefinitionRole(role);
+        AUTHORIZATION_DEFINITION[roleName] = AuthorizationValidatorStorage.getInstance().validateAuthorizationDefinitionRoleSave(role);
       } catch (error) {
         Logging.logConsoleError(error.stack);
         throw new BackendError({

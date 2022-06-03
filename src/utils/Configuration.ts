@@ -295,7 +295,7 @@ export default class Configuration {
           fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
       }
       // Validate
-      Configuration.config = ConfigurationValidatorStorage.getInstance().validateConfiguration(configuration);
+      Configuration.config = ConfigurationValidatorStorage.getInstance().validateConfigurationSave(configuration);
     }
     return Configuration.config;
   }
