@@ -153,12 +153,18 @@ export interface BillingAdditionalData {
   lastError?: BillingError,
 }
 
+export enum BillingAccountStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  ACTIVE = 'active'
+}
+
 export interface BillingAccount {
   id?: string;
   accountID: string;
   activationLink?: string;
   userID?: string;
-  pending: boolean;
+  status: BillingAccountStatus;
 }
 
 export interface BillingAccountSetting {

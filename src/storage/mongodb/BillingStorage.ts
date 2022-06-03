@@ -224,7 +224,7 @@ export default class BillingStorage {
     const subAccountMDB: any = {
       _id: subAccount.id ? DatabaseUtils.convertToObjectID(subAccount.id) : new ObjectId(),
       accountID: subAccount.accountID,
-      pending: subAccount.pending,
+      status: subAccount.status,
       userID: DatabaseUtils.convertToObjectID(subAccount.userID)
     };
     // Modify and return the modified document
