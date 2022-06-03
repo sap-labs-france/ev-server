@@ -58,8 +58,8 @@ export default class BillingTestHelper {
   public billingImpl: StripeBillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
 
-  public async initialize() : Promise<void> {
-    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+  public async initialize(tenant: string) : Promise<void> {
+    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenant);
     this.adminUserContext = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     this.adminUserService = new CentralServerService(
       this.tenantContext.getTenant().subdomain,

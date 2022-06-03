@@ -1,9 +1,14 @@
+import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpConnectionsRequest extends HttpDatabaseRequest {
+export interface HttpConnectionsGetRequest extends HttpDatabaseRequest {
   UserID?: string;
 }
 
-export interface HttpConnectionRequest extends HttpDatabaseRequest {
-  ID?: string;
+export interface HttpConnectionGetRequest extends HttpByIDRequest {
+  ID: string;
+}
+
+export interface HttpConnectionDeleteRequest extends HttpByIDRequest {
+  ID: string;
 }

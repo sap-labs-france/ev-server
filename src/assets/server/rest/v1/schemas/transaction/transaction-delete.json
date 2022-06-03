@@ -1,0 +1,13 @@
+{
+  "$id": "transaction-delete",
+  "title": "Delete Transaction Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "transaction#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

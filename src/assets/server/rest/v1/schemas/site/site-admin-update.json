@@ -1,0 +1,22 @@
+{
+  "$id": "site-admin-update",
+  "title": "Set / unset site admin Request",
+  "type": "object",
+  "properties": {
+    "siteID": {
+      "$ref": "site#/definitions/id"
+    },
+    "userID": {
+      "$ref": "user#/definitions/id"
+    },
+    "siteAdmin": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "siteID",
+    "userID",
+    "siteAdmin"
+  ]
+}
