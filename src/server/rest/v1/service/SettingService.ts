@@ -329,6 +329,8 @@ export default class SettingService {
         return SettingValidator.getInstance().validateSettingCarConnectorSetReq(req.body);
       case IntegrationSettings.BILLING:
         return SettingValidator.getInstance().validateSettingBillingSetReq(req.body);
+      case IntegrationSettings.BILLING_PLATFORM:
+        return SettingValidator.getInstance().validateSettingBillingPlatformSetReq(req.body);
       case IntegrationSettings.CAR:
         return SettingValidator.getInstance().validateSettingCarSetReq(req.body);
       case IntegrationSettings.ORGANIZATION:

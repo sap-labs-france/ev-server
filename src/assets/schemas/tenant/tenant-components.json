@@ -67,6 +67,15 @@
             }
           }
         },
+        "billingPlatform": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            }
+          }
+        },
         "organization": {
           "type": "object",
           "properties": {
