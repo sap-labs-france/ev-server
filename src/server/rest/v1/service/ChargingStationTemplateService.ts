@@ -12,7 +12,6 @@ import ChargingStationTemplateStorage from '../../../../storage/mongodb/Charging
 import ChargingStationTemplateValidator from '../validator/ChargingStationTemplateValidator';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
-import LoggingHelper from '../../../../utils/LoggingHelper';
 import { ServerAction } from '../../../../types/Server';
 import UtilsService from './UtilsService';
 
@@ -61,7 +60,6 @@ export default class ChargingStationTemplateService {
     newChargingStationTemplate.id = await ChargingStationTemplateStorage.saveChargingStationTemplate(newChargingStationTemplate);
     await Logging.logInfo({
       tenantID: req.tenant.id,
-      ...LoggingHelper.getChargingStationTemplateProperties(newChargingStationTemplate),
       user: req.user, module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
       message: `ChargingStationTemplate '${newChargingStationTemplate.id}' has been created successfully`,
       action: action,
@@ -129,7 +127,6 @@ export default class ChargingStationTemplateService {
     // Check auth
     if (!await Authorizations.canDeleteChargingStationTemplate(req.user)) {
       throw new AppAuthError({
-        ...LoggingHelper.getChargingStationTemplateProperties(chargingStationTemplate),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.CHARGING_STATION_TEMPLATE,
@@ -185,7 +182,6 @@ export default class ChargingStationTemplateService {
     newChargingStationTemplate.id = await ChargingStationTemplateStorage.saveChargingStationTemplate(newChargingStationTemplate);
     await Logging.logInfo({
       tenantID: req.tenant.id,
-      ...LoggingHelper.getChargingStationTemplateProperties(newChargingStationTemplate),
       user: req.user, module: MODULE_NAME, method: 'handleUpdateChargingStationTemplate',
       message: `'${newChargingStationTemplate.id}' has been updated successfully`,
       action: action,

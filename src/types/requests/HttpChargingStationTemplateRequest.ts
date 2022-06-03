@@ -11,20 +11,16 @@ export interface HttpGetChargingStationTemplatesRequest extends ChargingStationT
   Limit: number;
   Search?: string;
   Issuer?: boolean;
-  WithSite?: boolean;
-  WithLogo?: boolean;
-  LocCoordinates?: number[];
-  LocLongitude?: number;
-  LocLatitude?: number;
-  LocMaxDistanceMeters?: number;
 }
 
 export interface HttpUpdateChargingStationTemplateRequest extends ChargingStationTemplate {
 }
-export type HttpCreateChargingStationTemplateRequest = ChargingStationTemplate;
 
-export type HttpDeleteChargingStationTemplateRequest = ChargingStationTemplate;
+export interface HttpCreateChargingStationTemplateRequest extends ChargingStationTemplate {
+}
 
+export interface HttpDeleteChargingStationTemplateRequest extends ChargingStationTemplate {
+}
 
 export interface HttpChargingStationsTemplateResponse {
   count: number;

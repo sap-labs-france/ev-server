@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingSettingsType } from '../../../src/types/Setting';
 
 import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
