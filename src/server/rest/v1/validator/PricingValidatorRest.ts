@@ -5,8 +5,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class PricingValidator extends SchemaValidator {
-  private static instance: PricingValidator|null = null;
+export default class PricingValidatorRest extends SchemaValidator {
+  private static instance: PricingValidatorRest|null = null;
   private pricingDefinitionGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition-get.json`, 'utf8'));
   private pricingDefinitionDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definition-delete.json`, 'utf8'));
   private pricingDefinitionsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-definitions-get.json`, 'utf8'));
@@ -15,14 +15,14 @@ export default class PricingValidator extends SchemaValidator {
   private pricingModelResolve: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/pricing/pricing-model-resolve.json`, 'utf8'));
 
   private constructor() {
-    super('PricingValidator');
+    super('PricingValidatorRest');
   }
 
-  public static getInstance(): PricingValidator {
-    if (!PricingValidator.instance) {
-      PricingValidator.instance = new PricingValidator();
+  public static getInstance(): PricingValidatorRest {
+    if (!PricingValidatorRest.instance) {
+      PricingValidatorRest.instance = new PricingValidatorRest();
     }
-    return PricingValidator.instance;
+    return PricingValidatorRest.instance;
   }
 
   public validatePricingDefinitionGet(data: Record<string, unknown>): HttpPricingDefinitionsGetRequest {

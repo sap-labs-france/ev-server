@@ -5,8 +5,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class SettingValidator extends SchemaValidator {
-  private static instance: SettingValidator|null = null;
+export default class SettingValidatorRest extends SchemaValidator {
+  private static instance: SettingValidatorRest|null = null;
   private settingOCPISet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-ocpi-set.json`, 'utf8'));
   private settingSmartChargingSet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-smart-charging-set.json`, 'utf8'));
   private settingUserSet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-user-set.json`, 'utf8'));
@@ -28,14 +28,14 @@ export default class SettingValidator extends SchemaValidator {
   private settingsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/settings-get.json`, 'utf8'));
 
   private constructor() {
-    super('SettingValidator');
+    super('SettingValidatorRest');
   }
 
-  public static getInstance(): SettingValidator {
-    if (!SettingValidator.instance) {
-      SettingValidator.instance = new SettingValidator();
+  public static getInstance(): SettingValidatorRest {
+    if (!SettingValidatorRest.instance) {
+      SettingValidatorRest.instance = new SettingValidatorRest();
     }
-    return SettingValidator.instance;
+    return SettingValidatorRest.instance;
   }
 
   public validateSettingGetReq(data: Record<string, unknown>): HttpSettingGetRequest {

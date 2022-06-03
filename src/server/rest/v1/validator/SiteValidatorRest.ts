@@ -5,8 +5,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class SiteValidator extends SchemaValidator {
-  private static instance: SiteValidator|null = null;
+export default class SiteValidatorRest extends SchemaValidator {
+  private static instance: SiteValidatorRest|null = null;
   private siteCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-create.json`, 'utf8'));
   private siteAdminUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-admin-update.json`, 'utf8'));
   private siteOwnerUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-owner-update.json`, 'utf8'));
@@ -19,14 +19,14 @@ export default class SiteValidator extends SchemaValidator {
   private siteUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-update.json`, 'utf8'));
 
   private constructor() {
-    super('SiteValidator');
+    super('SiteValidatorRest');
   }
 
-  public static getInstance(): SiteValidator {
-    if (!SiteValidator.instance) {
-      SiteValidator.instance = new SiteValidator();
+  public static getInstance(): SiteValidatorRest {
+    if (!SiteValidatorRest.instance) {
+      SiteValidatorRest.instance = new SiteValidatorRest();
     }
-    return SiteValidator.instance;
+    return SiteValidatorRest.instance;
   }
 
   public validateSiteCreateReq(data: Record<string, unknown>): HttpSiteCreateRequest {

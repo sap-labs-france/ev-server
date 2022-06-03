@@ -1,13 +1,12 @@
 import { HttpOCPIEndpointCommandRequest, HttpOCPIEndpointCreateRequest, HttpOCPIEndpointDeleteRequest, HttpOCPIEndpointGetRequest, HttpOCPIEndpointPingRequest, HttpOCPIEndpointUpdateRequest, HttpOCPIEndpointsGetRequest } from '../../../../types/requests/HttpOCPIEndpointRequest';
 
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class OCPIEndpointValidator extends SchemaValidator {
-  private static instance: OCPIEndpointValidator|null = null;
+export default class OCPIEndpointValidatorRest extends SchemaValidator {
+  private static instance: OCPIEndpointValidatorRest|null = null;
   private ocpiEndpointCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/ocpi/ocpi-endpoint-create.json`, 'utf8'));
   private ocpiEndpointPing: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/ocpi/ocpi-endpoint-ping.json`, 'utf8'));
   private ocpiEndpointById: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/ocpi/ocpi-endpoint-by-id.json`, 'utf8'));
@@ -18,14 +17,14 @@ export default class OCPIEndpointValidator extends SchemaValidator {
 
 
   private constructor() {
-    super('OCPIEndpointValidator');
+    super('OCPIEndpointValidatorRest');
   }
 
-  public static getInstance(): OCPIEndpointValidator {
-    if (!OCPIEndpointValidator.instance) {
-      OCPIEndpointValidator.instance = new OCPIEndpointValidator();
+  public static getInstance(): OCPIEndpointValidatorRest {
+    if (!OCPIEndpointValidatorRest.instance) {
+      OCPIEndpointValidatorRest.instance = new OCPIEndpointValidatorRest();
     }
-    return OCPIEndpointValidator.instance;
+    return OCPIEndpointValidatorRest.instance;
   }
 
   public validateOCPIEndpointCreateReq(data: Record<string, unknown>): HttpOCPIEndpointUpdateRequest {

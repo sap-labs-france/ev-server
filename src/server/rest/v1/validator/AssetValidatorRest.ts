@@ -7,8 +7,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class AssetValidator extends SchemaValidator {
-  private static instance: AssetValidator|null = null;
+export default class AssetValidatorRest extends SchemaValidator {
+  private static instance: AssetValidatorRest|null = null;
   private assetConsumptionCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-consumption-create.json`, 'utf8'));
   private assetGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-get.json`, 'utf8'));
   private assetsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/assets-get.json`, 'utf8'));
@@ -20,14 +20,14 @@ export default class AssetValidator extends SchemaValidator {
   private assetGetImage: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-get-image.json`, 'utf8'));
 
   private constructor() {
-    super('AssetValidator');
+    super('AssetValidatorRest');
   }
 
-  public static getInstance(): AssetValidator {
-    if (!AssetValidator.instance) {
-      AssetValidator.instance = new AssetValidator();
+  public static getInstance(): AssetValidatorRest {
+    if (!AssetValidatorRest.instance) {
+      AssetValidatorRest.instance = new AssetValidatorRest();
     }
-    return AssetValidator.instance;
+    return AssetValidatorRest.instance;
   }
 
   public validateAssetConsumptionCreateReq(data: Record<string, unknown>): Consumption {

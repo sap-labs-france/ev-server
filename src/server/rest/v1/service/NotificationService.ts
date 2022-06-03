@@ -8,7 +8,7 @@ import { EndUserErrorNotification } from '../../../../types/UserNotifications';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import NotificationStorage from '../../../../storage/mongodb/NotificationStorage';
-import NotificationValidator from '../validator/NotificationValidator';
+import NotificationValidatorRest from '../validator/NotificationValidatorRest';
 import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -18,7 +18,7 @@ const MODULE_NAME = 'NotificationService';
 export default class NotificationService {
   public static async handleGetNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = NotificationValidator.getInstance().validateNotificationsGetReq(req.query);
+    const filteredRequest = NotificationValidatorRest.getInstance().validateNotificationsGetReq(req.query);
     // Check User
     let userProject: string[] = [];
     if ((await Authorizations.canListUsers(req.user)).authorized) {
@@ -58,7 +58,7 @@ export default class NotificationService {
       });
     }
     // Filter
-    const filteredRequest = NotificationValidator.getInstance().validateEndUserErrorReportReq(req.body);
+    const filteredRequest = NotificationValidatorRest.getInstance().validateEndUserErrorReportReq(req.body);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, req.user.id, Action.READ, action);

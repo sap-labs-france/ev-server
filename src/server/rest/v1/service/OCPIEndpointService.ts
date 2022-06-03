@@ -14,7 +14,7 @@ import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
-import OCPIEndpointValidator from '../validator/OCPIEndpointValidator';
+import OCPIEndpointValidatorRest from '../validator/OCPIEndpointValidatorRest';
 import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationStatus';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
@@ -30,7 +30,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.DELETE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleDeleteOcpiEndpoint');
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointDeleteReq(req.query);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointDeleteReq(req.query);
     // Check auth
     if (!await Authorizations.canDeleteOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -63,7 +63,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoint');
     // Filter
-    const endpointID = OCPIEndpointValidator.getInstance().validateOCPIEndpointGetReq(req.query).ID;
+    const endpointID = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointGetReq(req.query).ID;
     // Check auth
     if (!await Authorizations.canReadOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -105,7 +105,7 @@ export default class OCPIEndpointService {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointsGetReq(req.query);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointsGetReq(req.query);
     // Get all ocpi endpoints
     const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(req.tenant,
       {
@@ -142,7 +142,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCreateReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCreateReq(req.body);
     const ocpiEndpoint: OCPIEndpoint = {
       ...filteredRequest,
       createdBy: { id: req.user.id },
@@ -166,7 +166,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUpdateOcpiEndpoint');
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointUpdateReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointUpdateReq(req.body);
     // Check auth
     if (!await Authorizations.canUpdateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
@@ -211,7 +211,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointPingReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointPingReq(req.body);
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getOcpiClient(req.tenant, filteredRequest);
     // Try to ping
@@ -251,7 +251,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -302,7 +302,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -352,7 +352,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -402,7 +402,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -452,7 +452,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -502,7 +502,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -552,7 +552,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -602,7 +602,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -652,7 +652,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -703,7 +703,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get OcpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -756,7 +756,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get OcpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
@@ -809,7 +809,7 @@ export default class OCPIEndpointService {
       });
     }
     // Filter
-    const filteredRequest = OCPIEndpointValidator.getInstance().validateOCPIEndpointCommandReq(req.body);
+    const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
     // Get OcpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,

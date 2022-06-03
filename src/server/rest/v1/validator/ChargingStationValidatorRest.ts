@@ -7,8 +7,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class ChargingStationValidator extends SchemaValidator {
-  private static instance: ChargingStationValidator | null = null;
+export default class ChargingStationValidatorRest extends SchemaValidator {
+  private static instance: ChargingStationValidatorRest | null = null;
   private chargingStationsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstations-get.json`, 'utf8'));
   private chargingStationGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-get.json`, 'utf8'));
   private chargingStationDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-delete.json`, 'utf8'));
@@ -42,14 +42,14 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationNotificationsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-notifications-get.json`, 'utf8'));
 
   private constructor() {
-    super('ChargingStationValidator');
+    super('ChargingStationValidatorRest');
   }
 
-  public static getInstance(): ChargingStationValidator {
-    if (!ChargingStationValidator.instance) {
-      ChargingStationValidator.instance = new ChargingStationValidator();
+  public static getInstance(): ChargingStationValidatorRest {
+    if (!ChargingStationValidatorRest.instance) {
+      ChargingStationValidatorRest.instance = new ChargingStationValidatorRest();
     }
-    return ChargingStationValidator.instance;
+    return ChargingStationValidatorRest.instance;
   }
 
   public validateChargingStationsGetReq(data: Record<string, unknown>): HttpChargingStationsGetRequest {

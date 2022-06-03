@@ -5,8 +5,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class SiteAreaValidator extends SchemaValidator {
-  private static instance: SiteAreaValidator | undefined;
+export default class SiteAreaValidatorRest extends SchemaValidator {
+  private static instance: SiteAreaValidatorRest | undefined;
   private siteAreasGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site-area/site-areas-get.json`, 'utf8'));
   private siteAreaGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site-area/site-area-get.json`, 'utf8'));
   private siteAreaGetImage: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site-area/site-area-get-image.json`, 'utf8'));
@@ -19,14 +19,14 @@ export default class SiteAreaValidator extends SchemaValidator {
 
 
   private constructor() {
-    super('SiteAreaValidator');
+    super('SiteAreaValidatorRest');
   }
 
-  public static getInstance(): SiteAreaValidator {
-    if (!SiteAreaValidator.instance) {
-      SiteAreaValidator.instance = new SiteAreaValidator();
+  public static getInstance(): SiteAreaValidatorRest {
+    if (!SiteAreaValidatorRest.instance) {
+      SiteAreaValidatorRest.instance = new SiteAreaValidatorRest();
     }
-    return SiteAreaValidator.instance;
+    return SiteAreaValidatorRest.instance;
   }
 
   public validateSiteAreasGetReq(data: Record<string, unknown>): HttpSiteAreasGetRequest {

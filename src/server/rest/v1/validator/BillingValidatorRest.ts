@@ -6,8 +6,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class BillingValidator extends SchemaValidator {
-  private static instance: BillingValidator|null = null;
+export default class BillingValidatorRest extends SchemaValidator {
+  private static instance: BillingValidatorRest|null = null;
   private billingSettingUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-setting-update.json`, 'utf8'));
   private billingGetUserPaymentMethods: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-payment-methods-get.json`, 'utf8'));
   private billingDeleteUserPaymentMethod: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-delete-payment-method.json`, 'utf8'));
@@ -18,14 +18,14 @@ export default class BillingValidator extends SchemaValidator {
   private billingActivateSubAccount: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-activate-sub-account.json`, 'utf8'));
 
   private constructor() {
-    super('BillingValidator');
+    super('BillingValidatorRest');
   }
 
-  public static getInstance(): BillingValidator {
-    if (!BillingValidator.instance) {
-      BillingValidator.instance = new BillingValidator();
+  public static getInstance(): BillingValidatorRest {
+    if (!BillingValidatorRest.instance) {
+      BillingValidatorRest.instance = new BillingValidatorRest();
     }
-    return BillingValidator.instance;
+    return BillingValidatorRest.instance;
   }
 
   public validateBillingSettingUpdateReq(data: Record<string, unknown>): BillingSettings {

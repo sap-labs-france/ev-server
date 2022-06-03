@@ -6,8 +6,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class CompanyValidator extends SchemaValidator {
-  private static instance: CompanyValidator|null = null;
+export default class CompanyValidatorRest extends SchemaValidator {
+  private static instance: CompanyValidatorRest|null = null;
   private companiesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/companies-get.json`, 'utf8'));
   private companyGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-get.json`, 'utf8'));
   private companyDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-delete.json`, 'utf8'));
@@ -16,14 +16,14 @@ export default class CompanyValidator extends SchemaValidator {
   private companyLogoGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-logo-get.json`, 'utf8'));
 
   private constructor() {
-    super('CompanyValidator');
+    super('CompanyValidatorRest');
   }
 
-  public static getInstance(): CompanyValidator {
-    if (!CompanyValidator.instance) {
-      CompanyValidator.instance = new CompanyValidator();
+  public static getInstance(): CompanyValidatorRest {
+    if (!CompanyValidatorRest.instance) {
+      CompanyValidatorRest.instance = new CompanyValidatorRest();
     }
-    return CompanyValidator.instance;
+    return CompanyValidatorRest.instance;
   }
 
   public validateCompaniesGetReq(data: Record<string, unknown>): HttpCompaniesGetRequest {

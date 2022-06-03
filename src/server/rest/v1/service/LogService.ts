@@ -7,7 +7,7 @@ import Constants from '../../../../utils/Constants';
 import { HttpLogsGetRequest } from '../../../../types/requests/HttpLogRequest';
 import { Log } from '../../../../types/Log';
 import LogStorage from '../../../../storage/mongodb/LogStorage';
-import LogValidator from '../validator/LogValidator';
+import LogValidatorRest from '../validator/LogValidatorRest';
 import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -18,7 +18,7 @@ const MODULE_NAME = 'LogService';
 export default class LogService {
   public static async handleGetLogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = LogValidator.getInstance().validateLogsGetReq(req.query);
+    const filteredRequest = LogValidatorRest.getInstance().validateLogsGetReq(req.query);
     // Get Logs
     res.json(await LogService.getLogs(req, filteredRequest));
     next();
@@ -28,7 +28,7 @@ export default class LogService {
     // Force params
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Filter
-    const filteredRequest = LogValidator.getInstance().validateLogsGetReq(req.query);
+    const filteredRequest = LogValidatorRest.getInstance().validateLogsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-logs.csv', filteredRequest,
       LogService.getLogs.bind(this),
@@ -37,7 +37,7 @@ export default class LogService {
 
   public static async handleGetLog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = LogValidator.getInstance().validateLogGetReq(req.query);
+    const filteredRequest = LogValidatorRest.getInstance().validateLogGetReq(req.query);
     // Check and Get Log
     const log = await UtilsService.checkAndGetLogAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, null, true);

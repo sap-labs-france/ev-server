@@ -5,8 +5,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class CarValidator extends SchemaValidator {
-  private static instance: CarValidator|null = null;
+export default class CarValidatorRest extends SchemaValidator {
+  private static instance: CarValidatorRest|null = null;
   private carMakersGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/carmakers-get.json`, 'utf8'));
   private carCatalogsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/carcatalogs-get.json`, 'utf8'));
   private carCatalogImagesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/carcatalog-images-get.json`, 'utf8'));
@@ -18,14 +18,14 @@ export default class CarValidator extends SchemaValidator {
   private carDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-delete.json`, 'utf8'));
 
   private constructor() {
-    super('CarValidator');
+    super('CarValidatorRest');
   }
 
-  public static getInstance(): CarValidator {
-    if (!CarValidator.instance) {
-      CarValidator.instance = new CarValidator();
+  public static getInstance(): CarValidatorRest {
+    if (!CarValidatorRest.instance) {
+      CarValidatorRest.instance = new CarValidatorRest();
     }
-    return CarValidator.instance;
+    return CarValidatorRest.instance;
   }
 
   public validateCarMakersGetReq(data: Record<string, unknown>): HttpCarMakersGetRequest {

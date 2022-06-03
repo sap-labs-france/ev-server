@@ -5,8 +5,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class TransactionValidator extends SchemaValidator {
-  private static instance: TransactionValidator | undefined;
+export default class TransactionValidatorRest extends SchemaValidator {
+  private static instance: TransactionValidatorRest | undefined;
   private transactionsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-get.json`, 'utf8'));
   private transactionGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-get.json`, 'utf8'));
   private transactionStop: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-stop.json`, 'utf8'));
@@ -21,14 +21,14 @@ export default class TransactionValidator extends SchemaValidator {
 
 
   private constructor() {
-    super('TransactionValidator');
+    super('TransactionValidatorRest');
   }
 
-  public static getInstance(): TransactionValidator {
-    if (!TransactionValidator.instance) {
-      TransactionValidator.instance = new TransactionValidator();
+  public static getInstance(): TransactionValidatorRest {
+    if (!TransactionValidatorRest.instance) {
+      TransactionValidatorRest.instance = new TransactionValidatorRest();
     }
-    return TransactionValidator.instance;
+    return TransactionValidatorRest.instance;
   }
 
   public validateTransactionsGetReq(data: Record<string, unknown>): HttpTransactionsGetRequest {

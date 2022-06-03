@@ -5,8 +5,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class AuthValidator extends SchemaValidator {
-  private static instance: AuthValidator | null = null;
+export default class AuthValidatorRest extends SchemaValidator {
+  private static instance: AuthValidatorRest | null = null;
   private authSignIn: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signin.json`, 'utf8'));
   private authSignOn: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signon.json`, 'utf8'));
   private authPasswordReset: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-password-reset.json`, 'utf8'));
@@ -16,14 +16,14 @@ export default class AuthValidator extends SchemaValidator {
   private authEula: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-eula.json`, 'utf8'));
 
   private constructor() {
-    super('AuthValidator');
+    super('AuthValidatorRest');
   }
 
-  public static getInstance(): AuthValidator {
-    if (!AuthValidator.instance) {
-      AuthValidator.instance = new AuthValidator();
+  public static getInstance(): AuthValidatorRest {
+    if (!AuthValidatorRest.instance) {
+      AuthValidatorRest.instance = new AuthValidatorRest();
     }
-    return AuthValidator.instance;
+    return AuthValidatorRest.instance;
   }
 
   public validateAuthSignInReq(data: Record<string, unknown>): HttpLoginRequest {

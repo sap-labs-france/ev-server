@@ -6,8 +6,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class UserValidator extends SchemaValidator {
-  private static instance: UserValidator | null = null;
+export default class UserValidatorRest extends SchemaValidator {
+  private static instance: UserValidatorRest | null = null;
   private userImportCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-import-create.json`, 'utf8'));
   private userCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-create.json`, 'utf8'));
   private userSitesAssign: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-sites-assign.json`, 'utf8'));
@@ -21,14 +21,14 @@ export default class UserValidator extends SchemaValidator {
   private userDefaultTagCarGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-default-tag-car-get.json`, 'utf8'));
 
   private constructor() {
-    super('UserValidator');
+    super('UserValidatorRest');
   }
 
-  public static getInstance(): UserValidator {
-    if (!UserValidator.instance) {
-      UserValidator.instance = new UserValidator();
+  public static getInstance(): UserValidatorRest {
+    if (!UserValidatorRest.instance) {
+      UserValidatorRest.instance = new UserValidatorRest();
     }
-    return UserValidator.instance;
+    return UserValidatorRest.instance;
   }
 
   public validateUserImportCreateReq(data: ImportedUser): void {

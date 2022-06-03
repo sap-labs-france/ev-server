@@ -5,8 +5,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class OICPEndpointValidator extends SchemaValidator {
-  private static instance: OICPEndpointValidator|null = null;
+export default class OICPEndpointValidatorRest extends SchemaValidator {
+  private static instance: OICPEndpointValidatorRest|null = null;
   private oicpEndpointCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/oicp/oicp-endpoint-create.json`, 'utf8'));
   private oicpEndpointPing: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/oicp/oicp-endpoint-ping.json`, 'utf8'));
   private oicpEndpointGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/oicp/oicp-endpoint-get.json`, 'utf8'));
@@ -16,14 +16,14 @@ export default class OICPEndpointValidator extends SchemaValidator {
 
 
   private constructor() {
-    super('OICPEndpointValidator');
+    super('OICPEndpointValidatorRest');
   }
 
-  public static getInstance(): OICPEndpointValidator {
-    if (!OICPEndpointValidator.instance) {
-      OICPEndpointValidator.instance = new OICPEndpointValidator();
+  public static getInstance(): OICPEndpointValidatorRest {
+    if (!OICPEndpointValidatorRest.instance) {
+      OICPEndpointValidatorRest.instance = new OICPEndpointValidatorRest();
     }
-    return OICPEndpointValidator.instance;
+    return OICPEndpointValidatorRest.instance;
   }
 
   public validateOICPEndpointCreateReq(data: Record<string, unknown>): HttpOICPEndpointCreateRequest {

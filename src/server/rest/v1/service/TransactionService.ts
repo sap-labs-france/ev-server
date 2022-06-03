@@ -13,7 +13,7 @@ import BillingFactory from '../../../../integration/billing/BillingFactory';
 import { BillingStatus } from '../../../../types/Billing';
 import ChargingStationService from './ChargingStationService';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationValidator from '../validator/ChargingStationValidator';
+import ChargingStationValidatorRest from '../validator/ChargingStationValidatorRest';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
@@ -36,7 +36,7 @@ import { ServerAction } from '../../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import TransactionValidator from '../validator/TransactionValidator';
+import TransactionValidatorRest from '../validator/TransactionValidatorRest';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -49,7 +49,7 @@ const MODULE_NAME = 'TransactionService';
 export default class TransactionService {
   public static async handleGetTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
     const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
@@ -94,7 +94,7 @@ export default class TransactionService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
       Action.REFUND_TRANSACTION, Entity.TRANSACTION, MODULE_NAME, 'handleRefundTransactions');
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsByIDsGetReq(req.body);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsByIDsGetReq(req.body);
     if (!filteredRequest.transactionsIDs) {
       // Not Found!
       throw new AppError({
@@ -196,7 +196,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionCdrPushReq(req.body);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionCdrPushReq(req.body);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.transactionId, MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check Transaction
@@ -342,7 +342,7 @@ export default class TransactionService {
 
   public static async handleDeleteTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionID = TransactionValidator.getInstance().validateTransactionDeleteReq(req.query).ID;
+    const transactionID = TransactionValidatorRest.getInstance().validateTransactionDeleteReq(req.query).ID;
     // Check auth
     if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
@@ -365,7 +365,7 @@ export default class TransactionService {
 
   public static async handleDeleteTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionsIDs = TransactionValidator.getInstance().validateTransactionsByIDsGetReq(req.body).transactionsIDs;
+    const transactionsIDs = TransactionValidatorRest.getInstance().validateTransactionsByIDsGetReq(req.body).transactionsIDs;
     // Check auth
     if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
@@ -384,7 +384,7 @@ export default class TransactionService {
 
   public static async handleTransactionStart(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const remoteStartRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStartReq(req.body);
+    const remoteStartRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStartReq(req.body);
     // Get data
     const { chargingStation } = await TransactionService.checkAndGetChargingStationConnector(
       action, req.tenant, req.user, remoteStartRequest.chargingStationID, remoteStartRequest.args.connectorId);
@@ -402,7 +402,7 @@ export default class TransactionService {
 
   public static async handleTransactionStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionID = TransactionValidator.getInstance().validateTransactionStopReq(req.body).ID;
+    const transactionID = TransactionValidatorRest.getInstance().validateTransactionStopReq(req.body).ID;
     UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'handleTransactionStop', req.user);
     // Get data
     const { transaction, chargingStation, connector } =
@@ -433,7 +433,7 @@ export default class TransactionService {
 
   public static async handleTransactionSoftStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionID = TransactionValidator.getInstance().validateTransactionStopReq(req.body).ID;
+    const transactionID = TransactionValidatorRest.getInstance().validateTransactionStopReq(req.body).ID;
     UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get data
     const { transaction, chargingStation, connector } =
@@ -444,7 +444,7 @@ export default class TransactionService {
 
   public static async handleGetTransactionConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionConsumptionsGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionConsumptionsGetReq(req.query);
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
       'handleGetConsumptionFromTransaction', req.user);
@@ -551,7 +551,7 @@ export default class TransactionService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.TRANSACTION, MODULE_NAME, 'handleGetTransactionConsumptionForAdvenir');
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionConsumptionsAdvenirGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionConsumptionsAdvenirGetReq(req.query);
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
       'handleGetConsumptionFromTransaction', req.user);
@@ -625,7 +625,7 @@ export default class TransactionService {
 
   public static async handleGetTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID,
@@ -690,7 +690,7 @@ export default class TransactionService {
 
   public static async handleGetChargingStationTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
     const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
@@ -718,7 +718,7 @@ export default class TransactionService {
   public static async handleGetTransactionsActive(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     req.query.Status = 'active';
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
     const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
@@ -733,7 +733,7 @@ export default class TransactionService {
     // Get transaction
     req.query.Status = 'completed';
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
     const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
@@ -754,7 +754,7 @@ export default class TransactionService {
     req.query.issuer = 'true';
     req.query.Status = 'completed';
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
     const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
@@ -787,7 +787,7 @@ export default class TransactionService {
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
@@ -818,7 +818,7 @@ export default class TransactionService {
     req.query.Status = 'completed';
     req.query.WithTag = 'true';
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-sessions.csv', filteredRequest,
       TransactionService.getCompletedTransactionsToExport.bind(this),
@@ -830,7 +830,7 @@ export default class TransactionService {
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     req.query.Status = 'completed';
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-refund-sessions.csv', filteredRequest,
       TransactionService.getRefundedTransactionsToExport.bind(this),
@@ -850,7 +850,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionCdrExportReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionCdrExportReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, {}, ['id', 'ocpiData']);
@@ -906,7 +906,7 @@ export default class TransactionService {
     }
     const filter: any = {};
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionsInErrorGetReq(req.query);
+    const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsInErrorGetReq(req.query);
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.tenant,
       {

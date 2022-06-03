@@ -4,20 +4,20 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class StatisticsValidator extends SchemaValidator {
-  private static instance: StatisticsValidator|null = null;
+export default class StatisticsValidatorRest extends SchemaValidator {
+  private static instance: StatisticsValidatorRest|null = null;
   private statisticsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/statistic/statistics-get.json`, 'utf8'));
   private statisticsExport: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/statistic/statistics-export.json`, 'utf8'));
 
   private constructor() {
-    super('StatisticsValidator');
+    super('StatisticsValidatorRest');
   }
 
-  public static getInstance(): StatisticsValidator {
-    if (!StatisticsValidator.instance) {
-      StatisticsValidator.instance = new StatisticsValidator();
+  public static getInstance(): StatisticsValidatorRest {
+    if (!StatisticsValidatorRest.instance) {
+      StatisticsValidatorRest.instance = new StatisticsValidatorRest();
     }
-    return StatisticsValidator.instance;
+    return StatisticsValidatorRest.instance;
   }
 
   public validateStatisticsGet(data: Record<string, unknown>): HttpStatisticsGetRequest {

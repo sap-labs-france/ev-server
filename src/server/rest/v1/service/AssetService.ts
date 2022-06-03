@@ -9,7 +9,7 @@ import { AssetDataResult } from '../../../../types/DataResult';
 import AssetFactory from '../../../../integration/asset/AssetFactory';
 import { AssetInErrorType } from '../../../../types/InError';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
-import AssetValidator from '../validator/AssetValidator';
+import AssetValidatorRest from '../validator/AssetValidatorRest';
 import AuthorizationService from './AuthorizationService';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
@@ -36,7 +36,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.READ_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleGetAssetConsumption');
     // Filter
-    const filteredRequest = AssetValidator.getInstance().validateAssetGetConsumptionsReq(req.query);
+    const filteredRequest = AssetValidatorRest.getInstance().validateAssetGetConsumptionsReq(req.query);
     // Check and get Asset
     const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.AssetID, Action.READ_CONSUMPTION, action, null, {}, true);
     // Check dates
@@ -68,7 +68,7 @@ export default class AssetService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET, Action.CREATE_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleCreateAssetConsumption');
     // Validate request
-    const filteredRequest = AssetValidator.getInstance().validateAssetConsumptionCreateReq({ ...req.query, ...req.body });
+    const filteredRequest = AssetValidatorRest.getInstance().validateAssetConsumptionCreateReq({ ...req.query, ...req.body });
     // Check and get Asset
     const asset = await UtilsService.checkAndGetAssetAuthorization(
       req.tenant, req.user, filteredRequest.assetID, Action.CREATE_CONSUMPTION, action, null, { withSiteArea: true });
@@ -146,7 +146,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CHECK_CONNECTION, Entity.ASSET, MODULE_NAME, 'handleCheckAssetConnection');
     // Filter request, NOTE: ID in this request is a connection ID not an Asset ID
-    const filteredRequest = AssetValidator.getInstance().validateAssetCheckConnectionReq(req.query);
+    const filteredRequest = AssetValidatorRest.getInstance().validateAssetCheckConnectionReq(req.query);
     // Check dynamic auth
     await AuthorizationService.checkAndGetAssetsAuthorizations(req.tenant, req.user, Action.CHECK_CONNECTION);
     // Get asset connection type
@@ -187,7 +187,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.RETRIEVE_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleRetrieveConsumption');
     // Filter request
-    const assetID = AssetValidator.getInstance().validateAssetGetReq(req.query).ID;
+    const assetID = AssetValidatorRest.getInstance().validateAssetGetReq(req.query).ID;
     // Check and get Asset
     const asset = await UtilsService.checkAndGetAssetAuthorization(
       req.tenant, req.user, assetID, Action.RETRIEVE_CONSUMPTION, action, null, {}, true);
@@ -244,7 +244,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSET, MODULE_NAME, 'handleGetAssetsInError');
     // Filter
-    const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
+    const filteredRequest = AssetValidatorRest.getInstance().validateAssetsGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(
       req.tenant, req.user, Action.IN_ERROR, filteredRequest, false);
@@ -286,7 +286,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.DELETE, Entity.ASSET, MODULE_NAME, 'handleDeleteAsset');
     // Filter
-    const filteredRequest = AssetValidator.getInstance().validateAssetDeleteReq(req.query);
+    const filteredRequest = AssetValidatorRest.getInstance().validateAssetDeleteReq(req.query);
     // Check and get Asset
     const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.ID,
       Action.DELETE, action);
@@ -311,7 +311,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.READ, Entity.ASSET, MODULE_NAME, 'handleGetAsset');
     // Filter
-    const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
+    const filteredRequest = AssetValidatorRest.getInstance().validateAssetGetReq(req.query);
     // Check and get Asset
     const asset = await UtilsService.checkAndGetAssetAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null,
       { withSiteArea: filteredRequest.WithSiteArea }, true);
@@ -321,7 +321,7 @@ export default class AssetService {
 
   public static async handleGetAssetImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // This endpoint is not protected, so no need to check user's access
-    const filteredRequest = AssetValidator.getInstance().validateAssetGetImageReq(req.query);
+    const filteredRequest = AssetValidatorRest.getInstance().validateAssetGetImageReq(req.query);
     // Get the tenant
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
     UtilsService.assertObjectExists(action, tenant, 'Tenant does not exist', MODULE_NAME, 'handleGetAssetImage', req.user);
@@ -350,7 +350,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSET, MODULE_NAME, 'handleGetAssets');
     // Filter
-    const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
+    const filteredRequest = AssetValidatorRest.getInstance().validateAssetsGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(
       req.tenant, req.user, Action.LIST, filteredRequest, false);
@@ -395,7 +395,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CREATE, Entity.ASSET, MODULE_NAME, 'handleCreateAsset');
     // Check request is valid
-    const filteredAssetRequest = AssetValidator.getInstance().validateAssetCreateReq(req.body);
+    const filteredAssetRequest = AssetValidatorRest.getInstance().validateAssetCreateReq(req.body);
     // Check authorizations for current action attempt
     await AuthorizationService.checkAndGetAssetAuthorizations(
       req.tenant, req.user, Action.CREATE, {}, filteredAssetRequest);
@@ -435,7 +435,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleUpdateAsset');
     // Filter
-    const filteredRequest = AssetValidator.getInstance().validateAssetUpdateReq(req.body);
+    const filteredRequest = AssetValidatorRest.getInstance().validateAssetUpdateReq(req.body);
     // Check Site Area authorization
     let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {

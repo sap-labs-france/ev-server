@@ -6,8 +6,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class RegistrationTokenValidator extends SchemaValidator {
-  private static instance: RegistrationTokenValidator | null = null;
+export default class RegistrationTokenValidatorRest extends SchemaValidator {
+  private static instance: RegistrationTokenValidatorRest | null = null;
   private registrationTokenCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-token-create.json`, 'utf8'));
   private registrationTokenGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-token-get.json`, 'utf8'));
   private registrationTokenRevoke: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/registration-token/registration-token-revoke.json`, 'utf8'));
@@ -17,14 +17,14 @@ export default class RegistrationTokenValidator extends SchemaValidator {
 
 
   private constructor() {
-    super('RegistrationTokenValidator');
+    super('RegistrationTokenValidatorRest');
   }
 
-  public static getInstance(): RegistrationTokenValidator {
-    if (!RegistrationTokenValidator.instance) {
-      RegistrationTokenValidator.instance = new RegistrationTokenValidator();
+  public static getInstance(): RegistrationTokenValidatorRest {
+    if (!RegistrationTokenValidatorRest.instance) {
+      RegistrationTokenValidatorRest.instance = new RegistrationTokenValidatorRest();
     }
-    return RegistrationTokenValidator.instance;
+    return RegistrationTokenValidatorRest.instance;
   }
 
   public validateRegistrationTokenCreateReq(data: Record<string, unknown>): RegistrationToken {

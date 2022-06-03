@@ -9,7 +9,7 @@ import BillingFactory from '../../../../integration/billing/BillingFactory';
 import BillingSecurity from './security/BillingSecurity';
 import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
-import BillingValidator from '../validator/BillingValidator';
+import BillingValidatorRest from '../validator/BillingValidatorRest';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -183,7 +183,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING, Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoices');
     // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingInvoicesGetReq(req.query);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingInvoicesGetReq(req.query);
     // Check dynamic authorization
     const authorizations = await AuthorizationService.checkAndGetInvoicesAuthorizations(
       req.tenant, req.user, filteredRequest, false);
@@ -225,7 +225,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.LIST, Entity.INVOICE, MODULE_NAME, 'handleGetInvoice');
     // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingInvoiceGetReq(req.query);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingInvoiceGetReq(req.query);
     // Check and get invoice
     const invoice = await UtilsService.checkAndGetInvoiceAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
     res.json(invoice);
@@ -237,7 +237,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_SETUP_PAYMENT_METHOD, Entity.BILLING, MODULE_NAME, 'handleSetupSetupPaymentMethod');
     // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingSetupUserPaymentMethodReq(req.body);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingSetupUserPaymentMethodReq(req.body);
     // Dynamic auth
     await AuthorizationService.checkAndGetPaymentMethodAuthorizations(req.tenant, req.user, filteredRequest, Action.CREATE);
     // Get the billing impl
@@ -265,7 +265,7 @@ export default class BillingService {
 
   public static async handleBillingGetPaymentMethods(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingGetUserPaymentMethodsReq(req.query);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingGetUserPaymentMethodsReq(req.query);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_PAYMENT_METHODS, Entity.BILLING, MODULE_NAME, 'handleBillingGetPaymentMethods');
@@ -308,7 +308,7 @@ export default class BillingService {
 
   public static async handleBillingDeletePaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingDeleteUserPaymentMethodReq(req.body);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingDeleteUserPaymentMethodReq(req.body);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_PAYMENT_METHODS, Entity.BILLING, MODULE_NAME, 'handleBillingDeletePaymentMethod');
@@ -346,7 +346,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');
     // Filter
-    const filteredRequest = BillingValidator.getInstance().validateBillingInvoiceGetReq(req.query);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingInvoiceGetReq(req.query);
     // Get the Invoice
     const billingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
@@ -396,7 +396,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.UPDATE, Entity.SETTING, MODULE_NAME, 'handleUpdateBillingSetting');
-    const newBillingProperties = BillingValidator.getInstance().validateBillingSettingUpdateReq({ ...req.params, ...req.body });
+    const newBillingProperties = BillingValidatorRest.getInstance().validateBillingSettingUpdateReq({ ...req.params, ...req.body });
     // Check and get previous settings that we want to update
     const billingSettings: BillingSettings = await UtilsService.checkAndGetBillingSettingAuthorization(req.tenant, req.user, null, Action.UPDATE, action);
     // Process sensitive data
@@ -475,7 +475,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
       Action.BILLING_CREATE_SUB_ACCOUNT, Entity.BILLING, MODULE_NAME, 'handleCreateSubAccount');
-    const filteredRequest = BillingValidator.getInstance().validateBillingCreateSubAccountReq(req.body);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingCreateSubAccountReq(req.body);
     // Check authorization
     await AuthorizationService.checkAndGetBillingAuthorizations(req.tenant, req.user, Action.BILLING_CREATE_SUB_ACCOUNT);
     // Get the billing impl
@@ -506,7 +506,7 @@ export default class BillingService {
   }
 
   public static async handleActivateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingValidator.getInstance().validateBillingActivateSubAccountReq({ ...req.params, ...req.query });
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingActivateSubAccountReq({ ...req.params, ...req.query });
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount');
     // Get the billing impl

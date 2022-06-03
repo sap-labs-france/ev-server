@@ -10,7 +10,7 @@ import LoggingHelper from '../../../../utils/LoggingHelper';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import { RegistrationTokenDataResult } from '../../../../types/DataResult';
 import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTokenStorage';
-import RegistrationTokenValidator from '../validator/RegistrationTokenValidator';
+import RegistrationTokenValidatorRest from '../validator/RegistrationTokenValidatorRest';
 import { ServerAction } from '../../../../types/Server';
 import { TenantComponents } from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
@@ -22,7 +22,7 @@ const MODULE_NAME = 'RegistrationTokenService';
 export default class RegistrationTokenService {
   public static async handleCreateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokenCreateReq(req.body);
+    const filteredRequest = RegistrationTokenValidatorRest.getInstance().validateRegistrationTokenCreateReq(req.body);
     // Check the Site Area
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       await UtilsService.checkAndGetSiteAreaAuthorization(
@@ -54,7 +54,7 @@ export default class RegistrationTokenService {
 
   public static async handleUpdateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokenUpdateReq(req.body);
+    const filteredRequest = RegistrationTokenValidatorRest.getInstance().validateRegistrationTokenUpdateReq(req.body);
     // Check and Get Registration Token
     const registrationToken = await UtilsService.checkAndGetRegistrationTokenAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
@@ -85,7 +85,7 @@ export default class RegistrationTokenService {
 
   public static async handleDeleteRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const registrationTokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenDeleteReq(req.query).ID;
+    const registrationTokenID = RegistrationTokenValidatorRest.getInstance().validateRegistrationTokenDeleteReq(req.query).ID;
     // Check and Get Registration Token
     const registrationToken = await UtilsService.checkAndGetRegistrationTokenAuthorization(
       req.tenant, req.user, registrationTokenID, Action.DELETE, action);
@@ -105,7 +105,7 @@ export default class RegistrationTokenService {
 
   public static async handleRevokeRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const registrationTokenID = RegistrationTokenValidator.getInstance().validateRegistrationTokenRevokeReq(req.query).ID;
+    const registrationTokenID = RegistrationTokenValidatorRest.getInstance().validateRegistrationTokenRevokeReq(req.query).ID;
     // Check and Get Registration Token
     const registrationToken = await UtilsService.checkAndGetRegistrationTokenAuthorization(
       req.tenant, req.user, registrationTokenID, Action.REVOKE, action, null, {}, true);
@@ -140,7 +140,7 @@ export default class RegistrationTokenService {
 
   public static async handleGetRegistrationTokens(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokensGetReq(req.query);
+    const filteredRequest = RegistrationTokenValidatorRest.getInstance().validateRegistrationTokensGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetRegistrationTokensAuthorizations(
       req.tenant, req.user, filteredRequest, false);
@@ -175,7 +175,7 @@ export default class RegistrationTokenService {
 
   public static async handleGetRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = RegistrationTokenValidator.getInstance().validateRegistrationTokenGetReq(req.query);
+    const filteredRequest = RegistrationTokenValidatorRest.getInstance().validateRegistrationTokenGetReq(req.query);
     // Check and Get Registration Token
     const registrationToken = await UtilsService.checkAndGetRegistrationTokenAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);

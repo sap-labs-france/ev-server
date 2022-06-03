@@ -10,7 +10,7 @@ import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
-import CarValidator from '../validator/CarValidator';
+import CarValidatorRest from '../validator/CarValidatorRest';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -32,7 +32,7 @@ export default class CarService {
         Action.LIST, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogs');
     }
     // Filter
-    const filteredRequest = CarValidator.getInstance().validateCarCatalogsGetReq(req.query);
+    const filteredRequest = CarValidatorRest.getInstance().validateCarCatalogsGetReq(req.query);
     // Check auth
     const authorizations = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(
       req.tenant, req.user, Action.LIST, filteredRequest, false);
@@ -74,7 +74,7 @@ export default class CarService {
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
     }
     // Filter
-    const filteredRequest = CarValidator.getInstance().validateCarCatalogGetReq(req.query);
+    const filteredRequest = CarValidatorRest.getInstance().validateCarCatalogGetReq(req.query);
     // Check and get Car Catalog
     const carCatalog = await UtilsService.checkAndGetCarCatalogAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withImage: true }, true);
@@ -84,7 +84,7 @@ export default class CarService {
 
   public static async handleGetCarCatalogImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // This endpoint is not protected, so no need to check user's access
-    const filteredRequest = CarValidator.getInstance().validateCarCatalogGetReq(req.query);
+    const filteredRequest = CarValidatorRest.getInstance().validateCarCatalogGetReq(req.query);
     // Get the car Image
     const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
     let image = carCatalog?.image;
@@ -112,7 +112,7 @@ export default class CarService {
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
     }
     // Filter
-    const filteredRequest = CarValidator.getInstance().validateCarCatalogImagesGetReq(req.query);
+    const filteredRequest = CarValidatorRest.getInstance().validateCarCatalogImagesGetReq(req.query);
     // Check dynamic auth
     await AuthorizationService.checkAndGetCarCatalogAuthorizations(
       req.tenant, req.user, { ID: filteredRequest.ID }, Action.READ);
@@ -170,7 +170,7 @@ export default class CarService {
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');
     }
     // Filter
-    const filteredRequest = CarValidator.getInstance().validateCarMakersGetReq(req.query);
+    const filteredRequest = CarValidatorRest.getInstance().validateCarMakersGetReq(req.query);
     // Check auth
     const authorizations = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(
       req.tenant, req.user, Action.LIST, filteredRequest, false);
@@ -189,7 +189,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
     // Filter
-    const filteredRequest = CarValidator.getInstance().validateCarCreateReq(req.body);
+    const filteredRequest = CarValidatorRest.getInstance().validateCarCreateReq(req.body);
     // Check auth
     await AuthorizationService.checkAndGetCarAuthorizations(
       req.tenant,req.user, {}, Action.CREATE, filteredRequest as Car);
@@ -258,7 +258,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.UPDATE, Entity.CAR, MODULE_NAME, 'handleUpdateCar');
     // Filter
-    const filteredRequest = CarValidator.getInstance().validateCarUpdateReq(req.body);
+    const filteredRequest = CarValidatorRest.getInstance().validateCarUpdateReq(req.body);
     // Check and Get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as Car);
@@ -339,7 +339,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.LIST, Entity.CAR, MODULE_NAME, 'handleGetCars');
     // Filter
-    const filteredRequest = CarValidator.getInstance().validateCarsGetReq(req.query);
+    const filteredRequest = CarValidatorRest.getInstance().validateCarsGetReq(req.query);
     // Check auth
     const authorizations = await AuthorizationService.checkAndGetCarsAuthorizations(
       req.tenant, req.user, filteredRequest, false);
@@ -380,7 +380,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.READ, Entity.CAR, MODULE_NAME, 'handleGetCar');
     // Filter
-    const filteredRequest = CarValidator.getInstance().validateCarGetReq(req.query);
+    const filteredRequest = CarValidatorRest.getInstance().validateCarGetReq(req.query);
     // Check and get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withUser: true }, true);
@@ -393,7 +393,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.DELETE, Entity.CAR, MODULE_NAME, 'handleDeleteCar');
     // Filter
-    const carID = CarValidator.getInstance().validateCarDeleteReq(req.query).ID;
+    const carID = CarValidatorRest.getInstance().validateCarDeleteReq(req.query).ID;
     // Check and Get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
       req.tenant, req.user, carID, Action.DELETE, action);

@@ -8,8 +8,8 @@ import Tenant from '../../../../types/Tenant';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class TenantValidator extends SchemaValidator {
-  private static instance: TenantValidator|null = null;
+export default class TenantValidatorRest extends SchemaValidator {
+  private static instance: TenantValidatorRest|null = null;
   private tenantCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create.json`, 'utf8'));
   private tenantUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update.json`, 'utf8'));
   private tenantLogoGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-logo-get.json`, 'utf8'));
@@ -18,14 +18,14 @@ export default class TenantValidator extends SchemaValidator {
   private tenantsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenants-get.json`, 'utf8'));
 
   private constructor() {
-    super('TenantValidator');
+    super('TenantValidatorRest');
   }
 
-  public static getInstance(): TenantValidator {
-    if (!TenantValidator.instance) {
-      TenantValidator.instance = new TenantValidator();
+  public static getInstance(): TenantValidatorRest {
+    if (!TenantValidatorRest.instance) {
+      TenantValidatorRest.instance = new TenantValidatorRest();
     }
-    return TenantValidator.instance;
+    return TenantValidatorRest.instance;
   }
 
   public validateTenantCreateReq(data: Record<string, unknown>): Tenant {

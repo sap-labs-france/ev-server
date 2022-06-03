@@ -6,8 +6,8 @@ import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
-export default class TagValidator extends SchemaValidator {
-  private static instance: TagValidator|null = null;
+export default class TagValidatorRest extends SchemaValidator {
+  private static instance: TagValidatorRest|null = null;
   private tagImportCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-import-create.json`, 'utf8'));
   private tagCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-create.json`, 'utf8'));
   private tagAssign: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-assign.json`, 'utf8'));
@@ -22,14 +22,14 @@ export default class TagValidator extends SchemaValidator {
   private tagByVisualIDUnassign: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-by-visual-id-unassign.json`, 'utf8'));
 
   private constructor() {
-    super('TagValidator');
+    super('TagValidatorRest');
   }
 
-  public static getInstance(): TagValidator {
-    if (!TagValidator.instance) {
-      TagValidator.instance = new TagValidator();
+  public static getInstance(): TagValidatorRest {
+    if (!TagValidatorRest.instance) {
+      TagValidatorRest.instance = new TagValidatorRest();
     }
-    return TagValidator.instance;
+    return TagValidatorRest.instance;
   }
 
   public validateImportedTagCreateReq(data: ImportedTag): void {

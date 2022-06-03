@@ -8,7 +8,7 @@ import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import CarConnectorFactory from '../../../../integration/car-connector/CarConnectorFactory';
 import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
-import ConnectionValidator from '../validator/ConnectionValidator';
+import ConnectionValidatorRest from '../validator/ConnectionValidatorRest';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import RefundFactory from '../../../../integration/refund/RefundFactory';
@@ -22,7 +22,7 @@ const MODULE_NAME = 'ConnectionService';
 export default class ConnectionService {
   public static async handleGetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const connectionID = ConnectionValidator.getInstance().validateConnectionGetReq(req.query).ID;
+    const connectionID = ConnectionValidatorRest.getInstance().validateConnectionGetReq(req.query).ID;
     // Charge Box is mandatory
     if (!connectionID) {
       throw new AppError({
@@ -67,7 +67,7 @@ export default class ConnectionService {
       });
     }
     // Filter
-    const filteredRequest = ConnectionValidator.getInstance().validateConnectionsGetReq(req.query);
+    const filteredRequest = ConnectionValidatorRest.getInstance().validateConnectionsGetReq(req.query);
     // Check Users
     let userProject: string[] = [];
     if ((await Authorizations.canListUsers(req.user)).authorized) {
@@ -91,7 +91,7 @@ export default class ConnectionService {
       });
     }
     // Filter
-    const filteredRequest = ConnectionValidator.getInstance().validateConnectionCreateReq(req.body);
+    const filteredRequest = ConnectionValidatorRest.getInstance().validateConnectionCreateReq(req.body);
     let integrationConnector = null;
     switch (filteredRequest.connectorId) {
       case ConnectionType.MERCEDES:
@@ -125,7 +125,7 @@ export default class ConnectionService {
 
   public static async handleDeleteConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const connectionID = ConnectionValidator.getInstance().validateConnectionDeleteReq(req.query).ID;
+    const connectionID = ConnectionValidatorRest.getInstance().validateConnectionDeleteReq(req.query).ID;
     if (!connectionID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,

@@ -11,7 +11,7 @@ import Cypher from '../../../../utils/Cypher';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
-import SettingValidator from '../validator/SettingValidator';
+import SettingValidatorRest from '../validator/SettingValidatorRest';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
@@ -23,7 +23,7 @@ const MODULE_NAME = 'SettingService';
 export default class SettingService {
   public static async handleDeleteSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingValidator.getInstance().validateSettingDeleteReq(req.query).ID;
+    const settingID = SettingValidatorRest.getInstance().validateSettingDeleteReq(req.query).ID;
     // Check auth
     if (!await Authorizations.canDeleteSetting(req.user)) {
       throw new AppAuthError({
@@ -54,7 +54,7 @@ export default class SettingService {
 
   public static async handleGetSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingValidator.getInstance().validateSettingGetReq(req.query).ID;
+    const settingID = SettingValidatorRest.getInstance().validateSettingGetReq(req.query).ID;
     // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
@@ -82,7 +82,7 @@ export default class SettingService {
 
   public static async handleGetSettingByIdentifier(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const settingID = SettingValidator.getInstance().validateSettingGetByIdentifierReq(req.query).Identifier;
+    const settingID = SettingValidatorRest.getInstance().validateSettingGetByIdentifierReq(req.query).Identifier;
     // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
@@ -119,7 +119,7 @@ export default class SettingService {
       });
     }
     // Filter
-    const filteredRequest = SettingValidator.getInstance().validateSettingsGetReq(req.query);
+    const filteredRequest = SettingValidatorRest.getInstance().validateSettingsGetReq(req.query);
     // Get the all settings identifier
     const settings = await SettingStorage.getSettings(req.tenant,
       { identifier: filteredRequest.Identifier },
@@ -308,35 +308,35 @@ export default class SettingService {
     switch (req.body.identifier) {
       // Filter
       case IntegrationSettings.OCPI:
-        return SettingValidator.getInstance().validateSettingOCPISetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingOCPISetReq(req.body);
       case IntegrationSettings.OICP:
-        return SettingValidator.getInstance().validateSettingOICPSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingOICPSetReq(req.body);
       case TechnicalSettings.CRYPTO:
-        return SettingValidator.getInstance().validateSettingCryptoSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingCryptoSetReq(req.body);
       case TechnicalSettings.USER:
-        return SettingValidator.getInstance().validateSettingUserSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingUserSetReq(req.body);
       case IntegrationSettings.SMART_CHARGING:
-        return SettingValidator.getInstance().validateSettingSmartChargingSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingSmartChargingSetReq(req.body);
       case IntegrationSettings.REFUND:
-        return SettingValidator.getInstance().validateSettingRefundSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingRefundSetReq(req.body);
       case IntegrationSettings.PRICING:
-        return SettingValidator.getInstance().validateSettingPricingSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingPricingSetReq(req.body);
       case IntegrationSettings.ANALYTICS:
-        return SettingValidator.getInstance().validateSettingAnalyticsSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingAnalyticsSetReq(req.body);
       case IntegrationSettings.ASSET:
-        return SettingValidator.getInstance().validateSettingAssetSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingAssetSetReq(req.body);
       case IntegrationSettings.CAR_CONNECTOR:
-        return SettingValidator.getInstance().validateSettingCarConnectorSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingCarConnectorSetReq(req.body);
       case IntegrationSettings.BILLING:
-        return SettingValidator.getInstance().validateSettingBillingSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingBillingSetReq(req.body);
       case IntegrationSettings.BILLING_PLATFORM:
-        return SettingValidator.getInstance().validateSettingBillingPlatformSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingBillingPlatformSetReq(req.body);
       case IntegrationSettings.CAR:
-        return SettingValidator.getInstance().validateSettingCarSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingCarSetReq(req.body);
       case IntegrationSettings.ORGANIZATION:
-        return SettingValidator.getInstance().validateSettingOrganizationSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingOrganizationSetReq(req.body);
       case IntegrationSettings.STATISTICS:
-        return SettingValidator.getInstance().validateSettingStatisticsSetReq(req.body);
+        return SettingValidatorRest.getInstance().validateSettingStatisticsSetReq(req.body);
       default:
         throw new AppError({
           module: MODULE_NAME,

@@ -18,7 +18,7 @@ import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
 import { SiteAreaDataResult } from '../../../../types/DataResult';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
-import SiteAreaValidator from '../validator/SiteAreaValidator';
+import SiteAreaValidatorRest from '../validator/SiteAreaValidatorRest';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import { StatusCodes } from 'http-status-codes';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
@@ -35,7 +35,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleAssignAssetsToSiteArea');
     // Filter request
-    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaAssignAssetsReq(req.body);
+    const filteredRequest = SiteAreaValidatorRest.getInstance().validateSiteAreaAssignAssetsReq(req.body);
     // Check and Get Site Area
     const authAction = action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN_ASSETS_TO_SITE_AREA : Action.UNASSIGN_ASSETS_FROM_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
@@ -69,7 +69,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.CHARGING_STATION, MODULE_NAME, 'handleAssignChargingStationsToSiteArea');
     // Filter request
-    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaAssignChargingStationsReq(req.body);
+    const filteredRequest = SiteAreaValidatorRest.getInstance().validateSiteAreaAssignChargingStationsReq(req.body);
     // Check and Get Site Area
     const authAction = action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA : Action.UNASSIGN_CHARGING_STATIONS_FROM_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
@@ -122,7 +122,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE_AREA, MODULE_NAME, 'handleDeleteSiteArea');
     // Filter request
-    const siteAreaID = SiteAreaValidator.getInstance().validateSiteAreaDeleteReq(req.query).ID;
+    const siteAreaID = SiteAreaValidatorRest.getInstance().validateSiteAreaDeleteReq(req.query).ID;
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
@@ -148,7 +148,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteArea');
     // Filter request
-    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaGetReq(req.query);
+    const filteredRequest = SiteAreaValidatorRest.getInstance().validateSiteAreaGetReq(req.query);
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
@@ -163,7 +163,7 @@ export default class SiteAreaService {
 
   public static async handleGetSiteAreaImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaGetImageReq(req.query);
+    const filteredRequest = SiteAreaValidatorRest.getInstance().validateSiteAreaGetImageReq(req.query);
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(
       await TenantStorage.getTenant(filteredRequest.TenantID), filteredRequest.ID);
@@ -190,7 +190,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteAreas');
     // Filter
-    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreasGetReq(req.query);
+    const filteredRequest = SiteAreaValidatorRest.getInstance().validateSiteAreasGetReq(req.query);
     // Create GPS Coordinates
     if (filteredRequest.LocLongitude && filteredRequest.LocLatitude) {
       filteredRequest.LocCoordinates = [
@@ -245,7 +245,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteAreaConsumption');
     // Filter request
-    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaGetConsumptionReq(req.query);
+    const filteredRequest = SiteAreaValidatorRest.getInstance().validateSiteAreaGetConsumptionReq(req.query);
     // Check dates
     if (filteredRequest.StartDate && filteredRequest.EndDate &&
       moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
@@ -289,7 +289,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE_AREA, MODULE_NAME, 'handleCreateSiteArea');
     // Filter request
-    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaCreateReq(req.body);
+    const filteredRequest = SiteAreaValidatorRest.getInstance().validateSiteAreaCreateReq(req.body);
     // Check Site Area auth
     await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
       {}, Action.CREATE, filteredRequest);
@@ -338,7 +338,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleUpdateSiteArea');
     // Filter request
-    const filteredRequest = SiteAreaValidator.getInstance().validateSiteAreaUpdateReq(req.body);
+    const filteredRequest = SiteAreaValidatorRest.getInstance().validateSiteAreaUpdateReq(req.body);
     // Check and Get SiteArea
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest, {

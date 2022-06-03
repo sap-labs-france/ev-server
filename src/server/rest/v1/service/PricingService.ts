@@ -11,7 +11,7 @@ import { PricingDefinitionDataResult } from '../../../../types/DataResult';
 import PricingFactory from '../../../../integration/pricing/PricingFactory';
 import PricingHelper from '../../../../integration/pricing/PricingHelper';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
-import PricingValidator from '../validator/PricingValidator';
+import PricingValidatorRest from '../validator/PricingValidatorRest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -27,7 +27,7 @@ export default class PricingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.RESOLVE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleResolvePricingModel');
     // Filter
-    const filteredRequest = PricingValidator.getInstance().validatePricingModelResolve(req.query);
+    const filteredRequest = PricingValidatorRest.getInstance().validatePricingModelResolve(req.query);
     let pricingContext: PricingContext = null;
     let pricingDefinitions: ResolvedPricingDefinition[] = [];
     const pricingImpl = await PricingFactory.getPricingImpl(req.tenant);
@@ -52,7 +52,7 @@ export default class PricingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.READ, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleGetPricingDefinition');
     // Filter
-    const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionGet(req.query);
+    const filteredRequest = PricingValidatorRest.getInstance().validatePricingDefinitionGet(req.query);
     // Check and get pricing
     const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withEntityInformation: filteredRequest.WithEntityInformation }, true);
@@ -65,7 +65,7 @@ export default class PricingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.LIST, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleGetPricingDefinitions');
     // Filter
-    const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionsGet(req.query);
+    const filteredRequest = PricingValidatorRest.getInstance().validatePricingDefinitionsGet(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetPricingDefinitionsAuthorizations(
       req.tenant, req.user, filteredRequest, false);
@@ -105,7 +105,7 @@ export default class PricingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.CREATE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleCreatePricingDefinition');
     // Filter
-    const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionCreate(req.body);
+    const filteredRequest = PricingValidatorRest.getInstance().validatePricingDefinitionCreate(req.body);
     // Get dynamic auth
     await AuthorizationService.checkAndGetPricingDefinitionAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
@@ -142,7 +142,7 @@ export default class PricingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.UPDATE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleUpdatePricingDefinition');
     // Filter
-    const filteredRequest = PricingValidator.getInstance().validatePricingDefinitionUpdate(req.body);
+    const filteredRequest = PricingValidatorRest.getInstance().validatePricingDefinitionUpdate(req.body);
     // Check and Get Pricing
     let pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
@@ -182,7 +182,7 @@ export default class PricingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.DELETE, Entity.PRICING_DEFINITION, MODULE_NAME, 'handleDeletePricingDefinition');
     // Filter
-    const pricingDefinitionID = PricingValidator.getInstance().validatePricingDefinitionDelete(req.query).ID;
+    const pricingDefinitionID = PricingValidatorRest.getInstance().validatePricingDefinitionDelete(req.query).ID;
     // Check and Get Pricing
     const pricingDefinition = await UtilsService.checkAndGetPricingDefinitionAuthorization(
       req.tenant, req.user, pricingDefinitionID, Action.DELETE, action);
