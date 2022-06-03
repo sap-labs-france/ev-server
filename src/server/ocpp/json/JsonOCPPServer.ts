@@ -21,6 +21,7 @@ import Utils from '../../../utils/Utils';
 import WSConnection from './web-socket/WSConnection';
 import WSWrapper from './web-socket/WSWrapper';
 import global from '../../../types/GlobalType';
+import sizeof from 'object-sizeof';
 
 const MODULE_NAME = 'JsonOCPPServer';
 
@@ -674,20 +675,38 @@ export default class JsonOCPPServer extends OCPPServer {
 
   private monitorWSConnections() {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setInterval(async () => {
-      await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT_ID,
-        action: ServerAction.WS_SERVER_CONNECTION, module: MODULE_NAME, method: 'monitorWSConnections',
-        message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages, ${Object.keys(this.runningWSRequestsMessages).length} Requests, ${this.waitingWSMessages} queued WS Message(s)`,
-      });
-      if (this.isDebug()) {
-        Logging.logConsoleDebug('=====================================');
-        Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
-        Logging.logConsoleDebug(`** ${this.jsonRestWSConnections.size} REST Connection(s)`);
-        Logging.logConsoleDebug(`** ${Object.keys(this.runningWSRequestsMessages).length} running WS Requests`);
-        Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages (Requests + Responses)`);
-        Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
-        Logging.logConsoleDebug('=====================================');
+    setTimeout(async () => {
+      try {
+        // Log size of WS Json Connections (track leak)
+        let sizeOfCurrentRequestsBytes = 0, numberOfCurrentRequests = 0;
+        for (const jsonWSConnection of Array.from(this.jsonWSConnections.values())) {
+          const currentOcppRequests = jsonWSConnection.getCurrentOcppRequests();
+          sizeOfCurrentRequestsBytes += sizeof(currentOcppRequests);
+          numberOfCurrentRequests += Object.keys(currentOcppRequests).length;
+        }
+        // Log Stats on number of WS Connections
+        await Logging.logDebug({
+          tenantID: Constants.DEFAULT_TENANT_ID,
+          action: ServerAction.WS_SERVER_CONNECTION, module: MODULE_NAME, method: 'monitorWSConnections',
+          message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages, ${Object.keys(this.runningWSRequestsMessages).length} Requests, ${this.waitingWSMessages} queued WS Message(s)`,
+          detailedMessages: [
+            `${numberOfCurrentRequests} JSON WS Requests cached`,
+            `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
+          ]
+        });
+        if (this.isDebug()) {
+          Logging.logConsoleDebug('=====================================');
+          Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
+          Logging.logConsoleDebug(`** ${numberOfCurrentRequests} JSON WS Requests in cache with a size of ${sizeOfCurrentRequestsBytes / 1000} kB`);
+          Logging.logConsoleDebug(`** ${this.jsonRestWSConnections.size} REST Connection(s)`);
+          Logging.logConsoleDebug(`** ${Object.keys(this.runningWSRequestsMessages).length} running WS Requests`);
+          Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages (Requests + Responses)`);
+          Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
+          Logging.logConsoleDebug('=====================================');
+        }
+      } finally {
+        // Relaunch it
+        this.monitorWSConnections();
       }
     }, Configuration.getChargingStationConfig().monitoringIntervalOCPPJSecs * 1000);
   }
