@@ -1,17 +1,22 @@
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+import Tag from '../Tag';
 
-export interface HttpTagRequest extends HttpByIDRequest {
+export interface HttpTagGetRequest extends HttpByIDRequest {
   ID: string;
   WithUser: boolean;
 }
 
-export interface HttpTagByVisualIDRequest {
+export interface HttpTagDeleteRequest extends HttpByIDRequest {
+  ID: string;
+}
+
+export interface HttpTagByVisualIDGetRequest {
   VisualID: string;
   WithUser: boolean;
 }
 
-export interface HttpTagsRequest extends HttpDatabaseRequest {
+export interface HttpTagsGetRequest extends HttpDatabaseRequest {
   Search: string;
   UserID?: string;
   Issuer?: boolean;
@@ -19,14 +24,26 @@ export interface HttpTagsRequest extends HttpDatabaseRequest {
   WithUser: boolean;
 }
 
-export interface HttpTagsDeleteByIDsRequest {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HttpTagUpdateRequest extends Tag {
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HttpTagCreateRequest extends Tag {
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HttpTagAssignRequest extends Tag {
+}
+
+export interface HttpTagsDeleteRequest {
   tagsIDs: string[];
 }
 
-export interface HttpTagsDeleteByVisualIDsRequest {
+export interface HttpTagsByVisualIDsUnassignRequest {
   visualIDs: string[];
 }
 
-export interface HttpTagsDeleteByVisualIDRequest {
+export interface HttpTagByVisualIDUnassignRequest {
   visualID: string;
 }

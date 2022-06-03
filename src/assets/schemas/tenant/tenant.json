@@ -1,7 +1,7 @@
 {
   "$id": "tenant",
   "type": "object",
-  "properties": {
+  "definitions": {
     "id": {
       "$ref": "common#/definitions/id"
     },
@@ -38,10 +38,5 @@
     "lastChangedOn": {
       "$ref": "common#/definitions/lastChangedOn"
     }
-  },
-  "required": [
-    "name",
-    "email",
-    "subdomain"
-  ]
+  }
 }

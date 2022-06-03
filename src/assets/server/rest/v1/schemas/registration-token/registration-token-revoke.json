@@ -1,0 +1,14 @@
+{
+  "$id": "registration-token-revoke",
+  "title": "Revoke Registration Token Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "registration-token#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

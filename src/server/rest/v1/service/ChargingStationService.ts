@@ -1,7 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, ConnectorType, OCPPParams, OcppParameter, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { HttpChargingStationChangeConfigurationRequest, HttpChargingStationGetCompositeScheduleRequest, HttpChargingStationStartTransactionRequest, HttpChargingStationStopTransactionRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationCompositeScheduleGetRequest, HttpChargingStationConfigurationChangeRequest, HttpChargingStationTransactionStartRequest, HttpChargingStationTransactionStopRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
 import { OCPICommandResponse, OCPICommandResponseType } from '../../../../types/ocpi/OCPICommandResponse';
 import { OCPPChangeConfigurationResponse, OCPPConfigurationStatus, OCPPGetCompositeScheduleResponse, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
@@ -18,7 +18,7 @@ import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import { ChargingStationInErrorType } from '../../../../types/InError';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationValidator from '../validator/ChargingStationValidator';
+import ChargingStationValidatorRest from '../validator/ChargingStationValidatorRest';
 import ChargingStationVendorFactory from '../../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../../utils/Constants';
 import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
@@ -59,8 +59,8 @@ export default class ChargingStationService {
 
   public static async handleUpdateChargingStationParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationParametersUpdateReq({ ...req.params, ...req.body });
-    // Check dynamic auth
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationParametersUpdateReq({ ...req.params, ...req.body });
+    // Check the Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, null, { issuer: true, withSiteArea: true });
     // Check and get site area authorizations
@@ -261,7 +261,7 @@ export default class ChargingStationService {
 
   public static async handleChargingStationLimitPower(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationLimitPowerReq(req.body);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationLimitPowerReq(req.body);
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.chargingStationID, Action.UPDATE, action, null, { withSiteArea: true });
@@ -382,7 +382,7 @@ export default class ChargingStationService {
 
   public static async handleGetChargingProfiles(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingProfilesGetReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingProfilesGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetChargingProfilesAuthorizations(
       req.tenant, req.user, Action.LIST, filteredRequest, false);
@@ -425,7 +425,7 @@ export default class ChargingStationService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleTriggerSmartCharging');
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateSmartChargingTriggerReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateSmartChargingTriggerReq(req.query);
     // Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(req.tenant, req.user, filteredRequest.SiteAreaID, Action.UPDATE, action);
     // Call Smart Charging
@@ -464,7 +464,7 @@ export default class ChargingStationService {
 
   public static async handleGenerateQrCodeForConnector(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationQRCodeGenerateReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationQRCodeGenerateReq(req.query);
     // Check dynamic auth
     // Behavior change : If the charging station is logically deleted we won't return a charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user,
@@ -488,7 +488,7 @@ export default class ChargingStationService {
 
   public static async handleCreateChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingProfileCreateReq(req.body);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingProfileCreateReq(req.body);
     // Check dynamic auth
     await AuthorizationService.checkAndGetChargingProfileAuthorizations(req.tenant, req.user, {}, Action.CREATE);
     // Create
@@ -499,7 +499,7 @@ export default class ChargingStationService {
 
   public static async handleUpdateChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingProfileUpdateReq({ ...req.params, ...req.body });
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingProfileUpdateReq({ ...req.params, ...req.body });
     // Check dynamic auth
     await UtilsService.checkAndGetChargingProfileAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Update
@@ -510,7 +510,7 @@ export default class ChargingStationService {
 
   public static async handleDeleteChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check existence
-    const chargingProfileID = ChargingStationValidator.getInstance().validateChargingProfileDeleteReq(req.query).ID;
+    const chargingProfileID = ChargingStationValidatorRest.getInstance().validateChargingProfileDeleteReq(req.query).ID;
     // Check dynamic auth
     const chargingProfile = await UtilsService.checkAndGetChargingProfileAuthorization(req.tenant, req.user,
       chargingProfileID, Action.DELETE, action);
@@ -538,7 +538,7 @@ export default class ChargingStationService {
     // Backward compatibility for the mobile application
     req.query.ChargeBoxID && (req.query.ChargingStationID = req.query.ChargeBoxID);
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersGetReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationOcppParametersGetReq(req.query);
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.ChargingStationID, Action.UPDATE, action, null, { withSiteArea: true });
@@ -551,7 +551,7 @@ export default class ChargingStationService {
 
   public static async handleRequestChargingStationOcppParameters(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersRequestReq(req.body);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationOcppParametersRequestReq(req.body);
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.chargingStationID, Action.UPDATE, action, null, { withSiteArea: true });
@@ -566,7 +566,7 @@ export default class ChargingStationService {
 
   public static async handleDeleteChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const chargingStationID = ChargingStationValidator.getInstance().validateChargingStationDeleteReq(req.query).ID;
+    const chargingStationID = ChargingStationValidatorRest.getInstance().validateChargingStationDeleteReq(req.query).ID;
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, chargingStationID, Action.DELETE, action, null, { issuer: true, ithSiteArea: true });
@@ -648,7 +648,7 @@ export default class ChargingStationService {
 
   public static async handleGetChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetReq({ ...req.params, ...req.query });
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationGetReq({ ...req.params, ...req.query });
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withSite: true, withSiteArea: true }, true);
@@ -658,7 +658,7 @@ export default class ChargingStationService {
 
   public static async handleGetChargingStations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationsGetReq(req.query);
     // Get Charging Stations
     res.json(await ChargingStationService.getChargingStations(req, filteredRequest));
     next();
@@ -666,7 +666,7 @@ export default class ChargingStationService {
 
   public static async handleExportChargingStationsOCPPParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationsGetReq(req.query);
     // Check and get charging stations: site and siteArea are mandatory
     const chargingStations = await ChargingStationService.getChargingStations(req, filteredRequest, Action.EXPORT, { withSite: true, withSiteArea: true });
     // Set the attachment name
@@ -693,7 +693,7 @@ export default class ChargingStationService {
     // Force params
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-charging-stations.csv', filteredRequest,
       ChargingStationService.getChargingStations.bind(this, req, filteredRequest, Action.EXPORT),
@@ -702,7 +702,7 @@ export default class ChargingStationService {
 
   public static async handleDownloadQrCodesPdf(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationQRCodeDownloadReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationQRCodeDownloadReq(req.query);
     // Export
     await UtilsService.exportToPDF(req, res, 'exported-charging-stations-qr-code.pdf',
       ChargingStationService.getChargingStations.bind(this, req, filteredRequest, Action.GENERATE_QR),
@@ -711,7 +711,7 @@ export default class ChargingStationService {
 
   public static async handleGetChargingStationsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationInErrorReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationInErrorReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(
       req.tenant, req.user, Action.IN_ERROR, filteredRequest, false);
@@ -759,7 +759,7 @@ export default class ChargingStationService {
 
   public static async handleGetStatusNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationNotificationsGetReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationNotificationsGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(req.tenant, req.user, Action.GET_BOOT_NOTIFICATION);
     // Get all Status Notifications
@@ -780,7 +780,7 @@ export default class ChargingStationService {
     // Request assembly
     req.body.chargingStationID = req.params.id;
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReserveNowReq(req.body);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionReserveNowReq(req.body);
     // Check and get dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.chargingStationID, Action.RESERVE_NOW, action, null, { issuer: true, withSiteArea: true });
@@ -801,7 +801,7 @@ export default class ChargingStationService {
     // Request assembly
     req.body.chargingStationID = req.params.id;
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReservationCancelReq(req.body);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionReservationCancelReq(req.body);
     // Check and get dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.chargingStationID, Action.RESERVE_NOW, action, null, { issuer: true, withSiteArea: true });
@@ -821,7 +821,7 @@ export default class ChargingStationService {
 
   public static async handleGetBootNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationNotificationsGetReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationNotificationsGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(req.tenant, req.user, Action.GET_BOOT_NOTIFICATION);
     // Get all Status Notifications
@@ -841,7 +841,7 @@ export default class ChargingStationService {
   // This endpoint is not subject to auth check
   public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationFirmwareDownloadReq(req.query);
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationFirmwareDownloadReq(req.query);
     // Open a download stream and pipe it in the response
     const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.FileName);
     // Set headers
@@ -892,7 +892,7 @@ export default class ChargingStationService {
       let result: OCPICommandResponse;
       // Start Transaction
       if (action === ServerAction.OCPI_EMSP_START_SESSION) {
-        const remoteStartRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStartReq(req.body);
+        const remoteStartRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStartReq(req.body);
         filteredRequest = remoteStartRequest;
         // Get the Tag
         let tagID = remoteStartRequest.args.tagID;
@@ -926,7 +926,7 @@ export default class ChargingStationService {
       }
       // Stop Transaction
       if (action === ServerAction.OCPI_EMSP_STOP_SESSION) {
-        const remoteStopRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStopReq(req.body);
+        const remoteStopRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStopReq(req.body);
         filteredRequest = remoteStopRequest;
         // Get Transaction
         const transaction = await TransactionStorage.getTransaction(
@@ -998,13 +998,13 @@ export default class ChargingStationService {
       let result: any;
       // Clear Cache
       if (command === Command.CLEAR_CACHE) {
-        const clearCacheRequest = ChargingStationValidator.getInstance().validateChargingStationActionCacheClearReq(req.body);
+        const clearCacheRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionCacheClearReq(req.body);
         filteredRequest = clearCacheRequest;
         result = await chargingStationClient.clearCache();
       }
       // Change Availability
       if (command === Command.CHANGE_AVAILABILITY) {
-        const changeAvailabilityRequest = ChargingStationValidator.getInstance().validateChargingStationActionAvailabilityChangeReq(req.body);
+        const changeAvailabilityRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionAvailabilityChangeReq(req.body);
         filteredRequest = changeAvailabilityRequest;
         result = await chargingStationClient.changeAvailability({
           connectorId: changeAvailabilityRequest.args.connectorId,
@@ -1013,47 +1013,47 @@ export default class ChargingStationService {
       }
       // Get Configuration
       if (command === Command.GET_CONFIGURATION) {
-        const getConfigurationRequest = ChargingStationValidator.getInstance().validateChargingStationActionConfigurationGetReq(req.body);
+        const getConfigurationRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionConfigurationGetReq(req.body);
         filteredRequest = getConfigurationRequest;
         result = await chargingStationClient.getConfiguration({ key: getConfigurationRequest.args.key });
       }
       // Change Configuration
       if (command === Command.CHANGE_CONFIGURATION) {
-        const changeConfigurationRequest = ChargingStationValidator.getInstance().validateChargingStationActionConfigurationChangeReq(req.body);
+        const changeConfigurationRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionConfigurationChangeReq(req.body);
         filteredRequest = changeConfigurationRequest;
         result = await ChargingStationService.executeChargingStationChangeConfiguration(
           action, chargingStation, command, changeConfigurationRequest, req, res, next, chargingStationClient);
       }
       // Data Transfer
       if (command === Command.DATA_TRANSFER) {
-        const dataTransferRequest = ChargingStationValidator.getInstance().validateChargingStationActionDataTransferReq(req.body);
+        const dataTransferRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionDataTransferReq(req.body);
         filteredRequest = dataTransferRequest;
         result = await chargingStationClient.dataTransfer(dataTransferRequest.args);
       }
       // Remote Stop Transaction
       if (command === Command.REMOTE_STOP_TRANSACTION) {
-        const remoteStopRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStopReq(req.body);
+        const remoteStopRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStopReq(req.body);
         filteredRequest = remoteStopRequest;
         result = await ChargingStationService.executeChargingStationStopTransaction(
           action, chargingStation, command, remoteStopRequest, req, res, next, chargingStationClient);
       }
       // Remote Start Transaction
       if (command === Command.REMOTE_START_TRANSACTION) {
-        const remoteStartRequest = ChargingStationValidator.getInstance().validateChargingStationActionTransactionStartReq(req.body);
+        const remoteStartRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStartReq(req.body);
         filteredRequest = remoteStartRequest;
         result = await ChargingStationService.executeChargingStationStartTransaction(
           action, chargingStation, command, remoteStartRequest, req, res, next, chargingStationClient);
       }
       // Get the Charging Plans
       if (command === Command.GET_COMPOSITE_SCHEDULE) {
-        const compositeScheduleRequest = ChargingStationValidator.getInstance().validateChargingStationActionCompositeScheduleGetReq(req.body);
+        const compositeScheduleRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionCompositeScheduleGetReq(req.body);
         filteredRequest = compositeScheduleRequest;
         result = await ChargingStationService.executeChargingStationGetCompositeSchedule(
           action, chargingStation, command, compositeScheduleRequest, req, res, next);
       }
       // Get Diagnostic
       if (command === Command.GET_DIAGNOSTICS) {
-        const diagnosticsRequest = ChargingStationValidator.getInstance().validateChargingStationDiagnosticsGetReq(req.body);
+        const diagnosticsRequest = ChargingStationValidatorRest.getInstance().validateChargingStationDiagnosticsGetReq(req.body);
         filteredRequest = diagnosticsRequest;
         result = await chargingStationClient.getDiagnostics({
           location: diagnosticsRequest.args.location,
@@ -1065,13 +1065,13 @@ export default class ChargingStationService {
       }
       // Unlock Connector
       if (command === Command.UNLOCK_CONNECTOR) {
-        const unlockConnectorRequest = ChargingStationValidator.getInstance().validateChargingStationActionConnectorUnlockReq(req.body);
+        const unlockConnectorRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionConnectorUnlockReq(req.body);
         filteredRequest = unlockConnectorRequest;
         result = await chargingStationClient.unlockConnector({ connectorId: unlockConnectorRequest.args.connectorId });
       }
       // Update Firmware
       if (command === Command.UPDATE_FIRMWARE) {
-        const updateFirmwareRequest = ChargingStationValidator.getInstance().validateChargingStationActionFirmwareUpdateReq(req.body);
+        const updateFirmwareRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionFirmwareUpdateReq(req.body);
         filteredRequest = updateFirmwareRequest;
         result = await chargingStationClient.updateFirmware({
           location: updateFirmwareRequest.args.location,
@@ -1082,7 +1082,7 @@ export default class ChargingStationService {
       }
       // Reset
       if (command === Command.RESET) {
-        const resetRequest = ChargingStationValidator.getInstance().validateChargingStationActionResetReq(req.body);
+        const resetRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionResetReq(req.body);
         filteredRequest = resetRequest;
         result = await chargingStationClient.reset({ type: resetRequest.args.type });
       }
@@ -1172,7 +1172,7 @@ export default class ChargingStationService {
     next();
   }
 
-  private static async getChargingStations(req: Request, filteredRequest: HttpChargingStationsRequest,
+  private static async getChargingStations(req: Request, filteredRequest: HttpChargingStationsGetRequest,
       authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<ChargingStation>> {
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(
@@ -1407,7 +1407,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationGetCompositeSchedule(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationGetCompositeScheduleRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
+      filteredRequest: HttpChargingStationCompositeScheduleGetRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
     // Get the Vendor instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (!chargingStationVendor) {
@@ -1441,7 +1441,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationStartTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationStartTransactionRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
+      filteredRequest: HttpChargingStationTransactionStartRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
     // Check Tag ID
     if (!filteredRequest.args || (!filteredRequest.args.visualTagID && !filteredRequest.args.tagID)) {
       throw new AppError({
@@ -1530,7 +1530,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationStopTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationStopTransactionRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
+      filteredRequest: HttpChargingStationTransactionStopRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
       req.tenant, filteredRequest.args.transactionId, { withUser: true });
@@ -1568,7 +1568,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationChangeConfiguration(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationChangeConfigurationRequest, req: Request, res: Response, next: NextFunction,
+      filteredRequest: HttpChargingStationConfigurationChangeRequest, req: Request, res: Response, next: NextFunction,
       chargingStationClient: ChargingStationClient): Promise<OCPPChangeConfigurationResponse> {
     // Change the config
     const result = await chargingStationClient.changeConfiguration({

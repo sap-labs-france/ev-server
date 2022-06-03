@@ -53,6 +53,20 @@ export default class DatabaseUtils {
     'billingData': 0
   });
 
+  public static switchIDToMongoDBID(data: any): void {
+    // Switch ID
+    if (data.id) {
+      if (DatabaseUtils.isObjectID(data.id as string)) {
+        data._id = DatabaseUtils.convertToObjectID(data.id as string);
+      } else {
+        data._id = data.id;
+      }
+    } else {
+      data._id = new ObjectId();
+    }
+    delete data.id;
+  }
+
   public static addConnectorStatsInOrg(tenant: Tenant, aggregation: any[],
       organizationID: string, addChargingStationLookup = true): void {
     const rootAggregationName = 'connectorStats';
@@ -233,10 +247,12 @@ export default class DatabaseUtils {
   }
 
   public static pushChargingStationLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
+    // Add Inactive flag
+    DatabaseUtils.pushChargingStationInactiveFlagInAggregation(additionalPipeline);
     DatabaseUtils.pushCollectionLookupInAggregation('chargingstations', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
-    }, [DatabaseUtils.buildChargingStationInactiveFlagQuery(), ...additionalPipeline]);
+    }, additionalPipeline);
   }
 
   public static pushAssetLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
@@ -384,11 +400,6 @@ export default class DatabaseUtils {
         }
       }`));
     }
-  }
-
-  public static pushChargingStationInactiveFlag(aggregation: any[]): void {
-    // Add inactive field
-    aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
   }
 
   public static projectFields(aggregation: any[], projectFields: string[], removedFields: string[] = []): void {
@@ -599,9 +610,9 @@ export default class DatabaseUtils {
     aggregation.push({ $replaceRoot: { newRoot: '$root' } });
   }
 
-  private static buildChargingStationInactiveFlagQuery(): Record<string, any> {
+  public static pushChargingStationInactiveFlagInAggregation(aggregation: any[]): void {
     // Add inactive field
-    return {
+    aggregation.push({
       $addFields: {
         inactive: {
           $or: [
@@ -615,7 +626,28 @@ export default class DatabaseUtils {
           ]
         }
       }
-    };
+    });
+    // Update Connectors' status
+    aggregation.push({
+      $addFields:{
+        connectors: {
+          $map: {
+            input: '$connectors',
+            as: 'connector',
+            in: {
+              $mergeObjects: [
+                '$$connector',
+                { status: { $cond: { if: { $eq: [ '$inactive', true ] }, then: ChargePointStatus.UNAVAILABLE, else: '$$connector.status' } } },
+                { currentInstantWatts: { $cond: { if: { $eq: [ '$inactive', true ] }, then: 0, else: '$$connector.currentInstantWatts' } } },
+                { currentStateOfCharge: { $cond: { if: { $eq: [ '$inactive', true ] }, then: 0, else: '$$connector.currentStateOfCharge' } } },
+                { currentTotalConsumptionWh: { $cond: { if: { $eq: [ '$inactive', true ] }, then: 0, else: '$$connector.currentTotalConsumptionWh' } } },
+                { currentTotalInactivitySecs: { $cond: { if: { $eq: [ '$inactive', true ] }, then: 0, else: '$$connector.currentTotalInactivitySecs' } } },
+              ]
+            }
+          }
+        }
+      }
+    });
   }
 
   // Temporary hack to fix user Id saving. fix all this when user is typed...

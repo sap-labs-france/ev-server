@@ -8,7 +8,7 @@ import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
-import ChargingStationValidatorStorage from './validator/ChargingStationValidatorStorage';
+import ChargingStationValidatorStorage from '../validator/ChargingStationValidatorStorage';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
@@ -233,7 +233,7 @@ export default class ChargingStationStorage {
       filters.issuer = params.issuer;
     }
     // Add Charging Station inactive flag
-    DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
+    DatabaseUtils.pushChargingStationInactiveFlagInAggregation(aggregation);
     // Add in aggregation
     aggregation.push({
       $match: filters
@@ -404,7 +404,7 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Add Charging Station inactive flag
-    DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
+    DatabaseUtils.pushChargingStationInactiveFlagInAggregation(aggregation);
     // Set the filters
     const filters: FilterParams = {};
     // Search filters

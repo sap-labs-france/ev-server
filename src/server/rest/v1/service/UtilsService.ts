@@ -1200,6 +1200,14 @@ export default class UtilsService {
         user: req.user.id
       });
     }
+    if (tenant.components.billingPlatform?.active && !tenant.components.billing?.active) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing sub-accounts cannot be active without the Billing component',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
     if (tenant.components.smartCharging?.active && !tenant.components.organization?.active) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
