@@ -1,5 +1,5 @@
 {
-  "$id": "performance",
+  "$id": "performance-save",
   "title": "Validate the performance object",
   "type": "object",
   "properties": {

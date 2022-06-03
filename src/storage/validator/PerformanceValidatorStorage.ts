@@ -6,7 +6,7 @@ import global from '../../types/GlobalType';
 
 export default class PerformanceValidatorStorage extends SchemaValidator {
   private static instance: PerformanceValidatorStorage | null = null;
-  private performance: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/performance/performance.json`, 'utf8'));
+  private performanceSave: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/storage/schemas/performance/performance-save.json`, 'utf8'));
 
   private constructor() {
     super('PerformanceValidatorStorage', {
@@ -27,6 +27,6 @@ export default class PerformanceValidatorStorage extends SchemaValidator {
   }
 
   public validatePerformance(data: any): PerformanceRecord {
-    return this.validate(this.performance, data);
+    return this.validate(this.performanceSave, data, true);
   }
 }
