@@ -44,6 +44,7 @@ export default class BillingRouter {
     // ROUTES for SUB-ACCOUNTS
     // -----------------------------------
     this.buildRouteBillingCreateSubAccount();
+    this.buildRouteBillingGetSubAccounts();
     return this.router;
   }
 
@@ -146,6 +147,12 @@ export default class BillingRouter {
   private buildRouteBillingCreateSubAccount(): void {
     this.router.post(`/${RESTServerRoute.REST_BILLING_SUB_ACCOUNTS}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleRestServerAction(BillingService.handleCreateSubAccount.bind(this), ServerAction.BILLING_SUB_ACCOUNT_CREATE, req, res, next);
+    });
+  }
+
+  private buildRouteBillingGetSubAccounts(): void {
+    this.router.get(`/${RESTServerRoute.REST_BILLING_SUB_ACCOUNTS}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(BillingService.handleBillingGetSubAccounts.bind(this), ServerAction.BILLING_SUB_ACCOUNTS, req, res, next);
     });
   }
 }

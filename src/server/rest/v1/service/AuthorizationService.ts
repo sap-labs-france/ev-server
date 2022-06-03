@@ -1,5 +1,5 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingSubaccountsDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { BillingInvoice, BillingPaymentMethod } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
@@ -601,6 +601,10 @@ export default class AuthorizationService {
     return AuthorizationService.checkAndGetEntityAuthorizations(tenant, Entity.BILLING, userToken, {}, {}, authAction, entityData);
   }
 
+  public static async checkAndGetBillingPlatformAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(tenant, Entity.BILLING_PLATFORM, userToken, {}, {}, authAction, entityData);
+  }
+
   public static async checkAndGetTaxesAuthorizations(tenant: Tenant, userToken: UserToken, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
@@ -651,6 +655,14 @@ export default class AuthorizationService {
       tenant, userToken, Entity.INVOICE, Action.DOWNLOAD, authorizationFilter, billingInvoice.userID ? { UserID: billingInvoice.userID } : {}, billingInvoice);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(billingInvoice);
+  }
+
+  public static async addSubAccountsAuthorizations(tenant: Tenant, userToken: UserToken, billingSubAccounts: BillingSubaccountsDataResult,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Meta Data
+    billingSubAccounts.metadata = authorizationFilter.metadata;
+    billingSubAccounts.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
   }
 
   public static async checkAndGetPaymentMethodsAuthorizations(tenant: Tenant, userToken: UserToken,

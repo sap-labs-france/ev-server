@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { BillingInvoiceDataResult, BillingPaymentMethodDataResult } from '../../../../types/DataResult';
+import { BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingSubaccountsDataResult } from '../../../../types/DataResult';
 import { BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod } from '../../../../types/Billing';
 import { NextFunction, Request, Response } from 'express';
 
@@ -542,6 +542,33 @@ export default class BillingService {
     void NotificationHandler.sendBillingSubAccountActivationNotification(
       tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(tenant.subdomain), user });
     res.status(StatusCodes.OK).json(subAccount);
+    next();
+  }
+
+  public static async handleBillingGetSubAccounts(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountsGetReq(req.query);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+      Action.LIST, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleBillingGetSubaccounts');
+    const authorizations = await AuthorizationService.checkAndGetBillingPlatformAuthorizations(req.tenant, req.user, Action.LIST);
+    if (!authorizations.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
+    // Get the billing subacounts
+    const subAccounts = await BillingStorage.getSubAccounts(req.tenant, {
+      subAccountIDs: filteredRequest.SubAccountID ? filteredRequest.SubAccountID.split('|') : null,
+      userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+    }, {
+      sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
+      skip: filteredRequest.Skip,
+      limit: filteredRequest.Limit,
+      onlyRecordCount: filteredRequest.OnlyRecordCount
+    },
+    authorizations.projectFields);
+    await AuthorizationService.addSubAccountsAuthorizations(req.tenant, req.user, subAccounts, authorizations);
+    res.json(subAccounts);
     next();
   }
 

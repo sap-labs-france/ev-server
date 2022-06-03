@@ -29,11 +29,20 @@ export interface HttpDeletePaymentMethod {
   paymentMethodId: string;
 }
 
-export interface HttpBillingSubAccountCreate {
+export interface HttpBillingSubAccountCreateRequest {
   userID: string;
 }
 
-export interface HttpBillingSubAccountActivate {
+export interface HttpBillingSubAccountActivateRequest {
   ID: string;
   TenantID: string;
+}
+
+export interface HttpBillingSubAccountsGetRequest extends HttpDatabaseRequest {
+  SubAccountID?: string;
+  UserID?: string;
+  Status?: BillingInvoiceStatus;
+  StartDateTime?: Date;
+  EndDateTime?: Date;
+  Search?: string;
 }
