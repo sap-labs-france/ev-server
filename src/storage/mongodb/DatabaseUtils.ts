@@ -53,6 +53,20 @@ export default class DatabaseUtils {
     'billingData': 0
   });
 
+  public static switchIDToMongoDBID(data: any): void {
+    // Switch ID
+    if (data.id) {
+      if (DatabaseUtils.isObjectID(data.id as string)) {
+        data._id = DatabaseUtils.convertToObjectID(data.id as string);
+      } else {
+        data._id = data.id;
+      }
+    } else {
+      data._id = new ObjectId();
+    }
+    delete data.id;
+  }
+
   public static addConnectorStatsInOrg(tenant: Tenant, aggregation: any[],
       organizationID: string, addChargingStationLookup = true): void {
     const rootAggregationName = 'connectorStats';

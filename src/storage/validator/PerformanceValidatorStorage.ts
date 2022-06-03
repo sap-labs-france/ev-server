@@ -1,8 +1,8 @@
-import PerformanceRecord from '../../../types/Performance';
-import Schema from '../../../types/validator/Schema';
-import SchemaValidator from '../../../validator/SchemaValidator';
+import PerformanceRecord from '../../types/Performance';
+import Schema from '../../types/validator/Schema';
+import SchemaValidator from '../../validator/SchemaValidator';
 import fs from 'fs';
-import global from '../../../types/GlobalType';
+import global from '../../types/GlobalType';
 
 export default class PerformanceValidatorStorage extends SchemaValidator {
   private static instance: PerformanceValidatorStorage | null = null;

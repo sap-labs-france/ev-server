@@ -1,12 +1,12 @@
-import Schema from '../../../types/validator/Schema';
-import SchemaValidator from '../../../validator/SchemaValidator';
-import Tenant from '../../../types/Tenant';
+import Schema from '../../types/validator/Schema';
+import SchemaValidator from '../../validator/SchemaValidator';
+import Tenant from '../../types/Tenant';
 import fs from 'fs';
-import global from '../../../types/GlobalType';
+import global from '../../types/GlobalType';
 
 export default class TenantValidatorStorage extends SchemaValidator {
   private static instance: TenantValidatorStorage | null = null;
-  private tenant: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant.json`, 'utf8'));
+  private tenantSave: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/storage/schemas/tenant-save.json`, 'utf8'));
 
   private constructor() {
     super('TenantValidatorStorage', {
@@ -26,7 +26,7 @@ export default class TenantValidatorStorage extends SchemaValidator {
     return TenantValidatorStorage.instance;
   }
 
-  public validateTenant(data: any): Tenant {
-    return this.validate(this.tenant, data);
+  public validateTenantSave(data: Record<string, unknown>): Tenant {
+    return this.validate(this.tenantSave, data, true);
   }
 }

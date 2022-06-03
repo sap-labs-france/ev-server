@@ -1,8 +1,8 @@
-import { AuthorizationDefinitionRole } from '../../../types/Authorization';
-import Schema from '../../../types/validator/Schema';
-import SchemaValidator from '../../../validator/SchemaValidator';
+import { AuthorizationDefinitionRole } from '../../types/Authorization';
+import Schema from '../../types/validator/Schema';
+import SchemaValidator from '../../validator/SchemaValidator';
 import fs from 'fs';
-import global from '../../../types/GlobalType';
+import global from '../../types/GlobalType';
 
 export default class AuthorizationValidatorStorage extends SchemaValidator {
   private static instance: AuthorizationValidatorStorage | null = null;

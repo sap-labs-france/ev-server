@@ -1,7 +1,7 @@
 import { Car, CarCatalog, CarMaker, CarType } from '../../types/Car';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
-import CarValidatorStorage from './validator/CarValidatorStorage';
+import CarValidatorStorage from '../validator/CarValidatorStorage';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';

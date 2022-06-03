@@ -7,7 +7,7 @@ import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
-import ChargingStationValidatorStorage from './validator/ChargingStationValidatorStorage';
+import ChargingStationValidatorStorage from '../validator/ChargingStationValidatorStorage';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';

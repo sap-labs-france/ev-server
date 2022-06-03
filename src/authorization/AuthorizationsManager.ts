@@ -2,7 +2,7 @@ import { AUTHORIZATION_CONDITIONS, AUTHORIZATION_DEFINITION } from './Authorizat
 import { AuthorizationContext, AuthorizationResult } from '../types/Authorization';
 
 import { AccessControl } from 'role-acl';
-import AuthorizationValidatorStorage from '../storage/mongodb/validator/AuthorizationValidatorStorage';
+import AuthorizationValidatorStorage from '../storage/validator/AuthorizationValidatorStorage';
 import BackendError from '../exception/BackendError';
 import Logging from '../utils/Logging';
 

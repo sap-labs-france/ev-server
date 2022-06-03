@@ -6,6 +6,7 @@ import Constants from '../utils/Constants';
 import { HTTPError } from '../types/HTTPError';
 import { ObjectId } from 'mongodb';
 import Schema from '../types/validator/Schema';
+import Utils from '../utils/Utils';
 import addFormats from 'ajv-formats';
 import chalk from 'chalk';
 import countries from 'i18n-iso-countries';
@@ -82,7 +83,10 @@ export default class SchemaValidator {
     ]);
   }
 
-  protected validate(schema: Schema, data: any): any {
+  protected validate(schema: Schema, data: any, cloneObject = false): any {
+    if (cloneObject) {
+      data = Utils.cloneObject(data);
+    }
     let fnValidate: ValidateFunction<unknown>;
     if (!schema.$id) {
       if (this.isDevelopmentEnv()) {

@@ -1,8 +1,8 @@
-import { Configuration } from '../../../types/configuration/Configuration';
-import Schema from '../../../types/validator/Schema';
-import SchemaValidator from '../../../validator/SchemaValidator';
+import { Configuration } from '../../types/configuration/Configuration';
+import Schema from '../../types/validator/Schema';
+import SchemaValidator from '../../validator/SchemaValidator';
 import fs from 'fs';
-import global from '../../../types/GlobalType';
+import global from '../../types/GlobalType';
 
 export default class ConfigurationValidatorStorage extends SchemaValidator {
   private static instance: ConfigurationValidatorStorage | null = null;
