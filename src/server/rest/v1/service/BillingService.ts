@@ -523,16 +523,6 @@ export default class BillingService {
     const subAccount = await BillingStorage.getSubAccountByID(tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
     // Check if the sub account is already activated
-    if (subAccount.status === BillingAccountStatus.IDLE) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Sub account cannot be activated yet',
-        detailedMessages: 'Activation link has not been sent',
-        module: MODULE_NAME, method: 'handleActivateSubAccount',
-        action: action,
-        user: req.user
-      });
-    }
     if (subAccount.status === BillingAccountStatus.ACTIVE) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -592,7 +582,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
       Action.READ, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleBillingGetSubAccount');
     // Get the billing subacounts
-    const subAccount = await UtilsService.checkAndGetBillingSubAccountAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action);
+    const subAccount = await UtilsService.checkAndGetBillingSubAccountAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
     res.json(subAccount);
     next();
   }

@@ -986,7 +986,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(response.data.accountID).to.not.be.null;
           expect(response.data.userID).to.eq(billingTestHelper.userContext.id);
           expect(response.data.activationLink).to.not.be.null;
-          expect(response.data.pending).to.be.true;
+          expect(response.data.status).to.be.eq(BillingAccountStatus.IDLE);
         });
 
         it('should create a sub account and activate it', async () => {
@@ -997,7 +997,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
           const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
           expect(activationResponse.status).to.be.eq(StatusCodes.OK);
-          expect(activationResponse.data.pending).to.be.false;
+          expect(activationResponse.data.status).to.be.eq(BillingAccountStatus.ACTIVE);
         });
 
         it('should not activate an inexistent sub account', async () => {
@@ -1014,16 +1014,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           let activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
           expect(activationResponse.status).to.be.eq(StatusCodes.OK);
           activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
-          expect(activationResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
-        });
-
-        it('should not activate an idled sub-account', async () => {
-          const response = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
-          });
-          expect(response.status).to.be.eq(StatusCodes.CREATED);
-
-          const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
           expect(activationResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
         });
 
@@ -1170,6 +1160,12 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       it('should not be able to list sub-accounts', async () => {
         const subAccountsResponse = await billingTestHelper.userService.billingApi.readAllSubAccounts({});
         expect(subAccountsResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+      });
+
+      it('should not be able to read sub-account', async () => {
+        // List sub-accounts
+        const subAccountResponse = await billingTestHelper.userService.billingApi.readSubAccount('62978713f146ea8cb3bf8a95');
+        expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
     });
   });

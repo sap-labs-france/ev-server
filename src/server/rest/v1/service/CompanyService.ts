@@ -185,7 +185,7 @@ export default class CompanyService {
     company.lastChangedBy = { 'id': req.user.id };
     company.lastChangedOn = new Date();
     // If the company is assigned to a billing sub-account, check if the billing is active
-    if (filteredRequest.billingData.accountID) {
+    if (filteredRequest.billingData) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
         Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
       const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.billingData.accountID);

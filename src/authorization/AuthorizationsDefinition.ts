@@ -395,7 +395,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.BILLING_PLATFORM,
         action: [Action.BILLING_CREATE_SUB_ACCOUNT, Action.LIST, Action.READ],
         attributes: [
-          'id', 'accountID', 'userID', 'user.id', 'user.firstName', 'user.lastName', 'user.email'
+          'id', 'accountID', 'userID', 'user.id', 'user.firstName', 'user.lastName', 'user.email', 'status'
         ]
       },
       { resource: Entity.TAX, action: [Action.LIST] },
