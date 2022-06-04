@@ -1,12 +1,12 @@
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpNotificationRequest extends HttpDatabaseRequest {
+export interface HttpNotificationGetRequest extends HttpDatabaseRequest {
   UserID: string;
   DateFrom: Date;
   Channel: string;
 }
 
-export interface HttpEndUserReportErrorRequest {
+export interface HttpEndUserReportErrorGetRequest {
   subject: string;
   description: string;
   mobile: string;

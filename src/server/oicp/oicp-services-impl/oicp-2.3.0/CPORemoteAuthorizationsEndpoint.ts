@@ -17,7 +17,7 @@ import { OICPAcknowledgment } from '../../../../types/oicp/OICPAcknowledgment';
 import { OICPRemoteActionType } from '../../../../types/oicp/OICPRemoteActionType';
 import { OICPSession } from '../../../../types/oicp/OICPSession';
 import OICPUtils from '../../OICPUtils';
-import OICPValidation from '../../validation/OICPValidation';
+import OICPValidator from '../../validator/OICPValidator';
 import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
@@ -51,7 +51,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
   private async authorizeRemoteStart(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
     const authorizeRemoteStart = req.body as OICPAuthorizeRemoteStartCpoReceive;
     // Check props
-    OICPValidation.getInstance().validateRemoteStart(authorizeRemoteStart);
+    OICPValidator.getInstance().validateRemoteStart(authorizeRemoteStart);
     const evseID = authorizeRemoteStart.EvseID;
     const session = {} as Partial<OICPSession>;
     session.id = authorizeRemoteStart.SessionID;
@@ -149,7 +149,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
   private async authorizeRemoteStop(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
     const authorizeRemoteStop = req.body as OICPAuthorizeRemoteStopCpoReceive;
     // Check props
-    OICPValidation.getInstance().validateRemoteStop(authorizeRemoteStop);
+    OICPValidator.getInstance().validateRemoteStop(authorizeRemoteStop);
     const session = {} as Partial<OICPSession>;
     session.id = authorizeRemoteStop.SessionID;
     session.providerID = authorizeRemoteStop.ProviderID;
