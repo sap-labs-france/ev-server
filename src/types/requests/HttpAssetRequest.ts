@@ -1,12 +1,16 @@
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpAssetRequest extends HttpByIDRequest {
+export interface HttpAssetGetRequest extends HttpByIDRequest {
   ID: string;
   WithSiteArea?: boolean;
 }
 
-export interface HttpAssetsRequest extends HttpDatabaseRequest {
+export interface HttpAssetDeleteRequest extends HttpByIDRequest {
+  ID: string;
+}
+
+export interface HttpAssetsGetRequest extends HttpDatabaseRequest {
   Issuer?: boolean;
   Search?: string;
   SiteAreaID?: string;
@@ -18,13 +22,13 @@ export interface HttpAssetsRequest extends HttpDatabaseRequest {
   ErrorType?: string;
 }
 
-export interface HttpAssetConsumptionRequest {
+export interface HttpAssetConsumptionGetRequest {
   AssetID: string;
   StartDate: Date;
   EndDate: Date;
 }
 
-export interface HttpAssetImageRequest extends HttpByIDRequest {
+export interface HttpAssetImageGetRequest extends HttpByIDRequest {
   ID: string;
   TenantID: string;
 }

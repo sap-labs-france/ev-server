@@ -46,7 +46,11 @@
           "type": "integer"
         },
         "voltage": {
-          "type": "integer"
+          "type": "integer",
+          "enum": [
+            110,
+            230
+          ]
         },
         "powerLimitUnit": {
           "type": "string"

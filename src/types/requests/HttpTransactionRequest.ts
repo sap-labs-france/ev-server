@@ -1,3 +1,4 @@
+import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 import { InactivityStatus } from '../Transaction';
 
@@ -14,22 +15,34 @@ export interface HttpUnassignTransactionsToUserRequest {
   TagID: string;
 }
 
-export interface HttpTransactionRequest {
+export interface HttpTransactionGetRequest extends HttpByIDRequest {
   ID: number;
   WithTag: boolean;
   WithCar: boolean;
   WithUser: boolean;
 }
 
-export interface HttpPushTransactionCdrRequest {
-  transactionId: number;
-}
-
-export interface HttpExportTransactionCdrRequest {
+export interface HttpTransactionDeleteRequest extends HttpByIDRequest {
   ID: number;
 }
 
-export interface HttpTransactionsRequest extends HttpDatabaseRequest {
+export interface HttpTransactionStopRequest extends HttpByIDRequest {
+  ID: number;
+}
+
+export interface HttpTransactionCdrPushRequest {
+  transactionId: number;
+}
+
+export interface HttpTransactionCdrExportRequest {
+  ID: number;
+}
+
+export interface HttpTransactionsByIDsGetRequest {
+  transactionsIDs: number[];
+}
+
+export interface HttpTransactionsGetRequest extends HttpDatabaseRequest {
   ChargingStationID: string;
   Issuer: boolean;
   WithCompany: boolean;
@@ -57,7 +70,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   Status?: 'completed' | 'active';
 }
 
-export interface HttpConsumptionFromTransactionRequest {
+export interface HttpTransactionConsumptionsGetRequest {
   TransactionId: number;
   WithTag: boolean;
   WithCar: boolean;
@@ -67,7 +80,7 @@ export interface HttpConsumptionFromTransactionRequest {
   EndDateTime: Date;
 }
 
-export interface HttpConsumptionFromTransactionAdvenirRequest {
+export interface HttpTransactionConsumptionsAdvenirGetRequest {
   TransactionId: number;
   AdvenirUserId?: string;
 }

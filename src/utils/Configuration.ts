@@ -7,7 +7,7 @@ import CentralSystemRestServiceConfiguration from '../types/configuration/Centra
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServerConfiguration';
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
 import { Configuration as ConfigurationData } from '../types/configuration/Configuration';
-import ConfigurationValidatorStorage from '../storage/mongodb/validator/ConfigurationValidatorStorage';
+import ConfigurationValidatorStorage from '../storage/validator/ConfigurationValidatorStorage';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
 import EVDatabaseConfiguration from '../types/configuration/EVDatabaseConfiguration';
@@ -295,7 +295,7 @@ export default class Configuration {
           fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
       }
       // Validate
-      Configuration.config = ConfigurationValidatorStorage.getInstance().validateConfiguration(configuration);
+      Configuration.config = ConfigurationValidatorStorage.getInstance().validateConfigurationSave(configuration);
     }
     return Configuration.config;
   }

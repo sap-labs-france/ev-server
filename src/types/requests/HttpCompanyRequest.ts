@@ -1,11 +1,15 @@
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpCompanyRequest extends HttpByIDRequest {
+export interface HttpCompanyGetRequest extends HttpByIDRequest {
   ID: string;
 }
 
-export interface HttpCompaniesRequest extends HttpDatabaseRequest {
+export interface HttpCompanyDeleteRequest extends HttpByIDRequest {
+  ID: string;
+}
+
+export interface HttpCompaniesGetRequest extends HttpDatabaseRequest {
   Search?: string;
   Issuer?: boolean;
   WithSite?: boolean;
@@ -16,6 +20,6 @@ export interface HttpCompaniesRequest extends HttpDatabaseRequest {
   LocMaxDistanceMeters?: number;
 }
 
-export interface HttpCompanyLogoRequest extends HttpCompanyRequest {
+export interface HttpCompanyLogoGetRequest extends HttpCompanyGetRequest {
   TenantID: string;
 }

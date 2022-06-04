@@ -1,0 +1,13 @@
+{
+  "$id": "user-delete",
+  "title": "Delete a User by id",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "user#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}
