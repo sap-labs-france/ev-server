@@ -41,8 +41,12 @@ export interface HttpBillingSubAccountActivateRequest {
 export interface HttpBillingSubAccountsGetRequest extends HttpDatabaseRequest {
   SubAccountID?: string;
   UserID?: string;
-  Status?: BillingInvoiceStatus;
+  Status?: string;
   StartDateTime?: Date;
   EndDateTime?: Date;
   Search?: string;
+}
+
+export interface HttpBillingSubAccountGetRequest {
+  ID: string;
 }

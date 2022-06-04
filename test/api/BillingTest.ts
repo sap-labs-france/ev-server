@@ -1126,6 +1126,20 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(subAccountsResponse.status).to.be.eq(StatusCodes.OK);
           expect(subAccountsResponse.data.result.map((subAccount: BillingAccount) => subAccount.id)).to.include(subAccountResponse.data.id);
         });
+
+        it('should read sub-account', async () => {
+          const subAccountCreateResponse = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(subAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
+
+          // List sub-accounts
+          const subAccountResponse = await billingTestHelper.userService.billingApi.readSubAccount(subAccountCreateResponse.data.id);
+          expect(subAccountResponse.status).to.be.eq(StatusCodes.OK);
+          expect(subAccountResponse.data.id).to.be.eq(subAccountCreateResponse.data.id);
+          expect(subAccountResponse.data.userID).to.be.eq(billingTestHelper.userContext.id);
+          expect(subAccountResponse.data.status).to.be.eq(BillingAccountStatus.IDLE);
+        });
       });
     });
 

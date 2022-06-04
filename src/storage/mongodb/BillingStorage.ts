@@ -239,7 +239,7 @@ export default class BillingStorage {
 
   public static async getSubAccounts(tenant: Tenant,
       params: {
-        subAccountIDs?: string[], subAccountAccountIDs?: string[], search?: string, userIDs?: string[]
+        subAccountIDs?: string[], subAccountAccountIDs?: string[], search?: string, userIDs?: string[], status?: string[]
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingAccount>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -339,10 +339,10 @@ export default class BillingStorage {
     };
   }
 
-  public static async getSubAccountByID(tenant: Tenant, id: string): Promise<BillingAccount> {
+  public static async getSubAccountByID(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingAccount> {
     const subAccountMDB = await BillingStorage.getSubAccounts(tenant, {
       subAccountIDs: [id]
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return subAccountMDB.count === 1 ? subAccountMDB.result[0] : null;
   }
 }

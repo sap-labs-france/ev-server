@@ -159,7 +159,7 @@ export enum BillingAccountStatus {
   ACTIVE = 'active'
 }
 
-export interface BillingAccount {
+export interface BillingAccount extends AuthorizationActions {
   id?: string;
   accountID: string;
   activationLink?: string;
