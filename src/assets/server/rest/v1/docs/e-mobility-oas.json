@@ -13849,6 +13849,82 @@
       }
     },
     "/api/billing/sub-accounts": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Sub-Accounts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "in": "query",
+            "name": "Status",
+            "description": "Pipe separated invoice status (idle, pending, active)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return sub-accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SubAccount"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
       "post": {
         "security": [
           {
@@ -13900,6 +13976,54 @@
             "$ref": "#/components/responses/BackendError"
           },
           "404": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/billing/sub-accounts/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Sub-Accounts",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Sub-account ID",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return sub-account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubAccount"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -16349,6 +16473,24 @@
                 }
               }
             }
+          }
+        }
+      },
+      "SubAccount": {
+        "type": "object",
+        "properties": {
+          "accountID": {
+            "type": "string"
+          },
+          "userID": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
           }
         }
       }
