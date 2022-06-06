@@ -166,6 +166,7 @@ export interface Connector {
   tariffID?: string;
   canStopTransaction?:boolean;
   canStartTransaction?:boolean;
+  canUnlockConnector?:boolean;
 }
 
 export interface PhaseAssignmentToGrid {

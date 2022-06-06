@@ -724,18 +724,23 @@ export default class AuthorizationService {
     chargingStation.canListUsers;
     // Add connector authorization
     for (const connector of chargingStation.connectors) {
+      // Start transaction
       connector.canStopTransaction = !chargingStation.inactive
-      && connector.status !== ChargePointStatus.AVAILABLE
-      && !!connector.currentTransactionID // Indicates if transaction is ongoing by known user, otherwise 0
-      && await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_STOP_TRANSACTION, authorizationFilter,
-        { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector);
-
+        && connector.status !== ChargePointStatus.AVAILABLE
+        && !!connector.currentTransactionID // Indicates if transaction is ongoing by known user, otherwise 0
+        && await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_STOP_TRANSACTION, authorizationFilter,
+          { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector);
+      // Stop transaction
       connector.canStartTransaction = !chargingStation.inactive
-      && !connector.canStopTransaction
-      && connector.status === ChargePointStatus.AVAILABLE
-      && !connector.currentTransactionID // either no transaction OR transaction is ongoing by an external user
-      && await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.START_TRANSACTION, authorizationFilter,
-        { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector);
+        && !connector.canStopTransaction
+        && connector.status === ChargePointStatus.AVAILABLE
+        && !connector.currentTransactionID // either no transaction OR transaction is ongoing by an external user
+        && await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.START_TRANSACTION, authorizationFilter,
+          { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector);
+      // Unlock connector
+      connector.canUnlockConnector = !chargingStation.inactive
+        && chargingStation.canUnlockConnector
+        && connector.status !== ChargePointStatus.AVAILABLE;
     }
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(chargingStation);
