@@ -65,6 +65,16 @@ export default class CrudApi {
     });
   }
 
+  public async patch(id, path): Promise<any> {
+    return this._authenticatedApi.send({
+      method: 'PATCH',
+      url: path,
+      params: {
+        ID: id
+      }
+    });
+  }
+
   protected buildUtilRestEndpointUrl(urlPatternAsString: RESTServerRoute, params: { [name: string]: string | number | null } = {}): string {
     return this.buildRestEndpointUrl(urlPatternAsString, params, 'util');
   }
