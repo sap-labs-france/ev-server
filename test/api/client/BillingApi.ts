@@ -59,4 +59,12 @@ export default class BillingApi extends CrudApi {
   public async activateSubAccount(params) {
     return super.read(params, super.buildUtilRestEndpointUrl(RESTServerRoute.REST_BILLING_SUB_ACCOUNT_ACTIVATE, { id: params.accountID }));
   }
+
+  public async readAllSubAccounts(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_SUB_ACCOUNTS));
+  }
+
+  public async readSubAccount(id: string) {
+    return super.read({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_SUB_ACCOUNT, { id }));
+  }
 }

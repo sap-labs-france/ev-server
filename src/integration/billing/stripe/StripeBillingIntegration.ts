@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
@@ -1722,7 +1722,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return {
       accountID: subAccount.id,
       activationLink: activationLink.url,
-      pending: true
+      status: BillingAccountStatus.IDLE
     };
   }
 }
