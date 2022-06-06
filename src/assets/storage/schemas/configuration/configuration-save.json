@@ -1,5 +1,5 @@
 {
-  "$id": "config",
+  "$id": "configuration-save",
   "title": "e-Mobility Configuration",
   "type": "object",
   "properties": {

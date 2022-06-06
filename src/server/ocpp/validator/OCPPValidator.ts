@@ -12,10 +12,10 @@ import Utils from '../../../utils/Utils';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
 
-const MODULE_NAME = 'OCPPValidation';
+const MODULE_NAME = 'OCPPValidator';
 
-export default class OCPPValidation extends SchemaValidator {
-  private static instance: OCPPValidation | null = null;
+export default class OCPPValidator extends SchemaValidator {
+  private static instance: OCPPValidator | null = null;
 
   private bootNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/boot-notification-request.json`, 'utf8'));
   private authorizeRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/authorize-request.json`, 'utf8'));
@@ -30,14 +30,14 @@ export default class OCPPValidation extends SchemaValidator {
   private meterValueRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/meter-values-request.json`, 'utf8'));
 
   private constructor() {
-    super('OCPPValidation');
+    super('OCPPValidator');
   }
 
-  public static getInstance(): OCPPValidation {
-    if (!OCPPValidation.instance) {
-      OCPPValidation.instance = new OCPPValidation();
+  public static getInstance(): OCPPValidator {
+    if (!OCPPValidator.instance) {
+      OCPPValidator.instance = new OCPPValidator();
     }
-    return OCPPValidation.instance;
+    return OCPPValidator.instance;
   }
 
   public validateHeartbeat(heartbeat: OCPPHeartbeatRequestExtended): void {

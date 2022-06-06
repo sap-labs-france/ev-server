@@ -1,8 +1,8 @@
-import { ChargingStationTemplate } from '../../../types/ChargingStation';
-import Schema from '../../../types/validator/Schema';
-import SchemaValidator from '../../../validator/SchemaValidator';
+import { ChargingStationTemplate } from '../../types/ChargingStation';
+import Schema from '../../types/validator/Schema';
+import SchemaValidator from '../../validator/SchemaValidator';
 import fs from 'fs';
-import global from '../../../types/GlobalType';
+import global from '../../types/GlobalType';
 
 export default class ChargingStationValidatorStorage extends SchemaValidator {
   private static instance: ChargingStationValidatorStorage | null = null;

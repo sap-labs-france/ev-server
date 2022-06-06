@@ -28,7 +28,7 @@ import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { OCPPRemoteStartStopStatus } from '../../../types/ocpp/OCPPClient';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
-import OCPPValidation from '../validation/OCPPValidation';
+import OCPPValidator from '../validator/OCPPValidator';
 import OICPFacade from '../../oicp/OICPFacade';
 import PricingFacade from '../../../integration/pricing/PricingFacade';
 import { ServerAction } from '../../../types/Server';
@@ -57,7 +57,7 @@ export default class OCPPService {
     try {
       const { tenant } = headers;
       let { chargingStation } = headers;
-      OCPPValidation.getInstance().validateBootNotification(headers, bootNotification);
+      OCPPValidator.getInstance().validateBootNotification(headers, bootNotification);
       // Enrich Boot Notification
       this.enrichBootNotification(headers, bootNotification);
       // Get heartbeat interval
@@ -118,7 +118,7 @@ export default class OCPPService {
       if (!heartbeat) {
         heartbeat = {} as OCPPHeartbeatRequestExtended;
       }
-      OCPPValidation.getInstance().validateHeartbeat(heartbeat);
+      OCPPValidator.getInstance().validateHeartbeat(heartbeat);
       // Set Heart Beat Object
       heartbeat.chargeBoxID = chargingStation.id;
       heartbeat.timestamp = new Date();
@@ -150,7 +150,7 @@ export default class OCPPService {
       // Get the header infos
       const { chargingStation, tenant } = headers;
       // Check props
-      OCPPValidation.getInstance().validateStatusNotification(statusNotification);
+      OCPPValidator.getInstance().validateStatusNotification(statusNotification);
       // Set Header
       this.enrichOCPPRequest(chargingStation, statusNotification, false);
       // Skip connectorId = 0 case
@@ -179,7 +179,7 @@ export default class OCPPService {
     try {
       // Get the header infos
       const { chargingStation, tenant } = headers;
-      await OCPPValidation.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
+      await OCPPValidator.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
       // Normalize Meter Values
       const normalizedMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
       // Handle Charging Station's specificities
@@ -262,7 +262,7 @@ export default class OCPPService {
       // Get the header infos
       const { chargingStation, tenant } = headers;
       // Check props
-      OCPPValidation.getInstance().validateAuthorize(authorize);
+      OCPPValidator.getInstance().validateAuthorize(authorize);
       const { user } = await Authorizations.isAuthorizedOnChargingStation(tenant, chargingStation,
         authorize.idTag, ServerAction.OCPP_AUTHORIZE, Action.AUTHORIZE);
       // Check Billing Prerequisites
@@ -303,7 +303,7 @@ export default class OCPPService {
     const { chargingStation, tenant } = headers;
     try {
       // Check props
-      OCPPValidation.getInstance().validateDiagnosticsStatusNotification(diagnosticsStatusNotification);
+      OCPPValidator.getInstance().validateDiagnosticsStatusNotification(diagnosticsStatusNotification);
       // Enrich
       this.enrichOCPPRequest(chargingStation, diagnosticsStatusNotification);
       // Save it
@@ -330,7 +330,7 @@ export default class OCPPService {
     const { chargingStation, tenant } = headers;
     try {
       // Check props
-      OCPPValidation.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
+      OCPPValidator.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
       // Enrich
       this.enrichOCPPRequest(chargingStation, firmwareStatusNotification);
       // Save the status to Charging Station
@@ -358,7 +358,7 @@ export default class OCPPService {
       // Get the header infos
       const { chargingStation, tenant } = headers;
       // Check props
-      OCPPValidation.getInstance().validateStartTransaction(chargingStation, startTransaction);
+      OCPPValidator.getInstance().validateStartTransaction(chargingStation, startTransaction);
       // Enrich
       this.enrichStartTransaction(tenant, startTransaction, chargingStation);
       // Create Transaction
@@ -427,7 +427,7 @@ export default class OCPPService {
       // Get the header infos
       const { chargingStation, tenant } = headers;
       // Check props
-      OCPPValidation.getInstance().validateDataTransfer(chargingStation, dataTransfer);
+      OCPPValidator.getInstance().validateDataTransfer(chargingStation, dataTransfer);
       // Enrich
       this.enrichOCPPRequest(chargingStation, dataTransfer);
       // Save it
@@ -459,7 +459,7 @@ export default class OCPPService {
       // Get the header infos
       const { chargingStation, tenant } = headers;
       // Check props
-      OCPPValidation.getInstance().validateStopTransaction(chargingStation, stopTransaction);
+      OCPPValidator.getInstance().validateStopTransaction(chargingStation, stopTransaction);
       // Set header
       this.enrichOCPPRequest(chargingStation, stopTransaction, false);
       // Bypass Stop Transaction?

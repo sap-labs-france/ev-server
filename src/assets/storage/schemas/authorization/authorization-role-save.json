@@ -1,5 +1,5 @@
 {
-  "$id": "authorization-role",
+  "$id": "authorization-role-save",
   "type": "object",
   "properties": {
     "$extend": {

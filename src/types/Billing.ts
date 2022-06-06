@@ -167,7 +167,7 @@ export interface BillingAccount extends AuthorizationActions {
   status: BillingAccountStatus;
 }
 
-export interface BillingAccountSetting {
+export interface BillingAccountData {
   accountID: string;
 }
 

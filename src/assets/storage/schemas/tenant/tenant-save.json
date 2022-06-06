@@ -1,6 +1,6 @@
 {
-  "$id": "tenant-update",
-  "title": "Update one Tenant",
+  "$id": "tenant-save",
+  "title": "Save one Tenant",
   "type": "object",
   "properties": {
     "id": {
@@ -15,9 +15,6 @@
     "subdomain": {
       "$ref": "common#/definitions/subdomain"
     },
-    "logo": {
-      "$ref": "common#/definitions/logo"
-    },
     "address": {
       "$ref": "common#/definitions/address"
     },
@@ -26,7 +23,6 @@
     }
   },
   "required": [
-    "id",
     "name",
     "email",
     "subdomain"
