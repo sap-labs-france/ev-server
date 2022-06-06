@@ -1,6 +1,6 @@
 import Address from './Address';
 import { AuthorizationActions } from './Authorization';
-import { BillingAccountSetting } from './Billing';
+import { BillingAccountData } from './Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { OpeningTimes } from './OpeningTimes';
 import Site from './Site';
@@ -14,5 +14,5 @@ export default interface Company extends CreatedUpdatedProps, AuthorizationActio
   sites?: Site[];
   distanceMeters?: number;
   openingTimes?: OpeningTimes;
-  billingData?: BillingAccountSetting;
+  billingData?: BillingAccountData;
 }

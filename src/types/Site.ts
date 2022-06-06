@@ -1,5 +1,5 @@
 import Address from './Address';
-import { BillingAccountSetting } from './Billing';
+import { BillingAccountData } from './Billing';
 import Company from './Company';
 import ConnectorStats from './ConnectorStats';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
@@ -23,7 +23,7 @@ export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActi
   public?: boolean;
   openingTimes?: OpeningTimes;
   tariffID?: string;
-  billingData?: BillingAccountSetting;
+  billingData?: BillingAccountData;
 }
 
 export interface SiteUser {
