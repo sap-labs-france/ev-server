@@ -66,8 +66,8 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-        // Send EVSE statuses
-        const result = await ocpiClient.pullCdrs();
+        // Pull CDRs
+        const result = await ocpiClient.pullCdrs(true);
         await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_GET_CDRS,

@@ -1,0 +1,8 @@
+{
+  "$id": "billing-subaccount",
+  "definitions": {
+    "accountID": {
+      "$ref": "common#/definitions/id"
+    }
+  }
+}

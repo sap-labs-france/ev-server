@@ -65,8 +65,8 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-        // Send EVSE statuses
-        const result = await ocpiClient.pullSessions();
+        // Pull Sessions
+        const result = await ocpiClient.pullSessions(true);
         await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
