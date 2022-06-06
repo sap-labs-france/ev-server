@@ -503,20 +503,10 @@ export default class BillingService {
   }
 
   public static async handleActivateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingActivateSubAccountReq({ ...req.params, ...req.query });
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingActivateSubAccountReq({ ...req.params, ...req.body });
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount');
-    // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleActivateSubAccount',
-        action: action,
-        user: req.user
-      });
-    }
+
     const subAccount = await BillingStorage.getSubAccountByID(tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
     // Check if the sub account onboarding has been sent
@@ -539,12 +529,12 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Activate and save the sub account
-    subAccount.status = BillingAccountStatus.ACTIVE;
-    await BillingStorage.saveSubAccount(tenant, subAccount);
     // Get the sub account owner
     const user = await UserStorage.getUser(tenant, subAccount.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${subAccount.userID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
+    // Activate and save the sub account
+    subAccount.status = BillingAccountStatus.ACTIVE;
+    await BillingStorage.saveSubAccount(tenant, subAccount);
     // Notify the user
     void NotificationHandler.sendBillingSubAccountActivationNotification(
       tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(tenant.subdomain), user });
@@ -623,12 +613,12 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Activate and save the sub account
-    subAccount.status = BillingAccountStatus.PENDING;
-    await BillingStorage.saveSubAccount(req.tenant, subAccount);
     // Get the sub account owner
     const user = await UserStorage.getUser(req.tenant, subAccount.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${subAccount.userID}' does not exist`, MODULE_NAME, 'handleSendSubAccountOnboarding', req.user);
+    // Activate and save the sub account
+    subAccount.status = BillingAccountStatus.PENDING;
+    await BillingStorage.saveSubAccount(req.tenant, subAccount);
     // Notify the user
     void NotificationHandler.sendBillingSubAccountCreationLink(
       req.tenant, Utils.generateUUID(), user, { onboardingLink: subAccount.activationLink, evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });

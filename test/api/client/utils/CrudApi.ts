@@ -65,13 +65,11 @@ export default class CrudApi {
     });
   }
 
-  public async patch(id, path): Promise<any> {
+  public async patch(data, path): Promise<any> {
     return this._authenticatedApi.send({
       method: 'PATCH',
       url: path,
-      params: {
-        ID: id
-      }
+      data
     });
   }
 
