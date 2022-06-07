@@ -256,8 +256,15 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canMaintainPricingDefinitions?:boolean;
 }
 
+export interface ConnectorAuthorizationActions extends AuthorizationActions {
+  canStopTransaction?:boolean;
+  canStartTransaction?:boolean;
+  canUnlockConnector?:boolean;
+}
+
 export interface ChargingProfileAuthorizationActions extends AuthorizationActions {
   canDownload?:boolean;
+  canReadSiteArea?:boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

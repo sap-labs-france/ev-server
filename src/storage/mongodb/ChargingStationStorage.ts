@@ -1,13 +1,13 @@
 import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
-import { ChargingProfileDataResult, ChargingStationDataResult, DataResult } from '../../types/DataResult';
+import { ChargingProfileDataResult, ChargingStationDataResult, ChargingStationInErrorDataResult, DataResult } from '../../types/DataResult';
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationOicpData, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, RemoteAuthorization, Voltage } from '../../types/ChargingStation';
-import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId, UpdateResult } from 'mongodb';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
+import { ChargingStationInErrorType } from '../../types/InError';
 import ChargingStationValidatorStorage from '../validator/ChargingStationValidatorStorage';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
@@ -392,7 +392,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStationsInError(tenant: Tenant,
       params: { search?: string; siteIDs?: string[]; siteAreaIDs: string[]; errorType?: string[] },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationInError>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<ChargingStationInErrorDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values

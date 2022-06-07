@@ -590,7 +590,18 @@ export default class AuthorizationService {
       authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
     chargingProfiles.metadata = authorizationFilter.metadata;
-    chargingProfiles.canUpdate = true; // TODO
+    // Auth
+    chargingProfiles.canListChargingStations = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.LIST, authorizationFilter);
+    // Charging stations auth
+    chargingProfiles.canListCompanies = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.COMPANY, Action.LIST, authorizationFilter);
+    chargingProfiles.canListSites = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter);
+    chargingProfiles.canListSiteAreas = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE_AREA, Action.LIST, authorizationFilter);
+    chargingProfiles.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
     for (const chargingProfile of chargingProfiles.result) {
       await AuthorizationService.addChargingProfileAuthorizations(tenant, userToken, chargingProfile, authorizationFilter);
     }
@@ -603,6 +614,9 @@ export default class AuthorizationService {
       tenant, userToken, Entity.CHARGING_PROFILE, Action.UPDATE, authorizationFilter, { chargingStationID: chargingProfile.id }, chargingProfile);
     chargingProfile.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_PROFILE, Action.DELETE, authorizationFilter, { chargingStationID: chargingProfile.id }, chargingProfile);
+    chargingProfile.canReadSiteArea = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE_AREA, Action.READ, authorizationFilter,
+      { SiteAreaID: chargingProfile.chargingStation?.siteArea.id, SiteID: chargingProfile.chargingStation?.siteID }, chargingProfile);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(chargingProfile);
   }

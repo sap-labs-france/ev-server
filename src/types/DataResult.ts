@@ -6,6 +6,7 @@ import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import { ChargingProfile } from './ChargingProfile';
 import ChargingStation from './ChargingStation';
+import { ChargingStationInError } from './InError';
 import Company from './Company';
 import { Log } from './Log';
 import PricingDefinition from './Pricing';
@@ -119,6 +120,18 @@ export interface ChargingStationDataResult extends DataResult<ChargingStation> {
   canListCompanies?:boolean;
   canListUsers?:boolean;
 }
+
+export interface ChargingStationInErrorDataResult extends DataResult<ChargingStationInError> {
+  canExport?: boolean;
+  canListSites?:boolean;
+  canListSiteAreas?:boolean;
+  canListCompanies?:boolean;
+  canListUsers?:boolean;
+}
 export interface ChargingProfileDataResult extends DataResult<ChargingProfile> {
-  canUpdate?: boolean;
+  canListChargingStations?:boolean;
+  canListSites?:boolean;
+  canListSiteAreas?:boolean;
+  canListCompanies?:boolean;
+  canListUsers?:boolean;
 }
