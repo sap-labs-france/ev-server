@@ -393,7 +393,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
       {
         resource: Entity.BILLING_PLATFORM,
-        action: [Action.BILLING_CREATE_SUB_ACCOUNT, Action.BILLING_SUB_ACCOUNT_ONBOARD, Action.LIST, Action.READ],
+        action: [Action.BILLING_CREATE_SUB_ACCOUNT, Action.BILLING_ONBOARD_SUB_ACCOUNT, Action.LIST, Action.READ],
         attributes: [
           'id', 'accountID', 'userID', 'user.id', 'user.firstName', 'user.lastName', 'user.email', 'status'
         ]
