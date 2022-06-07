@@ -113,7 +113,6 @@ export default class UtilsService {
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    // TODO: check if is deleted (put it in the additional filters ?)
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation ID '${chargingStationID}' does not exist`,
       MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
     // Check deleted
@@ -149,14 +148,12 @@ export default class UtilsService {
     return chargingStation;
   }
 
-  // New authorization
   public static async checkAndGetChargingProfileAuthorization(tenant: Tenant, userToken: UserToken, chargingProfileID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingProfile> {
 
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, chargingProfileID, MODULE_NAME, 'checkAndGetChargingProfileAuthorization', userToken);
     // Get dynamic auth
-    // We cheack read action
     const authorizations = await AuthorizationService.checkAndGetChargingProfileAuthorizations(tenant, userToken, { ID: chargingProfileID }, authAction, entityData);
     // Get charging profile
     const chargingProfile = await ChargingStationStorage.getChargingProfile(tenant, chargingProfileID,
