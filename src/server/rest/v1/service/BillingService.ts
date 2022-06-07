@@ -510,20 +510,10 @@ export default class BillingService {
     const subAccount = await BillingStorage.getSubAccountByID(tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
     // Check if the sub account onboarding has been sent
-    if (subAccount.status === BillingAccountStatus.IDLE) {
+    if (subAccount.status !== BillingAccountStatus.PENDING) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Sub account onboarding has not been sent',
-        module: MODULE_NAME, method: 'handleActivateSubAccount',
-        action: action,
-        user: req.user
-      });
-    }
-    // Check if the sub account is already activated
-    if (subAccount.status === BillingAccountStatus.ACTIVE) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Sub account is already activated',
+        message: 'Sub-account onboarding aborted - current status should be PENDING',
         module: MODULE_NAME, method: 'handleActivateSubAccount',
         action: action,
         user: req.user
@@ -584,38 +574,28 @@ export default class BillingService {
     next();
   }
 
-  public static async handleSendSubAccountOnboarding(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleOnboardAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.BILLING_SEND_SUB_ACCOUNT_ONBOARDING, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleSendSubAccountOnboarding');
+      Action.BILLING_SUB_ACCOUNT_ONBOARD, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleOnboardAccount');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountGetReq(req.params);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingPlatformAuthorizations(req.tenant, req.user, Action.BILLING_SEND_SUB_ACCOUNT_ONBOARDING);
+    await AuthorizationService.checkAndGetBillingPlatformAuthorizations(req.tenant, req.user, Action.BILLING_SUB_ACCOUNT_ONBOARD);
     const subAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleSendSubAccountOnboarding', req.user);
+    UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
     // Check if the sub account onboarding is already sent
-    if (subAccount.status === BillingAccountStatus.PENDING) {
+    if (subAccount.status !== BillingAccountStatus.IDLE) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Sub account onboarding is already sent',
-        module: MODULE_NAME, method: 'handleSendSubAccountOnboarding',
-        action: action,
-        user: req.user
-      });
-    }
-    // Check if the sub account is already activated
-    if (subAccount.status === BillingAccountStatus.ACTIVE) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Sub account is already activated',
-        module: MODULE_NAME, method: 'handleSendSubAccountOnboarding',
+        message: 'Sub-account onboarding aborted - current status should be IDLE',
+        module: MODULE_NAME, method: 'handleOnboardAccount',
         action: action,
         user: req.user
       });
     }
     // Get the sub account owner
     const user = await UserStorage.getUser(req.tenant, subAccount.userID);
-    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.userID}' does not exist`, MODULE_NAME, 'handleSendSubAccountOnboarding', req.user);
+    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.userID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
     // Activate and save the sub account
     subAccount.status = BillingAccountStatus.PENDING;
     await BillingStorage.saveSubAccount(req.tenant, subAccount);

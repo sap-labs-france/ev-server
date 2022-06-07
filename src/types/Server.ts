@@ -454,7 +454,7 @@ export enum ServerAction {
   BILLING_BILL_PENDING_TRANSACTION = 'BillingBillPendingTransaction',
   BILLING_SUB_ACCOUNT_CREATE = 'BillingSubAccountCreate',
   BILLING_SUB_ACCOUNT_ACTIVATE = 'BillingSubAccountActivate',
-  BILLING_SUB_ACCOUNT_SEND_ONBOARDING = 'BillingSubAccountSendOnboarding',
+  BILLING_SUB_ACCOUNT_ONBOARD = 'BillingSubAccountOnboard',
   BILLING_SUB_ACCOUNT = 'BillingSubAccount',
   BILLING_SUB_ACCOUNTS = 'BillingSubAccounts',
 

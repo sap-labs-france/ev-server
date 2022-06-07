@@ -168,7 +168,7 @@ export default class BillingRouter {
   private buildRouteBillingSendSubAccountOnboarding(): void {
     this.router.patch(`/${RESTServerRoute.REST_BILLING_SUB_ACCOUNT_ONBOARD}`, (req: Request, res: Response, next: NextFunction) => {
       req.params.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(BillingService.handleSendSubAccountOnboarding.bind(this), ServerAction.BILLING_SUB_ACCOUNT_SEND_ONBOARDING, req, res, next);
+      void RouterUtils.handleRestServerAction(BillingService.handleOnboardAccount.bind(this), ServerAction.BILLING_SUB_ACCOUNT_ONBOARD, req, res, next);
     });
   }
 }

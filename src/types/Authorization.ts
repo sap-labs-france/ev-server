@@ -137,7 +137,7 @@ export enum Action {
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   BILLING_CREATE_SUB_ACCOUNT = 'BillingSubAccountCreate',
   BILLING_ACTIVATE_SUB_ACCOUNT = 'BillingSubAccountActivate',
-  BILLING_SEND_SUB_ACCOUNT_ONBOARDING = 'BillingSendSubAccountOnboarding',
+  BILLING_SUB_ACCOUNT_ONBOARD = 'BillingSubAccountOnboard',
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
