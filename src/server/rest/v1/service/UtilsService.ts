@@ -1,4 +1,5 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { BillingAccount, BillingInvoice } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
@@ -14,7 +15,6 @@ import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
 import BackendError from '../../../../exception/BackendError';
-import { BillingInvoice } from '../../../../types/Billing';
 import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
@@ -846,6 +846,41 @@ export default class UtilsService {
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Tag> {
     return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTagByVisualID.bind(this),
       authAction, action, entityData, additionalFilters, applyProjectFields);
+  }
+
+  public static async checkAndGetBillingSubAccountAuthorization(tenant: Tenant, userToken: UserToken, subAccountID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingAccount> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, subAccountID, MODULE_NAME, 'checkAndGetBillingSubAccountAuthorization', userToken);
+    // Get dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetBillingSubAccountAuthorizations(
+      tenant, userToken, { ID: subAccountID }, authAction, entityData);
+    // Get Invoice
+    const subAccount = await BillingStorage.getSubAccountByID(tenant, subAccountID,
+      applyProjectFields ? authorizations.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, subAccount, `Billing sub-account ID '${subAccountID}' does not exist`,
+      MODULE_NAME, 'checkAndGetBillingSubAccountAuthorization', userToken);
+    // Assign projected fields
+    if (authorizations.projectFields && applyProjectFields) {
+      subAccount.projectFields = authorizations.projectFields;
+    }
+    // Assign Metadata
+    if (authorizations.metadata) {
+      subAccount.metadata = authorizations.metadata;
+    }
+    AuthorizationService.addSubAccountAuthorizations(tenant, userToken, subAccount);
+    const authorized = AuthorizationService.canPerformAction(subAccount, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.INVOICE,
+        module: MODULE_NAME, method: 'checkAndGetInvoiceAuthorization',
+        value: subAccountID
+      });
+    }
+    return subAccount;
   }
 
   public static sendEmptyDataResult(res: Response, next: NextFunction): void {

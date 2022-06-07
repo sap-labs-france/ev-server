@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { BillingInvoiceDataResult, BillingPaymentMethodDataResult } from '../../../../types/DataResult';
-import { BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod } from '../../../../types/Billing';
+import { BillingAccountStatus, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod } from '../../../../types/Billing';
+import { BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingSubaccountsDataResult } from '../../../../types/DataResult';
 import { NextFunction, Request, Response } from 'express';
 
 import AppError from '../../../../exception/AppError';
@@ -474,10 +474,10 @@ export default class BillingService {
   public static async handleCreateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.BILLING_CREATE_SUB_ACCOUNT, Entity.BILLING, MODULE_NAME, 'handleCreateSubAccount');
+      Action.BILLING_CREATE_SUB_ACCOUNT, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleCreateSubAccount');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingCreateSubAccountReq(req.body);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingAuthorizations(req.tenant, req.user, Action.BILLING_CREATE_SUB_ACCOUNT);
+    await AuthorizationService.checkAndGetBillingPlatformAuthorizations(req.tenant, req.user, Action.BILLING_CREATE_SUB_ACCOUNT);
     // Get the billing impl
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -523,7 +523,7 @@ export default class BillingService {
     const subAccount = await BillingStorage.getSubAccountByID(tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
     // Check if the sub account is already activated
-    if (!subAccount.pending) {
+    if (subAccount.status === BillingAccountStatus.ACTIVE) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Sub account is already activated',
@@ -533,7 +533,7 @@ export default class BillingService {
       });
     }
     // Activate and save the sub account
-    subAccount.pending = false;
+    subAccount.status = BillingAccountStatus.ACTIVE;
     await BillingStorage.saveSubAccount(tenant, subAccount);
     // Get the sub account owner
     const user = await UserStorage.getUser(tenant, subAccount.userID);
@@ -542,6 +542,48 @@ export default class BillingService {
     void NotificationHandler.sendBillingSubAccountActivationNotification(
       tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(tenant.subdomain), user });
     res.status(StatusCodes.OK).json(subAccount);
+    next();
+  }
+
+  public static async handleBillingGetSubAccounts(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountsGetReq(req.query);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+      Action.LIST, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleBillingGetSubaccounts');
+    const authorizations = await AuthorizationService.checkAndGetBillingPlatformAuthorizations(req.tenant, req.user, Action.LIST);
+    if (!authorizations.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
+    // Get the billing subacounts
+    const subAccounts = await BillingStorage.getSubAccounts(req.tenant, {
+      subAccountIDs: filteredRequest.SubAccountID ? filteredRequest.SubAccountID.split('|') : null,
+      userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+      search: filteredRequest.Search ? filteredRequest.Search : null,
+      status: filteredRequest.Status ? filteredRequest.Status.split('|') : null,
+    }, {
+      sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
+      skip: filteredRequest.Skip,
+      limit: filteredRequest.Limit,
+      onlyRecordCount: filteredRequest.OnlyRecordCount
+    },
+    authorizations.projectFields
+    );
+    await AuthorizationService.addSubAccountsAuthorizations(req.tenant, req.user, subAccounts, authorizations);
+    res.json(subAccounts);
+    next();
+  }
+
+  public static async handleBillingGetSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountGetReq(req.params);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+      Action.READ, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleBillingGetSubAccount');
+    // Get the billing subacounts
+    const subAccount = await UtilsService.checkAndGetBillingSubAccountAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
+    res.json(subAccount);
     next();
   }
 

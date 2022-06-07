@@ -77,6 +77,7 @@ export enum Entity {
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',
   BILLING = 'Billing',
+  BILLING_PLATFORM = 'BillingPlatform',
   SETTING = 'Setting',
   ASYNC_TASK = 'AsyncTask',
   OCPI_ENDPOINT = 'OcpiEndpoint',

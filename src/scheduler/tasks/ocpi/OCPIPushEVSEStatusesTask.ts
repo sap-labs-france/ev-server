@@ -65,7 +65,7 @@ export default class OCPIPushEVSEStatusesTask extends TenantSchedulerTask {
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
-        // Send EVSE statuses
+        // Push EVSE statuses
         const sendResult = await ocpiClient.pushChargingStationStatuses(config.partial);
         await Logging.logInfo({
           tenantID: tenant.id,

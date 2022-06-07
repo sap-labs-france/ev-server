@@ -308,6 +308,10 @@ export default abstract class WSConnection {
     return `${this.getTenantID()}~${this.getChargingStationID()}`;
   }
 
+  public getCurrentOcppRequests(): Record<string, OCPPRequest> {
+    return this.ocppRequests;
+  }
+
   private checkMandatoryFieldsInRequest() {
     // Check URL: remove starting and trailing '/'
     if (this.url.endsWith('/')) {
