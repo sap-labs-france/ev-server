@@ -65,6 +65,7 @@ export default class OCPICheckCdrsTask extends TenantSchedulerTask {
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+        // Check CDRs
         const result = await ocpiClient.checkCdrs();
         await Logging.logInfo({
           tenantID: tenant.id,

@@ -1,18 +1,15 @@
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
-import RegistrationToken from '../RegistrationToken';
 
-export interface HttpRegistrationTokensRequest extends HttpDatabaseRequest {
+export interface HttpRegistrationTokensGetRequest extends HttpDatabaseRequest {
   Search: string;
   SiteAreaID: string;
 }
 
-export interface HttpRegistrationTokenRequest extends HttpByIDRequest {
+export interface HttpRegistrationTokenGetRequest extends HttpByIDRequest {
   ID: string;
 }
 
-export interface HttpRegistrationTokensResponse {
-  count: number;
-  result: RegistrationToken[];
+export interface HttpRegistrationTokenRevokeRequest extends HttpByIDRequest {
+  ID: string;
 }
-

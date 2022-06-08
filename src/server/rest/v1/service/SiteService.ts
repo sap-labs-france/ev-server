@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
+import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
@@ -13,7 +14,7 @@ import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import { SiteDataResult } from '../../../../types/DataResult';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import SiteValidator from '../validator/SiteValidator';
+import SiteValidatorRest from '../validator/SiteValidatorRest';
 import SitesAdminDynamicAuthorizationDataSource from '../../../../authorization/dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
@@ -29,7 +30,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteUserAdmin');
     // Filter request
-    const filteredRequest = SiteValidator.getInstance().validateSiteAdminReq(req.body);
+    const filteredRequest = SiteValidatorRest.getInstance().validateSiteAdminUpdateReq(req.body);
     if (req.user.id === filteredRequest.userID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -64,7 +65,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteOwner');
     // Filter request
-    const filteredRequest = SiteValidator.getInstance().validateSiteOwnerReq(req.body);
+    const filteredRequest = SiteValidatorRest.getInstance().validateSiteOwnerUpdateReq(req.body);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
@@ -90,7 +91,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
     // Filter request
-    const filteredRequest = SiteValidator.getInstance().validateSiteAssignUsersReq(req.body);
+    const filteredRequest = SiteValidatorRest.getInstance().validateSiteAssignUsersReq(req.body);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
@@ -121,7 +122,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsers');
     // Filter
-    const filteredRequest = SiteValidator.getInstance().validateSiteGetUsersReq(req.query);
+    const filteredRequest = SiteValidatorRest.getInstance().validateSiteGetUsersReq(req.query);
     // Check Site Auth
     await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.SiteID, Action.READ, action);
     // Check dynamic auth for reading Users
@@ -155,7 +156,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE, MODULE_NAME, 'handleDeleteSite');
     // Filter request
-    const siteID = SiteValidator.getInstance().validateSiteGetReq(req.query).ID;
+    const siteID = SiteValidatorRest.getInstance().validateSiteDeleteReq(req.query).ID;
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, siteID, Action.DELETE, action);
@@ -178,7 +179,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSite');
     // Filter request
-    const filteredRequest = SiteValidator.getInstance().validateSiteGetReq(req.query);
+    const filteredRequest = SiteValidatorRest.getInstance().validateSiteGetReq(req.query);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
@@ -194,7 +195,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE, MODULE_NAME, 'handleGetSites');
     // Filter request
-    const filteredRequest = SiteValidator.getInstance().validateSitesGetReq(req.query);
+    const filteredRequest = SiteValidatorRest.getInstance().validateSitesGetReq(req.query);
     // Create GPS Coordinates
     if (filteredRequest.LocLongitude && filteredRequest.LocLatitude) {
       filteredRequest.LocCoordinates = [
@@ -251,7 +252,7 @@ export default class SiteService {
 
   public static async handleGetSiteImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // This endpoint is not protected, so no need to check user's access
-    const filteredRequest = SiteValidator.getInstance().validateSiteGetImageReq(req.query);
+    const filteredRequest = SiteValidatorRest.getInstance().validateSiteGetImageReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteImage', req.user);
     if (!filteredRequest.TenantID) {
       // Object does not exist
@@ -291,7 +292,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
     // Filter request
-    const filteredRequest = SiteValidator.getInstance().validateSiteCreateReq(req.body);
+    const filteredRequest = SiteValidatorRest.getInstance().validateSiteCreateReq(req.body);
     // Get dynamic auth
     await AuthorizationService.checkAndGetSiteAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
@@ -305,6 +306,14 @@ export default class SiteService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Site;
+    // If the site is assigned to a billing sub-account, check if the billing is active
+    if (filteredRequest.billingData) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+        Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
+      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.billingData.accountID);
+      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.billingData.accountID}' does not exist`, MODULE_NAME, 'handleCreateSite', req.user);
+      site.billingData = { accountID: billingSubAccount.id };
+    }
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
@@ -324,7 +333,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
     // Filter request
-    const filteredRequest = SiteValidator.getInstance().validateSiteUpdateReq(req.body);
+    const filteredRequest = SiteValidatorRest.getInstance().validateSiteUpdateReq(req.body);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
@@ -369,6 +378,14 @@ export default class SiteService {
     }
     site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
+    // If the site is assigned to a billing sub-account, check if the billing is active
+    if (filteredRequest.billingData) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+        Action.CREATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
+      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.billingData.accountID);
+      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.billingData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateSite', req.user);
+      site.billingData = { accountID: billingSubAccount.id };
+    }
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     // Update all refs

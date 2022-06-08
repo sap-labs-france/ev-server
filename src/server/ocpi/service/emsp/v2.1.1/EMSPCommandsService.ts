@@ -42,7 +42,7 @@ export default class EMSPCommandsService {
           await Logging.logError({
             tenantID: tenant.id,
             action: EMSPCommandsService.getAction(command),
-            message: `OCPI Response '${req.body?.result as string}' received for '${command}' with ID '${commandId}'`,
+            message: `OCPI Callback '${req.body?.result as string}' received for Command '${command}' with ID '${commandId}'`,
             module: MODULE_NAME, method: 'process',
             detailedMessages: { response: req.body }
           });
@@ -50,7 +50,7 @@ export default class EMSPCommandsService {
           await Logging.logInfo({
             tenantID: tenant.id,
             action: EMSPCommandsService.getAction(command),
-            message: `OCPI Response '${req.body?.result as string}' received for '${command}' with ID '${commandId}'`,
+            message: `OCPI Callback '${req.body?.result as string}' received for Command '${command}' with ID '${commandId}'`,
             module: MODULE_NAME, method: 'process',
             detailedMessages: { response: req.body }
           });

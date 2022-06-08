@@ -17,6 +17,7 @@ export interface TenantComponent {
   organization?: TenantComponentContent;
   pricing?: TenantComponentContent;
   billing?: TenantComponentContent;
+  billingPlatform?: TenantComponentContent;
   refund?: TenantComponentContent;
   statistics?: TenantComponentContent;
   analytics?: TenantComponentContent;
@@ -45,6 +46,7 @@ export enum TenantComponents {
   STATISTICS = 'statistics',
   ANALYTICS = 'analytics',
   BILLING = 'billing',
+  BILLING_PLATFORM = 'billingPlatform',
   ASSET = 'asset',
   SMART_CHARGING = 'smartCharging',
   CAR = 'car',

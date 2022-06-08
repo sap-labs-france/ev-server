@@ -6,7 +6,7 @@
     "id": {
       "$ref": "chargingstation#/definitions/id"
     },
-    "chargingStationUrl": {
+    "chargingStationURL": {
       "type": "string",
       "sanitize": "mongo"
     },

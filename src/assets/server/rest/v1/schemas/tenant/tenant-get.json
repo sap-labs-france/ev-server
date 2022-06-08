@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "ID": {
-      "$ref": "tenant#/properties/id"
+      "$ref": "tenant#/definitions/id"
     },
     "ProjectFields": {
       "$ref": "common#/definitions/projectFields"

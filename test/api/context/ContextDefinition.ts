@@ -19,13 +19,14 @@ export interface TenantDefinition {
     analytics?: { content?: SettingDBContent };
     smartCharging?: { content?: SettingDBContent };
     billing?: { content?: SettingDBContent };
+    billingPlatform?: { content?: SettingDBContent };
     asset?: { content?: SettingDBContent };
     car?: { content?: SettingDBContent };
   };
 }
 
 export default class ContextDefinition {
-  static readonly TENANT_CONTEXTS: Record<string, string> = {
+  public static readonly TENANT_CONTEXTS: Record<string, string> = {
     TENANT_WITH_ALL_COMPONENTS: 'utall', // All components are active
     TENANT_WITH_NO_COMPONENTS: 'utnothing', // No components are active
     TENANT_ORGANIZATION: 'utorg', // Only organization component is active
@@ -34,19 +35,20 @@ export default class ContextDefinition {
     TENANT_OICP: 'utoicp', // Only ocpi component is active
     TENANT_FUNDING: 'utrefund', // Only refund component is active
     TENANT_BILLING: 'utbilling', // Only billing and pricing component is active
+    TENANT_BILLING_PLATFORM: 'utbillingplatform', // Only billing, pricing and billingplatform component is active
     TENANT_ASSET: 'utasset', // Only asset component is active
     TENANT_CAR: 'utcar', // Only car component is active
     TENANT_SMART_CHARGING: 'utsmartcharging' // Organization and Smart Charging components are active
   };
 
-  static readonly SITE_CONTEXTS: Record<string, string> = {
+  public static readonly SITE_CONTEXTS: Record<string, string> = {
     NO_SITE: 'No site', // Used for unassigned Charging Station or CS in tenant with no organizations
     SITE_BASIC: 'ut-site', // Default site with no settings
     SITE_WITH_AUTO_USER_ASSIGNMENT: 'ut-site-auto', // Automatic user assignment is active
     SITE_WITH_OTHER_USER_STOP_AUTHORIZATION: 'ut-site-stop' // Authorization to stop other users transaction is active
   };
 
-  static readonly SITE_AREA_CONTEXTS: Record<string, string> = {
+  public static readonly SITE_AREA_CONTEXTS: Record<string, string> = {
     NO_SITE: 'No site', // Used for unassigned Charging Station or CS in tenant with no organizations
     WITH_ACL: 'withACL', // ACL is active
     WITHOUT_ACL: 'withoutACL', // ACL is inactive
@@ -55,7 +57,7 @@ export default class ContextDefinition {
     WITH_SMART_CHARGING_DC: 'withSmartChargingDC', // Smart Charging is active DC
   };
 
-  static readonly CHARGING_STATION_CONTEXTS: Record<string, string> = {
+  public static readonly CHARGING_STATION_CONTEXTS: Record<string, string> = {
     UNREGISTERED_OCPP16: faker.random.alphaNumeric(10),
     INVALID_IDENTIFIER_OCPP16: 'inv@l!d:1.6',
     ASSIGNED_OCPP16: 'cs-16', // Charging Station is assigned to each site area with OCPP16
@@ -68,7 +70,7 @@ export default class ContextDefinition {
     UNKNOWN_OCPP15: 'cs-unknown15' // Charging station is not in template and use OCPP15
   };
 
-  static readonly USER_CONTEXTS: Record<string, any> = {
+  public static readonly USER_CONTEXTS: Record<string, any> = {
     DEFAULT_ADMIN: {
       role: 'A', status: 'A', assignedToSite: true, withTags: true, issuer: true
     },
@@ -102,12 +104,12 @@ export default class ContextDefinition {
   /**
    * Price of the consumed energy - 1 Euros / kWh
    */
-  static readonly DEFAULT_PRICE = 1;
+  public static readonly DEFAULT_PRICE = 1;
 
   /**
    * Definition of the different contexts
    */
-  static readonly TENANT_CONTEXT_LIST: TenantDefinition[] = [{
+  public static readonly TENANT_CONTEXT_LIST: TenantDefinition[] = [{
     tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa1',
     subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
@@ -390,10 +392,45 @@ export default class ContextDefinition {
       },
     },
   },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM,
+    id: 'aaaaaaaaaaaaaaaaaaaaaab4',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM,
+    componentSettings: {
+      pricing: {
+        content: {
+          type: PricingSettingsType.SIMPLE,
+          simple: {
+            price: ContextDefinition.DEFAULT_PRICE,
+            currency: 'EUR'
+          }
+        }
+      },
+      billing: {
+        content: {
+          type: BillingSettingsType.STRIPE,
+          billing: {
+            isTransactionBillingActivated: true,
+            immediateBillingAllowed: true,
+            periodicBillingAllowed: true,
+            taxID: ''
+          },
+          stripe: {
+            url: '',
+            secretKey: '',
+            publicKey: '',
+          }
+        }
+      },
+      billingPlatform: {
+      },
+      organization: {},
+    },
+  },
   ];
 
   // List of users created in a tenant
-  static readonly TENANT_USER_LIST: any[] = [
+  public static readonly TENANT_USER_LIST: any[] = [
     // Email and password are taken from config file for all users
     { // Default Admin user.
       id: '5ce249a1a39ae1c056c389bd',
@@ -582,7 +619,7 @@ export default class ContextDefinition {
   ];
 
   // List of companies created in a tenant where organization component is active
-  static readonly TENANT_COMPANY_LIST: any[] = [
+  public static readonly TENANT_COMPANY_LIST: any[] = [
     { // Default company no settings yet
       id: '5ce249a2372f0b1c8caf928f'
     },
@@ -592,7 +629,7 @@ export default class ContextDefinition {
   ];
 
   // List of sites created in a tenant where organization component is active
-  static readonly TENANT_SITE_LIST: any[] = [
+  public static readonly TENANT_SITE_LIST: any[] = [
     { // Default site
       // contextName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
       id: '5ce249a2372f0b1c8caf9294',
@@ -621,7 +658,7 @@ export default class ContextDefinition {
 
   // List of siteArea created in a tenant where organization component is active
   // sitename must refer an existing site from TENANT_SITE_LIST
-  static readonly TENANT_SITEAREA_LIST: any[] = [
+  public static readonly TENANT_SITEAREA_LIST: any[] = [
     { // With access control
       id: '5ce249a2372f0b1c8caf9294',
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
@@ -707,7 +744,7 @@ export default class ContextDefinition {
   // List of Charging Station created in a tenant
   // siteAreaNames must refer the site Areas where teh charging station will be created
   // if siteAreaNames is null then the CS will not be assigned or created in tenant with no organization, so the baseName MUST be unique
-  static readonly TENANT_CHARGING_STATION_LIST: any[] = [
+  public static readonly TENANT_CHARGING_STATION_LIST: any[] = [
     {
       baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16, // Concatenated with siteAreaName
       ocppVersion: OCPPVersion.VERSION_16,
@@ -746,7 +783,7 @@ export default class ContextDefinition {
   ];
 
   // List of assets created in a tenant where organization component is active
-  static readonly TENANT_ASSET_LIST: any[] = [
+  public static readonly TENANT_ASSET_LIST: any[] = [
     {
       id: '5e68ae9e2fa3df719875edef',
       siteAreaID: '5ce249a2372f0b1c8caf9294'

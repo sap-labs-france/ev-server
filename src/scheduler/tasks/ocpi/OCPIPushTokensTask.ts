@@ -65,7 +65,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-        // Push the Tokens
+        // Push Tokens
         const result = await ocpiClient.pushTokens(config.partial);
         await Logging.logInfo({
           tenantID: tenant.id,
