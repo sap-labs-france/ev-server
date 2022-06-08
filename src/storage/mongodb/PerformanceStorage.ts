@@ -26,9 +26,8 @@ export default class PerformanceStorage {
       // Set
       performanceRecord.id = result.insertedId.toString();
       return performanceRecord.id;
-    } else {
-      return Promise.resolve(new ObjectId().toString());
     }
+    return Promise.resolve(new ObjectId().toString());
   }
 
   public static async updatePerformanceRecord(performanceRecord: PerformanceRecord): Promise<void> {
