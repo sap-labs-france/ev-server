@@ -13,7 +13,7 @@ export default interface PerformanceRecord {
   resSizeKb?: number;
   httpUrl?: string;
   httpMethod?: string;
-  httpEgress?: boolean;
+  egress?: boolean;
   httpResponseCode?: number;
   chargingStationID?: string;
   userID?: string;

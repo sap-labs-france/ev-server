@@ -103,6 +103,7 @@ export default class Logging {
           durationMs: executionDurationMillis,
           reqSizeKb: sizeOfRequestDataKB,
           resSizeKb: sizeOfResponseDataKB,
+          egress: true,
           action: `${module}.${method}`
         })
       );
@@ -148,6 +149,7 @@ export default class Logging {
           durationMs: executionDurationMillis,
           reqSizeKb: sizeOfRequestDataKB,
           resSizeKb: 0,
+          egress: true,
           action: `${module}.${method}.${templateName}`,
           userID
         })
@@ -331,7 +333,7 @@ export default class Logging {
             group: Utils.getPerformanceRecordGroupFromURL(req.originalUrl),
             httpUrl: req.url,
             httpMethod: req.method,
-            httpEgress: false,
+            egress: false,
             reqSizeKb: sizeOfRequestDataKB,
             action: ServerAction.HTTP_REQUEST,
           })
@@ -472,7 +474,7 @@ export default class Logging {
           group: Utils.getPerformanceRecordGroupFromURL(request.url),
           httpUrl: request.url,
           httpMethod: request.method.toLocaleUpperCase(),
-          httpEgress: true,
+          egress: true,
           reqSizeKb: sizeOfRequestDataKB,
           action: Utils.getAxiosActionFromURL(request.url),
         })
@@ -698,6 +700,7 @@ export default class Logging {
           chargingStationID,
           group: PerformanceRecordGroup.OCPP,
           reqSizeKb: sizeOfRequestDataKB,
+          egress: direction === '<<' ? true : false,
           action
         })
       );

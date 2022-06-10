@@ -1500,7 +1500,7 @@ export default class Utils {
   public static buildPerformanceRecord(params: {
     tenantSubdomain?: string; durationMs?: number; resSizeKb?: number; reqSizeKb?: number;
     action: ServerAction|string; group?: PerformanceRecordGroup; httpUrl?: string;
-    httpMethod?: string; httpResponseCode?: number; httpEgress?: boolean; chargingStationID?: string, userID?: string
+    httpMethod?: string; httpResponseCode?: number; egress?: boolean; chargingStationID?: string, userID?: string
   }): PerformanceRecord {
     const performanceRecord: PerformanceRecord = {
       tenantSubdomain: params.tenantSubdomain,
@@ -1527,8 +1527,8 @@ export default class Utils {
     if (params.httpMethod) {
       performanceRecord.httpMethod = params.httpMethod;
     }
-    if (Utils.objectHasProperty(params, 'httpEgress')) {
-      performanceRecord.httpEgress = params.httpEgress;
+    if (Utils.objectHasProperty(params, 'egress')) {
+      performanceRecord.egress = params.egress;
     }
     if (params.httpResponseCode) {
       performanceRecord.httpResponseCode = params.httpResponseCode;
