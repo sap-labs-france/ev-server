@@ -31,7 +31,7 @@ export default class ChargingStationTemplateStorage {
       chargingStationTemplateMDB,
       { upsert: true });
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveChargingStationTemplate', startTime, chargingStationTemplate);
-    return chargingStationTemplateMDB.id;
+    return chargingStationTemplateMDB._id;
   }
 
   public static async getChargingStationTemplates(

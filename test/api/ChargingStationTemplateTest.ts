@@ -13,7 +13,7 @@ class TestData {
   public newChargingStationTemplate: ChargingStationTemplate;
   public updatedChargingStationTemplate: ChargingStationTemplate;
   public tenantContext: any;
-  public adminCentralService: CentralServerService;
+  public superAdminCentralService: CentralServerService;
   public basicUserContext: any;
   public basicCentralService: CentralServerService;
   public adminUserContext: any;
@@ -23,46 +23,46 @@ class TestData {
 const testData: TestData = new TestData();
 
 describe('Charging Station Template', () => {
-  jest.setTimeout(300000); // Will automatically stop the unit test after that period of time
+  jest.setTimeout(30000);
 
   beforeAll(async () => {
-    testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-    testData.adminUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.SUPER_ADMIN);
-    testData.adminCentralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, testData.adminUserContext);
-  });
+    testData.superAdminCentralService = new CentralServerService('');
+  }),
 
   afterAll(async () => {
     // Final clean up at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With all component (utall)', () => {
-    describe('Where admin user', () => {
-      // Create
-      it('Should be able to create a new charging station template', async () => {
-        const ChargingStationTemplateToCreate = Factory.chargingStationTemplate.build();
-        testData.newChargingStationTemplate = await testData.adminCentralService.createEntity(
-          testData.adminCentralService.chargingStationTemplateApi,
-          ChargingStationTemplateToCreate
-        );
-        testData.createdChargingStationTemplates.push(testData.newChargingStationTemplate);
+  describe('With all component (super)', () => {
+    describe('Success cases', () => {
+      it('Should be able to create a new cst', async () => {
+        const cstToCreate = Factory.chargingStationTemplate.build();
+        const response = await testData.superAdminCentralService.createEntity(testData.superAdminCentralService.chargingStationTemplateApi,cstToCreate, false);
+        expect(response.status).to.equal(StatusCodes.OK);
+        expect(response.data).not.null;
+        expect(response.data.status).to.eql('Success');
+        expect(response.data).to.have.property('id');
+        testData.createdChargingStationTemplates.push(response);
+        testData.newChargingStationTemplate = response.data;
       });
 
-      // Check creation readById
-      it('Should find the created registration token by id', async () => {
-        await testData.adminCentralService.getEntityById(
-          testData.adminCentralService.registrationApi,
-          testData.newChargingStationTemplate
-        );
+      it('Should find the created cst by id', async () => {
+        expect(testData.newChargingStationTemplate).to.not.be.null;
+        // Retrieve it from the backend
+        const response = await testData.superAdminCentralService.chargingStationTemplateApi.readById(testData.newChargingStationTemplate.id);
+        // Check if ok
+        expect(response.status).to.equal(StatusCodes.OK);
+        expect(response.data.id).is.eql(testData.newChargingStationTemplate.id);
       });
 
       // Check creation readAll
       it(
-        'Should find the created registration token in the tokens list',
+        'Should find the created cst in the tokens list',
         async () => {
           // Check if the created entity is in the list
-          await testData.adminCentralService.checkEntityInList(
-            testData.adminCentralService.registrationApi,
+          await testData.superAdminCentralService.checkEntityInList(
+            testData.superAdminCentralService.chargingStationTemplateApi,
             testData.newChargingStationTemplate
           );
         }
@@ -90,32 +90,30 @@ describe('Charging Station Template', () => {
       // });
 
       // Delete
-      it('Should be able to delete the created registration token', async () => {
+      it('Should be able to delete the created cst', async () => {
         // Delete the created entity
-        await testData.adminCentralService.deleteEntity(
-          testData.adminCentralService.registrationApi,
+        await testData.superAdminCentralService.deleteEntity(
+          testData.superAdminCentralService.chargingStationTemplateApi,
           testData.newChargingStationTemplate
         );
       });
 
-      // Verify delete readById
-      it('Should not find the deleted asset with its id', async () => {
-        const ChargingStationTemplateToCreate = Factory.chargingStationTemplate.build();
-        testData.newChargingStationTemplate = await testData.adminCentralService.createEntity(
-          testData.adminCentralService.registrationApi,
-          ChargingStationTemplateToCreate
-        );
-        await testData.adminCentralService.deleteEntity(
-          testData.adminCentralService.registrationApi,
-          testData.newChargingStationTemplate
-        );
-        // Check the deleted entity cannot be retrieved with its id
-        await testData.adminCentralService.checkDeletedEntityById(
-          testData.adminCentralService.registrationApi,
-          testData.newChargingStationTemplate
-        );
-      });
+      // // Verify delete readById
+      // it('Should not find the deleted asset with its id', async () => {
+      //   const ChargingStationTemplateToCreate = Factory.chargingStationTemplate.build();
+      //   testData.newChargingStationTemplate = await testData.adminCentralService.createEntity(
+      //     testData.adminCentralService.registrationApi,
+      //     ChargingStationTemplateToCreate
+      //   );
+      //   await testData.adminCentralService.deleteEntity(
+      //     testData.adminCentralService.registrationApi,
+      //     testData.newChargingStationTemplate
+      //   );
+      //   // Check the deleted entity cannot be retrieved with its id
+      //   await testData.adminCentralService.checkDeletedEntityById(
+      //     testData.adminCentralService.registrationApi,
+      //     testData.newChargingStationTemplate
+      //   );
     });
-
   });
 });
