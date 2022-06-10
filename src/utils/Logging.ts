@@ -331,6 +331,7 @@ export default class Logging {
             group: Utils.getPerformanceRecordGroupFromURL(req.originalUrl),
             httpUrl: req.url,
             httpMethod: req.method,
+            httpEgress: false,
             reqSizeKb: sizeOfRequestDataKB,
             action: ServerAction.HTTP_REQUEST,
           })
@@ -471,6 +472,7 @@ export default class Logging {
           group: Utils.getPerformanceRecordGroupFromURL(request.url),
           httpUrl: request.url,
           httpMethod: request.method.toLocaleUpperCase(),
+          httpEgress: true,
           reqSizeKb: sizeOfRequestDataKB,
           action: Utils.getAxiosActionFromURL(request.url),
         })
