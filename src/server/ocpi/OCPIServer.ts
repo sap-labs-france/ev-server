@@ -16,6 +16,7 @@ import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
+import UtilsService from '../rest/v1/service/UtilsService';
 
 const MODULE_NAME = 'OCPIServer';
 
@@ -58,6 +59,7 @@ export default class OCPIServer {
 
   private async initialize(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const urlInfo = UtilsService.getURLInfo(req);
       // Get Token
       if (!req.headers || !req.headers.authorization) {
         throw new AppError({
@@ -65,7 +67,8 @@ export default class OCPIServer {
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: 'Missing authorization token',
-          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
+          detailedMessages: urlInfo,
         });
       }
       let decodedToken: { tenant: string; tid: string };
@@ -79,7 +82,7 @@ export default class OCPIServer {
           errorCode: StatusCodes.UNAUTHORIZED,
           message: 'Invalid authorization token',
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-          detailedMessages: { error: error.stack }
+          detailedMessages: { ...urlInfo, error: error.stack }
         });
       }
       const tenantSubdomain = decodedToken.tenant ?? decodedToken.tid;
@@ -91,7 +94,8 @@ export default class OCPIServer {
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not exist`,
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
+          detailedMessages: { ...urlInfo, token }
         });
       }
       req.tenant = tenant;
@@ -101,7 +105,8 @@ export default class OCPIServer {
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not support OCPI`,
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
+          detailedMessages: { ...urlInfo, token }
         });
       }
       // Get Endpoint
@@ -111,8 +116,9 @@ export default class OCPIServer {
           module: MODULE_NAME, method: 'initialize',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
-          message: 'Invalid Token',
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+          message: 'The OCPI Token does no longer exist in the OCPI endpoints',
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
+          detailedMessages: { ...urlInfo, token }
         });
       }
       req.ocpiEndpoint = ocpiEndpoint;
@@ -122,8 +128,9 @@ export default class OCPIServer {
           module: MODULE_NAME, method: 'initialize',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
-          message: `Invalid Token for URL '${req.url}', endpoint role is '${ocpiEndpoint.role}'`,
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+          message: `Invalid OCPI Token for URL '${req.url}', OCPI Endpoint role is '${ocpiEndpoint.role}'`,
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
+          detailedMessages: { ...urlInfo, token }
         });
       }
       next();

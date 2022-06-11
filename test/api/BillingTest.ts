@@ -990,11 +990,16 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         });
 
         it('should create a sub account and activate it', async () => {
+          // Create a sub account
           const response = await billingTestHelper.userService.billingApi.createSubAccount({
             userID: billingTestHelper.userContext.id
           });
           expect(response.status).to.be.eq(StatusCodes.CREATED);
-
+          // Send the activation link
+          const subAccountOnboardResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding(response.data.id);
+          expect(subAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
+          expect(subAccountOnboardResponse.data.status).to.be.eq(BillingAccountStatus.PENDING);
+          // Activate the sub account
           const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
           expect(activationResponse.status).to.be.eq(StatusCodes.OK);
           expect(activationResponse.data.status).to.be.eq(BillingAccountStatus.ACTIVE);
@@ -1006,11 +1011,15 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         });
 
         it('should not activate a sub account twice', async () => {
+          // Create a sub account
           const response = await billingTestHelper.userService.billingApi.createSubAccount({
             userID: billingTestHelper.userContext.id
           });
           expect(response.status).to.be.eq(StatusCodes.CREATED);
-
+          // Send the activation link
+          const subAccountOnboardResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding(response.data.id);
+          expect(subAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
+          // Activate the sub account
           let activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
           expect(activationResponse.status).to.be.eq(StatusCodes.OK);
           activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
@@ -1130,6 +1139,50 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(subAccountResponse.data.userID).to.be.eq(billingTestHelper.userContext.id);
           expect(subAccountResponse.data.status).to.be.eq(BillingAccountStatus.IDLE);
         });
+
+        it('should send sub-account onboarding', async () => {
+          const subAccountCreateResponse = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(subAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
+
+          const subAccountOnboardResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding(subAccountCreateResponse.data.id);
+          expect(subAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
+          expect(subAccountOnboardResponse.data.status).to.be.eq(BillingAccountStatus.PENDING);
+        });
+
+        it('should not able to send sub-account onboarding twice', async () => {
+          const subAccountCreateResponse = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(subAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
+
+          let subAccountOnboardResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding(subAccountCreateResponse.data.id);
+          expect(subAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
+          expect(subAccountOnboardResponse.data.status).to.be.eq(BillingAccountStatus.PENDING);
+
+          subAccountOnboardResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding(subAccountCreateResponse.data.id);
+          expect(subAccountOnboardResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+        });
+
+        it('should not able to send sub-account onboarding for an activated sub-account', async () => {
+          // Create the sub account
+          const subAccountCreateResponse = await billingTestHelper.userService.billingApi.createSubAccount({
+            userID: billingTestHelper.userContext.id
+          });
+          expect(subAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
+          // Send onboarding
+          let subAccountOnboardResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding(subAccountCreateResponse.data.id);
+          expect(subAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
+          expect(subAccountOnboardResponse.data.status).to.be.eq(BillingAccountStatus.PENDING);
+          // Activate it
+          const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: subAccountCreateResponse.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
+          expect(activationResponse.status).to.be.eq(StatusCodes.OK);
+          expect(activationResponse.data.status).to.be.eq(BillingAccountStatus.ACTIVE);
+          // Try to re-send onboarding
+          subAccountOnboardResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding(subAccountCreateResponse.data.id);
+          expect(subAccountOnboardResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+        });
       });
     });
 
@@ -1165,6 +1218,12 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       it('should not be able to read sub-account', async () => {
         // List sub-accounts
         const subAccountResponse = await billingTestHelper.userService.billingApi.readSubAccount('62978713f146ea8cb3bf8a95');
+        expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+      });
+
+      it('should not be able to send sub-account onboarding', async () => {
+        // List sub-accounts
+        const subAccountResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding('62978713f146ea8cb3bf8a95');
         expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
     });

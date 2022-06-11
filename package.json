@@ -102,6 +102,7 @@
     "cors": "^2.8.5",
     "countries-list": "^2.6.1",
     "csvtojson": "^2.0.10",
+    "curvereduce": "^0.0.4",
     "decimal.js": "^10.3.1",
     "ejs": "^3.1.8",
     "emailjs": "^3.7.0",
