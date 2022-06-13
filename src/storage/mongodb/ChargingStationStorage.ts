@@ -255,11 +255,9 @@ export default class ChargingStationStorage {
       // Query by siteAreaID
       filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
-
     // Query by siteID
     const includeAllExternalSites = Utils.convertToBoolean(params.includeAllExternalSites);
     const siteIDsFilterProvided = !Utils.isEmptyArray(params.siteIDs);
-
     // Site ID filter provided and include ext sites false => apply site filter
     if (siteIDsFilterProvided && !includeAllExternalSites) {
       filters.siteID = { $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
@@ -287,8 +285,6 @@ export default class ChargingStationStorage {
         filters.siteID = { issuer: true };
       }
     }
-
-
     // Check Company ID
     if (!Utils.isEmptyArray(params.companyIDs)) {
       // Query by siteID

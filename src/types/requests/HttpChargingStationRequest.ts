@@ -27,7 +27,6 @@ export interface HttpChargingProfilesGetRequest extends HttpDatabaseRequest {
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface HttpChargingProfileRequest extends HttpByIDRequest {
-
 }
 
 export interface HttpDownloadQrCodeRequest {

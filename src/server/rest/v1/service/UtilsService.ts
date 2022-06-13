@@ -159,7 +159,6 @@ export default class UtilsService {
 
   public static async checkAndGetChargingProfileAuthorization(tenant: Tenant, userToken: UserToken, chargingProfileID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingProfile> {
-
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, chargingProfileID, MODULE_NAME, 'checkAndGetChargingProfileAuthorization', userToken);
     // Get dynamic auth
