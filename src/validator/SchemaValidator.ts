@@ -6,7 +6,7 @@ import Constants from '../utils/Constants';
 import { HTTPError } from '../types/HTTPError';
 import { ObjectId } from 'mongodb';
 import Schema from '../types/validator/Schema';
-import Utils from '../utils/Utils';
+import _ from 'lodash';
 import addFormats from 'ajv-formats';
 import chalk from 'chalk';
 import countries from 'i18n-iso-countries';
@@ -87,7 +87,7 @@ export default class SchemaValidator {
 
   protected validate(schema: Schema, data: any, cloneObject = false): any {
     if (cloneObject) {
-      data = Utils.cloneObject(data);
+      data = this.cloneObject(data);
     }
     let fnValidate: ValidateFunction<unknown>;
     if (!schema.$id) {
@@ -211,8 +211,17 @@ export default class SchemaValidator {
     return process.env.NODE_ENV === 'development';
   }
 
-  // Creatd to avoid circular dependency
+  // Created to avoid circular dependency
   private logConsoleError(message: string): void {
     console.error(chalk.red(`${new Date().toLocaleString()} - ${message}`));
+  }
+
+  // Ducplicated cloneObject method from Utils class to avoid circular deps
+  // src/validator/SchemaValidator.ts -> src/utils/Utils.ts -> src/utils/Configuration.ts -> src/storage/validator/ConfigurationValidatorStorage.ts -> src/validator/SchemaValidator.ts
+  private cloneObject<T>(object: T): T {
+    if (!object) {
+      return object;
+    }
+    return _.cloneDeep(object);
   }
 }
