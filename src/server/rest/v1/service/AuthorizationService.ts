@@ -107,7 +107,7 @@ export default class AuthorizationService {
   }
 
   // eslint-disable-next-line max-len
-  public static async addSiteUserAuthToUserAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, users: User[], authorizationFilter: AuthorizationFilter): Promise<void> {
+  public static async addSiteUserAuthToUsersAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, users: User[], authorizationFilter: AuthorizationFilter): Promise<void> {
     for (const user of users) {
       user.canAssignToSite = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_USER, Action.ASSIGN_USERS_TO_SITE, authorizationFilter, { UserID: user.id }, site);
@@ -309,6 +309,7 @@ export default class AuthorizationService {
       tenant, userToken, Entity.TRANSACTION, Action.LIST, authorizationFilter, { UserID: user.id }, user);
     user.canSynchronizeBillingUser = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USER, Action.SYNCHRONIZE_BILLING_USER, authorizationFilter, { UserID: user.id }, user);
+    // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(user);
   }
 

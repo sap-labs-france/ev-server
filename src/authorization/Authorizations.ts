@@ -327,7 +327,6 @@ export default class Authorizations {
 
   }
 
-
   public static async canListUsers(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.USER, Action.LIST, authContext);
   }

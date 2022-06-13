@@ -530,7 +530,7 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkAndGetSiteUsersAuthorization',
       });
     }
-    await AuthorizationService.addSiteUserAuthToUserAuthorizations(tenant, userToken, site, users, authorizations);
+    await AuthorizationService.addSiteUserAuthToUsersAuthorizations(tenant, userToken, site, users, authorizations);
     return users;
   }
 

@@ -12,14 +12,14 @@ export default class SitesAdminOrOwnerDynamicAuthorizationDataSource
   }
 
   public async loadData(): Promise<void> {
-    const sitesAdminData: SitesAdminOrOwnerDynamicAuthorizationDataSourceData = {};
-    // Get Site IDs from Site Admin flag
-    sitesAdminData.siteIDs = await this.getSitesAdminOrOwnerSiteIDs();
+    const sitesAdminOrOwnerData: SitesAdminOrOwnerDynamicAuthorizationDataSourceData = {};
+    // Get Site IDs from Site AdminOrOwner flag
+    sitesAdminOrOwnerData.siteIDs = await this.getSitesAdminOrOwnerSiteIDs();
     // Set
-    this.setData(sitesAdminData);
+    this.setData(sitesAdminOrOwnerData);
   }
 
-  // get la liste des sites dont le user connecté est site admin dessus
+  // Get sites list where user is Admin or Owner
   private async getSitesAdminOrOwnerSiteIDs(): Promise<string[]> {
     // Get the Site IDs of the Sites for which the user is Site Admin
     const sitesAdmin = await UserStorage.getUserSites(this.tenant,
@@ -29,6 +29,7 @@ export default class SitesAdminOrOwnerDynamicAuthorizationDataSource
       }, Constants.DB_PARAMS_MAX_LIMIT,
       ['siteID']
     );
+    // Get the Site IDs of the Sites for which the user is Site Owner
     const sitesOwner = await UserStorage.getUserSites(this.tenant,
       {
         userIDs: [this.userToken.id],
@@ -36,9 +37,8 @@ export default class SitesAdminOrOwnerDynamicAuthorizationDataSource
       }, Constants.DB_PARAMS_MAX_LIMIT,
       ['siteID']
     );
-
-    const sites = [ ...sitesAdmin.result.map((userSite) => userSite.siteID),
-      ...sitesOwner.result.map((userSite) => userSite.siteID) ];
+    // Merge two arrays, avoid duplicates and keep only siteIDs
+    const sites = [ ...sitesAdmin.result, ...sitesOwner.result ].map((userSite) => userSite.siteID);
     return sites;
   }
 }
