@@ -1112,14 +1112,6 @@ export default class TransactionService {
         ];
       }
     }
-    // Build
-    const extrafilters: any = {};
-    if (filteredRequest.Status === 'completed') {
-      extrafilters.stop = { $exists: true };
-    }
-    if (filteredRequest.Status === 'active') {
-      extrafilters.stop = { $exists: false };
-    }
     // Check projection
     const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
     if (!Utils.isEmptyArray(httpProjectFields)) {
@@ -1135,7 +1127,7 @@ export default class TransactionService {
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.tenant,
       {
-        ...extrafilters,
+        status: filteredRequest.Status,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
@@ -1153,7 +1145,7 @@ export default class TransactionService {
         siteAdminIDs: await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user),
         startDateTime: filteredRequest.StartDateTime ? filteredRequest.StartDateTime : null,
         endDateTime: filteredRequest.EndDateTime ? filteredRequest.EndDateTime : null,
-        refundStatus: filteredRequest.RefundStatus ? filteredRequest.RefundStatus.split('|') : null,
+        refundStatus: filteredRequest.RefundStatus ? filteredRequest.RefundStatus.split('|') as RefundStatus[] : null,
         minimalPrice: filteredRequest.MinimalPrice ? filteredRequest.MinimalPrice : null,
         statistics: filteredRequest.Statistics ? filteredRequest.Statistics : null,
         search: filteredRequest.Search ? filteredRequest.Search : null,

@@ -570,53 +570,22 @@ export default class ChargingStationService {
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, chargingStationID, Action.DELETE, action, null, { issuer: true, ithSiteArea: true });
-    for (const connector of chargingStation.connectors) {
-      if (connector && connector.currentTransactionID) {
-        const transaction = await TransactionStorage.getTransaction(req.tenant, connector.currentTransactionID);
-        if (transaction && !transaction.stop) {
-          throw new AppError({
-            action,
-            errorCode: HTTPError.EXISTING_TRANSACTION_ERROR,
-            message: `Charging Station '${chargingStation.id}' can't be deleted due to existing active transactions`,
-            module: MODULE_NAME,
-            method: 'handleDeleteChargingStation',
-            user: req.user
-          });
-        } else {
-          OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, connector.connectorId);
-        }
-      }
+    // Check ongoing Transactions
+    const ongoingTransactions = await TransactionStorage.getTransactions(req.tenant,
+      { chargingStationIDs: [chargingStationID], status: 'active' }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
+    if (ongoingTransactions.count > 0) {
+      throw new AppError({
+        action,
+        errorCode: HTTPError.EXISTING_TRANSACTION_ERROR,
+        message: `Charging Station '${chargingStation.id}' can't be deleted due to existing active transactions`,
+        module: MODULE_NAME,
+        method: 'handleDeleteChargingStation',
+        user: req.user
+      });
     }
-    // Remove charging station from HBS
-    if (chargingStation.public) {
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OICP)) {
-        try {
-          const oicpClient: CpoOICPClient = await OICPClientFactory.getAvailableOicpClient(req.tenant, OCPIRole.CPO) as CpoOICPClient;
-          if (oicpClient) {
-            // Define get option
-            const options = {
-              addChargeBoxID: true,
-              countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
-              partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
-            };
-            // Get Site
-            const site = await SiteStorage.getSite(req.tenant, chargingStation.siteID);
-            // Push EVSE to OICP platform
-            await oicpClient.pushEvseData(OICPUtils.convertChargingStation2MultipleEvses(
-              site, chargingStation.siteArea, chargingStation, options), OICPActionType.DELETE);
-          }
-        } catch (error) {
-          await Logging.logError({
-            tenantID: req.tenant.id,
-            module: MODULE_NAME, method: 'handleDeleteChargingStation',
-            action,
-            user: req.user,
-            message: `Unable to remove charging station ${chargingStation.id} from HBS`,
-            detailedMessages: { error: error.stack }
-          });
-        }
-      }
-    }
+    // Handle Roaming
+    await ChargingStationService.deactivateChargingStationRoaming(
+      action, req.tenant, req.user, chargingStation, chargingStation.siteArea);
     // Remove Org
     chargingStation.companyID = null;
     chargingStation.siteID = null;
@@ -626,10 +595,10 @@ export default class ChargingStationService {
     // Check if charging station has had transactions
     const transactions = await TransactionStorage.getTransactions(req.tenant,
       { chargingStationIDs: [chargingStation.id] }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
-    if (!Utils.isEmptyArray(transactions.result)) {
+    if (transactions.count > 0) {
       // Delete logically
       await ChargingStationStorage.saveChargingStation(req.tenant, chargingStation);
-      // Delete Charging Profiles
+      // Delete Tx Charging Profiles
       await ChargingStationStorage.deleteChargingProfiles(req.tenant, chargingStation.id);
     } else {
       // Delete physically
@@ -1688,6 +1657,39 @@ export default class ChargingStationService {
           message: `Unable to insert or remove charging station ${chargingStation.id} from HBS`,
           detailedMessages: { error: error.stack }
         });
+      }
+    }
+  }
+
+  private static async deactivateChargingStationRoaming(action: ServerAction, tenant: Tenant, user: UserToken,
+      chargingStation: ChargingStation, siteArea: SiteArea) {
+    if (chargingStation.public) {
+      if (Utils.isComponentActiveFromToken(user, TenantComponents.OICP)) {
+        try {
+          const oicpClient: CpoOICPClient = await OICPClientFactory.getAvailableOicpClient(tenant, OCPIRole.CPO) as CpoOICPClient;
+          if (oicpClient) {
+            // Define get option
+            const options = {
+              addChargeBoxID: true,
+              countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
+              partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
+            };
+            // Get Site
+            const site = await SiteStorage.getSite(tenant, chargingStation.siteID);
+            // Push EVSE to OICP platform
+            await oicpClient.pushEvseData(OICPUtils.convertChargingStation2MultipleEvses(
+              site, siteArea, chargingStation, options), OICPActionType.DELETE);
+          }
+        } catch (error) {
+          await Logging.logError({
+            tenantID: tenant.id,
+            module: MODULE_NAME, method: 'handleDeleteChargingStation',
+            action,
+            user: user,
+            message: `Unable to remove charging station ${chargingStation.id} from HBS`,
+            detailedMessages: { error: error.stack }
+          });
+        }
       }
     }
   }
