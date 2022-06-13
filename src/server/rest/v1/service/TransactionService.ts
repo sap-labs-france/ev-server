@@ -531,14 +531,14 @@ export default class TransactionService {
       );
       consumptions = consumptionsMDB.result;
     } else {
-      consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(
+      consumptions = (await ConsumptionStorage.getOptimizedTransactionConsumptions(
         req.tenant, { transactionId: transaction.id }, [
           'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
           'stateOfCharge', 'limitWatts', 'limitAmps',
           'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
           'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
           'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3'
-        ]);
+        ])).result;
     }
     // Assign
     transaction.values = consumptions;
@@ -593,7 +593,7 @@ export default class TransactionService {
         ['startedAt', 'endedAt', 'cumulatedConsumptionWh']
       );
       // Convert consumptions to the ADVENIR format
-      const advenirValues: AdvenirConsumptionData[] = consumptions.map(
+      const advenirValues: AdvenirConsumptionData[] = consumptions.result.map(
         (consumption) => {
           // Unix epoch format expected
           const timestamp = Utils.createDecimal(consumption.startedAt.getTime()).div(1000).toNumber();

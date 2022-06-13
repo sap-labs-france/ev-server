@@ -77,9 +77,9 @@ export default class MongoDBStorage {
     });
     // Trigger callbacks
     changeStream.on('change', (changeStreamDocument: ChangeStreamDocument) => {
-      const documentID = changeStreamDocument.documentKey ? changeStreamDocument.documentKey['_id'] : null;
+      const documentID = changeStreamDocument['documentKey'] ? changeStreamDocument['documentKey']['_id'] : null;
       const documentChange = changeStreamDocument.operationType;
-      const fullDocument = changeStreamDocument.fullDocument;
+      const fullDocument = changeStreamDocument['fullDocument'];
       // Callback
       callback(documentID, documentChange as DatabaseDocumentChange, fullDocument);
     });
