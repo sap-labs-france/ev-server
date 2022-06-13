@@ -1136,7 +1136,7 @@ export default class TransactionService {
     const transactions = await TransactionStorage.getTransactions(req.tenant,
       {
         ...extrafilters,
-        chargeBoxIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
+        chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         tagIDs: filteredRequest.TagID ? filteredRequest.TagID.split('|') : null,

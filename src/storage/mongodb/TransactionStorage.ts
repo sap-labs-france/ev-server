@@ -322,12 +322,12 @@ export default class TransactionStorage {
   public static async getTransactions(tenant: Tenant,
       params: {
         transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
-        chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date; withChargingStation?: boolean;
+        chargingStationIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date; withChargingStation?: boolean;
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
         statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
-        transactionsToClose?: boolean;
+        transactionsToStop?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<TransactionDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -394,8 +394,8 @@ export default class TransactionStorage {
       filters.userID = { $in: params.userIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID)) };
     }
     // Charge Box
-    if (params.chargeBoxIDs) {
-      filters.chargeBoxID = { $in: params.chargeBoxIDs };
+    if (params.chargingStationIDs) {
+      filters.chargeBoxID = { $in: params.chargingStationIDs };
     }
     // Tag
     if (params.tagIDs) {
@@ -494,7 +494,7 @@ export default class TransactionStorage {
       filters['refundData.reportId'] = { $in: params.reportIDs };
     }
     // Only opened Transactions
-    if (params.transactionsToClose) {
+    if (params.transactionsToStop) {
       filters.stop = { $exists: false };
     }
     // Filters
@@ -510,7 +510,7 @@ export default class TransactionStorage {
       });
     }
     // Only Connector's Transaction ID !== Transaction ID
-    if (params.transactionsToClose) {
+    if (params.transactionsToStop) {
       TransactionStorage.pushChargingStationInTransactionAggregation(
         tenant, params, projectFields, aggregation);
       aggregation.push(
@@ -716,7 +716,7 @@ export default class TransactionStorage {
       });
     }
     // Site Area
-    if (params.withSiteArea || params.transactionsToClose) {
+    if (params.withSiteArea || params.transactionsToStop) {
       DatabaseUtils.pushSiteAreaLookupInAggregation({
         tenantID: tenant.id, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
         asField: 'siteArea', oneToOneCardinality: true
