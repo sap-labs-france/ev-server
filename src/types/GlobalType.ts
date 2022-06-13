@@ -8,6 +8,7 @@ import Company from './Company';
 import JsonOCPPServer from '../server/ocpp/json/JsonOCPPServer';
 import { Log } from './Log';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
+import { PerformanceRecordGroup } from './Performance';
 import PricingDefinition from './Pricing';
 import RegistrationToken from './RegistrationToken';
 import { ServerType } from './Server';
@@ -24,6 +25,13 @@ declare global {
 
 export interface Data {
   id: string;
+}
+
+export interface URLInfo {
+  httpUrl: string;
+  httpFullUrl: string;
+  httpMethod: string;
+  group: PerformanceRecordGroup;
 }
 
 export interface DatabaseCount {

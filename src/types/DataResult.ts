@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingPaymentMethod } from './Billing';
+import { BillingAccount, BillingInvoice, BillingPaymentMethod } from './Billing';
 import { Car, CarCatalog } from './Car';
 import Site, { UserSite } from './Site';
 import Transaction, { TransactionStats } from './Transaction';
@@ -96,6 +96,10 @@ export interface BillingInvoiceDataResult extends DataResult<BillingInvoice> {
 
 export interface BillingPaymentMethodDataResult extends DataResult<BillingPaymentMethod> {
   canCreate?: boolean;
+}
+
+export interface BillingSubaccountsDataResult extends DataResult<BillingAccount> {
+  canListUsers?: boolean;
 }
 
 export interface TransactionRefundDataResult {

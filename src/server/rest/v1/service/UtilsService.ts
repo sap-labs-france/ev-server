@@ -1,7 +1,8 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { BillingAccount, BillingInvoice } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint } from '../../../../types/ChargingStation';
-import { DataResult, UserSiteDataResult } from '../../../../types/DataResult';
+import { EntityData, URLInfo } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -14,7 +15,6 @@ import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
-import { BillingInvoice } from '../../../../types/Billing';
 import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
@@ -25,7 +25,7 @@ import Company from '../../../../types/Company';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
-import { EntityData } from '../../../../types/GlobalType';
+import { DataResult } from '../../../../types/DataResult';
 import { Log } from '../../../../types/Log';
 import LogStorage from '../../../../storage/mongodb/LogStorage';
 import Logging from '../../../../utils/Logging';
@@ -54,6 +54,15 @@ import moment from 'moment';
 const MODULE_NAME = 'UtilsService';
 
 export default class UtilsService {
+  public static getURLInfo(req: Request): URLInfo {
+    return {
+      httpFullUrl: req.originalUrl,
+      httpUrl: req.url,
+      httpMethod: req.method,
+      group: Utils.getPerformanceRecordGroupFromURL(req.originalUrl),
+    };
+  }
+
   public static async assignCreatedUserToSites(tenant: Tenant, user: User, authorizationFilter?: AuthorizationFilter) {
     // Assign user to sites
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
@@ -808,6 +817,41 @@ export default class UtilsService {
       authAction, action, entityData, additionalFilters, applyProjectFields);
   }
 
+  public static async checkAndGetBillingSubAccountAuthorization(tenant: Tenant, userToken: UserToken, subAccountID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingAccount> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, subAccountID, MODULE_NAME, 'checkAndGetBillingSubAccountAuthorization', userToken);
+    // Get dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetBillingSubAccountAuthorizations(
+      tenant, userToken, { ID: subAccountID }, authAction, entityData);
+    // Get Invoice
+    const subAccount = await BillingStorage.getSubAccountByID(tenant, subAccountID,
+      applyProjectFields ? authorizations.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, subAccount, `Billing sub-account ID '${subAccountID}' does not exist`,
+      MODULE_NAME, 'checkAndGetBillingSubAccountAuthorization', userToken);
+    // Assign projected fields
+    if (authorizations.projectFields && applyProjectFields) {
+      subAccount.projectFields = authorizations.projectFields;
+    }
+    // Assign Metadata
+    if (authorizations.metadata) {
+      subAccount.metadata = authorizations.metadata;
+    }
+    AuthorizationService.addSubAccountAuthorizations(tenant, userToken, subAccount);
+    const authorized = AuthorizationService.canPerformAction(subAccount, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.INVOICE,
+        module: MODULE_NAME, method: 'checkAndGetInvoiceAuthorization',
+        value: subAccountID
+      });
+    }
+    return subAccount;
+  }
+
   public static sendEmptyDataResult(res: Response, next: NextFunction): void {
     res.json(Constants.DB_EMPTY_DATA_RESULT);
     next();
@@ -1156,6 +1200,14 @@ export default class UtilsService {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing cannot be active without the Pricing component',
+        module: MODULE_NAME, method: 'checkIfTenantValid',
+        user: req.user.id
+      });
+    }
+    if (tenant.components.billingPlatform?.active && !tenant.components.billing?.active) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing sub-accounts cannot be active without the Billing component',
         module: MODULE_NAME, method: 'checkIfTenantValid',
         user: req.user.id
       });

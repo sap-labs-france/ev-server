@@ -1,6 +1,6 @@
 import { StatsDataCategory, StatsDataScope, StatsDataType } from '../Statistic';
 
-export default interface HttpStatisticsRequest {
+export default interface HttpStatisticsGetRequest {
   Year?: number;
   StartDateTime?: Date;
   EndDateTime?: Date;
@@ -18,6 +18,6 @@ export default interface HttpStatisticsRequest {
   DataScope?: StatsDataScope;
 }
 
-export interface HttpMetricsStatisticsRequest {
+export interface HttpMetricsStatisticsGetRequest {
   PeriodInMonth: number;
 }

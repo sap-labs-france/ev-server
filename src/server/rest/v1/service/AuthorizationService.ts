@@ -1,17 +1,17 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, SiteUserDataResult, TagDataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
-import { BillingInvoice, BillingPaymentMethod } from '../../../../types/Billing';
+import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingSubaccountsDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, SiteUserDataResult, TagDataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
+import { BillingAccount, BillingInvoice, BillingPaymentMethod } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
-import { HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
-import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
-import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
-import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
-import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
-import { HttpPricingDefinitionRequest, HttpPricingDefinitionsRequest } from '../../../../types/requests/HttpPricingRequest';
-import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
-import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
-import { HttpTagRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
-import { HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingSubAccountGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpCarCatalogGetRequest, HttpCarCatalogsGetRequest, HttpCarGetRequest, HttpCarsGetRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpChargingStationGetRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpCompaniesGetRequest, HttpCompanyGetRequest } from '../../../../types/requests/HttpCompanyRequest';
+import { HttpPricingDefinitionGetRequest, HttpPricingDefinitionsGetRequest } from '../../../../types/requests/HttpPricingRequest';
+import { HttpSiteAreaGetRequest, HttpSiteAreasGetRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteGetRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
+import { HttpTagGetRequest, HttpTagsGetRequest } from '../../../../types/requests/HttpTagRequest';
+import { HttpUserGetRequest, HttpUserSitesAssignRequest, HttpUserSitesGetRequest, HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import Site, { UserSite } from '../../../../types/Site';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -24,8 +24,8 @@ import Company from '../../../../types/Company';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import { HttpLogRequest } from '../../../../types/requests/HttpLogRequest';
-import { HttpRegistrationTokenRequest } from '../../../../types/requests/HttpRegistrationToken';
+import { HttpLogGetRequest } from '../../../../types/requests/HttpLogRequest';
+import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
 import Logging from '../../../../utils/Logging';
 import PricingDefinition from '../../../../types/Pricing';
@@ -45,13 +45,13 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSiteAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpSiteRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpSiteGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.SITE, userToken, filteredRequest, filteredRequest.ID ? { SiteID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetLoggingAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpLogRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpLogGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.LOGGING, userToken, filteredRequest, filteredRequest.ID ? { LogID: filteredRequest.ID } : {}, authAction, entityData);
   }
@@ -213,9 +213,8 @@ export default class AuthorizationService {
     return authorizations;
   }
 
-  // LIST
-  public static async checkAndGetUserSitesAuthorizations(tenant: Tenant, userToken : UserToken,
-      filteredRequest: Partial<HttpUserSitesRequest>): Promise<AuthorizationFilter> {
+  public static async checkAndGetUserSitesAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpUserSitesGetRequest>): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -249,7 +248,7 @@ export default class AuthorizationService {
   // ASSIGN/UNASSIGN SITES TO/FROM USER
   public static async checkAssignUserSitesAuthorizations(
       tenant: Tenant, action: ServerAction, userToken: UserToken,
-      filteredRequest: Partial<HttpUserAssignSitesRequest>): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpUserSitesAssignRequest>): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -264,7 +263,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUsersInErrorAuthorizations(tenant: Tenant, userToken: UserToken,
-      authAction: Action, filteredRequest: Partial<HttpUsersRequest>): Promise<AuthorizationFilter> {
+      authAction: Action, filteredRequest: Partial<HttpUsersGetRequest>): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -314,7 +313,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUsersAuthorizations(tenant: Tenant, userToken: UserToken,
-      authAction: Action, filteredRequest: Partial<HttpUsersRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      authAction: Action, filteredRequest: Partial<HttpUsersGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -328,7 +327,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetAssetsAuthorizations(tenant: Tenant, userToken: UserToken,
-      authAction: Action, filteredRequest?: HttpAssetsRequest, failsWithException = true): Promise<AuthorizationFilter> {
+      authAction: Action, filteredRequest?: HttpAssetsGetRequest, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -342,7 +341,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetAssetAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
-      filteredRequest: Partial<HttpAssetRequest>, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpAssetGetRequest>, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.ASSET, userToken, filteredRequest, filteredRequest.ID ? { AssetID: filteredRequest.ID } : {}, authAction, entityData);
   }
@@ -385,13 +384,13 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUserAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpUserRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpUserGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.USER, userToken, filteredRequest, filteredRequest.ID ? { UserID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetTagsAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpTagsRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpTagsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -405,7 +404,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetTagAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpTagRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpTagGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.TAG, userToken, filteredRequest, filteredRequest.ID ? { TagID: filteredRequest.ID } : {}, authAction, entityData);
   }
@@ -454,13 +453,13 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetRegistrationTokenAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpRegistrationTokenRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpRegistrationTokenGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.REGISTRATION_TOKEN, userToken, filteredRequest, filteredRequest.ID ? { registrationTokenID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetRegistrationTokensAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpCompaniesRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpCompaniesGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -503,7 +502,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetCompaniesAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpCompaniesRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpCompaniesGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -538,13 +537,13 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetCompanyAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpCompanyRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpCompanyGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.COMPANY, userToken, filteredRequest, filteredRequest.ID ? { CompanyID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetPricingDefinitionsAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpPricingDefinitionsRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpPricingDefinitionsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -583,19 +582,19 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetPricingDefinitionAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpPricingDefinitionRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpPricingDefinitionGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.PRICING_DEFINITION, userToken, filteredRequest, filteredRequest.ID ? { PricingID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpSiteAreaRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpSiteAreaGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.SITE_AREA, userToken, filteredRequest, filteredRequest.ID ? { SiteAreaID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpSiteAreasRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpSiteAreasGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -648,7 +647,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetChargingStationAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpChargingStationRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpChargingStationGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -676,6 +675,16 @@ export default class AuthorizationService {
 
   public static async checkAndGetBillingAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(tenant, Entity.BILLING, userToken, {}, {}, authAction, entityData);
+  }
+
+  public static async checkAndGetBillingPlatformAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(tenant, Entity.BILLING_PLATFORM, userToken, {}, {}, authAction, entityData);
+  }
+
+  public static async checkAndGetBillingSubAccountAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpBillingSubAccountGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.BILLING_PLATFORM, userToken, filteredRequest, filteredRequest.ID ? { id: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetTaxesAuthorizations(tenant: Tenant, userToken: UserToken, failsWithException = true): Promise<AuthorizationFilter> {
@@ -728,6 +737,19 @@ export default class AuthorizationService {
       tenant, userToken, Entity.INVOICE, Action.DOWNLOAD, authorizationFilter, billingInvoice.userID ? { UserID: billingInvoice.userID } : {}, billingInvoice);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(billingInvoice);
+  }
+
+  public static async addSubAccountsAuthorizations(tenant: Tenant, userToken: UserToken, billingSubAccounts: BillingSubaccountsDataResult,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Meta Data
+    billingSubAccounts.metadata = authorizationFilter.metadata;
+    billingSubAccounts.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+  }
+
+  public static addSubAccountAuthorizations(tenant: Tenant, userToken: UserToken, billingSubAccount: BillingAccount): void {
+    // Add Meta Data
+    billingSubAccount.canRead = true;
   }
 
   public static async checkAndGetPaymentMethodsAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -809,7 +831,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetCarsAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpCarsRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpCarsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -823,7 +845,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetCarAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpCarRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpCarGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.CAR, userToken, filteredRequest, filteredRequest.ID ? { CarID: filteredRequest.ID } : {}, authAction, entityData);
   }
@@ -856,7 +878,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetCarCatalogsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
-      filteredRequest?: Partial<HttpCarCatalogsRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      filteredRequest?: Partial<HttpCarCatalogsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -869,7 +891,7 @@ export default class AuthorizationService {
     return authorizations;
   }
 
-  public static async checkAndGetCarCatalogAuthorizations(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpCarCatalogRequest>,
+  public static async checkAndGetCarCatalogAuthorizations(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpCarCatalogGetRequest>,
       authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.CAR_CATALOG, userToken, filteredRequest, filteredRequest.ID ? { CarCatalogID: filteredRequest.ID } : {}, authAction, entityData);
@@ -899,7 +921,7 @@ export default class AuthorizationService {
 
 
   public static async checkAndGetChargingStationsAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest?: HttpChargingStationsRequest): Promise<AuthorizationFilter> {
+      filteredRequest?: HttpChargingStationsGetRequest): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

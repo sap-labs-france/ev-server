@@ -1,6 +1,7 @@
 import { SiteAuthorizationActions, UserSiteAuthorizationActions } from './Authorization';
 
 import Address from './Address';
+import { BillingAccountData } from './Billing';
 import Company from './Company';
 import ConnectorStats from './ConnectorStats';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
@@ -23,6 +24,7 @@ export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActi
   public?: boolean;
   openingTimes?: OpeningTimes;
   tariffID?: string;
+  billingData?: BillingAccountData;
 }
 
 export interface UserSite extends UserSiteAuthorizationActions{

@@ -1,0 +1,14 @@
+{
+  "$id": "registration-token-delete",
+  "title": "Delete Registration Token Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "registration-token#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

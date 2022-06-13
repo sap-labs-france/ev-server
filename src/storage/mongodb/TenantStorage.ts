@@ -7,7 +7,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
-import TenantValidatorStorage from './validator/TenantValidatorStorage';
+import TenantValidatorStorage from '../validator/TenantValidatorStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'TenantStorage';
@@ -39,35 +39,26 @@ export default class TenantStorage {
 
   public static async saveTenant(tenantToSave: Partial<Tenant>, saveLogo = true): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
-    const tenantFilter: any = {};
-    const tenantMDB = TenantValidatorStorage.getInstance().validateTenant(tenantToSave);
-    const logo = tenantToSave.logo;
+    const tenantMDB = TenantValidatorStorage.getInstance().validateTenantSave(tenantToSave);
     // Build Request
-    if (tenantMDB.id) {
-      tenantFilter._id = DatabaseUtils.convertToObjectID(tenantMDB.id);
-    } else {
-      tenantFilter._id = new ObjectId();
-    }
-    // Remove fields
-    delete tenantMDB.id;
-    delete tenantMDB.logo;
+    DatabaseUtils.switchIDToMongoDBID(tenantMDB);
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenants').findOneAndUpdate(
-      tenantFilter,
+      { _id: tenantMDB['_id'] },
       { $set: tenantMDB },
       { upsert: true, returnDocument: 'after' });
     // Save Logo
     if (saveLogo) {
       // Modify
       await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenantlogos').findOneAndUpdate(
-        { '_id': tenantFilter._id },
-        { $set: { logo } },
+        { '_id': tenantMDB['_id'] },
+        { $set: { logo: tenantToSave.logo } },
         { upsert: true });
     }
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveTenant', startTime, { tenant: tenantMDB, logo: tenantMDB.logo });
-    return tenantFilter._id.toString();
+    return tenantMDB['_id'].toString();
   }
 
   public static async createTenantDB(tenantID: string): Promise<void> {

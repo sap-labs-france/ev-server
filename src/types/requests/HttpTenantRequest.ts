@@ -5,17 +5,21 @@ export interface HttpTenantVerifyRequest {
   tenant: string;
 }
 
-export interface HttpTenantRequest extends HttpByIDRequest {
+export interface HttpTenantGetRequest extends HttpByIDRequest {
   ID: string;
 }
 
-export interface HttpTenantsRequest extends HttpDatabaseRequest {
+export interface HttpTenantDeleteRequest extends HttpByIDRequest {
+  ID: string;
+}
+
+export interface HttpTenantsGetRequest extends HttpDatabaseRequest {
   Search?: string;
   WithLogo?: boolean;
   WithComponents?: boolean;
 }
 
-export interface HttpTenantLogoRequest {
+export interface HttpTenantLogoGetRequest {
   ID?: string;
   Subdomain?: string;
 }

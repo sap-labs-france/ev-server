@@ -1,0 +1,59 @@
+{
+  "$id": "performance-save",
+  "title": "Validate the performance object",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "tenantSubdomain": {
+      "type": "string"
+    },
+    "userID": {
+      "type": "string",
+      "pattern": "^$|^[0-9a-fA-F]{24}$",
+      "customType": "objectId"
+    },
+    "chargingStationID": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "object",
+      "format": "date-time"
+    },
+    "host": {
+      "type": "string"
+    },
+    "server": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "group": {
+      "type": "string"
+    },
+    "durationMs": {
+      "type": "number"
+    },
+    "reqSizeKb": {
+      "type": "number"
+    },
+    "resSizeKb": {
+      "type": "number"
+    },
+    "httpMethod": {
+      "type": "string"
+    },
+    "httpUrl": {
+      "type": "string"
+    },
+    "egress": {
+      "type": "boolean"
+    },
+    "httpResponseCode": {
+      "type": "number"
+    }
+  },
+  "additionalProperties": false
+}

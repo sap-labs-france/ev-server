@@ -268,7 +268,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return result;
   }
 
-  public async pullSessions(): Promise<OCPIResult> {
+  public async pullSessions(partial = false): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
       success: 0,
@@ -280,7 +280,14 @@ export default class EmspOCPIClient extends OCPIClient {
     const startTime = new Date().getTime();
     // Get sessions endpoint url
     let sessionsUrl = this.getEndpointUrl('sessions', ServerAction.OCPI_EMSP_GET_SESSIONS);
-    const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
+    let momentFrom: Moment;
+    if (partial) {
+      // Last 2 days by default
+      momentFrom = moment().utc().subtract(2, 'days').startOf('day');
+    } else {
+      // Last 2 weeks by default
+      momentFrom = moment().utc().subtract(2, 'weeks').startOf('day');
+    }
     sessionsUrl = `${sessionsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
     do {
@@ -326,7 +333,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return result;
   }
 
-  public async pullCdrs(): Promise<OCPIResult> {
+  public async pullCdrs(partial = false): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
       success: 0,
@@ -338,7 +345,14 @@ export default class EmspOCPIClient extends OCPIClient {
     const startTime = new Date().getTime();
     // Get cdrs endpoint url
     let cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_EMSP_GET_CDRS);
-    const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
+    let momentFrom: Moment;
+    if (partial) {
+      // Last 2 days by default
+      momentFrom = moment().utc().subtract(2, 'days').startOf('day');
+    } else {
+      // Last 2 weeks by default
+      momentFrom = moment().utc().subtract(2, 'weeks').startOf('day');
+    }
     cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
     do {

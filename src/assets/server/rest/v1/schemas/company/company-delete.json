@@ -1,0 +1,13 @@
+{
+  "$id": "company-delete",
+  "title": "Delete a Company",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "company#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

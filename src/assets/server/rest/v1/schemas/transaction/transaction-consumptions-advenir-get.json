@@ -1,0 +1,17 @@
+{
+  "$id": "transaction-consumptions-advenir-get",
+  "title": "Get Transaction Consumptions For Advenir Request",
+  "type": "object",
+  "properties": {
+    "TransactionId": {
+      "$ref": "transaction#/definitions/id"
+    },
+    "AdvenirUserId": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "TransactionId"
+  ]
+}

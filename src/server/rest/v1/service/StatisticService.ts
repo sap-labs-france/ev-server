@@ -7,10 +7,10 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticRequest';
+import HttpStatisticsGetRequest from '../../../../types/requests/HttpStatisticRequest';
 import { ServerAction } from '../../../../types/Server';
 import StatisticsStorage from '../../../../storage/mongodb/StatisticsStorage';
-import StatisticsValidator from '../validator/StatisticsValidator';
+import StatisticsValidatorRest from '../validator/StatisticsValidatorRest';
 import { TenantComponents } from '../../../../types/Tenant';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -34,7 +34,7 @@ export default class StatisticService {
       });
     }
     // Filter
-    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
+    const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -63,7 +63,7 @@ export default class StatisticService {
       });
     }
     // Filter
-    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
+    const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -92,7 +92,7 @@ export default class StatisticService {
       });
     }
     // Filter
-    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
+    const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -121,7 +121,7 @@ export default class StatisticService {
       });
     }
     // Filter
-    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
+    const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -150,7 +150,7 @@ export default class StatisticService {
       });
     }
     // Filter
-    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
+    const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -179,7 +179,7 @@ export default class StatisticService {
       });
     }
     // Filter
-    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
+    const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -208,7 +208,7 @@ export default class StatisticService {
       });
     }
     // Filter
-    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
+    const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -237,7 +237,7 @@ export default class StatisticService {
       });
     }
     // Filter
-    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
+    const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -266,7 +266,7 @@ export default class StatisticService {
       });
     }
     // Filter
-    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
+    const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -295,7 +295,7 @@ export default class StatisticService {
       });
     }
     // Filter
-    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsGet(req.query);
+    const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
@@ -324,7 +324,7 @@ export default class StatisticService {
       });
     }
     // Filter
-    const filteredRequest = StatisticsValidator.getInstance().validateStatisticsExport(req.query);
+    const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsExport(req.query);
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Decisions
@@ -367,7 +367,7 @@ export default class StatisticService {
   }
 
   // Only completed transactions
-  static buildFilter(filteredRequest: HttpStatisticsRequest, loggedUser: UserToken): StatisticFilter {
+  static buildFilter(filteredRequest: HttpStatisticsGetRequest, loggedUser: UserToken): StatisticFilter {
     const filter: StatisticFilter = { stop: { $exists: true } };
     // Date
     if ('Year' in filteredRequest) {

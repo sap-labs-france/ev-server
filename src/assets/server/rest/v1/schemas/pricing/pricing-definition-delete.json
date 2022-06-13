@@ -1,0 +1,13 @@
+{
+  "$id": "pricing-definition-delete",
+  "title": "Delete one pricing definition",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "pricing-definition#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

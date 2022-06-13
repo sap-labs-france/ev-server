@@ -1,3 +1,4 @@
+import { Point, Simplify, SimplifyTo } from 'curvereduce';
 import global, { FilterParams, GroupParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -10,6 +11,7 @@ import { SiteAreaValueTypes } from '../../types/SiteArea';
 import Tenant from '../../types/Tenant';
 import { UpdateResult } from 'mongodb';
 import Utils from '../../utils/Utils';
+import sizeof from 'object-sizeof';
 
 const MODULE_NAME = 'ConsumptionStorage';
 
@@ -530,6 +532,38 @@ export default class ConsumptionStorage {
     };
   }
 
+  public static async getOptimizedTransactionConsumptions(tenant: Tenant, params: { transactionId: number }, projectFields?: string[]): Promise<DataResult<Consumption>> {
+    // Get all consumptions
+    const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(
+      tenant, params, Constants.DB_PARAMS_MAX_LIMIT, projectFields);
+    const startTime = Logging.traceDatabaseRequestStart();
+    // Optimize the curves
+    // Create the Points
+    const consumptionsXY: Point[] = consumptionsMDB.result.map((consumptionMDB) => (
+      {
+        x: consumptionMDB.endedAt.getTime(),
+        // Convert Watts to kWatts to have the same proportion as the amount to detect the variation
+        y:
+          (consumptionMDB.instantWatts ?? 0) / 1000 +
+          (consumptionMDB.instantWattsDC ?? 0) / 1000 +
+          (consumptionMDB.cumulatedAmount ?? 0) +
+          (consumptionMDB.cumulatedConsumptionWh ?? 0) / 1000
+      }
+    ));
+    // Simplify with Ramer Douglas Peucker algo
+    const simplifiedConsumptionsXY = Simplify(consumptionsXY, 5);
+    // Create a Map to reference Y points
+    const simplifiedConsumptionsMapXY = new Map<number, null>();
+    for (const simplifiedConsumptionXY of simplifiedConsumptionsXY) {
+      simplifiedConsumptionsMapXY.set(simplifiedConsumptionXY.x, null);
+    }
+    // Filter Consumptions
+    consumptionsMDB.result = consumptionsMDB.result.filter((consumptionMDB) =>
+      simplifiedConsumptionsMapXY.has(consumptionMDB.endedAt.getTime()));
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getOptimizedTransactionConsumptions', startTime, consumptionsMDB);
+    return consumptionsMDB;
+  }
+
   public static async getLastTransactionConsumption(tenant: Tenant, params: { transactionId: number }): Promise<Consumption> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -564,110 +598,6 @@ export default class ConsumptionStorage {
     }
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getLastTransactionConsumption', startTime, aggregation, consumptionsMDB);
     return consumption;
-  }
-
-  public static async getOptimizedTransactionConsumptions(tenant: Tenant, params: { transactionId: number }, projectFields?: string[]): Promise<Consumption[]> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: {
-        transactionId: Utils.convertToInt(params.transactionId)
-      }
-    });
-    // Group by
-    aggregation.push({
-      $group: {
-        _id: {
-          year: { '$year': '$endedAt' },
-          month: { '$month': '$endedAt' },
-          day: { '$dayOfMonth': '$endedAt' },
-          hour: { '$hour': '$endedAt' },
-          minute: { '$minute': '$endedAt' }
-        },
-        consumptions :{
-          $first: {
-            'cumulatedConsumptionWh': '$cumulatedConsumptionWh',
-            'cumulatedConsumptionAmps': '$cumulatedConsumptionAmps',
-            'cumulatedAmount': '$cumulatedAmount',
-            'stateOfCharge': '$stateOfCharge',
-            'limitWatts': '$limitWatts',
-            'limitAmps': '$limitAmps',
-            'instantVoltsDC': '$instantVoltsDC',
-            'instantVolts': '$instantVolts',
-            'instantVoltsL1': '$instantVoltsL1',
-            'instantVoltsL2': '$instantVoltsL2',
-            'instantVoltsL3': '$instantVoltsL3',
-            'instantWattsDC': '$instantWattsDC',
-            'instantWatts': '$instantWatts',
-            'instantWattsL1': '$instantWattsL1',
-            'instantWattsL2': '$instantWattsL2',
-            'instantWattsL3': '$instantWattsL3',
-            'instantAmpsDC': '$instantAmpsDC',
-            'instantAmps': '$instantAmps',
-            'instantAmpsL1': '$instantAmpsL1',
-            'instantAmpsL2': '$instantAmpsL2',
-            'instantAmpsL3': '$instantAmpsL3',
-            'startedAt': '$startedAt',
-            'endedAt': '$endedAt',
-          }
-        }
-      }
-    });
-    // Rename fields to original fields
-    aggregation.push({
-      $addFields: {
-        'cumulatedConsumptionWh': '$consumptions.cumulatedConsumptionWh',
-        'cumulatedConsumptionAmps': '$consumptions.cumulatedConsumptionAmps',
-        'cumulatedAmount': '$consumptions.cumulatedAmount',
-        'stateOfCharge': '$consumptions.stateOfCharge',
-        'limitWatts': '$consumptions.limitWatts',
-        'limitAmps': '$consumptions.limitAmps',
-        'instantVoltsDC': '$consumptions.instantVoltsDC',
-        'instantVolts': '$consumptions.instantVolts',
-        'instantVoltsL1': '$consumptions.instantVoltsL1',
-        'instantVoltsL2': '$consumptions.instantVoltsL2',
-        'instantVoltsL3': '$consumptions.instantVoltsL3',
-        'instantWattsDC': '$consumptions.instantWattsDC',
-        'instantWatts': '$consumptions.instantWatts',
-        'instantWattsL1': '$consumptions.instantWattsL1',
-        'instantWattsL2': '$consumptions.instantWattsL2',
-        'instantWattsL3': '$consumptions.instantWattsL3',
-        'instantAmpsDC': '$consumptions.instantAmpsDC',
-        'instantAmps': '$consumptions.instantAmps',
-        'instantAmpsL1': '$consumptions.instantAmpsL1',
-        'instantAmpsL2': '$consumptions.instantAmpsL2',
-        'instantAmpsL3': '$consumptions.instantAmpsL3',
-        'startedAt': '$consumptions.startedAt',
-        'endedAt': '$consumptions.endedAt',
-      }
-    });
-    // Remove _id from projected fields
-    aggregation.push({
-      $project: {
-        _id: 0,
-        consumptions: 0,
-      }
-    });
-    // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
-    // Sort
-    aggregation.push({
-      $sort: {
-        'endedAt': 1,
-      }
-    });
-    // Read DB
-    const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
-      .aggregate<Consumption>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray();
-    const lastElement = consumptionsMDB.pop();
-    const consumptions = consumptionsMDB.filter((elem, index) => index % 5 === 0 ? true : false);
-    consumptions.push(lastElement);
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getOptimizedTransactionConsumptions', startTime, aggregation, consumptions);
-    return consumptions;
   }
 
   private static buildConsumptionMDB(consumption: Consumption): any {

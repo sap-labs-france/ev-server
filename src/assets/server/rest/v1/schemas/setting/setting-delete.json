@@ -1,0 +1,14 @@
+{
+  "$id": "setting-delete",
+  "title": "Delete Setting Request",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "setting#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}
