@@ -91,7 +91,7 @@
     "ajv-formats": "^2.1.1",
     "ajv-keywords": "^5.1.0",
     "axios": "^0.25.0",
-    "axios-retry": "^3.2.3",
+    "axios-retry": "^3.2.5",
     "basic-auth": "^2.0.1",
     "bcryptjs": "^2.4.3",
     "bluebird": "^3.7.2",
