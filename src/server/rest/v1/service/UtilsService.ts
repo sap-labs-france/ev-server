@@ -2,6 +2,7 @@ import { Action, AuthorizationFilter, Entity } from '../../../../types/Authoriza
 import { BillingAccount, BillingInvoice } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint } from '../../../../types/ChargingStation';
+import { EntityData, URLInfo } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -26,7 +27,6 @@ import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
-import { EntityData } from '../../../../types/GlobalType';
 import { Log } from '../../../../types/Log';
 import LogStorage from '../../../../storage/mongodb/LogStorage';
 import Logging from '../../../../utils/Logging';
@@ -56,6 +56,15 @@ import moment from 'moment';
 const MODULE_NAME = 'UtilsService';
 
 export default class UtilsService {
+  public static getURLInfo(req: Request): URLInfo {
+    return {
+      httpFullUrl: req.originalUrl,
+      httpUrl: req.url,
+      httpMethod: req.method,
+      group: Utils.getPerformanceRecordGroupFromURL(req.originalUrl),
+    };
+  }
+
   public static async assignCreatedUserToSites(tenant: Tenant, user: User, authorizationFilter?: AuthorizationFilter) {
     // Assign user to sites
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {

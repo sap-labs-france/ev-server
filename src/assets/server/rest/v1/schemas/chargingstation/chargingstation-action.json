@@ -44,10 +44,10 @@
           "enum": ["A", "W"]
         },
         "chargingProfilePurpose": {
-          "$ref": "chargingstation#/definitions/chargingProfile/properties/profile/properties/chargingProfilePurpose"
+          "$ref": "chargingstation-profile#/definitions/profile/properties/chargingProfilePurpose"
         },
         "stackLevel": {
-          "$ref": "chargingstation#/definitions/chargingProfile/properties/profile/properties/stackLevel"
+          "$ref": "chargingstation-profile#/definitions/profile/properties/stackLevel"
         },
         "tagID": {
           "type": "string",
@@ -91,7 +91,7 @@
           "$ref": "transaction#/definitions/id"
         },
         "csChargingProfile": {
-          "$ref": "chargingstation#/definitions/chargingProfile"
+          "$ref": "chargingstation-profile#"
         },
         "vendorId": {
           "type": "string",

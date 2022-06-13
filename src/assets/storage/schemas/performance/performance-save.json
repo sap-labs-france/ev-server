@@ -48,6 +48,9 @@
     "httpUrl": {
       "type": "string"
     },
+    "egress": {
+      "type": "boolean"
+    },
     "httpResponseCode": {
       "type": "number"
     }
