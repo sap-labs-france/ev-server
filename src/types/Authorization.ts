@@ -148,8 +148,10 @@ export enum Action {
   TRIGGER_JOB = 'TriggerJob',
   DOWNLOAD = 'Download',
   IMPORT = 'Import',
-  ASSIGN_USERS_TO_SITE = 'AssignUsers',
-  UNASSIGN_USERS_FROM_SITE = 'UnassignUsers',
+  ASSIGN_USERS_TO_SITE = 'AssignToSite',
+  UNASSIGN_USERS_FROM_SITE = 'UnassignFromSite',
+  ASSIGN_SITES_TO_USER = 'AssignToUser',
+  UNASSIGN_SITES_FROM_USER = 'UnassignFromUser',
   ASSIGN_ASSETS_TO_SITE_AREA = 'AssignAssets',
   UNASSIGN_ASSETS_FROM_SITE_AREA = 'UnassignAssets',
   READ_ASSETS_FROM_SITE_AREA = 'ReadAssets',
@@ -193,10 +195,22 @@ export interface AuthorizationActions {
 export interface UserAuthorizationActions extends AuthorizationActions {
   canAssignSites?: boolean;
   canUnassignSites?: boolean;
+  canAssignToSite?: boolean;
+  canUnassignFromSite?: boolean;
   canListUserSites?: boolean;
   canListTags?: boolean;
   canListTransactions?: boolean;
   canSynchronizeBillingUser?: boolean;
+}
+
+export interface UserSiteAuthorizationActions extends AuthorizationActions {
+  canAssignToUser?: boolean;
+  canUnassignFromUser?: boolean;
+}
+
+export interface SiteUserAuthorizationActions extends AuthorizationActions {
+  canAssignToSite?: boolean;
+  canUnassignFromSite?: boolean;
 }
 
 export interface TagAuthorizationActions extends AuthorizationActions {
@@ -230,6 +244,8 @@ export interface SiteAreaAuthorizationActions extends AuthorizationActions {
 export interface SiteAuthorizationActions extends AuthorizationActions {
   canAssignUsers?: boolean;
   canUnassignUsers?: boolean;
+  canAssignToUser?: boolean;
+  canUnassignFromUser?: boolean;
   canListSiteUsers?: boolean;
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;

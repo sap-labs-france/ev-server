@@ -1,12 +1,13 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { SiteDataResult, SiteUserDataResult } from '../../../../types/DataResult';
 
+import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import { ServerAction } from '../../../../types/Server';
@@ -28,15 +29,6 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteUserAdmin');
     // Filter request
     const filteredRequest = SiteValidator.getInstance().validateSiteAdminReq(req.body);
-    if (req.user.id === filteredRequest.userID) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot change the site Admin on the logged user',
-        module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
-        user: req.user,
-        actionOnUser: filteredRequest.userID
-      });
-    }
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
@@ -97,8 +89,32 @@ export default class SiteService {
       req.tenant, req.user, site, filteredRequest.userIDs, action);
     // Save
     if (action === ServerAction.ADD_USERS_TO_SITE) {
+      for (const user of users) {
+        const authorized = AuthorizationService.canPerformAction(user, Action.ASSIGN_USERS_TO_SITE);
+        if (!authorized) {
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.FORBIDDEN,
+            user: req.user,
+            action: Action.ASSIGN_USERS_TO_SITE, entity: Entity.SITE_USER,
+            module: MODULE_NAME, method: 'handleAssignUsersToSite',
+            value: site.id
+          });
+        }
+      }
       await SiteStorage.addUsersToSite(req.tenant, site.id, users.map((user) => user.id));
     } else {
+      for (const user of users) {
+        const authorized = AuthorizationService.canPerformAction(user, Action.UNASSIGN_USERS_FROM_SITE);
+        if (!authorized) {
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.FORBIDDEN,
+            user: req.user,
+            action: Action.UNASSIGN_USERS_FROM_SITE, entity: Entity.SITE_USER,
+            module: MODULE_NAME, method: 'handleAssignUsersToSite',
+            value: site.id
+          });
+        }
+      }
       await SiteStorage.removeUsersFromSite(req.tenant, site.id, users.map((user) => user.id));
     }
     await Logging.logInfo({

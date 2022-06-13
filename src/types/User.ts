@@ -1,8 +1,9 @@
+import { SiteUserAuthorizationActions, UserAuthorizationActions } from './Authorization';
+
 import Address from './Address';
 import { BillingUserData } from './Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { ImportStatus } from './GlobalType';
-import { UserAuthorizationActions } from './Authorization';
 import UserNotifications from './UserNotifications';
 
 export default interface User extends CreatedUpdatedProps, UserAuthorizationActions {
@@ -54,7 +55,7 @@ export interface StartTransactionUserData {
   lastDepartureTime: Date;
 }
 
-export interface SiteUser {
+export interface SiteUser extends SiteUserAuthorizationActions {
   user: User;
   userID?: string;
   siteID: string;

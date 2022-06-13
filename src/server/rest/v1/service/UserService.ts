@@ -117,8 +117,32 @@ export default class UserService {
       req.tenant, req.user, user, filteredRequest.siteIDs, action);
     // Save
     if (action === ServerAction.ADD_SITES_TO_USER) {
+      for (const site of sites) {
+        const authorized = AuthorizationService.canPerformAction(site, Action.ASSIGN_SITES_TO_USER);
+        if (!authorized) {
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.FORBIDDEN,
+            user: req.user,
+            action: Action.ASSIGN_SITES_TO_USER, entity: Entity.USER_SITE,
+            module: MODULE_NAME, method: 'checkAndGetPricingDefinitionAuthorization',
+            value: site.id
+          });
+        }
+      }
       await UserStorage.addSitesToUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     } else {
+      for (const site of sites) {
+        const authorized = AuthorizationService.canPerformAction(site, Action.UNASSIGN_SITES_FROM_USER);
+        if (!authorized) {
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.FORBIDDEN,
+            user: req.user,
+            action: Action.ASSIGN_USERS_TO_SITE, entity: Entity.USER_SITE,
+            module: MODULE_NAME, method: 'checkAndGetPricingDefinitionAuthorization',
+            value: site.id
+          });
+        }
+      }
       await UserStorage.removeSitesFromUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     }
     // Log

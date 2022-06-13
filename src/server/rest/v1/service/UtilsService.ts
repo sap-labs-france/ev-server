@@ -1,6 +1,7 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint } from '../../../../types/ChargingStation';
+import { DataResult, UserSiteDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -24,7 +25,6 @@ import Company from '../../../../types/Company';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
-import { DataResult } from '../../../../types/DataResult';
 import { EntityData } from '../../../../types/GlobalType';
 import { Log } from '../../../../types/Log';
 import LogStorage from '../../../../storage/mongodb/LogStorage';
@@ -458,7 +458,7 @@ export default class UtilsService {
       });
     }
     // Check dynamic auth for assignment
-    const authorizations = await AuthorizationService.checkAndAssignUserSitesAuthorizations(
+    const authorizations = await AuthorizationService.checkAssignUserSitesAuthorizations(
       tenant, action, userToken, { userID: user.id, siteIDs });
     // Get Sites
     let sites = (await SiteStorage.getSites(tenant,
@@ -481,6 +481,7 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkUserSitesAuthorization',
       });
     }
+    await AuthorizationService.addUserSiteAuthToSitesAuthorizations(tenant, userToken, user, sites, authorizations);
     return sites;
   }
 
@@ -515,11 +516,12 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
-        entity: Entity.USER_SITE,
-        module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
+        action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN_USERS_TO_SITE : Action.UNASSIGN_USERS_FROM_SITE,
+        entity: Entity.SITE_USER,
+        module: MODULE_NAME, method: 'checkAndGetSiteUsersAuthorization',
       });
     }
+    await AuthorizationService.addSiteUserAuthToUserAuthorizations(tenant, userToken, site, users, authorizations);
     return users;
   }
 

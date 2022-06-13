@@ -267,7 +267,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.USER_SITE, action: [Action.ASSIGN, Action.READ, Action.UPDATE, Action.LIST],
+        resource: Entity.USER_SITE, action: [Action.ASSIGN, Action.ASSIGN_SITES_TO_USER, Action.READ, Action.UPDATE, Action.LIST],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -286,12 +286,23 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['-OwnUser', 'LocalIssuer']
+            filters: ['LocalIssuer']
           }
         }
       },
       {
-        resource: Entity.SITE_USER, action: [Action.ASSIGN, Action.READ, Action.UPDATE, Action.LIST],
+        resource: Entity.USER_SITE,
+        action: Action.UNASSIGN_SITES_FROM_USER,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['-OwnUser', 'LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.SITE_USER, action: [Action.ASSIGN, Action.ASSIGN_USERS_TO_SITE, Action.READ, Action.UPDATE, Action.LIST],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -306,13 +317,24 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE_USER,
         action: Action.UNASSIGN,
-        // condition: {
-        //   Fn: 'custom:dynamicAuthorizations',
-        //   args: {
-        //     asserts: [],
-        //     filters: ['-OwnUser', 'LocalIssuer']
-        //   }
-        // }
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        }
+      },
+      {
+        resource: Entity.SITE_USER,
+        action: Action.UNASSIGN_USERS_FROM_SITE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['-OwnUser', 'LocalIssuer']
+          }
+        },
       },
       {
         resource: Entity.SITE_AREA, action: Action.LIST,
@@ -1220,7 +1242,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.USER_SITE, action: [Action.ASSIGN, Action.READ, Action.UPDATE, Action.LIST],
+        resource: Entity.USER_SITE, action: [Action.ASSIGN, Action.ASSIGN_SITES_TO_USER, Action.READ, Action.UPDATE, Action.LIST],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1239,12 +1261,23 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.USER_SITE,
+        action: Action.UNASSIGN_SITES_FROM_USER,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
             filters: ['-OwnUser', 'LocalIssuer']
           }
         },
       },
       {
-        resource: Entity.SITE_USER, action: [Action.ASSIGN, Action.READ, Action.UPDATE, Action.LIST],
+        resource: Entity.SITE_USER, action: [Action.ASSIGN, Action.ASSIGN_USERS_TO_SITE, Action.READ, Action.UPDATE, Action.LIST],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1259,6 +1292,17 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE_USER,
         action: Action.UNASSIGN,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.SITE_USER,
+        action: Action.UNASSIGN_USERS_FROM_SITE,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
