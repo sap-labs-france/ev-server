@@ -46,6 +46,7 @@ import SmartChargingFactory from '../../../../integration/smart-charging/SmartCh
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import { TransactionStatus } from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -572,7 +573,7 @@ export default class ChargingStationService {
       req.tenant, req.user, chargingStationID, Action.DELETE, action, null, { issuer: true, ithSiteArea: true });
     // Check ongoing Transactions
     const ongoingTransactions = await TransactionStorage.getTransactions(req.tenant,
-      { chargingStationIDs: [chargingStationID], status: 'active' }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
+      { chargingStationIDs: [chargingStationID], status: TransactionStatus.ACTIVE }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (ongoingTransactions.count > 0) {
       throw new AppError({
         action,

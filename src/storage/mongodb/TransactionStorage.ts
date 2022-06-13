@@ -1,7 +1,7 @@
 import { BillingStatus, TransactionBillingData } from '../../types/Billing';
 import { DataResult, TransactionDataResult } from '../../types/DataResult';
 import RefundReport, { RefundStatus, TransactionRefundData } from '../../types/Refund';
-import Transaction, { TransactionOcpiData, TransactionOicpData, TransactionStats } from '../../types/Transaction';
+import Transaction, { TransactionOcpiData, TransactionOicpData, TransactionStatisticsType, TransactionStats, TransactionStatus } from '../../types/Transaction';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 import global, { FilterParams } from './../../types/GlobalType';
 
@@ -321,12 +321,12 @@ export default class TransactionStorage {
 
   public static async getTransactions(tenant: Tenant,
       params: {
-        transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[]; status?: 'active'|'completed';
+        transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[]; status?: TransactionStatus;
         chargingStationIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date; withChargingStation?: boolean;
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
-        statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
+        statistics?: TransactionStatisticsType; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
         transactionsToStop?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<TransactionDataResult> {
@@ -368,8 +368,11 @@ export default class TransactionStorage {
       ];
     }
     // Status
-    if (params.status === 'completed' || params.status === 'active') {
-      filters.stop = { $exists: (params.status === 'completed') };
+    if (params.status === TransactionStatus.COMPLETED ||
+        params.status === TransactionStatus.ACTIVE) {
+      filters.stop = {
+        $exists: (params.status === TransactionStatus.COMPLETED)
+      };
     }
     // OCPI ID
     if (params.ocpiSessionID) {
@@ -534,7 +537,7 @@ export default class TransactionStorage {
     // Prepare statistics query
     let statsQuery = null;
     switch (params.statistics) {
-      case 'history': // For historical case
+      case TransactionStatisticsType.HISTORY:
         statsQuery = {
           $group: {
             _id: null,
@@ -549,7 +552,7 @@ export default class TransactionStorage {
           }
         };
         break;
-      case 'ongoing': // For ongoing case
+      case TransactionStatisticsType.ONGOING:
         statsQuery = {
           $group: {
             _id: null,
@@ -565,7 +568,7 @@ export default class TransactionStorage {
           }
         };
         break;
-      case 'refund': // For refund case
+      case TransactionStatisticsType.REFUND:
         statsQuery = {
           $group: {
             _id: null,
@@ -599,8 +602,8 @@ export default class TransactionStorage {
     // Initialize statistics
     if (!transactionCountMDB) {
       switch (params.statistics) {
-        case 'history':
-        case 'ongoing':
+        case TransactionStatisticsType.HISTORY:
+        case TransactionStatisticsType.ONGOING:
           transactionCountMDB = {
             totalConsumptionWattHours: 0,
             totalDurationSecs: 0,
@@ -609,7 +612,7 @@ export default class TransactionStorage {
             count: 0
           };
           break;
-        case 'refund':
+        case TransactionStatisticsType.REFUND:
           transactionCountMDB = {
             totalConsumptionWattHours: 0,
             totalPriceRefund: 0,

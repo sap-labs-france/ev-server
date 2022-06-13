@@ -3,7 +3,7 @@ import ChargingStation, { Connector } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
-import Transaction, { AdvenirConsumptionData, AdvenirEvseData, AdvenirPayload, AdvenirTransactionData } from '../../../../types/Transaction';
+import Transaction, { AdvenirConsumptionData, AdvenirEvseData, AdvenirPayload, AdvenirTransactionData, TransactionStatus } from '../../../../types/Transaction';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -716,7 +716,7 @@ export default class TransactionService {
   }
 
   public static async handleGetTransactionsActive(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    req.query.Status = 'active';
+    req.query.Status = TransactionStatus.ACTIVE;
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
@@ -731,7 +731,7 @@ export default class TransactionService {
 
   public static async handleGetTransactionsCompleted(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get transaction
-    req.query.Status = 'completed';
+    req.query.Status = TransactionStatus.COMPLETED;
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
@@ -752,7 +752,7 @@ export default class TransactionService {
       Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetTransactionsToRefund');
     // Set filter
     req.query.issuer = 'true';
-    req.query.Status = 'completed';
+    req.query.Status = TransactionStatus.COMPLETED;
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
@@ -815,7 +815,7 @@ export default class TransactionService {
   public static async handleExportTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Force params
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
-    req.query.Status = 'completed';
+    req.query.Status = TransactionStatus.COMPLETED;
     req.query.WithTag = 'true';
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
@@ -828,7 +828,7 @@ export default class TransactionService {
   public static async handleExportTransactionsToRefund(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Force params
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
-    req.query.Status = 'completed';
+    req.query.Status = TransactionStatus.COMPLETED;
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Export
@@ -1127,7 +1127,7 @@ export default class TransactionService {
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.tenant,
       {
-        status: filteredRequest.Status,
+        status: filteredRequest.Status as TransactionStatus,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
