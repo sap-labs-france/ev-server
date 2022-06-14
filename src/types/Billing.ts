@@ -162,7 +162,7 @@ export enum BillingAccountStatus {
 }
 
 export interface BillingPlatformFeeStrategy {
-  feePerSession: number; // e.g.: 0.25 per charging session
+  flatFeePerSession: number; // e.g.: 0.25 per charging session
   percentage: number; // e.g.: 2% per charging session
 }
 
