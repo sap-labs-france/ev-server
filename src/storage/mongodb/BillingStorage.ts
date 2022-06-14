@@ -272,7 +272,7 @@ export default class BillingStorage {
       };
     }
     if (!Utils.isEmptyArray(params.userIDs)) {
-      filters.businessUserID = {
+      filters.businessOwnerID = {
         $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
       };
     }
