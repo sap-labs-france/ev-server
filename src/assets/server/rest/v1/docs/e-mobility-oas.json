@@ -13940,10 +13940,10 @@
             "application/json": {
               "schema": {
                 "required": [
-                  "userID"
+                  "businessOwnerID"
                 ],
                 "properties": {
-                  "userID": {
+                  "businessOwnerID": {
                     "type": "string"
                   }
                 }
@@ -13957,10 +13957,10 @@
             "content": {
               "application/json": {
                 "example": {
-                  "userID": "###",
-                  "accountID": "###",
+                  "businessOwnerID": "###",
+                  "accountExternalID": "###",
                   "activationLink": "###",
-                  "pending": true,
+                  "status": "idle",
                   "id": "###"
                 }
               }

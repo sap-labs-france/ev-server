@@ -979,20 +979,21 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('Sub accounts', () => {
         it('should create a sub account', async () => {
           const response = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
+          const subAccount = response.data as BillingAccount;
           expect(response.status).to.be.eq(StatusCodes.CREATED);
-          expect(response.data.id).to.not.be.null;
-          expect(response.data.accountID).to.not.be.null;
-          expect(response.data.userID).to.eq(billingTestHelper.userContext.id);
-          expect(response.data.activationLink).to.not.be.null;
-          expect(response.data.status).to.be.eq(BillingAccountStatus.IDLE);
+          expect(subAccount.id).to.not.be.null;
+          expect(subAccount.accountExternalID).to.not.be.null;
+          expect(subAccount.businessOwnerID).to.eq(billingTestHelper.userContext.id);
+          expect(subAccount.activationLink).to.not.be.null;
+          expect(subAccount.status).to.be.eq(BillingAccountStatus.IDLE);
         });
 
         it('should create a sub account and activate it', async () => {
           // Create a sub account
           const response = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
           expect(response.status).to.be.eq(StatusCodes.CREATED);
           // Send the activation link
@@ -1013,7 +1014,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         it('should not activate a sub account twice', async () => {
           // Create a sub account
           const response = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
           expect(response.status).to.be.eq(StatusCodes.CREATED);
           // Send the activation link
@@ -1028,7 +1029,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should create a company assigned to a sub-account', async () => {
           const subAccountResponse = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
           expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
 
@@ -1045,7 +1046,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should update a company to assign a sub-account', async () => {
           const subAccountResponse = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
           expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
 
@@ -1065,7 +1066,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should create a site assigned to a sub-account', async () => {
           const subAccountResponse = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
           expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
 
@@ -1087,7 +1088,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should update a site to assign a sub-account', async () => {
           const subAccountResponse = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
           expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
 
@@ -1116,7 +1117,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should list sub-accounts', async () => {
           const subAccountResponse = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
           expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
 
@@ -1128,7 +1129,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should read sub-account', async () => {
           const subAccountCreateResponse = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
           expect(subAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
 
@@ -1142,7 +1143,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should send sub-account onboarding', async () => {
           const subAccountCreateResponse = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
           expect(subAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
 
@@ -1153,7 +1154,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should not able to send sub-account onboarding twice', async () => {
           const subAccountCreateResponse = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
           expect(subAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
 
@@ -1168,7 +1169,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         it('should not able to send sub-account onboarding for an activated sub-account', async () => {
           // Create the sub account
           const subAccountCreateResponse = await billingTestHelper.userService.billingApi.createSubAccount({
-            userID: billingTestHelper.userContext.id
+            businessOwnerID: billingTestHelper.userContext.id
           });
           expect(subAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
           // Send onboarding
@@ -1200,7 +1201,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
       it('should not be able to create a sub account', async () => {
         const response = await billingTestHelper.userService.billingApi.createSubAccount({
-          userID: billingTestHelper.userContext.id
+          businessOwnerID: billingTestHelper.userContext.id
         });
         expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });

@@ -223,9 +223,9 @@ export default class BillingStorage {
     // Properties to save
     const subAccountMDB: any = {
       _id: subAccount.id ? DatabaseUtils.convertToObjectID(subAccount.id) : new ObjectId(),
-      accountID: subAccount.accountExternalID,
+      accountExternalID: subAccount.accountExternalID,
       status: subAccount.status,
-      userID: DatabaseUtils.convertToObjectID(subAccount.businessOwnerID)
+      businessOwnerID: DatabaseUtils.convertToObjectID(subAccount.businessOwnerID)
     };
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'billingsubaccounts').findOneAndUpdate(
@@ -258,7 +258,7 @@ export default class BillingStorage {
     // Filter by other properties
     if (params.search) {
       filters.$or = [
-        { 'accountID': { $regex: params.search, $options: 'i' } }
+        { 'accountExternalID': { $regex: params.search, $options: 'i' } }
       ];
     }
     if (!Utils.isEmptyArray(params.subAccountIDs)) {
@@ -317,7 +317,7 @@ export default class BillingStorage {
     });
     // Add Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
+      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'businessOwnerID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Add Last Changed / Created
@@ -325,7 +325,7 @@ export default class BillingStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'businessOwnerID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB

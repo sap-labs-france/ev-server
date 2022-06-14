@@ -30,7 +30,7 @@ export interface HttpDeletePaymentMethod {
 }
 
 export interface HttpBillingSubAccountCreateRequest {
-  userID: string;
+  businessOwnerID: string;
 }
 
 export interface HttpBillingSubAccountActivateRequest {

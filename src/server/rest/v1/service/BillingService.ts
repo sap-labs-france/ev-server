@@ -490,8 +490,8 @@ export default class BillingService {
       });
     }
     // Get the user
-    const user = await UserStorage.getUser(req.tenant, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
+    const user = await UserStorage.getUser(req.tenant, filteredRequest.businessOwnerID);
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.businessOwnerID}' does not exist`,
       MODULE_NAME, 'handleCreateSubAccount', req.user);
     // Create the sub account
     const subAccount = await billingImpl.createSubAccount();
