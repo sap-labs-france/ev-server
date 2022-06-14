@@ -1,12 +1,12 @@
 /* eslint-disable max-len */
-import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus, BillingTransfer, BillingTransferStatus } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus, BillingTransfer } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
+import { BillingTransferFactory, BillingTransferSessionFactory } from '../factories/BillingFactory';
 import chai, { expect } from 'chai';
 
 import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import BillingTestHelper from './BillingTestHelper';
-import { BillingTransferFactory } from '../factories/BillingFactory';
 import CentralServerService from './client/CentralServerService';
 import CompanyFactory from '../factories/CompanyFactory';
 import Constants from '../../src/utils/Constants';
@@ -1249,11 +1249,25 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           BillingTransferFactory.build(),
           BillingTransferFactory.build(),
         ];
-
         const ids = await Promise.all(transfers.map(async (transfer) => BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer)));
 
         const retrievedTransfers = await BillingStorage.getTransfers(billingTestHelper.tenantContext.getTenant(), {}, Constants.DB_PARAMS_MAX_LIMIT);
         expect(retrievedTransfers.result.map((transfer) => transfer.id)).to.include.members(ids);
+      });
+
+      it('should update a draft billing transfer', async () => {
+        let transfer: BillingTransfer = BillingTransferFactory.build();
+        const transferID = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
+        expect(transferID).to.not.be.null;
+        transfer.id = transferID;
+
+        const nbSessions = transfer.sessions.length;
+        const sessions = [BillingTransferSessionFactory.build(), BillingTransferSessionFactory.build()];
+        await BillingStorage.updateTransferAdditionalData(billingTestHelper.tenantContext.getTenant(), transfer, sessions);
+
+        transfer = await BillingStorage.getTransferByID(billingTestHelper.tenantContext.getTenant(), transfer.id);
+        expect(transfer.sessions.length).to.be.eq(nbSessions + 2);
+        expect(transfer.sessions).to.include.deep.members(sessions);
       });
     });
   });

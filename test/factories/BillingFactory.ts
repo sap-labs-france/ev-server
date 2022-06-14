@@ -15,12 +15,12 @@ export const BillingTransferFactory = Factory.define('billingtransfer')
     invoiceExternalID: faker.datatype.uuid(),
   }))
   .attr('sessions', () =>
-    faker.random.arrayElements().map(() => ({
-      transactionID: faker.datatype.number(),
-      amount: faker.datatype.number(),
-      platformFee: {
-        flatFeePerSession: faker.datatype.number(),
-        percentage: faker.datatype.number(),
-      }
-    }))
-  );
+    [BillingTransferSessionFactory.build()]);
+
+export const BillingTransferSessionFactory = Factory.define('billingtransfersession')
+  .attr('transactionID', () => faker.datatype.number())
+  .attr('amount', () => faker.datatype.number())
+  .attr('platformFee', () => ({
+    flatFeePerSession: faker.datatype.number(),
+    percentage: faker.datatype.number(),
+  }));
