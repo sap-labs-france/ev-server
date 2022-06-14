@@ -219,7 +219,7 @@
     "faker": "^5.5.3",
     "jest": "^27.5.1",
     "json-schema-faker": "^0.5.0-rcv.42",
-    "maildev": "^1.1.0",
+    "maildev": "^2.0.5",
     "ncp": "^2.0.0",
     "nodemon": "^2.0.16",
     "npm-check": "^5.9.2",
