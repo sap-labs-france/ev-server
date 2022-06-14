@@ -738,14 +738,14 @@ export default class AuthorizationService {
     // Add connector authorization
     for (const connector of chargingStation.connectors) {
       // Start transaction
-      connector.canStopTransaction = !chargingStation.inactive
+      connector.canRemoteStopTransaction = !chargingStation.inactive
         && connector.status !== ChargePointStatus.AVAILABLE
         && !!connector.currentTransactionID // Indicates if transaction is ongoing by known user, otherwise 0
         && await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_STOP_TRANSACTION, authorizationFilter,
           { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, connector);
       // Stop transaction
-      connector.canStartTransaction = !chargingStation.inactive
-        && !connector.canStopTransaction
+      connector.canRemoteStartTransaction = !chargingStation.inactive
+        && !connector.canRemoteStopTransaction
         && connector.status === ChargePointStatus.AVAILABLE
         && !connector.currentTransactionID // either no transaction OR transaction is ongoing by an external user
         && await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_START_TRANSACTION, authorizationFilter,
