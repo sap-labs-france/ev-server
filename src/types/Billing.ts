@@ -82,7 +82,6 @@ export interface BillingInvoice extends CreatedUpdatedProps, BillingInvoiceAutho
   sessions?: BillingSessionData[];
   lastError?: BillingError;
   payInvoiceUrl?: string;
-  transfer?: BillingTransferData; // A single transfer per invoice
 }
 
 export interface BillingInvoiceItem {
@@ -99,7 +98,7 @@ export interface BillingInvoiceItem {
 export interface BillingSessionData {
   transactionID: number;
   pricingData: PricedConsumptionData[];
-  transferData?: BillingAccountData; // Each session may target a distinct sub-account
+  transferData?: BillingTransferData; // Each session may target a distinct sub-account
 }
 
 export enum BillingInvoiceStatus {
@@ -179,6 +178,11 @@ export interface BillingAccountData {
   platformFee?: BillingPlatformFeeStrategy;
 }
 
+export interface BillingTransferData extends BillingAccountData {
+  withTransferActive: boolean
+  transferID?: string;
+  lastUpdate?: Date;
+}
 
 export enum BillingTransferStatus {
   DRAFT = 'draft',
@@ -210,8 +214,3 @@ export interface BillingTransferSession {
   platformFee: BillingPlatformFeeStrategy;
 }
 
-export interface BillingTransferData {
-  withTransferActive: boolean
-  transferID?: string;
-  lastUpdate?: Date;
-}
