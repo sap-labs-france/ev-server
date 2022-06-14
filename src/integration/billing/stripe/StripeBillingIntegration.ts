@@ -1720,7 +1720,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
 
     return {
-      accountID: subAccount.id,
+      accountExternalID: subAccount.id,
+      liveMode: subAccount.liveMode,
       activationLink: activationLink.url,
       status: BillingAccountStatus.IDLE
     };

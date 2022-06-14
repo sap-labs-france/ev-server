@@ -223,9 +223,9 @@ export default class BillingStorage {
     // Properties to save
     const subAccountMDB: any = {
       _id: subAccount.id ? DatabaseUtils.convertToObjectID(subAccount.id) : new ObjectId(),
-      accountID: subAccount.accountID,
+      accountID: subAccount.accountExternalID,
       status: subAccount.status,
-      userID: DatabaseUtils.convertToObjectID(subAccount.userID)
+      userID: DatabaseUtils.convertToObjectID(subAccount.businessOwnerID)
     };
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'billingsubaccounts').findOneAndUpdate(

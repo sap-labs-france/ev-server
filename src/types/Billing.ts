@@ -169,10 +169,11 @@ export interface BillingPlatformFee {
 
 export interface BillingAccount extends AuthorizationActions {
   id?: string;
-  accountID: string;
-  activationLink?: string;
-  userID?: string;
+  businessOwnerID?: string;
   status: BillingAccountStatus;
+  activationLink?: string;
+  accountExternalID: string;
+  liveMode: boolean;
 }
 
 export interface BillingAccountData {
@@ -197,12 +198,12 @@ export interface BillingPlatformFeeData {
 export interface BillingTransfer {
   id?: string;
   status: BillingTransferStatus;
-  liveMode: boolean;
   sessions: BillingTransferSession[];
   amount: number;
   accountID: string;
   platformFeeData: BillingPlatformFeeData;
   transferExternalID?: string; // Transfer sent to the CPO
+  liveMode: boolean;
 }
 
 export interface BillingTransferSession {

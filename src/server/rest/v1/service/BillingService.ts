@@ -495,7 +495,7 @@ export default class BillingService {
       MODULE_NAME, 'handleCreateSubAccount', req.user);
     // Create the sub account
     const subAccount = await billingImpl.createSubAccount();
-    subAccount.userID = user.id;
+    subAccount.businessOwnerID = user.id;
     // Save the sub account
     subAccount.id = await BillingStorage.saveSubAccount(req.tenant, subAccount);
     res.status(StatusCodes.CREATED).json(subAccount);
@@ -520,8 +520,8 @@ export default class BillingService {
       });
     }
     // Get the sub account owner
-    const user = await UserStorage.getUser(tenant, subAccount.userID);
-    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.userID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
+    const user = await UserStorage.getUser(tenant, subAccount.businessOwnerID);
+    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
     // Activate and save the sub account
     subAccount.status = BillingAccountStatus.ACTIVE;
     await BillingStorage.saveSubAccount(tenant, subAccount);
@@ -594,8 +594,8 @@ export default class BillingService {
       });
     }
     // Get the sub account owner
-    const user = await UserStorage.getUser(req.tenant, subAccount.userID);
-    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.userID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
+    const user = await UserStorage.getUser(req.tenant, subAccount.businessOwnerID);
+    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
     // Activate and save the sub account
     subAccount.status = BillingAccountStatus.PENDING;
     await BillingStorage.saveSubAccount(req.tenant, subAccount);

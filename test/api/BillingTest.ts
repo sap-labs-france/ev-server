@@ -90,7 +90,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('Sub-accounts', () => {
         it('Should create a sub-account with its associated activation link', async () => {
           const subAccount = await stripeTestHelper.createSubAccount();
-          expect(subAccount.accountID).to.exist;
+          expect(subAccount.accountExternalID).to.exist;
           expect(subAccount.activationLink).to.include('https://connect.stripe.com/setup/s/');
           expect(subAccount.status).to.be.eq(BillingAccountStatus.IDLE);
         });
