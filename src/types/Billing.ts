@@ -82,6 +82,7 @@ export interface BillingInvoice extends CreatedUpdatedProps, BillingInvoiceAutho
   sessions?: BillingSessionData[];
   lastError?: BillingError;
   payInvoiceUrl?: string;
+  transfer?: BillingTransferData; // A single transfer per invoice
 }
 
 export interface BillingInvoiceItem {
@@ -98,6 +99,7 @@ export interface BillingInvoiceItem {
 export interface BillingSessionData {
   transactionID: number;
   pricingData: PricedConsumptionData[];
+  transferData?: BillingAccountData; // Each session may target a distinct sub-account
 }
 
 export enum BillingInvoiceStatus {
@@ -159,6 +161,12 @@ export enum BillingAccountStatus {
   ACTIVE = 'active'
 }
 
+export interface BillingPlatformFee {
+  feePerInvoice: number; // e.g.: 0.25 per transaction
+  feePerTransfer: number; // e.g.: 0.50 per transfer
+  percentage: number; // e.g.: 2% per transaction
+}
+
 export interface BillingAccount extends AuthorizationActions {
   id?: string;
   accountID: string;
@@ -169,5 +177,43 @@ export interface BillingAccount extends AuthorizationActions {
 
 export interface BillingAccountData {
   accountID: string;
+  platformFee: BillingPlatformFee;
 }
 
+
+export enum BillingTransferStatus {
+  DRAFT = 'draft',
+  PENDING = 'pending',
+  TRANSFERRED = 'transferred'
+}
+
+export interface BillingPlatformFeeData {
+  taxExternalID: string; // Tax to apply on the platform fee
+  feeAmount: number;
+  feeTaxAmount: number;
+  invoiceExternalID?: string; // Invoice sent to the CPO
+}
+
+export interface BillingTransfer {
+  id?: string;
+  status: BillingTransferStatus;
+  liveMode: boolean;
+  sessions: BillingTransferSession[];
+  amount: number;
+  accountID: string;
+  platformFeeData: BillingPlatformFeeData;
+  transferExternalID?: string; // Transfer sent to the CPO
+}
+
+export interface BillingTransferSession {
+  transactionID: number;
+  amount: number;
+  platformFee: BillingPlatformFee;
+}
+
+
+export interface BillingTransferData {
+  withTransferActive: boolean
+  transferID?: string;
+  lastUpdate?: Date;
+}
