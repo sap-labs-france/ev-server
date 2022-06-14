@@ -134,8 +134,4 @@ export interface ChargingStationInErrorDataResult extends DataResult<ChargingSta
 }
 export interface ChargingProfileDataResult extends DataResult<ChargingProfile> {
   canListChargingStations?:boolean;
-  canListSites?:boolean;
-  canListSiteAreas?:boolean;
-  canListCompanies?:boolean;
-  canListUsers?:boolean;
 }

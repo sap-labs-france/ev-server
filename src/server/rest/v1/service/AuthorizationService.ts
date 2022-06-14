@@ -593,15 +593,6 @@ export default class AuthorizationService {
     // Auth
     chargingProfiles.canListChargingStations = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.LIST, authorizationFilter);
-    // Charging stations auth
-    chargingProfiles.canListCompanies = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.COMPANY, Action.LIST, authorizationFilter);
-    chargingProfiles.canListSites = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter);
-    chargingProfiles.canListSiteAreas = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITE_AREA, Action.LIST, authorizationFilter);
-    chargingProfiles.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
     for (const chargingProfile of chargingProfiles.result) {
       await AuthorizationService.addChargingProfileAuthorizations(tenant, userToken, chargingProfile, authorizationFilter);
     }
