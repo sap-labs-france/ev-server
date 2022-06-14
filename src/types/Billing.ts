@@ -161,10 +161,10 @@ export enum BillingAccountStatus {
   ACTIVE = 'active'
 }
 
-export interface BillingPlatformFee {
-  feePerInvoice: number; // e.g.: 0.25 per transaction
+export interface BillingPlatformFeeStrategy {
+  feePerSession: number; // e.g.: 0.25 per charging session
   feePerTransfer: number; // e.g.: 0.50 per transfer
-  percentage: number; // e.g.: 2% per transaction
+  percentage: number; // e.g.: 2% per charging session
 }
 
 export interface BillingAccount extends AuthorizationActions {
@@ -173,12 +173,11 @@ export interface BillingAccount extends AuthorizationActions {
   status: BillingAccountStatus;
   activationLink?: string;
   accountExternalID: string;
-  liveMode: boolean;
 }
 
 export interface BillingAccountData {
   accountID: string;
-  platformFee: BillingPlatformFee;
+  platformFee?: BillingPlatformFeeStrategy;
 }
 
 
@@ -199,19 +198,18 @@ export interface BillingTransfer {
   id?: string;
   status: BillingTransferStatus;
   sessions: BillingTransferSession[];
-  amount: number;
+  amount: number; // Depends on the fee strategy and thus on the final number of sessions
+  transferredAmount: number // Amount transferred after applying platform fees
   accountID: string;
+  platformFee: BillingPlatformFeeStrategy;
   platformFeeData: BillingPlatformFeeData;
   transferExternalID?: string; // Transfer sent to the CPO
-  liveMode: boolean;
 }
 
 export interface BillingTransferSession {
   transactionID: number;
-  amount: number;
-  platformFee: BillingPlatformFee;
+  amount: number; // ACHTUNG - That one should not include any taxes
 }
-
 
 export interface BillingTransferData {
   withTransferActive: boolean
