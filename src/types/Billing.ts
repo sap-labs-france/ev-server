@@ -163,7 +163,6 @@ export enum BillingAccountStatus {
 
 export interface BillingPlatformFeeStrategy {
   feePerSession: number; // e.g.: 0.25 per charging session
-  feePerTransfer: number; // e.g.: 0.50 per transfer
   percentage: number; // e.g.: 2% per charging session
 }
 
@@ -201,7 +200,6 @@ export interface BillingTransfer {
   amount: number; // Depends on the fee strategy and thus on the final number of sessions
   transferredAmount: number // Amount transferred after applying platform fees
   accountID: string;
-  platformFee: BillingPlatformFeeStrategy;
   platformFeeData: BillingPlatformFeeData;
   transferExternalID?: string; // Transfer sent to the CPO
 }
@@ -209,6 +207,7 @@ export interface BillingTransfer {
 export interface BillingTransferSession {
   transactionID: number;
   amount: number; // ACHTUNG - That one should not include any taxes
+  platformFee: BillingPlatformFeeStrategy;
 }
 
 export interface BillingTransferData {
