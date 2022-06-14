@@ -536,7 +536,7 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountsGetReq(req.query);
     // Check auth
-    const authorizations = await AuthorizationService.checkAndGetBillingSubAccountsAuthorizations(req.tenant, req.user, filteredRequest, false);
+    const authorizations = await AuthorizationService.checkAndGetBillingSubAccountsAuthorizations(req.tenant, req.user, filteredRequest /* , false */);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
