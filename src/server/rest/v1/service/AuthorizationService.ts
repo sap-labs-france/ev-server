@@ -671,71 +671,70 @@ export default class AuthorizationService {
     chargingStation.canRead = true; // Always true as it should be filtered upfront
     chargingStation.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USER, Action.LIST, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.UPDATE, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.DELETE, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canReserveNow = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.RESERVE_NOW, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canReset = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.RESET, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canClearCache = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.CLEAR_CACHE, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canGetConfiguration = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.GET_CONFIGURATION, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canChangeConfiguration = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.CHANGE_CONFIGURATION, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canSetChargingProfile = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.SET_CHARGING_PROFILE, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canGetCompositeSchedule = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.GET_COMPOSITE_SCHEDULE, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canClearChargingProfile = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.CLEAR_CHARGING_PROFILE, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canGetDiagnostics = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.GET_DIAGNOSTICS, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canUpdateFirmware = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.UPDATE_FIRMWARE, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canRemoteStopTransaction = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.REMOTE_STOP_TRANSACTION, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canStopTransaction = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.STOP_TRANSACTION, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canStarTransaction = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.START_TRANSACTION, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canChangeAvailability = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.CHANGE_AVAILABILITY, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canRemoteStartTransaction = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.REMOTE_START_TRANSACTION, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canUnlockConnector = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.UNLOCK_CONNECTOR, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canDataTransfer = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.TRIGGER_DATA_TRANSFER, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.GENERATE_QR, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canMaintainPricingDefinitions = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.MAINTAIN_PRICING_DEFINITIONS, authorizationFilter,
-      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
-    chargingStation.canListUsers;
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     // Add connector authorization
     for (const connector of chargingStation.connectors) {
       // Start transaction
@@ -743,14 +742,14 @@ export default class AuthorizationService {
         && connector.status !== ChargePointStatus.AVAILABLE
         && !!connector.currentTransactionID // Indicates if transaction is ongoing by known user, otherwise 0
         && await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_STOP_TRANSACTION, authorizationFilter,
-          { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector);
+          { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, connector);
       // Stop transaction
       connector.canStartTransaction = !chargingStation.inactive
         && !connector.canStopTransaction
         && connector.status === ChargePointStatus.AVAILABLE
         && !connector.currentTransactionID // either no transaction OR transaction is ongoing by an external user
-        && await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.START_TRANSACTION, authorizationFilter,
-          { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector);
+        && await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_START_TRANSACTION, authorizationFilter,
+          { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, connector);
       // Unlock connector
       connector.canUnlockConnector = !chargingStation.inactive
         && chargingStation.canUnlockConnector

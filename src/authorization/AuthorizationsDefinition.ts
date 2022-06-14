@@ -378,20 +378,13 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.CHARGING_STATION, action: [
-
-          Action.RESET, Action.CLEAR_CACHE, Action.CHANGE_AVAILABILITY, Action.UPDATE, Action.RESERVE_NOW, Action.DELETE, Action.GENERATE_QR
+        resource: Entity.CHARGING_STATION,
+        action: [
+          Action.RESET, Action.CLEAR_CACHE, Action.CHANGE_AVAILABILITY, Action.UPDATE, Action.RESERVE_NOW, Action.DELETE, Action.GENERATE_QR,
+          Action.RESERVE_NOW, Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION, Action.STOP_TRANSACTION, Action.START_TRANSACTION,
+          Action.AUTHORIZE, Action.SET_CHARGING_PROFILE,Action.GET_COMPOSITE_SCHEDULE, Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE,
+          Action.EXPORT_OCPP_PARAMS, Action.TRIGGER_DATA_TRANSFER
         ],
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['LocalIssuer']
-          }
-        }
-      },
-      {
-        resource: Entity.CHARGING_STATION, action: [ Action.RESERVE_NOW, Action.GET_CONFIGURATION ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -403,17 +396,23 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.CHARGING_STATION,
         action: [
-          Action.CREATE, Action.READ,
-          Action.CHANGE_CONFIGURATION, Action.REMOTE_START_TRANSACTION,
-          Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION, Action.START_TRANSACTION,
-          Action.UNLOCK_CONNECTOR, Action.AUTHORIZE, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
-          Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.EXPORT, Action.EXPORT_OCPP_PARAMS,
-          Action.CHANGE_AVAILABILITY, Action.TRIGGER_DATA_TRANSFER
+          Action.CREATE, Action.READ, Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION, Action.UNLOCK_CONNECTOR, Action.EXPORT,
         ]
       },
       {
         resource: Entity.CONNECTOR,
-        action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION, Action.REMOTE_START_TRANSACTION, Action.START_TRANSACTION],
+        action: [Action.STOP_TRANSACTION, Action.START_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.CONNECTOR,
+        action: [Action.REMOTE_STOP_TRANSACTION, Action.REMOTE_START_TRANSACTION],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -918,55 +917,39 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.CHARGING_STATION, action: Action.GET_STATUS_NOTIFICATION,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: []
-          }
-        },
-        attributes: [
-          'id', 'timestamp', 'chargeBoxID', 'connectorId', 'timezone', 'status', 'errorCode', 'info', 'vendorId', 'vendorErrorCode'
-        ]
-      },
-      {
-        resource: Entity.CHARGING_STATION, action: Action.GET_BOOT_NOTIFICATION,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: []
-          }
-        },
-        attributes: [
-          'id', 'chargePointVendor', 'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'firmwareVersion', 'ocppVersion',
-          'ocppProtocol', 'endpoint', 'timestamp', 'chargeBoxID', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
-        ]
-      },
-      {
         resource: Entity.CHARGING_STATION, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
           }
         },
       },
       {
-        resource: Entity.CHARGING_STATION, action: [Action.RESERVE_NOW, Action.REMOTE_START_TRANSACTION, Action.AUTHORIZE, Action.START_TRANSACTION],
+        resource: Entity.CHARGING_STATION, action: [Action.RESERVE_NOW, Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
           }
         },
       },
       {
         resource: Entity.CHARGING_STATION,
-        action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
+        action: [Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites', 'LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.CONNECTOR,
+        action: Action.START_TRANSACTION,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -987,7 +970,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.CONNECTOR, action: [Action.REMOTE_START_TRANSACTION, Action.START_TRANSACTION],
+        resource: Entity.CONNECTOR, action: Action.REMOTE_START_TRANSACTION,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1235,36 +1218,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'ocppStandardParameters','ocppVendorParameters', 'connectors'
         ]
       },
-      {
-        resource: Entity.CHARGING_STATION, action: Action.GET_STATUS_NOTIFICATION,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: []
-          }
-        },
-        attributes: [
-          'id', 'timestamp', 'chargeBoxID', 'connectorId', 'timezone', 'status', 'errorCode', 'info', 'vendorId', 'vendorErrorCode'
-        ]
-      },
-      {
-        resource: Entity.CHARGING_STATION, action: Action.GET_BOOT_NOTIFICATION,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: []
-          }
-        },
-        attributes: [
-          'id', 'chargePointVendor', 'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'firmwareVersion', 'ocppVersion',
-          'ocppProtocol', 'endpoint', 'timestamp', 'chargeBoxID', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
-        ]
-      },
       { resource: Entity.CHARGING_STATION, action: Action.READ },
       { resource: Entity.CHARGING_STATION, action: Action.RESERVE_NOW },
-
       { resource: Entity.TRANSACTION, action: Action.LIST },
       { resource: Entity.TRANSACTION, action: Action.READ },
     ]
@@ -1588,7 +1543,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: []
+            filters: ['SitesAdmin']
           }
         },
         attributes: [
@@ -1601,7 +1556,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: []
+            filters: ['SitesAdmin']
           }
         },
         attributes: [
@@ -1611,7 +1566,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CONNECTOR,
-        action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
+        action: [Action.REMOTE_STOP_TRANSACTION, Action.REMOTE_START_TRANSACTION],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1621,12 +1576,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.CONNECTOR, action: [Action.REMOTE_START_TRANSACTION, Action.START_TRANSACTION],
+        resource: Entity.CONNECTOR, action: [Action.STOP_TRANSACTION, Action.START_TRANSACTION],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+            filters: ['AssignedSites', 'LocalIssuer']
           }
         },
       },
@@ -1636,7 +1591,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: []
+            filters: ['SitesAdmin']
           }
         },
         attributes: [
@@ -1651,15 +1606,18 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: []
+            filters: ['SitesAdmin']
           }
         }
       },
       {
         resource: Entity.CHARGING_PROFILE, action: [Action.READ],
         condition: {
-          Fn: 'LIST_CONTAINS',
-          args: { 'sitesAdmin': '$.site' }
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
+          }
         },
       },
       {
