@@ -1122,7 +1122,9 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
 
           // List sub-accounts
-          const subAccountsResponse = await billingTestHelper.userService.billingApi.readAllSubAccounts({});
+          const subAccountsResponse = await billingTestHelper.userService.billingApi.readSubAccounts({
+            userID: billingTestHelper.userContext.id
+          });
           expect(subAccountsResponse.status).to.be.eq(StatusCodes.OK);
           expect(subAccountsResponse.data.result.map((subAccount: BillingAccount) => subAccount.id)).to.include(subAccountResponse.data.id);
         });
@@ -1213,7 +1215,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should not be able to list sub-accounts', async () => {
-        const subAccountsResponse = await billingTestHelper.userService.billingApi.readAllSubAccounts({});
+        const subAccountsResponse = await billingTestHelper.userService.billingApi.readSubAccounts({});
         expect(subAccountsResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 

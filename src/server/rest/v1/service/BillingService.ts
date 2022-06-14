@@ -543,7 +543,7 @@ export default class BillingService {
     }
     // Get the billing sub accounts
     const subAccounts = await BillingStorage.getSubAccounts(req.tenant, {
-      subAccountIDs: filteredRequest.SubAccountID ? filteredRequest.SubAccountID.split('|') : null,
+      IDs: filteredRequest.ID ? filteredRequest.ID.split('|') : null,
       userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
       search: filteredRequest.Search ? filteredRequest.Search : null,
       status: filteredRequest.Status ? filteredRequest.Status.split('|') : null,

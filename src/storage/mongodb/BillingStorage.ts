@@ -239,7 +239,7 @@ export default class BillingStorage {
 
   public static async getSubAccounts(tenant: Tenant,
       params: {
-        subAccountIDs?: string[], subAccountAccountIDs?: string[], search?: string, userIDs?: string[], status?: string[]
+        IDs?: string[], accountExternalIDs?: string[], search?: string, userIDs?: string[], status?: string[]
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingAccount>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -261,18 +261,18 @@ export default class BillingStorage {
         { 'accountExternalID': { $regex: params.search, $options: 'i' } }
       ];
     }
-    if (!Utils.isEmptyArray(params.subAccountIDs)) {
+    if (!Utils.isEmptyArray(params.IDs)) {
       filters._id = {
-        $in: params.subAccountIDs.map((subAccountID) => DatabaseUtils.convertToObjectID(subAccountID))
+        $in: params.IDs.map((id) => DatabaseUtils.convertToObjectID(id))
       };
     }
-    if (!Utils.isEmptyArray(params.subAccountAccountIDs)) {
-      filters.accountID = {
-        $in: params.subAccountAccountIDs
+    if (!Utils.isEmptyArray(params.accountExternalIDs)) {
+      filters.accountExternalID = {
+        $in: params.accountExternalIDs
       };
     }
     if (!Utils.isEmptyArray(params.userIDs)) {
-      filters.userID = {
+      filters.businessUserID = {
         $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
       };
     }
@@ -341,7 +341,7 @@ export default class BillingStorage {
 
   public static async getSubAccountByID(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingAccount> {
     const subAccountMDB = await BillingStorage.getSubAccounts(tenant, {
-      subAccountIDs: [id]
+      IDs: [id]
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return subAccountMDB.count === 1 ? subAccountMDB.result[0] : null;
   }
