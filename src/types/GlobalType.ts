@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingPaymentMethod } from './Billing';
+import { BillingAccount, BillingInvoice, BillingPaymentMethod } from './Billing';
 import { Car, CarCatalog } from './Car';
 
 import ChargingStation from './ChargingStation';
@@ -84,7 +84,7 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting;
+export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting|BillingAccount;
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;

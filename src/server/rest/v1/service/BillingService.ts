@@ -474,10 +474,10 @@ export default class BillingService {
   public static async handleCreateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.BILLING_CREATE_SUB_ACCOUNT, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleCreateSubAccount');
+      Action.CREATE, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleCreateSubAccount');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingCreateSubAccountReq(req.body);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingPlatformAuthorizations(req.tenant, req.user, Action.BILLING_CREATE_SUB_ACCOUNT);
+    await AuthorizationService.checkAndGetBillingSubAccountAuthorizations(req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     // Get the billing impl
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -537,7 +537,7 @@ export default class BillingService {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountsGetReq(req.query);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.LIST, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleBillingGetSubAccounts');
+      Action.LIST, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleBillingGetSubAccounts');
     const authorizations = await AuthorizationService.checkAndGetBillingPlatformAuthorizations(req.tenant, req.user, Action.LIST);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
@@ -567,7 +567,7 @@ export default class BillingService {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountGetReq(req.params);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.READ, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleBillingGetSubAccount');
+      Action.READ, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleBillingGetSubAccount');
     // Get the billing sub accounts
     const subAccount = await UtilsService.checkAndGetBillingSubAccountAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
     res.json(subAccount);
@@ -577,7 +577,7 @@ export default class BillingService {
   public static async handleOnboardAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.BILLING_ONBOARD_SUB_ACCOUNT, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleOnboardAccount');
+      Action.BILLING_ONBOARD_SUB_ACCOUNT, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleOnboardAccount');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountGetReq(req.params);
     // Check authorization
     await AuthorizationService.checkAndGetBillingPlatformAuthorizations(req.tenant, req.user, Action.BILLING_ONBOARD_SUB_ACCOUNT);

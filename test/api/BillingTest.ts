@@ -1133,12 +1133,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           });
           expect(subAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
 
-          // List sub-accounts
+          // Get the sub-account
           const subAccountResponse = await billingTestHelper.userService.billingApi.readSubAccount(subAccountCreateResponse.data.id);
+          const subAccount = subAccountResponse.data as BillingAccount;
           expect(subAccountResponse.status).to.be.eq(StatusCodes.OK);
-          expect(subAccountResponse.data.id).to.be.eq(subAccountCreateResponse.data.id);
-          expect(subAccountResponse.data.userID).to.be.eq(billingTestHelper.userContext.id);
-          expect(subAccountResponse.data.status).to.be.eq(BillingAccountStatus.IDLE);
+          expect(subAccount.id).to.be.eq(subAccountCreateResponse.data.id);
+          expect(subAccount.businessOwnerID).to.be.eq(billingTestHelper.userContext.id);
+          expect(subAccount.status).to.be.eq(BillingAccountStatus.IDLE);
         });
 
         it('should send sub-account onboarding', async () => {

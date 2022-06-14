@@ -608,7 +608,7 @@ export default class AuthorizationService {
   public static async checkAndGetBillingSubAccountAuthorizations(tenant: Tenant, userToken: UserToken,
       filteredRequest: Partial<HttpBillingSubAccountGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
-      tenant, Entity.BILLING_PLATFORM, userToken, filteredRequest, filteredRequest.ID ? { id: filteredRequest.ID } : {}, authAction, entityData);
+      tenant, Entity.BILLING_SUB_ACCOUNT, userToken, filteredRequest, filteredRequest.ID ? { id: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetTaxesAuthorizations(tenant: Tenant, userToken: UserToken, failsWithException = true): Promise<AuthorizationFilter> {
