@@ -1,10 +1,12 @@
 /* eslint-disable max-len */
-import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus, BillingTransfer, BillingTransferStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
 
 import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
+import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import BillingTestHelper from './BillingTestHelper';
+import { BillingTransferFactory } from '../factories/BillingFactory';
 import CentralServerService from './client/CentralServerService';
 import CompanyFactory from '../factories/CompanyFactory';
 import Constants from '../../src/utils/Constants';
@@ -1229,6 +1231,29 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // List sub-accounts
         const subAccountResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding('62978713f146ea8cb3bf8a95');
         expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+      });
+    });
+
+    describe('Storage', () => {
+      it('should save a billing transfer', async () => {
+        const transfer = BillingTransferFactory.build();
+        const transferID = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
+        expect(transferID).to.not.be.null;
+
+        const retrievedTransfer = await BillingStorage.getTransferByID(billingTestHelper.tenantContext.getTenant(), transferID);
+        expect(retrievedTransfer).to.containSubset(transfer);
+      });
+
+      it('should list billing transfers', async () => {
+        const transfers = [
+          BillingTransferFactory.build(),
+          BillingTransferFactory.build(),
+        ];
+
+        const ids = await Promise.all(transfers.map(async (transfer) => BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer)));
+
+        const retrievedTransfers = await BillingStorage.getTransfers(billingTestHelper.tenantContext.getTenant(), {}, Constants.DB_PARAMS_MAX_LIMIT);
+        expect(retrievedTransfers.result.map((transfer) => transfer.id)).to.include.members(ids);
       });
     });
   });
