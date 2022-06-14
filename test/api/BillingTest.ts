@@ -1190,6 +1190,18 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(subAccountOnboardResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
         });
       });
+
+      describe('Transfers', () => {
+        it('should list transfers', async () => {
+          const transfer = BillingTransferFactory.build();
+          const transferID = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
+          transfer.id = transferID;
+
+          const transfersResponse = await billingTestHelper.userService.billingApi.readTransfers({});
+          expect(transfersResponse.status).to.be.eq(StatusCodes.OK);
+          expect(transfersResponse.data.result).to.containSubset([transfer]);
+        });
+      });
     });
 
     describe('Where basic user', () => {
@@ -1231,6 +1243,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // List sub-accounts
         const subAccountResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding('62978713f146ea8cb3bf8a95');
         expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+      });
+
+      it('should not be able to list transfers', async () => {
+        const transfersResponse = await billingTestHelper.userService.billingApi.readTransfers({});
+        expect(transfersResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
     });
 

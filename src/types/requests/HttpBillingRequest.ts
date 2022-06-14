@@ -55,3 +55,13 @@ export interface HttpBillingSubAccountsGetRequest extends HttpDatabaseRequest {
 export interface HttpBillingSubAccountGetRequest extends HttpByIDRequest {
   ID: string;
 }
+
+export interface HttpBillingTransfersGetRequest extends HttpDatabaseRequest {
+  ID?: string;
+  AccountID?: string;
+  Status?: string;
+  TransferExternalID?: string;
+  StartDateTime?: Date;
+  EndDateTime?: Date;
+  Search?: string;
+}

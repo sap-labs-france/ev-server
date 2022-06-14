@@ -14029,6 +14029,99 @@
         }
       }
     },
+    "/api/billing/transfers": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Transfers",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "AccountID",
+            "description": "Account ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "TransferExternalID",
+            "description": "Transfer External ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Status",
+            "description": "Pipe separated invoice status (draft, pending, transferred)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return transfers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Transfer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/invoices": {
       "get": {
         "security": [
@@ -16491,6 +16584,66 @@
           },
           "user": {
             "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "Transfer": {
+        "type": "object",
+        "properties": {
+          "accountID": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "pending",
+              "transferred"
+            ]
+          },
+          "sessions": {
+            "type": "object",
+            "properties": {
+              "transactionID": {
+                "type": "number"
+              },
+              "amount": {
+                "type": "number"
+              },
+              "platformFee": {
+                "type": "number"
+              }
+            }
+          },
+          "amount": {
+            "type": "number"
+          },
+          "transferredAmount": {
+            "type": "number"
+          },
+          "platformFeeData": {
+            "type": "object",
+            "properties": {
+              "taxExternalID": {
+                "type": "string"
+              },
+              "feeAmount": {
+                "type": "number"
+              },
+              "feeTaxAmount": {
+                "type": "number"
+              },
+              "invoiceExternalID": {
+                "type": "string"
+              }
+            }
+          },
+          "transferExternalID": {
+            "type": "string"
           }
         }
       }
