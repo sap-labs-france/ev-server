@@ -1,4 +1,5 @@
-import { BillingInvoiceStatus } from '../Billing';
+import { BillingAccount, BillingInvoiceStatus } from '../Billing';
+
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
@@ -29,8 +30,12 @@ export interface HttpDeletePaymentMethod {
   paymentMethodId: string;
 }
 
-export interface HttpBillingSubAccountCreateRequest {
-  userID: string;
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HttpBillingSubAccountCreateRequest extends BillingAccount {
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HttpBillingSubAccountUpdateRequest extends BillingAccount {
 }
 
 export interface HttpBillingSubAccountActivateRequest {
@@ -39,7 +44,7 @@ export interface HttpBillingSubAccountActivateRequest {
 }
 
 export interface HttpBillingSubAccountsGetRequest extends HttpDatabaseRequest {
-  SubAccountID?: string;
+  ID?: string;
   UserID?: string;
   Status?: string;
   StartDateTime?: Date;
@@ -47,6 +52,6 @@ export interface HttpBillingSubAccountsGetRequest extends HttpDatabaseRequest {
   Search?: string;
 }
 
-export interface HttpBillingSubAccountGetRequest {
+export interface HttpBillingSubAccountGetRequest extends HttpByIDRequest {
   ID: string;
 }
