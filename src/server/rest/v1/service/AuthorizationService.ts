@@ -745,6 +745,7 @@ export default class AuthorizationService {
       connector.canUnlockConnector = !chargingStation.inactive
         && chargingStation.canUnlockConnector
         && connector.status !== ChargePointStatus.AVAILABLE;
+      Utils.removeCanPropertiesWithFalseValue(connector);
     }
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(chargingStation);

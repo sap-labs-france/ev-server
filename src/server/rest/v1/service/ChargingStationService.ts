@@ -734,7 +734,7 @@ export default class ChargingStationService {
     const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(req.tenant, req.user, Action.GET_BOOT_NOTIFICATION);
     // Get all Status Notifications
     const statusNotifications = await OCPPStorage.getStatusNotifications(req.tenant,
-      {},
+      authorizations.filters,
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
@@ -796,7 +796,7 @@ export default class ChargingStationService {
     const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(req.tenant, req.user, Action.GET_BOOT_NOTIFICATION);
     // Get all Status Notifications
     const bootNotifications = await OCPPStorage.getBootNotifications(req.tenant,
-      {},
+      authorizations.filters,
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
