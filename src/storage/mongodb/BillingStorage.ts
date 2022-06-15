@@ -223,9 +223,9 @@ export default class BillingStorage {
     // Properties to save
     const subAccountMDB: any = {
       _id: subAccount.id ? DatabaseUtils.convertToObjectID(subAccount.id) : new ObjectId(),
-      accountID: subAccount.accountID,
+      accountExternalID: subAccount.accountExternalID,
       status: subAccount.status,
-      userID: DatabaseUtils.convertToObjectID(subAccount.userID)
+      businessOwnerID: DatabaseUtils.convertToObjectID(subAccount.businessOwnerID)
     };
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'billingsubaccounts').findOneAndUpdate(
@@ -239,7 +239,7 @@ export default class BillingStorage {
 
   public static async getSubAccounts(tenant: Tenant,
       params: {
-        subAccountIDs?: string[], subAccountAccountIDs?: string[], search?: string, userIDs?: string[], status?: string[]
+        IDs?: string[], accountExternalIDs?: string[], search?: string, userIDs?: string[], status?: string[]
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingAccount>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -258,21 +258,21 @@ export default class BillingStorage {
     // Filter by other properties
     if (params.search) {
       filters.$or = [
-        { 'accountID': { $regex: params.search, $options: 'i' } }
+        { 'accountExternalID': { $regex: params.search, $options: 'i' } }
       ];
     }
-    if (!Utils.isEmptyArray(params.subAccountIDs)) {
+    if (!Utils.isEmptyArray(params.IDs)) {
       filters._id = {
-        $in: params.subAccountIDs.map((subAccountID) => DatabaseUtils.convertToObjectID(subAccountID))
+        $in: params.IDs.map((id) => DatabaseUtils.convertToObjectID(id))
       };
     }
-    if (!Utils.isEmptyArray(params.subAccountAccountIDs)) {
-      filters.accountID = {
-        $in: params.subAccountAccountIDs
+    if (!Utils.isEmptyArray(params.accountExternalIDs)) {
+      filters.accountExternalID = {
+        $in: params.accountExternalIDs
       };
     }
     if (!Utils.isEmptyArray(params.userIDs)) {
-      filters.userID = {
+      filters.businessOwnerID = {
         $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
       };
     }
@@ -317,7 +317,7 @@ export default class BillingStorage {
     });
     // Add Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
+      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'businessOwnerID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Add Last Changed / Created
@@ -325,7 +325,7 @@ export default class BillingStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'businessOwnerID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -341,7 +341,7 @@ export default class BillingStorage {
 
   public static async getSubAccountByID(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingAccount> {
     const subAccountMDB = await BillingStorage.getSubAccounts(tenant, {
-      subAccountIDs: [id]
+      IDs: [id]
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return subAccountMDB.count === 1 ? subAccountMDB.result[0] : null;
   }

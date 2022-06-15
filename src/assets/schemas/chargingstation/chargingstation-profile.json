@@ -1,0 +1,142 @@
+{
+  "$id": "chargingstation-profile",
+  "definitions": {
+    "id": {
+      "type": "string",
+      "sanitize": "mongo",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "connectorID": {
+      "$ref": "chargingstation#definitions/connector/properties/connectorId"
+    },
+    "chargePointID": {
+      "$ref": "chargingstation#definitions/chargePoint/properties/chargePointID"
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "chargingProfileId": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "transactionId": {
+          "$ref": "transaction#/definitions/id"
+        },
+        "stackLevel": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "chargingProfilePurpose": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": [
+            "ChargePointMaxProfile",
+            "TxDefaultProfile",
+            "TxProfile"
+          ]
+        },
+        "chargingProfileKind": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": [
+            "Absolute",
+            "Recurring",
+            "Relative"
+          ]
+        },
+        "recurrencyKind": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": [
+            "Daily",
+            "Weekly"
+          ]
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date-time",
+          "customType": "date",
+          "sanitize": "mongo"
+        },
+        "validTo": {
+          "type": "string",
+          "format": "date-time",
+          "customType": "date",
+          "sanitize": "mongo"
+        },
+        "chargingSchedule": {
+          "type": "object",
+          "properties": {
+            "duration": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "startSchedule": {
+              "type": "string",
+              "format": "date-time",
+              "customType": "date",
+              "sanitize": "mongo"
+            },
+            "chargingRateUnit": {
+              "type": "string",
+              "sanitize": "mongo",
+              "enum": [
+                "W",
+                "A"
+              ]
+            },
+            "chargingSchedulePeriod": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "startPeriod": {
+                    "type": "number",
+                    "sanitize": "mongo"
+                  },
+                  "limit": {
+                    "type": "number",
+                    "sanitize": "mongo"
+                  },
+                  "numberPhases": {
+                    "type": "number",
+                    "sanitize": "mongo"
+                  }
+                },
+                "required": [
+                  "startPeriod",
+                  "limit"
+                ]
+              }
+            },
+            "minChargeRate": {
+              "type": "number",
+              "sanitize": "mongo"
+            }
+          },
+          "required": [
+            "chargingRateUnit",
+            "chargingSchedulePeriod"
+          ]
+        }
+      },
+      "required": [
+        "chargingProfileId",
+        "stackLevel",
+        "chargingProfilePurpose",
+        "chargingProfileKind",
+        "chargingSchedule"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "connectorID",
+    "chargePointID",
+    "chargingStationID",
+    "profile"
+  ]
+}
