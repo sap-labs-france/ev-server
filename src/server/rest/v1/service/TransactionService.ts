@@ -57,7 +57,7 @@ export default class TransactionService {
       'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
-      'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.visualID', 'stop.tag.visualID',
+      'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.visualID', 'tag.description', 'stop.tag.visualID',
       'site.name', 'siteArea.name', 'company.name'
     ]);
     res.json(transactions);
@@ -723,7 +723,7 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'site.name', 'siteArea.name', 'company.name'
+      'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name'
     ]);
     res.json(transactions);
     next();
@@ -740,7 +740,7 @@ export default class TransactionService {
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
       'site.name', 'siteArea.name', 'company.name',
-      'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'stop.tagID', 'stop.tag.visualID'
+      'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'tag.description', 'stop.tagID', 'stop.tag.visualID'
     ]);
     res.json(transactions);
     next();
