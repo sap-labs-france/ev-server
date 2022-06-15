@@ -95,7 +95,7 @@ export interface BillingSubaccountsDataResult extends DataResult<BillingAccount>
 }
 
 export interface BillingTransfersDataResult extends DataResult<BillingTransfer> {
-  canListSubAccount?: boolean;
+  canListSubAccounts?: boolean;
 }
 
 export interface TransactionRefundDataResult {

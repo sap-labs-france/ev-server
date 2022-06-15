@@ -14066,12 +14066,6 @@
             }
           },
           {
-            "$ref": "#/components/parameters/StartDateTime"
-          },
-          {
-            "$ref": "#/components/parameters/EndDateTime"
-          },
-          {
             "$ref": "#/components/parameters/Search"
           },
           {

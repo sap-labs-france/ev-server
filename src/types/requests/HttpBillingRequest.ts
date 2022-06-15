@@ -61,7 +61,5 @@ export interface HttpBillingTransfersGetRequest extends HttpDatabaseRequest {
   AccountID?: string;
   Status?: string;
   TransferExternalID?: string;
-  StartDateTime?: Date;
-  EndDateTime?: Date;
   Search?: string;
 }
