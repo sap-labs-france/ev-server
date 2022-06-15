@@ -1,8 +1,10 @@
-import { BillingAccount, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser } from '../../types/Billing';
+import { AsyncTaskType, AsyncTasks } from '../../types/AsyncTask';
+import { BillingAccount, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingSessionAccountData, BillingStatus, BillingTax, BillingUser } from '../../types/Billing';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
+import AsyncTaskBuilder from '../../async-task/AsyncTaskBuilder';
 import BackendError from '../../exception/BackendError';
 import { BillingPeriodicOperationTaskConfig } from '../../types/TaskConfig';
 import { BillingSettings } from '../../types/Setting';
@@ -18,7 +20,7 @@ import { Promise } from 'bluebird';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
 import SiteArea from '../../types/SiteArea';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
@@ -171,7 +173,6 @@ export default abstract class BillingIntegration {
       // Do not send notifications for invoices that are not yet finalized!
       if (billingInvoice.status === BillingInvoiceStatus.OPEN || billingInvoice.status === BillingInvoiceStatus.PAID) {
         // Send link to the user using our notification framework (link to the front-end + download)
-        const tenant = await TenantStorage.getTenant(this.tenant.id);
         // Stripe saves amount in cents
         const invoiceAmountAsDecimal = new Decimal(billingInvoice.amount).div(100);
         // Format amount with currency symbol depending on locale
@@ -183,9 +184,9 @@ export default abstract class BillingIntegration {
           billingInvoice.user,
           {
             user: billingInvoice.user,
-            evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(tenant.subdomain),
-            evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-            invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(tenant.subdomain, billingInvoice.id),
+            evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(this.tenant.subdomain),
+            evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
+            invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(this.tenant.subdomain, billingInvoice.id),
             // Empty url allows to decide wether to display "pay" button in the email
             payInvoiceUrl: billingInvoice.status === BillingInvoiceStatus.OPEN ? billingInvoice.payInvoiceUrl : '',
             invoiceAmount: invoiceAmount,
@@ -290,6 +291,25 @@ export default abstract class BillingIntegration {
     return true;
   }
 
+  protected async triggerTransferPreparation(billingInvoice: BillingInvoice): Promise<void> {
+    // The invoice may include several sessions - let's check if at least one of these needs a transfer
+    const sessions = billingInvoice.sessions.filter((session) => session?.accountData?.withTransferActive);
+    if (sessions.length > 0) {
+      // Create async task to proceed with the transfer of funds
+      await AsyncTaskBuilder.createAndSaveAsyncTasks({
+        name: AsyncTasks.PREPARE_INVOICE_TRANSFER,
+        action: ServerAction.BILLING_PREPARE_TRANSFER,
+        type: AsyncTaskType.TASK,
+        tenantID: this.tenant.id,
+        parameters: {
+          invoiceID: billingInvoice.id
+        },
+        module: MODULE_NAME,
+        method: 'triggerTransferPreparation',
+      });
+    }
+  }
+
   protected async updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
     if (!billingInvoice.sessions) {
       // This should not happen - but it happened once!
@@ -367,6 +387,24 @@ export default abstract class BillingIntegration {
       totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     }
     return totalDuration;
+  }
+
+  protected async retrieveAccountData(transaction: Transaction) : Promise<BillingSessionAccountData> {
+    if (Utils.isTenantComponentActive(this.tenant, TenantComponents.BILLING_PLATFORM)) {
+      const site = await SiteStorage.getSite(this.tenant, transaction.siteID, { withCompany: true });
+      let billingData = site.billingData;
+      if (billingData?.accountID) {
+        billingData = site.company?.billingData;
+      }
+      if (billingData?.accountID) {
+        return {
+          withTransferActive: true,
+          accountID: billingData.accountID,
+          platformFeeStrategy: billingData.platformFeeStrategy
+        };
+      }
+    }
+    return null;
   }
 
   private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
@@ -687,4 +725,7 @@ export default abstract class BillingIntegration {
   abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]>;
 
   abstract createSubAccount(): Promise<BillingAccount>;
+
+  abstract prepareInvoiceTransfer(invoice: BillingInvoice): Promise<void>;
+
 }

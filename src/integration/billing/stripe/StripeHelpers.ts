@@ -33,6 +33,7 @@ export default class StripeHelpers {
       session = {
         transactionID: billingInvoiceItem.transactionID,
         pricingData: billingInvoiceItem.pricingData,
+        accountData: billingInvoiceItem.accountData,
       };
     }
     // Is there anything to update?

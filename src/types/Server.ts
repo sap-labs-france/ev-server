@@ -437,6 +437,7 @@ export enum ServerAction {
 
   BILLING = 'Billing',
   BILLING_TRANSACTION = 'BillingTransaction',
+  BILLING_PREPARE_TRANSFER = 'BillingPrepareTransfer',
   BILLING_SYNCHRONIZE_USER = 'BillingSynchronizeUser',
   BILLING_FORCE_SYNCHRONIZE_USER = 'BillingForceSynchronizeUser',
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',

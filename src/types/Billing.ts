@@ -88,6 +88,7 @@ export interface BillingInvoiceItem {
   transactionID: number;
   currency: string;
   pricingData: PricedConsumptionData[]
+  accountData: BillingSessionAccountData; // Each session may target a distinct sub-account - but the 4 pricing dimensions MUST share the same info
   headerDescription?: string,
   metadata?: {
     // Just a flat list of key/value pairs!
@@ -98,7 +99,7 @@ export interface BillingInvoiceItem {
 export interface BillingSessionData {
   transactionID: number;
   pricingData: PricedConsumptionData[];
-  transferData?: BillingTransferData; // Each session may target a distinct sub-account
+  accountData: BillingSessionAccountData; // Each session may target a distinct sub-account
 }
 
 export enum BillingInvoiceStatus {
@@ -175,13 +176,11 @@ export interface BillingAccount extends AuthorizationActions {
 
 export interface BillingAccountData {
   accountID: string;
-  platformFee?: BillingPlatformFeeStrategy;
+  platformFeeStrategy?: BillingPlatformFeeStrategy;
 }
 
-export interface BillingTransferData extends BillingAccountData {
+export interface BillingSessionAccountData extends BillingAccountData {
   withTransferActive: boolean
-  transferID?: string;
-  lastUpdate?: Date;
 }
 
 export enum BillingTransferStatus {
