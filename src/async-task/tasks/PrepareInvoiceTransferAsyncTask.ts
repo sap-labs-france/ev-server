@@ -13,7 +13,7 @@ import Utils from '../../utils/Utils';
 export default class PrepareInvoiceTransferAsyncTask extends AbstractAsyncTask {
   protected async executeAsyncTask(): Promise<void> {
     const tenant = await TenantStorage.getTenant(this.getAsyncTask().tenantID);
-    // Check if OCPI component is active
+    // Check if Billing Platform component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(tenant);
