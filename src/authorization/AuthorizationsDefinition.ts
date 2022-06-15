@@ -398,6 +398,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'accountExternalID', 'businessOwnerID', 'user.id', 'user.firstName', 'user.lastName', 'user.email', 'status'
         ]
       },
+      {
+        resource: Entity.BILLING_TRANSFER,
+        action: [Action.LIST]
+      },
       { resource: Entity.TAX, action: [Action.LIST] },
       {
         resource: Entity.INVOICE, action: [Action.LIST],

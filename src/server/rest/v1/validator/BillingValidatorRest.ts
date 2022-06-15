@@ -1,4 +1,4 @@
-import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingSubAccountActivateRequest, HttpBillingSubAccountCreateRequest, HttpBillingSubAccountGetRequest, HttpBillingSubAccountsGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingSubAccountActivateRequest, HttpBillingSubAccountCreateRequest, HttpBillingSubAccountGetRequest, HttpBillingSubAccountsGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 
 import { BillingSettings } from '../../../../types/Setting';
 import Schema from '../../../../types/validator/Schema';
@@ -18,6 +18,7 @@ export default class BillingValidatorRest extends SchemaValidator {
   private billingActivateSubAccount: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-activate-sub-account.json`, 'utf8'));
   private billingSubAccountsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-sub-accounts-get.json`, 'utf8'));
   private billingSubAccountGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-sub-account-get.json`, 'utf8'));
+  private billingTransfersGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-transfers-get.json`, 'utf8'));
 
   private constructor() {
     super('BillingValidatorRest');
@@ -68,5 +69,9 @@ export default class BillingValidatorRest extends SchemaValidator {
 
   public validateBillingSubAccountGetReq(data: Record<string, unknown>): HttpBillingSubAccountGetRequest {
     return this.validate(this.billingSubAccountGet, data);
+  }
+
+  public validateBillingTransfersGetReq(data: Record<string, unknown>): HttpBillingTransfersGetRequest {
+    return this.validate(this.billingTransfersGet, data);
   }
 }
