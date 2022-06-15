@@ -96,13 +96,10 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         });
       });
 
-      it('Should add a different source to BILLING-TEST user', async () => {
-        await stripeTestHelper.assignPaymentMethod('tok_fr');
-      });
-
       it(
         'should create and pay a second invoice for BILLING-TEST user',
         async () => {
+          await stripeTestHelper.assignPaymentMethod('tok_fr');
           await stripeTestHelper.checkImmediateBillingWithTaxes();
         }
       );
