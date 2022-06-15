@@ -150,11 +150,6 @@ export enum BillingErrorCode {
   CARD_ERROR = 'card_error',
 }
 
-export interface BillingAdditionalData {
-  session?: BillingSessionData,
-  lastError?: BillingError,
-}
-
 export enum BillingAccountStatus {
   IDLE = 'idle',
   PENDING = 'pending',

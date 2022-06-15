@@ -1,11 +1,9 @@
-import { BillingAdditionalData, BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingSessionData } from '../../../types/Billing';
+import { BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingSessionData } from '../../../types/Billing';
 
-import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Countries from 'i18n-iso-countries';
 import I18nManager from '../../../utils/I18nManager';
 import Stripe from 'stripe';
-import Tenant from '../../../types/Tenant';
 import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 
@@ -18,11 +16,12 @@ export interface StripeChargeOperationResult {
 export default class StripeHelpers {
 
   public static enrichInvoiceWithAdditionalData(billingInvoice: BillingInvoice, operationResult: StripeChargeOperationResult, billingInvoiceItem?: BillingInvoiceItem): void {
-    // Do we have an error to preserve
-    let billingError: BillingError;
     if (operationResult && !operationResult.succeeded) {
     // The operation failed
-      billingError = StripeHelpers.convertToBillingError(operationResult.error);
+      const billingError = StripeHelpers.convertToBillingError(operationResult.error);
+      if (billingError) {
+        billingInvoice.lastError = billingError;
+      }
     }
     if (billingInvoiceItem) {
       const session: BillingSessionData = {
@@ -35,10 +34,6 @@ export default class StripeHelpers {
       } else {
         billingInvoice.sessions = [ session ];
       }
-    }
-    // Is there anything to update?
-    if (billingError) {
-      billingInvoice.lastError = billingError;
     }
   }
 
