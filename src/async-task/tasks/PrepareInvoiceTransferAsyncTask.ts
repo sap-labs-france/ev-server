@@ -30,7 +30,7 @@ export default class PrepareInvoiceTransferAsyncTask extends AbstractAsyncTask {
               if (!invoice) {
                 throw new Error(`Unknown Invoice ID '${invoiceID}'`);
               }
-              if (invoice.status === BillingInvoiceStatus.PAID) {
+              if (invoice.status !== BillingInvoiceStatus.PAID) {
                 throw new Error(`Unexpected situation - invoice '${invoiceID}' is not yet PAID`);
               }
               // Prepare a transfer per CPO
