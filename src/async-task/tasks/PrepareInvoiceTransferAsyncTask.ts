@@ -10,7 +10,7 @@ import { TenantComponents } from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
-export default class TransferInvoiceAsyncTask extends AbstractAsyncTask {
+export default class PrepareInvoiceTransferAsyncTask extends AbstractAsyncTask {
   protected async executeAsyncTask(): Promise<void> {
     const tenant = await TenantStorage.getTenant(this.getAsyncTask().tenantID);
     // Check if OCPI component is active
