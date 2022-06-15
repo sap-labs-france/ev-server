@@ -292,6 +292,10 @@ export default abstract class BillingIntegration {
   }
 
   protected async triggerTransferPreparation(billingInvoice: BillingInvoice): Promise<void> {
+    if (!billingInvoice.sessions) {
+      // This should not happen!
+      return;
+    }
     // The invoice may include several sessions - let's check if at least one of these needs a transfer
     const sessions = billingInvoice.sessions.filter((session) => session?.accountData?.withTransferActive);
     if (sessions.length > 0) {

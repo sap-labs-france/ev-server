@@ -17,32 +17,28 @@ export interface StripeChargeOperationResult {
 
 export default class StripeHelpers {
 
-  public static async updateInvoiceAdditionalData(tenant: Tenant,
-      billingInvoice: BillingInvoice,
-      operationResult: StripeChargeOperationResult,
-      billingInvoiceItem?: BillingInvoiceItem): Promise<void> {
+  public static enrichInvoiceWithAdditionalData(billingInvoice: BillingInvoice, operationResult: StripeChargeOperationResult, billingInvoiceItem?: BillingInvoiceItem): void {
     // Do we have an error to preserve
     let billingError: BillingError;
     if (operationResult && !operationResult.succeeded) {
-      // The operation failed
+    // The operation failed
       billingError = StripeHelpers.convertToBillingError(operationResult.error);
     }
-    // Do we have a new charging session?
-    let session: BillingSessionData;
     if (billingInvoiceItem) {
-      session = {
+      const session: BillingSessionData = {
         transactionID: billingInvoiceItem.transactionID,
         pricingData: billingInvoiceItem.pricingData,
         accountData: billingInvoiceItem.accountData,
       };
+      if (billingInvoice.sessions) {
+        billingInvoice.sessions.push(session);
+      } else {
+        billingInvoice.sessions = [ session ];
+      }
     }
     // Is there anything to update?
-    if (session || billingError) {
-      const additionalData: BillingAdditionalData = {
-        session,
-        lastError: billingError
-      };
-      await BillingStorage.updateInvoiceAdditionalData(tenant, billingInvoice, additionalData);
+    if (billingError) {
+      billingInvoice.lastError = billingError;
     }
   }
 

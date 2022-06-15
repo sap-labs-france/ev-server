@@ -170,6 +170,12 @@ export default class BillingStorage {
       downloadUrl: invoiceToSave.downloadUrl,
       payInvoiceUrl: invoiceToSave.payInvoiceUrl
     };
+    if (invoiceToSave.sessions) {
+      invoiceMDB.sessions = invoiceToSave.sessions;
+    }
+    if (invoiceToSave.lastError) {
+      invoiceMDB.lastError = invoiceToSave.lastError;
+    }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'invoices').findOneAndUpdate(
       { _id: invoiceMDB._id },
@@ -178,25 +184,6 @@ export default class BillingStorage {
     );
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoice', startTime, invoiceMDB);
     return invoiceMDB._id.toString();
-  }
-
-  public static async updateInvoiceAdditionalData(tenant: Tenant, invoiceToUpdate: BillingInvoice, additionalData: BillingAdditionalData): Promise<void> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    // Preserve the previous list of sessions
-    const sessions: BillingSessionData[] = invoiceToUpdate.sessions || [];
-    if (additionalData.session) {
-      sessions.push(additionalData.session);
-    }
-    // Set data
-    const updatedInvoiceMDB: any = {
-      sessions,
-      lastError: additionalData.lastError
-    };
-    await global.database.getCollection(tenant.id, 'invoices').findOneAndUpdate(
-      { '_id': DatabaseUtils.convertToObjectID(invoiceToUpdate.id) },
-      { $set: updatedInvoiceMDB });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoiceAdditionalData', startTime, updatedInvoiceMDB);
   }
 
   public static async deleteInvoice(tenant: Tenant, id: string): Promise<void> {
