@@ -9,7 +9,7 @@ export default class IncludeAllExternalSitesDynamicAuthorizationFilter extends D
     authorizationFilters.filters.includeAllExternalSites = true;
     authorizationFilters.authorized = false;
     if (Utils.objectHasProperty(extraFilters, 'Issuer') &&
-    !Utils.isNullOrUndefined(extraFilters['Issuer'])) {
+        !Utils.isNullOrUndefined(extraFilters['Issuer'])) {
       authorizationFilters.authorized = !extraFilters['Issuer'];
     }
   }
