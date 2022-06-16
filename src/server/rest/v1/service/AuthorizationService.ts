@@ -748,23 +748,35 @@ export default class AuthorizationService {
     for (const connector of chargingStation.connectors) {
       // Start transaction
       connector.canRemoteStopTransaction = !chargingStation.inactive
-        && connector.status !== ChargePointStatus.AVAILABLE
+        && [
+          ChargePointStatus.CHARGING,
+          ChargePointStatus.OCCUPIED,
+          ChargePointStatus.SUSPENDED_EV,
+          ChargePointStatus.SUSPENDED_EVSE,
+        ].includes(connector.status)
         && !!connector.currentTransactionID // Indicates if transaction is ongoing by known user, otherwise 0
         && await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_STOP_TRANSACTION, authorizationFilter,
           { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, connector);
       // Stop transaction
       connector.canRemoteStartTransaction = !chargingStation.inactive
         && !connector.canRemoteStopTransaction
-        && (connector.status === ChargePointStatus.AVAILABLE ||
-            connector.status === ChargePointStatus.PREPARING ||
-            connector.status === ChargePointStatus.RESERVED)
+        && [
+          ChargePointStatus.AVAILABLE,
+          ChargePointStatus.PREPARING,
+          ChargePointStatus.RESERVED,
+        ].includes(connector.status)
         && !connector.currentTransactionID // either no transaction OR transaction is ongoing by an external user
-        && await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_START_TRANSACTION, authorizationFilter,
+        && await AuthorizationService.canPerformAuthorizationAction(
+          tenant, userToken, Entity.CONNECTOR, Action.REMOTE_START_TRANSACTION, authorizationFilter,
           { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, connector);
       // Unlock connector
       connector.canUnlockConnector = !chargingStation.inactive
         && chargingStation.canUnlockConnector
-        && connector.status !== ChargePointStatus.AVAILABLE;
+        && [
+          ChargePointStatus.FINISHING,
+          ChargePointStatus.FAULTED,
+          ChargePointStatus.SUSPENDED_EVSE,
+        ].includes(connector.status);
       Utils.removeCanPropertiesWithFalseValue(connector);
     }
     // Optimize data over the net
