@@ -474,10 +474,10 @@ export default class BillingService {
   public static async handleCreateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.BILLING_CREATE_SUB_ACCOUNT, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleCreateSubAccount');
+      Action.CREATE, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleCreateSubAccount');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingCreateSubAccountReq(req.body);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingPlatformAuthorizations(req.tenant, req.user, Action.BILLING_CREATE_SUB_ACCOUNT);
+    await AuthorizationService.checkAndGetBillingSubAccountAuthorizations(req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     // Get the billing impl
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -490,12 +490,12 @@ export default class BillingService {
       });
     }
     // Get the user
-    const user = await UserStorage.getUser(req.tenant, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
+    const user = await UserStorage.getUser(req.tenant, filteredRequest.businessOwnerID);
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.businessOwnerID}' does not exist`,
       MODULE_NAME, 'handleCreateSubAccount', req.user);
     // Create the sub account
     const subAccount = await billingImpl.createSubAccount();
-    subAccount.userID = user.id;
+    subAccount.businessOwnerID = user.id;
     // Save the sub account
     subAccount.id = await BillingStorage.saveSubAccount(req.tenant, subAccount);
     res.status(StatusCodes.CREATED).json(subAccount);
@@ -520,8 +520,8 @@ export default class BillingService {
       });
     }
     // Get the sub account owner
-    const user = await UserStorage.getUser(tenant, subAccount.userID);
-    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.userID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
+    const user = await UserStorage.getUser(tenant, subAccount.businessOwnerID);
+    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
     // Activate and save the sub account
     subAccount.status = BillingAccountStatus.ACTIVE;
     await BillingStorage.saveSubAccount(tenant, subAccount);
@@ -535,17 +535,15 @@ export default class BillingService {
   public static async handleBillingGetSubAccounts(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountsGetReq(req.query);
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.LIST, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleBillingGetSubAccounts');
-    const authorizations = await AuthorizationService.checkAndGetBillingPlatformAuthorizations(req.tenant, req.user, Action.LIST);
+    // Check auth
+    const authorizations = await AuthorizationService.checkAndGetBillingSubAccountsAuthorizations(req.tenant, req.user, filteredRequest /* , false */);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
     // Get the billing sub accounts
     const subAccounts = await BillingStorage.getSubAccounts(req.tenant, {
-      subAccountIDs: filteredRequest.SubAccountID ? filteredRequest.SubAccountID.split('|') : null,
+      IDs: filteredRequest.ID ? filteredRequest.ID.split('|') : null,
       userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
       search: filteredRequest.Search ? filteredRequest.Search : null,
       status: filteredRequest.Status ? filteredRequest.Status.split('|') : null,
@@ -567,7 +565,7 @@ export default class BillingService {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountGetReq(req.params);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.READ, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleBillingGetSubAccount');
+      Action.READ, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleBillingGetSubAccount');
     // Get the billing sub accounts
     const subAccount = await UtilsService.checkAndGetBillingSubAccountAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
     res.json(subAccount);
@@ -577,10 +575,10 @@ export default class BillingService {
   public static async handleOnboardAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.BILLING_ONBOARD_SUB_ACCOUNT, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleOnboardAccount');
+      Action.BILLING_ONBOARD_SUB_ACCOUNT, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleOnboardAccount');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountGetReq(req.params);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingPlatformAuthorizations(req.tenant, req.user, Action.BILLING_ONBOARD_SUB_ACCOUNT);
+    await AuthorizationService.checkAndGetBillingSubAccountAuthorizations(req.tenant, req.user, filteredRequest, Action.BILLING_ONBOARD_SUB_ACCOUNT);
     const subAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
     // Check if the sub account onboarding is already sent
@@ -594,8 +592,8 @@ export default class BillingService {
       });
     }
     // Get the sub account owner
-    const user = await UserStorage.getUser(req.tenant, subAccount.userID);
-    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.userID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
+    const user = await UserStorage.getUser(req.tenant, subAccount.businessOwnerID);
+    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
     // Activate and save the sub account
     subAccount.status = BillingAccountStatus.PENDING;
     await BillingStorage.saveSubAccount(req.tenant, subAccount);
@@ -603,6 +601,35 @@ export default class BillingService {
     void NotificationHandler.sendBillingSubAccountCreationLink(
       req.tenant, Utils.generateUUID(), user, { onboardingLink: subAccount.activationLink, evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
     res.status(StatusCodes.OK).json(subAccount);
+    next();
+  }
+
+  public static async handleBillingGetTransfers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransfersGetReq(req.query);
+    // Check auth
+    const authorizations = await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, filteredRequest /* , false */);
+    if (!authorizations.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
+    // Get the billing sub accounts
+    const transfers = await BillingStorage.getTransfers(req.tenant, {
+      IDs: filteredRequest.ID ? filteredRequest.ID.split('|') : null,
+      accountIDs: filteredRequest.AccountID ? filteredRequest.AccountID.split('|') : null,
+      transferExternalIDs: filteredRequest.TransferExternalID ? filteredRequest.TransferExternalID.split('|') : null,
+      search: filteredRequest.Search ? filteredRequest.Search : null,
+      status: filteredRequest.Status ? filteredRequest.Status.split('|') : null,
+    }, {
+      sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
+      skip: filteredRequest.Skip,
+      limit: filteredRequest.Limit,
+      onlyRecordCount: filteredRequest.OnlyRecordCount
+    },
+    authorizations.projectFields
+    );
+    await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
+    res.json(transfers);
     next();
   }
 

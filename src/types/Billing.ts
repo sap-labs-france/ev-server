@@ -98,6 +98,7 @@ export interface BillingInvoiceItem {
 export interface BillingSessionData {
   transactionID: number;
   pricingData: PricedConsumptionData[];
+  transferData?: BillingTransferData; // Each session may target a distinct sub-account
 }
 
 export enum BillingInvoiceStatus {
@@ -159,15 +160,57 @@ export enum BillingAccountStatus {
   ACTIVE = 'active'
 }
 
+export interface BillingPlatformFeeStrategy {
+  flatFeePerSession: number; // e.g.: 0.25 per charging session
+  percentage: number; // e.g.: 2% per charging session
+}
+
 export interface BillingAccount extends AuthorizationActions {
   id?: string;
-  accountID: string;
-  activationLink?: string;
-  userID?: string;
+  businessOwnerID?: string;
   status: BillingAccountStatus;
+  activationLink?: string;
+  accountExternalID: string;
 }
 
 export interface BillingAccountData {
   accountID: string;
+  platformFee?: BillingPlatformFeeStrategy;
+}
+
+export interface BillingTransferData extends BillingAccountData {
+  withTransferActive: boolean
+  transferID?: string;
+  lastUpdate?: Date;
+}
+
+export enum BillingTransferStatus {
+  DRAFT = 'draft',
+  PENDING = 'pending',
+  TRANSFERRED = 'transferred'
+}
+
+export interface BillingPlatformFeeData {
+  taxExternalID: string; // Tax to apply on the platform fee
+  feeAmount: number;
+  feeTaxAmount: number;
+  invoiceExternalID?: string; // Invoice sent to the CPO
+}
+
+export interface BillingTransfer {
+  id?: string;
+  status: BillingTransferStatus;
+  sessions: BillingTransferSession[];
+  amount: number; // Depends on the fee strategy and thus on the final number of sessions
+  transferredAmount: number // Amount transferred after applying platform fees
+  accountID: string;
+  platformFeeData: BillingPlatformFeeData;
+  transferExternalID?: string; // Transfer sent to the CPO
+}
+
+export interface BillingTransferSession {
+  transactionID: number;
+  amount: number; // ACHTUNG - That one should not include any taxes
+  platformFee: BillingPlatformFeeStrategy;
 }
 

@@ -188,7 +188,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country',
           'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'billingData.accountID'
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'accountData.accountID'
         ]
       },
       {
@@ -231,7 +231,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'issuer', 'logo',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
-          'address.department', 'address.region', 'address.country', 'address.coordinates', 'billingData.accountID'
+          'address.department', 'address.region', 'address.country', 'address.coordinates', 'accountData.accountID'
         ]
       },
       {
@@ -254,7 +254,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'address.department', 'address.region', 'address.country',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectorStats', 'billingData.accountID'
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectorStats', 'accountData.accountID'
         ]
       },
       {
@@ -263,7 +263,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
-          'address.department', 'address.region', 'address.country', 'address.coordinates', 'billingData.accountID'
+          'address.department', 'address.region', 'address.country', 'address.coordinates', 'accountData.accountID'
         ]
       },
       {
@@ -458,11 +458,15 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
       {
-        resource: Entity.BILLING_PLATFORM,
-        action: [Action.BILLING_CREATE_SUB_ACCOUNT, Action.BILLING_ONBOARD_SUB_ACCOUNT, Action.LIST, Action.READ],
+        resource: Entity.BILLING_SUB_ACCOUNT,
+        action: [Action.LIST, Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.BILLING_ONBOARD_SUB_ACCOUNT],
         attributes: [
-          'id', 'accountID', 'userID', 'user.id', 'user.firstName', 'user.lastName', 'user.email', 'status'
+          'id', 'accountExternalID', 'businessOwnerID', 'user.id', 'user.firstName', 'user.lastName', 'user.email', 'status'
         ]
+      },
+      {
+        resource: Entity.BILLING_TRANSFER,
+        action: [Action.LIST]
       },
       { resource: Entity.TAX, action: [Action.LIST] },
       {
