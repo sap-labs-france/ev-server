@@ -661,7 +661,7 @@ export default class TransactionService {
     let user: User;
     try {
       user = await UtilsService.checkAndGetUserAuthorization(
-        req.tenant, req.user, transaction.userID, Action.READ, action, null, null, true, false);
+        req.tenant, req.user, transaction.userID, Action.READ, action, null, null, true);
     } catch (error) {
       // Ignore
     }

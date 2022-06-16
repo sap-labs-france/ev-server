@@ -40,11 +40,9 @@ export default class SiteService {
       });
     }
     // Check and Get Site
-    const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
+    const site = await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.userID, Action.READ, action);
+    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
     await Logging.logInfo({

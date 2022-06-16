@@ -279,12 +279,11 @@ export default class UtilsService {
   }
 
   public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<User> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<User> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetUserAuthorizations(
-      tenant, userToken, { ID: userID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetUserAuthorizations(tenant, userToken, { ID: userID }, authAction, entityData);
     // Get User
     const user = await UserStorage.getUser(tenant, userID,
       {
@@ -295,17 +294,6 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
-    // External User
-    // TODO: need alignement of auth definition to remove below check
-    if (checkIssuer && !user.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User '${user.name}' with ID '${user.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
-        user: userToken,
-        action: action
-      });
-    }
     // Assign projected fields
     if (authorizations.projectFields) {
       user.projectFields = authorizations.projectFields;

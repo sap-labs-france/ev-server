@@ -110,11 +110,9 @@ export default class UserService {
     // Filter request
     const filteredRequest = UserValidatorRest.getInstance().validateUserSitesAssignReq(req.body);
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.userID, Action.READ, action);
+    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Check and Get Sites
-    const sites = await UtilsService.checkAndGetUserSitesAuthorization(
-      req.tenant, req.user, user, filteredRequest.siteIDs, action);
+    const sites = await UtilsService.checkAndGetUserSitesAuthorization(req.tenant, req.user, user, filteredRequest.siteIDs, action);
     // Save
     if (action === ServerAction.ADD_SITES_TO_USER) {
       for (const site of sites) {
@@ -161,8 +159,7 @@ export default class UserService {
     // Filter
     const userID = UserValidatorRest.getInstance().validateUserDeleteReq(req.query).ID.toString();
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.DELETE, action, null, {}, false, false);
+    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, userID, Action.DELETE, action, null, {}, false);
     // Delete OCPI User
     if (!user.issuer) {
       // Delete User
@@ -201,10 +198,9 @@ export default class UserService {
   public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let statusHasChanged = false;
     // Filter
-    const filteredRequest = UserValidatorRest.getInstance().validateUserUpdateReq({ ...req.params, ...req.body });
+    const filteredRequest = UserValidatorRest.getInstance().validateUserUpdateReq(req.body);
     // Check and Get User
-    let user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
+    let user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check email already exists
     if (filteredRequest.email) {
       const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
@@ -321,7 +317,7 @@ export default class UserService {
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, null, {
         withImage: true
-      }, true, false);
+      }, true);
     res.json(user);
     next();
   }
@@ -331,7 +327,7 @@ export default class UserService {
     const userID = UserValidatorRest.getInstance().validateUserGetReq(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.READ, action, null, null, null, false);
+      req.tenant, req.user, userID, Action.READ, action, null, null, null);
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.tenant, user.id);
     res.json(userImage);
@@ -418,8 +414,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUsersInErrorGetReq(req.query);
     // Get authorization filters
-    const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(
-      req.tenant, req.user, Action.IN_ERROR, filteredRequest);
+    const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(req.tenant, req.user, filteredRequest);
     if (!authorizationUserInErrorFilters.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
@@ -772,15 +767,13 @@ export default class UserService {
 
   private static async getUsers(req: Request, filteredRequest: HttpUsersGetRequest): Promise<DataResult<User>> {
     // Get authorization filters
-    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(
-      req.tenant, req.user, Action.LIST, filteredRequest);
+    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, filteredRequest);
     if (!authorizationUsersFilters.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
     // Optimization: Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
-      const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizations(
-        req.tenant, req.user, filteredRequest);
+      const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizations(req.tenant, req.user, filteredRequest);
       if (!authorizationTagsFilters.authorized) {
         return Constants.DB_EMPTY_DATA_RESULT;
       }

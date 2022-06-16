@@ -262,8 +262,7 @@ export default class AuthorizationService {
     return authorizations;
   }
 
-  public static async checkAndGetUsersInErrorAuthorizations(tenant: Tenant, userToken: UserToken,
-      authAction: Action, filteredRequest: Partial<HttpUsersGetRequest>): Promise<AuthorizationFilter> {
+  public static async checkAndGetUsersInErrorAuthorizations(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpUsersGetRequest>): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -271,7 +270,7 @@ export default class AuthorizationService {
       authorized: false
     };
     // Check static & dynamic authorization
-    await this.canPerformAuthorizationAction(tenant, userToken, Entity.USER, authAction,
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.IN_ERROR,
       authorizations, filteredRequest, null, true);
     return authorizations;
   }
@@ -313,8 +312,7 @@ export default class AuthorizationService {
     Utils.removeCanPropertiesWithFalseValue(user);
   }
 
-  public static async checkAndGetUsersAuthorizations(tenant: Tenant, userToken: UserToken,
-      authAction: Action, filteredRequest: Partial<HttpUsersGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+  public static async checkAndGetUsersAuthorizations(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpUsersGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -322,8 +320,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.USER, authAction, authorizations, filteredRequest, null, failsWithException);
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizations, filteredRequest, null, failsWithException);
     return authorizations;
   }
 

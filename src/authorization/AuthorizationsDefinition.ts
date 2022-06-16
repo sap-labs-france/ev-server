@@ -131,7 +131,20 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
           'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
-        ]
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [],
+            metadata: {
+              status: {
+                visible: true,
+                mandatory: true,
+              }
+            },
+          }
+        }
       },
       { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
       {
