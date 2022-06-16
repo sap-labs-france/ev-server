@@ -1,7 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, ConnectorType, OCPPParams, OcppParameter, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { HttpChargingStationCompositeScheduleGetRequest, HttpChargingStationConfigurationChangeRequest, HttpChargingStationTransactionStartRequest, HttpChargingStationTransactionStopRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationCompositeScheduleGetRequest, HttpChargingStationConfigurationChangeRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationTransactionStartRequest, HttpChargingStationTransactionStopRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
 import { OCPICommandResponse, OCPICommandResponseType } from '../../../../types/ocpi/OCPICommandResponse';
 import { OCPPChangeConfigurationResponse, OCPPConfigurationStatus, OCPPGetCompositeScheduleResponse, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
@@ -71,181 +71,21 @@ export default class ChargingStationService {
         req.tenant, req.user, filteredRequest.siteAreaID, Action.READ, action, null, { issuer: true, withSite: true });
     }
     // Update props
-    if (filteredRequest.chargingStationURL) {
-      chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
-    }
-    if (Utils.objectHasProperty(filteredRequest, 'maximumPower')) {
-      chargingStation.maximumPower = filteredRequest.maximumPower;
-    }
-    if (Utils.objectHasProperty(filteredRequest, 'public')) {
-      // Charging Station is public but cannot belong to a non public Site
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) &&
-          filteredRequest.public && !siteArea.site?.public) {
-        throw new AppError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          action,
-          errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-          message: `Cannot set charging station ${chargingStation.id} attached to the non public site ${siteArea.site.name} public`,
-          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-          user: req.user
-        });
-      }
-      chargingStation.public = filteredRequest.public;
-      // Handle update in Roaming
-      void ChargingStationService.updateChargingStationRoaming(req.tenant, req.user, chargingStation, action);
-    }
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
-        chargingStation.tariffID = filteredRequest.tariffID;
-      }
-    }
-    if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
-      chargingStation.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
-    }
-    if (Utils.objectHasProperty(filteredRequest, 'forceInactive')) {
-      chargingStation.forceInactive = filteredRequest.forceInactive;
-    }
-    let resetAndApplyTemplate = false;
-    if (Utils.objectHasProperty(filteredRequest, 'manualConfiguration')) {
-      // Auto config -> Manual Config
-      if (!chargingStation.manualConfiguration && filteredRequest.manualConfiguration) {
-        chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
-        delete chargingStation.templateHash;
-        delete chargingStation.templateHashCapabilities;
-        delete chargingStation.templateHashOcppStandard;
-        delete chargingStation.templateHashOcppVendor;
-        delete chargingStation.templateHashTechnical;
-      // Manual config -> Auto Config || Auto Config with no Charge Point
-      } else if ((chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) ||
-        (!filteredRequest.manualConfiguration && Utils.isEmptyArray(chargingStation.chargePoints))) {
-        // If charging station is not configured manually anymore, the template will be applied again
-        chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
-        const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
-        // If not template was found, throw error (Check is done on technical configuration)
-        if (!chargingStationTemplate) {
-          throw new AppError({
-            action,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. No template found`,
-            module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-            user: req.user,
-          });
-        }
-        resetAndApplyTemplate = true;
-      }
-    }
+    ChargingStationService.updateChargingStationCommonProperties(action, req.tenant, chargingStation, siteArea, req.user, filteredRequest);
+    // Handle Manual Configuration
+    const resetAndApplyTemplate = await ChargingStationService.updateChargingStationManualConfiguration(
+      action, chargingStation, req.user, filteredRequest);
     // Existing Connectors
-    if (!Utils.isEmptyArray(filteredRequest.connectors)) {
-      for (const filteredConnector of filteredRequest.connectors) {
-        const connector = Utils.getConnectorFromID(chargingStation, filteredConnector.connectorId);
-        // Update Connectors only if no Charge Point is defined
-        if (connector && (Utils.isEmptyArray(chargingStation.chargePoints) || chargingStation.manualConfiguration)) {
-          connector.type = filteredConnector.type;
-          connector.power = filteredConnector.power;
-          connector.amperage = filteredConnector.amperage;
-          connector.voltage = filteredConnector.voltage;
-          connector.currentType = filteredConnector.currentType;
-          connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
-        }
-        connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
-        if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-          if (Utils.objectHasProperty(filteredConnector, 'tariffID')) {
-            connector.tariffID = filteredConnector.tariffID;
-          }
-        }
-      }
-    }
-    // Manual Config
-    if (chargingStation.manualConfiguration) {
-      // Existing charge points
-      if (!Utils.isEmptyArray(filteredRequest.chargePoints)) {
-        // Update and check the Charge Points
-        for (const filteredChargePoint of filteredRequest.chargePoints) {
-          const chargePoint = Utils.getChargePointFromID(chargingStation, filteredChargePoint.chargePointID);
-          // Update Connectors only if manual configuration is enabled
-          if (chargePoint) {
-            chargePoint.currentType = filteredChargePoint.currentType,
-            chargePoint.voltage = filteredChargePoint.voltage,
-            chargePoint.amperage = filteredChargePoint.amperage,
-            chargePoint.numberOfConnectedPhase = filteredChargePoint.numberOfConnectedPhase,
-            chargePoint.cannotChargeInParallel = filteredChargePoint.cannotChargeInParallel,
-            chargePoint.sharePowerToAllConnectors = filteredChargePoint.sharePowerToAllConnectors,
-            chargePoint.excludeFromPowerLimitation = filteredChargePoint.excludeFromPowerLimitation;
-            chargePoint.ocppParamForPowerLimitation = filteredChargePoint.ocppParamForPowerLimitation,
-            chargePoint.power = filteredChargePoint.power,
-            chargePoint.efficiency = filteredChargePoint.efficiency;
-            chargePoint.connectorIDs = filteredChargePoint.connectorIDs;
-            UtilsService.checkIfChargePointValid(chargingStation, chargePoint, req);
-          } else {
-            // If charging station does not have charge points, but request contains charge points, add it to the station
-            if (chargingStation.chargePoints) {
-              chargingStation.chargePoints.push(filteredChargePoint);
-            } else {
-              chargingStation.chargePoints = [filteredChargePoint];
-            }
-            UtilsService.checkIfChargePointValid(chargingStation, filteredChargePoint, req);
-          }
-        }
-      // If charging station contains charge points, but request does not contain charge points, delete them
-      } else if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
-        delete chargingStation.chargePoints;
-      }
-    }
+    ChargingStationService.updateChargingStationConnectors(chargingStation, req.user, filteredRequest);
+    // Handle Manual Config
+    ChargingStationService.updateChargingStationManualAutoConfig(chargingStation, req.user, filteredRequest);
     // Update Site Area
-    if (siteArea) {
-      chargingStation.companyID = siteArea.site?.companyID;
-      chargingStation.siteID = siteArea.siteID;
-      chargingStation.siteAreaID = siteArea.id;
-      // Check if number of phases corresponds to the site area one
-      for (const connector of chargingStation.connectors) {
-        const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
-        if (numberOfConnectedPhase !== 1 && siteArea?.numberOfPhases === 1) {
-          throw new AppError({
-            action,
-            errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
-            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
-            module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-            user: req.user,
-          });
-        }
-      }
-      // Check Smart Charging
-      if (!siteArea.smartCharging) {
-        delete chargingStation.excludeFromSmartCharging;
-      }
-    } else {
-      delete chargingStation.excludeFromSmartCharging;
-      chargingStation.companyID = null;
-      chargingStation.siteID = null;
-      chargingStation.siteAreaID = null;
-    }
-    if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
-      chargingStation.coordinates = [
-        filteredRequest.coordinates[0],
-        filteredRequest.coordinates[1]
-      ];
-    }
-    // Update timestamp
-    chargingStation.lastChangedBy = { 'id': req.user.id };
-    chargingStation.lastChangedOn = new Date();
+    ChargingStationService.updateChargingStationSiteArea(action, chargingStation, req.user, siteArea);
     // Update
     await ChargingStationStorage.saveChargingStation(req.tenant, chargingStation);
-    // Reboot the Charging Station to reapply the templates
-    if (resetAndApplyTemplate) {
-      try {
-        // Use the reset to apply the template again
-        await OCPPCommon.triggerChargingStationReset(req.tenant, chargingStation, true);
-      } catch (error) {
-        throw new AppError({
-          action,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Error occurred while restarting the charging station',
-          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-          user: req.user, actionOnUser: req.user,
-          detailedMessages: { error: error.stack }
-        });
-      }
-    }
+    // Check and Apply Charging Station templates
+    void ChargingStationService.checkAndApplyChargingStationTemplate(
+      action, req.tenant, chargingStation, req.user, resetAndApplyTemplate);
     await Logging.logInfo({
       tenantID: req.tenant.id,
       action,
@@ -1691,6 +1531,201 @@ export default class ChargingStationService {
             detailedMessages: { error: error.stack }
           });
         }
+      }
+    }
+  }
+
+  private static updateChargingStationCommonProperties(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
+      siteArea: SiteArea, user: UserToken, filteredRequest: HttpChargingStationParamsUpdateRequest): void {
+    if (filteredRequest.chargingStationURL) {
+      chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
+    }
+    if (Utils.objectHasProperty(filteredRequest, 'maximumPower')) {
+      chargingStation.maximumPower = filteredRequest.maximumPower;
+    }
+    if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      // Charging Station is public but cannot belong to a non public Site
+      if (Utils.isComponentActiveFromToken(user, TenantComponents.ORGANIZATION) &&
+          filteredRequest.public && !siteArea.site?.public) {
+        throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action, user,
+          errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+          message: `Cannot set charging station ${chargingStation.id} attached to the non public site ${siteArea.site.name} public`,
+          module: MODULE_NAME, method: 'updateChargingStationCommonProperties',
+        });
+      }
+      chargingStation.public = filteredRequest.public;
+      // Handle update in Roaming
+      void ChargingStationService.updateChargingStationRoaming(tenant, user, chargingStation, action);
+    }
+    if (Utils.isComponentActiveFromToken(user, TenantComponents.OCPI)) {
+      if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
+        chargingStation.tariffID = filteredRequest.tariffID;
+      }
+    }
+    if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
+      chargingStation.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
+    }
+    if (Utils.objectHasProperty(filteredRequest, 'forceInactive')) {
+      chargingStation.forceInactive = filteredRequest.forceInactive;
+    }
+    if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
+      chargingStation.coordinates = [
+        filteredRequest.coordinates[0],
+        filteredRequest.coordinates[1]
+      ];
+    }
+    // Update timestamp
+    chargingStation.lastChangedBy = { 'id': user.id };
+    chargingStation.lastChangedOn = new Date();
+  }
+
+  private static async updateChargingStationManualConfiguration(action: ServerAction,
+      chargingStation: ChargingStation, user: UserToken, filteredRequest: HttpChargingStationParamsUpdateRequest): Promise<boolean> {
+    let resetAndApplyTemplate = false;
+    if (Utils.objectHasProperty(filteredRequest, 'manualConfiguration')) {
+      // Auto config -> Manual Config
+      if (!chargingStation.manualConfiguration && filteredRequest.manualConfiguration) {
+        chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
+        delete chargingStation.templateHash;
+        delete chargingStation.templateHashCapabilities;
+        delete chargingStation.templateHashOcppStandard;
+        delete chargingStation.templateHashOcppVendor;
+        delete chargingStation.templateHashTechnical;
+      // Manual config -> Auto Config || Auto Config with no Charge Point
+      } else if ((chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) ||
+          (!filteredRequest.manualConfiguration && Utils.isEmptyArray(chargingStation.chargePoints))) {
+        // If charging station is not configured manually anymore, the template will be applied again
+        chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
+        const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
+        // If not template was found, throw error (Check is done on technical configuration)
+        if (!chargingStationTemplate) {
+          throw new AppError({
+            action,
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. No template found`,
+            module: MODULE_NAME, method: 'updateChargingStationManualConfiguration',
+            user: user,
+          });
+        }
+        resetAndApplyTemplate = true;
+      }
+    }
+    return resetAndApplyTemplate;
+  }
+
+  private static updateChargingStationConnectors(chargingStation: ChargingStation, user: UserToken,
+      filteredRequest: HttpChargingStationParamsUpdateRequest): void {
+    if (!Utils.isEmptyArray(filteredRequest.connectors)) {
+      for (const filteredConnector of filteredRequest.connectors) {
+        const connector = Utils.getConnectorFromID(chargingStation, filteredConnector.connectorId);
+        if (connector) {
+          // Update Connectors only if no Charge Point is defined
+          if (Utils.isEmptyArray(chargingStation.chargePoints) || chargingStation.manualConfiguration) {
+            connector.type = filteredConnector.type;
+            connector.power = filteredConnector.power;
+            connector.amperage = filteredConnector.amperage;
+            connector.voltage = filteredConnector.voltage;
+            connector.currentType = filteredConnector.currentType;
+            connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
+          }
+          connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
+          if (Utils.isComponentActiveFromToken(user, TenantComponents.OCPI)) {
+            if (Utils.objectHasProperty(filteredConnector, 'tariffID')) {
+              connector.tariffID = filteredConnector.tariffID;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private static updateChargingStationManualAutoConfig(chargingStation: ChargingStation,
+      user: UserToken, filteredRequest: HttpChargingStationParamsUpdateRequest): void {
+    if (chargingStation.manualConfiguration) {
+      // Existing charge points
+      if (!Utils.isEmptyArray(filteredRequest.chargePoints)) {
+        // Update and check the Charge Points
+        for (const filteredChargePoint of filteredRequest.chargePoints) {
+          const chargePoint = Utils.getChargePointFromID(chargingStation, filteredChargePoint.chargePointID);
+          // Update Connectors only if manual configuration is enabled
+          if (chargePoint) {
+            chargePoint.currentType = filteredChargePoint.currentType,
+            chargePoint.voltage = filteredChargePoint.voltage,
+            chargePoint.amperage = filteredChargePoint.amperage,
+            chargePoint.numberOfConnectedPhase = filteredChargePoint.numberOfConnectedPhase,
+            chargePoint.cannotChargeInParallel = filteredChargePoint.cannotChargeInParallel,
+            chargePoint.sharePowerToAllConnectors = filteredChargePoint.sharePowerToAllConnectors,
+            chargePoint.excludeFromPowerLimitation = filteredChargePoint.excludeFromPowerLimitation;
+            chargePoint.ocppParamForPowerLimitation = filteredChargePoint.ocppParamForPowerLimitation,
+            chargePoint.power = filteredChargePoint.power,
+            chargePoint.efficiency = filteredChargePoint.efficiency;
+            chargePoint.connectorIDs = filteredChargePoint.connectorIDs;
+            UtilsService.checkIfChargePointValid(chargingStation, chargePoint, user);
+          } else {
+            // If charging station does not have charge points, but request contains charge points, add it to the station
+            if (chargingStation.chargePoints) {
+              chargingStation.chargePoints.push(filteredChargePoint);
+            } else {
+              chargingStation.chargePoints = [filteredChargePoint];
+            }
+            UtilsService.checkIfChargePointValid(chargingStation, filteredChargePoint, user);
+          }
+        }
+      // If charging station contains charge points, but request does not contain charge points, delete them
+      } else if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
+        delete chargingStation.chargePoints;
+      }
+    }
+  }
+
+  private static updateChargingStationSiteArea(action: ServerAction, chargingStation: ChargingStation,
+      user: UserToken, siteArea: SiteArea): void {
+    if (siteArea) {
+      chargingStation.companyID = siteArea.site?.companyID;
+      chargingStation.siteID = siteArea.siteID;
+      chargingStation.siteAreaID = siteArea.id;
+      // Check if number of phases corresponds to the site area one
+      for (const connector of chargingStation.connectors) {
+        const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+        if (numberOfConnectedPhase !== 1 && siteArea?.numberOfPhases === 1) {
+          throw new AppError({
+            action, user,
+            errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
+            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
+            module: MODULE_NAME, method: 'updateChargingStationSiteArea',
+          });
+        }
+      }
+      // Check Smart Charging
+      if (!siteArea.smartCharging) {
+        delete chargingStation.excludeFromSmartCharging;
+      }
+    } else {
+      delete chargingStation.excludeFromSmartCharging;
+      chargingStation.companyID = null;
+      chargingStation.siteID = null;
+      chargingStation.siteAreaID = null;
+    }
+  }
+
+  private static async checkAndApplyChargingStationTemplate(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
+      user: UserToken, resetAndApplyTemplate: boolean): Promise<void> {
+    // Reboot the Charging Station to reapply the templates
+    if (resetAndApplyTemplate) {
+      try {
+        // Use the reset to apply the template again
+        await OCPPCommon.triggerChargingStationReset(tenant, chargingStation, true);
+      } catch (error) {
+        throw new AppError({
+          action,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Error occurred while restarting the charging station',
+          module: MODULE_NAME, method: 'checkAndApplyChargingStationTemplate',
+          user, actionOnUser: user,
+          detailedMessages: { error: error.stack }
+        });
       }
     }
   }

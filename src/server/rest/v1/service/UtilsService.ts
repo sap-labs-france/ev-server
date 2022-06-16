@@ -1136,7 +1136,7 @@ export default class UtilsService {
     }
   }
 
-  public static checkIfChargePointValid(chargingStation: ChargingStation, chargePoint: ChargePoint, req: Request): void {
+  public static checkIfChargePointValid(chargingStation: ChargingStation, chargePoint: ChargePoint, user: UserToken): void {
     const connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
     // Add helpers to check if charge point is valid
     let chargePointAmperage = 0;
@@ -1149,7 +1149,7 @@ export default class UtilsService {
           errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
           message: 'Charge Point does not match the voltage of its connectors',
           module: MODULE_NAME, method: 'checkIfChargePointValid',
-          user: req.user.id
+          user
         });
       }
       if (connector.numberOfConnectedPhase && chargePoint.numberOfConnectedPhase && connector.numberOfConnectedPhase !== chargePoint.numberOfConnectedPhase) {
@@ -1158,7 +1158,7 @@ export default class UtilsService {
           errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
           message: 'Charge Point does not match the number of phases of its connectors',
           module: MODULE_NAME, method: 'checkIfChargePointValid',
-          user: req.user.id
+          user
         });
       }
       if (connector.currentType && chargePoint.currentType && connector.currentType !== chargePoint.currentType) {
@@ -1167,7 +1167,7 @@ export default class UtilsService {
           errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
           message: 'Charge Point does not match the currentType of its connectors',
           module: MODULE_NAME, method: 'checkIfChargePointValid',
-          user: req.user.id
+          user
         });
       }
       // Check connectors power when it is shared within the charge point
@@ -1178,7 +1178,7 @@ export default class UtilsService {
             errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
             message: 'Charge Points amperage does not equal the amperage of the connectors (shared power between connectors)',
             module: MODULE_NAME, method: 'checkIfChargePointValid',
-            user: req.user.id
+            user
           });
         }
         if (connector.power && chargePoint.power && connector.power !== chargePoint.power) {
@@ -1187,7 +1187,7 @@ export default class UtilsService {
             errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
             message: 'Charge Points power does not equal the power of the connectors (shared power between connectors)',
             module: MODULE_NAME, method: 'checkIfChargePointValid',
-            user: req.user.id
+            user
           });
         }
       } else {
@@ -1201,7 +1201,7 @@ export default class UtilsService {
         errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
         message: `Charge Points amperage ${chargePoint.amperage}A does not match the combined amperage of the connectors ${chargePointPower}A`,
         module: MODULE_NAME, method: 'checkIfChargePointValid',
-        user: req.user.id
+        user
       });
     }
     if (chargePointPower > 0 && chargePointPower !== chargePoint.power) {
@@ -1210,7 +1210,7 @@ export default class UtilsService {
         errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
         message: `Charge Points power ${chargePoint.power}W does not match the combined power of the connectors ${chargePointPower}W`,
         module: MODULE_NAME, method: 'checkIfChargePointValid',
-        user: req.user.id
+        user
       });
     }
   }
