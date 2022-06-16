@@ -27,7 +27,7 @@
     "image": {
       "$ref": "site#/definitions/image"
     },
-    "billingData": {
+    "accountData": {
       "type": "object",
       "properties": {
         "accountID": {
