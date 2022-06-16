@@ -383,7 +383,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.RESET, Action.CLEAR_CACHE, Action.CHANGE_AVAILABILITY, Action.UPDATE, Action.RESERVE_NOW, Action.DELETE, Action.GENERATE_QR,
           Action.RESERVE_NOW, Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION, Action.STOP_TRANSACTION, Action.START_TRANSACTION,
           Action.AUTHORIZE, Action.SET_CHARGING_PROFILE,Action.GET_COMPOSITE_SCHEDULE, Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE,
-          Action.EXPORT_OCPP_PARAMS, Action.TRIGGER_DATA_TRANSFER
+          Action.EXPORT_OCPP_PARAMS, Action.TRIGGER_DATA_TRANSFER, Action.UPDATE_OCPP_PARAMS, Action.LIMIT_POWER, Action.DELETE_CHARGING_PROFILE, Action.GET_OCPP_PARAMS,
+          Action.UPDATE_CHARGING_PROFILE, Action.GET_CONNECTOR_QR_CODE
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -938,7 +939,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CHARGING_STATION,
-        action: [Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE],
+        action: [Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE, Action.GET_CONNECTOR_QR_CODE],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1219,7 +1220,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.CHARGING_STATION, action: Action.READ },
-      { resource: Entity.CHARGING_STATION, action: Action.RESERVE_NOW },
+      { resource: Entity.CHARGING_STATION, action: [Action.RESERVE_NOW, Action.GET_CONNECTOR_QR_CODE] },
       { resource: Entity.TRANSACTION, action: Action.LIST },
       { resource: Entity.TRANSACTION, action: Action.READ },
     ]
@@ -1515,7 +1516,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.CHARGING_STATION, action: [Action.UPDATE, Action.EXPORT, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR],
+        resource: Entity.CHARGING_STATION,
+        action: [Action.UPDATE, Action.EXPORT, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR, Action.UPDATE_OCPP_PARAMS, Action.LIMIT_POWER,
+          Action.DELETE_CHARGING_PROFILE, Action.GET_OCPP_PARAMS, Action.UPDATE_CHARGING_PROFILE],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {

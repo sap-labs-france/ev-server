@@ -666,6 +666,24 @@ export default class AuthorizationService {
     chargingStation.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.UPDATE, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
+    chargingStation.canUpdateOCPPParams = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.UPDATE_OCPP_PARAMS, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
+    chargingStation.canLimitPower = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.LIMIT_POWER, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
+    chargingStation.canDeleteChargingProfile = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.DELETE_CHARGING_PROFILE, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
+    chargingStation.canGetOCPPParams = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.GET_OCPP_PARAMS, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
+    chargingStation.canUpdateChargingProfile = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.UPDATE_CHARGING_PROFILE, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
+    chargingStation.canGetConnectorQRCode = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.GET_CONNECTOR_QR_CODE, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);
     chargingStation.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.DELETE, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID, Issuer: chargingStation.issuer }, chargingStation);

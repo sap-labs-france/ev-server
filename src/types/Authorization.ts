@@ -164,7 +164,13 @@ export enum Action {
   RESOLVE = 'Resolve',
   GET_STATUS_NOTIFICATION = 'GetStatusNotification',
   GET_BOOT_NOTIFICATION = 'GetBootNotification',
-  RESERVE_NOW = 'ReserveNow'
+  RESERVE_NOW = 'ReserveNow',
+  UPDATE_OCPP_PARAMS = 'UpdateOCPPParams',
+  LIMIT_POWER = 'LimitPower',
+  DELETE_CHARGING_PROFILE = 'DeleteChargingProfile',
+  GET_OCPP_PARAMS = 'GetOCPPParams',
+  UPDATE_CHARGING_PROFILE = 'UpdateChargingProfile',
+  GET_CONNECTOR_QR_CODE = 'GetConnectorQRCode',
 }
 
 export interface AuthorizationContext {
@@ -256,6 +262,12 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canDataTransfer?:boolean;
   canGenerateQrCode?:boolean;
   canMaintainPricingDefinitions?:boolean;
+  canUpdateOCPPParams?:boolean;
+  canLimitPower?:boolean;
+  canDeleteChargingProfile?:boolean;
+  canGetOCPPParams?:boolean;
+  canUpdateChargingProfile?:boolean;
+  canGetConnectorQRCode?:boolean;
 }
 
 export interface ConnectorAuthorizationActions extends AuthorizationActions {

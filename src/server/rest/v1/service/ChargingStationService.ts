@@ -265,7 +265,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationLimitPowerReq(req.body);
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.chargingStationID, Action.UPDATE, action, null, { withSiteArea: true });
+      req.tenant, req.user, filteredRequest.chargingStationID, Action.LIMIT_POWER, action, null, { withSiteArea: true });
     // Charge Point
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
     UtilsService.assertObjectExists(action, chargePoint, `Charge Point ID '${filteredRequest.chargePointID}' does not exist.`,
@@ -467,9 +467,8 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationQRCodeGenerateReq(req.query);
     // Check dynamic auth
-    // Behavior change : If the charging station is logically deleted we won't return a charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user,
-      filteredRequest.ChargingStationID, Action.READ, action);
+      filteredRequest.ChargingStationID, Action.GET_CONNECTOR_QR_CODE, action);
     // Found Connector ?
     UtilsService.assertObjectExists(action, Utils.getConnectorFromID(chargingStation, filteredRequest.ConnectorID),
       `Connector ID '${filteredRequest.ConnectorID}' does not exist`,
@@ -517,7 +516,7 @@ export default class ChargingStationService {
       chargingProfileID, Action.DELETE, action);
     // Get charging station dynmic auth
     await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, chargingProfile.chargingStationID, Action.UPDATE, action, null, { issuer: true, withSiteArea: true });
+      req.tenant, req.user, chargingProfile.chargingStationID, Action.DELETE_CHARGING_PROFILE, action, null, { issuer: true, withSiteArea: true });
     try {
       // Delete
       await OCPPUtils.clearAndDeleteChargingProfile(req.tenant, chargingProfile);
@@ -542,7 +541,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationOcppParametersGetReq(req.query);
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.ChargingStationID, Action.UPDATE, action, null, { withSiteArea: true });
+      req.tenant, req.user, filteredRequest.ChargingStationID, Action.GET_OCPP_PARAMS, action, null, { withSiteArea: true });
     // Get the Parameters
     const parameters = await ChargingStationStorage.getOcppParameters(req.tenant, chargingStation.id);
     // Return the result
@@ -555,7 +554,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationOcppParametersRequestReq(req.body);
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.chargingStationID, Action.UPDATE, action, null, { withSiteArea: true });
+      req.tenant, req.user, filteredRequest.chargingStationID, Action.UPDATE_OCPP_PARAMS, action, null, { withSiteArea: true });
     // Get the configuration
     let result = await OCPPCommon.requestAndSaveChargingStationOcppParameters(req.tenant, chargingStation);
     if (filteredRequest.forceUpdateOCPPParamsFromTemplate) {
@@ -621,7 +620,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationGetReq({ ...req.params, ...req.query });
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withSite: true, withSiteArea: true }, true);
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withSite: filteredRequest.WithSite, withSiteArea: filteredRequest.WithSiteArea }, true);
     res.json(chargingStation);
     next();
   }
@@ -638,7 +637,8 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationsGetReq(req.query);
     // Check and get charging stations: site and siteArea are mandatory
-    const chargingStations = await ChargingStationService.getChargingStations(req, filteredRequest, Action.EXPORT, { withSite: true, withSiteArea: true });
+    const chargingStations = await ChargingStationService.getChargingStations(req, filteredRequest, Action.EXPORT,
+      { withSite: filteredRequest.WithSite, withSiteArea: filteredRequest.WithSiteArea });
     // Set the attachment name
     res.attachment('exported-ocpp-params.csv');
     let writeHeader = true;
@@ -1355,7 +1355,7 @@ export default class ChargingStationService {
   private static async setAndSaveChargingProfile(filteredRequest: ChargingProfile, action: ServerAction, req: Request): Promise<string> {
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, null, { issuer: true,withSiteArea: true });
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE_CHARGING_PROFILE, action, null, { issuer: true,withSiteArea: true });
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
     UtilsService.assertObjectExists(action, chargePoint, `Charge Point ID '${filteredRequest.chargePointID}' does not exist.`,
       MODULE_NAME, 'setAndSaveChargingProfile', req.user);
