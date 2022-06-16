@@ -375,15 +375,15 @@ export default abstract class BillingIntegration {
   protected async retrieveAccountData(transaction: Transaction) : Promise<BillingSessionAccountData> {
     if (Utils.isTenantComponentActive(this.tenant, TenantComponents.BILLING_PLATFORM)) {
       const site = await SiteStorage.getSite(this.tenant, transaction.siteID, { withCompany: true });
-      let billingData = site.billingData;
-      if (billingData?.accountID) {
-        billingData = site.company?.billingData;
+      let accountData = site.accountData;
+      if (accountData?.accountID) {
+        accountData = site.company?.accountData;
       }
-      if (billingData?.accountID) {
+      if (accountData?.accountID) {
         return {
           withTransferActive: true,
-          accountID: billingData.accountID,
-          platformFeeStrategy: billingData.platformFeeStrategy
+          accountID: accountData.accountID,
+          platformFeeStrategy: accountData.platformFeeStrategy
         };
       }
     }

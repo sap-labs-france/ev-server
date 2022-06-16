@@ -1,12 +1,12 @@
 /* eslint-disable max-len */
-import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus, BillingTransfer } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
-import { BillingTransferFactory, BillingTransferSessionFactory } from '../factories/BillingFactory';
 import chai, { expect } from 'chai';
 
 import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import BillingTestHelper from './BillingTestHelper';
+import { BillingTransferFactory } from '../factories/BillingFactory';
 import CentralServerService from './client/CentralServerService';
 import CompanyFactory from '../factories/CompanyFactory';
 import Constants from '../../src/utils/Constants';
