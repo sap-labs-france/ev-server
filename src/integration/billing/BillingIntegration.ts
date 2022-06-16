@@ -746,13 +746,13 @@ export default abstract class BillingIntegration {
       const accountIDs = [ ...new Set(allAccountIDs)];
       if (accountIDs.length > 0) {
         for (const accountID of accountIDs) {
-          await this.processTransfer4Account(accountID, billingInvoice);
+          await this.processTransferForAccount(accountID, billingInvoice);
         }
       }
     }
   }
 
-  public async processTransfer4Account(accountID: string, invoice: BillingInvoice): Promise<void> {
+  public async processTransferForAccount(accountID: string, invoice: BillingInvoice): Promise<void> {
     const sessions = invoice.sessions.filter((session) => accountID === session?.accountData?.accountID);
     // Get the existing DRAFT transfer (if any)
     const transfers = await BillingStorage.getTransfers(
@@ -784,7 +784,7 @@ export default abstract class BillingIntegration {
         amountAsDecimal,
         amount: amountAsDecimal.toNumber(),
         roundedAmount: Utils.roundTo(amountAsDecimal, 2),
-        platformFee: session.accountData.platformFeeStrategy
+        platformFeeStrategy: session.accountData.platformFeeStrategy
       };
       // Update the collection of sessions in the DRAFT transfer
       transfer.sessions.push(sessionData);

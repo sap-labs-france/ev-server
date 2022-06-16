@@ -213,6 +213,6 @@ export interface BillingTransferSession {
   amountAsDecimal: BillingAmount
   amount: number; // ACHTUNG - That one should not include any taxes
   roundedAmount: number;
-  platformFee: BillingPlatformFeeStrategy;
+  platformFeeStrategy: BillingPlatformFeeStrategy;
 }
 

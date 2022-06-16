@@ -347,10 +347,7 @@ export default class BillingStorage {
       sessions: transfer.sessions.map((session) => ({
         transactionID: session.transactionID,
         amount: session.amount,
-        platformFee: {
-          flatFeePerSession: session.platformFee.flatFeePerSession,
-          percentage: session.platformFee.percentage
-        }
+        platformFee: session.platformFeeStrategy,
       }))
     };
     if (transfer.platformFeeData) {

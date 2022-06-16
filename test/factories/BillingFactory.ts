@@ -20,7 +20,7 @@ export const BillingTransferFactory = Factory.define('billingtransfer')
 export const BillingTransferSessionFactory = Factory.define('billingtransfersession')
   .attr('transactionID', () => faker.datatype.number())
   .attr('amount', () => faker.datatype.number())
-  .attr('platformFee', () => ({
+  .attr('platformFeeStrategy', () => ({
     flatFeePerSession: faker.datatype.number(),
     percentage: faker.datatype.number(),
   }));
