@@ -1037,13 +1037,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
           let companyResponse = await billingTestHelper.userService.companyApi.create({
             ...CompanyFactory.build(),
-            billingData: {
+            accountData: {
               accountID: subAccountResponse.data.id
             }
           });
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyResponse.data.id);
-          expect(companyResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
+          expect(companyResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
         });
 
         it('should update a company to assign a sub-account', async () => {
@@ -1058,12 +1058,12 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           companyResponse = await billingTestHelper.userService.companyApi.update({
             id: companyID,
             ...CompanyFactory.build(),
-            billingData: { accountID: subAccountResponse.data.id }
+            accountData: { accountID: subAccountResponse.data.id }
           });
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
 
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyID);
-          expect(companyResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
+          expect(companyResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
         });
 
         it('should create a site assigned to a sub-account', async () => {
@@ -1079,13 +1079,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           let siteResponse = await billingTestHelper.userService.siteApi.create({
             ...SiteFactory.build(),
             companyID: companyResponse.data.id,
-            billingData: {
+            accountData: {
               accountID: subAccountResponse.data.id
             }
           });
           expect(siteResponse.status).to.be.eq(StatusCodes.OK);
           siteResponse = await billingTestHelper.userService.siteApi.readById(siteResponse.data.id);
-          expect(siteResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
+          expect(siteResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
         });
 
         it('should update a site to assign a sub-account', async () => {
@@ -1109,12 +1109,12 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             id: siteID,
             ...SiteFactory.build(),
             companyID: companyResponse.data.id,
-            billingData: { accountID: subAccountResponse.data.id }
+            accountData: { accountID: subAccountResponse.data.id }
           });
           expect(siteResponse.status).to.be.eq(StatusCodes.OK);
 
           siteResponse = await billingTestHelper.userService.siteApi.readById(siteID);
-          expect(siteResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
+          expect(siteResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
         });
 
         it('should list sub-accounts', async () => {
@@ -1270,21 +1270,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         const retrievedTransfers = await BillingStorage.getTransfers(billingTestHelper.tenantContext.getTenant(), {}, Constants.DB_PARAMS_MAX_LIMIT);
         expect(retrievedTransfers.result.map((transfer) => transfer.id)).to.include.members(ids);
-      });
-
-      it('should update a draft billing transfer', async () => {
-        let transfer: BillingTransfer = BillingTransferFactory.build();
-        const transferID = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
-        expect(transferID).to.not.be.null;
-        transfer.id = transferID;
-
-        const nbSessions = transfer.sessions.length;
-        const sessions = [BillingTransferSessionFactory.build(), BillingTransferSessionFactory.build()];
-        await BillingStorage.updateTransferAdditionalData(billingTestHelper.tenantContext.getTenant(), transfer, sessions);
-
-        transfer = await BillingStorage.getTransferByID(billingTestHelper.tenantContext.getTenant(), transfer.id);
-        expect(transfer.sessions.length).to.be.eq(nbSessions + 2);
-        expect(transfer.sessions).to.include.deep.members(sessions);
       });
     });
   });
