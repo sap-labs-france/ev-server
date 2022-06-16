@@ -1021,7 +1021,7 @@ export default class Utils {
     return recordLimit;
   }
 
-  public static roundTo(value: number, scale: number): number {
+  public static roundTo(value: Decimal.Value, scale: number): number {
     const roundPower = Math.pow(10, scale);
     return Utils.createDecimal(value).mul(roundPower).round().div(roundPower).toNumber();
   }

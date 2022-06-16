@@ -2,6 +2,7 @@ import { AuthorizationActions, BillingInvoiceAuthorizationActions } from './Auth
 
 import { ActionsResponse } from './GlobalType';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import Decimal from 'decimal.js';
 import { PricedConsumptionData } from './Pricing';
 import User from './User';
 
@@ -202,9 +203,14 @@ export interface BillingTransfer {
   transferExternalID?: string; // Transfer sent to the CPO
 }
 
+// Very important - preserve maximal precision - Decimal type is persisted as an object in the DB
+export type BillingAmount = Decimal.Value;
+
 export interface BillingTransferSession {
   transactionID: number;
+  amountAsDecimal: BillingAmount
   amount: number; // ACHTUNG - That one should not include any taxes
+  roundedAmount: number;
   platformFee: BillingPlatformFeeStrategy;
 }
 

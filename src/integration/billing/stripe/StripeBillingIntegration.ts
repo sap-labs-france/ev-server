@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingSessionAccountData, BillingSessionData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingTransferStatus, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingSessionAccountData, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
@@ -1735,72 +1735,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
         method: 'createSubAccount',
       });
     }
-
     return {
       accountExternalID: subAccount.id,
       activationLink: activationLink.url,
       status: BillingAccountStatus.IDLE
     };
   }
-
-  public async prepareInvoiceTransfer(billingInvoice: BillingInvoice): Promise<void> {
-    if (!billingInvoice.sessions) {
-      // This should not happen!
-      return;
-    }
-    // The invoice may include several sessions - let's check if at least one of these needs a transfer
-    const sessions = billingInvoice.sessions.filter((session) => session?.accountData?.withTransferActive);
-    if (sessions.length > 0) {
-      // Get the list of account IDs
-      const allAccountIDs = sessions.map((session) => session?.accountData?.accountID);
-      // Remove duplicates
-      const accountIDs = [ ...new Set(allAccountIDs)];
-      if (accountIDs.length > 0) {
-        for (const accountID of accountIDs) {
-          const filteredSessions = billingInvoice.sessions.filter((session) => accountID === session?.accountData?.accountID);
-          await this.processTransfer4Account(accountID, filteredSessions);
-        }
-      }
-    }
-  }
-
-  public async processTransfer4Account(accountID: string, sessions: BillingSessionData[]): Promise<void> {
-    // Get the existing DRAFT transfer (if any)
-    const transfers = await BillingStorage.getTransfers(
-      this.tenant, {
-        accountIDs: [accountID],
-        status: [BillingTransferStatus.DRAFT],
-      }, Constants.DB_PARAMS_SINGLE_RECORD
-    );
-    let transfer: BillingTransfer = transfers.result[0];
-    if (!transfer) {
-      transfer = {
-        accountID,
-        status: BillingTransferStatus.DRAFT,
-        sessions: [],
-        amount: 0, // Todo
-        transferredAmount: 0,
-        platformFeeData: null, // Will be computed when finalizing the transfer
-        transferExternalID: null,
-      };
-    }
-    // Process all sessions of the invoice matching the current account ID
-    for (const session of sessions) {
-      if (accountID !== session.accountData.accountID) {
-        throw new Error('Unexpected situation - accountID is inconsistent!');
-      }
-      // Extract current session data
-      const sessionData: BillingTransferSession = {
-        transactionID: session.transactionID,
-        amount: 0, // Todo
-        platformFee: session.accountData.platformFeeStrategy
-      };
-      // Update existing DRAFT transfer
-      transfer.sessions.push(sessionData);
-      transfer.amount += sessionData.amount;
-    }
-    // Finally - crate/update a DRAFT transfer
-    await BillingStorage.saveTransfer(this.tenant, transfer);
-  }
-
 }
