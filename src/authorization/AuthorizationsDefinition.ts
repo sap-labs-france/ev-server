@@ -1224,7 +1224,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.CHARGING_STATION, action: Action.READ },
-      { resource: Entity.CHARGING_STATION, action: [Action.RESERVE_NOW, Action.GET_CONNECTOR_QR_CODE] },
+      { resource: Entity.CHARGING_STATION, action: [Action.GET_CONNECTOR_QR_CODE] },
       { resource: Entity.TRANSACTION, action: Action.LIST },
       { resource: Entity.TRANSACTION, action: Action.READ },
     ]
