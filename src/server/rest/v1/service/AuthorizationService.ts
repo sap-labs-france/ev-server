@@ -1,10 +1,10 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingSubaccountsDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingSubaccountsDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { BillingAccount, BillingInvoice, BillingPaymentMethod } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
-import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingSubAccountGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingSubAccountGetRequest, HttpBillingSubAccountsGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 import { HttpCarCatalogGetRequest, HttpCarCatalogsGetRequest, HttpCarGetRequest, HttpCarsGetRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingProfileRequest, HttpChargingProfilesGetRequest, HttpChargingStationGetRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesGetRequest, HttpCompanyGetRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -780,7 +780,35 @@ export default class AuthorizationService {
   public static async checkAndGetBillingSubAccountAuthorizations(tenant: Tenant, userToken: UserToken,
       filteredRequest: Partial<HttpBillingSubAccountGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
-      tenant, Entity.BILLING_PLATFORM, userToken, filteredRequest, filteredRequest.ID ? { id: filteredRequest.ID } : {}, authAction, entityData);
+      tenant, Entity.BILLING_SUB_ACCOUNT, userToken, filteredRequest, filteredRequest.ID ? { id: filteredRequest.ID } : {}, authAction, entityData);
+  }
+
+  public static async checkAndGetBillingSubAccountsAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest?: Partial<HttpBillingSubAccountsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+    const authorizations: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.BILLING_SUB_ACCOUNT, Action.LIST, authorizations, filteredRequest, null, failsWithException);
+    return authorizations;
+  }
+
+  public static async checkAndGetBillingTransfersAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest?: Partial<HttpBillingTransfersGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+    const authorizations: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.BILLING_TRANSFER, Action.LIST, authorizations, filteredRequest, null, failsWithException);
+    return authorizations;
   }
 
   public static async checkAndGetTaxesAuthorizations(tenant: Tenant, userToken: UserToken, failsWithException = true): Promise<AuthorizationFilter> {
@@ -846,6 +874,14 @@ export default class AuthorizationService {
   public static addSubAccountAuthorizations(tenant: Tenant, userToken: UserToken, billingSubAccount: BillingAccount): void {
     // Add Meta Data
     billingSubAccount.canRead = true;
+  }
+
+  public static async addTransfersAuthorizations(tenant: Tenant, userToken: UserToken, billingSubAccounts: BillingTransfersDataResult,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+  // Add Meta Data
+    billingSubAccounts.metadata = authorizationFilter.metadata;
+    billingSubAccounts.canListSubAccounts = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.BILLING_SUB_ACCOUNT, Action.LIST, authorizationFilter);
   }
 
   public static async checkAndGetPaymentMethodsAuthorizations(tenant: Tenant, userToken: UserToken,

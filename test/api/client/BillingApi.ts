@@ -60,7 +60,7 @@ export default class BillingApi extends CrudApi {
     return super.patch(params, super.buildUtilRestEndpointUrl(RESTServerRoute.REST_BILLING_SUB_ACCOUNT_ACTIVATE, { id: params.accountID }));
   }
 
-  public async readAllSubAccounts(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
+  public async readSubAccounts(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_SUB_ACCOUNTS));
   }
 
@@ -70,5 +70,9 @@ export default class BillingApi extends CrudApi {
 
   public async sendSubAccountOnboarding(id: string) {
     return super.patch({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_SUB_ACCOUNT_ONBOARD, { id }));
+  }
+
+  public async readTransfers(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_TRANSFERS));
   }
 }
