@@ -1545,33 +1545,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.CHARGING_STATION, action: Action.GET_STATUS_NOTIFICATION,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['SitesAdmin']
-          }
-        },
-        attributes: [
-          'id', 'timestamp', 'chargeBoxID', 'connectorId', 'timezone', 'status', 'errorCode', 'info', 'vendorId', 'vendorErrorCode'
-        ]
-      },
-      {
-        resource: Entity.CHARGING_STATION, action: Action.GET_BOOT_NOTIFICATION,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['SitesAdmin']
-          }
-        },
-        attributes: [
-          'id', 'chargePointVendor', 'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'firmwareVersion', 'ocppVersion',
-          'ocppProtocol', 'endpoint', 'timestamp', 'chargeBoxID', 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
-        ]
-      },
-      {
         resource: Entity.CONNECTOR,
         action: [Action.REMOTE_STOP_TRANSACTION, Action.REMOTE_START_TRANSACTION],
         condition: {
