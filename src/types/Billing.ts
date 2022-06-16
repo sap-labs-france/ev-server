@@ -208,6 +208,8 @@ export type BillingAmount = Decimal.Value;
 
 export interface BillingTransferSession {
   transactionID: number;
+  invoiceID: string;
+  invoiceNumber: string;
   amountAsDecimal: BillingAmount
   amount: number; // ACHTUNG - That one should not include any taxes
   roundedAmount: number;
