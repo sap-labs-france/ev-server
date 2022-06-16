@@ -1193,10 +1193,16 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           const transfer = BillingTransferFactory.build();
           const transferID = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
           transfer.id = transferID;
-
-          const transfersResponse = await billingTestHelper.userService.billingApi.readTransfers({});
+          // const transfersResponse = await billingTestHelper.userService.billingApi.readTransfers({},{ limit: 1, skip: 0 }, [{ field: '-createdOn' }]);
+          const transfersResponse = await billingTestHelper.userService.billingApi.readTransfers({ ID: transferID });
           expect(transfersResponse.status).to.be.eq(StatusCodes.OK);
-          expect(transfersResponse.data.result).to.containSubset([transfer]);
+          const savedTransfer = transfersResponse.data.result?.[0];
+          expect(savedTransfer).not.to.be.null;
+          delete savedTransfer.createdOn;
+          delete savedTransfer.createdBy;
+          delete savedTransfer.lastChangedOn;
+          delete savedTransfer.lastChangedBy;
+          expect(savedTransfer).to.containSubset(transfer);
         });
       });
     });

@@ -1,4 +1,4 @@
-import { AuthorizationActions, BillingInvoiceAuthorizationActions } from './Authorization';
+import { AuthorizationActions, BillingInvoiceAuthorizationActions, BillingTransferAuthorizationActions } from './Authorization';
 
 import { ActionsResponse } from './GlobalType';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
@@ -162,7 +162,7 @@ export interface BillingPlatformFeeStrategy {
   percentage: number; // e.g.: 2% per charging session
 }
 
-export interface BillingAccount extends AuthorizationActions {
+export interface BillingAccount extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
   id?: string;
   businessOwnerID?: string;
   status: BillingAccountStatus;
@@ -192,7 +192,7 @@ export interface BillingPlatformFeeData {
   invoiceExternalID?: string; // Invoice sent to the CPO
 }
 
-export interface BillingTransfer {
+export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
   id?: string;
   status: BillingTransferStatus;
   sessions: BillingTransferSession[];

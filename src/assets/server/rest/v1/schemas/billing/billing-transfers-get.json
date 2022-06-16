@@ -3,7 +3,7 @@
   "title": "Get billing transfers Request",
   "type": "object",
   "properties": {
-    "IDs": {
+    "ID": {
       "$ref": "common#/definitions/ids"
     },
     "Status": {

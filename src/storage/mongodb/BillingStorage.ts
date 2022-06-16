@@ -214,7 +214,9 @@ export default class BillingStorage {
       status: subAccount.status,
       businessOwnerID: DatabaseUtils.convertToObjectID(subAccount.businessOwnerID)
     };
-    // Modify and return the modified document
+    // Check Created/Last Changed By
+    DatabaseUtils.addLastChangedCreatedProps(subAccountMDB, subAccount);
+    // Save
     await global.database.getCollection<any>(tenant.id, 'billingsubaccounts').findOneAndUpdate(
       { _id: subAccountMDB._id },
       { $set: subAccountMDB },
@@ -346,8 +348,12 @@ export default class BillingStorage {
       transferExternalID: transfer.transferExternalID,
       sessions: transfer.sessions.map((session) => ({
         transactionID: session.transactionID,
+        invoiceID: session.invoiceID,
+        invoiceNumber: session.invoiceNumber,
+        amountAsDecimal: session.amountAsDecimal,
         amount: session.amount,
-        platformFee: session.platformFeeStrategy,
+        roundedAmount: session.roundedAmount,
+        platformFeeStrategy: session.platformFeeStrategy,
       }))
     };
     if (transfer.platformFeeData) {
@@ -358,7 +364,9 @@ export default class BillingStorage {
         invoiceExternalID: transfer.platformFeeData.invoiceExternalID
       };
     }
-    // Modify and return the modified document
+    // Check Created/Last Changed By
+    DatabaseUtils.addLastChangedCreatedProps(transferMDB, transfer);
+    // Save
     await global.database.getCollection<any>(tenant.id, 'billingtransfers').findOneAndUpdate(
       { _id: transferMDB._id },
       { $set: transferMDB },
