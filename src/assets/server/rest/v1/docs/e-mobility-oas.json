@@ -15461,6 +15461,14 @@
           "issuer": {
             "type": "boolean",
             "readOnly": true
+          },
+          "accountData": {
+            "type": "object",
+            "properties": {
+              "accountID": {
+                "type": "string"
+              }
+            }
           }
         }
       },
@@ -15697,6 +15705,14 @@
           "id": {
             "type": "string",
             "readOnly": true
+          },
+          "accountData": {
+            "type": "object",
+            "properties": {
+              "accountID": {
+                "type": "string"
+              }
+            }
           }
         }
       },
