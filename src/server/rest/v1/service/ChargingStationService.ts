@@ -1,7 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, ConnectorType, OCPPParams, OcppParameter, StaticLimitAmps } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { HttpChargingStationCompositeScheduleGetRequest, HttpChargingStationConfigurationChangeRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationTransactionStartRequest, HttpChargingStationTransactionStopRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationCompositeScheduleGetRequest, HttpChargingStationConfigurationChangeRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationTransactionStartRequest, HttpChargingStationTransactionStopRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
 import { OCPICommandResponse, OCPICommandResponseType } from '../../../../types/ocpi/OCPICommandResponse';
 import { OCPPChangeConfigurationResponse, OCPPConfigurationStatus, OCPPGetCompositeScheduleResponse, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
@@ -88,9 +88,8 @@ export default class ChargingStationService {
       action, req.tenant, chargingStation, req.user, resetAndApplyTemplate);
     await Logging.logInfo({
       tenantID: req.tenant.id,
-      action,
-      user: req.user, module: MODULE_NAME,
-      method: 'handleUpdateChargingStationParams',
+      action, user: req.user,
+      module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
       message: 'Parameters have been updated successfully',
       detailedMessages: {
         'chargingStationURL': chargingStation.chargingStationURL
@@ -115,11 +114,10 @@ export default class ChargingStationService {
     if (filteredRequest.ampLimitValue < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length)) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action,
+        action, user: req.user,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length}A`,
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
-        user: req.user
+        message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length}A`,
       });
     }
     // Get the Vendor instance
@@ -127,22 +125,20 @@ export default class ChargingStationService {
     if (!chargingStationVendor) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action,
+        action, user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
-        user: req.user
+        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
       });
     }
     // Check if static limitation is supported
     if (!chargingStationVendor.hasStaticLimitationSupport(chargingStation)) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action,
+        action, user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: 'Charging Station does not support power limitation',
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
-        user: req.user
+        message: 'Charging Station does not support power limitation',
       });
     }
     // Check Charging Profile
@@ -150,69 +146,27 @@ export default class ChargingStationService {
       { chargingStationIDs: [chargingStation.id], connectorID: 0 },
       Constants.DB_PARAMS_MAX_LIMIT);
     const updatedChargingProfiles: ChargingProfile[] = Utils.cloneObject(chargingProfiles.result);
-    for (let index = 0; index < updatedChargingProfiles.length; index++) {
-      const updatedChargingProfile = updatedChargingProfiles[index];
-      let planHasBeenAdjusted = false;
-      // Check schedules
-      if (updatedChargingProfile.profile && updatedChargingProfile.profile.chargingSchedule &&
-        updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
-        for (const chargingSchedulePeriod of updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
-          // Check the limit max is beyond the new values
-          if (chargingSchedulePeriod.limit > filteredRequest.ampLimitValue) {
-            // Adjust it
-            planHasBeenAdjusted = true;
-            chargingSchedulePeriod.limit = filteredRequest.ampLimitValue;
-          }
-        }
-      }
-      // Charging plan updated?
-      if (planHasBeenAdjusted) {
-        // Check Force Update?
-        if (!filteredRequest.forceUpdateChargingPlan) {
-          throw new AppError({
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action,
-            user: req.user,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: `Cannot change the current limitation to ${filteredRequest.ampLimitValue}A because of an existing charging plan!`,
-            module: MODULE_NAME, method: 'handleChargingStationLimitPower',
-            detailedMessages: { result: chargingProfiles.result[index] }
-          });
-        }
-        // Log
-        await Logging.logWarning({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          tenantID: req.tenant.id,
-          action,
-          user: req.user,
-          module: MODULE_NAME, method: 'handleChargingStationLimitPower',
-          message: `Adjust the Charging Plan power limit to ${filteredRequest.ampLimitValue}A`,
-          detailedMessages: { chargingProfile: chargingProfiles.result[index] }
-        });
-        // Apply & Save charging plan
-        await OCPPUtils.setAndSaveChargingProfile(req.tenant, updatedChargingProfile);
-        break;
-      }
-    }
+    // Update the Charging Profiles
+    await ChargingStationService.updateChargingStationProfiles(action, req.tenant, chargingStation,
+      req.user, chargingProfiles.result, updatedChargingProfiles, filteredRequest);
     // Call the limitation
     const result = await chargingStationVendor.setStaticPowerLimitation(req.tenant, chargingStation,
       chargePoint, filteredRequest.ampLimitValue);
-    if (result.status !== OCPPConfigurationStatus.ACCEPTED && result.status !== OCPPConfigurationStatus.REBOOT_REQUIRED) {
+    if (result.status !== OCPPConfigurationStatus.ACCEPTED &&
+        result.status !== OCPPConfigurationStatus.REBOOT_REQUIRED) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action,
+        action, user: req.user,
         errorCode: HTTPError.LIMIT_POWER_ERROR,
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
         message: `Cannot limit the charger's power to ${filteredRequest.ampLimitValue}A: '${result.status}'`,
         detailedMessages: { result },
-        user: req.user
       });
     }
     await Logging.logInfo({
       ...LoggingHelper.getChargingStationProperties(chargingStation),
       tenantID: req.tenant.id,
-      action,
-      user: req.user,
+      action, user: req.user,
       module: MODULE_NAME, method: 'handleChargingStationLimitPower',
       message: `The charger's power limit has been successfully set to ${filteredRequest.ampLimitValue}A`,
       detailedMessages: { result }
@@ -268,16 +222,16 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateSmartChargingTriggerReq(req.query);
     // Get Site Area
-    const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(req.tenant, req.user, filteredRequest.SiteAreaID, Action.UPDATE, action);
+    const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
+      req.tenant, req.user, filteredRequest.SiteAreaID, Action.UPDATE, action);
     // Call Smart Charging
     const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.tenant);
     if (!smartCharging) {
       throw new AppError({
+        action, user: req.user,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Smart Charging service is not configured',
         module: MODULE_NAME, method: 'handleTriggerSmartCharging',
-        action,
-        user: req.user
+        message: 'Smart Charging service is not configured',
       });
     }
     const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(req.tenant.id, siteArea);
@@ -287,10 +241,9 @@ export default class ChargingStationService {
         const actionsResponse = await smartCharging.computeAndApplyChargingProfiles(siteArea);
         if (actionsResponse && actionsResponse.inError > 0) {
           throw new AppError({
-            action,
+            action, user: req.user,
             errorCode: HTTPError.GENERAL_ERROR,
             module: MODULE_NAME, method: 'handleTriggerSmartCharging',
-            user: req.user,
             message: 'Error occurred while triggering the smart charging',
           });
         }
@@ -321,7 +274,8 @@ export default class ChargingStationService {
       tenantSubDomain: req.user.tenantSubdomain
     };
     // Generate
-    const generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString('base64'));
+    const generatedQR = await Utils.generateQrCode(
+      Buffer.from(JSON.stringify(chargingStationQRCode)).toString('base64'));
     res.json({ image: generatedQR });
     next();
   }
@@ -362,11 +316,10 @@ export default class ChargingStationService {
       await OCPPUtils.clearAndDeleteChargingProfile(req.tenant, chargingProfile);
     } catch (error) {
       throw new AppError({
-        action,
+        action, user: req.user, actionOnUser: req.user,
         errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
-        message: 'Error occurred while clearing Charging Profile',
         module: MODULE_NAME, method: 'handleDeleteChargingProfile',
-        user: req.user, actionOnUser: req.user,
+        message: 'Error occurred while clearing Charging Profile',
         detailedMessages: { error: error.stack }
       });
     }
@@ -415,12 +368,10 @@ export default class ChargingStationService {
       { chargingStationIDs: [chargingStationID], status: TransactionStatus.ACTIVE }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (ongoingTransactions.count > 0) {
       throw new AppError({
-        action,
+        action, user: req.user,
         errorCode: HTTPError.EXISTING_TRANSACTION_ERROR,
+        module: MODULE_NAME, method: 'handleDeleteChargingStation',
         message: `Charging Station '${chargingStation.id}' can't be deleted due to existing active transactions`,
-        module: MODULE_NAME,
-        method: 'handleDeleteChargingStation',
-        user: req.user
       });
     }
     // Handle Roaming
@@ -572,6 +523,10 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationNotificationsGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(req.tenant, req.user, Action.GET_BOOT_NOTIFICATION);
+    if (!authorizations.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Get all Status Notifications
     const statusNotifications = await OCPPStorage.getStatusNotifications(req.tenant,
       authorizations.filters,
@@ -633,7 +588,12 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationNotificationsGetReq(req.query);
     // Check dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(req.tenant, req.user, Action.GET_BOOT_NOTIFICATION);
+    const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(
+      req.tenant, req.user, Action.GET_BOOT_NOTIFICATION);
+    if (!authorizations.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Get all Status Notifications
     const bootNotifications = await OCPPStorage.getBootNotifications(req.tenant,
       authorizations.filters,
@@ -696,73 +656,36 @@ export default class ChargingStationService {
       Action.UPDATE, Entity.CHARGING_STATION, MODULE_NAME, 'handleOcpiAction');
     // Check and get dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, req.body.chargingStationID, Action.READ, action, null, { issuer: true, withSiteArea: true });
+      req.tenant, req.user, req.body.chargingStationID, Action.READ, action, null, { withSiteArea: true });
     try {
-      let filteredRequest: any;
+      let actionFound = false;
       let result: OCPICommandResponse;
       // Start Transaction
       if (action === ServerAction.OCPI_EMSP_START_SESSION) {
+        // Filter
         const remoteStartRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStartReq(req.body);
-        filteredRequest = remoteStartRequest;
-        // Get the Tag
-        let tagID = remoteStartRequest.args.tagID;
-        if (!tagID && remoteStartRequest.args.visualTagID) {
-          // Check and Get Tag
-          const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(
-            req.tenant, req.user, remoteStartRequest.args.visualTagID, Action.READ, action, null, {}, true);
-          if (!tag) {
-            throw new AppError({
-              ...LoggingHelper.getChargingStationProperties(chargingStation),
-              user: req.user,
-              errorCode: HTTPError.GENERAL_ERROR,
-              module: MODULE_NAME, method: 'handleOcpiAction', action,
-              message: `Tag with Visual ID '${remoteStartRequest.args.visualTagID}' does not exist`,
-              detailedMessages: { remoteStartRequest, chargingStation },
-            });
-          }
-          tagID = tag.id;
-        }
-        // Get OCPI client
-        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.EMSP) as EmspOCPIClient;
-        if (!ocpiClient) {
-          throw new BackendError({
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action, module: MODULE_NAME, method: 'handleOcpiAction',
-            message: `${Utils.buildConnectorInfo(remoteStartRequest.args.connectorId)} OCPI component requires at least one eMSP endpoint to stop a Transaction`
-          });
-        }
-        // Start the Transaction
-        result = await ocpiClient.remoteStartSession(chargingStation, remoteStartRequest.args.connectorId, tagID);
+        actionFound = true;
+        // Start Transaction
+        result = await ChargingStationService.handleOcpiStartTransaction(
+          action, req.tenant, chargingStation, req.user, remoteStartRequest);
       }
       // Stop Transaction
       if (action === ServerAction.OCPI_EMSP_STOP_SESSION) {
+        // Filter
         const remoteStopRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStopReq(req.body);
-        filteredRequest = remoteStopRequest;
-        // Get Transaction
-        const transaction = await TransactionStorage.getTransaction(
-          req.tenant, remoteStopRequest.args.transactionId, { withUser: true });
-        UtilsService.assertObjectExists(action, transaction, `Transaction ID '${remoteStopRequest.args.transactionId}' does not exist`,
-          MODULE_NAME, 'handleOcpiAction', req.user);
-        // Get OCPI client
-        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.EMSP) as EmspOCPIClient;
-        if (!ocpiClient) {
-          throw new BackendError({
-            ...LoggingHelper.getChargingStationProperties(chargingStation),
-            action, module: MODULE_NAME, method: 'handleOcpiAction',
-            message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI component requires at least one eMSP endpoint to start a Transaction`
-          });
-        }
-        // Stop the Transaction
-        result = await ocpiClient.remoteStopSession(transaction.id);
+        actionFound = true;
+        // Stop Transaction
+        result = await ChargingStationService.handleOcpiStopTransaction(
+          action, req.tenant, chargingStation, req.user, remoteStopRequest);
       }
       // Action not found
-      if (!filteredRequest) {
+      if (!actionFound) {
         throw new AppError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action, user: req.user,
           errorCode: HTTPError.GENERAL_ERROR,
-          module: MODULE_NAME, method: 'handleOcpiAction', action,
+          module: MODULE_NAME, method: 'handleOcpiAction',
           message: `Unknown OCPI Action '${action}'`,
-          user: req.user,
         });
       }
       if (result.result === OCPICommandResponseType.ACCEPTED) {
@@ -774,10 +697,10 @@ export default class ChargingStationService {
     } catch (error) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action, user: req.user,
         errorCode: error instanceof AppError ? error.params.errorCode : HTTPError.GENERAL_ERROR,
-        module: MODULE_NAME, method: 'handleOcppAction', action,
+        module: MODULE_NAME, method: 'handleOcppAction',
         message: `OCPI Action '${action}' has failed: ${error.message as string}`,
-        user: req.user,
         detailedMessages: { error: error.stack }
       });
     }
@@ -804,18 +727,18 @@ export default class ChargingStationService {
       });
     }
     try {
-      let filteredRequest: any;
+      let commandFound = false;
       let result: any;
       // Clear Cache
       if (command === Command.CLEAR_CACHE) {
-        const clearCacheRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionCacheClearReq(req.body);
-        filteredRequest = clearCacheRequest;
+        ChargingStationValidatorRest.getInstance().validateChargingStationActionCacheClearReq(req.body);
+        commandFound = true;
         result = await chargingStationClient.clearCache();
       }
       // Change Availability
       if (command === Command.CHANGE_AVAILABILITY) {
         const changeAvailabilityRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionAvailabilityChangeReq(req.body);
-        filteredRequest = changeAvailabilityRequest;
+        commandFound = true;
         result = await chargingStationClient.changeAvailability({
           connectorId: changeAvailabilityRequest.args.connectorId,
           type: changeAvailabilityRequest.args.type
@@ -824,47 +747,47 @@ export default class ChargingStationService {
       // Get Configuration
       if (command === Command.GET_CONFIGURATION) {
         const getConfigurationRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionConfigurationGetReq(req.body);
-        filteredRequest = getConfigurationRequest;
+        commandFound = true;
         result = await chargingStationClient.getConfiguration({ key: getConfigurationRequest.args.key });
       }
       // Change Configuration
       if (command === Command.CHANGE_CONFIGURATION) {
         const changeConfigurationRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionConfigurationChangeReq(req.body);
-        filteredRequest = changeConfigurationRequest;
+        commandFound = true;
         result = await ChargingStationService.executeChargingStationChangeConfiguration(
           action, chargingStation, command, changeConfigurationRequest, req, res, next, chargingStationClient);
       }
       // Data Transfer
       if (command === Command.DATA_TRANSFER) {
         const dataTransferRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionDataTransferReq(req.body);
-        filteredRequest = dataTransferRequest;
+        commandFound = true;
         result = await chargingStationClient.dataTransfer(dataTransferRequest.args);
       }
       // Remote Stop Transaction
       if (command === Command.REMOTE_STOP_TRANSACTION) {
         const remoteStopRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStopReq(req.body);
-        filteredRequest = remoteStopRequest;
+        commandFound = true;
         result = await ChargingStationService.executeChargingStationStopTransaction(
           action, chargingStation, command, remoteStopRequest, req, res, next, chargingStationClient);
       }
       // Remote Start Transaction
       if (command === Command.REMOTE_START_TRANSACTION) {
         const remoteStartRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStartReq(req.body);
-        filteredRequest = remoteStartRequest;
+        commandFound = true;
         result = await ChargingStationService.executeChargingStationStartTransaction(
           action, chargingStation, command, remoteStartRequest, req, res, next, chargingStationClient);
       }
       // Get the Charging Plans
       if (command === Command.GET_COMPOSITE_SCHEDULE) {
         const compositeScheduleRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionCompositeScheduleGetReq(req.body);
-        filteredRequest = compositeScheduleRequest;
+        commandFound = true;
         result = await ChargingStationService.executeChargingStationGetCompositeSchedule(
           action, chargingStation, command, compositeScheduleRequest, req, res, next);
       }
       // Get Diagnostic
       if (command === Command.GET_DIAGNOSTICS) {
         const diagnosticsRequest = ChargingStationValidatorRest.getInstance().validateChargingStationDiagnosticsGetReq(req.body);
-        filteredRequest = diagnosticsRequest;
+        commandFound = true;
         result = await chargingStationClient.getDiagnostics({
           location: diagnosticsRequest.args.location,
           retries: diagnosticsRequest.args.retries,
@@ -876,13 +799,13 @@ export default class ChargingStationService {
       // Unlock Connector
       if (command === Command.UNLOCK_CONNECTOR) {
         const unlockConnectorRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionConnectorUnlockReq(req.body);
-        filteredRequest = unlockConnectorRequest;
+        commandFound = true;
         result = await chargingStationClient.unlockConnector({ connectorId: unlockConnectorRequest.args.connectorId });
       }
       // Update Firmware
       if (command === Command.UPDATE_FIRMWARE) {
         const updateFirmwareRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionFirmwareUpdateReq(req.body);
-        filteredRequest = updateFirmwareRequest;
+        commandFound = true;
         result = await chargingStationClient.updateFirmware({
           location: updateFirmwareRequest.args.location,
           retries: updateFirmwareRequest.args.retries,
@@ -893,27 +816,27 @@ export default class ChargingStationService {
       // Reset
       if (command === Command.RESET) {
         const resetRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionResetReq(req.body);
-        filteredRequest = resetRequest;
+        commandFound = true;
         result = await chargingStationClient.reset({ type: resetRequest.args.type });
       }
       // Command not found
-      if (!filteredRequest) {
+      if (!commandFound) {
         throw new AppError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action, user: req.user,
           errorCode: HTTPError.GENERAL_ERROR,
-          module: MODULE_NAME, method: 'handleOcppAction', action,
+          module: MODULE_NAME, method: 'handleOcppAction',
           message: `Unknown OCPP command '${command}'`,
-          user: req.user,
         });
       }
       // Expect result
       if (!result) {
         throw new AppError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action, user: req.user,
           errorCode: HTTPError.GENERAL_ERROR,
-          module: MODULE_NAME, method: 'handleOcppAction', action,
+          module: MODULE_NAME, method: 'handleOcppAction',
           message: `Received an empty response from OCPP command '${command}'`,
-          user: req.user,
         });
       }
       // OCPP Command with status
@@ -924,7 +847,7 @@ export default class ChargingStationService {
           user: req.user,
           module: MODULE_NAME, method: 'handleOcppAction', action,
           message: `OCPP Command '${command}' has failed`,
-          detailedMessages: { filteredRequest, result }
+          detailedMessages: { filteredRequest: commandFound, result }
         });
       } else {
         // OCPP Command with no status
@@ -934,7 +857,7 @@ export default class ChargingStationService {
           user: req.user,
           module: MODULE_NAME, method: 'handleOcppAction', action,
           message: `OCPP Command '${command}' has been executed successfully`,
-          detailedMessages: { filteredRequest, result }
+          detailedMessages: { filteredRequest: commandFound, result }
         });
       }
       res.json(result);
@@ -942,10 +865,10 @@ export default class ChargingStationService {
     } catch (error) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action, user: req.user,
         errorCode: error instanceof AppError ? error.params.errorCode : HTTPError.GENERAL_ERROR,
-        module: MODULE_NAME, method: 'handleOcppAction', action,
+        module: MODULE_NAME, method: 'handleOcppAction',
         message: `OCPP Command '${command}' has failed: ${error.message as string}`,
-        user: req.user,
         detailedMessages: { error: error.stack }
       });
     }
@@ -960,21 +883,18 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        entity: Entity.SETTING,
-        action: Action.UPDATE,
-        module: MODULE_NAME,
-        method: 'handleCheckSmartChargingConnection'
+        entity: Entity.SETTING, action: Action.UPDATE,
+        module: MODULE_NAME, method: 'handleCheckSmartChargingConnection'
       });
     }
     // Get implementation
     const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.tenant);
     if (!smartCharging) {
       throw new AppError({
+        action, user: req.user,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Smart Charging service is not configured',
         module: MODULE_NAME, method: 'handleCheckSmartChargingConnection',
-        action,
-        user: req.user
+        message: 'Smart Charging service is not configured',
       });
     }
     await smartCharging.checkConnection();
@@ -1195,7 +1115,7 @@ export default class ChargingStationService {
   private static async setAndSaveChargingProfile(filteredRequest: ChargingProfile, action: ServerAction, req: Request): Promise<string> {
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE_CHARGING_PROFILE, action, null, { issuer: true,withSiteArea: true });
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE_CHARGING_PROFILE, action, null, { issuer: true, withSiteArea: true });
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
     UtilsService.assertObjectExists(action, chargePoint, `Charge Point ID '${filteredRequest.chargePointID}' does not exist.`,
       MODULE_NAME, 'setAndSaveChargingProfile', req.user);
@@ -1205,9 +1125,8 @@ export default class ChargingStationService {
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action,
+        action, user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        user: req.user,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
         message: `Charging Station '${chargingStation.id}' does not support Charging Profiles`,
       });
@@ -1223,11 +1142,10 @@ export default class ChargingStationService {
     if (!chargingStationVendor) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
-        action,
+        action, user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+        module: MODULE_NAME, method: 'executeChargingStationGetCompositeSchedule',
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
-        module: MODULE_NAME, method: 'handleAction',
-        user: req.user
       });
     }
     // Get composite schedule
@@ -1255,19 +1173,19 @@ export default class ChargingStationService {
     // Check Tag ID
     if (!filteredRequest.args || (!filteredRequest.args.visualTagID && !filteredRequest.args.tagID)) {
       throw new AppError({
+        action, user: req.user,
         errorCode: HTTPError.USER_NO_BADGE_ERROR,
+        module: MODULE_NAME, method: 'executeChargingStationStartTransaction',
         message: 'The user does not have any badge',
-        module: MODULE_NAME, method: 'handleAction',
-        user: req.user, action,
       });
     }
     // Check Departure Time
     if (filteredRequest.departureTime && filteredRequest.departureTime.getTime() < Date.now()) {
       throw new AppError({
+        action, user: req.user,
         errorCode: HTTPError.GENERAL_ERROR,
+        module: MODULE_NAME, method: 'executeChargingStationStartTransaction',
         message: 'The departure time must be set in the future',
-        module: MODULE_NAME, method: 'handleAction',
-        user: req.user, action,
       });
     }
     // Check Car
@@ -1289,7 +1207,7 @@ export default class ChargingStationService {
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         action,
         message: `Tag ID '${tag.id}' is not active`,
-        module: MODULE_NAME, method: 'handleAction',
+        module: MODULE_NAME, method: 'executeChargingStationStartTransaction',
         user: req.user,
         actionOnUser: tag.user,
         detailedMessages: { tag }
@@ -1313,7 +1231,7 @@ export default class ChargingStationService {
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         action,
         message: `Tag ID '${tag.id}' is not linked to User ID '${user.id}'`,
-        module: MODULE_NAME, method: 'handleAction',
+        module: MODULE_NAME, method: 'executeChargingStationStartTransaction',
         user: req.user,
         actionOnUser: tag.user,
         detailedMessages: { tag }
@@ -1350,13 +1268,10 @@ export default class ChargingStationService {
     const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (Utils.isEmptyArray(tags.result)) {
       throw new AppError({
+        action, user: req.user, actionOnUser: transaction.userID,
         errorCode: HTTPError.USER_NO_BADGE_ERROR,
+        module: MODULE_NAME, method: 'executeChargingStationStopTransaction',
         message: 'The user does not have any active badge',
-        module: MODULE_NAME,
-        method: 'handleAction',
-        user: req.user,
-        actionOnUser: transaction.userID,
-        action,
       });
     }
     const tag = tags.result[0];
@@ -1392,9 +1307,8 @@ export default class ChargingStationService {
         await Logging.logWarning({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: req.tenant.id,
-          user: req.user,
-          action,
-          module: MODULE_NAME, method: 'handleChargingStationCommand',
+          action, user: req.user,
+          module: MODULE_NAME, method: 'executeChargingStationChangeConfiguration',
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           message: `Reboot is required due to change of OCPP Parameter '${filteredRequest.args.key}' to '${filteredRequest.args.value}'`,
           detailedMessages: { result }
@@ -1460,7 +1374,7 @@ export default class ChargingStationService {
       } catch (error) {
         await Logging.logError({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+          module: MODULE_NAME, method: 'updateChargingStationRoaming',
           action,
           user: loggedUser,
           message: `Unable to remove charging station ${chargingStation.id} from IOP`,
@@ -1492,7 +1406,7 @@ export default class ChargingStationService {
       } catch (error) {
         await Logging.logError({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+          module: MODULE_NAME, method: 'updateChargingStationRoaming',
           action,
           user: loggedUser,
           message: `Unable to insert or remove charging station ${chargingStation.id} from HBS`,
@@ -1524,7 +1438,7 @@ export default class ChargingStationService {
         } catch (error) {
           await Logging.logError({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'handleDeleteChargingStation',
+            module: MODULE_NAME, method: 'deactivateChargingStationRoaming',
             action,
             user: user,
             message: `Unable to remove charging station ${chargingStation.id} from HBS`,
@@ -1602,11 +1516,10 @@ export default class ChargingStationService {
         // If not template was found, throw error (Check is done on technical configuration)
         if (!chargingStationTemplate) {
           throw new AppError({
-            action,
+            action, user,
             errorCode: HTTPError.GENERAL_ERROR,
-            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. No template found`,
             module: MODULE_NAME, method: 'updateChargingStationManualConfiguration',
-            user: user,
+            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. No template found`,
           });
         }
         resetAndApplyTemplate = true;
@@ -1693,8 +1606,8 @@ export default class ChargingStationService {
           throw new AppError({
             action, user,
             errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
-            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
             module: MODULE_NAME, method: 'updateChargingStationSiteArea',
+            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
           });
         }
       }
@@ -1719,14 +1632,112 @@ export default class ChargingStationService {
         await OCPPCommon.triggerChargingStationReset(tenant, chargingStation, true);
       } catch (error) {
         throw new AppError({
-          action,
+          action, user, actionOnUser: user,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Error occurred while restarting the charging station',
           module: MODULE_NAME, method: 'checkAndApplyChargingStationTemplate',
-          user, actionOnUser: user,
+          message: 'Error occurred while restarting the charging station',
           detailedMessages: { error: error.stack }
         });
       }
     }
+  }
+
+  private static async updateChargingStationProfiles(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
+      user: UserToken, chargingProfiles: ChargingProfile[], updatedChargingProfiles: ChargingProfile[],
+      filteredRequest: HttpChargingStationLimitPowerRequest): Promise<void> {
+    for (let index = 0; index < updatedChargingProfiles.length; index++) {
+      const updatedChargingProfile = updatedChargingProfiles[index];
+      let planHasBeenAdjusted = false;
+      // Check schedules
+      if (updatedChargingProfile.profile && updatedChargingProfile.profile.chargingSchedule &&
+          updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
+        for (const chargingSchedulePeriod of updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
+          // Check the limit max is beyond the new values
+          if (chargingSchedulePeriod.limit > filteredRequest.ampLimitValue) {
+            // Adjust it
+            planHasBeenAdjusted = true;
+            chargingSchedulePeriod.limit = filteredRequest.ampLimitValue;
+          }
+        }
+      }
+      // Charging plan updated?
+      if (planHasBeenAdjusted) {
+        // Check Force Update?
+        if (!filteredRequest.forceUpdateChargingPlan) {
+          throw new AppError({
+            ...LoggingHelper.getChargingStationProperties(chargingStation),
+            action, user,
+            errorCode: HTTPError.GENERAL_ERROR,
+            module: MODULE_NAME, method: 'updateChargingStationProfiles',
+            message: `Cannot change the current limitation to ${filteredRequest.ampLimitValue}A because of an existing charging plan!`,
+            detailedMessages: { result: chargingProfiles[index] }
+          });
+        }
+        await Logging.logWarning({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: tenant.id,
+          action, user,
+          module: MODULE_NAME, method: 'updateChargingStationProfiles',
+          message: `Adjust the Charging Plan power limit to ${filteredRequest.ampLimitValue}A`,
+          detailedMessages: { chargingProfile: chargingProfiles[index] }
+        });
+        // Apply & Save charging plan
+        await OCPPUtils.setAndSaveChargingProfile(tenant, updatedChargingProfile);
+        break;
+      }
+    }
+  }
+
+  private static async handleOcpiStopTransaction(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
+      user: UserToken, remoteStopRequest: HttpChargingStationTransactionStopRequest): Promise<OCPICommandResponse> {
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(
+      tenant, remoteStopRequest.args.transactionId, { withUser: true });
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${remoteStopRequest.args.transactionId}' does not exist`,
+      MODULE_NAME, 'handleOcpiStopTransaction', user);
+    // Get OCPI client
+    const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+    if (!ocpiClient) {
+      throw new BackendError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action, module: MODULE_NAME, method: 'handleOcpiStopTransaction',
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI component requires at least one eMSP endpoint to start a Transaction`
+      });
+    }
+    // Stop the Transaction
+    return ocpiClient.remoteStopSession(transaction.id);
+  }
+
+  private static async handleOcpiStartTransaction(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
+      user: UserToken, remoteStartRequest: HttpChargingStationTransactionStartRequest): Promise<OCPICommandResponse> {
+    // Get the Tag
+    let tagID = remoteStartRequest.args.tagID;
+    if (!tagID && remoteStartRequest.args.visualTagID) {
+      // Check and Get Tag
+      const tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(
+        tenant, user, remoteStartRequest.args.visualTagID, Action.READ, action, null, {}, true);
+      if (!tag) {
+        throw new AppError({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          action, user,
+          errorCode: HTTPError.GENERAL_ERROR,
+          module: MODULE_NAME, method: 'handleOcpiStartTransaction',
+          message: `Tag with Visual ID '${remoteStartRequest.args.visualTagID}' does not exist`,
+          detailedMessages: { remoteStartRequest, chargingStation },
+        });
+      }
+      tagID = tag.id;
+    }
+    // Get OCPI client
+    const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+    if (!ocpiClient) {
+      throw new BackendError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action, module: MODULE_NAME, method: 'handleOcpiStartTransaction',
+        message: `${Utils.buildConnectorInfo(remoteStartRequest.args.connectorId)} OCPI component requires at least one eMSP endpoint to stop a Transaction`
+      });
+    }
+    // Start the Transaction
+    return ocpiClient.remoteStartSession(chargingStation, remoteStartRequest.args.connectorId, tagID);
   }
 }
