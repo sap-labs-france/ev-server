@@ -271,9 +271,9 @@ export default class SiteStorage {
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
-    if (siteToSave.billingData) {
-      siteMDB.billingData = {
-        accountID: DatabaseUtils.convertToObjectID(siteToSave.billingData.accountID)
+    if (siteToSave.accountData) {
+      siteMDB.accountData = {
+        accountID: DatabaseUtils.convertToObjectID(siteToSave.accountData.accountID)
       };
     }
     // Add Last Changed/Created props

@@ -1,8 +1,9 @@
-import { BillingTransferStatus } from '../../src/types/Billing';
+import { BillingTransfer, BillingTransferSession, BillingTransferStatus } from '../../src/types/Billing';
+
 import { Factory } from 'rosie';
 import faker from 'faker';
 
-export const BillingTransferFactory = Factory.define('billingtransfer')
+export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtransfer')
   .attr('amount', () => faker.datatype.number())
   .attr('accountID', () => faker.datatype.hexaDecimal(24).substring(2).toLowerCase())
   .attr('status', () => faker.random.arrayElement([BillingTransferStatus.DRAFT, BillingTransferStatus.PENDING, BillingTransferStatus.TRANSFERRED]))
@@ -17,7 +18,7 @@ export const BillingTransferFactory = Factory.define('billingtransfer')
   .attr('sessions', () =>
     [BillingTransferSessionFactory.build()]);
 
-export const BillingTransferSessionFactory = Factory.define('billingtransfersession')
+export const BillingTransferSessionFactory = Factory.define<BillingTransferSession>('billingtransfersession')
   .attr('transactionID', () => faker.datatype.number())
   .attr('amount', () => faker.datatype.number())
   .attr('platformFeeStrategy', () => ({

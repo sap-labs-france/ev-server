@@ -478,20 +478,4 @@ export default class BillingStorage {
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return transferMDB.count === 1 ? transferMDB.result[0] : null;
   }
-
-  public static async updateTransferAdditionalData(tenant: Tenant, transfer: BillingTransfer, additionalData: BillingTransferSession[]): Promise<void> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    // Preserve the previous list of sessions
-    const sessions: BillingTransferSession[] = transfer.sessions || [];
-    sessions.push(...additionalData);
-    // Set data
-    const updatedTransferMDB: any = {
-      sessions,
-    };
-    await global.database.getCollection(tenant.id, 'billingtransfers').findOneAndUpdate(
-      { '_id': DatabaseUtils.convertToObjectID(transfer.id) },
-      { $set: updatedTransferMDB });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateTransferAdditionalData', startTime, updatedTransferMDB);
-  }
 }
