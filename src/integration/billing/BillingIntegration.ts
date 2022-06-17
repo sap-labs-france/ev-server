@@ -376,7 +376,7 @@ export default abstract class BillingIntegration {
     if (Utils.isTenantComponentActive(this.tenant, TenantComponents.BILLING_PLATFORM)) {
       const site = await SiteStorage.getSite(this.tenant, transaction.siteID, { withCompany: true });
       let accountData = site.accountData;
-      if (accountData?.accountID) {
+      if (!accountData?.accountID) {
         accountData = site.company?.accountData;
       }
       if (accountData?.accountID) {
@@ -753,45 +753,57 @@ export default abstract class BillingIntegration {
   }
 
   public async processTransferForAccount(accountID: string, invoice: BillingInvoice): Promise<void> {
-    const sessions = invoice.sessions.filter((session) => accountID === session?.accountData?.accountID);
-    // Get the existing DRAFT transfer (if any)
-    const transfers = await BillingStorage.getTransfers(
-      this.tenant, {
-        accountIDs: [accountID],
-        status: [BillingTransferStatus.DRAFT],
-      }, Constants.DB_PARAMS_SINGLE_RECORD
-    );
-    let transfer: BillingTransfer = transfers.result[0];
-    if (!transfer) {
-      transfer = {
-        accountID, status: BillingTransferStatus.DRAFT, sessions: [], amount: 0, transferredAmount: 0,
-        platformFeeData: null, transferExternalID: null,
-      };
-    }
-    // Transfer amount as decimal to preserve the precision
-    let transferAmountAsDecimal = Utils.createDecimal(transfer.amount);
-    // Process all sessions of the invoice matching the current account ID
-    for (const session of sessions) {
+    try {
+      const sessions = invoice.sessions.filter((session) => accountID === session?.accountData?.accountID);
+      // Get the existing DRAFT transfer (if any)
+      const transfers = await BillingStorage.getTransfers(
+        this.tenant, {
+          accountIDs: [accountID],
+          status: [BillingTransferStatus.DRAFT],
+        }, Constants.DB_PARAMS_SINGLE_RECORD
+      );
+      let transfer: BillingTransfer = transfers.result[0];
+      if (!transfer) {
+        transfer = {
+          accountID, status: BillingTransferStatus.DRAFT, sessions: [], amount: 0, transferredAmount: 0,
+          platformFeeData: null, transferExternalID: null,
+        };
+      }
+      // Process all sessions of the invoice matching the current account ID
+      for (const session of sessions) {
       // Compute the session amount (adding the 4 pricing dimensions)
-      const amountAsDecimal = BillingHelpers.getBilledPrice(session.pricingData); // TODO - consider tax rate settings!
-      // Update the total amount
-      transferAmountAsDecimal = transferAmountAsDecimal.plus(amountAsDecimal);
-      // Extract current session data
-      const sessionData: BillingTransferSession = {
-        transactionID: session.transactionID,
-        invoiceID: invoice.id,
-        invoiceNumber: invoice.number,
-        amountAsDecimal,
-        amount: amountAsDecimal.toNumber(),
-        roundedAmount: Utils.roundTo(amountAsDecimal, 2),
-        platformFeeStrategy: session.accountData.platformFeeStrategy
-      };
-      // Update the collection of sessions in the DRAFT transfer
-      transfer.sessions.push(sessionData);
+        const amountAsDecimal = BillingHelpers.getBilledPrice(session.pricingData); // TODO - consider tax rate settings!
+        // Extract current session data
+        const sessionData: BillingTransferSession = {
+          transactionID: session.transactionID,
+          invoiceID: invoice.id,
+          invoiceNumber: invoice.number,
+          amountAsDecimal,
+          amount: amountAsDecimal.toNumber(),
+          roundedAmount: Utils.roundTo(amountAsDecimal, 2),
+          platformFeeStrategy: session.accountData.platformFeeStrategy
+        };
+        // Update the collection of sessions in the DRAFT transfer
+        transfer.sessions.push(sessionData);
+      }
+      // Accumulate the amount of each session
+      let transferAmountAsDecimal = Utils.createDecimal(0);
+      transfer.sessions.forEach((session) => {
+        transferAmountAsDecimal = transferAmountAsDecimal.plus(session.amountAsDecimal);
+      });
+      // Round the final result only!
+      transfer.amount = Utils.roundTo(transferAmountAsDecimal, 2);
+      // Finally - create or update the transfer
+      await BillingStorage.saveTransfer(this.tenant, transfer);
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_PREPARE_TRANSFER,
+        module: MODULE_NAME, method: 'processTransferForAccount',
+        message: `Transfer preparation failed - accountID: ${accountID} - Invoice: ${invoice.id} - ${invoice.number}`,
+        detailedMessages: { error: error.stack }
+      });
     }
-    // Finally - crate/update a DRAFT transfer
-    transfer.amount = transferAmountAsDecimal.toNumber();
-    await BillingStorage.saveTransfer(this.tenant, transfer);
   }
 
 }
