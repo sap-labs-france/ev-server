@@ -97,6 +97,7 @@
     "bluebird": "^3.7.2",
     "body-parser": "^1.20.0",
     "body-parser-xml": "^2.0.3",
+    "bufferutil": "^4.0.6",
     "busboy": "^1.4.0",
     "chalk": "^4.1.2",
     "cors": "^2.8.5",
@@ -149,6 +150,7 @@
     "tslib": "^2.2.0",
     "tz-lookup": "^6.1.25",
     "urlencode": "^1.1.0",
+    "utf-8-validate": "^5.0.9",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.10.0",
     "validator": "^13.7.0",
     "ws": "^8.4.2"
