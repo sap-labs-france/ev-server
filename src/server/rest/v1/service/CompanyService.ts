@@ -152,7 +152,6 @@ export default class CompanyService {
         Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
       const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.accountData.accountID);
       UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleCreateCompany', req.user);
-      newCompany.accountData.accountID = billingSubAccount.id;
     }
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);

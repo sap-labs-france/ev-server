@@ -1141,7 +1141,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
           // List sub-accounts
           const subAccountsResponse = await billingTestHelper.userService.billingApi.readSubAccounts({
-            userID: billingTestHelper.userContext.id
+            userID: billingTestHelper.userContext.id,
+            ID: subAccountResponse.data.id
           });
           expect(subAccountsResponse.status).to.be.eq(StatusCodes.OK);
           expect(subAccountsResponse.data.result.map((subAccount: BillingAccount) => subAccount.id)).to.include(subAccountResponse.data.id);

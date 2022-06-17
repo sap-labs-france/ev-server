@@ -3,6 +3,9 @@
   "title": "Get billing sub accounts Request",
   "type": "object",
   "properties": {
+    "ID": {
+      "$ref": "common#/definitions/ids"
+    },
     "userID": {
       "$ref": "common#/definitions/ids"
     },
