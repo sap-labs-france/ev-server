@@ -152,7 +152,7 @@ export default class CompanyService {
         Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
       const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.accountData.accountID);
       UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleCreateCompany', req.user);
-      newCompany.accountData = { accountID: billingSubAccount.id };
+      newCompany.accountData.accountID = billingSubAccount.id;
     }
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);
@@ -190,7 +190,7 @@ export default class CompanyService {
         Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
       const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.accountData.accountID);
       UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateCompany', req.user);
-      company.accountData = { accountID: billingSubAccount.id };
+      company.accountData.accountID = billingSubAccount.id;
     }
     // Update Company
     await CompanyStorage.saveCompany(req.tenant, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);

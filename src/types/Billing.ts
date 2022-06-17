@@ -175,7 +175,7 @@ export interface BillingAccount extends AuthorizationActions {
 
 export interface BillingAccountData {
   accountID: string;
-  platformFee?: BillingPlatformFeeStrategy;
+  platformFeeStrategy?: BillingPlatformFeeStrategy;
 }
 
 export interface BillingTransferData extends BillingAccountData {
