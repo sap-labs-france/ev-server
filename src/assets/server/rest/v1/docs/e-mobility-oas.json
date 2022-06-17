@@ -16643,11 +16643,23 @@
               "transactionID": {
                 "type": "number"
               },
+              "invoiceID": {
+                "type": "string"
+              },
+              "invoiceNumber": {
+                "type": "string"
+              },
+              "amountAsDecimal": {
+                "type": "object"
+              },
               "amount": {
                 "type": "number"
               },
-              "platformFee": {
+              "roundedAmount": {
                 "type": "number"
+              },
+              "platformFeeStrategy": {
+                "type": "object"
               }
             }
           },

@@ -1,4 +1,4 @@
-import { BillingAccount, BillingAdditionalData, BillingInvoice, BillingInvoiceStatus, BillingSessionData, BillingTransfer } from '../../types/Billing';
+import { BillingAccount, BillingInvoice, BillingInvoiceStatus, BillingTransfer } from '../../types/Billing';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -170,6 +170,12 @@ export default class BillingStorage {
       downloadUrl: invoiceToSave.downloadUrl,
       payInvoiceUrl: invoiceToSave.payInvoiceUrl
     };
+    if (invoiceToSave.sessions) {
+      invoiceMDB.sessions = invoiceToSave.sessions;
+    }
+    if (invoiceToSave.lastError) {
+      invoiceMDB.lastError = invoiceToSave.lastError;
+    }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'invoices').findOneAndUpdate(
       { _id: invoiceMDB._id },
@@ -178,25 +184,6 @@ export default class BillingStorage {
     );
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoice', startTime, invoiceMDB);
     return invoiceMDB._id.toString();
-  }
-
-  public static async updateInvoiceAdditionalData(tenant: Tenant, invoiceToUpdate: BillingInvoice, additionalData: BillingAdditionalData): Promise<void> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    // Preserve the previous list of sessions
-    const sessions: BillingSessionData[] = invoiceToUpdate.sessions || [];
-    if (additionalData.session) {
-      sessions.push(additionalData.session);
-    }
-    // Set data
-    const updatedInvoiceMDB: any = {
-      sessions,
-      lastError: additionalData.lastError
-    };
-    await global.database.getCollection(tenant.id, 'invoices').findOneAndUpdate(
-      { '_id': DatabaseUtils.convertToObjectID(invoiceToUpdate.id) },
-      { $set: updatedInvoiceMDB });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoiceAdditionalData', startTime, updatedInvoiceMDB);
   }
 
   public static async deleteInvoice(tenant: Tenant, id: string): Promise<void> {
@@ -227,7 +214,9 @@ export default class BillingStorage {
       status: subAccount.status,
       businessOwnerID: DatabaseUtils.convertToObjectID(subAccount.businessOwnerID)
     };
-    // Modify and return the modified document
+    // Check Created/Last Changed By
+    DatabaseUtils.addLastChangedCreatedProps(subAccountMDB, subAccount);
+    // Save
     await global.database.getCollection<any>(tenant.id, 'billingsubaccounts').findOneAndUpdate(
       { _id: subAccountMDB._id },
       { $set: subAccountMDB },
@@ -359,11 +348,12 @@ export default class BillingStorage {
       transferExternalID: transfer.transferExternalID,
       sessions: transfer.sessions.map((session) => ({
         transactionID: session.transactionID,
+        invoiceID: session.invoiceID,
+        invoiceNumber: session.invoiceNumber,
+        amountAsDecimal: session.amountAsDecimal,
         amount: session.amount,
-        platformFee: {
-          flatFeePerSession: session.platformFee.flatFeePerSession,
-          percentage: session.platformFee.percentage
-        }
+        roundedAmount: session.roundedAmount,
+        platformFeeStrategy: session.platformFeeStrategy,
       }))
     };
     if (transfer.platformFeeData) {
@@ -374,7 +364,9 @@ export default class BillingStorage {
         invoiceExternalID: transfer.platformFeeData.invoiceExternalID
       };
     }
-    // Modify and return the modified document
+    // Check Created/Last Changed By
+    DatabaseUtils.addLastChangedCreatedProps(transferMDB, transfer);
+    // Save
     await global.database.getCollection<any>(tenant.id, 'billingtransfers').findOneAndUpdate(
       { _id: transferMDB._id },
       { $set: transferMDB },
