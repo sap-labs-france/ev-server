@@ -12,7 +12,7 @@
     "logo": {
       "$ref": "common#/definitions/logo"
     },
-    "billingData": {
+    "accountData": {
       "type": "object",
       "properties": {
         "accountID": {

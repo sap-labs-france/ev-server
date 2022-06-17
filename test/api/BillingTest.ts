@@ -1,9 +1,11 @@
 /* eslint-disable max-len */
-import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus, BillingTransfer } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
+import { BillingTransferFactory, BillingTransferSessionFactory } from '../factories/BillingFactory';
 import chai, { expect } from 'chai';
 
 import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
+import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
 import CompanyFactory from '../factories/CompanyFactory';
@@ -1035,13 +1037,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
           let companyResponse = await billingTestHelper.userService.companyApi.create({
             ...CompanyFactory.build(),
-            billingData: {
+            accountData: {
               accountID: subAccountResponse.data.id
             }
           });
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyResponse.data.id);
-          expect(companyResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
+          expect(companyResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
         });
 
         it('should update a company to assign a sub-account', async () => {
@@ -1056,12 +1058,12 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           companyResponse = await billingTestHelper.userService.companyApi.update({
             id: companyID,
             ...CompanyFactory.build(),
-            billingData: { accountID: subAccountResponse.data.id }
+            accountData: { accountID: subAccountResponse.data.id }
           });
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
 
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyID);
-          expect(companyResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
+          expect(companyResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
         });
 
         it('should create a site assigned to a sub-account', async () => {
@@ -1077,13 +1079,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           let siteResponse = await billingTestHelper.userService.siteApi.create({
             ...SiteFactory.build(),
             companyID: companyResponse.data.id,
-            billingData: {
+            accountData: {
               accountID: subAccountResponse.data.id
             }
           });
           expect(siteResponse.status).to.be.eq(StatusCodes.OK);
           siteResponse = await billingTestHelper.userService.siteApi.readById(siteResponse.data.id);
-          expect(siteResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
+          expect(siteResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
         });
 
         it('should update a site to assign a sub-account', async () => {
@@ -1107,12 +1109,12 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             id: siteID,
             ...SiteFactory.build(),
             companyID: companyResponse.data.id,
-            billingData: { accountID: subAccountResponse.data.id }
+            accountData: { accountID: subAccountResponse.data.id }
           });
           expect(siteResponse.status).to.be.eq(StatusCodes.OK);
 
           siteResponse = await billingTestHelper.userService.siteApi.readById(siteID);
-          expect(siteResponse.data.billingData.accountID).to.eq(subAccountResponse.data.id);
+          expect(siteResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
         });
 
         it('should list sub-accounts', async () => {
@@ -1188,6 +1190,18 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(subAccountOnboardResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
         });
       });
+
+      describe('Transfers', () => {
+        it('should list transfers', async () => {
+          const transfer = BillingTransferFactory.build();
+          const transferID = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
+          transfer.id = transferID;
+
+          const transfersResponse = await billingTestHelper.userService.billingApi.readTransfers({});
+          expect(transfersResponse.status).to.be.eq(StatusCodes.OK);
+          expect(transfersResponse.data.result).to.containSubset([transfer]);
+        });
+      });
     });
 
     describe('Where basic user', () => {
@@ -1229,6 +1243,33 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // List sub-accounts
         const subAccountResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding('62978713f146ea8cb3bf8a95');
         expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+      });
+
+      it('should not be able to list transfers', async () => {
+        const transfersResponse = await billingTestHelper.userService.billingApi.readTransfers({});
+        expect(transfersResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+      });
+    });
+
+    describe('Storage', () => {
+      it('should save a billing transfer', async () => {
+        const transfer = BillingTransferFactory.build();
+        const transferID = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
+        expect(transferID).to.not.be.null;
+
+        const retrievedTransfer = await BillingStorage.getTransferByID(billingTestHelper.tenantContext.getTenant(), transferID);
+        expect(retrievedTransfer).to.containSubset(transfer);
+      });
+
+      it('should list billing transfers', async () => {
+        const transfers = [
+          BillingTransferFactory.build(),
+          BillingTransferFactory.build(),
+        ];
+        const ids = await Promise.all(transfers.map(async (transfer) => BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer)));
+
+        const retrievedTransfers = await BillingStorage.getTransfers(billingTestHelper.tenantContext.getTenant(), {}, Constants.DB_PARAMS_MAX_LIMIT);
+        expect(retrievedTransfers.result.map((transfer) => transfer.id)).to.include.members(ids);
       });
     });
   });

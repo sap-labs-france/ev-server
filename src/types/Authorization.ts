@@ -78,6 +78,7 @@ export enum Entity {
   BILLING = 'Billing',
   BILLING_PLATFORM = 'BillingPlatform',
   BILLING_SUB_ACCOUNT = 'BillingSubAccount',
+  BILLING_TRANSFER = 'BillingTransfer',
   SETTING = 'Setting',
   ASYNC_TASK = 'AsyncTask',
   OCPI_ENDPOINT = 'OcpiEndpoint',
