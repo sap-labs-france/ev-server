@@ -1,4 +1,4 @@
-import { BillingTransfer, BillingTransferSession, BillingTransferStatus } from '../../src/types/Billing';
+import { BillingPlatformFeeStrategy, BillingTransfer, BillingTransferSession, BillingTransferStatus } from '../../src/types/Billing';
 
 import { Factory } from 'rosie';
 import faker from 'faker';
@@ -25,3 +25,7 @@ export const BillingTransferSessionFactory = Factory.define<BillingTransferSessi
     flatFeePerSession: faker.datatype.number(),
     percentage: faker.datatype.number(),
   }));
+
+export const BillingPlatformFeeStrategyFactory = Factory.define<BillingPlatformFeeStrategy>('billingplatformfeestrategy')
+  .attr('flatFeePerSession', () => faker.datatype.number())
+  .attr('percentage', () => faker.datatype.number());

@@ -1,16 +1,20 @@
 /* eslint-disable max-len */
-import { BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
+import { BillingPlatformFeeStrategyFactory, BillingTransferFactory } from '../factories/BillingFactory';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
 
 import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
+import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
+import CompanyFactory from '../factories/CompanyFactory';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
+import SiteFactory from '../factories/SiteFactory';
 import { StatusCodes } from 'http-status-codes';
 import StripeTestHelper from './StripeTestHelper';
 import TestConstants from './client/utils/TestConstants';
@@ -1028,15 +1032,18 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           });
           expect(subAccountResponse.status).to.be.eq(StatusCodes.CREATED);
 
+          const platformFeeStrategy = BillingPlatformFeeStrategyFactory.build();
           let companyResponse = await billingTestHelper.userService.companyApi.create({
             ...CompanyFactory.build(),
             accountData: {
-              accountID: subAccountResponse.data.id
+              accountID: subAccountResponse.data.id,
+              platformFeeStrategy
             }
           });
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyResponse.data.id);
           expect(companyResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
+          expect(companyResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
         });
 
         it('should update a company to assign a sub-account', async () => {
@@ -1048,15 +1055,20 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           let companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
           const companyID = companyResponse.data.id;
+          const platformFeeStrategy = BillingPlatformFeeStrategyFactory.build();
           companyResponse = await billingTestHelper.userService.companyApi.update({
             id: companyID,
             ...CompanyFactory.build(),
-            accountData: { accountID: subAccountResponse.data.id }
+            accountData: {
+              accountID: subAccountResponse.data.id,
+              platformFeeStrategy
+            }
           });
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
 
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyID);
           expect(companyResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
+          expect(companyResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
         });
 
         it('should create a site assigned to a sub-account', async () => {
@@ -1069,16 +1081,19 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           const companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
           expect(companyResponse.status).to.be.eq(StatusCodes.OK);
           // Create a site
+          const platformFeeStrategy = BillingPlatformFeeStrategyFactory.build();
           let siteResponse = await billingTestHelper.userService.siteApi.create({
             ...SiteFactory.build(),
             companyID: companyResponse.data.id,
             accountData: {
-              accountID: subAccountResponse.data.id
+              accountID: subAccountResponse.data.id,
+              platformFeeStrategy
             }
           });
           expect(siteResponse.status).to.be.eq(StatusCodes.OK);
           siteResponse = await billingTestHelper.userService.siteApi.readById(siteResponse.data.id);
           expect(siteResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
+          expect(siteResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
         });
 
         it('should update a site to assign a sub-account', async () => {
@@ -1098,16 +1113,21 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(siteResponse.status).to.be.eq(StatusCodes.OK);
           const siteID = siteResponse.data.id;
 
+          const platformFeeStrategy = BillingPlatformFeeStrategyFactory.build();
           siteResponse = await billingTestHelper.userService.siteApi.update({
             id: siteID,
             ...SiteFactory.build(),
             companyID: companyResponse.data.id,
-            accountData: { accountID: subAccountResponse.data.id }
+            accountData: {
+              accountID: subAccountResponse.data.id,
+              platformFeeStrategy
+            }
           });
           expect(siteResponse.status).to.be.eq(StatusCodes.OK);
 
           siteResponse = await billingTestHelper.userService.siteApi.readById(siteID);
           expect(siteResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
+          expect(siteResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
         });
 
         it('should list sub-accounts', async () => {
@@ -1118,7 +1138,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
           // List sub-accounts
           const subAccountsResponse = await billingTestHelper.userService.billingApi.readSubAccounts({
-            userID: billingTestHelper.userContext.id
+            userID: billingTestHelper.userContext.id,
+            ID: subAccountResponse.data.id
           });
           expect(subAccountsResponse.status).to.be.eq(StatusCodes.OK);
           expect(subAccountsResponse.data.result.map((subAccount: BillingAccount) => subAccount.id)).to.include(subAccountResponse.data.id);
@@ -1223,7 +1244,10 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should not activate an inexistent sub account', async () => {
-        const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: '5ce249a1a39ae1c056c389bd', TenantID: billingTestHelper.tenantContext.getTenant().id });
+        const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({
+          accountID: '5ce249a1a39ae1c056c389bd', // inexistent sub account
+          TenantID: billingTestHelper.tenantContext.getTenant().id
+        });
         expect(activationResponse.status).to.be.eq(StatusCodes.NOT_FOUND);
       });
 
@@ -1234,13 +1258,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
       it('should not be able to read sub-account', async () => {
         // List sub-accounts
-        const subAccountResponse = await billingTestHelper.userService.billingApi.readSubAccount('62978713f146ea8cb3bf8a95');
+        const subAccountResponse = await billingTestHelper.userService.billingApi.readSubAccount('62978713f146ea8cb3bf8a95'); // inexistent sub account
         expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 
       it('should not be able to send sub-account onboarding', async () => {
         // List sub-accounts
-        const subAccountResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding('62978713f146ea8cb3bf8a95');
+        const subAccountResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding('62978713f146ea8cb3bf8a95'); // inexistent sub account
         expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 

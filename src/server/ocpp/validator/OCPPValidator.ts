@@ -156,7 +156,7 @@ export default class OCPPValidator extends SchemaValidator {
     if (tagID &&
         typeof tagID === 'string' &&
         tagID.toLowerCase().includes(';')) {
-      tagID = tagID.split(';')[0];
+      tagID = tagID.split(';')[1];
     }
     return tagID;
   }

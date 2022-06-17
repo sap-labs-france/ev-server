@@ -1,4 +1,4 @@
-import { BillingAccount, BillingInvoice, BillingInvoiceStatus, BillingTransfer, BillingTransferSession } from '../../types/Billing';
+import { BillingAccount, BillingInvoice, BillingInvoiceStatus, BillingTransfer } from '../../types/Billing';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';

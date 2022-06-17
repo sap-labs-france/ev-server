@@ -64,6 +64,7 @@ export default class CompanyStorage {
     if (companyToSave.accountData) {
       companyMDB.accountData = {
         accountID: DatabaseUtils.convertToObjectID(companyToSave.accountData.accountID),
+        platformFeeStrategy: companyToSave.accountData.platformFeeStrategy,
       };
     }
     // Add Last Changed/Created props
