@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
-import { BillingAccount, BillingAccountStatus } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import chai, { expect } from 'chai';
 
+import { BillingPeriodicOperationTaskConfig } from '../types/TaskConfig';
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import BillingTestHelper from './BillingTestHelper';
 import { BillingTransferFactory } from '../factories/BillingFactory';
@@ -13,6 +14,7 @@ import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import SiteFactory from '../factories/SiteFactory';
 import { StatusCodes } from 'http-status-codes';
 import StripeTestHelper from './StripeTestHelper';
+import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
@@ -350,6 +352,40 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         expect(retrievedTransfers.result.map((transfer) => transfer.id)).to.include.members(ids);
       });
     });
+
+    describe('Transfer of Funds', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      beforeAll(async () => {
+        billingTestHelper.initUserContextAsAdmin();
+        // Initialize the charging station context
+        await billingTestHelper.initChargingStationContext2TestChargingTime();
+      });
+
+      it('should create an invoice, and get transfers generated', async () => {
+        await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+        const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+        await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+        const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+        assert(transactionID, 'transactionID should not be null');
+        // Check that we have a new invoice with an invoiceID and but no invoiceNumber yet
+        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.DRAFT);
+        // Let's simulate the periodic billing operation
+        const taskConfiguration: BillingPeriodicOperationTaskConfig = {
+          onlyProcessUnpaidInvoices: false,
+          forceOperation: true
+        };
+        const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
+        assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
+        assert(operationResult.inError === 0, 'The operation should detect any errors');
+        // The transaction should now have a different status and know the final invoice number
+        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+        // The user should have no DRAFT invoices
+        const nbDraftInvoices = await billingTestHelper.checkForDraftInvoices();
+        assert(nbDraftInvoices === 0, 'The expected number of DRAFT invoices is not correct');
+      });
+
+    });
+
   });
 
   // describe('Billing Test Data Cleanup (utbilling)', () => {
