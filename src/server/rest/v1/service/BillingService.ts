@@ -604,6 +604,35 @@ export default class BillingService {
     next();
   }
 
+  public static async handleBillingGetTransfers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransfersGetReq(req.query);
+    // Check auth
+    const authorizations = await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, filteredRequest /* , false */);
+    if (!authorizations.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
+    // Get the billing sub accounts
+    const transfers = await BillingStorage.getTransfers(req.tenant, {
+      IDs: filteredRequest.ID ? filteredRequest.ID.split('|') : null,
+      accountIDs: filteredRequest.AccountID ? filteredRequest.AccountID.split('|') : null,
+      transferExternalIDs: filteredRequest.TransferExternalID ? filteredRequest.TransferExternalID.split('|') : null,
+      search: filteredRequest.Search ? filteredRequest.Search : null,
+      status: filteredRequest.Status ? filteredRequest.Status.split('|') : null,
+    }, {
+      sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
+      skip: filteredRequest.Skip,
+      limit: filteredRequest.Limit,
+      onlyRecordCount: filteredRequest.OnlyRecordCount
+    },
+    authorizations.projectFields
+    );
+    await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
+    res.json(transfers);
+    next();
+  }
+
   private static async checkActivationPrerequisites(action: ServerAction, req: Request): Promise<void> {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
