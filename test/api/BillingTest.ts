@@ -1071,7 +1071,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
           companyResponse = await billingTestHelper.userService.companyApi.readById(companyID);
           expect(companyResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
-          expect(companyResponse.data.accountData.platformFeeStrategy).to.eq(platformFeeStrategy);
+          expect(companyResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
         });
 
         it('should create a site assigned to a sub-account', async () => {
@@ -1096,6 +1096,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           expect(siteResponse.status).to.be.eq(StatusCodes.OK);
           siteResponse = await billingTestHelper.userService.siteApi.readById(siteResponse.data.id);
           expect(siteResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
+          expect(siteResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
         });
 
         it('should update a site to assign a sub-account', async () => {
@@ -1129,6 +1130,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
           siteResponse = await billingTestHelper.userService.siteApi.readById(siteID);
           expect(siteResponse.data.accountData.accountID).to.eq(subAccountResponse.data.id);
+          expect(siteResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
         });
 
         it('should list sub-accounts', async () => {

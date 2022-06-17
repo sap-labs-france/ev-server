@@ -13,7 +13,7 @@
         },
         "percentage": {
           "type": "number",
-          "sanitize": "number"
+          "sanitize": "mongo"
         }
       }
     }

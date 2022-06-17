@@ -384,7 +384,10 @@ export default class SiteService {
         Action.CREATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
       const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.accountData.accountID);
       UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateSite', req.user);
-      site.accountData.accountID = billingSubAccount.id;
+      site.accountData = {
+        accountID: billingSubAccount.id,
+        platformFeeStrategy: filteredRequest.accountData.platformFeeStrategy,
+      };
     }
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
