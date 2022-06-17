@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingSessionAccountData, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
@@ -295,7 +295,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return stripeInvoice;
   }
 
-  public async synchronizeAsBillingInvoice(stripeInvoice: Stripe.Invoice): Promise<BillingInvoice> {
+  public async convertToBillingInvoice(stripeInvoice: Stripe.Invoice): Promise<BillingInvoice> {
     if (!stripeInvoice) {
       throw new BackendError({
         message: 'Unexpected situation - invoice is not set',
@@ -323,22 +323,26 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Get the corresponding BillingInvoice (if any)
     const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByInvoiceID(this.tenant, stripeInvoice.id);
-    const invoiceToSave: BillingInvoice = {
-      id: billingInvoice?.id, // ACHTUNG: billingInvoice is null when creating the Billing Invoice
-      // eslint-disable-next-line id-blacklist
-      userID, invoiceID, customerID, liveMode, number, amount, amountPaid, currency, createdOn, downloadUrl, downloadable: !!downloadUrl,
-      status: status as BillingInvoiceStatus, payInvoiceUrl,
-    };
-    // Let's persist the invoice with up-to-date data
-    const freshInvoiceId = await BillingStorage.saveInvoice(this.tenant, invoiceToSave);
-    // Let's get a clean invoice instance
-    let freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, freshInvoiceId);
-    if (!freshBillingInvoice) {
-      // This should not happen - but it happened several times - so let's wait a bit and try again
-      await Utils.sleep(2000);
-      freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, freshInvoiceId);
+    let invoiceToSave: BillingInvoice;
+    if (billingInvoice) {
+      // Update existing invoice
+      invoiceToSave = {
+        ...billingInvoice, // includes the id
+        // eslint-disable-next-line id-blacklist
+        invoiceID, liveMode, userID, number, status: status as BillingInvoiceStatus,
+        amount, amountPaid, currency, customerID, createdOn, downloadable: !!downloadUrl, downloadUrl, payInvoiceUrl,
+      };
+    } else {
+      // Create new invoice
+      invoiceToSave = {
+        id: null,
+        // eslint-disable-next-line id-blacklist
+        invoiceID, liveMode, userID, number, status: status as BillingInvoiceStatus,
+        amount, amountPaid, currency, customerID, createdOn, downloadable: !!downloadUrl, downloadUrl, payInvoiceUrl,
+        sessions: []
+      };
     }
-    return freshBillingInvoice;
+    return invoiceToSave;
   }
 
   private async createStripeInvoiceItem(parameters: Stripe.InvoiceItemCreateParams, idempotencyKey: string | number): Promise<Stripe.InvoiceItem> {
@@ -420,7 +424,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const operationResult = await this.chargeStripeInvoice(billingInvoice.invoiceID);
     if (!operationResult?.succeeded && operationResult?.error) {
       if (StripeHelpers.isResourceMissingError(operationResult.error)) {
-        await StripeHelpers.updateInvoiceAdditionalData(this.tenant, billingInvoice, operationResult);
+        StripeHelpers.enrichInvoiceWithAdditionalData(billingInvoice, operationResult);
+        await BillingStorage.saveInvoice(this.tenant, billingInvoice);
         throw operationResult.error;
       } else {
         await Logging.logError({
@@ -440,14 +445,19 @@ export default class StripeBillingIntegration extends BillingIntegration {
       stripeInvoice = await this.getStripeInvoice(billingInvoice.invoiceID);
     }
     // Let's replicate some information on our side
-    billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice);
-    if (!billingInvoice) {
-      throw new Error(`Unexpected situation - failed to synchronize ${stripeInvoice.id} - the invoice is null`);
-    }
-    await StripeHelpers.updateInvoiceAdditionalData(this.tenant, billingInvoice, operationResult);
-    // Send a notification to the user
+    billingInvoice = await this.convertToBillingInvoice(stripeInvoice);
+    StripeHelpers.enrichInvoiceWithAdditionalData(billingInvoice, operationResult);
+    // Save invoice
+    const invoiceID = await BillingStorage.saveInvoice(this.tenant, billingInvoice);
+    billingInvoice.id = invoiceID;
+    // Notification the user about the new invoice
     void this.sendInvoiceNotification(billingInvoice);
+    // Update transactions with invoice data
     await this.updateTransactionsBillingData(billingInvoice);
+    // Trigger transfer preparation task
+    if (billingInvoice.status === BillingInvoiceStatus.PAID) {
+      await this.triggerTransferPreparation(billingInvoice);
+    }
     return billingInvoice;
   }
 
@@ -998,8 +1008,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
           module: MODULE_NAME, method: 'billTransaction',
           message: `Billing process is about to start - transaction ID: ${transaction.id}`,
         });
-        // ACHTUNG: a single transaction may generate several lines in the invoice
-        const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction);
+        // Retrieve billing sub-account settings from the company or the site
+        const accountData = await this.retrieveAccountData(transaction);
+        // ACHTUNG: a single transaction may generate several lines in the invoice - one line per paring dimension
+        const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction, accountData);
         const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem);
         // Send a notification to the user
         void this.sendInvoiceNotification(billingInvoice);
@@ -1057,28 +1069,26 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   private shrinkInvoiceItem(fatInvoiceItem: BillingInvoiceItem): BillingInvoiceItem {
     // The initial invoice item includes redundant transaction data
-    const { transactionID, currency, pricingData } = fatInvoiceItem;
+    const { transactionID, currency, pricingData, accountData = null } = fatInvoiceItem;
     // Let's return only essential information
     const lightInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
-      pricingData
+      pricingData,
+      accountData
     };
     return lightInvoiceItem;
   }
 
-  private convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
-    return this.convertPricingDataToBillingInvoiceItem(transaction);
-  }
-
-  private convertPricingDataToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
+  private convertToBillingInvoiceItem(transaction: Transaction, accountData: BillingSessionAccountData) : BillingInvoiceItem {
     const transactionID = transaction.id;
     const currency = transaction.stop.priceUnit;
-    const pricingData: PricedConsumptionData[] = this.extractTransactionPricingData(transaction);
+    const pricingData = this.extractTransactionPricingData(transaction);
     const billingInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
       pricingData,
+      accountData,
       metadata: {
         // Let's keep track of the initial data for troubleshooting purposes
         tenantID: this.tenant.id,
@@ -1195,12 +1205,19 @@ export default class StripeBillingIntegration extends BillingIntegration {
       stripeInvoice = await this.getStripeInvoice(stripeInvoice.id);
     }
     // Let's replicate some information on our side
-    const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice);
+    const billingInvoice = await this.convertToBillingInvoice(stripeInvoice);
     if (!billingInvoice) {
       throw new Error(`Unexpected situation - failed to synchronize ${stripeInvoice.id} - the invoice is null`);
     }
     // We have now a Billing Invoice - Let's update it with details about the last operation result
-    await StripeHelpers.updateInvoiceAdditionalData(this.tenant, billingInvoice, operationResult, billingInvoiceItem);
+    StripeHelpers.enrichInvoiceWithAdditionalData(billingInvoice, operationResult, billingInvoiceItem);
+    // Save invoice
+    const invoiceID = await BillingStorage.saveInvoice(this.tenant, billingInvoice);
+    billingInvoice.id = invoiceID;
+    // Trigger transfer preparation task
+    if (billingInvoice.status === BillingInvoiceStatus.PAID) {
+      await this.triggerTransferPreparation(billingInvoice);
+    }
     // Return the billing invoice
     return billingInvoice;
   }
@@ -1662,10 +1679,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
           transaction.billingData.stop.invoiceStatus = billingInvoice.status;
           transaction.billingData.stop.invoiceNumber = billingInvoice.number;
           transaction.billingData.lastUpdate = new Date();
-          // Add pricing data
+          // Add pricing data when built-in pricing engine was used
           if (!transaction.billingData.stop.invoiceItem && transaction.pricingModel) {
-            // Only set when the built-in pricing model was used
-            const invoiceItem = this.convertToBillingInvoiceItem(transaction);
+            const accountData = await this.retrieveAccountData(transaction);
+            const invoiceItem = this.convertToBillingInvoiceItem(transaction, accountData);
             transaction.billingData.stop.invoiceItem = this.shrinkInvoiceItem(invoiceItem);
           }
           // Save repaired billing data
@@ -1718,7 +1735,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         method: 'createSubAccount',
       });
     }
-
     return {
       accountExternalID: subAccount.id,
       activationLink: activationLink.url,
