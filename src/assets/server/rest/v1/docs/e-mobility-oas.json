@@ -15467,6 +15467,17 @@
             "properties": {
               "accountID": {
                 "type": "string"
+              },
+              "platformFeeStrategy": {
+                "type": "object",
+                "properties": {
+                  "flatFeePerSession": {
+                    "type": "number"
+                  },
+                  "percentage": {
+                    "type": "number"
+                  }
+                }
               }
             }
           }
@@ -15711,6 +15722,17 @@
             "properties": {
               "accountID": {
                 "type": "string"
+              },
+              "platformFeeStrategy": {
+                "type": "object",
+                "properties": {
+                  "flatFeePerSession": {
+                    "type": "number"
+                  },
+                  "percentage": {
+                    "type": "number"
+                  }
+                }
               }
             }
           }
