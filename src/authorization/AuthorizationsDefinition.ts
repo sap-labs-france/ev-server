@@ -333,7 +333,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.CHARGING_STATION, action: [Action.LIST],
+        resource: Entity.CHARGING_STATION, action: Action.LIST,
         attributes: [
           'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
           'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage', 'distanceMeters',
@@ -912,12 +912,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public',
-          'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage', 'distanceMeters',
+          'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'lastSeen', 'coordinates', 'issuer', 'voltage', 'distanceMeters',
           'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
-          'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
+          'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
           'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode',
-          'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',
+          'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'chargePoints', 'lastReboot', 'createdOn',
           'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email', 'companyID'
         ]
       },
@@ -1212,15 +1211,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.CHARGING_STATION, action: Action.LIST,
         attributes: [
-          'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
-          'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage', 'distanceMeters',
-          'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
-          'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
+          'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'lastSeen', 'coordinates', 'issuer', 'voltage', 'distanceMeters',
+          'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.smartCharging', 'site.id', 'site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
+          'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
           'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode',
-          'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',
-          'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email', 'companyID', 'chargingStationURL', 'masterSlave',
-          'excludeFromSmartCharging', 'siteArea.smartCharging','site.id','forceInactive','manualConfiguration','capabilities','endpoint', 'currentIPAddress',
-          'ocppStandardParameters','ocppVendorParameters', 'connectors'
+          'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'chargePoints', 'createdOn',
+          'companyID', 'masterSlave', 'excludeFromSmartCharging', 'forceInactive', 'manualConfiguration'
         ]
       },
       { resource: Entity.CHARGING_STATION, action: Action.READ },
