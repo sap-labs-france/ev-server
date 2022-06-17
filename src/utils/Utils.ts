@@ -1327,6 +1327,11 @@ export default class Utils {
     return `'${tenant.name}' ('${tenant.subdomain}')`;
   }
 
+  public static isHexString(hexValue: string): boolean {
+    // eslint-disable-next-line no-useless-escape
+    return /^[0-9A-Fa-f]*$/i.test(hexValue);
+  }
+
   public static isChargingStationIDValid(name: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /^[A-Za-z0-9_\.\-~]*$/.test(name);
