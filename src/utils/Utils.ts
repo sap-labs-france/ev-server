@@ -279,20 +279,8 @@ export default class Utils {
     return data.slice(data.length - 5, data.length);
   }
 
-  public static generateTagID(name: string, firstName: string): string {
-    let tagID = '';
-    if (name && name.length > 0) {
-      tagID = name[0].toUpperCase();
-    } else {
-      tagID = 'S';
-    }
-    if (firstName && firstName.length > 0) {
-      tagID += firstName[0].toUpperCase();
-    } else {
-      tagID += 'F';
-    }
-    tagID += Utils.getRandomIntSafe();
-    return tagID;
+  public static generateTagID(size = 8): string {
+    return [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
   }
 
   public static isIterable(obj: any): boolean {
