@@ -7,6 +7,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
@@ -14,6 +15,28 @@ import moment from 'moment';
 const MODULE_NAME = 'TagStorage';
 
 export default class TagStorage {
+  public static async findAvailableID(tenant: Tenant): Promise<string> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    let existingTag: Tag;
+    do {
+      // Generate new transaction ID
+      const id = Utils.generateTagID();
+      existingTag = await TagStorage.getTag(tenant, id);
+      if (existingTag) {
+        await Logging.logWarning({
+          tenantID: tenant.id,
+          module: MODULE_NAME, method: 'findAvailableID',
+          action: ServerAction.TAG_CREATE,
+          message: `Tag ID '${id}' already exists, generating a new one...`
+        });
+      } else {
+        return id;
+      }
+    } while (existingTag);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'findAvailableID', startTime, {});
+  }
+
 
   public static async saveTag(tenant: Tenant, tag: Tag): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
