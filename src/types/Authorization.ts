@@ -77,6 +77,8 @@ export enum Entity {
   PRICING_DEFINITION = 'PricingDefinition',
   BILLING = 'Billing',
   BILLING_PLATFORM = 'BillingPlatform',
+  BILLING_SUB_ACCOUNT = 'BillingSubAccount',
+  BILLING_TRANSFER = 'BillingTransfer',
   SETTING = 'Setting',
   ASYNC_TASK = 'AsyncTask',
   OCPI_ENDPOINT = 'OcpiEndpoint',
@@ -135,7 +137,6 @@ export enum Action {
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
-  BILLING_CREATE_SUB_ACCOUNT = 'BillingSubAccountCreate',
   BILLING_ACTIVATE_SUB_ACCOUNT = 'BillingSubAccountActivate',
   BILLING_ONBOARD_SUB_ACCOUNT = 'BillingSubAccountOnboard',
   CHECK_CONNECTION = 'CheckConnection',
@@ -230,6 +231,14 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
 
 export interface BillingInvoiceAuthorizationActions extends AuthorizationActions {
   canDownload?: boolean;
+}
+
+export interface BillingAccountAuthorizationActions extends AuthorizationActions {
+  canOnboard?: boolean;
+}
+
+export interface BillingTransferAuthorizationActions extends AuthorizationActions {
+  canTransfer?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

@@ -183,7 +183,8 @@ export default class OCPIUtils {
 
   public static getOcpiTokenTypeFromID(tagID: string): OCPITokenType {
     // Virtual badges handling
-    return tagID.length % 8 === 0 ? OCPITokenType.RFID : OCPITokenType.OTHER;
+    return (tagID.length % 8 === 0 || tagID.length === 14) &&
+      Utils.isHexString(tagID) ? OCPITokenType.RFID : OCPITokenType.OTHER;
   }
 
   public static buildEmspTokenFromTag(tenant: Tenant, tag: Tag): OCPIToken {
