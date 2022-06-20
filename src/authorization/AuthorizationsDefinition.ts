@@ -188,7 +188,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country',
           'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'accountData.accountID'
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'accountData'
         ]
       },
       {
@@ -231,7 +231,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'issuer', 'logo',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
-          'address.department', 'address.region', 'address.country', 'address.coordinates', 'accountData.accountID'
+          'address.department', 'address.region', 'address.country', 'address.coordinates', 'accountData'
         ]
       },
       {
@@ -254,7 +254,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'address.department', 'address.region', 'address.country',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectorStats', 'accountData.accountID'
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectorStats', 'accountData'
         ]
       },
       {
@@ -263,7 +263,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
-          'address.department', 'address.region', 'address.country', 'address.coordinates', 'accountData.accountID'
+          'address.department', 'address.region', 'address.country', 'address.coordinates', 'accountData'
         ]
       },
       {

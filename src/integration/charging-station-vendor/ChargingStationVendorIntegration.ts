@@ -358,9 +358,18 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async getCurrentConnectorLimit(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID: number): Promise<ConnectorCurrentLimit> {
+    const connector = Utils.getConnectorFromID(chargingStation, connectorID);
+    if (!connector) {
+      throw new BackendError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
+        module: MODULE_NAME, method: 'getCurrentConnectorLimit',
+        message: `Cannot get the Connector ID '${connectorID}'`,
+      });
+    }
     // Default
-    const limitDefaultMaxAmps = Utils.getConnectorFromID(chargingStation, connectorID).amperageLimit;
-    const limitDefaultMaxPower = Utils.getConnectorFromID(chargingStation, connectorID).power;
+    const limitDefaultMaxAmps = connector.amperageLimit;
+    const limitDefaultMaxPower = connector.power;
     // Should fail safe!
     try {
       if (connectorID === 0) {
@@ -382,10 +391,10 @@ export default abstract class ChargingStationVendorIntegration {
           chargingProfile.connectorID === connectorID &&
           chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.TX_PROFILE
         );
-        let result = await this.getCurrentConnectorLimitFromProfiles(
+        let resultChargingProfile = await this.getCurrentConnectorLimitFromProfiles(
           tenant, chargingStation, chargePoint, connectorID, txChargingProfiles);
-        if (result) {
-          return result;
+        if (resultChargingProfile) {
+          return resultChargingProfile;
         }
         // Check the TX Default Charging Profiles from the DB
         let txDefaultChargingProfiles = chargingProfiles.filter((chargingProfile) =>
@@ -398,20 +407,20 @@ export default abstract class ChargingStationVendorIntegration {
             chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.TX_DEFAULT_PROFILE
           );
         }
-        result = await this.getCurrentConnectorLimitFromProfiles(
+        resultChargingProfile = await this.getCurrentConnectorLimitFromProfiles(
           tenant, chargingStation, chargePoint, connectorID, txDefaultChargingProfiles);
-        if (result) {
-          return result;
+        if (resultChargingProfile) {
+          return resultChargingProfile;
         }
         // Check the Max Charging Profiles from the DB
         const maxChargingProfiles = chargingProfiles.filter((chargingProfile) =>
           chargingProfile.connectorID === connectorID &&
           chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.CHARGE_POINT_MAX_PROFILE
         );
-        result = await this.getCurrentConnectorLimitFromProfiles(
+        resultChargingProfile = await this.getCurrentConnectorLimitFromProfiles(
           tenant, chargingStation, chargePoint, connectorID, maxChargingProfiles);
-        if (result) {
-          return result;
+        if (resultChargingProfile) {
+          return resultChargingProfile;
         }
       }
       // Check next the power limitation
@@ -419,7 +428,7 @@ export default abstract class ChargingStationVendorIntegration {
         // Read the static limitation from connector
         const connectorLimitAmps = this.getStaticPowerLimitation(chargingStation, chargePoint, connectorID);
         if (connectorLimitAmps > 0) {
-          const result: ConnectorCurrentLimit = {
+          const resultConnector: ConnectorCurrentLimit = {
             limitAmps: connectorLimitAmps,
             limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, connectorLimitAmps),
             limitSource: ConnectorCurrentLimitSource.STATIC_LIMITATION,
@@ -428,11 +437,11 @@ export default abstract class ChargingStationVendorIntegration {
             ...LoggingHelper.getChargingStationProperties(chargingStation),
             tenantID: tenant.id,
             action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-            message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
+            message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${resultConnector.limitAmps} A, ${resultConnector.limitWatts} W, source '${Utils.getConnectorLimitSourceString(resultConnector.limitSource)}'`,
             module: MODULE_NAME, method: 'getCurrentConnectorLimit',
-            detailedMessages: { result }
+            detailedMessages: { result: resultConnector }
           });
-          return result;
+          return resultConnector;
         }
       }
     } catch (error) {

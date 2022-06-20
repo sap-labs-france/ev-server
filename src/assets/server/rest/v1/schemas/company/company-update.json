@@ -20,8 +20,15 @@
       "properties": {
         "accountID": {
           "$ref": "billing-subaccount#/definitions/accountID"
+        },
+        "platformFeeStrategy": {
+          "$ref": "billing-subaccount#/definitions/platformFeeStrategy"
         }
-      }
+      },
+      "required": [
+        "accountID",
+        "platformFeeStrategy"
+      ]
     }
   },
   "required": [

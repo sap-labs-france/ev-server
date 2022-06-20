@@ -273,7 +273,8 @@ export default class SiteStorage {
     }
     if (siteToSave.accountData) {
       siteMDB.accountData = {
-        accountID: DatabaseUtils.convertToObjectID(siteToSave.accountData.accountID)
+        accountID: DatabaseUtils.convertToObjectID(siteToSave.accountData.accountID),
+        platformFeeStrategy: siteToSave.accountData.platformFeeStrategy,
       };
     }
     // Add Last Changed/Created props
