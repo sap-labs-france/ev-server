@@ -91,38 +91,27 @@ export default class SiteService {
     const filteredRequest = SiteValidatorRest.getInstance().validateSiteAssignUsersReq(req.body);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
+      req.tenant, req.user, filteredRequest.siteID, Action.ASSIGN_USERS_TO_SITE, action);
     // Check and Get Users
     const users = await UtilsService.checkAndGetSiteUsersAuthorization(
       req.tenant, req.user, site, filteredRequest.userIDs, action);
+    const serverAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN_USERS_TO_SITE : Action.UNASSIGN_USERS_FROM_SITE;
     // Save
-    if (action === ServerAction.ADD_USERS_TO_SITE) {
-      for (const user of users) {
-        const authorized = AuthorizationService.canPerformAction(user, Action.ASSIGN_USERS_TO_SITE);
-        if (!authorized) {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: req.user,
-            action: Action.ASSIGN_USERS_TO_SITE, entity: Entity.SITE_USER,
-            module: MODULE_NAME, method: 'handleAssignUsersToSite',
-            value: site.id
-          });
-        }
+    for (const user of users) {
+      const authorized = AuthorizationService.canPerformAction(user, serverAction);
+      if (!authorized) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: req.user,
+          action: serverAction, entity: Entity.SITE_USER,
+          module: MODULE_NAME, method: 'handleAssignUsersToSite',
+          value: site.id
+        });
       }
+    }
+    if (action === ServerAction.ADD_USERS_TO_SITE) {
       await SiteStorage.addUsersToSite(req.tenant, site.id, users.map((user) => user.id));
     } else {
-      for (const user of users) {
-        const authorized = AuthorizationService.canPerformAction(user, Action.UNASSIGN_USERS_FROM_SITE);
-        if (!authorized) {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: req.user,
-            action: Action.UNASSIGN_USERS_FROM_SITE, entity: Entity.SITE_USER,
-            module: MODULE_NAME, method: 'handleAssignUsersToSite',
-            value: site.id
-          });
-        }
-      }
       await SiteStorage.removeUsersFromSite(req.tenant, site.id, users.map((user) => user.id));
     }
     await Logging.logInfo({

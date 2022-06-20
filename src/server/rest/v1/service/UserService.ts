@@ -326,8 +326,7 @@ export default class UserService {
     // Filter
     const userID = UserValidatorRest.getInstance().validateUserGetReq(req.query).ID.toString();
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.READ, action, null, null, null);
+    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, userID, Action.READ, action);
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.tenant, user.id);
     res.json(userImage);
@@ -440,7 +439,6 @@ export default class UserService {
     next();
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!(await Authorizations.canImportUsers(req.user)).authorized) {

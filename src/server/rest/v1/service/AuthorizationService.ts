@@ -196,7 +196,6 @@ export default class AuthorizationService {
     return authorizations;
   }
 
-  // LIST
   public static async checkAndGetSiteUsersAuthorizations(tenant: Tenant, userToken: UserToken,
       filteredRequest: Partial<HttpSiteUsersRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
@@ -229,7 +228,7 @@ export default class AuthorizationService {
     return authorizations;
   }
 
-  // ASSIGN/UNASSIGN USERS TO/FROM SITE
+  // Assign/unassign users to/from site
   public static async checkAssignSiteUsersAuthorizations(tenant: Tenant, action: ServerAction, userToken: UserToken,
       filteredRequest: Partial<HttpSiteAssignUsersRequest>): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
@@ -245,7 +244,7 @@ export default class AuthorizationService {
     return authorizations;
   }
 
-  // ASSIGN/UNASSIGN SITES TO/FROM USER
+  // Assign/unassign sites to/from user
   public static async checkAssignUserSitesAuthorizations(
       tenant: Tenant, action: ServerAction, userToken: UserToken,
       filteredRequest: Partial<HttpUserSitesAssignRequest>): Promise<AuthorizationFilter> {
