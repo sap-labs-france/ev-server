@@ -1,7 +1,7 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { BillingAccount, BillingInvoice } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
-import ChargingStation, { ChargePoint } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, Command } from '../../../../types/ChargingStation';
 import { EntityData, URLInfo } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -924,6 +924,43 @@ export default class UtilsService {
       allTypes.push(TransactionInErrorType.NO_BILLING_DATA);
     }
     return allTypes;
+  }
+
+  public static getAuthActionFromOCPPCommand(action: ServerAction, command: Command): Action {
+    switch (command) {
+      case Command.CLEAR_CACHE:
+        return Action.CLEAR_CACHE;
+      case Command.CHANGE_AVAILABILITY:
+        return Action.CHANGE_AVAILABILITY;
+      case Command.GET_CONFIGURATION:
+        return Action.GET_CONFIGURATION;
+      case Command.CHANGE_CONFIGURATION:
+        return Action.CHANGE_CONFIGURATION;
+      case Command.DATA_TRANSFER:
+        return Action.TRIGGER_DATA_TRANSFER;
+      case Command.REMOTE_STOP_TRANSACTION:
+        return Action.REMOTE_STOP_TRANSACTION;
+      case Command.REMOTE_START_TRANSACTION:
+        return Action.REMOTE_START_TRANSACTION;
+      case Command.GET_COMPOSITE_SCHEDULE:
+        return Action.GET_COMPOSITE_SCHEDULE;
+      case Command.GET_DIAGNOSTICS:
+        return Action.GET_DIAGNOSTICS;
+      case Command.UNLOCK_CONNECTOR:
+        return Action.UNLOCK_CONNECTOR;
+      case Command.UPDATE_FIRMWARE:
+        return Action.UPDATE_FIRMWARE;
+      case Command.RESET:
+        return Action.RESET;
+      default:
+        throw new AppError({
+          action,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Could not map the OCPP Command: '${command}', to an authorization action`,
+          module: MODULE_NAME,
+          method: 'getAuthActionFromOCPPCommand',
+        });
+    }
   }
 
   public static assertIdIsProvided(action: ServerAction, id: string|number, module: string, method: string, userToken: UserToken): void {
