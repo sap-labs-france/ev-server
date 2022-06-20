@@ -20,6 +20,7 @@ import { ChargingStationInErrorType } from '../../../../types/InError';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationValidatorRest from '../validator/ChargingStationValidatorRest';
 import ChargingStationVendorFactory from '../../../../integration/charging-station-vendor/ChargingStationVendorFactory';
+import { CommonUtilsService } from '../../../CommonUtilsService';
 import Constants from '../../../../utils/Constants';
 import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../../client/oicp/CpoOICPClient';
@@ -1278,7 +1279,7 @@ export default class ChargingStationService {
     }
     const tag = tags.result[0];
     // Check if user is authorized
-    await UtilsService.isAuthorizedToStopTransaction(req.tenant, chargingStation, transaction, tag.id,
+    await CommonUtilsService.isAuthorizedToStopTransaction(req.tenant, chargingStation, transaction, tag.id,
       ServerAction.OCPP_STOP_TRANSACTION, Action.REMOTE_STOP_TRANSACTION);
     // Set the tag ID to handle the Stop Transaction afterwards
     transaction.remotestop = {
