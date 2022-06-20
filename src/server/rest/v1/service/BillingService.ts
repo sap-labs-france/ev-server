@@ -578,7 +578,7 @@ export default class BillingService {
       Action.BILLING_ONBOARD_SUB_ACCOUNT, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleOnboardAccount');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountGetReq(req.params);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.BILLING_ONBOARD_SUB_ACCOUNT);
+    await AuthorizationService.checkAndGetBillingSubAccountAuthorizations(req.tenant, req.user, filteredRequest, Action.BILLING_ONBOARD_SUB_ACCOUNT);
     const subAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
     // Check if the sub account onboarding is already sent
