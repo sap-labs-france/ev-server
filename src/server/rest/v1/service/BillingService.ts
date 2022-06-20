@@ -578,7 +578,7 @@ export default class BillingService {
       Action.BILLING_ONBOARD_SUB_ACCOUNT, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleOnboardAccount');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountGetReq(req.params);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingSubAccountAuthorizations(req.tenant, req.user, filteredRequest, Action.BILLING_ONBOARD_SUB_ACCOUNT);
+    await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.BILLING_ONBOARD_SUB_ACCOUNT);
     const subAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
     // Check if the sub account onboarding is already sent
@@ -608,7 +608,7 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransfersGetReq(req.query);
     // Check auth
-    const authorizations = await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, filteredRequest /* , false */);
+    const authorizations = await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest /* , false */);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -639,7 +639,7 @@ export default class BillingService {
       Action.BILLING_FINALIZE_TRANSFER, Entity.BILLING_TRANSFER, MODULE_NAME, 'handleFinalizeTransfer');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransferFinalizeReq(req.params);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingSubAccountAuthorizations(req.tenant, req.user, filteredRequest, Action.BILLING_FINALIZE_TRANSFER);
+    await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.BILLING_FINALIZE_TRANSFER);
     const transfer = await BillingStorage.getTransferByID(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, transfer, `Transfer ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleFinalizeTransfer', req.user);
     // Check if the transfer is in draft status

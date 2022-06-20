@@ -181,7 +181,8 @@ export default class BillingRouter {
   }
 
   private buildRouteBillingFinalizeTransfer(): void {
-    this.router.get(`/${RESTServerRoute.REST_BILLING_TRANSFER_FINALIZE}`, (req: Request, res: Response, next: NextFunction) => {
+    this.router.patch(`/${RESTServerRoute.REST_BILLING_TRANSFER_FINALIZE}`, (req: Request, res: Response, next: NextFunction) => {
+      req.params.ID = req.params.id;
       void RouterUtils.handleRestServerAction(BillingService.handleFinalizeTransfer.bind(this), ServerAction.BILLING_TRANSFER_FINALIZE, req, res, next);
     });
   }
