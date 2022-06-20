@@ -335,14 +335,7 @@ export default class UserService {
 
   public static async handleExportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!(await Authorizations.canExportUsers(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.EXPORT, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleExportUsers'
-      });
-    }
+    await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, Action.EXPORT);
     // Force params
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Filter
@@ -409,14 +402,11 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
+  public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUsersInErrorGetReq(req.query);
     // Get authorization filters
     const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(req.tenant, req.user, filteredRequest);
-    if (!authorizationUserInErrorFilters.authorized) {
-      return Constants.DB_EMPTY_DATA_RESULT;
-    }
     // Get users
     const users = await UserStorage.getUsersInError(req.tenant,
       {
@@ -440,15 +430,7 @@ export default class UserService {
   }
 
   public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!(await Authorizations.canImportUsers(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.IMPORT, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleImportUser'
-      });
-    }
+    await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, Action.IMPORT);
     // Acquire the lock
     const importUsersLock = await LockingHelper.acquireImportUsersLock(req.tenant.id);
     if (!importUsersLock) {
@@ -765,16 +747,10 @@ export default class UserService {
 
   private static async getUsers(req: Request, filteredRequest: HttpUsersGetRequest): Promise<DataResult<User>> {
     // Get authorization filters
-    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, filteredRequest);
-    if (!authorizationUsersFilters.authorized) {
-      return Constants.DB_EMPTY_DATA_RESULT;
-    }
+    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest);
     // Optimization: Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
-      const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizations(req.tenant, req.user, filteredRequest);
-      if (!authorizationTagsFilters.authorized) {
-        return Constants.DB_EMPTY_DATA_RESULT;
-      }
+      await AuthorizationService.checkAndGetTagsAuthorizations(req.tenant, req.user, filteredRequest);
       const tagIDs = await TagStorage.getTags(req.tenant, {
         visualIDs: filteredRequest.VisualTagID.split('|'),
         ...authorizationUsersFilters.filters
