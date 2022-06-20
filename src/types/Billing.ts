@@ -1,7 +1,8 @@
-import { AuthorizationActions, BillingInvoiceAuthorizationActions } from './Authorization';
+import { AuthorizationActions, BillingInvoiceAuthorizationActions, BillingTransferAuthorizationActions } from './Authorization';
 
 import { ActionsResponse } from './GlobalType';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import Decimal from 'decimal.js';
 import { PricedConsumptionData } from './Pricing';
 import User from './User';
 
@@ -88,6 +89,7 @@ export interface BillingInvoiceItem {
   transactionID: number;
   currency: string;
   pricingData: PricedConsumptionData[]
+  accountData?: BillingSessionAccountData; // Each session may target a distinct sub-account - but the 4 pricing dimensions MUST share the same info
   headerDescription?: string,
   metadata?: {
     // Just a flat list of key/value pairs!
@@ -98,7 +100,7 @@ export interface BillingInvoiceItem {
 export interface BillingSessionData {
   transactionID: number;
   pricingData: PricedConsumptionData[];
-  transferData?: BillingTransferData; // Each session may target a distinct sub-account
+  accountData?: BillingSessionAccountData; // Each session may target a distinct sub-account
 }
 
 export enum BillingInvoiceStatus {
@@ -149,11 +151,6 @@ export enum BillingErrorCode {
   CARD_ERROR = 'card_error',
 }
 
-export interface BillingAdditionalData {
-  session?: BillingSessionData,
-  lastError?: BillingError,
-}
-
 export enum BillingAccountStatus {
   IDLE = 'idle',
   PENDING = 'pending',
@@ -165,7 +162,7 @@ export interface BillingPlatformFeeStrategy {
   percentage: number; // e.g.: 2% per charging session
 }
 
-export interface BillingAccount extends AuthorizationActions {
+export interface BillingAccount extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
   id?: string;
   businessOwnerID?: string;
   status: BillingAccountStatus;
@@ -175,13 +172,11 @@ export interface BillingAccount extends AuthorizationActions {
 
 export interface BillingAccountData {
   accountID: string;
-  platformFee?: BillingPlatformFeeStrategy;
+  platformFeeStrategy?: BillingPlatformFeeStrategy;
 }
 
-export interface BillingTransferData extends BillingAccountData {
+export interface BillingSessionAccountData extends BillingAccountData {
   withTransferActive: boolean
-  transferID?: string;
-  lastUpdate?: Date;
 }
 
 export enum BillingTransferStatus {
@@ -197,7 +192,7 @@ export interface BillingPlatformFeeData {
   invoiceExternalID?: string; // Invoice sent to the CPO
 }
 
-export interface BillingTransfer {
+export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
   id?: string;
   status: BillingTransferStatus;
   sessions: BillingTransferSession[];
@@ -208,9 +203,16 @@ export interface BillingTransfer {
   transferExternalID?: string; // Transfer sent to the CPO
 }
 
+// Very important - preserve maximal precision - Decimal type is persisted as an object in the DB
+export type BillingAmount = Decimal.Value;
+
 export interface BillingTransferSession {
   transactionID: number;
+  invoiceID: string;
+  invoiceNumber: string;
+  amountAsDecimal: BillingAmount
   amount: number; // ACHTUNG - That one should not include any taxes
-  platformFee: BillingPlatformFeeStrategy;
+  roundedAmount: number;
+  platformFeeStrategy: BillingPlatformFeeStrategy;
 }
 

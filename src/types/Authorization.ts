@@ -281,6 +281,13 @@ export interface ChargingProfileAuthorizationActions extends AuthorizationAction
   canDownload?:boolean;
   canReadSiteArea?:boolean;
 }
+export interface BillingAccountAuthorizationActions extends AuthorizationActions {
+  canOnboard?: boolean;
+}
+
+export interface BillingTransferAuthorizationActions extends AuthorizationActions {
+  canTransfer?: boolean;
+}
 
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',

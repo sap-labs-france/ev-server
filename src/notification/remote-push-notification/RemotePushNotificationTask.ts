@@ -1,16 +1,16 @@
-import { AccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingSubAccountActivationNotification, BillingSubAccountCreationLinkNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
-import User, { UserStatus } from '../../types/User';
+import { Promise } from 'bluebird';
+import admin from 'firebase-admin';
 
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
+import User, { UserStatus } from '../../types/User';
+import { AccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingSubAccountActivationNotification, BillingSubAccountCreationLinkNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import I18nManager from '../../utils/I18nManager';
 import Logging from '../../utils/Logging';
-import NotificationTask from '../NotificationTask';
-import { Promise } from 'bluebird';
-import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import admin from 'firebase-admin';
+import NotificationTask from '../NotificationTask';
 
 const MODULE_NAME = 'RemotePushNotificationTask';
 
@@ -479,26 +479,43 @@ export default class RemotePushNotificationTask implements NotificationTask {
       message = this.createMessage(tenant, notificationType, title, body, data, severity);
       // Get the right firebase app
       const app = this.getFirebaseAppFromTenant(tenant);
-      // Send message
-      admin.messaging(app).sendToDevice(
-        user.mobileToken,
-        message,
-        { priority: 'high', timeToLive: 60 * 60 * 24 }
-      ).then((response) => {
-        // Response is a message ID string.
-        void Logging.logDebug({
-          tenantID: tenant.id,
-          siteID: data?.siteID,
-          siteAreaID: data?.siteAreaID,
-          companyID: data?.companyID,
-          chargingStationID: data?.chargeBoxID,
-          action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-          module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-          message: `Notification Sent: '${notificationType}' - '${title}'`,
-          actionOnUser: user.id,
-          detailedMessages: { message, response }
-        });
-      }).catch((error: Error) => {
+      try {
+        // Send message
+        const response = await admin.messaging(app).sendToDevice(
+          user.mobileToken,
+          message,
+          { priority: 'high', timeToLive: 60 * 60 * 24 }
+        );
+        // Error
+        if (response.failureCount > 0) {
+          void Logging.logError({
+            tenantID: tenant.id,
+            siteID: data?.siteID,
+            siteAreaID: data?.siteAreaID,
+            companyID: data?.companyID,
+            chargingStationID: data?.chargeBoxID,
+            action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+            module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+            message: `Error when sending Notification: '${notificationType}' - Error code: '${response.results[0]?.error?.code}'`,
+            actionOnUser: user.id,
+            detailedMessages: { message, response }
+          });
+        // Success
+        } else {
+          void Logging.logDebug({
+            tenantID: tenant.id,
+            siteID: data?.siteID,
+            siteAreaID: data?.siteAreaID,
+            companyID: data?.companyID,
+            chargingStationID: data?.chargeBoxID,
+            action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+            module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+            message: `Notification Sent: '${notificationType}' - '${title}'`,
+            actionOnUser: user.id,
+            detailedMessages: { message, response }
+          });
+        }
+      } catch (error) {
         void Logging.logError({
           tenantID: tenant.id,
           siteID: data?.siteID,
@@ -507,11 +524,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
           chargingStationID: data?.chargeBoxID,
           action: ServerAction.REMOTE_PUSH_NOTIFICATION,
           module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-          message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
+          message: `Error when sending Notification: '${notificationType}' - '${error.message as string}'`,
           actionOnUser: user.id,
           detailedMessages: { error: error.stack, message }
         });
-      });
+      }
     } finally {
       await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'sendRemotePushNotificationToUser', startTime, notificationType, message, user.id);
     }
