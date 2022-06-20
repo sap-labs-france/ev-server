@@ -48,10 +48,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
     describe('Where admin user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
-      beforeAll(async () => {
-        billingTestHelper.initUserContextAsAdmin();
-      });
-
       // eslint-disable-next-line @typescript-eslint/require-await
       beforeAll(async () => {
         billingTestHelper.initUserContextAsAdmin();
@@ -60,6 +56,16 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should create an invoice, and get transfers generated', async () => {
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // TO DO - GENERATE SEVERAL TRANSACTIONS to TARGET SEVERAL SUB-ACCOUNTS and this GENERATE SEVERAL TRANSFERS!!!!
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
         await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
         const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
         await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');

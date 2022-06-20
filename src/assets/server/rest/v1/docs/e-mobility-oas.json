@@ -16663,10 +16663,10 @@
               }
             }
           },
-          "amount": {
+          "totalAmount": {
             "type": "number"
           },
-          "transferredAmount": {
+          "transferAmount": {
             "type": "number"
           },
           "platformFeeData": {

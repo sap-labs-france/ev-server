@@ -342,8 +342,8 @@ export default class BillingStorage {
     const transferMDB: any = {
       _id: transfer.id ? DatabaseUtils.convertToObjectID(transfer.id) : new ObjectId(),
       status: transfer.status,
-      amount: transfer.amount,
-      transferredAmount: transfer.transferredAmount,
+      totalAmount: transfer.totalAmount,
+      transferAmount: transfer.transferAmount,
       accountID: DatabaseUtils.convertToObjectID(transfer.accountID),
       transferExternalID: transfer.transferExternalID,
       sessions: transfer.sessions.map((session) => ({
