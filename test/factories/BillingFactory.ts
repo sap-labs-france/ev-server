@@ -4,10 +4,10 @@ import { Factory } from 'rosie';
 import faker from 'faker';
 
 export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtransfer')
-  .attr('amount', () => faker.datatype.number())
+  .attr('totalAmount', () => faker.datatype.number())
   .attr('accountID', () => faker.datatype.hexaDecimal(24).substring(2).toLowerCase())
-  .attr('status', () => faker.random.arrayElement([BillingTransferStatus.DRAFT, BillingTransferStatus.PENDING, BillingTransferStatus.TRANSFERRED]))
-  .attr('transferredAmount', () => faker.datatype.number())
+  .attr('status', () => faker.random.arrayElement([BillingTransferStatus.DRAFT, BillingTransferStatus.PENDING, BillingTransferStatus.FINALIZED, BillingTransferStatus.TRANSFERRED]))
+  .attr('transferAmount', () => faker.datatype.number())
   .attr('transferExternalID', () => faker.datatype.uuid())
   .attr('platformFeeData', () => ({
     feeAmount: faker.datatype.number(),

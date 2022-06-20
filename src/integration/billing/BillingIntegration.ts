@@ -765,7 +765,7 @@ export default abstract class BillingIntegration {
       let transfer: BillingTransfer = transfers.result[0];
       if (!transfer) {
         transfer = {
-          accountID, status: BillingTransferStatus.DRAFT, sessions: [], amount: 0, transferredAmount: 0,
+          accountID, status: BillingTransferStatus.DRAFT, sessions: [], totalAmount: 0, transferAmount: 0,
           platformFeeData: null, transferExternalID: null,
         };
       }
@@ -792,7 +792,7 @@ export default abstract class BillingIntegration {
         transferAmountAsDecimal = transferAmountAsDecimal.plus(session.amountAsDecimal);
       });
       // Round the final result only!
-      transfer.amount = Utils.roundTo(transferAmountAsDecimal, 2);
+      transfer.totalAmount = Utils.roundTo(transferAmountAsDecimal, 2);
       // Finally - create or update the transfer
       await BillingStorage.saveTransfer(this.tenant, transfer);
     } catch (error) {
