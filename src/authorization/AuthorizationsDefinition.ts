@@ -400,7 +400,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.BILLING_TRANSFER,
-        action: [Action.LIST]
+        action: [Action.LIST, Action.BILLING_FINALIZE_TRANSFER]
       },
       { resource: Entity.TAX, action: [Action.LIST] },
       {
