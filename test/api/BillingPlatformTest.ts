@@ -60,11 +60,18 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // -------------------------------------------------------------------------------------------------------------
         // -------------------------------------------------------------------------------------------------------------
         // -------------------------------------------------------------------------------------------------------------
+        // TO DO - GENERATE SEVERAL TRANSACTIONS
         // -------------------------------------------------------------------------------------------------------------
-        // TO DO - GENERATE SEVERAL TRANSACTIONS to TARGET SEVERAL SUB-ACCOUNTS and this GENERATE SEVERAL TRANSFERS!!!!
-        // -------------------------------------------------------------------------------------------------------------
-        // -------------------------------------------------------------------------------------------------------------
-        // -------------------------------------------------------------------------------------------------------------
+        // - create and onboard two sub-accounts
+        // - assign a sub-account at a company level (with a platform fee strategy)
+        // - Override the sub-account at a site level (with a distinct platform fee strategy)
+        // - Generate several transactions
+        // - Make sure to select the periodic billing mode and generate DRAFT invoices
+        // - Make sure to have several sessions per invoices
+        // - Make sure each invoices targets SEVERAL SUB-ACCOUNTS
+        // - force the periodic billing and thus GENERATE SEVERAL TRANSFERS
+        // - finalize the transfers!!!!
+        // - send the transfers to STRIPE to generate the real transfer of funds
         // -------------------------------------------------------------------------------------------------------------
         await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
         const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
