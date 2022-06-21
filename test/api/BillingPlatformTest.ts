@@ -48,10 +48,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
     describe('Where admin user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
-      beforeAll(async () => {
-        billingTestHelper.initUserContextAsAdmin();
-      });
-
       // eslint-disable-next-line @typescript-eslint/require-await
       beforeAll(async () => {
         billingTestHelper.initUserContextAsAdmin();
@@ -60,6 +56,23 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should create an invoice, and get transfers generated', async () => {
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // TO DO - GENERATE SEVERAL TRANSACTIONS
+        // -------------------------------------------------------------------------------------------------------------
+        // - create and onboard two sub-accounts
+        // - assign a sub-account at a company level (with a platform fee strategy)
+        // - Override the sub-account at a site level (with a distinct platform fee strategy)
+        // - Generate several transactions
+        // - Make sure to select the periodic billing mode and generate DRAFT invoices
+        // - Make sure to have several sessions per invoices
+        // - Make sure each invoices targets SEVERAL SUB-ACCOUNTS
+        // - force the periodic billing and thus GENERATE SEVERAL TRANSFERS
+        // - finalize the transfers!!!!
+        // - send the transfers to STRIPE to generate the real transfer of funds
+        // -------------------------------------------------------------------------------------------------------------
         await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
         const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
         await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');

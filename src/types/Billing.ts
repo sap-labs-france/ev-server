@@ -182,6 +182,7 @@ export interface BillingSessionAccountData extends BillingAccountData {
 export enum BillingTransferStatus {
   DRAFT = 'draft',
   PENDING = 'pending',
+  FINALIZED = 'finalized',
   TRANSFERRED = 'transferred'
 }
 
@@ -196,8 +197,8 @@ export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAut
   id?: string;
   status: BillingTransferStatus;
   sessions: BillingTransferSession[];
-  amount: number; // Depends on the fee strategy and thus on the final number of sessions
-  transferredAmount: number // Amount transferred after applying platform fees
+  totalAmount: number; // Depends on the fee strategy and thus on the final number of sessions
+  transferAmount: number // Amount transferred after applying platform fees
   accountID: string;
   platformFeeData: BillingPlatformFeeData;
   transferExternalID?: string; // Transfer sent to the CPO
