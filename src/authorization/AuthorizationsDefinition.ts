@@ -944,7 +944,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs',
           'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode', 'connectors.connectorId', 'connectors.currentTotalConsumptionWh',
           'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode', 'connectors.currentTransactionID',
-          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connector.chargePointID', 'connector.tariffID',
+          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connectors.chargePointID', 'connectors.tariffID', 'connectors.currentTransactionDate', 'connectors.currentTagID',
           'connectors.user.name', 'connectors.user.firstName',
           'siteArea', 'site', 'siteID',
         ]
@@ -1265,7 +1265,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs',
           'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode', 'connectors.connectorId', 'connectors.currentTotalConsumptionWh',
           'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode', 'connectors.currentTransactionID',
-          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connector.chargePointID', 'connector.tariffID',
+          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connectors.chargePointID', 'connectors.tariffID','connectors.currentTransactionDate', 'connectors.currentTagID',
           'connectors.user.name', 'connectors.user.firstName',
           'siteArea', 'site', 'siteID',
         ]
@@ -1603,7 +1603,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs',
           'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode', 'connectors.connectorId', 'connectors.currentTotalConsumptionWh',
           'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode', 'connectors.currentTransactionID',
-          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connector.chargePointID', 'connector.tariffID',
+          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connectors.chargePointID', 'connectors.tariffID','connectors.currentTransactionDate', 'connectors.currentTagID',
           'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email',
           'siteArea', 'site', 'siteID',
         ]
