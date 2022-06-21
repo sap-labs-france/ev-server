@@ -284,6 +284,10 @@ export default class AuthorizationService {
       tenant, userToken, Entity.USER, Action.EXPORT, authorizationFilter);
     users.canImport = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USER, Action.IMPORT, authorizationFilter);
+    users.canListTags = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TAG, Action.LIST, authorizationFilter);
+    users.canListSites = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter);
     for (const user of users.result) {
       await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
     }

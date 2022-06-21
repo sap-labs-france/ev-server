@@ -74,6 +74,8 @@ export interface UserDataResult extends DataResult<User> {
   canCreate: boolean;
   canExport: boolean;
   canImport: boolean;
+  canListTags: boolean;
+  canListSites: boolean;
 }
 export interface TagDataResult extends DataResult<Tag> {
   canCreate: boolean;
