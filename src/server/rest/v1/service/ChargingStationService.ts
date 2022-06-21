@@ -411,8 +411,13 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationGetReq({ ...req.params, ...req.query });
     // Check dynamic auth
-    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+    let chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withSite: filteredRequest.WithSite, withSiteArea: filteredRequest.WithSiteArea }, true);
+    // Return additional fields if user can update charging station
+    if (chargingStation.canUpdate) {
+      chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+        req.tenant, req.user, filteredRequest.ID, Action.UPDATE, action, null, { withSite: filteredRequest.WithSite, withSiteArea: filteredRequest.WithSiteArea }, true);
+    }
     res.json(chargingStation);
     next();
   }

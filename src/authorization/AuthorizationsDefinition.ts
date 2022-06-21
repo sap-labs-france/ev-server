@@ -340,7 +340,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
           'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
           'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode',
-          'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn', 'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email'
+          'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'lastReboot', 'createdOn',
+          'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email',
+          'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
+          'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
+          'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs'
         ]
       },
       {
@@ -916,8 +920,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
           'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
           'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode',
-          'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'chargePoints', 'lastReboot', 'createdOn',
-          'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email', 'companyID'
+          'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'lastReboot', 'createdOn',
+          'connectors.user.name', 'connectors.user.firstName', 'companyID',
+          'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
+          'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
+          'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs'
         ]
       },
       {
@@ -929,6 +936,18 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: [['AssignedSites', 'IncludeAllExternalSites']]
           }
         },
+        attributes: [
+          'id','issuer','public','siteAreaID','lastSeen','inactive','isUnavailable','forceInactive','manualConfiguration','voltage','coordinates','chargingStationURL', 'forceInactive',
+          'tariffID', 'maximumPower', 'masterSlave',
+          'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
+          'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
+          'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs',
+          'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode', 'connectors.connectorId', 'connectors.currentTotalConsumptionWh',
+          'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode', 'connectors.currentTransactionID',
+          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connector.chargePointID', 'connector.tariffID',
+          'connectors.user.name', 'connectors.user.firstName',
+          'siteArea', 'site', 'siteID',
+        ]
       },
       {
         resource: Entity.CHARGING_STATION, action: [Action.RESERVE_NOW, Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION],
@@ -1210,16 +1229,47 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CHARGING_STATION, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+          }
+        },
         attributes: [
           'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'lastSeen', 'coordinates', 'issuer', 'voltage', 'distanceMeters',
-          'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.smartCharging', 'site.id', 'site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
+          'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
           'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
           'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode',
-          'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'chargePoints', 'createdOn',
-          'companyID', 'masterSlave', 'excludeFromSmartCharging', 'forceInactive', 'manualConfiguration'
+          'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'lastReboot', 'createdOn',
+          'connectors.user.name', 'connectors.user.firstName', 'companyID',
+          'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
+          'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
+          'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs'
         ]
       },
-      { resource: Entity.CHARGING_STATION, action: Action.READ },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+          }
+        },
+        attributes: [
+          'id', 'issuer', 'public', 'siteAreaID', 'lastSeen', 'inactive', 'isUnavailable', 'forceInactive', 'manualConfiguration', 'voltage', 'coordinates', 'chargingStationURL',
+          'forceInactive', 'tariffID', 'maximumPower', 'masterSlave',
+          'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
+          'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
+          'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs',
+          'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode', 'connectors.connectorId', 'connectors.currentTotalConsumptionWh',
+          'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode', 'connectors.currentTransactionID',
+          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connector.chargePointID', 'connector.tariffID',
+          'connectors.user.name', 'connectors.user.firstName',
+          'siteArea', 'site', 'siteID',
+        ]
+      },
       { resource: Entity.CHARGING_STATION, action: [Action.GET_CONNECTOR_QR_CODE] },
       { resource: Entity.TRANSACTION, action: Action.LIST },
       { resource: Entity.TRANSACTION, action: Action.READ },
@@ -1514,6 +1564,49 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: ['SitesAdmin']
           }
         }
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+          }
+        },
+        attributes: [
+          'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'lastSeen', 'coordinates', 'issuer', 'voltage', 'distanceMeters',
+          'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
+          'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
+          'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode',
+          'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'lastReboot', 'createdOn',
+          'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email', 'companyID',
+          'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
+          'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
+          'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs'
+        ]
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+          },
+        },
+        attributes: [
+          'id', 'issuer', 'public', 'siteAreaID', 'lastSeen', 'inactive', 'isUnavailable', 'forceInactive', 'manualConfiguration', 'voltage', 'coordinates', 'chargingStationURL',
+          'forceInactive', 'tariffID', 'maximumPower', 'masterSlave',
+          'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
+          'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
+          'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs',
+          'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode', 'connectors.connectorId', 'connectors.currentTotalConsumptionWh',
+          'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode', 'connectors.currentTransactionID',
+          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connector.chargePointID', 'connector.tariffID',
+          'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email',
+          'siteArea', 'site', 'siteID',
+        ]
       },
       {
         resource: Entity.CHARGING_STATION,
