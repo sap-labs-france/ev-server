@@ -242,7 +242,7 @@ export default class AuthService {
     // Create default Tag
     if (req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
       const tag: Tag = {
-        id: Utils.generateTagID(newUser.name, newUser.firstName),
+        id: await TagStorage.findAvailableID(tenant),
         active: true,
         issuer: true,
         userID: newUser.id,

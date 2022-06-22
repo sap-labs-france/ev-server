@@ -137,7 +137,7 @@ export default class OCPPValidator extends SchemaValidator {
     // Transaction ID is provided on Connector
     if (foundConnector?.currentTransactionID > 0) {
       // Check if provided in Meter Values
-      if (Utils.isNullOrUndefined(meterValues.transactionId) && foundConnector.currentTransactionID > 0) {
+      if (meterValues.transactionId === 0 && foundConnector.currentTransactionID > 0) {
         // Reuse Transaction ID from Connector
         meterValues.transactionId = foundConnector.currentTransactionID;
         await Logging.logWarning({
@@ -145,16 +145,18 @@ export default class OCPPValidator extends SchemaValidator {
           tenantID: tenantID,
           module: MODULE_NAME, method: 'validateMeterValues',
           action: ServerAction.OCPP_METER_VALUES,
-          message: `Transaction ID '${meterValues.transactionId}' not found in Meter Values but retrieved from Connector '${foundConnector.currentTransactionID}'`
+          message: `Transaction ID '${meterValues.transactionId}' not found in Meter Values but retrieved from Connector ID '${foundConnector.connectorId}'`
         });
       }
     }
   }
 
   private cleanUpTagID(tagID: string): string {
-    // Handle bug in Tag ID ending with ;NULL on some Charging Stations
-    if (tagID && typeof tagID === 'string' && tagID.toLowerCase().endsWith(';null')) {
-      tagID = tagID.slice(0, tagID.length - 5);
+    // Handle Tag ID containing ';' usually sent by Charging Station's payment terminals
+    if (tagID &&
+        typeof tagID === 'string' &&
+        tagID.toLowerCase().includes(';')) {
+      tagID = tagID.split(';')[1];
     }
     return tagID;
   }

@@ -1,13 +1,24 @@
 {
-  "$id": "billing-sub-accounts-get",
-  "title": "Get billing sub accounts Request",
+  "$id": "billing-transfers-get",
+  "title": "Get billing transfers Request",
   "type": "object",
   "properties": {
     "ID": {
       "$ref": "common#/definitions/ids"
     },
-    "userID": {
+    "Status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "draft",
+        "transferred"
+      ]
+    },
+    "AccountID": {
       "$ref": "common#/definitions/ids"
+    },
+    "TransferExternalID": {
+      "type": "string"
     },
     "Search": {
       "$ref": "common#/definitions/search"
