@@ -1842,11 +1842,11 @@ export default class OCPPUtils {
   private static async isValidConsumption(meterValueWh: number, lastMeterValueWh: number, durationSecs: number, chargingStation: ChargingStation, transaction: Transaction,
       tenantID: string, meterValue: OCPPNormalizedMeterValue): Promise<boolean> {
     // Calculate consumed energy
-    const consumedWh = meterValueWh - lastMeterValueWh;
+    const consumptionWh = Utils.createDecimal(meterValueWh).minus(lastMeterValueWh).toNumber();
     // Calculate max drawable energy plus buffer of 20%
     const maxWh = Utils.createDecimal(Utils.getChargingStationPower(chargingStation, null, transaction.connectorId)).div(3600).mul(durationSecs).mul(1.2).toNumber();
     // Compare values
-    if ((maxWh > 0 && consumedWh > maxWh) || meterValueWh < lastMeterValueWh) {
+    if ((maxWh > 0 && consumptionWh > maxWh) || meterValueWh < lastMeterValueWh) {
       await Logging.logError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenantID,
