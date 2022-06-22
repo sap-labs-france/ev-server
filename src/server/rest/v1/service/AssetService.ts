@@ -322,11 +322,8 @@ export default class AssetService {
   public static async handleGetAssetImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // This endpoint is not protected, so no need to check user's access
     const filteredRequest = AssetValidatorRest.getInstance().validateAssetGetImageReq(req.query);
-    // Get the tenant
-    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
-    UtilsService.assertObjectExists(action, tenant, 'Tenant does not exist', MODULE_NAME, 'handleGetAssetImage', req.user);
     // Get the image
-    const assetImage = await AssetStorage.getAssetImage(tenant, filteredRequest.ID);
+    const assetImage = await AssetStorage.getAssetImage(req.tenant, filteredRequest.ID);
     let image = assetImage?.image;
     if (image) {
       // Header

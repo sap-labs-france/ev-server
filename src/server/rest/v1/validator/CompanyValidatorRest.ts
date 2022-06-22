@@ -1,4 +1,4 @@
-import { HttpCompaniesGetRequest, HttpCompanyDeleteRequest, HttpCompanyGetRequest, HttpCompanyLogoGetRequest } from '../../../../types/requests/HttpCompanyRequest';
+import { HttpCompaniesGetRequest, HttpCompanyDeleteRequest, HttpCompanyGetRequest } from '../../../../types/requests/HttpCompanyRequest';
 
 import Company from '../../../../types/Company';
 import Schema from '../../../../types/validator/Schema';
@@ -46,7 +46,7 @@ export default class CompanyValidatorRest extends SchemaValidator {
     return this.validate(this.companyUpdate, data);
   }
 
-  public validateCompanyLogoGetReq(data: Record<string, unknown>): HttpCompanyLogoGetRequest {
+  public validateCompanyLogoGetReq(data: Record<string, unknown>): HttpCompanyGetRequest {
     return this.validate(this.companyLogoGet, data);
   }
 }

@@ -662,27 +662,28 @@ export default class Logging {
     if (req.user && req.user.tenantID) {
       tenantID = req.user.tenantID;
     }
-    let statusCode;
     // Log App Error
     if (exception instanceof AppError) {
       await Logging.logActionAppException(tenantID, action, exception);
-      statusCode = exception.params.errorCode;
     // Log Backend Error
     } else if (exception instanceof BackendError) {
       await Logging.logActionBackendException(tenantID, action, exception);
-      statusCode = HTTPError.GENERAL_ERROR;
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       await Logging.logActionAppAuthException(tenantID, action, exception);
-      statusCode = exception.params.errorCode;
     } else {
       await Logging.logActionException(tenantID, action, exception);
     }
     // Send error
     if (!res.headersSent) {
-      res.status(statusCode ? statusCode : HTTPError.GENERAL_ERROR).send({
-        'message': Utils.hideShowMessage(exception.message)
-      });
+      const errorCode = exception['params'] ? exception['params']['errorCode'] : HTTPError.GENERAL_ERROR;
+      res.status(errorCode)
+        .send({
+          errorCode,
+          errorMessage: Utils.hideShowMessage(exception.message),
+          errorDetailedMessage: Utils.hideShowMessage(
+            exception['params'] ? exception['params']['detailedMessages'] : null),
+        });
     }
     next();
   }
@@ -794,17 +795,7 @@ export default class Logging {
   }
 
   private static async logActionAppException(tenantID: string, action: ServerAction, exception: AppError, detailedMessages = {}): Promise<void> {
-    // Add Exception stack
-    if (exception.params.detailedMessages) {
-      exception.params.detailedMessages = {
-        'error': exception.stack,
-        'previous': exception.params.detailedMessages
-      };
-    } else {
-      exception.params.detailedMessages = {
-        'error': exception.stack,
-      };
-    }
+    Utils.handleExpetionDetailedMessages(exception);
     await Logging.logError({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,

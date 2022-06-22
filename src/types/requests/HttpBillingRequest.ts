@@ -35,7 +35,6 @@ export interface HttpBillingSubAccountCreateRequest {
 
 export interface HttpBillingSubAccountActivateRequest {
   ID: string;
-  TenantID: string;
 }
 
 export interface HttpBillingSubAccountsGetRequest extends HttpDatabaseRequest {

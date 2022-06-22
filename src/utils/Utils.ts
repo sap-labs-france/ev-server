@@ -10,6 +10,7 @@ import crypto, { CipherGCMTypes, randomUUID } from 'crypto';
 import global, { EntityData } from '../types/GlobalType';
 
 import Address from '../types/Address';
+import AppError from '../exception/AppError';
 import { AxiosError } from 'axios';
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
@@ -1715,5 +1716,33 @@ export default class Utils {
       totalDurationSecs = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     }
     return moment.duration(totalDurationSecs, 's').format('h[h]mm', { trim: false });
+  }
+
+  public static handleExpetionDetailedMessages(exception: AppError): void {
+    // Add Exception stack
+    if (exception.params.detailedMessages) {
+      // Error already provided (previous exception)
+      if (exception.params.detailedMessages.error) {
+        // Keep the previous exception
+        exception.params.detailedMessages = {
+          ...exception.params.detailedMessages,
+          error: exception.stack,
+          previous: {
+            error: exception.params.detailedMessages.error
+          }
+        };
+      } else {
+        // Add error and keep detailed messages
+        exception.params.detailedMessages = {
+          ...exception.params.detailedMessages,
+          error: exception.stack,
+        };
+      }
+    } else {
+      // Create detailed messages with Error stack
+      exception.params.detailedMessages = {
+        error: exception.stack,
+      };
+    }
   }
 }

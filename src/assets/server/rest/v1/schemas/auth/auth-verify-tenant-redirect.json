@@ -1,0 +1,24 @@
+{
+  "$id": "auth-verify-tenant-redirect",
+  "title": "Verify tenant redirect",
+  "type": "object",
+  "properties": {
+    "tenant": {
+      "$ref": "common#/definitions/authSubdomain"
+    },
+    "Tenant": {
+      "$ref": "common#/definitions/authSubdomain"
+    },
+    "ID": {
+      "$ref": "common#/definitions/id"
+    },
+    "Subdomain": {
+      "$ref": "common#/definitions/authSubdomain"
+    },
+    "TenantID": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+  ]
+}

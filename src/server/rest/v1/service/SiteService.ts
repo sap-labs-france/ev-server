@@ -254,21 +254,8 @@ export default class SiteService {
     // This endpoint is not protected, so no need to check user's access
     const filteredRequest = SiteValidatorRest.getInstance().validateSiteGetImageReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteImage', req.user);
-    if (!filteredRequest.TenantID) {
-      // Object does not exist
-      throw new AppError({
-        action,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The ID must be provided',
-        module: MODULE_NAME, method: 'handleGetSiteImage',
-      });
-    }
-    // Get Tenant
-    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
-    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`,
-      MODULE_NAME, 'handleGetSiteImage', req.user);
     // Get the image
-    const siteImage = await SiteStorage.getSiteImage(tenant, filteredRequest.ID);
+    const siteImage = await SiteStorage.getSiteImage(req.tenant, filteredRequest.ID);
     let image = siteImage?.image;
     if (image) {
       // Header

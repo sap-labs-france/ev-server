@@ -19,7 +19,3 @@ export interface HttpCompaniesGetRequest extends HttpDatabaseRequest {
   LocLatitude?: number;
   LocMaxDistanceMeters?: number;
 }
-
-export interface HttpCompanyLogoGetRequest extends HttpCompanyGetRequest {
-  TenantID: string;
-}

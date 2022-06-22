@@ -19,7 +19,10 @@ export interface HttpTenantsGetRequest extends HttpDatabaseRequest {
   WithComponents?: boolean;
 }
 
-export interface HttpTenantLogoGetRequest {
-  ID?: string;
+export interface HttpTenantVerifyRedirectRequest {
+  tenant?: string;
+  Tenant?: string;
   Subdomain?: string;
+  ID?: string;
+  TenantID?: string;
 }
