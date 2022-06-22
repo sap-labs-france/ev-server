@@ -664,7 +664,7 @@ export default class OCPPUtils {
         const meterValueWh = meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT_HOUR ?
           Utils.createDecimal(Utils.convertToFloat(meterValue.value)).mul(1000).toNumber() : Utils.convertToFloat(meterValue.value);
         // Check if valid Consumption
-        if (meterValueWh > lastConsumption.value) {
+        if (await OCPPUtils.isValidConsumption(meterValueWh, lastConsumption.value, durationSecs, chargingStation, transaction, tenant.id, meterValue)) {
           // Compute consumption
           consumption.consumptionWh = Utils.createDecimal(meterValueWh).minus(lastConsumption.value).toNumber();
           consumption.consumptionAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, consumption.consumptionWh);
@@ -1837,5 +1837,26 @@ export default class OCPPUtils {
       chargePoint.power += connector.power;
       chargePoint.connectorIDs.push(connector.connectorId);
     }
+  }
+
+  private static async isValidConsumption(meterValueWh: number, lastMeterValueWh: number, durationSecs: number, chargingStation: ChargingStation, transaction: Transaction,
+      tenantID: string, meterValue: OCPPNormalizedMeterValue): Promise<boolean> {
+    // Calculate consumed energy
+    const consumedWh = meterValueWh - lastMeterValueWh;
+    // Calculate max drawable energy plus buffer of 20%
+    const maxWh = Utils.createDecimal(Utils.getChargingStationPower(chargingStation, null, transaction.connectorId)).div(3600).mul(durationSecs).mul(1.2).toNumber();
+    // Compare values
+    if ((maxWh > 0 && consumedWh > maxWh) || meterValueWh < lastMeterValueWh) {
+      await Logging.logError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenantID,
+        module: MODULE_NAME, method: 'isValidConsumption',
+        action: ServerAction.OCPP_METER_VALUES,
+        message: 'Energy consumption is not valid and will be ignored',
+        detailedMessages: { meterValue, transaction }
+      });
+      return false;
+    }
+    return true;
   }
 }
