@@ -795,7 +795,7 @@ export default class Logging {
   }
 
   private static async logActionAppException(tenantID: string, action: ServerAction, exception: AppError, detailedMessages = {}): Promise<void> {
-    Utils.handleExpetionDetailedMessages(exception);
+    Utils.handleExceptionDetailedMessages(exception);
     await Logging.logError({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
