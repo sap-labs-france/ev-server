@@ -15,7 +15,6 @@ import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
-import BackendError from '../../../../exception/BackendError';
 import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
@@ -45,7 +44,6 @@ import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Transaction from '../../../../types/Transaction';
 import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -956,7 +954,7 @@ export default class UtilsService {
         throw new AppError({
           action,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Could not map the OCPP Command: '${command}', to an authorization action`,
+          message: `Could not map the OCPP Command '${command}' to an authorization action`,
           module: MODULE_NAME,
           method: 'getAuthActionFromOCPPCommand',
         });
