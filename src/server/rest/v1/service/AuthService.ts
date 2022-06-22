@@ -242,7 +242,7 @@ export default class AuthService {
     // Create default Tag
     if (req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
       const tag: Tag = {
-        id: await TagStorage.findAvailableID(tenant),
+        id: await TagStorage.findAvailableID(req.tenant),
         active: true,
         issuer: true,
         userID: newUser.id,
@@ -685,7 +685,7 @@ export default class AuthService {
   }
 
   public static async checkUserLogin(action: ServerAction, tenant: Tenant, user: User,
-    filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
+      filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
     // User Found?
     if (!user) {
       throw new AppError({
