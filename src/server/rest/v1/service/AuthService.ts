@@ -56,7 +56,7 @@ export default class AuthService {
     return passport.authenticate('jwt', { session: false });
   }
 
-  public static async checkTenantValidty(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async checkTenantValidity(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Methods to ignore
     if (req.url !== '/signout' && req.url !== '/ping' && !req.url.startsWith('/car-catalogs') && !req.url.startsWith('/charging-stations/firmware/download') && !req.url.startsWith('/billing/sub-accounts')) {
       try {
@@ -88,7 +88,7 @@ export default class AuthService {
             errorCode: HTTPError.GENERAL_ERROR,
             message: 'The ID or the Subdomain must be provided',
             module: MODULE_NAME,
-            method: 'checkTenantValidty',
+            method: 'checkTenantValidity',
           });
         }
         if (tenantID) {
@@ -101,14 +101,14 @@ export default class AuthService {
             errorCode: StatusCodes.NOT_FOUND,
             message: `Unknown tenant '${tenantID}'!`,
             module: MODULE_NAME,
-            method: 'checkTenantValidty',
+            method: 'checkTenantValidity',
           });
         }
         if (tenant.redirectToURL) {
           throw new AppError({
             errorCode: StatusCodes.MOVED_PERMANENTLY,
             message: ReasonPhrases.MOVED_PERMANENTLY,
-            module: MODULE_NAME, method: 'checkTenantValidty',
+            module: MODULE_NAME, method: 'checkTenantValidity',
             user: req.user,
             detailedMessages: {
               redirectToURL: tenant.redirectToURL

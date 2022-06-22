@@ -42,7 +42,7 @@ export default class GlobalRouterV1 {
 
   protected buildRouteAuth(): void {
     this.router.use('/auth',
-      AuthService.checkTenantValidty.bind(this),
+      AuthService.checkTenantValidity.bind(this),
       new AuthRouter().buildRoutes()
     );
   }
@@ -77,7 +77,7 @@ export default class GlobalRouterV1 {
 
   protected buildRouteUtil(): void {
     this.router.use('/util',
-      AuthService.checkTenantValidty.bind(this),
+      AuthService.checkTenantValidity.bind(this),
       new UtilRouter().buildRoutes());
   }
 
