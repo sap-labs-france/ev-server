@@ -105,7 +105,7 @@ export default class AssetGetConsumptionTask extends TenantSchedulerTask {
 
   private processSmartChargingFromAsset(asset: Asset, triggerSmartChargingSiteAreas: SiteArea[], smartChargingActive: boolean) {
     // Check if variation since last smart charging run exceeds the variation threshold
-    if (smartChargingActive && this.checkVariationSinceLastSmartChargingRun(asset)) {
+    if (smartChargingActive && this.checkVariationSinceLastSmartChargingRun(asset) && !asset.excludeFromSmartCharging) {
       // Check if Site Area is already pushed
       const siteAreaAlreadyPushed = triggerSmartChargingSiteAreas.findIndex((siteArea) => siteArea.id === asset.siteArea.id);
       if (siteAreaAlreadyPushed === -1) {
