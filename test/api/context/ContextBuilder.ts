@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable max-len */
 import ContextDefinition, { TenantDefinition } from './ContextDefinition';
 import PricingDefinition, { PricingEntity } from '../../../src/types/Pricing';
 import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
@@ -348,6 +350,12 @@ export default class ContextBuilder {
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
               console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
               const newChargingStationContext = await newTenantContext.createSinglePhasedChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            } else if (siteAreaModel.name === `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS}`) {
+              chargingStationTemplate = Factory.chargingStation.buildChargingStationDC();
+              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
+              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
+              const newChargingStationContext = await newTenantContext.createChargingStationDC(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
               await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
             } else if (siteAreaModel.name === `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`) {
               chargingStationTemplate = Factory.chargingStation.buildChargingStationDC();

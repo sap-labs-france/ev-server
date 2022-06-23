@@ -968,7 +968,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         const transactionID = await billingTestHelper.generateTransactionWithWrongMeterValues(billingTestHelper.userContext);
         assert(transactionID, 'transactionID should not be null');
         // Check that we have a new invoice with an invoiceID and an invoiceNumber
-        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 1502.00);
+        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 17.00);
       });
 
     });

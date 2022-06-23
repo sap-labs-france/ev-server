@@ -109,8 +109,8 @@ export default class BillingTestHelper {
 
   public async initChargingStationContext2TestChargingTime() : Promise<ChargingStationContext> {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
-    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
-    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED + '-singlePhased');
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS);
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
     const dimensions = {
       flatFee: {
@@ -128,8 +128,8 @@ export default class BillingTestHelper {
 
   public async initChargingStationContext2TestCS3Phased(testMode = 'FF+E') : Promise<ChargingStationContext> {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
-    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
-    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS);
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
     let dimensions: PricingDimensions;
     if (testMode === 'FF+E(STEP)') {
@@ -657,11 +657,18 @@ export default class BillingTestHelper {
     const currentTime = startDate.clone();
     let cumulated = 0;
     // Send meter values
-    for (let index = 0; index < 60; index++) {
-      cumulated += meterValue * 100;
+    for (let index = 0; index < 50; index++) {
+      cumulated += meterValue;
       await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
     }
-    // assert(cumulated === meterStop, 'Inconsistent meter values - cumulated energy should equal meterStop - ' + cumulated);
+    // Wrong meter value
+    const wrongAccumulatedValue = cumulated + (meterValue * 100);
+    await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, wrongAccumulatedValue);
+    // send normal meter values again
+    for (let index = 0; index < 10; index++) {
+      cumulated += meterValue;
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
+    }
     const stopDate = startDate.clone().add(1, 'hour');
     const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
     if (stopTransactionResponse.idTagInfo.status !== expectedStatus) {
@@ -759,7 +766,7 @@ export default class BillingTestHelper {
 
     // Set a default value
     expectedStartDate = expectedStartDate || new Date();
-    connectorType = connectorType || ConnectorType.TYPE_2;
+    connectorType = connectorType || ConnectorType.COMBO_CCS;
 
     const tariffName = testMode;
     const tariff: Partial<PricingDefinition> = {

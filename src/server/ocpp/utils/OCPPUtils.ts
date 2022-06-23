@@ -664,7 +664,8 @@ export default class OCPPUtils {
         const meterValueWh = meterValue.attribute.unit === OCPPUnitOfMeasure.KILO_WATT_HOUR ?
           Utils.createDecimal(Utils.convertToFloat(meterValue.value)).mul(1000).toNumber() : Utils.convertToFloat(meterValue.value);
         // Check if valid Consumption
-        if (await OCPPUtils.isValidConsumption(meterValueWh, lastConsumption.value, durationSecs, chargingStation, transaction, tenant.id, meterValue)) {
+        if (meterValueWh > lastConsumption.value
+          && await OCPPUtils.isValidConsumption(meterValueWh, lastConsumption.value, durationSecs, chargingStation, transaction, tenant.id, meterValue)) {
           // Compute consumption
           consumption.consumptionWh = Utils.createDecimal(meterValueWh).minus(lastConsumption.value).toNumber();
           consumption.consumptionAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, consumption.consumptionWh);
@@ -1844,7 +1845,8 @@ export default class OCPPUtils {
     // Calculate consumed energy
     const consumptionWh = Utils.createDecimal(meterValueWh).minus(lastMeterValueWh).toNumber();
     // Calculate max drawable energy plus buffer of 20%
-    const maxWh = Utils.createDecimal(Utils.getChargingStationPower(chargingStation, null, transaction.connectorId)).div(3600).mul(durationSecs).mul(1.2).toNumber();
+    const power = Utils.getChargingStationPower(chargingStation, null, transaction.connectorId);
+    const maxWh = Utils.createDecimal(power).div(3600).mul(durationSecs).mul(1.2).toNumber();
     // Compare values
     if ((maxWh > 0 && consumptionWh > maxWh)) {
       await Logging.logError({
