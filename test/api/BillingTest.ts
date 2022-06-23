@@ -960,7 +960,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 19.49);
       });
 
-      it('detect inconsistent meter values', async () => {
+      it('should detect and ignore inconsistent meter values', async () => {
         await billingTestHelper.initChargingStationContext2TestCS3Phased();
         await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
         const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
