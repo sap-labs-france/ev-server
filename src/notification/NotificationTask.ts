@@ -29,10 +29,7 @@ export default interface NotificationTask {
   sendComputeAndApplyChargingProfilesFailed(data: ComputeAndApplyChargingProfilesFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
   sendSessionNotStarted(data: SessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
   sendEndUserErrorNotification(data: Partial<EndUserErrorNotification>, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
-  // TODO : Delete sendBillingNewInvoice ???
   sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
-  sendBillingNewInvoicePaid(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
-  sendBillingNewInvoiceOpen(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
   sendBillingSubAccountCreationLink(data: BillingSubAccountCreationLinkNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
   sendBillingSubAccountActivationNotification(data: BillingSubAccountActivationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
   sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
