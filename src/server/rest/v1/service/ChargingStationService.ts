@@ -69,7 +69,7 @@ export default class ChargingStationService {
     let siteArea: SiteArea = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-        req.tenant, req.user, filteredRequest.siteAreaID, Action.READ, action, null, { issuer: true, withSite: true });
+        req.tenant, req.user, filteredRequest.siteAreaID, Action.READ, action, null, { withSite: true });
     }
     // Update props
     ChargingStationService.updateChargingStationCommonProperties(action, req.tenant, chargingStation, siteArea, req.user, filteredRequest);

@@ -921,7 +921,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
           'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode',
           'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'lastReboot', 'createdOn',
-          'connectors.user.name', 'connectors.user.firstName', 'companyID',
+          'companyID',
           'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
           'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
           'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs'
