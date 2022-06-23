@@ -1,4 +1,4 @@
-import { HttpTenantDeleteRequest, HttpTenantGetRequest, HttpTenantsGetRequest } from '../../../../types/requests/HttpTenantRequest';
+import { HttpTenantDeleteRequest, HttpTenantGetRequest, HttpTenantLogoGetRequest, HttpTenantsGetRequest } from '../../../../types/requests/HttpTenantRequest';
 
 import AppError from '../../../../exception/AppError';
 import { HTTPError } from '../../../../types/HTTPError';
@@ -12,6 +12,7 @@ export default class TenantValidatorRest extends SchemaValidator {
   private static instance: TenantValidatorRest|null = null;
   private tenantCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create.json`, 'utf8'));
   private tenantUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update.json`, 'utf8'));
+  private tenantLogoGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-logo-get.json`, 'utf8'));
   private tenantGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get.json`, 'utf8'));
   private tenantDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete.json`, 'utf8'));
   private tenantsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenants-get.json`, 'utf8'));
@@ -37,6 +38,10 @@ export default class TenantValidatorRest extends SchemaValidator {
     const tenant: Tenant = this.validate(this.tenantUpdate, data);
     this.validateComponentDependencies(tenant);
     return tenant;
+  }
+
+  public validateLogoGetReq(data: Record<string, unknown>): HttpTenantLogoGetRequest {
+    return this.validate(this.tenantLogoGet, data);
   }
 
   public validateTenantGetReq(data: Record<string, unknown>): HttpTenantGetRequest {

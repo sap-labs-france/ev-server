@@ -1711,7 +1711,7 @@ export default class Utils {
     return moment.duration(totalDurationSecs, 's').format('h[h]mm', { trim: false });
   }
 
-  public static handleExceptionDetailedMessages(exception: AppError): void {
+  public static handleExceptionDetailedMessages(exception: AppError | BackendError): void {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       // Error already provided (previous exception)

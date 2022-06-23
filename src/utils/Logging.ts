@@ -813,17 +813,7 @@ export default class Logging {
   }
 
   private static async logActionBackendException(tenantID: string, action: ServerAction, exception: BackendError, detailedMessages = {}): Promise<void> {
-    // Add Exception stack
-    if (exception.params.detailedMessages) {
-      exception.params.detailedMessages = {
-        'error': exception.stack,
-        'previous': exception.params.detailedMessages
-      };
-    } else {
-      exception.params.detailedMessages = {
-        'error': exception.stack,
-      };
-    }
+    Utils.handleExceptionDetailedMessages(exception);
     await Logging.logError({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,

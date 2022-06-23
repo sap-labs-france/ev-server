@@ -4,6 +4,7 @@ import AuthService from '../service/AuthService';
 import BillingRouter from './api/BillingRouter';
 import CarRouter from './api/CarRouter';
 import ChargingStationRouter from './api/ChargingStationRouter';
+import CommonService from '../service/CommonService';
 import CompanyRouter from './api/CompanyRouter';
 import ConnectionRouter from './api/ConnectionRouter';
 import LoggingRouter from './api/LogRouter';
@@ -42,7 +43,7 @@ export default class GlobalRouterV1 {
 
   protected buildRouteAuth(): void {
     this.router.use('/auth',
-      AuthService.checkTenantValidity.bind(this),
+      CommonService.checkTenantValidity.bind(this),
       new AuthRouter().buildRoutes()
     );
   }
@@ -77,7 +78,7 @@ export default class GlobalRouterV1 {
 
   protected buildRouteUtil(): void {
     this.router.use('/util',
-      AuthService.checkTenantValidity.bind(this),
+      CommonService.checkTenantValidity.bind(this),
       new UtilRouter().buildRoutes());
   }
 

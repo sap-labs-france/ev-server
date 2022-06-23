@@ -1,7 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
 import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
-import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
@@ -17,6 +16,7 @@ import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
+import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
@@ -54,96 +54,6 @@ export default class AuthService {
 
   public static authenticate(): RequestHandler {
     return passport.authenticate('jwt', { session: false });
-  }
-
-  public static async checkTenantValidity(req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Methods to ignore
-    if (req.url !== '/signout' &&
-        req.url !== '/ping' &&
-        !req.url.startsWith('/car-catalogs') &&
-        !req.url.startsWith('/charging-stations/firmware/download') &&
-        !req.url.startsWith('/billing/sub-accounts')) {
-      try {
-        const httpRequest = {
-          ...Utils.cloneObject(req.body),
-          ...Utils.cloneObject(req.query)
-        };
-        // Get Tenant ID/Sub Domain from HTTP Request
-        const filteredRequest = AuthValidatorRest.getInstance().validateAuthVerifyTenantRedirectReq(httpRequest);
-        let tenantID: string;
-        let tenantSubdomain: string;
-        if (filteredRequest.tenant) {
-          tenantSubdomain = filteredRequest.tenant;
-        }
-        if (filteredRequest.Tenant) {
-          tenantSubdomain = filteredRequest.Tenant;
-        }
-        if (filteredRequest.TenantID) {
-          tenantID = filteredRequest.TenantID;
-        }
-        if (filteredRequest.Subdomain) {
-          tenantSubdomain = filteredRequest.Subdomain;
-        }
-        if (filteredRequest.ID && req.url.startsWith('/tenants/logo')) {
-          tenantID = filteredRequest.ID;
-        }
-        if (!tenantID && !tenantSubdomain) {
-          // Handle the default tenant
-          if (Object.prototype.hasOwnProperty.call(httpRequest, 'tenant')) {
-            req.tenant = await AuthService.getTenant('');
-            next();
-            return;
-          }
-          throw new AppError({
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: 'The Tenant ID or Subdomain must be provided',
-            module: MODULE_NAME,
-            method: 'checkTenantValidity',
-          });
-        }
-        // Get the Tenant
-        let tenant: Tenant;
-        if (tenantID) {
-          tenant = await TenantStorage.getTenant(tenantID);
-          if (!tenant) {
-            throw new AppError({
-              errorCode: StatusCodes.NOT_FOUND,
-              message: `Unknown Tenant ID '${tenantID}'!`,
-              module: MODULE_NAME,
-              method: 'checkTenantValidity',
-            });
-          }
-        } else {
-          tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
-          if (!tenant) {
-            throw new AppError({
-              errorCode: StatusCodes.NOT_FOUND,
-              message: `Unknown Tenant Subdomain '${tenantSubdomain}'!`,
-              module: MODULE_NAME,
-              method: 'checkTenantValidity',
-            });
-          }
-        }
-        // Check the redirection
-        if (tenant.redirectToURL) {
-          throw new AppError({
-            errorCode: StatusCodes.MOVED_PERMANENTLY,
-            message: ReasonPhrases.MOVED_PERMANENTLY,
-            module: MODULE_NAME, method: 'checkTenantValidity',
-            user: req.user,
-            detailedMessages: {
-              redirectToURL: tenant.redirectToURL
-            }
-          });
-        }
-        req.tenant = tenant;
-        next();
-      } catch (err) {
-        next(err);
-      }
-    } else {
-      next();
-    }
   }
 
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
