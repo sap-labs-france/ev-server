@@ -959,6 +959,18 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // Check that we have a new invoice with an invoiceID and an invoiceNumber
         await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 19.49);
       });
+
+      it('detect inconsistent meter values', async () => {
+        await billingTestHelper.initChargingStationContext2TestCS3Phased();
+        await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+        const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+        await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+        const transactionID = await billingTestHelper.generateTransactionWithWrongMeterValues(billingTestHelper.userContext);
+        assert(transactionID, 'transactionID should not be null');
+        // Check that we have a new invoice with an invoiceID and an invoiceNumber
+        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 1502.00);
+      });
+
     });
   });
 

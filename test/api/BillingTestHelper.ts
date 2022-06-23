@@ -635,6 +635,47 @@ export default class BillingTestHelper {
     return transactionId;
   }
 
+  public async generateTransactionWithWrongMeterValues(user: any): Promise<number> {
+    const meterStart = 0;
+    const meterStop = 60000; // Unit: Wh
+    const meterValue = Utils.createDecimal(meterStop).divToInt(60).toNumber();
+    const connectorId = 1;
+    assert((user.tags && user.tags.length), 'User must have a valid tag');
+    const tagId = user.tags[0].id;
+    // # Begin
+    const expectedStartDate = new Date();
+    const startDate = moment(expectedStartDate);
+    // Let's send an OCCP status notification to simulate some extra inactivities
+    await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.PREPARING);
+    const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    const expectedStatus = 'Accepted';
+    if (startTransactionResponse.idTagInfo.status !== expectedStatus) {
+      await this.dumpLastErrors();
+    }
+    expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
+    const transactionId = startTransactionResponse.transactionId;
+    const currentTime = startDate.clone();
+    let cumulated = 0;
+    // Send meter values
+    for (let index = 0; index < 60; index++) {
+      cumulated += meterValue * 100;
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
+    }
+    // assert(cumulated === meterStop, 'Inconsistent meter values - cumulated energy should equal meterStop - ' + cumulated);
+    const stopDate = startDate.clone().add(1, 'hour');
+    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
+    if (stopTransactionResponse.idTagInfo.status !== expectedStatus) {
+      await this.dumpLastErrors();
+    }
+    expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+    // Let's send an OCCP status notification to simulate some extra inactivities
+    await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
+    await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+    // Give some time to the asyncTask to bill the transaction
+    await this.waitForAsyncTasks();
+    return transactionId;
+  }
+
   public async sendConsumptionMeterValue(connectorId: number, transactionId: number, currentTime: moment.Moment, energyActiveImportMeterValue: number, interval = 1): Promise<void> {
     currentTime.add(interval, 'minute');
     const meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(

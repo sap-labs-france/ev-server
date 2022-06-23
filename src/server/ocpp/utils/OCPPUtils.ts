@@ -1846,13 +1846,24 @@ export default class OCPPUtils {
     // Calculate max drawable energy plus buffer of 20%
     const maxWh = Utils.createDecimal(Utils.getChargingStationPower(chargingStation, null, transaction.connectorId)).div(3600).mul(durationSecs).mul(1.2).toNumber();
     // Compare values
-    if ((maxWh > 0 && consumptionWh > maxWh) || meterValueWh < lastMeterValueWh) {
+    if ((maxWh > 0 && consumptionWh > maxWh)) {
       await Logging.logError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenantID,
         module: MODULE_NAME, method: 'isValidConsumption',
         action: ServerAction.OCPP_METER_VALUES,
-        message: 'Energy consumption is not valid and will be ignored',
+        message: `Energy consumption is not inconsistent and will be ignored - transaction ID: ${transaction.id} - consumption: ${consumptionWh} Wh - maximum value allowed: ${maxWh} Wh`,
+        detailedMessages: { meterValue, transaction }
+      });
+      return false;
+    }
+    if (meterValueWh < lastMeterValueWh) {
+      await Logging.logError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenantID,
+        module: MODULE_NAME, method: 'isValidConsumption',
+        action: ServerAction.OCPP_METER_VALUES,
+        message: `Energy consumption is lower than the latest one and will be ignored - transaction ID: ${transaction.id} - consumption: ${meterValueWh} Wh - previous consumption: ${lastMeterValueWh} Wh`,
         detailedMessages: { meterValue, transaction }
       });
       return false;
