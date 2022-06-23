@@ -1261,54 +1261,51 @@ export default class OCPPUtils {
           message: 'Charging Station does not exist!'
         });
       }
-    } else {
-      // Update the DB (Migration for existing charging stations)
-      if (!chargingStation.tokenID) {
-        chargingStation.tokenID = tokenID;
-      }
-      if (chargingStation.tokenID !== tokenID) {
-        // Must have a valid connection Token
-        token = await OCPPUtils.ensureChargingStationHasValidConnectionToken(action, tenant, chargingStationID, tokenID);
-        // Ok, set it
-        await Logging.logInfo({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          tenantID: tenant.id,
-          action, module: MODULE_NAME, method: 'checkAndGetChargingStationData',
-          message: `New security Token ID '${tokenID}' has been assigned to the Charging Station (old one was '${chargingStation.tokenID}')`
-        });
-        chargingStation.tokenID = tokenID;
-      }
-      // Deleted?
-      if (chargingStation.deleted) {
-        throw new BackendError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          module: MODULE_NAME,
-          method: 'checkAndGetChargingStationData',
-          message: 'Charging Station has been deleted!'
-        });
-      }
-      // Inactive?
-      if (chargingStation.forceInactive) {
-        throw new BackendError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          module: MODULE_NAME,
-          method: 'checkAndGetChargingStationData',
-          message: 'Charging Station has been forced as inactive!'
-        });
-      }
-      // Reassign to the Charging station
-      chargingStation.lastSeen = new Date();
+      return { tenant, token };
+    }
+    // Same Token?
+    if (chargingStation.tokenID !== tokenID) {
+      // Must have a valid connection Token
+      token = await OCPPUtils.ensureChargingStationHasValidConnectionToken(action, tenant, chargingStationID, tokenID);
+      // Ok, set it
+      await Logging.logInfo({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        tenantID: tenant.id,
+        action, module: MODULE_NAME, method: 'checkAndGetChargingStationData',
+        message: `New security Token ID '${tokenID}' has been assigned to the Charging Station (old one was '${chargingStation.tokenID}')`
+      });
       chargingStation.tokenID = tokenID;
-      chargingStation.cloudHostIP = Utils.getHostIP();
-      chargingStation.cloudHostName = Utils.getHostName();
-      // Save Charging Station runtime data
-      await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id, {
-        lastSeen: chargingStation.lastSeen,
-        tokenID: chargingStation.tokenID,
-        cloudHostIP: chargingStation.cloudHostIP,
-        cloudHostName: chargingStation.cloudHostName,
+    }
+    // Deleted?
+    if (chargingStation.deleted) {
+      throw new BackendError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME,
+        method: 'checkAndGetChargingStationData',
+        message: 'Charging Station has been deleted!'
       });
     }
+    // Inactive?
+    if (chargingStation.forceInactive) {
+      throw new BackendError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME,
+        method: 'checkAndGetChargingStationData',
+        message: 'Charging Station has been forced as inactive!'
+      });
+    }
+    // Reassign to the Charging station
+    chargingStation.lastSeen = new Date();
+    chargingStation.tokenID = tokenID;
+    chargingStation.cloudHostIP = Utils.getHostIP();
+    chargingStation.cloudHostName = Utils.getHostName();
+    // Save Charging Station runtime data
+    await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id, {
+      lastSeen: chargingStation.lastSeen,
+      tokenID: chargingStation.tokenID,
+      cloudHostIP: chargingStation.cloudHostIP,
+      cloudHostName: chargingStation.cloudHostName,
+    });
     return { tenant, chargingStation, token };
   }
 
