@@ -1,16 +1,16 @@
-import { Promise } from 'bluebird';
-import admin from 'firebase-admin';
-
-import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
-import User, { UserStatus } from '../../types/User';
 import { AccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingSubAccountActivationNotification, BillingSubAccountCreationLinkNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
+import User, { UserStatus } from '../../types/User';
+
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import I18nManager from '../../utils/I18nManager';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import NotificationTask from '../NotificationTask';
+import { Promise } from 'bluebird';
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
+import Utils from '../../utils/Utils';
+import admin from 'firebase-admin';
 
 const MODULE_NAME = 'RemotePushNotificationTask';
 
@@ -395,30 +395,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
       body = i18nManager.translate('notifications.billingNewInvoiceOpen.body',
         { invoiceNumber: data.invoiceNumber, amount: data.invoiceAmount });
     }
-    // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
-      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
-  }
-
-  public async sendBillingNewInvoicePaid(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Set the locale
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    // Get Message Text
-    const title = i18nManager.translate('notifications.billingNewInvoicePaid.title');
-    const body = i18nManager.translate('notifications.billingNewInvoicePaid.body',
-      { invoiceNumber: data.invoiceNumber });
-    // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
-      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
-  }
-
-  public async sendBillingNewInvoiceOpen(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Set the locale
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    // Get Message Text
-    const title = i18nManager.translate('notifications.billingNewInvoiceOpen.title');
-    const body = i18nManager.translate('notifications.billingNewInvoiceOpen.body',
-      { invoiceNumber: data.invoiceNumber });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
       title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
