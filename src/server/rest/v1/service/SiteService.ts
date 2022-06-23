@@ -89,13 +89,11 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
     // Filter request
     const filteredRequest = SiteValidatorRest.getInstance().validateSiteAssignUsersReq(req.body);
-    // Check and Get Site
-    const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.ASSIGN_USERS_TO_SITE, action);
-    // Check and Get Users
-    const users = await UtilsService.checkAndGetSiteUsersAuthorization(
-      req.tenant, req.user, site, filteredRequest.userIDs, action);
     const serverAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN_USERS_TO_SITE : Action.UNASSIGN_USERS_FROM_SITE;
+    // Check and Get Site
+    const site = await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.siteID, serverAction, action);
+    // Check and Get Users
+    const users = await UtilsService.checkAndGetSiteUsersAuthorization(req.tenant, req.user, site, filteredRequest.userIDs, action);
     // Save
     for (const user of users) {
       const authorized = AuthorizationService.canPerformAction(user, serverAction);
@@ -157,13 +155,6 @@ export default class SiteService {
       },
       authorizations.projectFields
     );
-    // Filter
-    siteUsers.result = siteUsers.result.map((siteUser) => ({
-      siteID: siteUser.siteID,
-      siteAdmin: siteUser.siteAdmin,
-      siteOwner: siteUser.siteOwner,
-      user: siteUser.user
-    }));
     // add user auth
     await AuthorizationService.addSiteUsersAuthorizations(req.tenant, req.user, siteUsers as SiteUserDataResult, authorizations);
     res.json(siteUsers);

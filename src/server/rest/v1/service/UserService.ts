@@ -109,41 +109,29 @@ export default class UserService {
       Action.UPDATE, Entity.SITE, 'SiteService', 'handleAssignSitesToUser');
     // Filter request
     const filteredRequest = UserValidatorRest.getInstance().validateUserSitesAssignReq(req.body);
+    const serverAction = action === ServerAction.ADD_SITES_TO_USER ? Action.ASSIGN_SITES_TO_USER : Action.UNASSIGN_SITES_FROM_USER;
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, Action.READ, action);
+    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, serverAction, action);
     // Check and Get Sites
     const sites = await UtilsService.checkAndGetUserSitesAuthorization(req.tenant, req.user, user, filteredRequest.siteIDs, action);
     // Save
-    if (action === ServerAction.ADD_SITES_TO_USER) {
-      for (const site of sites) {
-        const authorized = AuthorizationService.canPerformAction(site, Action.ASSIGN_SITES_TO_USER);
-        if (!authorized) {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: req.user,
-            action: Action.ASSIGN_SITES_TO_USER, entity: Entity.USER_SITE,
-            module: MODULE_NAME, method: 'checkAndGetPricingDefinitionAuthorization',
-            value: site.id
-          });
-        }
+    for (const site of sites) {
+      const authorized = AuthorizationService.canPerformAction(site, serverAction);
+      if (!authorized) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: req.user,
+          action: serverAction, entity: Entity.USER_SITE,
+          module: MODULE_NAME, method: 'checkAndGetPricingDefinitionAuthorization',
+          value: site.id
+        });
       }
+    }
+    if (action === ServerAction.ADD_SITES_TO_USER) {
       await UserStorage.addSitesToUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     } else {
-      for (const site of sites) {
-        const authorized = AuthorizationService.canPerformAction(site, Action.UNASSIGN_SITES_FROM_USER);
-        if (!authorized) {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: req.user,
-            action: Action.ASSIGN_USERS_TO_SITE, entity: Entity.USER_SITE,
-            module: MODULE_NAME, method: 'checkAndGetPricingDefinitionAuthorization',
-            value: site.id
-          });
-        }
-      }
       await UserStorage.removeSitesFromUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     }
-    // Log
     await Logging.logInfo({
       tenantID: req.tenant.id,
       user: req.user,
@@ -381,13 +369,6 @@ export default class UserService {
       },
       authorizations.projectFields
     );
-    // Filter
-    userSites.result = userSites.result.map((userSite) => ({
-      userID: userSite.userID,
-      siteAdmin: userSite.siteAdmin,
-      siteOwner: userSite.siteOwner,
-      site: userSite.site
-    }));
     // Add Auth flags
     await AuthorizationService.addUserSitesAuthorizations(req.tenant, req.user, userSites as UserSiteDataResult , authorizations);
     res.json(userSites);

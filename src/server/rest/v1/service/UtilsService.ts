@@ -322,8 +322,7 @@ export default class UtilsService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetSiteAuthorizations(
-      tenant, userToken, { ID: siteID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetSiteAuthorizations(tenant, userToken, { ID: siteID }, authAction, entityData);
     // Get Site
     const site = await SiteStorage.getSite(tenant, siteID,
       {
