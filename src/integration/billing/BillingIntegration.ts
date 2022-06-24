@@ -175,17 +175,18 @@ export default abstract class BillingIntegration {
       // Do not send notifications for invoices that are not yet finalized!
       if (billingInvoice.status === BillingInvoiceStatus.OPEN || billingInvoice.status === BillingInvoiceStatus.PAID) {
         // Send link to the user using our notification framework (link to the front-end + download)
+        const user = await UserStorage.getUser(this.tenant, billingInvoice.userID);
         // Stripe saves amount in cents
         const invoiceAmountAsDecimal = new Decimal(billingInvoice.amount).div(100);
         // Format amount with currency symbol depending on locale
-        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(invoiceAmountAsDecimal.toNumber());
+        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(invoiceAmountAsDecimal.toNumber());
         // Send async notification
         void NotificationHandler.sendBillingNewInvoiceNotification(
           this.tenant,
           billingInvoice.id,
-          billingInvoice.user,
+          user,
           {
-            user: billingInvoice.user,
+            user,
             evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(this.tenant.subdomain),
             evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
             invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(this.tenant.subdomain, billingInvoice.id),

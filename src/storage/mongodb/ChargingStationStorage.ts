@@ -1,16 +1,16 @@
 import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
+import { ChargingProfileDataResult, ChargingStationDataResult, ChargingStationInErrorDataResult, DataResult } from '../../types/DataResult';
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationOicpData, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, RemoteAuthorization, Voltage } from '../../types/ChargingStation';
-import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId, UpdateResult } from 'mongodb';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
+import { ChargingStationInErrorType } from '../../types/InError';
 import ChargingStationValidatorStorage from '../validator/ChargingStationValidatorStorage';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { InactivityStatus } from '../../types/Transaction';
@@ -114,6 +114,17 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
+  public static async getChargingProfile(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
+      params: { siteIDs?: string[]; withSiteArea?: boolean; } = {},
+      projectFields?: string[]): Promise<ChargingProfile> {
+    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenant, {
+      chargingProfileID: id,
+      withSiteArea: params.withSiteArea,
+      siteIDs: params.siteIDs,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
+  }
+
   public static async getChargingStationByOcpiLocationEvseUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
       ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
       projectFields?: string[]): Promise<ChargingStation> {
@@ -141,9 +152,9 @@ export default class ChargingStationStorage {
         connectorStatuses?: ChargePointStatus[]; connectorTypes?: ConnectorType[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
         ocpiEvseUid?: string; ocpiLocationID?: string; oicpEvseID?: string;
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
-        locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean; includeAllExternalSites?: boolean;
       },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<ChargingStationDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -244,10 +255,35 @@ export default class ChargingStationStorage {
       // Query by siteAreaID
       filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
-    // Check Site ID
-    if (!Utils.isEmptyArray(params.siteIDs)) {
-      // Query by siteID
+    // Query by siteID
+    const includeAllExternalSites = Utils.convertToBoolean(params.includeAllExternalSites);
+    const siteIDsFilterProvided = !Utils.isEmptyArray(params.siteIDs);
+    // Site ID filter provided and include ext sites false => apply site filter
+    if (siteIDsFilterProvided && !includeAllExternalSites) {
       filters.siteID = { $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
+    }
+    // Site ID filter provided and include ext sites true => apply site filter and include ext sites
+    if (siteIDsFilterProvided && includeAllExternalSites) {
+      // If issuer filter is set we don't override it
+      if (filters.issuer) {
+        filters.siteID = { $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
+      } else {
+        // Issuer filter is not set => we include external sites
+        aggregation.push({
+          $match: {
+            $or: [
+              { 'siteID': { $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) } },
+              { 'issuer': false },
+            ]
+          }
+        });
+      }
+    }
+    // SiteIds filters not provided but include external site provided => include external sites
+    if (!siteIDsFilterProvided && includeAllExternalSites) {
+      if (!filters.issuer) {
+        filters.siteID = { issuer: true };
+      }
     }
     // Check Company ID
     if (!Utils.isEmptyArray(params.companyIDs)) {
@@ -352,7 +388,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStationsInError(tenant: Tenant,
       params: { search?: string; siteIDs?: string[]; siteAreaIDs: string[]; errorType?: string[] },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationInError>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<ChargingStationInErrorDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -725,18 +761,11 @@ export default class ChargingStationStorage {
     };
   }
 
-  public static async getChargingProfile(tenant: Tenant, id: string): Promise<ChargingProfile> {
-    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenant, {
-      chargingProfileID: id
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
-  }
-
   public static async getChargingProfiles(tenant: Tenant,
       params: { search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
         profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean;
         withSiteArea?: boolean; siteIDs?: string[]; } = {},
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<ChargingProfileDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values

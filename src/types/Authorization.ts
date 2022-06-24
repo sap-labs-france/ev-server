@@ -67,6 +67,7 @@ export enum Entity {
   SITE_AREA = 'SiteArea',
   COMPANY = 'Company',
   CHARGING_STATION = 'ChargingStation',
+  CONNECTOR = 'Connector',
   TENANT = 'Tenant',
   TRANSACTION = 'Transaction',
   REPORT = 'Report',
@@ -162,6 +163,15 @@ export enum Action {
   GENERATE_QR = 'GenerateQrCode',
   MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
   RESOLVE = 'Resolve',
+  GET_STATUS_NOTIFICATION = 'GetStatusNotification',
+  GET_BOOT_NOTIFICATION = 'GetBootNotification',
+  RESERVE_NOW = 'ReserveNow',
+  UPDATE_OCPP_PARAMS = 'UpdateOCPPParams',
+  LIMIT_POWER = 'LimitPower',
+  DELETE_CHARGING_PROFILE = 'DeleteChargingProfile',
+  GET_OCPP_PARAMS = 'GetOCPPParams',
+  UPDATE_CHARGING_PROFILE = 'UpdateChargingProfile',
+  GET_CONNECTOR_QR_CODE = 'GetConnectorQRCode',
 }
 
 export interface AuthorizationContext {
@@ -233,6 +243,44 @@ export interface BillingInvoiceAuthorizationActions extends AuthorizationActions
   canDownload?: boolean;
 }
 
+export interface ChargingStationAuthorizationActions extends AuthorizationActions {
+  canReserveNow?:boolean;
+  canReset?:boolean;
+  canClearCache?:boolean;
+  canGetConfiguration?:boolean;
+  canChangeConfiguration?:boolean;
+  canSetChargingProfile?:boolean;
+  canGetCompositeSchedule?:boolean;
+  canClearChargingProfile?:boolean;
+  canGetDiagnostics?:boolean;
+  canUpdateFirmware?:boolean;
+  canRemoteStopTransaction?:boolean;
+  canStopTransaction?:boolean;
+  canStarTransaction?:boolean;
+  canChangeAvailability?:boolean;
+  canRemoteStartTransaction?:boolean;
+  canUnlockConnector?:boolean;
+  canDataTransfer?:boolean;
+  canGenerateQrCode?:boolean;
+  canMaintainPricingDefinitions?:boolean;
+  canUpdateOCPPParams?:boolean;
+  canLimitPower?:boolean;
+  canDeleteChargingProfile?:boolean;
+  canGetOCPPParams?:boolean;
+  canUpdateChargingProfile?:boolean;
+  canGetConnectorQRCode?:boolean;
+}
+
+export interface ConnectorAuthorizationActions extends AuthorizationActions {
+  canRemoteStopTransaction?:boolean;
+  canRemoteStartTransaction?:boolean;
+  canUnlockConnector?:boolean;
+}
+
+export interface ChargingProfileAuthorizationActions extends AuthorizationActions {
+  canDownload?:boolean;
+  canReadSiteArea?:boolean;
+}
 export interface BillingAccountAuthorizationActions extends AuthorizationActions {
   canOnboard?: boolean;
 }
@@ -249,6 +297,7 @@ export enum DynamicAuthorizationFilterName {
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
   EXCLUDE_ACTION = 'ExcludeAction',
+  INCLUDE_ALL_EXTERNAL_SITES = 'IncludeAllExternalSites',
 }
 
 export enum DynamicAuthorizationAssertName {
@@ -266,6 +315,7 @@ export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
   EXCLUDE_ACTION = 'ExcludeAction',
+  INCLUDE_ALL_EXTERNAL_SITES = 'IncludeAllExternalSites',
 }
 
 export interface DynamicAuthorizationDataSourceData { }
