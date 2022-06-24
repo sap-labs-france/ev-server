@@ -10,6 +10,7 @@ import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from './DynamicAuthorizationFilter';
 import ExcludeActionDynamicAuthorizationDataSource from './dynamic-data-source/ExcludeActionDynamicAuthorizationDataSource';
 import ExcludeActionDynamicAuthorizationFilter from './dynamic-filters/ExcludeActionDynamicAuthorizationFilter';
+import IncludeAllExternalSitesDynamicAuthorizationFilter from './dynamic-filters/IncludeAllExternalSitesDynamicAuthorizationFilter';
 import LocalIssuerDynamicAuthorizationFilter from './dynamic-filters/LocalIssuerDynamicAuthorizationFilter';
 import OwnUserDynamicAuthorizationAssert from './dynamic-assert/OwnUserDynamicAuthorizationAssert';
 import OwnUserDynamicAuthorizationDataSource from './dynamic-data-source/OwnUserDynamicAuthorizationDataSource';
@@ -58,6 +59,9 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationFilterName.LOCAL_ISSUER:
         dynamicFilter = new LocalIssuerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        break;
+      case DynamicAuthorizationFilterName.INCLUDE_ALL_EXTERNAL_SITES:
+        dynamicFilter = new IncludeAllExternalSitesDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
     }
     // Init Data Source
