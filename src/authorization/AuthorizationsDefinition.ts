@@ -911,7 +911,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
           }
         },
         attributes: [
