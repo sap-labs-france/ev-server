@@ -759,7 +759,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSitesCompanies', 'LocalIssuer']
+            filters: []
           }
         },
         attributes: [
@@ -774,7 +774,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSitesCompanies', 'LocalIssuer']
+            filters: []
           }
         },
         attributes: [
@@ -845,7 +845,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites', 'LocalIssuer']
+            filters: []
           }
         },
         attributes: [
@@ -861,7 +861,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites', 'LocalIssuer']
+            filters: []
           }
         },
         attributes: [
@@ -877,7 +877,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: []
           }
         },
         attributes: [
@@ -889,13 +889,29 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.SITE_AREA,
-        action: [Action.READ, Action.READ_CHARGING_STATIONS_FROM_SITE_AREA],
+        resource: Entity.SITE_AREA, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID',
+          'parentSiteAreaID', 'site.name', 'parentSiteArea.name',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
+        ],
+      },
+      {
+        resource: Entity.SITE_AREA, action: Action.READ_CHARGING_STATIONS_FROM_SITE_AREA,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
           }
         },
         attributes: [
@@ -1395,7 +1411,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites', 'LocalIssuer'],
+            filters: [],
             metadata: {
               autoUserSiteAssignment: {
                 enabled: false,
@@ -1427,8 +1443,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.SITE_AREA,
-        action: [Action.READ],
+        resource: Entity.SITE_AREA, action: Action.READ,
         attributes: [
           'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
           'voltage', 'smartCharging', 'accessControl', 'connectorStats',
@@ -1438,8 +1453,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.SITE_AREA,
-        action: [Action.READ_ASSETS_FROM_SITE_AREA],
+        resource: Entity.SITE_AREA, action: Action.READ_ASSETS_FROM_SITE_AREA,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
