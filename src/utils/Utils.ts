@@ -10,6 +10,7 @@ import crypto, { CipherGCMTypes, randomUUID } from 'crypto';
 import global, { EntityData } from '../types/GlobalType';
 
 import Address from '../types/Address';
+import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import { AxiosError } from 'axios';
 import BackendError from '../exception/BackendError';
@@ -17,6 +18,7 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import { Decimal } from 'decimal.js';
 import LoggingHelper from './LoggingHelper';
+import OCPPError from '../exception/OcppError';
 import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
 import { Request } from 'express';
@@ -1711,7 +1713,7 @@ export default class Utils {
     return moment.duration(totalDurationSecs, 's').format('h[h]mm', { trim: false });
   }
 
-  public static handleExceptionDetailedMessages(exception: AppError | BackendError): void {
+  public static handleExceptionDetailedMessages(exception: AppError | BackendError | AppAuthError | OCPPError): void {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       // Error already provided (previous exception)
