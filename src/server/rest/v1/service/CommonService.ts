@@ -82,14 +82,14 @@ export default class CommonService {
           }
         }
         // Check the redirection
-        if (tenant.redirectToURL) {
+        if (tenant.redirectDomain) {
           throw new AppError({
             errorCode: StatusCodes.MOVED_PERMANENTLY,
             message: ReasonPhrases.MOVED_PERMANENTLY,
             module: MODULE_NAME, method: 'checkTenantValidity',
             user: req.user,
             detailedMessages: {
-              redirectToURL: tenant.redirectToURL
+              redirectDomain: tenant.redirectDomain
             }
           });
         }

@@ -100,14 +100,14 @@ export default class SessionHashService {
         });
       }
       // Check if Tenant URL has changed
-      if (tenant.redirectToURL) {
+      if (tenant.redirectDomain) {
         throw new AppError({
           errorCode: StatusCodes.MOVED_PERMANENTLY,
           message: ReasonPhrases.MOVED_PERMANENTLY,
           module: MODULE_NAME, method: 'checkUserAndTenantValidity',
           user: req.user,
           detailedMessages: {
-            redirectToURL:tenant.redirectToURL,
+            redirectDomain:tenant.redirectDomain,
             request: req.url,
             headers: res.getHeaders(),
           }
