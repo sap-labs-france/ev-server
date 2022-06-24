@@ -1,5 +1,5 @@
 {
-  "$id": "auth-verify-tenant-redirect",
+  "$id": "verify-tenant-id-subdomain",
   "title": "Verify tenant redirect",
   "type": "object",
   "properties": {
