@@ -484,8 +484,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.BILLING_TRANSFER,
-        action: [Action.LIST]
+        resource: Entity.BILLING_TRANSFER, action: [Action.LIST],
+        attributes: [
+          'id', 'status', 'createdOn', 'sessions', 'totalAmount', 'transferAmount', 'accountID', 'transferExternalID',
+          'account.businessOwnerID', 'account.accountExternalID', 'businessOwner.name', 'businessOwner.firstName',
+          'platformFeeData.feeAmount', 'platformFeeData.feeTaxAmount', 'platformFeeData.invoiceExternalID', 'platformFeeData.taxExternalID',
+        ]
       },
       { resource: Entity.TAX, action: [Action.LIST] },
       {

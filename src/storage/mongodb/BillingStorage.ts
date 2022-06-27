@@ -461,11 +461,24 @@ export default class BillingStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Add Sub-account
+    DatabaseUtils.pushAccountLookupInAggregation({
+      tenantID: tenant.id, aggregation: aggregation, asField: 'account', localField: 'accountID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Add Business Owner
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID: tenant.id, aggregation: aggregation, asField: 'businessOwner', localField: 'account.businessOwnerID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Convert
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'account.businessOwnerID');
     // Add Last Changed / Created
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'accountID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'accountID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
