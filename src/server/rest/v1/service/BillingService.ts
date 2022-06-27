@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { BillingAccountStatus, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod } from '../../../../types/Billing';
+import { BillingAccountStatus, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTransferStatus } from '../../../../types/Billing';
 import { BillingInvoiceDataResult, BillingPaymentMethodDataResult } from '../../../../types/DataResult';
 import { NextFunction, Request, Response } from 'express';
 
@@ -608,7 +608,7 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransfersGetReq(req.query);
     // Check auth
-    const authorizations = await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, filteredRequest /* , false */);
+    const authorizations = await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest /* , false */);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -630,6 +630,32 @@ export default class BillingService {
     );
     await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
     res.json(transfers);
+    next();
+  }
+
+  public static async handleFinalizeTransfer(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+      Action.BILLING_FINALIZE_TRANSFER, Entity.BILLING_TRANSFER, MODULE_NAME, 'handleFinalizeTransfer');
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransferFinalizeReq(req.params);
+    // Check authorization
+    await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.BILLING_FINALIZE_TRANSFER);
+    const transfer = await BillingStorage.getTransferByID(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, transfer, `Transfer ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleFinalizeTransfer', req.user);
+    // Check if the transfer is in draft status
+    if (transfer.status !== BillingTransferStatus.DRAFT) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Transfer finalization aborted - current status should be DRAFT',
+        module: MODULE_NAME, method: 'handleFinalizeTransfer',
+        action: action,
+        user: req.user
+      });
+    }
+    transfer.status = BillingTransferStatus.FINALIZED;
+    await BillingStorage.saveTransfer(req.tenant, transfer);
+    // TODO Generate an invoice for the transfer
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
