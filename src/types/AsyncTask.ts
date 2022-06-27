@@ -32,6 +32,7 @@ export enum AsyncTaskStatus {
 
 export enum AsyncTasks {
   BILL_TRANSACTION = 'BillTransactionAsyncTask',
+  PREPARE_INVOICE_TRANSFER = 'PrepareInvoiceTransferAsyncTask',
   TAGS_IMPORT = 'TagsImportAsyncTask',
   USERS_IMPORT = 'UsersImportAsyncTask',
   OCPI_PUSH_TOKENS = 'OCPIPushTokensAsyncTask',

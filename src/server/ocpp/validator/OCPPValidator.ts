@@ -12,10 +12,10 @@ import Utils from '../../../utils/Utils';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
 
-const MODULE_NAME = 'OCPPValidation';
+const MODULE_NAME = 'OCPPValidator';
 
-export default class OCPPValidation extends SchemaValidator {
-  private static instance: OCPPValidation | null = null;
+export default class OCPPValidator extends SchemaValidator {
+  private static instance: OCPPValidator | null = null;
 
   private bootNotificationRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/boot-notification-request.json`, 'utf8'));
   private authorizeRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/authorize-request.json`, 'utf8'));
@@ -30,14 +30,14 @@ export default class OCPPValidation extends SchemaValidator {
   private meterValueRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/meter-values-request.json`, 'utf8'));
 
   private constructor() {
-    super('OCPPValidation');
+    super('OCPPValidator');
   }
 
-  public static getInstance(): OCPPValidation {
-    if (!OCPPValidation.instance) {
-      OCPPValidation.instance = new OCPPValidation();
+  public static getInstance(): OCPPValidator {
+    if (!OCPPValidator.instance) {
+      OCPPValidator.instance = new OCPPValidator();
     }
-    return OCPPValidation.instance;
+    return OCPPValidator.instance;
   }
 
   public validateHeartbeat(heartbeat: OCPPHeartbeatRequestExtended): void {
@@ -137,7 +137,7 @@ export default class OCPPValidation extends SchemaValidator {
     // Transaction ID is provided on Connector
     if (foundConnector?.currentTransactionID > 0) {
       // Check if provided in Meter Values
-      if (Utils.isNullOrUndefined(meterValues.transactionId) && foundConnector.currentTransactionID > 0) {
+      if (meterValues.transactionId === 0 && foundConnector.currentTransactionID > 0) {
         // Reuse Transaction ID from Connector
         meterValues.transactionId = foundConnector.currentTransactionID;
         await Logging.logWarning({
@@ -145,16 +145,18 @@ export default class OCPPValidation extends SchemaValidator {
           tenantID: tenantID,
           module: MODULE_NAME, method: 'validateMeterValues',
           action: ServerAction.OCPP_METER_VALUES,
-          message: `Transaction ID '${meterValues.transactionId}' not found in Meter Values but retrieved from Connector '${foundConnector.currentTransactionID}'`
+          message: `Transaction ID '${meterValues.transactionId}' not found in Meter Values but retrieved from Connector ID '${foundConnector.connectorId}'`
         });
       }
     }
   }
 
   private cleanUpTagID(tagID: string): string {
-    // Handle bug in Tag ID ending with ;NULL on some Charging Stations
-    if (tagID && typeof tagID === 'string' && tagID.toLowerCase().endsWith(';null')) {
-      tagID = tagID.slice(0, tagID.length - 5);
+    // Handle Tag ID containing ';' usually sent by Charging Station's payment terminals
+    if (tagID &&
+        typeof tagID === 'string' &&
+        tagID.toLowerCase().includes(';')) {
+      tagID = tagID.split(';')[1];
     }
     return tagID;
   }

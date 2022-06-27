@@ -1,11 +1,13 @@
-import { BillingInvoice, BillingPaymentMethod } from './Billing';
+import { BillingAccount, BillingInvoice, BillingPaymentMethod } from './Billing';
 import { Car, CarCatalog } from './Car';
+import ChargingStation, { ChargingStationTemplate, Connector } from './ChargingStation';
 
-import ChargingStation, { ChargingStationTemplate } from './ChargingStation';
+import { ChargingProfile } from './ChargingProfile';
 import Company from './Company';
 import JsonOCPPServer from '../server/ocpp/json/JsonOCPPServer';
 import { Log } from './Log';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
+import { PerformanceRecordGroup } from './Performance';
 import PricingDefinition from './Pricing';
 import RegistrationToken from './RegistrationToken';
 import { ServerType } from './Server';
@@ -24,6 +26,13 @@ declare global {
 
 export interface Data {
   id: string;
+}
+
+export interface URLInfo {
+  httpUrl: string;
+  httpFullUrl: string;
+  httpMethod: string;
+  group: PerformanceRecordGroup;
 }
 
 export interface DatabaseCount {
@@ -76,7 +85,7 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|ChargingStationTemplate|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting;
+export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting|BillingAccount|ChargingProfile|Connector|ChargingStationTemplate;
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;

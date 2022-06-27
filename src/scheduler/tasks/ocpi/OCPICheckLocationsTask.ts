@@ -65,6 +65,7 @@ export default class OCPICheckLocationsTask extends TenantSchedulerTask {
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+        // Check Locations
         const result = await ocpiClient.checkLocations();
         await Logging.logInfo({
           tenantID: tenant.id,

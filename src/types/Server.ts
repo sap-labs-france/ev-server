@@ -443,6 +443,7 @@ export enum ServerAction {
 
   BILLING = 'Billing',
   BILLING_TRANSACTION = 'BillingTransaction',
+  BILLING_PREPARE_TRANSFER = 'BillingPrepareTransfer',
   BILLING_SYNCHRONIZE_USER = 'BillingSynchronizeUser',
   BILLING_FORCE_SYNCHRONIZE_USER = 'BillingForceSynchronizeUser',
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',
@@ -460,6 +461,10 @@ export enum ServerAction {
   BILLING_BILL_PENDING_TRANSACTION = 'BillingBillPendingTransaction',
   BILLING_SUB_ACCOUNT_CREATE = 'BillingSubAccountCreate',
   BILLING_SUB_ACCOUNT_ACTIVATE = 'BillingSubAccountActivate',
+  BILLING_SUB_ACCOUNT_ONBOARD = 'BillingSubAccountOnboard',
+  BILLING_SUB_ACCOUNT = 'BillingSubAccount',
+  BILLING_SUB_ACCOUNTS = 'BillingSubAccounts',
+  BILLING_TRANSFERS = 'BillingTransfers',
 
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',
@@ -691,6 +696,8 @@ export enum RESTServerRoute {
   REST_BILLING_TAXES = 'billing/taxes',
 
   REST_BILLING_SUB_ACCOUNTS = 'billing/sub-accounts',
+  REST_BILLING_SUB_ACCOUNT = 'billing/sub-accounts/:id',
+  REST_BILLING_SUB_ACCOUNT_ONBOARD = 'billing/sub-accounts/:id/onboard',
   REST_BILLING_SUB_ACCOUNT_ACTIVATE = 'billing/sub-accounts/:id/activate',
 
   // BILLING URLs for CRUD operations on INVOICES
@@ -699,6 +706,8 @@ export enum RESTServerRoute {
 
   // BILLING URLs for Non-CRUD operations on INVOICES
   REST_BILLING_DOWNLOAD_INVOICE = 'invoices/:invoiceID/download',
+
+  REST_BILLING_TRANSFERS = 'billing/transfers',
 
   // PRICING URLs for CRUD operations
   REST_PRICING_DEFINITIONS = 'pricing-definitions',

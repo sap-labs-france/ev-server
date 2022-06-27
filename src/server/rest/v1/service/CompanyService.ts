@@ -2,6 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
 
 import AuthorizationService from './AuthorizationService';
+import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import Company from '../../../../types/Company';
 import { CompanyDataResult } from '../../../../types/DataResult';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
@@ -145,6 +146,13 @@ export default class CompanyService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Company;
+    // If the company is assigned to a billing sub-account, check if the billing is active
+    if (filteredRequest.accountData) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+        Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
+      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.accountData.accountID);
+      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleCreateCompany', req.user);
+    }
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);
     await Logging.logInfo({
@@ -175,6 +183,17 @@ export default class CompanyService {
     }
     company.lastChangedBy = { 'id': req.user.id };
     company.lastChangedOn = new Date();
+    // If the company is assigned to a billing sub-account, check if the billing is active
+    if (filteredRequest.accountData) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+        Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
+      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.accountData.accountID);
+      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateCompany', req.user);
+      company.accountData = {
+        accountID: billingSubAccount.id,
+        platformFeeStrategy: filteredRequest.accountData.platformFeeStrategy,
+      };
+    }
     // Update Company
     await CompanyStorage.saveCompany(req.tenant, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
     await Logging.logInfo({

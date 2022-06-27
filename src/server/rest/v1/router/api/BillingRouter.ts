@@ -44,6 +44,10 @@ export default class BillingRouter {
     // ROUTES for SUB-ACCOUNTS
     // -----------------------------------
     this.buildRouteBillingCreateSubAccount();
+    this.buildRouteBillingGetSubAccounts();
+    this.buildRouteBillingGetSubAccount();
+    this.buildRouteBillingSendSubAccountOnboarding();
+    this.buildRouteBillingGetTransfers();
     return this.router;
   }
 
@@ -146,6 +150,32 @@ export default class BillingRouter {
   private buildRouteBillingCreateSubAccount(): void {
     this.router.post(`/${RESTServerRoute.REST_BILLING_SUB_ACCOUNTS}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleRestServerAction(BillingService.handleCreateSubAccount.bind(this), ServerAction.BILLING_SUB_ACCOUNT_CREATE, req, res, next);
+    });
+  }
+
+  private buildRouteBillingGetSubAccounts(): void {
+    this.router.get(`/${RESTServerRoute.REST_BILLING_SUB_ACCOUNTS}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(BillingService.handleBillingGetSubAccounts.bind(this), ServerAction.BILLING_SUB_ACCOUNTS, req, res, next);
+    });
+  }
+
+  private buildRouteBillingGetSubAccount(): void {
+    this.router.get(`/${RESTServerRoute.REST_BILLING_SUB_ACCOUNT}`, (req: Request, res: Response, next: NextFunction) => {
+      req.params.ID = req.params.id;
+      void RouterUtils.handleRestServerAction(BillingService.handleBillingGetSubAccount.bind(this), ServerAction.BILLING_SUB_ACCOUNT, req, res, next);
+    });
+  }
+
+  private buildRouteBillingSendSubAccountOnboarding(): void {
+    this.router.patch(`/${RESTServerRoute.REST_BILLING_SUB_ACCOUNT_ONBOARD}`, (req: Request, res: Response, next: NextFunction) => {
+      req.params.ID = req.params.id;
+      void RouterUtils.handleRestServerAction(BillingService.handleOnboardAccount.bind(this), ServerAction.BILLING_SUB_ACCOUNT_ONBOARD, req, res, next);
+    });
+  }
+
+  private buildRouteBillingGetTransfers(): void {
+    this.router.get(`/${RESTServerRoute.REST_BILLING_TRANSFERS}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(BillingService.handleBillingGetTransfers.bind(this), ServerAction.BILLING_TRANSFERS, req, res, next);
     });
   }
 }

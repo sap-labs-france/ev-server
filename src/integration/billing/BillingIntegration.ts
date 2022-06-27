@@ -1,9 +1,13 @@
-import { BillingAccount, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser } from '../../types/Billing';
+/* eslint-disable @typescript-eslint/member-ordering */
+import { AsyncTaskType, AsyncTasks } from '../../types/AsyncTask';
+import { BillingAccount, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingSessionAccountData, BillingSessionData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingTransferStatus, BillingUser } from '../../types/Billing';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
+import AsyncTaskBuilder from '../../async-task/AsyncTaskBuilder';
 import BackendError from '../../exception/BackendError';
+import BillingHelpers from './BillingHelpers';
 import { BillingPeriodicOperationTaskConfig } from '../../types/TaskConfig';
 import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
@@ -18,7 +22,7 @@ import { Promise } from 'bluebird';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
 import SiteArea from '../../types/SiteArea';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
@@ -171,21 +175,21 @@ export default abstract class BillingIntegration {
       // Do not send notifications for invoices that are not yet finalized!
       if (billingInvoice.status === BillingInvoiceStatus.OPEN || billingInvoice.status === BillingInvoiceStatus.PAID) {
         // Send link to the user using our notification framework (link to the front-end + download)
-        const tenant = await TenantStorage.getTenant(this.tenant.id);
+        const user = await UserStorage.getUser(this.tenant, billingInvoice.userID);
         // Stripe saves amount in cents
         const invoiceAmountAsDecimal = new Decimal(billingInvoice.amount).div(100);
         // Format amount with currency symbol depending on locale
-        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(invoiceAmountAsDecimal.toNumber());
+        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(invoiceAmountAsDecimal.toNumber());
         // Send async notification
         void NotificationHandler.sendBillingNewInvoiceNotification(
           this.tenant,
           billingInvoice.id,
-          billingInvoice.user,
+          user,
           {
-            user: billingInvoice.user,
-            evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(tenant.subdomain),
-            evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-            invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(tenant.subdomain, billingInvoice.id),
+            user,
+            evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(this.tenant.subdomain),
+            evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
+            invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(this.tenant.subdomain, billingInvoice.id),
             // Empty url allows to decide wether to display "pay" button in the email
             payInvoiceUrl: billingInvoice.status === BillingInvoiceStatus.OPEN ? billingInvoice.payInvoiceUrl : '',
             invoiceAmount: invoiceAmount,
@@ -367,6 +371,24 @@ export default abstract class BillingIntegration {
       totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     }
     return totalDuration;
+  }
+
+  protected async retrieveAccountData(transaction: Transaction) : Promise<BillingSessionAccountData> {
+    if (Utils.isTenantComponentActive(this.tenant, TenantComponents.BILLING_PLATFORM)) {
+      const site = await SiteStorage.getSite(this.tenant, transaction.siteID, { withCompany: true });
+      let accountData = site.accountData;
+      if (!accountData?.accountID) {
+        accountData = site.company?.accountData;
+      }
+      if (accountData?.accountID) {
+        return {
+          withTransferActive: true,
+          accountID: accountData.accountID,
+          platformFeeStrategy: accountData.platformFeeStrategy
+        };
+      }
+    }
+    return null;
   }
 
   private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
@@ -687,4 +709,102 @@ export default abstract class BillingIntegration {
   abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]>;
 
   abstract createSubAccount(): Promise<BillingAccount>;
+
+  protected async triggerTransferPreparation(billingInvoice: BillingInvoice): Promise<void> {
+    if (!billingInvoice.sessions) {
+      // This should not happen!
+      return;
+    }
+    // The invoice may include several sessions - let's check if at least one of these needs a transfer
+    const sessions = billingInvoice.sessions.filter((session) => session?.accountData?.withTransferActive);
+    if (sessions.length > 0) {
+      // Create async task to proceed with the transfer of funds
+      await AsyncTaskBuilder.createAndSaveAsyncTasks({
+        name: AsyncTasks.PREPARE_INVOICE_TRANSFER,
+        action: ServerAction.BILLING_PREPARE_TRANSFER,
+        type: AsyncTaskType.TASK,
+        tenantID: this.tenant.id,
+        parameters: {
+          invoiceID: billingInvoice.id
+        },
+        module: MODULE_NAME,
+        method: 'triggerTransferPreparation',
+      });
+    }
+  }
+
+  public async prepareInvoiceTransfer(billingInvoice: BillingInvoice): Promise<void> {
+    if (!billingInvoice.sessions) {
+      // This should not happen!
+      return;
+    }
+    // The invoice may include several sessions - let's check if at least one of these needs a transfer
+    const sessions = billingInvoice.sessions.filter((session) => session?.accountData?.withTransferActive);
+    if (sessions.length > 0) {
+      // Get the list of account IDs
+      const allAccountIDs = sessions.map((session) => session?.accountData?.accountID);
+      // Remove duplicates
+      const accountIDs = [ ...new Set(allAccountIDs)];
+      if (accountIDs.length > 0) {
+        for (const accountID of accountIDs) {
+          await this.processTransferForAccount(accountID, billingInvoice);
+        }
+      }
+    }
+  }
+
+  public async processTransferForAccount(accountID: string, invoice: BillingInvoice): Promise<void> {
+    try {
+      const sessions = invoice.sessions.filter((session) => accountID === session?.accountData?.accountID);
+      // Get the existing DRAFT transfer (if any)
+      const transfers = await BillingStorage.getTransfers(
+        this.tenant, {
+          accountIDs: [accountID],
+          status: [BillingTransferStatus.DRAFT],
+        }, Constants.DB_PARAMS_SINGLE_RECORD
+      );
+      let transfer: BillingTransfer = transfers.result[0];
+      if (!transfer) {
+        transfer = {
+          accountID, status: BillingTransferStatus.DRAFT, sessions: [], totalAmount: 0, transferAmount: 0,
+          platformFeeData: null, transferExternalID: null,
+        };
+      }
+      // Process all sessions of the invoice matching the current account ID
+      for (const session of sessions) {
+      // Compute the session amount (adding the 4 pricing dimensions)
+        const amountAsDecimal = BillingHelpers.getBilledPrice(session.pricingData); // TODO - consider tax rate settings!
+        // Extract current session data
+        const sessionData: BillingTransferSession = {
+          transactionID: session.transactionID,
+          invoiceID: invoice.id,
+          invoiceNumber: invoice.number,
+          amountAsDecimal,
+          amount: amountAsDecimal.toNumber(),
+          roundedAmount: Utils.roundTo(amountAsDecimal, 2),
+          platformFeeStrategy: session.accountData.platformFeeStrategy
+        };
+        // Update the collection of sessions in the DRAFT transfer
+        transfer.sessions.push(sessionData);
+      }
+      // Accumulate the amount of each session
+      let transferAmountAsDecimal = Utils.createDecimal(0);
+      transfer.sessions.forEach((session) => {
+        transferAmountAsDecimal = transferAmountAsDecimal.plus(session.amountAsDecimal);
+      });
+      // Round the final result only!
+      transfer.totalAmount = Utils.roundTo(transferAmountAsDecimal, 2);
+      // Finally - create or update the transfer
+      await BillingStorage.saveTransfer(this.tenant, transfer);
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_PREPARE_TRANSFER,
+        module: MODULE_NAME, method: 'processTransferForAccount',
+        message: `Transfer preparation failed - accountID: ${accountID} - Invoice: ${invoice.id} - ${invoice.number}`,
+        detailedMessages: { error: error.stack }
+      });
+    }
+  }
+
 }

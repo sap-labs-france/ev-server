@@ -1,5 +1,5 @@
 {
   "$id": "chargingprofile-update",
   "title": "Update a Charging Profile",
-  "$ref": "chargingstation#/definitions/chargingProfile"
+  "$ref": "chargingstation-profile#"
 }

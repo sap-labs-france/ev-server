@@ -3,11 +3,11 @@
   "title": "Create a Billing sub-account Request",
   "type": "object",
   "properties": {
-    "userID": {
+    "businessOwnerID": {
       "$ref": "common#/definitions/id"
     }
   },
   "required": [
-    "userID"
+    "businessOwnerID"
   ]
 }

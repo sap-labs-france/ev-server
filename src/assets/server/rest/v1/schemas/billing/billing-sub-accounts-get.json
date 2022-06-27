@@ -1,0 +1,31 @@
+{
+  "$id": "billing-sub-accounts-get",
+  "title": "Get billing sub accounts Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "userID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  }
+}

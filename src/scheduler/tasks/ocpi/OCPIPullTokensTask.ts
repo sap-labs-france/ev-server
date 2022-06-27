@@ -65,7 +65,7 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
-        // Send EVSE statuses
+        // Pull Tokens
         const result = await ocpiClient.pullTokens(config.partial);
         await Logging.logInfo({
           tenantID: tenant.id,

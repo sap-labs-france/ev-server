@@ -279,20 +279,8 @@ export default class Utils {
     return data.slice(data.length - 5, data.length);
   }
 
-  public static generateTagID(name: string, firstName: string): string {
-    let tagID = '';
-    if (name && name.length > 0) {
-      tagID = name[0].toUpperCase();
-    } else {
-      tagID = 'S';
-    }
-    if (firstName && firstName.length > 0) {
-      tagID += firstName[0].toUpperCase();
-    } else {
-      tagID += 'F';
-    }
-    tagID += Utils.getRandomIntSafe();
-    return tagID;
+  public static generateTagID(size = 8): string {
+    return [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
   }
 
   public static isIterable(obj: any): boolean {
@@ -1021,7 +1009,7 @@ export default class Utils {
     return recordLimit;
   }
 
-  public static roundTo(value: number, scale: number): number {
+  public static roundTo(value: Decimal.Value, scale: number): number {
     const roundPower = Math.pow(10, scale);
     return Utils.createDecimal(value).mul(roundPower).round().div(roundPower).toNumber();
   }
@@ -1327,6 +1315,11 @@ export default class Utils {
     return `'${tenant.name}' ('${tenant.subdomain}')`;
   }
 
+  public static isHexString(hexValue: string): boolean {
+    // eslint-disable-next-line no-useless-escape
+    return /^[0-9A-Fa-f]*$/i.test(hexValue);
+  }
+
   public static isChargingStationIDValid(name: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /^[A-Za-z0-9_\.\-~]*$/.test(name);
@@ -1500,7 +1493,7 @@ export default class Utils {
   public static buildPerformanceRecord(params: {
     tenantSubdomain?: string; durationMs?: number; resSizeKb?: number; reqSizeKb?: number;
     action: ServerAction|string; group?: PerformanceRecordGroup; httpUrl?: string;
-    httpMethod?: string; httpResponseCode?: number; chargingStationID?: string, userID?: string
+    httpMethod?: string; httpResponseCode?: number; egress?: boolean; chargingStationID?: string, userID?: string
   }): PerformanceRecord {
     const performanceRecord: PerformanceRecord = {
       tenantSubdomain: params.tenantSubdomain,
@@ -1526,6 +1519,9 @@ export default class Utils {
     }
     if (params.httpMethod) {
       performanceRecord.httpMethod = params.httpMethod;
+    }
+    if (Utils.objectHasProperty(params, 'egress')) {
+      performanceRecord.egress = params.egress;
     }
     if (params.httpResponseCode) {
       performanceRecord.httpResponseCode = params.httpResponseCode;

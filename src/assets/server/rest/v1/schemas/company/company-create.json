@@ -11,6 +11,21 @@
     },
     "logo": {
       "$ref": "common#/definitions/logo"
+    },
+    "accountData": {
+      "type": "object",
+      "properties": {
+        "accountID": {
+          "$ref": "billing-subaccount#/definitions/accountID"
+        },
+        "platformFeeStrategy": {
+          "$ref": "billing-subaccount#/definitions/platformFeeStrategy"
+        }
+      },
+      "required": [
+        "accountID",
+        "platformFeeStrategy"
+      ]
     }
   },
   "required": [
