@@ -148,17 +148,8 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('billing-sub-account-activated', data, user, tenant, severity);
   }
 
-  // TODO : Delete sendBillingNewInvoice ??
   public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('billing-new-invoice', data, user, tenant, severity);
-  }
-
-  public async sendBillingNewInvoicePaid(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    return this.prepareAndSendEmail('billing-new-invoice-paid', data, user, tenant, severity);
-  }
-
-  public async sendBillingNewInvoiceOpen(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    return this.prepareAndSendEmail('billing-new-invoice-open', data, user, tenant, severity);
   }
 
   public async sendCarCatalogSynchronizationFailed(data: CarCatalogSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
