@@ -2,6 +2,7 @@ import { Car, CarCatalog } from './Car';
 import Consumption, { AbstractCurrentConsumption } from './Consumption';
 import { OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 
+import { AuthorizationActions } from './Authorization';
 import ChargingStation from '../types/ChargingStation';
 import Company from './Company';
 import { DatabaseCount } from './GlobalType';
@@ -65,7 +66,7 @@ export enum StartTransactionErrorCode {
   BILLING_INCONSISTENT_SETTINGS = 'billing_inconsistent_settings', // start transaction not possible - billing settings are inconsistent
 }
 
-export default interface Transaction extends AbstractCurrentConsumption {
+export default interface Transaction extends AbstractCurrentConsumption, AuthorizationActions {
   id?: number;
   carID?: string;
   car?: Car;

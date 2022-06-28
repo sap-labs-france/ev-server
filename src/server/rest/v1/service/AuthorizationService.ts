@@ -1,5 +1,5 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingSubaccountsDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingSubaccountsDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, TransactionDataResult, UserDataResult } from '../../../../types/DataResult';
 import { BillingAccount, BillingInvoice, BillingPaymentMethod } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
@@ -11,6 +11,7 @@ import { HttpPricingDefinitionGetRequest, HttpPricingDefinitionsGetRequest } fro
 import { HttpSiteAreaGetRequest, HttpSiteAreasGetRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteGetRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagGetRequest, HttpTagsGetRequest } from '../../../../types/requests/HttpTagRequest';
+import { HttpTransactionGetRequest, HttpTransactionsGetRequest } from '../../../../types/requests/HttpTransactionRequest';
 import { HttpUserGetRequest, HttpUserSitesAssignRequest, HttpUserSitesGetRequest, HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -34,6 +35,7 @@ import { Setting } from '../../../../types/Setting';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import Tag from '../../../../types/Tag';
+import Transaction from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
@@ -879,6 +881,48 @@ export default class AuthorizationService {
     Utils.removeCanPropertiesWithFalseValue(carCatalog);
   }
 
+  // Transaction NEW
+  public static async checkAndGetTransactionsAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpTransactionsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+    const authorizations: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.LIST, authorizations, filteredRequest, null, failsWithException);
+    return authorizations;
+  }
+
+  public static async checkAndGetTransactionAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpTransactionGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.TRANSACTION, userToken, filteredRequest, filteredRequest.ID ? { TransactionID: filteredRequest.ID } : {}, authAction, entityData);
+  }
+
+  public static async addTransactionsAuthorizations(tenant: Tenant, userToken: UserToken, transactions: TransactionDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Meta Data
+    transactions.metadata = authorizationFilter.metadata;
+    // Add Authorizations
+    for (const transaction of transactions.result) {
+      await AuthorizationService.addTransactionAuthorizations(tenant, userToken, transaction, authorizationFilter);
+    }
+  }
+
+  public static async addTransactionAuthorizations(tenant: Tenant, userToken: UserToken, transaction: Transaction, authorizationFilter: AuthorizationFilter): Promise<void> {
+    transaction.canRead = true; // Always true as it should be filtered upfront
+    transaction.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.DELETE, authorizationFilter, { CarID: transaction.id }, transaction);
+    transaction.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.UPDATE, authorizationFilter, { CarID: transaction.id }, transaction);
+    transaction.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(transaction);
+  }
+  // End transaction
 
   public static async checkAndGetChargingStationsAuthorizations(tenant: Tenant, userToken: UserToken,
       filteredRequest?: HttpChargingStationsGetRequest): Promise<AuthorizationFilter> {
@@ -1039,6 +1083,7 @@ export default class AuthorizationService {
             authorizationFilters.authorized = !authorizationFilters.authorized;
           }
           if (!authorizationFilters.authorized) {
+            console.log('Dynamic Authorization');
             await Logging.logError({
               tenantID: tenant.id,
               user: userToken,
