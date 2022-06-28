@@ -141,6 +141,7 @@ export enum Action {
   BILLING_ACTIVATE_SUB_ACCOUNT = 'BillingSubAccountActivate',
   BILLING_ONBOARD_SUB_ACCOUNT = 'BillingSubAccountOnboard',
   BILLING_FINALIZE_TRANSFER = 'BillingFinalizeTransfer',
+  BILLING_SEND_TRANSFER = 'BillingSendTransfer',
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',

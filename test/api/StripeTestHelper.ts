@@ -455,8 +455,4 @@ export default class StripeTestHelper {
   public async createSubAccount(): Promise<BillingAccount> {
     return await this.billingImpl.createSubAccount();
   }
-
-  public async generateTransferInvoice(billingTransfer: BillingTransfer, user: User): Promise<BillingInvoice> {
-    return await this.billingImpl.generateTransferInvoice(billingTransfer, user);
-  }
 }

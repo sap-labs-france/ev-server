@@ -1,7 +1,6 @@
-import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingSubAccountActivateRequest, HttpBillingSubAccountCreateRequest, HttpBillingSubAccountGetRequest, HttpBillingSubAccountsGetRequest, HttpBillingTransferFinalizeRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingSubAccountActivateRequest, HttpBillingSubAccountCreateRequest, HttpBillingSubAccountGetRequest, HttpBillingSubAccountsGetRequest, HttpBillingTransferFinalizeRequest, HttpBillingTransferSendRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 
 import { BillingSettings } from '../../../../types/Setting';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
@@ -21,6 +20,7 @@ export default class BillingValidatorRest extends SchemaValidator {
   private billingSubAccountGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-sub-account-get.json`, 'utf8'));
   private billingTransfersGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-transfers-get.json`, 'utf8'));
   private billingTransferFinalize: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-transfer-finalize.json`, 'utf8'));
+  private billingTransferSend: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-transfer-send.json`, 'utf8'));
 
   private constructor() {
     super('BillingValidatorRest');
@@ -79,5 +79,9 @@ export default class BillingValidatorRest extends SchemaValidator {
 
   public validateBillingTransferFinalizeReq(data: Record<string, unknown>): HttpBillingTransferFinalizeRequest {
     return this.validate(this.billingTransferFinalize, data);
+  }
+
+  public validateBillingTransferSendReq(data: Record<string, unknown>): HttpBillingTransferSendRequest {
+    return this.validate(this.billingTransferSend, data);
   }
 }

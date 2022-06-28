@@ -79,4 +79,8 @@ export default class BillingApi extends CrudApi {
   public async finalizeTransfer(id) {
     return super.patch({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_TRANSFER_FINALIZE, { id }));
   }
+
+  public async sendTransfer(id) {
+    return super.patch({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_TRANSFER_SEND, { id }));
+  }
 }

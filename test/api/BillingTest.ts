@@ -1260,6 +1260,9 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           transfer.id = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
           const finalizeResponse = await billingTestHelper.userService.billingApi.finalizeTransfer(transfer.id);
           expect(finalizeResponse.status).to.be.eq(StatusCodes.OK);
+
+          const sendResponse = await billingTestHelper.userService.billingApi.sendTransfer(transfer.id);
+          expect(sendResponse.status).to.be.eq(StatusCodes.OK);
         });
       });
     });
@@ -1319,6 +1322,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         it('should not be able to finalize a transfer', async () => {
           const finalizeResponse = await billingTestHelper.userService.billingApi.finalizeTransfer('5ce249a1a39ae1c056c389bd'); // inexistent transfer
           expect(finalizeResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+        });
+
+        it('should not be able to send a transfer invoice', async () => {
+          const sendResponse = await billingTestHelper.userService.billingApi.sendTransfer('5ce249a1a39ae1c056c389bd'); // inexistent transfer
+          expect(sendResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
       });
     });

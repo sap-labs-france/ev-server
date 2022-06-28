@@ -1,6 +1,6 @@
 {
-  "$id": "billing-transfer-finalize",
-  "title": "Finalize transfer Request",
+  "$id": "billing-transfer-send",
+  "title": "Send transfer Request",
   "type": "object",
   "properties": {
     "ID": {

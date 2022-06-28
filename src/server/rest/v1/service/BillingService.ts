@@ -666,13 +666,50 @@ export default class BillingService {
     }
     transfer.status = BillingTransferStatus.FINALIZED;
     await BillingStorage.saveTransfer(req.tenant, transfer);
-    // Generate the invoice
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleSendTransferInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+      Action.BILLING_SEND_TRANSFER, Entity.BILLING_TRANSFER, MODULE_NAME, 'handleSendTransferInvoice');
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransferFinalizeReq(req.params);
+    // Check authorization
+    await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.BILLING_SEND_TRANSFER);
+    // Get the billing implementation
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleSendTransferInvoice',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get the transfer
+    const transfer = await BillingStorage.getTransferByID(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, transfer, `Transfer ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleSendTransferInvoice', req.user);
+    // Check if the transfer is in draft status
+    if (transfer.status !== BillingTransferStatus.FINALIZED) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Transfer finalization aborted - current status should be FINALIZED',
+        module: MODULE_NAME, method: 'handleSendTransferInvoice',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get the targeted sub account
     const subAccount = await BillingStorage.getSubAccountByID(req.tenant, transfer.accountID);
-    UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${transfer.accountID}' does not exist`, MODULE_NAME, 'handleFinalizeTransfer', req.user);
+    UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${transfer.accountID}' does not exist`, MODULE_NAME, 'handleSendTransferInvoice', req.user);
+    // Get the sub account owner
     const user = await UserStorage.getUser(req.tenant, subAccount.businessOwnerID);
-    UtilsService.assertObjectExists(action, user, `User ID '${transfer.accountID}' does not exist`, MODULE_NAME, 'handleFinalizeTransfer', req.user);
+    UtilsService.assertObjectExists(action, user, `User ID '${transfer.accountID}' does not exist`, MODULE_NAME, 'handleSendTransferInvoice', req.user);
+    // Synchronize owner and generate invoice
     user.billingData = (await billingImpl.forceSynchronizeUser(user)).billingData;
-    const invoice = await billingImpl.generateTransferInvoice(transfer, user);
+    await billingImpl.generateTransferInvoice(transfer, user);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
