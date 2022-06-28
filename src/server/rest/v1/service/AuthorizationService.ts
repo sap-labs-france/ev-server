@@ -1069,7 +1069,7 @@ export default class AuthorizationService {
   }
 
   // Transaction NEW
-  public static async checkAndGetTransactionsAuthorizations(tenant: Tenant, userToken: UserToken,
+  public static async checkAndGetTransactionsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
       filteredRequest: Partial<HttpTransactionsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
@@ -1079,7 +1079,7 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.LIST, authorizations, filteredRequest, null, failsWithException);
+      tenant, userToken, Entity.TRANSACTION, authAction, authorizations, filteredRequest, null, failsWithException);
     return authorizations;
   }
 

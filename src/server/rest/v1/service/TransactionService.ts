@@ -8,6 +8,7 @@ import Transaction, { AdvenirConsumptionData, AdvenirEvseData, AdvenirPayload, A
 import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import { BillingStatus } from '../../../../types/Billing';
@@ -51,15 +52,16 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
-      'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.visualID', 'tag.description', 'stop.tag.visualID',
-      'site.name', 'siteArea.name', 'company.name'
-    ]);
+    // const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
+    //   'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+    //   'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+    //   'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
+    //   'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+    //   'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
+    //   'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.visualID', 'tag.description', 'stop.tag.visualID',
+    //   'site.name', 'siteArea.name', 'company.name'
+    // ]);
+    const transactions = await TransactionService.getTransactions_new(req, filteredRequest);
     res.json(transactions);
     next();
   }
@@ -1076,6 +1078,72 @@ export default class TransactionService {
     return result;
   }
 
+  private static async getTransactions_new(req: Request, filteredRequest: HttpTransactionsGetRequest,
+      authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
+
+    // Get authorization filters
+    const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(
+      req.tenant, req.user, authAction, filteredRequest, false);
+    if (!authorizations.authorized) {
+      return Constants.DB_EMPTY_DATA_RESULT;
+    }
+
+    // Get Tag IDs from Visual IDs
+    if (filteredRequest.VisualTagID) {
+      const tagIDs = await TagStorage.getTags(req.tenant, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['id']);
+      if (!Utils.isEmptyArray(tagIDs.result)) {
+        filteredRequest.TagID = tagIDs.result.map((tag) => tag.id).join('|');
+      }
+    }
+    // Get the transactions
+    const transactions = await TransactionStorage.getTransactions(req.tenant,
+      {
+        search: filteredRequest.Search ? filteredRequest.Search : null,
+        status: filteredRequest.Status ,
+        chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
+        issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
+        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+        tagIDs: filteredRequest.TagID ? filteredRequest.TagID.split('|') : null,
+        // ownerID: Authorizations.isBasic(req.user) ? req.user.id : null,
+        withTag: filteredRequest.WithTag,
+        withUser: filteredRequest.WithUser,
+        withChargingStation: filteredRequest.WithChargingStation,
+        withCar: filteredRequest.WithCar,
+        withSite: filteredRequest.WithSite,
+        withCompany: filteredRequest.WithCompany,
+        withSiteArea: filteredRequest.WithSiteArea,
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
+        // siteAdminIDs: await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user),
+        startDateTime: filteredRequest.StartDateTime ? filteredRequest.StartDateTime : null,
+        endDateTime: filteredRequest.EndDateTime ? filteredRequest.EndDateTime : null,
+        refundStatus: filteredRequest.RefundStatus ? filteredRequest.RefundStatus.split('|') as RefundStatus[] : null,
+        minimalPrice: filteredRequest.MinimalPrice ? filteredRequest.MinimalPrice : null,
+        statistics: filteredRequest.Statistics ? filteredRequest.Statistics : null,
+        reportIDs: filteredRequest.ReportIDs ? filteredRequest.ReportIDs.split('|') : null,
+        connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
+        inactivityStatus: filteredRequest.InactivityStatus ? filteredRequest.InactivityStatus.split('|') : null,
+        ...authorizations.filters
+      },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
+        onlyRecordCount: filteredRequest.OnlyRecordCount,
+      },
+      authorizations.projectFields
+    );
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      transactions.projectFields = authorizations.projectFields;
+    }
+    // Add Auth flags
+    await AuthorizationService.addTransactionsAuthorizations(
+      req.tenant, req.user, transactions, authorizations);
+
+    return transactions;
+  }
+
   private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean, withTag?: boolean } = {},
       filteredRequest: HttpTransactionsGetRequest, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
@@ -1127,7 +1195,7 @@ export default class TransactionService {
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.tenant,
       {
-        status: filteredRequest.Status as TransactionStatus,
+        status: filteredRequest.Status,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
