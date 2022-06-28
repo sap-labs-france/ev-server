@@ -24,6 +24,17 @@ export type InactivityStatusLevel =
  'danger'
 ;
 
+export enum TransactionStatus {
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+}
+
+export enum TransactionStatisticsType {
+  REFUND = 'refund',
+  HISTORY = 'history',
+  ONGOING = 'ongoing',
+}
+
 export enum InactivityStatus {
   INFO = 'I',
   WARNING = 'W',

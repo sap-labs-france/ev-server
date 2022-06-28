@@ -1,6 +1,7 @@
+import { ChargingProfileAuthorizationActions } from './Authorization';
 import ChargingStation from './ChargingStation';
 
-export interface ChargingProfile {
+export interface ChargingProfile extends ChargingProfileAuthorizationActions {
   id?: string;
   chargingStationID: string;
   chargingStation?: ChargingStation;
