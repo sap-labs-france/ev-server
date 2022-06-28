@@ -220,7 +220,7 @@
     "eslint-plugin-jsdoc": "^39.3.3",
     "faker": "^5.5.3",
     "jest": "^27.5.1",
-    "json-schema-faker": "^0.5.0-rcv.43",
+    "json-schema-faker": "^0.5.0-rcv.44",
     "maildev": "^1.1.0",
     "ncp": "^2.0.0",
     "nodemon": "^2.0.18",
