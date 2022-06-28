@@ -710,6 +710,8 @@ export default abstract class BillingIntegration {
 
   abstract createSubAccount(): Promise<BillingAccount>;
 
+  abstract generateTransferInvoice(transfer: BillingTransfer, user: User): Promise<BillingInvoice>;
+
   protected async triggerTransferPreparation(billingInvoice: BillingInvoice): Promise<void> {
     if (!billingInvoice.sessions) {
       // This should not happen!
@@ -768,6 +770,7 @@ export default abstract class BillingIntegration {
         transfer = {
           accountID, status: BillingTransferStatus.DRAFT, sessions: [], totalAmount: 0, transferAmount: 0,
           platformFeeData: null, transferExternalID: null,
+          currency: invoice.currency
         };
       }
       // Process all sessions of the invoice matching the current account ID
@@ -806,5 +809,4 @@ export default abstract class BillingIntegration {
       });
     }
   }
-
 }

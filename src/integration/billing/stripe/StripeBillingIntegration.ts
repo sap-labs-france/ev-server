@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingSessionAccountData, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
@@ -287,7 +287,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       metadata: {
         tenantID: this.tenant.id,
         userID
-      }
+      },
     }, {
       // idempotency_key: idempotencyKey?.toString(),
       idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property as been renamed!!!
@@ -1740,5 +1740,53 @@ export default class StripeBillingIntegration extends BillingIntegration {
       activationLink: activationLink.url,
       status: BillingAccountStatus.IDLE
     };
+  }
+
+  public async generateTransferInvoice(billingTransfer: BillingTransfer, user: User): Promise<BillingInvoice> {
+    await this.checkConnection();
+    // Create invoice items
+    try {
+      await Promise.all(billingTransfer.sessions.map(async (session) =>
+        this.createStripeInvoiceItem({
+          amount: session.amount * 100,
+          customer: user.billingData.customerID,
+          currency: billingTransfer.currency
+        }, this.buildIdemPotencyKey(session.transactionID, 'invoice'))
+      ));
+    } catch (e) {
+      throw new BackendError({
+        message: 'Unexpected situation - unable to create invoice item',
+        detailedMessages: { e },
+        module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
+        method: 'generateTransferInvoice',
+      });
+    }
+    // Create invoice
+    let stripeInvoice: Stripe.Invoice;
+    try {
+      stripeInvoice = await this.createStripeInvoice(user.billingData.customerID, user.id, this.buildIdemPotencyKey(billingTransfer.id, 'invoice'));
+    } catch (e) {
+      throw new BackendError({
+        message: 'Unexpected situation - unable to create transfer invoice',
+        detailedMessages: { e },
+        module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
+        method: 'generateTransferInvoice',
+      });
+    }
+    // Do not charge the user
+    try {
+      stripeInvoice = await this.stripe.invoices.pay(stripeInvoice.id, {
+        paid_out_of_band: true
+      });
+    } catch (e) {
+      throw new BackendError({
+        message: 'Unexpected situation - unable to flag the invoice as paid out of band',
+        detailedMessages: { e },
+        module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
+        method: 'generateTransferInvoice',
+      });
+    }
+    const invoice = this.convertToBillingInvoice(stripeInvoice);
+    return invoice;
   }
 }

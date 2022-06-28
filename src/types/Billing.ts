@@ -204,6 +204,7 @@ export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAut
   businessOwner?: User;
   platformFeeData: BillingPlatformFeeData;
   transferExternalID: string; // Transfer sent to the CPO
+  currency: string;
 }
 
 // Very important - preserve maximal precision - Decimal type is persisted as an object in the DB

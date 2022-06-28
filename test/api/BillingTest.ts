@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus, BillingTransferStatus } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus, BillingTransfer, BillingTransferStatus } from '../../src/types/Billing';
 import { BillingPlatformFeeStrategyFactory, BillingTransferFactory } from '../factories/BillingFactory';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
@@ -115,7 +115,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       it('should be able to repair a user', async () => {
         await stripeTestHelper.checkRepairInconsistencies();
       });
-
     });
   });
 
@@ -1240,6 +1239,27 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           transfer.id = transferID;
           const finalizeResponse = await billingTestHelper.userService.billingApi.finalizeTransfer(transferID);
           expect(finalizeResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+        });
+
+        it('should generate a transfer invoice', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            businessOwnerID: billingTestHelper.userContext.id
+          });
+          expect(response.status).to.be.eq(StatusCodes.CREATED);
+          // Send the activation link
+          const subAccountOnboardResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding(response.data.id);
+          expect(subAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
+          expect(subAccountOnboardResponse.data.status).to.be.eq(BillingAccountStatus.PENDING);
+          // Activate the sub account
+          const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
+          expect(activationResponse.status).to.be.eq(StatusCodes.OK);
+          expect(activationResponse.data.status).to.be.eq(BillingAccountStatus.ACTIVE);
+
+
+          const transfer: BillingTransfer = { ...BillingTransferFactory.build(), status: BillingTransferStatus.DRAFT, accountID: activationResponse.data.id };
+          transfer.id = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
+          const finalizeResponse = await billingTestHelper.userService.billingApi.finalizeTransfer(transfer.id);
+          expect(finalizeResponse.status).to.be.eq(StatusCodes.OK);
         });
       });
     });

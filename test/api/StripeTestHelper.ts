@@ -1,4 +1,4 @@
-import { BillingAccount, BillingChargeInvoiceAction, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
+import { BillingAccount, BillingChargeInvoiceAction, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingTransfer, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { expect } from 'chai';
@@ -454,5 +454,9 @@ export default class StripeTestHelper {
 
   public async createSubAccount(): Promise<BillingAccount> {
     return await this.billingImpl.createSubAccount();
+  }
+
+  public async generateTransferInvoice(billingTransfer: BillingTransfer, user: User): Promise<BillingInvoice> {
+    return await this.billingImpl.generateTransferInvoice(billingTransfer, user);
   }
 }

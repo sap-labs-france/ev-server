@@ -354,7 +354,8 @@ export default class BillingStorage {
         amount: session.amount,
         roundedAmount: session.roundedAmount,
         platformFeeStrategy: session.platformFeeStrategy,
-      }))
+      })),
+      currency: transfer.currency,
     };
     if (transfer.platformFeeData) {
       transferMDB.platformFeeData = {
