@@ -485,7 +485,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.BILLING_TRANSFER,
-        action: [Action.LIST]
+        action: [Action.LIST, Action.BILLING_FINALIZE_TRANSFER],
+        attributes: [
+          'id', 'status', 'createdOn', 'sessions', 'totalAmount', 'transferAmount', 'accountID', 'transferExternalID',
+          'account.businessOwnerID', 'account.accountExternalID', 'businessOwner.name', 'businessOwner.firstName',
+          'platformFeeData.feeAmount', 'platformFeeData.feeTaxAmount', 'platformFeeData.invoiceExternalID', 'platformFeeData.taxExternalID',
+        ]
       },
       { resource: Entity.TAX, action: [Action.LIST] },
       {
@@ -759,7 +764,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSitesCompanies', 'LocalIssuer']
+            filters: []
           }
         },
         attributes: [
@@ -774,7 +779,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSitesCompanies', 'LocalIssuer']
+            filters: []
           }
         },
         attributes: [
@@ -845,7 +850,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites', 'LocalIssuer']
+            filters: []
           }
         },
         attributes: [
@@ -861,7 +866,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites', 'LocalIssuer']
+            filters: []
           }
         },
         attributes: [
@@ -877,7 +882,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: []
           }
         },
         attributes: [
@@ -889,13 +894,29 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.SITE_AREA,
-        action: [Action.READ, Action.READ_CHARGING_STATIONS_FROM_SITE_AREA],
+        resource: Entity.SITE_AREA, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID',
+          'parentSiteAreaID', 'site.name', 'parentSiteArea.name',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'address.coordinates'
+        ],
+      },
+      {
+        resource: Entity.SITE_AREA, action: Action.READ_CHARGING_STATIONS_FROM_SITE_AREA,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [['AssignedSites', 'IncludeAllExternalSites']]
           }
         },
         attributes: [
@@ -1395,7 +1416,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites', 'LocalIssuer'],
+            filters: [],
             metadata: {
               autoUserSiteAssignment: {
                 enabled: false,
@@ -1427,8 +1448,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.SITE_AREA,
-        action: [Action.READ],
+        resource: Entity.SITE_AREA, action: Action.READ,
         attributes: [
           'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
           'voltage', 'smartCharging', 'accessControl', 'connectorStats',
@@ -1438,8 +1458,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.SITE_AREA,
-        action: [Action.READ_ASSETS_FROM_SITE_AREA],
+        resource: Entity.SITE_AREA, action: Action.READ_ASSETS_FROM_SITE_AREA,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {

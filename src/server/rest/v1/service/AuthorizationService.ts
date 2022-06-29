@@ -563,7 +563,8 @@ export default class AuthorizationService {
     siteArea.canUnassignChargingStations = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_FROM_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canReadChargingStations = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITE_AREA, Action.READ_CHARGING_STATIONS_FROM_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
+      tenant, userToken, Entity.SITE_AREA, Action.READ_CHARGING_STATIONS_FROM_SITE_AREA, authorizationFilter,
+      { SiteAreaID: siteArea.id, SiteID: siteArea.siteID, Issuer: siteArea.issuer }, siteArea);
     siteArea.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
@@ -811,7 +812,7 @@ export default class AuthorizationService {
     return authorizations;
   }
 
-  public static async checkAndGetBillingTransfersAuthorizations(tenant: Tenant, userToken: UserToken,
+  public static async checkAndGetBillingTransfersAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
       filteredRequest?: Partial<HttpBillingTransfersGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
@@ -821,7 +822,7 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await this.canPerformAuthorizationAction(
-      tenant, userToken, Entity.BILLING_TRANSFER, Action.LIST, authorizations, filteredRequest, null, failsWithException);
+      tenant, userToken, Entity.BILLING_TRANSFER, authAction, authorizations, filteredRequest, null, failsWithException);
     return authorizations;
   }
 
