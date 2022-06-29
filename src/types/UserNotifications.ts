@@ -285,7 +285,6 @@ export interface BillingPeriodicOperationFailedNotification extends BaseNotifica
   evseDashboardBillingURL: string;
 }
 
-// TODO: delete unused Utils.build urls
 export interface BillingNewInvoiceNotification extends BaseNotification {
   evseDashboardURL: string;
   evseDashboardInvoiceURL: string;
