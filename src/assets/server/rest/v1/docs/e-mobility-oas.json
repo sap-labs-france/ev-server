@@ -8847,7 +8847,7 @@
       }
     },
     "/api/sites/{id}/assign": {
-      "get": {
+      "put": {
         "description": "Assign users to a site",
         "tags": [
           "Sites"
@@ -8904,7 +8904,7 @@
       }
     },
     "/api/sites/{id}/unassign": {
-      "get": {
+      "put": {
         "description": "Unassign users from a site",
         "tags": [
           "Sites"
