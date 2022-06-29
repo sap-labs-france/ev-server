@@ -1,5 +1,9 @@
 import { DynamicAuthorizationAssertName, DynamicAuthorizationDataSourceData, DynamicAuthorizationDataSourceName, DynamicAuthorizationFilterName } from '../types/Authorization';
 
+import AssignedOrExternalCompaniesDynamicAuthorizationDataSource from './dynamic-data-source/AssignedOrExternalCompaniesDynamicAuthorizationDataSource';
+import AssignedOrExternalCompaniesDynamicAuthorizationFilter from './dynamic-filters/AssignedOrExternalCompaniesDynamicAuthorizationFilter';
+import AssignedOrExternalSitesDynamicAuthorizationDataSource from './dynamic-data-source/AssignedOrExternalSitesDynamicAuthorizationDataSource';
+import AssignedOrExternalSitesDynamicAuthorizationFilter from './dynamic-filters/AssignedOrExternalSitesDynamicAuthorizationFilter';
 import AssignedSitesCompaniesDynamicAuthorizationDataSource from './dynamic-data-source/AssignedSitesCompaniesDynamicAuthorizationDataSource';
 import AssignedSitesCompaniesDynamicAuthorizationFilter from './dynamic-filters/AssignedSitesCompaniesDynamicAuthorizationFilter';
 import AssignedSitesDynamicAuthorizationDataSource from './dynamic-data-source/AssignedSitesDynamicAuthorizationDataSource';
@@ -10,7 +14,6 @@ import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from './DynamicAuthorizationFilter';
 import ExcludeActionDynamicAuthorizationDataSource from './dynamic-data-source/ExcludeActionDynamicAuthorizationDataSource';
 import ExcludeActionDynamicAuthorizationFilter from './dynamic-filters/ExcludeActionDynamicAuthorizationFilter';
-import IncludeAllExternalSitesDynamicAuthorizationFilter from './dynamic-filters/IncludeAllExternalSitesDynamicAuthorizationFilter';
 import LocalIssuerDynamicAuthorizationFilter from './dynamic-filters/LocalIssuerDynamicAuthorizationFilter';
 import OwnUserDynamicAuthorizationAssert from './dynamic-assert/OwnUserDynamicAuthorizationAssert';
 import OwnUserDynamicAuthorizationDataSource from './dynamic-data-source/OwnUserDynamicAuthorizationDataSource';
@@ -60,8 +63,11 @@ export default class DynamicAuthorizationFactory {
       case DynamicAuthorizationFilterName.LOCAL_ISSUER:
         dynamicFilter = new LocalIssuerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
-      case DynamicAuthorizationFilterName.INCLUDE_ALL_EXTERNAL_SITES:
-        dynamicFilter = new IncludeAllExternalSitesDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+      case DynamicAuthorizationFilterName.ASSIGNED_OR_EXTERNAL_SITES:
+        dynamicFilter = new AssignedOrExternalSitesDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        break;
+      case DynamicAuthorizationFilterName.ASSIGNED_OR_EXTERNAL_COMPANIES:
+        dynamicFilter = new AssignedOrExternalCompaniesDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
     }
     // Init Data Source
@@ -121,6 +127,12 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationDataSourceName.EXCLUDE_ACTION:
         dataSource = new ExcludeActionDynamicAuthorizationDataSource(tenant, user);
+        break;
+      case DynamicAuthorizationDataSourceName.ASSIGNED_OR_EXTERNAL_SITES:
+        dataSource = new AssignedOrExternalSitesDynamicAuthorizationDataSource(tenant, user);
+        break;
+      case DynamicAuthorizationDataSourceName.ASSIGNED_OR_EXTERNAL_COMPANIES:
+        dataSource = new AssignedOrExternalCompaniesDynamicAuthorizationDataSource(tenant, user);
         break;
     }
     // Load data

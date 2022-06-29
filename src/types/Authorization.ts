@@ -298,7 +298,8 @@ export enum DynamicAuthorizationFilterName {
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
   EXCLUDE_ACTION = 'ExcludeAction',
-  INCLUDE_ALL_EXTERNAL_SITES = 'IncludeAllExternalSites',
+  ASSIGNED_OR_EXTERNAL_SITES = 'AssignedOrExternalSites',
+  ASSIGNED_OR_EXTERNAL_COMPANIES = 'AssignedOrExternalCompanies',
 }
 
 export enum DynamicAuthorizationAssertName {
@@ -316,12 +317,17 @@ export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
   EXCLUDE_ACTION = 'ExcludeAction',
-  INCLUDE_ALL_EXTERNAL_SITES = 'IncludeAllExternalSites',
+  ASSIGNED_OR_EXTERNAL_SITES = 'AssignedOrExternalSites',
+  ASSIGNED_OR_EXTERNAL_COMPANIES = 'AssignedOrExternalCompanies',
 }
 
 export interface DynamicAuthorizationDataSourceData { }
 
 export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  companyIDs?: string[];
+}
+
+export interface AssignedOrExternalCompaniesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   companyIDs?: string[];
 }
 
@@ -334,6 +340,10 @@ export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAut
 }
 
 export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteIDs?: string[];
+}
+
+export interface AssignedOrExternalSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
 

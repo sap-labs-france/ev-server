@@ -764,7 +764,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: []
+            filters: ['AssignedOrExternalCompanies']
           }
         },
         attributes: [
@@ -779,7 +779,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: []
+            filters: ['AssignedOrExternalCompanies']
           }
         },
         attributes: [
@@ -850,7 +850,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: []
+            filters: ['AssignedOrExternalSites']
           }
         },
         attributes: [
@@ -866,7 +866,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: []
+            filters: ['AssignedOrExternalSites']
           }
         },
         attributes: [
@@ -882,7 +882,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: []
+            filters: ['AssignedOrExternalSites']
           }
         },
         attributes: [
@@ -899,7 +899,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: []
+            filters: ['AssignedOrExternalSites']
           }
         },
         attributes: [
@@ -916,7 +916,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+            filters: ['AssignedOrExternalSites']
           }
         },
         attributes: [
@@ -933,7 +933,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+            filters: ['AssignedOrExternalSites']
           }
         },
         attributes: [
@@ -953,7 +953,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+            filters: ['AssignedOrExternalSites']
           }
         },
         attributes: [
@@ -974,7 +974,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+            filters: ['AssignedOrExternalSites']
           }
         },
       },
@@ -1017,7 +1017,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: [['AssignedSites', 'IncludeAllExternalSites']],
+            filters: ['AssignedOrExternalSites'],
           }
         },
       },
@@ -1252,7 +1252,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+            filters: ['AssignedOrExternalSites']
           }
         },
         attributes: [
@@ -1272,7 +1272,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+            filters: ['AssignedOrExternalSites']
           }
         },
         attributes: [
@@ -1586,7 +1586,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+            filters: ['AssignedOrExternalSites']
           }
         },
         attributes: [
@@ -1606,7 +1606,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+            filters: ['AssignedOrExternalSites']
           },
         },
         attributes: [
@@ -1653,7 +1653,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: [['AssignedSites', 'IncludeAllExternalSites']]
+            filters: ['AssignedOrExternalSites']
           }
         },
       },
