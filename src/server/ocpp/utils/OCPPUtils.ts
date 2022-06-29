@@ -1872,6 +1872,9 @@ export default class OCPPUtils {
       });
       return false;
     }
-    return true;
+    if (meterValueWh > lastMeterValueWh) {
+      return true;
+    }
+    return false;
   }
 }
