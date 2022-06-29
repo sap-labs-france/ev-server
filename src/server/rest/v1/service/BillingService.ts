@@ -504,10 +504,7 @@ export default class BillingService {
 
   public static async handleActivateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingActivateSubAccountReq({ ...req.params, ...req.body });
-    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
-    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount');
-
-    const subAccount = await BillingStorage.getSubAccountByID(tenant, filteredRequest.ID);
+    const subAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
     // Check if the sub account onboarding has been sent
     if (subAccount.status !== BillingAccountStatus.PENDING) {
@@ -520,14 +517,14 @@ export default class BillingService {
       });
     }
     // Get the sub account owner
-    const user = await UserStorage.getUser(tenant, subAccount.businessOwnerID);
+    const user = await UserStorage.getUser(req.tenant, subAccount.businessOwnerID);
     UtilsService.assertObjectExists(action, user, `User ID '${subAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
     // Activate and save the sub account
     subAccount.status = BillingAccountStatus.ACTIVE;
-    await BillingStorage.saveSubAccount(tenant, subAccount);
+    await BillingStorage.saveSubAccount(req.tenant, subAccount);
     // Notify the user
     void NotificationHandler.sendBillingSubAccountActivationNotification(
-      tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(tenant.subdomain), user });
+      req.tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
     res.status(StatusCodes.OK).json(subAccount);
     next();
   }

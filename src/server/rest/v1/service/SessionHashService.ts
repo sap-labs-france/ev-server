@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
+import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import User, { UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -94,6 +94,20 @@ export default class SessionHashService {
           module: MODULE_NAME, method: 'checkUserAndTenantValidity',
           user: req.user,
           detailedMessages: {
+            request: req.url,
+            headers: res.getHeaders(),
+          }
+        });
+      }
+      // Check if Tenant URL has changed
+      if (tenant.redirectDomain) {
+        throw new AppError({
+          errorCode: StatusCodes.MOVED_PERMANENTLY,
+          message: ReasonPhrases.MOVED_PERMANENTLY,
+          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          user: req.user,
+          detailedMessages: {
+            redirectDomain:tenant.redirectDomain,
             request: req.url,
             headers: res.getHeaders(),
           }
