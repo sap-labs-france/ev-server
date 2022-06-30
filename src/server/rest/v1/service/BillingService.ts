@@ -675,9 +675,10 @@ export default class BillingService {
       user.billingData = (await billingImpl.forceSynchronizeUser(user)).billingData;
       await UserStorage.saveUser(req.tenant, user);
     }
-    await billingImpl.generateTransferInvoice(transfer, user);
+    const invoice = await billingImpl.billPlatformFee(transfer, user);
     // Update the transfer status
     transfer.status = BillingTransferStatus.FINALIZED;
+    transfer.invoice = invoice;
     await BillingStorage.saveTransfer(req.tenant, transfer);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();

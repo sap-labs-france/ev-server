@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
@@ -1742,40 +1742,47 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  public async generateTransferInvoice(billingTransfer: BillingTransfer, user: User): Promise<BillingInvoice> {
+  public async billPlatformFee(billingTransfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice> {
     await this.checkConnection();
     // Create invoice items
     try {
       await Promise.all(billingTransfer.sessions.map(async (session) =>
         this.createStripeInvoiceItem({
-          amount: session.amount * 100,
+          amount: session.amount * 100, // TODO - bill the platform fee (not the session amount)
           customer: user.billingData.customerID,
           currency: billingTransfer.currency
-        }, this.buildIdemPotencyKey(session.transactionID, 'invoice'))
+        }, this.buildIdemPotencyKey(session.transactionID, 'invoice', 'platformFee'))
       ));
     } catch (e) {
       throw new BackendError({
         message: 'Unexpected situation - unable to create invoice item',
         detailedMessages: { e },
         module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
-        method: 'generateTransferInvoice',
+        method: 'billPlatformFee',
       });
     }
     // Create invoice
     let stripeInvoice: Stripe.Invoice;
     try {
-      stripeInvoice = await this.createStripeInvoice(user.billingData.customerID, user.id, this.buildIdemPotencyKey(billingTransfer.id, 'invoice'));
+      stripeInvoice = await this.createStripeInvoice(user.billingData.customerID, user.id, this.buildIdemPotencyKey(billingTransfer.id, 'invoice', 'platformFee'));
     } catch (e) {
       throw new BackendError({
         message: 'Unexpected situation - unable to create transfer invoice',
         detailedMessages: { e },
         module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
-        method: 'generateTransferInvoice',
+        method: 'billPlatformFee',
       });
     }
-    // Do not charge the user
+    if (!stripeInvoice) {
+      throw new BackendError({
+        message: 'Unexpected situation - platform invoice is not set',
+        module: MODULE_NAME, action: ServerAction.BILLING,
+        method: 'convertToBillingPlatformInvoice',
+      });
+    }
     try {
       stripeInvoice = await this.stripe.invoices.pay(stripeInvoice.id, {
+        // Do not charge the customer
         paid_out_of_band: true
       });
     } catch (e) {
@@ -1783,10 +1790,29 @@ export default class StripeBillingIntegration extends BillingIntegration {
         message: 'Unexpected situation - unable to flag the invoice as paid out of band',
         detailedMessages: { e },
         module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
-        method: 'generateTransferInvoice',
+        method: 'billPlatformFee',
       });
     }
-    const invoice = this.convertToBillingInvoice(stripeInvoice);
+    const invoice = this.convertToBillingPlatformInvoice(stripeInvoice);
+    return invoice;
+  }
+
+  public convertToBillingPlatformInvoice(stripeInvoice: Stripe.Invoice): BillingPlatformInvoice {
+    // eslint-disable-next-line id-blacklist, max-len
+    const { id: invoiceID, customer, number: invoiceNumber, livemode: liveMode, amount_due: amount, status, currency: invoiceCurrency, metadata } = stripeInvoice;
+    const customerID = customer as string;
+    const currency = invoiceCurrency?.toUpperCase();
+    const epoch = stripeInvoice.status_transitions?.finalized_at || stripeInvoice.created;
+    const createdOn = moment.unix(epoch).toDate(); // epoch to Date!
+    const userID = metadata.userID;
+    // Amount is in cents!
+    const totalAmount = amount * 100;
+    const invoice: BillingPlatformInvoice = {
+      invoiceID, invoiceNumber, liveMode, userID,
+      status: status as BillingInvoiceStatus,
+      amount, totalAmount, currency,
+      customerID, createdOn
+    };
     return invoice;
   }
 }

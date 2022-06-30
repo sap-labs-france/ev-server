@@ -14164,7 +14164,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Send a Transfer invoice to the sub-account owner",
+        "description": "Triggers the transfer of funds to the sub-account",
         "parameters": [
           {
             "in": "path",
