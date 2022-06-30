@@ -25,7 +25,6 @@ export default class AssignedSitesCompaniesDynamicAuthorizationDataSource
     const sites = await SiteStorage.getSites(this.tenant,
       {
         userID: this.userToken.id,
-        issuer: true,
       }, Constants.DB_PARAMS_MAX_LIMIT,
       ['companyID']
     );
