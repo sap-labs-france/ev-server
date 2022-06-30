@@ -1,5 +1,6 @@
 import AddCompanyIDToChargingStationsTask from './tasks/AddCompanyIDToChargingStationsTask';
 import AddCompanyIDToTransactionsTask from './tasks/AddCompanyIDToTransactionsTask';
+import AddLevelTemplateToChargingStationTemplateTask from './tasks/AddLevelTemplateToChargingStationTemplateTask';
 import AddUserIDToCarsTask from './tasks/AddUserIDToCarsTask';
 import AlignEntitiesWithOrganizationIDsTask from './tasks/AlignEntitiesWithOrganizationIDsTask';
 import Constants from '../utils/Constants';
@@ -154,6 +155,7 @@ export default class MigrationHandler {
     currentMigrationTasks.push(new AlignEntitiesWithOrganizationIDsTask());
     currentMigrationTasks.push(new RemoveLogoFromTenantTask());
     currentMigrationTasks.push(new OCPIEndpointCleanUpTask());
+    currentMigrationTasks.push(new AddLevelTemplateToChargingStationTemplateTask());
     return currentMigrationTasks;
   }
 }

@@ -25,11 +25,11 @@ export default class ChargingStationTemplateBootstrap {
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
         // Set the hashes
-        chargingStationTemplate.hash = Utils.hash(JSON.stringify(chargingStationTemplate));
-        chargingStationTemplate.hashTechnical = Utils.hash(JSON.stringify(chargingStationTemplate.technical));
-        chargingStationTemplate.hashCapabilities = Utils.hash(JSON.stringify(chargingStationTemplate.capabilities));
-        chargingStationTemplate.hashOcppStandard = Utils.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
-        chargingStationTemplate.hashOcppVendor = Utils.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
+        chargingStationTemplate.template.hash = Utils.hash(JSON.stringify(chargingStationTemplate));
+        chargingStationTemplate.template.hashTechnical = Utils.hash(JSON.stringify(chargingStationTemplate.template.technical));
+        chargingStationTemplate.template.hashCapabilities = Utils.hash(JSON.stringify(chargingStationTemplate.template.capabilities));
+        chargingStationTemplate.template.hashOcppStandard = Utils.hash(JSON.stringify(chargingStationTemplate.template.ocppStandardParameters));
+        chargingStationTemplate.template.hashOcppVendor = Utils.hash(JSON.stringify(chargingStationTemplate.template.ocppVendorParameters));
         // Save
         await ChargingStationTemplateStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {

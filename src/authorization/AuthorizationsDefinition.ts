@@ -26,6 +26,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       { resource: Entity.CHARGING_STATION_TEMPLATE, action: [Action.LIST, Action.READ, Action.DELETE, Action.UPDATE, Action.CREATE] },
+      // attributes: [
       {
         resource: Entity.USER, action: Action.DELETE,
         condition: {
@@ -486,7 +487,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.BILLING_TRANSFER,
-        action: [Action.LIST]
+        action: [Action.LIST, Action.BILLING_FINALIZE_TRANSFER],
+        attributes: [
+          'id', 'status', 'createdOn', 'sessions', 'totalAmount', 'transferAmount', 'accountID', 'transferExternalID',
+          'account.businessOwnerID', 'account.accountExternalID', 'businessOwner.name', 'businessOwner.firstName',
+          'platformFeeData.feeAmount', 'platformFeeData.feeTaxAmount', 'platformFeeData.invoiceExternalID', 'platformFeeData.taxExternalID',
+        ]
       },
       { resource: Entity.TAX, action: [Action.LIST] },
       {

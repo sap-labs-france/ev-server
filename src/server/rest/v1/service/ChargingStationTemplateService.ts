@@ -1,16 +1,14 @@
-import { Action, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
-import AppAuthError from '../../../../exception/AppAuthError';
+import { Action } from '../../../../types/Authorization';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
-import Authorizations from '../../../../authorization/Authorizations';
 import { ChargingStationTemplate } from '../../../../types/ChargingStation';
 import { ChargingStationTemplateDataResult } from '../../../../types/DataResult';
 import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
 import ChargingStationTemplateValidator from '../validator/ChargingStationTemplateValidatorRest';
 import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
@@ -21,41 +19,34 @@ const MODULE_NAME = 'ChargingStationTemplateService';
 export default class ChargingStationTemplateService {
   public static async handleCreateChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateCreateReq(req.body);
+    // Check dynamic auth
     await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     const foundTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(filteredRequest.id);
     if (foundTemplate) {
       throw new AppError({
-        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
-        message: `id '${filteredRequest.id}' already exists`,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Charging station template with id '${filteredRequest.id}' already exists`,
         module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
         user: req.user,
         action: action
       });
     }
-    // Check auth
-    if (!(await Authorizations.canCreateChargingStationTemplate(req.user))) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.CHARGING_STATION_TEMPLATE,
-        module: MODULE_NAME, method: 'handleCreateChargingStationTemplate'
-      });
-    }
     const newChargingStationTemplate: ChargingStationTemplate = {
       id: filteredRequest.id,
-      hash : Utils.hash(JSON.stringify(filteredRequest)),
-      hashTechnical : Utils.hash(JSON.stringify(filteredRequest.technical)),
-      hashCapabilities : Utils.hash(JSON.stringify(filteredRequest.capabilities)),
-      hashOcppStandard : Utils.hash(JSON.stringify(filteredRequest.ocppStandardParameters)),
-      hashOcppVendor : Utils.hash(JSON.stringify(filteredRequest.ocppVendorParameters)),
-      chargePointVendor: filteredRequest.chargePointVendor,
-      capabilities: filteredRequest.capabilities,
-      ocppStandardParameters: filteredRequest.ocppStandardParameters,
-      ocppVendorParameters: filteredRequest.ocppVendorParameters,
-      createdOn: new Date(),
-      extraFilters: filteredRequest.extraFilters,
-      technical: filteredRequest.technical
+      template : {
+        hash : Utils.hash(JSON.stringify(filteredRequest)),
+        hashTechnical : Utils.hash(JSON.stringify(filteredRequest.template.technical)),
+        hashCapabilities : Utils.hash(JSON.stringify(filteredRequest.template.capabilities)),
+        hashOcppStandard : Utils.hash(JSON.stringify(filteredRequest.template.ocppStandardParameters)),
+        hashOcppVendor : Utils.hash(JSON.stringify(filteredRequest.template.ocppVendorParameters)),
+        chargePointVendor: filteredRequest.template.chargePointVendor,
+        capabilities: filteredRequest.template.capabilities,
+        ocppStandardParameters: filteredRequest.template.ocppStandardParameters,
+        ocppVendorParameters: filteredRequest.template.ocppVendorParameters,
+        extraFilters: filteredRequest.template.extraFilters,
+        technical: filteredRequest.template.technical
+      }
     };
 
     newChargingStationTemplate.id = await ChargingStationTemplateStorage.saveChargingStationTemplate(newChargingStationTemplate);
@@ -74,17 +65,13 @@ export default class ChargingStationTemplateService {
     // Filter
     const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplatesGetReq(req.query);
     // Check dynamic auth
-    const authorizationChargingStationTemplateFilter = await AuthorizationService.checkAndGetChargingStationTemplatesAuthorizations(
-      req.tenant, req.user, filteredRequest);
-    if (!authorizationChargingStationTemplateFilter.authorized) {
-      UtilsService.sendEmptyDataResult(res, next);
-      return;
-    }
+    const authorizations = await AuthorizationService.checkAndGetChargingStationTemplatesAuthorizations(
+      req.tenant, req.user, Action.LIST, filteredRequest);
     // Get the tokens
     const chargingStationTemplates = await ChargingStationTemplateStorage.getChargingStationTemplates(
       {
         search: filteredRequest.Search,
-        ...authorizationChargingStationTemplateFilter.filters
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -92,15 +79,15 @@ export default class ChargingStationTemplateService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationChargingStationTemplateFilter.projectFields
+      authorizations.projectFields
     );
     // Assign projected fields
-    if (authorizationChargingStationTemplateFilter.projectFields) {
-      chargingStationTemplates.projectFields = authorizationChargingStationTemplateFilter.projectFields;
+    if (authorizations.projectFields) {
+      chargingStationTemplates.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
     // eslint-disable-next-line max-len
-    await AuthorizationService.addChargingStationTemplatesAuthorizations(req.tenant, req.user, chargingStationTemplates as ChargingStationTemplateDataResult, authorizationChargingStationTemplateFilter);
+    await AuthorizationService.addChargingStationTemplatesAuthorizations(req.tenant, req.user, chargingStationTemplates as ChargingStationTemplateDataResult, authorizations);
     res.json(chargingStationTemplates);
     next();
   }
@@ -118,24 +105,9 @@ export default class ChargingStationTemplateService {
   public static async handleDeleteChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const chargingStationTemplateID = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateDeleteReq(req.body).id;
-    // Check Mandatory fields
-    UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME,
-      'handleDeleteChargingStationTemplate', req.user);
-    // Get
-    const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(chargingStationTemplateID);
-    UtilsService.assertObjectExists(action, chargingStationTemplate, `Charging StationTemplate ID '${chargingStationTemplateID}' does not exist`,
-      MODULE_NAME, 'handleDeleteChargingStationTemplate', req.user);
-    // Check auth
-    if (!await Authorizations.canDeleteChargingStationTemplate(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.CHARGING_STATION_TEMPLATE,
-        module: MODULE_NAME, method: 'handleDeleteChargingStationTemplate',
-        value: chargingStationTemplateID,
-      });
-    }
-    // Delete physically
+    // Check and get charging station template
+    const chargingStationTemplate = await UtilsService.checkAndGetChargingStationTemplateAuthorization(req.tenant, req.user, chargingStationTemplateID, Action.DELETE, action);
+    // Delete
     await ChargingStationTemplateStorage.deleteChargingStationTemplate(req.tenant, chargingStationTemplate.id);
     await Logging.logInfo({
       tenantID: req.tenant.id,
@@ -149,46 +121,33 @@ export default class ChargingStationTemplateService {
   }
 
   public static async handleUpdateChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
     const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateUpdateReq(req.body);
-    await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
-      req.tenant, req.user, filteredRequest, Action.UPDATE);
-    const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(filteredRequest.id);
-    UtilsService.assertObjectExists(action, chargingStationTemplate, `Charging Station Template '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUpdateChargingStationTemplate', req.user);
-    // Check auth
-    if (!(await Authorizations.canUpdateChargingStationTemplate(req.user))) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.IMPORT, entity: Entity.CHARGING_STATION_TEMPLATE,
-        module: MODULE_NAME, method: 'handleUpdateChargingStationTemplate'
-      });
-    }
-    const newChargingStationTemplate: ChargingStationTemplate = {
-      id: filteredRequest.id,
-      hash : Utils.hash(JSON.stringify(filteredRequest)),
-      hashTechnical : Utils.hash(JSON.stringify(filteredRequest.technical)),
-      hashCapabilities : Utils.hash(JSON.stringify(filteredRequest.capabilities)),
-      hashOcppStandard : Utils.hash(JSON.stringify(filteredRequest.ocppStandardParameters)),
-      hashOcppVendor : Utils.hash(JSON.stringify(filteredRequest.ocppVendorParameters)),
-      chargePointVendor: filteredRequest.chargePointVendor,
-      capabilities: filteredRequest.capabilities,
-      ocppStandardParameters: filteredRequest.ocppStandardParameters,
-      ocppVendorParameters: filteredRequest.ocppVendorParameters,
-      createdOn: new Date(),
-      extraFilters: filteredRequest.extraFilters,
-      technical: filteredRequest.technical
+    // Check and get charging station template
+    const chargingStationTemplate = await UtilsService.checkAndGetChargingStationTemplateAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
+    const template = filteredRequest.template;
+    chargingStationTemplate.template = {
+      hash: Utils.hash(JSON.stringify(filteredRequest)),
+      hashTechnical: Utils.hash(JSON.stringify(template.technical)),
+      hashCapabilities: Utils.hash(JSON.stringify(template.capabilities)),
+      hashOcppStandard: Utils.hash(JSON.stringify(template.ocppStandardParameters)),
+      hashOcppVendor: Utils.hash(JSON.stringify(template.ocppVendorParameters)),
+      chargePointVendor: template.chargePointVendor,
+      extraFilters: template.extraFilters,
+      technical: template.technical,
+      capabilities: template.capabilities,
+      ocppStandardParameters: template.ocppStandardParameters,
+      ocppVendorParameters: template.ocppVendorParameters,
     };
-
-    newChargingStationTemplate.id = await ChargingStationTemplateStorage.saveChargingStationTemplate(newChargingStationTemplate);
+    // Save
+    await ChargingStationTemplateStorage.saveChargingStationTemplate(chargingStationTemplate);
     await Logging.logInfo({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateChargingStationTemplate',
-      message: `'${newChargingStationTemplate.id}' has been updated successfully`,
-      action: action,
-      detailedMessages: { chargingStationtemplate: newChargingStationTemplate }
+      message: `'${chargingStationTemplate.id}' has been updated successfully`,
+      action, detailedMessages: { chargingStationtemplate: chargingStationTemplate }
     });
-    res.json(Object.assign({ id: newChargingStationTemplate.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 }

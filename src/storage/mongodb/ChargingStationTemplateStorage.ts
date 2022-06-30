@@ -8,6 +8,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { HttpGetChargingStationTemplateRequest } from '../../types/requests/HttpChargingStationTemplateRequest';
 import Logging from '../../utils/Logging';
+import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
@@ -17,21 +18,28 @@ export default class ChargingStationTemplateStorage {
   public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Validate
-    // TODO @Melvyn ici on utilise le validator storage qui vise le storage
     chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(chargingStationTemplate);
     // Prepare DB structure
-    const chargingStationTemplateMDB = {
+    // const chargingStationTemplateMDB = {
+    //   ...chargingStationTemplate,
+    //   id: chargingStationTemplate.id ? DatabaseUtils.convertToObjectID(chargingStationTemplate.id) : new ObjectId(),
+    // };
+    const _id = chargingStationTemplate.id ? DatabaseUtils.convertToObjectID(chargingStationTemplate.id) : new ObjectId();
+
+    // Validate
+    const chargingStationTemplateMDB = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate({
       ...chargingStationTemplate,
-      _id: chargingStationTemplate.id
-    };
-    delete chargingStationTemplateMDB.id;
-    // Modify and return the modified document
+      id: _id
+    });
+    // Add Last Changed/Created props
+    DatabaseUtils.addLastChangedCreatedProps(chargingStationTemplateMDB, chargingStationTemplate);
+    // Modify
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').findOneAndReplace(
-      { '_id': chargingStationTemplate.id },
-      chargingStationTemplateMDB,
+      { '_id': chargingStationTemplateMDB.id },
+      { $set: { template: chargingStationTemplateMDB.template } },
       { upsert: true });
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveChargingStationTemplate', startTime, chargingStationTemplate);
-    return chargingStationTemplateMDB._id;
+    return chargingStationTemplateMDB.id.toString();
   }
 
   public static async getChargingStationTemplates(
@@ -62,7 +70,7 @@ export default class ChargingStationTemplateStorage {
     // Build filter
     if (!Utils.isEmptyArray(params.IDs)) {
       filters._id = {
-        $in: params.IDs.map((ID) => ID)
+        $in: params.IDs.map((ID) => DatabaseUtils.convertToObjectID(ID))
       };
     }
     // Filters

@@ -158,30 +158,11 @@ export default class UtilsService {
 
   public static async checkAndGetChargingStationTemplateAuthorization(tenant: Tenant, userToken: UserToken, chargingStationTemplateID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStationTemplate> {
-    UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
-    // Check static auth for reading Charging Station
-    if (!await Authorizations.canReadChargingStationTemplate(userToken)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.CHARGING_STATION_TEMPLATE,
-        module: MODULE_NAME, method: 'checkAndGetChargingStationTemplateAuthorization',
-        value: chargingStationTemplateID,
-        chargingStationID: chargingStationTemplateID,
-      });
-    }
     // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       tenant, userToken, { id: chargingStationTemplateID }, authAction, entityData);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.CHARGING_STATION_TEMPLATE,
-        module: MODULE_NAME, method: 'checkAndGetChargingStationTemplateAuthorization',
-      });
-    }
     // Get ChargingStationTemplate
     const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(chargingStationTemplateID,
       {

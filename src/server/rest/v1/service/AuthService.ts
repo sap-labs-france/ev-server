@@ -59,19 +59,8 @@ export default class AuthService {
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthSignInReq(req.body);
-    // Get Tenant
-    const tenant = await AuthService.getTenant(filteredRequest.tenant);
-    if (!tenant) {
-      throw new AppError({
-        errorCode: StatusCodes.NOT_FOUND,
-        message: `User with Email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: MODULE_NAME,
-        method: 'handleLogIn',
-        action: action
-      });
-    }
-    req.user = { tenantID: tenant.id };
-    const user = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
+    req.user = { tenantID: req.tenant.id };
+    const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
       MODULE_NAME, 'handleLogIn', req.user);
     // Check if the number of trials is reached
@@ -88,14 +77,14 @@ export default class AuthService {
             message: 'User has been unlocked after a period of time can try to login again'
           });
           // Save User Status
-          await UserStorage.saveUserStatus(tenant, user.id, UserStatus.ACTIVE);
+          await UserStorage.saveUserStatus(req.tenant, user.id, UserStatus.ACTIVE);
           // Init User Password
-          await UserStorage.saveUserPassword(tenant, user.id,
+          await UserStorage.saveUserPassword(req.tenant, user.id,
             { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
           // Read user again
-          const updatedUser = await UserStorage.getUser(tenant, user.id);
+          const updatedUser = await UserStorage.getUser(req.tenant, user.id);
           // Check user
-          await AuthService.checkUserLogin(action, tenant, updatedUser, filteredRequest, req, res, next);
+          await AuthService.checkUserLogin(action, req.tenant, updatedUser, filteredRequest, req, res, next);
         } else {
           // Return data
           throw new AppError({
@@ -110,11 +99,11 @@ export default class AuthService {
         user.passwordWrongNbrTrials = 0;
         user.passwordBlockedUntil = null;
         // Check user
-        await AuthService.checkUserLogin(action, tenant, user, filteredRequest, req, res, next);
+        await AuthService.checkUserLogin(action, req.tenant, user, filteredRequest, req, res, next);
       }
     } else {
       // Nbr trials OK: Check user
-      await AuthService.checkUserLogin(action, tenant, user, filteredRequest, req, res, next);
+      await AuthService.checkUserLogin(action, req.tenant, user, filteredRequest, req, res, next);
     }
   }
 
@@ -126,22 +115,12 @@ export default class AuthService {
     if (!filteredRequest.locale) {
       filteredRequest.locale = Constants.DEFAULT_LOCALE;
     }
-    // Get the Tenant
-    const tenant = await AuthService.getTenant(filteredRequest.tenant);
-    if (!tenant.id) {
-      throw new AppError({
-        errorCode: StatusCodes.NOT_FOUND,
-        message: `User is trying to register with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: MODULE_NAME,
-        method: 'handleRegisterUser'
-      });
-    }
-    req.user = { tenantID: tenant.id };
+    req.user = { tenantID: req.tenant.id };
     // Check reCaptcha
-    await UtilsService.checkReCaptcha(tenant, action, 'handleRegisterUser',
+    await UtilsService.checkReCaptcha(req.tenant, action, 'handleRegisterUser',
       centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
     // Check email
-    const user = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
+    const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     if (user) {
       throw new AppError({
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
@@ -161,40 +140,40 @@ export default class AuthService {
     newUser.mobile = filteredRequest.mobile;
     newUser.createdOn = new Date();
     const verificationToken = Utils.generateToken(filteredRequest.email);
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenant, Utils.getLanguageFromLocale(newUser.locale));
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(req.tenant, Utils.getLanguageFromLocale(newUser.locale));
     // Save User
-    newUser.id = await UserStorage.saveUser(tenant, newUser);
+    newUser.id = await UserStorage.saveUser(req.tenant, newUser);
     // Save User Status
-    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
-      await UserStorage.saveUserRole(tenant, newUser.id, UserRole.SUPER_ADMIN);
+    if (req.tenant.id === Constants.DEFAULT_TENANT_ID) {
+      await UserStorage.saveUserRole(req.tenant, newUser.id, UserRole.SUPER_ADMIN);
     } else {
-      await UserStorage.saveUserRole(tenant, newUser.id, UserRole.BASIC);
+      await UserStorage.saveUserRole(req.tenant, newUser.id, UserRole.BASIC);
     }
     // Save User Status
-    await UserStorage.saveUserStatus(tenant, newUser.id, UserStatus.PENDING);
+    await UserStorage.saveUserStatus(req.tenant, newUser.id, UserStatus.PENDING);
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(newUser.locale);
     // Save User password
-    await UserStorage.saveUserPassword(tenant, newUser.id, {
+    await UserStorage.saveUserPassword(req.tenant, newUser.id, {
       password: newPasswordHashed,
       passwordWrongNbrTrials: 0,
       passwordResetHash: null,
       passwordBlockedUntil: null
     });
     // Save User Account Verification
-    await UserStorage.saveUserAccountVerification(tenant, newUser.id, { verificationToken });
+    await UserStorage.saveUserAccountVerification(req.tenant, newUser.id, { verificationToken });
     // Save User EULA
-    await UserStorage.saveUserEULA(tenant, newUser.id, {
+    await UserStorage.saveUserEULA(req.tenant, newUser.id, {
       eulaAcceptedOn: new Date(),
       eulaAcceptedVersion: endUserLicenseAgreement.version,
       eulaAcceptedHash: endUserLicenseAgreement.hash
     });
     // Assign user to all Sites with auto-assign flag
-    await UtilsService.assignCreatedUserToSites(tenant, newUser);
+    await UtilsService.assignCreatedUserToSites(req.tenant, newUser);
     // Create default Tag
-    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
+    if (req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
       const tag: Tag = {
-        id: await TagStorage.findAvailableID(tenant),
+        id: await TagStorage.findAvailableID(req.tenant),
         active: true,
         issuer: true,
         userID: newUser.id,
@@ -203,29 +182,29 @@ export default class AuthService {
         description: i18nManager.translate('tags.virtualBadge'),
         default: true
       };
-      await TagStorage.saveTag(tenant, tag);
+      await TagStorage.saveTag(req.tenant, tag);
     }
     await Logging.logInfo({
-      tenantID: tenant.id,
+      tenantID: req.tenant.id,
       user: newUser, action: action,
       module: MODULE_NAME,
       method: 'handleRegisterUser',
       message: `User with Email '${req.body.email as string}' has been created successfully`,
       detailedMessages: { params: req.body }
     });
-    if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
+    if (req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Send notification
-      const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
+      const evseDashboardVerifyEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
         '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
       // Notify (Async)
       void NotificationHandler.sendNewRegisteredUser(
-        tenant,
+        req.tenant,
         Utils.generateUUID(),
         newUser,
         {
           'tenant': filteredRequest.name,
           'user': newUser,
-          'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
+          'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
           'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
         }
       );
@@ -263,7 +242,7 @@ export default class AuthService {
       message: `User with Email '${req.body.email as string}' will receive an email to reset his password`
     });
     // Send notification
-    const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
+    const evseDashboardResetPassURL = Utils.buildEvseURL(req.tenant.subdomain) +
       '/define-password?hash=' + resetHash;
     // Notify
     void NotificationHandler.sendRequestPassword(
@@ -272,7 +251,7 @@ export default class AuthService {
       user,
       {
         'user': user,
-        'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
+        'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
         'evseDashboardResetPassURL': evseDashboardResetPassURL
       }
     );
@@ -315,42 +294,21 @@ export default class AuthService {
 
   public static async handleUserPasswordReset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthPasswordResetReq(req.body);
-    // Get Tenant
-    const tenant = await AuthService.getTenant(filteredRequest.tenant);
-    if (!tenant) {
-      throw new AppError({
-        errorCode: StatusCodes.NOT_FOUND,
-        message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: MODULE_NAME,
-        method: 'handleUserPasswordReset',
-        action: action
-      });
-    }
     // Check hash
     if (filteredRequest.hash) {
       // Send the new password
-      await AuthService.resetUserPassword(tenant, filteredRequest, action, req, res, next);
+      await AuthService.resetUserPassword(req.tenant, filteredRequest, action, req, res, next);
     } else {
       // Send Confirmation Email for requesting a new password
-      await AuthService.checkAndSendResetPasswordConfirmationEmail(tenant, filteredRequest, action, req, res, next);
+      await AuthService.checkAndSendResetPasswordConfirmationEmail(req.tenant, filteredRequest, action, req, res, next);
     }
   }
 
   public static async handleCheckEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthEulaCheckReq(req.query);
-    // Get Tenant
-    const tenant = await AuthService.getTenant(filteredRequest.Tenant);
-    if (!tenant) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Tenant is mandatory',
-        module: MODULE_NAME,
-        method: 'handleCheckEndUserLicenseAgreement'
-      });
-    }
     // Get User
-    const user = await UserStorage.getUserByEmail(tenant, filteredRequest.Email);
+    const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.Email);
     if (!user) {
       // Do not return error, only reject it
       res.json({ eulaAccepted: false });
@@ -358,7 +316,7 @@ export default class AuthService {
       return;
     }
     // Get last Eula version
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenant, Utils.getLanguageFromLocale(user.locale));
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(req.tenant, Utils.getLanguageFromLocale(user.locale));
     if (user.eulaAcceptedHash === endUserLicenseAgreement.hash) {
       // Check if version matches
       res.json({ eulaAccepted: true });
@@ -382,19 +340,8 @@ export default class AuthService {
   public static async handleVerifyEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthEmailVerifyReq(req.query);
-    // Get Tenant
-    const tenant = await AuthService.getTenant(filteredRequest.Tenant);
-    if (!tenant) {
-      throw new AppError({
-        errorCode: StatusCodes.NOT_FOUND,
-        action: action,
-        module: MODULE_NAME,
-        method: 'handleVerifyEmail',
-        message: `User is trying to access resource with an unknown tenant '${filteredRequest.Tenant}'!`
-      });
-    }
     // Check that this is not the super tenant
-    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
+    if (req.tenant.id === Constants.DEFAULT_TENANT_ID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         action: action,
@@ -402,17 +349,8 @@ export default class AuthService {
         message: 'Cannot verify email in the Super Tenant'
       });
     }
-    if (!tenant) {
-      throw new AppError({
-        errorCode: StatusCodes.NOT_FOUND,
-        action: action,
-        module: MODULE_NAME,
-        method: 'handleVerifyEmail',
-        message: `Tenant ID '${tenant.id}' does not exist!`
-      });
-    }
     // Check email
-    const user = await UserStorage.getUserByEmail(tenant, filteredRequest.Email);
+    const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.Email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.Email}' does not exist`,
       MODULE_NAME, 'handleVerifyEmail', req.user);
     // Check if account is already active
@@ -439,21 +377,21 @@ export default class AuthService {
     let userStatus: UserStatus;
     // When it's user creation case we take the user settings
     if (!user.importedData) {
-      const userSettings = await SettingStorage.getUserSettings(tenant);
+      const userSettings = await SettingStorage.getUserSettings(req.tenant);
       userStatus = userSettings.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
     } else {
       // When it's user import case we take checkbox param saved to db
       userStatus = user.importedData.autoActivateUserAtImport ? UserStatus.ACTIVE : UserStatus.INACTIVE;
     }
     // Save User Status
-    await UserStorage.saveUserStatus(tenant, user.id, userStatus);
+    await UserStorage.saveUserStatus(req.tenant, user.id, userStatus);
     // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(tenant);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (billingImpl) {
       try {
         await billingImpl.synchronizeUser(user);
         await Logging.logInfo({
-          tenantID: tenant.id,
+          tenantID: req.tenant.id,
           module: MODULE_NAME, method: 'handleVerifyEmail',
           action: action,
           user: user,
@@ -461,7 +399,7 @@ export default class AuthService {
         });
       } catch (error) {
         await Logging.logError({
-          tenantID: tenant.id,
+          tenantID: req.tenant.id,
           module: MODULE_NAME, method: 'handleVerifyEmail',
           action: action,
           user: user,
@@ -471,10 +409,10 @@ export default class AuthService {
       }
     }
     // Save User Verification Account
-    await UserStorage.saveUserAccountVerification(tenant, user.id,
+    await UserStorage.saveUserAccountVerification(req.tenant, user.id,
       { verificationToken: null, verifiedAt: new Date() });
     await Logging.logInfo({
-      tenantID: tenant.id,
+      tenantID: req.tenant.id,
       user: user, action: action,
       module: MODULE_NAME, method: 'handleVerifyEmail',
       message: userStatus === UserStatus.ACTIVE ?
@@ -484,13 +422,13 @@ export default class AuthService {
     });
     // Notify
     void NotificationHandler.sendAccountVerification(
-      tenant,
+      req.tenant,
       Utils.generateUUID(),
       user,
       {
         'user': user,
         'userStatus': userStatus,
-        'evseDashboardURL': Utils.buildEvseURL(filteredRequest.Tenant),
+        'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
       }
     );
     res.json({ status: 'Success', userStatus });
@@ -499,19 +437,8 @@ export default class AuthService {
 
   public static async handleResendVerificationEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthVerificationEmailResendReq(req.body);
-    // Get the tenant
-    const tenant = await AuthService.getTenant(filteredRequest.tenant);
-    if (!tenant) {
-      throw new AppError({
-        errorCode: StatusCodes.NOT_FOUND,
-        message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: MODULE_NAME,
-        method: 'handleResendVerificationEmail',
-        action: action
-      });
-    }
     // Check that this is not the super tenant
-    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
+    if (req.tenant.id === Constants.DEFAULT_TENANT_ID) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot request a verification Email in the Super Tenant',
@@ -521,10 +448,10 @@ export default class AuthService {
       });
     }
     // Check reCaptcha
-    await UtilsService.checkReCaptcha(tenant, action, 'handleResendVerificationEmail',
+    await UtilsService.checkReCaptcha(req.tenant, action, 'handleResendVerificationEmail',
       centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
     // Is valid email?
-    const user = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
+    const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
       MODULE_NAME, 'handleResendVerificationEmail', req.user);
     // Check if account is already active
@@ -547,13 +474,13 @@ export default class AuthService {
       verificationToken = Utils.generateToken(filteredRequest.email);
       user.verificationToken = verificationToken;
       // Save User Verification Account
-      await UserStorage.saveUserAccountVerification(tenant, user.id, { verificationToken });
+      await UserStorage.saveUserAccountVerification(req.tenant, user.id, { verificationToken });
     } else {
       // Get existing verificationToken
       verificationToken = user.verificationToken;
     }
     await Logging.logInfo({
-      tenantID: tenant.id,
+      tenantID: req.tenant.id,
       user: user,
       action: action,
       module: MODULE_NAME,
@@ -562,17 +489,17 @@ export default class AuthService {
       detailedMessages: { params: req.body }
     });
     // Send notification
-    const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
+    const evseDashboardVerifyEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
     // Notify
     void NotificationHandler.sendVerificationEmail(
-      tenant,
+      req.tenant,
       Utils.generateUUID(),
       user,
       {
         'user': user,
-        'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
+        'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
     );
