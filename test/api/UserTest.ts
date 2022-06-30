@@ -40,7 +40,7 @@ class TestData {
 const testData: TestData = new TestData();
 
 describe('User', () => {
-  jest.setTimeout(60000);
+  jest.setTimeout(1000000);
 
   beforeAll(async () => {
     chai.config.includeStack = true;

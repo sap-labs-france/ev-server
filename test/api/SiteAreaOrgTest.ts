@@ -115,7 +115,7 @@ async function assignSiteAdmin(userRole, site) {
 }
 
 describe('Site Area', () => {
-  jest.setTimeout(60000);
+  jest.setTimeout(1000000);
 
   beforeAll(async () => {
     chai.config.includeStack = true;

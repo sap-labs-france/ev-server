@@ -24,7 +24,7 @@ const testData = {
 };
 
 describe('Authentication Service (utall)', () => {
-  jest.setTimeout(60000);
+  jest.setTimeout(1000000);
 
   beforeAll(() => {
     // Get credentials

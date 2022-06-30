@@ -19,7 +19,7 @@ const testData: TestData = new TestData();
 let oldSetting = {};
 
 describe('Encryption Setting', () => {
-  jest.setTimeout(60000);
+  jest.setTimeout(1000000);
 
   beforeAll(() => {
     // Init values

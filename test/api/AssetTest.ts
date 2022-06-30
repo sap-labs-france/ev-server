@@ -88,7 +88,7 @@ const deleteAssetConnectorSettings = async (setting: SettingDB) => {
 };
 
 describe('Asset', () => {
-  jest.setTimeout(60000);
+  jest.setTimeout(1000000);
 
   beforeAll(async () => {
     chai.config.includeStack = true;

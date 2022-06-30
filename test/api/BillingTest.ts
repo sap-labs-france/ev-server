@@ -38,7 +38,7 @@ const isBillingProperlyConfigured = stripeTestHelper.isBillingProperlyConfigured
 
 describeif(isBillingProperlyConfigured)('Billing', () => {
   // Do not run the tests when the settings are not properly set
-  jest.setTimeout(60000);
+  jest.setTimeout(1000000);
 
   beforeAll(async () => {
     global.database = new MongoDBStorage(config.get('storage'));

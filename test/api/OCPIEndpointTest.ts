@@ -22,7 +22,7 @@ class TestData {
 const testData: TestData = new TestData();
 
 describe('OCPI Endpoint (utocpi)', () => {
-  jest.setTimeout(60000);
+  jest.setTimeout(1000000);
   beforeAll(async () => {
     testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI);
     testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);

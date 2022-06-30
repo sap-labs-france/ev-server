@@ -57,7 +57,7 @@ function login(userRole) {
 }
 
 describe('Tag', () => {
-  jest.setTimeout(60000);
+  jest.setTimeout(1000000);
 
   beforeAll(async () => {
     chai.config.includeStack = true;
