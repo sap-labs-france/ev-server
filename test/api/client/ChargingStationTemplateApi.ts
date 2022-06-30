@@ -21,11 +21,11 @@ export default class ChargingStationTemplateApi extends CrudApi {
   }
 
   public async update(data) {
-    return super.update(data, '/v1/api/ChargingStationTemplateUpdate');
+    return super.update(data, this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATE, { id: data.id }));
   }
 
   public async delete(id) {
-    return super.delete(id, '/v1/api/ChargingStationTemplateDelete');
+    return super.delete(id, this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATE, { id }));
   }
 
 }

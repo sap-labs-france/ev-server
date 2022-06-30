@@ -27,7 +27,7 @@ describe('Charging Station Template', () => {
 
   beforeAll(async () => {
     testData.superAdminCentralService = new CentralServerService('');
-  }),
+  });
 
   afterAll(async () => {
     // Final clean up at the end
@@ -69,34 +69,24 @@ describe('Charging Station Template', () => {
       );
 
       // Update
-      // it('Should be able to update a registration token', async () => {
-      //   testData.newChargingStationTemplate.expirationDate = faker.date.past();
-      //   await testData.adminCentralService.updateEntity(
-      //     testData.adminCentralService.registrationApi,
-      //     testData.newChargingStationTemplate,
-      //   );
-      // });
-
-      // Verify update readById
-      // it('Should find the updated registration token by id', async () => {
-      //   // Check if the updated entity can be retrieved with its id
-      //   const updatedChargingStationTemplate = await testData.adminCentralService.getEntityById(
-      //     testData.adminCentralService.registrationApi,
-      //     testData.newChargingStationTemplate,
-      //     false
-      //   );
-      //   // Expect(updatedChargingStationTemplate.data.description).to.equal(testData.newChargingStationTemplate.description);
-      //   expect(updatedChargingStationTemplate.data.expirationDate).to.equal(moment.utc(testData.newChargingStationTemplate.expirationDate).format('yyyy-MM-DD[T]HH:mm:ss.SSS[Z]'));
-      // });
-
-      // Delete
-      it('Should be able to delete the created cst', async () => {
-        // Delete the created entity
-        await testData.superAdminCentralService.deleteEntity(
+      it('Should be able to update a cst', async () => {
+        const CSTtoUpdate = Factory.chargingStationTemplate.build();
+        CSTtoUpdate.chargePointVendor = 'new chargePointVendor';
+        await testData.superAdminCentralService.updateEntity(
           testData.superAdminCentralService.chargingStationTemplateApi,
-          testData.newChargingStationTemplate
+          CSTtoUpdate,
         );
       });
+
+      // Delete
+      it('Should be able to delete the created cst',
+        async () => {
+        // Delete the created entity
+          await testData.superAdminCentralService.deleteEntity(
+            testData.superAdminCentralService.chargingStationTemplateApi,
+            testData.newChargingStationTemplate
+          );
+        });
 
       // // Verify delete readById
       // it('Should not find the deleted asset with its id', async () => {
