@@ -17,6 +17,8 @@ const MODULE_NAME = 'ChargingStationTemplateStorage';
 export default class ChargingStationTemplateStorage {
   public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
+    // Validate
+    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(chargingStationTemplate);
     // Prepare DB structure
     // const chargingStationTemplateMDB = {
     //   ...chargingStationTemplate,
