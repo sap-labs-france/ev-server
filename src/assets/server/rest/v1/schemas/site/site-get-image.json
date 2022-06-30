@@ -5,9 +5,6 @@
   "properties": {
     "ID": {
       "$ref": "common#/definitions/id"
-    },
-    "TenantID": {
-      "$ref": "common#/definitions/id"
     }
   },
   "required": [

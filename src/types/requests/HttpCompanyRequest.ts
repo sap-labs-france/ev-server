@@ -21,5 +21,4 @@ export interface HttpCompaniesGetRequest extends HttpDatabaseRequest {
 }
 
 export interface HttpCompanyLogoGetRequest extends HttpCompanyGetRequest {
-  TenantID: string;
 }

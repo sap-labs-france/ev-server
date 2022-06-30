@@ -76,23 +76,8 @@ export default class TenantService {
   }
 
   public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Validate
-    const filteredRequest = TenantValidatorRest.getInstance().validateLogoGetReq(req.query);
     // Get Logo
-    let tenantLogo: TenantLogo;
-    // Get the logo using ID
-    if (filteredRequest.ID) {
-      const tenant = await TenantStorage.getTenant(filteredRequest.ID);
-      if (tenant) {
-        tenantLogo = await TenantStorage.getTenantLogo(tenant);
-      }
-    // Get the logo using Subdomain
-    } else if (filteredRequest.Subdomain) {
-      const tenant = await TenantStorage.getTenantBySubdomain(filteredRequest.Subdomain, ['id']);
-      if (tenant) {
-        tenantLogo = await TenantStorage.getTenantLogo(tenant);
-      }
-    }
+    const tenantLogo = await TenantStorage.getTenantLogo(req.tenant);
     let logo = tenantLogo?.logo;
     if (logo) {
       // Header

@@ -73,20 +73,17 @@ export interface HttpUserSitesGetRequest extends HttpDatabaseRequest {
 export interface HttpLoginRequest {
   email: string;
   password: string;
-  tenant: string;
   acceptEula: boolean;
 }
 
 export interface HttpResetPasswordRequest {
   email: string;
-  tenant: string;
   captcha: string;
   password: string;
   hash: string;
 }
 export interface HttpCheckEulaRequest {
   Email: string;
-  Tenant: string;
 }
 export interface HttpRegisterUserRequest extends HttpLoginRequest {
   name: string;
@@ -100,13 +97,11 @@ export interface HttpRegisterUserRequest extends HttpLoginRequest {
 
 export interface HttpVerifyEmailRequest {
   Email: string;
-  Tenant: string;
   VerificationToken: string;
 }
 
 export interface HttpResendVerificationMailRequest {
   email: string;
-  tenant: string;
   captcha: string;
 }
 
