@@ -13649,7 +13649,6 @@
         ],
         "responses": {
           "200": {
-            "description": "Return invoices",
             "content": {
               "application/json": {
                 "schema": {
@@ -13666,15 +13665,15 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "example": "###"
+                            "example": "txr_1LBZyWF5e1VSb1v6Zc1rbkV9"
                           },
                           "description": {
                             "type": "string",
-                            "example": "###"
+                            "example": "VTA 20% (exclusive)"
                           },
                           "displayName": {
                             "type": "string",
-                            "example": "###"
+                            "example": "VAT"
                           },
                           "percentage": {
                             "type": "number",
