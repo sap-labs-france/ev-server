@@ -278,7 +278,7 @@ let transaction2 = {} as Transaction;
 const describeif = (condition) => condition ? describe : describe.skip;
 
 describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
-  jest.setTimeout(1000000);
+  jest.setTimeout(60000);
 
   describe('With component SmartCharging (utsmartcharging)', () => {
     beforeAll(async () => {

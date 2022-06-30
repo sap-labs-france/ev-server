@@ -88,7 +88,7 @@ const deleteAssetConnectorSettings = async (setting: SettingDB) => {
 };
 
 describe('Asset', () => {
-  jest.setTimeout(1000000); // Will automatically stop the unit test after that period of time
+  jest.setTimeout(60000);
 
   beforeAll(async () => {
     chai.config.includeStack = true;
@@ -404,14 +404,14 @@ describe('Asset', () => {
       });
 
       it('Should be able to create an ioThink asset connector', async () => {
-          const settingID = '0123456789abcdef';
-          const url = config.get('assetConnectors.ioThink.url');
-          const user = config.get('assetConnectors.ioThink.user');
-          const password = config.get('assetConnectors.ioThink.password');
-          testData.settings = await createOrUpdateSettings(settingID, url, user, password);
-          expect(testData.settings.content.asset.connections[0].id).to.be.eq(settingID);
-          testData.ioThinkAssetConnectorID = settingID;
-        });
+        const settingID = '0123456789abcdef';
+        const url = config.get('assetConnectors.ioThink.url');
+        const user = config.get('assetConnectors.ioThink.user');
+        const password = config.get('assetConnectors.ioThink.password');
+        testData.settings = await createOrUpdateSettings(settingID, url, user, password);
+        expect(testData.settings.content.asset.connections[0].id).to.be.eq(settingID);
+        testData.ioThinkAssetConnectorID = settingID;
+      });
 
       it(
         'Should be able to connect ioThink asset connector connection',
@@ -438,9 +438,9 @@ describe('Asset', () => {
       );
 
       it('Should be able to retrieve latest consumption', async () => {
-          const response = await testData.centralUserService.assetApi.retrieveLatestConsumption(testData.newAsset.id);
-          expect(response.data?.status).to.be.eq('Success');
-        });
+        const response = await testData.centralUserService.assetApi.retrieveLatestConsumption(testData.newAsset.id);
+        expect(response.data?.status).to.be.eq('Success');
+      });
 
       it(
         'Should not be able to retrieve latest consumption with incorrect credentials',

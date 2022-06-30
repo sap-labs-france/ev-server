@@ -24,7 +24,7 @@ class TestData {
 const testData: TestData = new TestData();
 
 describe('Transaction', () => {
-  jest.setTimeout(1000000); // Will automatically stop the unit test after that period of time
+  jest.setTimeout(60000);
 
   beforeAll(async () => {
     chai.config.includeStack = true;
