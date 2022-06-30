@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { BillingAccountStatus, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTransferStatus } from '../../../../types/Billing';
-import { BillingInvoiceDataResult, BillingPaymentMethodDataResult } from '../../../../types/DataResult';
+import { BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult } from '../../../../types/DataResult';
 import { NextFunction, Request, Response } from 'express';
 
 import AppError from '../../../../exception/AppError';
@@ -175,7 +175,13 @@ export default class BillingService {
     }
     // Get taxes
     const taxes = await billingImpl.getTaxes();
-    res.json(taxes);
+    const dataResult: BillingTaxDataResult = {
+      count: taxes.length,
+      result: taxes,
+    };
+    // We do not have a tax collection on our side - the data comes from the connected account (STRIPE)
+    // await AuthorizationService.addTaxesAuthorizations(req.tenant, req.user, dataResult, authorizations, filteredRequest);
+    res.json(dataResult);
     next();
   }
 
