@@ -179,8 +179,7 @@ export default class BillingService {
       count: taxes.length,
       result: taxes,
     };
-    // We do not have a tax collection on our side - the data comes from the connected account (STRIPE)
-    // await AuthorizationService.addTaxesAuthorizations(req.tenant, req.user, dataResult, authorizations, filteredRequest);
+    AuthorizationService.addTaxesAuthorizations(req.tenant, req.user, dataResult, authorizations);
     res.json(dataResult);
     next();
   }

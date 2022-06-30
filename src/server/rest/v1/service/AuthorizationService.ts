@@ -1,6 +1,6 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingSubaccountsDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
-import { BillingAccount, BillingInvoice, BillingPaymentMethod } from '../../../../types/Billing';
+import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingSubaccountsDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
@@ -857,6 +857,22 @@ export default class AuthorizationService {
       filteredRequest: Partial<HttpBillingInvoiceRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.INVOICE, userToken, filteredRequest, filteredRequest.ID ? { invoiceID: filteredRequest.ID } : {}, authAction, entityData);
+  }
+
+  public static addTaxesAuthorizations(tenant: Tenant, userToken: UserToken, billingTaxes: BillingTaxDataResult,
+      authorizationFilter: AuthorizationFilter): void {
+  // Add Meta Data
+    billingTaxes.metadata = authorizationFilter.metadata;
+    for (const billingTax of billingTaxes.result) {
+      AuthorizationService.addTaxAuthorizations(tenant, userToken, billingTax, authorizationFilter);
+    }
+  }
+
+
+  public static addTaxAuthorizations(tenant: Tenant, userToken: UserToken, billingTax: BillingTax, authorizationFilter: AuthorizationFilter): void {
+    billingTax.canRead = true; // Always true as it should be filtered upfront
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(billingTax);
   }
 
   public static async addInvoicesAuthorizations(tenant: Tenant, userToken: UserToken, billingInvoices: BillingInvoiceDataResult,
