@@ -61,6 +61,12 @@ export default class CompanyStorage {
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
+    if (companyToSave.accountData) {
+      companyMDB.accountData = {
+        accountID: DatabaseUtils.convertToObjectID(companyToSave.accountData.accountID),
+        platformFeeStrategy: companyToSave.accountData.platformFeeStrategy,
+      };
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(companyMDB, companyToSave);
     // Modify

@@ -400,30 +400,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
       title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
   }
 
-  public async sendBillingNewInvoicePaid(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Set the locale
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    // Get Message Text
-    const title = i18nManager.translate('notifications.billingNewInvoicePaid.title');
-    const body = i18nManager.translate('notifications.billingNewInvoicePaid.body',
-      { invoiceNumber: data.invoiceNumber });
-    // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
-      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
-  }
-
-  public async sendBillingNewInvoiceOpen(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Set the locale
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    // Get Message Text
-    const title = i18nManager.translate('notifications.billingNewInvoiceOpen.title');
-    const body = i18nManager.translate('notifications.billingNewInvoiceOpen.body',
-      { invoiceNumber: data.invoiceNumber });
-    // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
-      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
-  }
-
   public async sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
@@ -479,26 +455,43 @@ export default class RemotePushNotificationTask implements NotificationTask {
       message = this.createMessage(tenant, notificationType, title, body, data, severity);
       // Get the right firebase app
       const app = this.getFirebaseAppFromTenant(tenant);
-      // Send message
-      admin.messaging(app).sendToDevice(
-        user.mobileToken,
-        message,
-        { priority: 'high', timeToLive: 60 * 60 * 24 }
-      ).then((response) => {
-        // Response is a message ID string.
-        void Logging.logDebug({
-          tenantID: tenant.id,
-          siteID: data?.siteID,
-          siteAreaID: data?.siteAreaID,
-          companyID: data?.companyID,
-          chargingStationID: data?.chargeBoxID,
-          action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-          module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-          message: `Notification Sent: '${notificationType}' - '${title}'`,
-          actionOnUser: user.id,
-          detailedMessages: { message, response }
-        });
-      }).catch((error: Error) => {
+      try {
+        // Send message
+        const response = await admin.messaging(app).sendToDevice(
+          user.mobileToken,
+          message,
+          { priority: 'high', timeToLive: 60 * 60 * 24 }
+        );
+        // Error
+        if (response.failureCount > 0) {
+          void Logging.logError({
+            tenantID: tenant.id,
+            siteID: data?.siteID,
+            siteAreaID: data?.siteAreaID,
+            companyID: data?.companyID,
+            chargingStationID: data?.chargeBoxID,
+            action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+            module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+            message: `Error when sending Notification: '${notificationType}' - Error code: '${response.results[0]?.error?.code}'`,
+            actionOnUser: user.id,
+            detailedMessages: { message, response }
+          });
+        // Success
+        } else {
+          void Logging.logDebug({
+            tenantID: tenant.id,
+            siteID: data?.siteID,
+            siteAreaID: data?.siteAreaID,
+            companyID: data?.companyID,
+            chargingStationID: data?.chargeBoxID,
+            action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+            module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+            message: `Notification Sent: '${notificationType}' - '${title}'`,
+            actionOnUser: user.id,
+            detailedMessages: { message, response }
+          });
+        }
+      } catch (error) {
         void Logging.logError({
           tenantID: tenant.id,
           siteID: data?.siteID,
@@ -507,11 +500,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
           chargingStationID: data?.chargeBoxID,
           action: ServerAction.REMOTE_PUSH_NOTIFICATION,
           module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-          message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
+          message: `Error when sending Notification: '${notificationType}' - '${error.message as string}'`,
           actionOnUser: user.id,
           detailedMessages: { error: error.stack, message }
         });
-      });
+      }
     } finally {
       await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'sendRemotePushNotificationToUser', startTime, notificationType, message, user.id);
     }

@@ -1,0 +1,42 @@
+{
+  "$id": "billing-transfers-get",
+  "title": "Get billing transfers Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "Status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "draft",
+        "transferred"
+      ]
+    },
+    "AccountID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "TransferExternalID": {
+      "type": "string"
+    },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  }
+}

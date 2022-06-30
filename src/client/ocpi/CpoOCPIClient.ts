@@ -1039,7 +1039,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenant, { transactionId: transaction.id });
     if (consumptions) {
       // Build based on consumptions
-      for (const consumption of consumptions) {
+      for (const consumption of consumptions.result) {
         const chargingPeriod = this.buildChargingPeriod(consumption);
         if (!Utils.isEmptyArray(chargingPeriod?.dimensions)) {
           chargingPeriods.push(chargingPeriod);

@@ -39,7 +39,7 @@ export default class WSWrapper {
 
   public send(message: RecognizedString, isBinary?: boolean, compress?: boolean): boolean {
     this.checkWSClosed(WebSocketAction.MESSAGE);
-    return this.ws.send(message, isBinary, compress);
+    return this.ws.send(message, isBinary, compress) === 1;
   }
 
   public close(code: number, shortMessage: RecognizedString): void {
@@ -51,7 +51,7 @@ export default class WSWrapper {
 
   public ping(message?: RecognizedString) : boolean {
     this.checkWSClosed(WebSocketAction.PING);
-    return this.ws.ping(message);
+    return this.ws.ping(message) === 1;
   }
 
   public getRemoteAddress(): string {

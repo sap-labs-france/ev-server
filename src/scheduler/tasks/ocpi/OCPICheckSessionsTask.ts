@@ -65,6 +65,7 @@ export default class OCPICheckSessionsTask extends TenantSchedulerTask {
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+        // Check Sessions
         const result = await ocpiClient.checkSessions();
         await Logging.logInfo({
           tenantID: tenant.id,

@@ -891,16 +891,9 @@ export default class TagService {
         const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(
           tenant, OCPIRole.EMSP) as EmspOCPIClient;
         if (ocpiClient) {
-          await ocpiClient.pushToken({
-            uid: tag.id,
-            type: OCPIUtils.getOcpiTokenTypeFromID(tag.id),
-            auth_id: tag.userID,
-            visual_number: tag.visualID,
-            issuer: tenant.name,
-            valid: true,
-            whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-            last_updated: new Date()
-          });
+          await ocpiClient.pushToken(
+            OCPIUtils.buildEmspTokenFromTag(tenant, tag)
+          );
         }
       } catch (error) {
         await Logging.logError({

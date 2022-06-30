@@ -1,4 +1,4 @@
-import { BillingAccount, BillingAdditionalData, BillingInvoice, BillingInvoiceStatus, BillingSessionData } from '../../types/Billing';
+import { BillingAccount, BillingInvoice, BillingInvoiceStatus, BillingTransfer } from '../../types/Billing';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -170,6 +170,12 @@ export default class BillingStorage {
       downloadUrl: invoiceToSave.downloadUrl,
       payInvoiceUrl: invoiceToSave.payInvoiceUrl
     };
+    if (invoiceToSave.sessions) {
+      invoiceMDB.sessions = invoiceToSave.sessions;
+    }
+    if (invoiceToSave.lastError) {
+      invoiceMDB.lastError = invoiceToSave.lastError;
+    }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'invoices').findOneAndUpdate(
       { _id: invoiceMDB._id },
@@ -178,25 +184,6 @@ export default class BillingStorage {
     );
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoice', startTime, invoiceMDB);
     return invoiceMDB._id.toString();
-  }
-
-  public static async updateInvoiceAdditionalData(tenant: Tenant, invoiceToUpdate: BillingInvoice, additionalData: BillingAdditionalData): Promise<void> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    // Preserve the previous list of sessions
-    const sessions: BillingSessionData[] = invoiceToUpdate.sessions || [];
-    if (additionalData.session) {
-      sessions.push(additionalData.session);
-    }
-    // Set data
-    const updatedInvoiceMDB: any = {
-      sessions,
-      lastError: additionalData.lastError
-    };
-    await global.database.getCollection(tenant.id, 'invoices').findOneAndUpdate(
-      { '_id': DatabaseUtils.convertToObjectID(invoiceToUpdate.id) },
-      { $set: updatedInvoiceMDB });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoiceAdditionalData', startTime, updatedInvoiceMDB);
   }
 
   public static async deleteInvoice(tenant: Tenant, id: string): Promise<void> {
@@ -223,11 +210,13 @@ export default class BillingStorage {
     // Properties to save
     const subAccountMDB: any = {
       _id: subAccount.id ? DatabaseUtils.convertToObjectID(subAccount.id) : new ObjectId(),
-      accountID: subAccount.accountID,
-      pending: subAccount.pending,
-      userID: DatabaseUtils.convertToObjectID(subAccount.userID)
+      accountExternalID: subAccount.accountExternalID,
+      status: subAccount.status,
+      businessOwnerID: DatabaseUtils.convertToObjectID(subAccount.businessOwnerID)
     };
-    // Modify and return the modified document
+    // Check Created/Last Changed By
+    DatabaseUtils.addLastChangedCreatedProps(subAccountMDB, subAccount);
+    // Save
     await global.database.getCollection<any>(tenant.id, 'billingsubaccounts').findOneAndUpdate(
       { _id: subAccountMDB._id },
       { $set: subAccountMDB },
@@ -239,7 +228,7 @@ export default class BillingStorage {
 
   public static async getSubAccounts(tenant: Tenant,
       params: {
-        subAccountIDs?: string[], subAccountAccountIDs?: string[], search?: string, userIDs?: string[]
+        IDs?: string[], accountExternalIDs?: string[], search?: string, userIDs?: string[], status?: string[]
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingAccount>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -258,21 +247,21 @@ export default class BillingStorage {
     // Filter by other properties
     if (params.search) {
       filters.$or = [
-        { 'accountID': { $regex: params.search, $options: 'i' } }
+        { 'accountExternalID': { $regex: params.search, $options: 'i' } }
       ];
     }
-    if (!Utils.isEmptyArray(params.subAccountIDs)) {
+    if (!Utils.isEmptyArray(params.IDs)) {
       filters._id = {
-        $in: params.subAccountIDs.map((subAccountID) => DatabaseUtils.convertToObjectID(subAccountID))
+        $in: params.IDs.map((id) => DatabaseUtils.convertToObjectID(id))
       };
     }
-    if (!Utils.isEmptyArray(params.subAccountAccountIDs)) {
-      filters.accountID = {
-        $in: params.subAccountAccountIDs
+    if (!Utils.isEmptyArray(params.accountExternalIDs)) {
+      filters.accountExternalID = {
+        $in: params.accountExternalIDs
       };
     }
     if (!Utils.isEmptyArray(params.userIDs)) {
-      filters.userID = {
+      filters.businessOwnerID = {
         $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
       };
     }
@@ -317,7 +306,7 @@ export default class BillingStorage {
     });
     // Add Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
+      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'businessOwnerID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Add Last Changed / Created
@@ -325,7 +314,7 @@ export default class BillingStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'businessOwnerID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -339,10 +328,162 @@ export default class BillingStorage {
     };
   }
 
-  public static async getSubAccountByID(tenant: Tenant, id: string): Promise<BillingAccount> {
+  public static async getSubAccountByID(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingAccount> {
     const subAccountMDB = await BillingStorage.getSubAccounts(tenant, {
-      subAccountIDs: [id]
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+      IDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return subAccountMDB.count === 1 ? subAccountMDB.result[0] : null;
+  }
+
+  public static async saveTransfer(tenant: Tenant, transfer: BillingTransfer): Promise<string> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    // Build Request
+    // Properties to save
+    const transferMDB: any = {
+      _id: transfer.id ? DatabaseUtils.convertToObjectID(transfer.id) : new ObjectId(),
+      status: transfer.status,
+      totalAmount: transfer.totalAmount,
+      transferAmount: transfer.transferAmount,
+      accountID: DatabaseUtils.convertToObjectID(transfer.accountID),
+      transferExternalID: transfer.transferExternalID,
+      sessions: transfer.sessions.map((session) => ({
+        transactionID: session.transactionID,
+        invoiceID: session.invoiceID,
+        invoiceNumber: session.invoiceNumber,
+        amountAsDecimal: session.amountAsDecimal,
+        amount: session.amount,
+        roundedAmount: session.roundedAmount,
+        platformFeeStrategy: session.platformFeeStrategy,
+      }))
+    };
+    if (transfer.platformFeeData) {
+      transferMDB.platformFeeData = {
+        taxExternalID: transfer.platformFeeData.taxExternalID,
+        feeAmount: transfer.platformFeeData.feeAmount,
+        feeTaxAmount: transfer.platformFeeData.feeTaxAmount,
+        invoiceExternalID: transfer.platformFeeData.invoiceExternalID
+      };
+    }
+    // Check Created/Last Changed By
+    DatabaseUtils.addLastChangedCreatedProps(transferMDB, transfer);
+    // Save
+    await global.database.getCollection<any>(tenant.id, 'billingtransfers').findOneAndUpdate(
+      { _id: transferMDB._id },
+      { $set: transferMDB },
+      { upsert: true, returnDocument: 'after' }
+    );
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransfer', startTime, transferMDB);
+    return transferMDB._id.toString();
+  }
+
+  public static async getTransfers(tenant: Tenant,
+      params: {
+        IDs?: string[], status?: string[], accountIDs?: string[], search?: string, transferExternalIDs?: string[]
+      } = {},
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingTransfer>> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Clone before updating the values
+    dbParams = Utils.cloneObject(dbParams);
+    // Check Limit
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation = [];
+    // Search filters
+    const filters: FilterParams = {};
+    // Search
+    // Filter by other properties
+    if (params.search) {
+      filters.$or = [
+        { 'id': { $regex: params.search, $options: 'i' } },
+        { 'accountID': { $regex: params.search, $options: 'i' } },
+        { 'transferExternalID': { $regex: params.search, $options: 'i' } },
+      ];
+    }
+    if (!Utils.isEmptyArray(params.IDs)) {
+      filters._id = {
+        $in: params.IDs.map((id) => DatabaseUtils.convertToObjectID(id))
+      };
+    }
+    if (!Utils.isEmptyArray(params.status)) {
+      filters.status = {
+        $in: params.status
+      };
+    }
+    if (!Utils.isEmptyArray(params.accountIDs)) {
+      filters.accountID = {
+        $in: params.accountIDs.map((accountID) => DatabaseUtils.convertToObjectID(accountID))
+      };
+    }
+    if (!Utils.isEmptyArray(params.transferExternalIDs)) {
+      filters.transferExternalID = {
+        $in: params.transferExternalIDs.map((transferExternalID) => DatabaseUtils.convertToObjectID(transferExternalID))
+      };
+    }
+    // Set filters
+    if (!Utils.isEmptyJSon(filters)) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
+    // Count Records
+    const transferCountMDB = await global.database.getCollection<any>(tenant.id, 'billingtransfers')
+      .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
+      .toArray() as DatabaseCount[];
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransfers', startTime, aggregation, transferCountMDB);
+      return {
+        count: (transferCountMDB.length > 0 ? transferCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
+    // Sort
+    if (!dbParams.sort) {
+      dbParams.sort = { _id: 1 };
+    }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
+    // Skip
+    aggregation.push({
+      $skip: dbParams.skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: dbParams.limit
+    });
+    // Add Last Changed / Created
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'accountID');
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
+    // Read DB
+    const transferMDB = await global.database.getCollection<any>(tenant.id, 'billingtransfers')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as BillingTransfer[];
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransfers', startTime, aggregation, transferMDB);
+    return {
+      count: DatabaseUtils.getCountFromDatabaseCount(transferCountMDB[0]),
+      result: transferMDB
+    };
+  }
+
+  public static async getTransferByID(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingTransfer> {
+    const transferMDB = await BillingStorage.getTransfers(tenant, {
+      IDs: [id]
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return transferMDB.count === 1 ? transferMDB.result[0] : null;
   }
 }

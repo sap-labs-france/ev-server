@@ -1,5 +1,5 @@
 {
-  "$id": "authorization-role",
+  "$id": "authorization-role-save",
   "type": "object",
   "properties": {
     "$extend": {
@@ -47,7 +47,17 @@
                           "filters": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "anyOf": [
+                                { 
+                                  "type": "string" 
+                                },
+                                {  
+                                  "type": "array",
+                                  "items": {
+                                    "type":"string"
+                                  }                        
+                                }
+                              ]
                             }
                           },
                           "metadata": {

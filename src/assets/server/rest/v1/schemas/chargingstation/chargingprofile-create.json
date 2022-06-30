@@ -13,7 +13,7 @@
       "$ref": "chargingstation#/definitions/chargePoint/properties/chargePointID"
     },
     "profile": {
-      "$ref": "chargingstation#/definitions/chargingProfile/properties/profile"
+      "$ref": "chargingstation-profile#/definitions/profile"
     }
   },
   "required": [

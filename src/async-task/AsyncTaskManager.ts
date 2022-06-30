@@ -18,6 +18,7 @@ import OCPIPullSessionsAsyncTask from './tasks/ocpi/OCPIPullSessionsAsyncTask';
 import OCPIPullTokensAsyncTask from './tasks/ocpi/OCPIPullTokensAsyncTask';
 import OCPIPushEVSEStatusesAsyncTask from './tasks/ocpi/OCPIPushEVSEStatusesAsyncTask';
 import OCPIPushTokensAsyncTask from './tasks/ocpi/OCPIPushTokensAsyncTask';
+import PrepareInvoiceTransferAsyncTask from './tasks/PrepareInvoiceTransferAsyncTask';
 import { Promise } from 'bluebird';
 import { ServerAction } from '../types/Server';
 import SynchronizeCarCatalogsAsyncTask from './tasks/SynchronizeCarCatalogsAsyncTask';
@@ -153,8 +154,10 @@ export default class AsyncTaskManager {
         `{{inSuccess}} asynchronous task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
         'No asynchronous task to process'
       );
+      // Retrigger the Async Framework
+      void AsyncTaskManager.handleAsyncTasks();
     } else {
-      await Logging.logInfo({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.ASYNC_TASK,
         module: MODULE_NAME, method: 'handleAsyncTasks',
@@ -168,6 +171,8 @@ export default class AsyncTaskManager {
     switch (asyncTask.name) {
       case AsyncTasks.BILL_TRANSACTION:
         return new BillTransactionAsyncTask(asyncTask, correlationID);
+      case AsyncTasks.PREPARE_INVOICE_TRANSFER:
+        return new PrepareInvoiceTransferAsyncTask(asyncTask, correlationID);
       case AsyncTasks.TAGS_IMPORT:
         return new TagsImportAsyncTask(asyncTask, correlationID);
       case AsyncTasks.USERS_IMPORT:

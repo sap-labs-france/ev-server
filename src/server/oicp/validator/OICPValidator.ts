@@ -5,20 +5,20 @@ import SchemaValidator from '../../../validator/SchemaValidator';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
 
-export default class OICPValidation extends SchemaValidator {
-  private static instance: OICPValidation|null = null;
+export default class OICPValidator extends SchemaValidator {
+  private static instance: OICPValidator|null = null;
   private remoteStartRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/oicp-authorize-remote-start-cpo-receive.json`, 'utf8'));
   private remoteStopRequest: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/oicp/schemas/oicp-authorize-remote-stop-cpo-receive.json`, 'utf8'));
 
   private constructor() {
-    super('OICPValidation');
+    super('OICPValidator');
   }
 
-  public static getInstance(): OICPValidation {
-    if (!OICPValidation.instance) {
-      OICPValidation.instance = new OICPValidation();
+  public static getInstance(): OICPValidator {
+    if (!OICPValidator.instance) {
+      OICPValidator.instance = new OICPValidator();
     }
-    return OICPValidation.instance;
+    return OICPValidator.instance;
   }
 
   public validateRemoteStart(remoteStart: OICPAuthorizeRemoteStartCpoReceive): void {

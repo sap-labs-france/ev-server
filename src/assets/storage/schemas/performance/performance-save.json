@@ -1,5 +1,5 @@
 {
-  "$id": "performance",
+  "$id": "performance-save",
   "title": "Validate the performance object",
   "type": "object",
   "properties": {
@@ -47,6 +47,9 @@
     },
     "httpUrl": {
       "type": "string"
+    },
+    "egress": {
+      "type": "boolean"
     },
     "httpResponseCode": {
       "type": "number"
