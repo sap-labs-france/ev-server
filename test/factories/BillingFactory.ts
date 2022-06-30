@@ -16,7 +16,8 @@ export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtr
     invoiceExternalID: faker.datatype.uuid(),
   }))
   .attr('sessions', () =>
-    [BillingTransferSessionFactory.build()]);
+    [BillingTransferSessionFactory.build()])
+  .attr('currency', () => 'EUR');
 
 export const BillingTransferSessionFactory = Factory.define<BillingTransferSession>('billingtransfersession')
   .attr('transactionID', () => faker.datatype.number())

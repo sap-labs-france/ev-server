@@ -354,7 +354,8 @@ export default class BillingStorage {
         amount: session.amount,
         roundedAmount: session.roundedAmount,
         platformFeeStrategy: session.platformFeeStrategy,
-      }))
+      })),
+      currency: transfer.currency,
     };
     if (transfer.platformFeeData) {
       transferMDB.platformFeeData = {
@@ -362,6 +363,20 @@ export default class BillingStorage {
         feeAmount: transfer.platformFeeData.feeAmount,
         feeTaxAmount: transfer.platformFeeData.feeTaxAmount,
         invoiceExternalID: transfer.platformFeeData.invoiceExternalID
+      };
+    }
+    if (transfer.invoice) {
+      transferMDB.invoice = {
+        invoiceID: transfer.invoice.invoiceID,
+        liveMode: transfer.invoice.liveMode,
+        userID: transfer.invoice.userID,
+        invoiceNumber: transfer.invoice.invoiceNumber,
+        status: transfer.invoice.status,
+        amount: transfer.invoice.amount,
+        totalAmount: transfer.invoice.totalAmount,
+        currency: transfer.invoice.currency,
+        customerID: transfer.invoice.customerID,
+        createdOn: transfer.invoice.createdOn,
       };
     }
     // Check Created/Last Changed By

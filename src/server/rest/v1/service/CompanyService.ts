@@ -57,12 +57,8 @@ export default class CompanyService {
   public static async handleGetCompanyLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = CompanyValidatorRest.getInstance().validateCompanyLogoGetReq(req.query);
-    // Fetch Tenant Object by Tenant ID
-    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
-    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`,
-      MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Get the Logo
-    const companyLogo = await CompanyStorage.getCompanyLogo(tenant, filteredRequest.ID);
+    const companyLogo = await CompanyStorage.getCompanyLogo(req.tenant, filteredRequest.ID);
     let logo = companyLogo?.logo;
     if (logo) {
       // Header

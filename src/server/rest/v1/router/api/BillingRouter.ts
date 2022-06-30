@@ -49,6 +49,7 @@ export default class BillingRouter {
     this.buildRouteBillingSendSubAccountOnboarding();
     this.buildRouteBillingGetTransfers();
     this.buildRouteBillingFinalizeTransfer();
+    this.buildRouteBillingSendTransfer();
     return this.router;
   }
 
@@ -184,6 +185,13 @@ export default class BillingRouter {
     this.router.patch(`/${RESTServerRoute.REST_BILLING_TRANSFER_FINALIZE}`, (req: Request, res: Response, next: NextFunction) => {
       req.params.ID = req.params.id;
       void RouterUtils.handleRestServerAction(BillingService.handleFinalizeTransfer.bind(this), ServerAction.BILLING_TRANSFER_FINALIZE, req, res, next);
+    });
+  }
+
+  private buildRouteBillingSendTransfer(): void {
+    this.router.patch(`/${RESTServerRoute.REST_BILLING_TRANSFER_SEND}`, (req: Request, res: Response, next: NextFunction) => {
+      req.params.ID = req.params.id;
+      void RouterUtils.handleRestServerAction(BillingService.handleSendTransferInvoice.bind(this), ServerAction.BILLING_TRANSFER_SEND, req, res, next);
     });
   }
 }

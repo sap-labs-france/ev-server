@@ -1123,7 +1123,7 @@ export default class ChargingStationService {
   private static async setAndSaveChargingProfile(filteredRequest: ChargingProfile, action: ServerAction, req: Request): Promise<string> {
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE_CHARGING_PROFILE, action, null, { withSiteArea: true });
+      req.tenant, req.user, filteredRequest.chargingStationID, Action.UPDATE_CHARGING_PROFILE, action, null, { withSiteArea: true });
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
     UtilsService.assertObjectExists(action, chargePoint, `Charge Point ID '${filteredRequest.chargePointID}' does not exist.`,
       MODULE_NAME, 'setAndSaveChargingProfile', req.user);

@@ -1,6 +1,6 @@
 {
-  "$id": "billing-activate-sub-account",
-  "title": "Activate a Billing sub-account Request",
+  "$id": "billing-transfer-send",
+  "title": "Send transfer Request",
   "type": "object",
   "properties": {
     "ID": {

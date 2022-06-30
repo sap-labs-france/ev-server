@@ -8847,7 +8847,7 @@
       }
     },
     "/api/sites/{id}/assign": {
-      "get": {
+      "put": {
         "description": "Assign users to a site",
         "tags": [
           "Sites"
@@ -8904,7 +8904,7 @@
       }
     },
     "/api/sites/{id}/unassign": {
-      "get": {
+      "put": {
         "description": "Unassign users from a site",
         "tags": [
           "Sites"
@@ -13649,29 +13649,37 @@
         ],
         "responses": {
           "200": {
-            "description": "Return billing taxes",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "description": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "displayName": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "percentage": {
-                        "type": "number",
-                        "example": "20"
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "txr_1LBZyWF5e1VSb1v6Zc1rbkV9"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "VTA 20% (exclusive)"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "example": "VAT"
+                          },
+                          "percentage": {
+                            "type": "number",
+                            "example": "20"
+                          }
+                        }
                       }
                     }
                   }
@@ -14141,6 +14149,47 @@
         "responses": {
           "200": {
             "description": "Transfer finalized"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/billing/transfers/{id}/send": {
+      "patch": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Triggers the transfer of funds to the sub-account",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Transfer ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transfer sent"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
