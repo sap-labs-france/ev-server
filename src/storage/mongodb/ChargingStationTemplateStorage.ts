@@ -1,7 +1,7 @@
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import { ChargingStationTemplate } from '../../types/ChargingStation';
-import ChargingStationValidatorStorage from './validator/ChargingStationValidatorStorage';
+import ChargingStationValidatorStorage from '../validator/ChargingStationValidatorStorage';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
