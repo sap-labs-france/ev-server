@@ -13649,29 +13649,37 @@
         ],
         "responses": {
           "200": {
-            "description": "Return billing taxes",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "description": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "displayName": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "percentage": {
-                        "type": "number",
-                        "example": "20"
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "txr_1LBZyWF5e1VSb1v6Zc1rbkV9"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "VTA 20% (exclusive)"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "example": "VAT"
+                          },
+                          "percentage": {
+                            "type": "number",
+                            "example": "20"
+                          }
+                        }
                       }
                     }
                   }

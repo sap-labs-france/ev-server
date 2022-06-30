@@ -241,6 +241,8 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
   canMaintainPricingDefinitions?: boolean;
 }
 
+export type BillingTaxAuthorizationActions = AuthorizationActions;
+
 export interface BillingInvoiceAuthorizationActions extends AuthorizationActions {
   canDownload?: boolean;
 }

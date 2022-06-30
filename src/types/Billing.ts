@@ -1,4 +1,4 @@
-import { AuthorizationActions, BillingInvoiceAuthorizationActions, BillingTransferAuthorizationActions } from './Authorization';
+import { AuthorizationActions, BillingInvoiceAuthorizationActions, BillingTaxAuthorizationActions, BillingTransferAuthorizationActions } from './Authorization';
 
 import { ActionsResponse } from './GlobalType';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
@@ -57,7 +57,7 @@ export interface BillingChargeInvoiceAction extends ActionsResponse {
   billingData?: BillingUserData;
 }
 
-export interface BillingTax {
+export interface BillingTax extends BillingTaxAuthorizationActions {
   id: string;
   description: string;
   displayName: string;
