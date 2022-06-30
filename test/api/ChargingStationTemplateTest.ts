@@ -87,23 +87,6 @@ describe('Charging Station Template', () => {
             testData.newChargingStationTemplate
           );
         });
-
-      // // Verify delete readById
-      // it('Should not find the deleted asset with its id', async () => {
-      //   const ChargingStationTemplateToCreate = Factory.chargingStationTemplate.build();
-      //   testData.newChargingStationTemplate = await testData.adminCentralService.createEntity(
-      //     testData.adminCentralService.registrationApi,
-      //     ChargingStationTemplateToCreate
-      //   );
-      //   await testData.adminCentralService.deleteEntity(
-      //     testData.adminCentralService.registrationApi,
-      //     testData.newChargingStationTemplate
-      //   );
-      //   // Check the deleted entity cannot be retrieved with its id
-      //   await testData.adminCentralService.checkDeletedEntityById(
-      //     testData.adminCentralService.registrationApi,
-      //     testData.newChargingStationTemplate
-      //   );
     });
   });
 });
