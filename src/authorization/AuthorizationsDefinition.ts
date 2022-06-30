@@ -222,7 +222,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
-          'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower','chargingStation.siteArea.siteID','profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel'
+          'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower','chargingStation.siteArea.siteID',
+          'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel', 'profile.chargingSchedule'
         ]
       },
       { resource: Entity.CHARGING_PROFILE, action: [Action.READ, Action.CREATE, Action.UPDATE, Action.DELETE] },
@@ -1679,7 +1680,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
           'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower','chargingStation.siteArea.siteID',
-          'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel'
+          'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel', 'profile.chargingSchedule'
         ]
       },
       {
