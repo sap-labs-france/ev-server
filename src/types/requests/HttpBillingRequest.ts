@@ -40,7 +40,6 @@ export interface HttpBillingSubAccountUpdateRequest extends BillingAccount {
 
 export interface HttpBillingSubAccountActivateRequest {
   ID: string;
-  TenantID: string;
 }
 
 export interface HttpBillingSubAccountsGetRequest extends HttpDatabaseRequest {
@@ -62,4 +61,8 @@ export interface HttpBillingTransfersGetRequest extends HttpDatabaseRequest {
   Status?: string;
   TransferExternalID?: string;
   Search?: string;
+}
+
+export interface HttpBillingTransferFinalizeRequest extends HttpByIDRequest {
+  ID: string;
 }

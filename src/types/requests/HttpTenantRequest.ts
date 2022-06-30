@@ -23,3 +23,11 @@ export interface HttpTenantLogoGetRequest {
   ID?: string;
   Subdomain?: string;
 }
+
+export interface HttpVerifyTenantRequest {
+  tenant?: string;
+  Tenant?: string;
+  Subdomain?: string;
+  ID?: string;
+  TenantID?: string;
+}

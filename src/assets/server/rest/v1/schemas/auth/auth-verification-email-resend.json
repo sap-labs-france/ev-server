@@ -6,16 +6,12 @@
     "email": {
       "$ref": "user#/definitions/email"
     },
-    "tenant": {
-      "$ref": "common#/definitions/authSubdomain"
-    },
     "captcha": {
       "$ref": "common#/definitions/captcha"
     }
   },
   "required": [
     "email",
-    "tenant",
     "captcha"
   ]
 }

@@ -166,7 +166,7 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaValidatorRest.getInstance().validateSiteAreaGetImageReq(req.query);
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(
-      await TenantStorage.getTenant(filteredRequest.TenantID), filteredRequest.ID);
+      req.tenant, filteredRequest.ID);
     let image = siteAreaImage?.image;
     if (image) {
       // Header

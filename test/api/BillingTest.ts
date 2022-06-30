@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus, BillingTransferStatus } from '../../src/types/Billing';
 import { BillingPlatformFeeStrategyFactory, BillingTransferFactory } from '../factories/BillingFactory';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
@@ -1221,6 +1221,26 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           delete savedTransfer.lastChangedBy;
           expect(savedTransfer).to.containSubset(transfer);
         });
+
+        it('should finalize transfer', async () => {
+          const transfer = BillingTransferFactory.build();
+          transfer.status = BillingTransferStatus.DRAFT;
+          const transferID = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
+          transfer.id = transferID;
+          const finalizeResponse = await billingTestHelper.userService.billingApi.finalizeTransfer(transferID);
+          expect(finalizeResponse.status).to.be.eq(StatusCodes.OK);
+          const finalizedTransfer = await BillingStorage.getTransferByID(billingTestHelper.tenantContext.getTenant(), transferID);
+          expect(finalizedTransfer.status).to.eq(BillingTransferStatus.FINALIZED);
+        });
+
+        it('should not finalize not draft transfer', async () => {
+          const transfer = BillingTransferFactory.build();
+          transfer.status = BillingTransferStatus.FINALIZED;
+          const transferID = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
+          transfer.id = transferID;
+          const finalizeResponse = await billingTestHelper.userService.billingApi.finalizeTransfer(transferID);
+          expect(finalizeResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+        });
       });
     });
 
@@ -1236,41 +1256,50 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         expect(billingTestHelper.userService).to.not.be.null;
       });
 
-      it('should not be able to create a sub account', async () => {
-        const response = await billingTestHelper.userService.billingApi.createSubAccount({
-          businessOwnerID: billingTestHelper.userContext.id
+      describe('Sub accounts', () => {
+        it('should not be able to create a sub account', async () => {
+          const response = await billingTestHelper.userService.billingApi.createSubAccount({
+            businessOwnerID: billingTestHelper.userContext.id
+          });
+          expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
-        expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
-      });
 
-      it('should not activate an inexistent sub account', async () => {
-        const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({
-          accountID: '5ce249a1a39ae1c056c389bd', // inexistent sub account
-          TenantID: billingTestHelper.tenantContext.getTenant().id
+        it('should not activate an inexistent sub account', async () => {
+          const activationResponse = await billingTestHelper.userService.billingApi.activateSubAccount({
+            accountID: '5ce249a1a39ae1c056c389bd', // inexistent sub account
+            TenantID: billingTestHelper.tenantContext.getTenant().id
+          });
+          expect(activationResponse.status).to.be.eq(StatusCodes.NOT_FOUND);
         });
-        expect(activationResponse.status).to.be.eq(StatusCodes.NOT_FOUND);
+
+        it('should not be able to list sub-accounts', async () => {
+          const subAccountsResponse = await billingTestHelper.userService.billingApi.readSubAccounts({});
+          expect(subAccountsResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+        });
+
+        it('should not be able to read sub-account', async () => {
+          // List sub-accounts
+          const subAccountResponse = await billingTestHelper.userService.billingApi.readSubAccount('62978713f146ea8cb3bf8a95'); // inexistent sub account
+          expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+        });
+
+        it('should not be able to send sub-account onboarding', async () => {
+          // List sub-accounts
+          const subAccountResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding('62978713f146ea8cb3bf8a95'); // inexistent sub account
+          expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+        });
       });
 
-      it('should not be able to list sub-accounts', async () => {
-        const subAccountsResponse = await billingTestHelper.userService.billingApi.readSubAccounts({});
-        expect(subAccountsResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
-      });
+      describe('Transfers', () => {
+        it('should not be able to list transfers', async () => {
+          const transfersResponse = await billingTestHelper.userService.billingApi.readTransfers({});
+          expect(transfersResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+        });
 
-      it('should not be able to read sub-account', async () => {
-        // List sub-accounts
-        const subAccountResponse = await billingTestHelper.userService.billingApi.readSubAccount('62978713f146ea8cb3bf8a95'); // inexistent sub account
-        expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
-      });
-
-      it('should not be able to send sub-account onboarding', async () => {
-        // List sub-accounts
-        const subAccountResponse = await billingTestHelper.userService.billingApi.sendSubAccountOnboarding('62978713f146ea8cb3bf8a95'); // inexistent sub account
-        expect(subAccountResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
-      });
-
-      it('should not be able to list transfers', async () => {
-        const transfersResponse = await billingTestHelper.userService.billingApi.readTransfers({});
-        expect(transfersResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+        it('should not be able to finalize a transfer', async () => {
+          const finalizeResponse = await billingTestHelper.userService.billingApi.finalizeTransfer('5ce249a1a39ae1c056c389bd'); // inexistent transfer
+          expect(finalizeResponse.status).to.be.eq(StatusCodes.FORBIDDEN);
+        });
       });
     });
 

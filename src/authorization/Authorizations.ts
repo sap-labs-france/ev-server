@@ -633,6 +633,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.LIST);
   }
 
+  public static async canListTransfers(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING_TRANSFER, Action.LIST);
+  }
+
   public static async canReadInvoiceBilling(loggedUser: UserToken, userID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.READ,
       { user: userID, owner: loggedUser.id });
