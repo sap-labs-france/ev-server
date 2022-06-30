@@ -745,8 +745,6 @@ export default class AuthorizationService {
     chargingStation.canMaintainPricingDefinitions = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.MAINTAIN_PRICING_DEFINITIONS, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
-
-    chargingStation.inactive = false;
     // Add connector authorization
     for (const connector of chargingStation.connectors) {
       // Start transaction (Auth check should be done first to apply filter)
