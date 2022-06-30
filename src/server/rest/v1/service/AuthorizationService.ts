@@ -434,7 +434,7 @@ export default class AuthorizationService {
       tenant, Entity.CHARGING_STATION_TEMPLATE, userToken, filteredRequest, filteredRequest.id ? { chargingStationTemplateID: filteredRequest.id } : {}, authAction, entityData);
   }
 
-  public static async checkAndGetChargingStationTemplatesAuthorizations(tenant: Tenant, userToken: UserToken,
+  public static async checkAndGetChargingStationTemplatesAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
       filteredRequest: Partial<HttpGetChargingStationTemplateRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
@@ -443,7 +443,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, Action.LIST,
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, authAction,
       authorizationFilters, filteredRequest, null, true);
     return authorizationFilters;
   }

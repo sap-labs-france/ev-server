@@ -26,6 +26,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       { resource: Entity.CHARGING_STATION_TEMPLATE, action: [Action.LIST, Action.READ, Action.DELETE, Action.UPDATE, Action.CREATE] },
+      // attributes: [
       {
         resource: Entity.USER, action: Action.DELETE,
         condition: {

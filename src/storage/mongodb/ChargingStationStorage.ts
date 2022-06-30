@@ -64,7 +64,7 @@ export default class ChargingStationStorage {
     const chargingStationTemplates: ChargingStationTemplate[] = [];
     // Reverse match the regexp in JSON template records against the charging station vendor string
     for (const chargingStationTemplateMDB of chargingStationTemplatesMDB) {
-      const regExp = new RegExp(chargingStationTemplateMDB.chargePointVendor);
+      const regExp = new RegExp(chargingStationTemplateMDB.template.chargePointVendor);
       if (regExp.test(chargePointVendor)) {
         chargingStationTemplates.push(chargingStationTemplateMDB);
       }

@@ -51,7 +51,7 @@ export default class ChargingStationTemplateRouter {
 
   private buildRouteChargingStationTemplateUpdate(): void {
     this.router.put(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.body.id = sanitize(req.params.id);
+      // req.body.id = sanitize(req.params.id);
       await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleUpdateChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE_UPDATE, req, res, next);
     });
   }

@@ -3,9 +3,6 @@
   "title": "Create a charging station template",
   "type": "object",
   "properties": {
-    "id": {
-      "type": "string"
-    },
     "chargePointVendor": {
       "type": "string"
     },
@@ -447,7 +444,6 @@
   },
   "additionalProperties": false,
   "required": [
-    "id",
     "chargePointVendor",
     "technical",
     "capabilities"
