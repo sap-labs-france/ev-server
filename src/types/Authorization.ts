@@ -141,6 +141,7 @@ export enum Action {
   BILLING_ACTIVATE_SUB_ACCOUNT = 'BillingSubAccountActivate',
   BILLING_ONBOARD_SUB_ACCOUNT = 'BillingSubAccountOnboard',
   BILLING_FINALIZE_TRANSFER = 'BillingFinalizeTransfer',
+  BILLING_SEND_TRANSFER = 'BillingSendTransfer',
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
@@ -240,6 +241,8 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
   canMaintainPricingDefinitions?: boolean;
 }
 
+export type BillingTaxAuthorizationActions = AuthorizationActions;
+
 export interface BillingInvoiceAuthorizationActions extends AuthorizationActions {
   canDownload?: boolean;
 }
@@ -298,7 +301,6 @@ export enum DynamicAuthorizationFilterName {
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
   EXCLUDE_ACTION = 'ExcludeAction',
-  INCLUDE_ALL_EXTERNAL_SITES = 'IncludeAllExternalSites',
 }
 
 export enum DynamicAuthorizationAssertName {
@@ -316,7 +318,6 @@ export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
   EXCLUDE_ACTION = 'ExcludeAction',
-  INCLUDE_ALL_EXTERNAL_SITES = 'IncludeAllExternalSites',
 }
 
 export interface DynamicAuthorizationDataSourceData { }
@@ -336,7 +337,6 @@ export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAut
 export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
-
 export interface SiteAdminUsersDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   userIDs?: string[];
 }

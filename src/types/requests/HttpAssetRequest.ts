@@ -30,7 +30,6 @@ export interface HttpAssetConsumptionGetRequest {
 
 export interface HttpAssetImageGetRequest extends HttpByIDRequest {
   ID: string;
-  TenantID: string;
 }
 
 export interface HttpAssetCheckConnection extends HttpByIDRequest {

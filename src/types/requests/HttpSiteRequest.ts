@@ -30,7 +30,6 @@ export interface HttpSitesGetRequest extends HttpDatabaseRequest {
 
 export interface HttpSiteImageGetRequest extends HttpByIDRequest {
   ID: string;
-  TenantID: string;
 }
 
 export interface HttpSiteAssignUsersRequest extends HttpDatabaseProjectRequest {
