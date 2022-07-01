@@ -4,7 +4,7 @@
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Initialisation du compte de facturation",
+      "title": "Connection du compte de facturation",
       "image": {
         "left": {
           "height": 60,
@@ -19,10 +19,10 @@
     "beforeActionLines": [
       "Cher <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "L'initialisation de votre compte de facturation doit être complétée en suivant le lien ci-dessous:"
+      "Cliquer le lien ci-dessous pour finaliser la connexion de votre compte de facturation"
     ],
     "actions": [{
-        "title": "Finaliser l'initialisation du compte de facturation",
+        "title": "Connexion",
         "url": "<%- onboardingLink %>"
       }],
     "afterActionLines": [
