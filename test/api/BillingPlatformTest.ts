@@ -55,7 +55,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         await billingTestHelper.initChargingStationContext2TestChargingTime();
       });
 
-      it('should create an invoice, and get transfers generated', async () => {
+      xit('should create an invoice, and get transfers generated', async () => {
         // -------------------------------------------------------------------------------------------------------------
         // -------------------------------------------------------------------------------------------------------------
         // -------------------------------------------------------------------------------------------------------------
