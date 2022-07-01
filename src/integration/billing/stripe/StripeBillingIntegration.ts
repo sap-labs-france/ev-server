@@ -1715,7 +1715,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         message: 'Unexpected situation - unable to create account',
         detailedMessages: { e },
         module: MODULE_NAME, action: ServerAction.BILLING_ACCOUNT_CREATE,
-        method: 'createAccount',
+        method: 'createConnectedAccount',
       });
     }
     // Generate the link to activate the account
@@ -1732,7 +1732,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         message: 'Unexpected situation - unable to create activation link',
         detailedMessages: { e },
         module: MODULE_NAME, action: ServerAction.BILLING_ACCOUNT_CREATE,
-        method: 'createAccount',
+        method: 'createConnectedAccount',
       });
     }
     return {
