@@ -515,7 +515,7 @@ export default class BillingService {
     if (billingAccount.status !== BillingAccountStatus.PENDING) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Sub-account onboarding aborted - current status should be PENDING',
+        message: 'Account onboarding aborted - current status should be PENDING',
         module: MODULE_NAME, method: 'handleActivateAccount',
         action: action,
         user: req.user
@@ -587,7 +587,7 @@ export default class BillingService {
     if (billingAccount.status !== BillingAccountStatus.IDLE) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Sub-account onboarding aborted - current status should be IDLE',
+        message: 'Account onboarding aborted - current status should be IDLE',
         module: MODULE_NAME, method: 'handleOnboardAccount',
         action: action,
         user: req.user

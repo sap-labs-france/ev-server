@@ -13863,7 +13863,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Get Sub-Accounts",
+        "description": "Get Accounts",
         "parameters": [
           {
             "$ref": "#/components/parameters/UserIDs"
@@ -13996,12 +13996,12 @@
             "bearerAuth": []
           }
         ],
-        "description": "Get Sub-Accounts",
+        "description": "Get Accounts",
         "parameters": [
           {
             "in": "path",
             "name": "id",
-            "description": "Sub-account ID",
+            "description": "Account ID",
             "schema": {
               "type": "string"
             },
