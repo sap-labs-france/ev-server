@@ -961,7 +961,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
     });
   });
 
-  describe('Billing Service (utbillingplatform)', () => {
+  xdescribe('Billing Service (utbillingplatform)', () => {
     beforeAll(async () => {
       await billingTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM);
       // Initialize the Billing module
