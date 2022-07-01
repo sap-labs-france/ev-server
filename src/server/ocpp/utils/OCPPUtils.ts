@@ -1859,7 +1859,7 @@ export default class OCPPUtils {
     const consumptionWh = Utils.createDecimal(meterValueWh).minus(lastMeterValueWh).toNumber();
     // Calculate max drawable energy plus buffer of 20%
     const power = Utils.getChargingStationPower(chargingStation, null, transaction.connectorId);
-    const maxWh = Utils.createDecimal(power).div(3600).mul(durationSecs).mul(1.2).toNumber();
+    const maxWh = Utils.createDecimal(power).div(3600).mul(durationSecs).toNumber();
     // Compare values
     if ((maxWh > 0 && consumptionWh > maxWh)) {
       await Logging.logError({
