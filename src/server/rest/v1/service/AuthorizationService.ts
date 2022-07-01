@@ -1,10 +1,10 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingSubaccountsDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
+import { AssetDataResult, BillingAccountsDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, UserDataResult } from '../../../../types/DataResult';
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
-import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingSubAccountGetRequest, HttpBillingSubAccountsGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 import { HttpCarCatalogGetRequest, HttpCarCatalogsGetRequest, HttpCarGetRequest, HttpCarsGetRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingProfileRequest, HttpChargingProfilesGetRequest, HttpChargingStationGetRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesGetRequest, HttpCompanyGetRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -792,14 +792,14 @@ export default class AuthorizationService {
     return AuthorizationService.checkAndGetEntityAuthorizations(tenant, Entity.BILLING_PLATFORM, userToken, {}, {}, authAction, entityData);
   }
 
-  public static async checkAndGetBillingSubAccountAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpBillingSubAccountGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+  public static async checkAndGetBillingAccountAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpBillingAccountGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
-      tenant, Entity.BILLING_SUB_ACCOUNT, userToken, filteredRequest, filteredRequest.ID ? { id: filteredRequest.ID } : {}, authAction, entityData);
+      tenant, Entity.BILLING_ACCOUNT, userToken, filteredRequest, filteredRequest.ID ? { id: filteredRequest.ID } : {}, authAction, entityData);
   }
 
-  public static async checkAndGetBillingSubAccountsAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest?: Partial<HttpBillingSubAccountsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+  public static async checkAndGetBillingAccountsAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest?: Partial<HttpBillingAccountsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -808,7 +808,7 @@ export default class AuthorizationService {
     };
     // Check static & dynamic authorization
     await this.canPerformAuthorizationAction(
-      tenant, userToken, Entity.BILLING_SUB_ACCOUNT, Action.LIST, authorizations, filteredRequest, null, failsWithException);
+      tenant, userToken, Entity.BILLING_ACCOUNT, Action.LIST, authorizations, filteredRequest, null, failsWithException);
     return authorizations;
   }
 
@@ -894,25 +894,25 @@ export default class AuthorizationService {
     Utils.removeCanPropertiesWithFalseValue(billingInvoice);
   }
 
-  public static async addSubAccountsAuthorizations(tenant: Tenant, userToken: UserToken, billingSubAccounts: BillingSubaccountsDataResult,
+  public static async addAccountsAuthorizations(tenant: Tenant, userToken: UserToken, billingAccounts: BillingAccountsDataResult,
       authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
-    billingSubAccounts.metadata = authorizationFilter.metadata;
-    billingSubAccounts.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
+    billingAccounts.metadata = authorizationFilter.metadata;
+    billingAccounts.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
   }
 
-  public static addSubAccountAuthorizations(tenant: Tenant, userToken: UserToken, billingSubAccount: BillingAccount): void {
+  public static addAccountAuthorizations(tenant: Tenant, userToken: UserToken, billingAccount: BillingAccount): void {
     // Add Meta Data
-    billingSubAccount.canRead = true;
+    billingAccount.canRead = true;
   }
 
-  public static async addTransfersAuthorizations(tenant: Tenant, userToken: UserToken, billingSubAccounts: BillingTransfersDataResult,
+  public static async addTransfersAuthorizations(tenant: Tenant, userToken: UserToken, billingAccounts: BillingTransfersDataResult,
       authorizationFilter: AuthorizationFilter): Promise<void> {
   // Add Meta Data
-    billingSubAccounts.metadata = authorizationFilter.metadata;
-    billingSubAccounts.canListSubAccounts = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.BILLING_SUB_ACCOUNT, Action.LIST, authorizationFilter);
+    billingAccounts.metadata = authorizationFilter.metadata;
+    billingAccounts.canListAccounts = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.BILLING_ACCOUNT, Action.LIST, authorizationFilter);
   }
 
   public static async checkAndGetPaymentMethodsAuthorizations(tenant: Tenant, userToken: UserToken,

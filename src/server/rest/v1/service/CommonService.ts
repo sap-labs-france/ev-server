@@ -19,7 +19,7 @@ export default class CommonService {
       req.url !== '/ping' &&
       !req.url.startsWith('/car-catalogs') &&
       !req.url.startsWith('/charging-stations/firmware/download') &&
-      !req.url.startsWith('/billing/sub-accounts') &&
+      !req.url.startsWith('/billing/accounts') &&
       !req.url.startsWith('/eula?') &&
       req.url !== '/eula') {
       try {

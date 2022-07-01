@@ -13856,7 +13856,7 @@
         }
       }
     },
-    "/api/billing/sub-accounts": {
+    "/api/billing/accounts": {
       "get": {
         "security": [
           {
@@ -13901,7 +13901,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Return sub-accounts",
+            "description": "Return accounts",
             "content": {
               "application/json": {
                 "schema": {
@@ -13914,7 +13914,7 @@
                     "result": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/SubAccount"
+                        "$ref": "#/components/schemas/Account"
                       }
                     }
                   }
@@ -13939,7 +13939,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Create a Billing sub-account",
+        "description": "Create a Billing account",
         "tags": [
           "Billing"
         ],
@@ -13961,7 +13961,7 @@
         },
         "responses": {
           "201": {
-            "description": "Pending sub-account created",
+            "description": "Pending account created",
             "content": {
               "application/json": {
                 "example": {
@@ -13989,7 +13989,7 @@
         }
       }
     },
-    "/api/billing/sub-accounts/{id}": {
+    "/api/billing/accounts/{id}": {
       "get": {
         "security": [
           {
@@ -14013,11 +14013,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Return sub-account",
+            "description": "Return account",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubAccount"
+                  "$ref": "#/components/schemas/Account"
                 }
               }
             }
@@ -14172,7 +14172,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Triggers the transfer of funds to the sub-account",
+        "description": "Triggers the transfer of funds to the account",
         "parameters": [
           {
             "in": "path",
@@ -16691,7 +16691,7 @@
           }
         }
       },
-      "SubAccount": {
+      "Account": {
         "type": "object",
         "properties": {
           "accountID": {

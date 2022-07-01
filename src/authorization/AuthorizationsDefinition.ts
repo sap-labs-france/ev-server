@@ -477,7 +477,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
       {
-        resource: Entity.BILLING_SUB_ACCOUNT,
+        resource: Entity.BILLING_ACCOUNT,
         action: [Action.LIST, Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.BILLING_ONBOARD_SUB_ACCOUNT],
         attributes: [
           'id', 'accountExternalID', 'businessOwnerID', 'user.id', 'user.firstName', 'user.lastName', 'user.email', 'status'

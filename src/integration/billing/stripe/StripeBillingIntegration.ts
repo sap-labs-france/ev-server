@@ -1008,7 +1008,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           module: MODULE_NAME, method: 'billTransaction',
           message: `Billing process is about to start - transaction ID: ${transaction.id}`,
         });
-        // Retrieve billing sub-account settings from the company or the site
+        // Retrieve billing account settings from the company or the site
         const accountData = await this.retrieveAccountData(transaction);
         // ACHTUNG: a single transaction may generate several lines in the invoice - one line per paring dimension
         const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction, accountData);
@@ -1702,28 +1702,28 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }));
   }
 
-  public async createSubAccount(): Promise<BillingAccount> {
+  public async createAccount(): Promise<BillingAccount> {
     await this.checkConnection();
-    let subAccount: Stripe.Account;
-    // Create the sub-account
+    let billingAccount: Stripe.Account;
+    // Create the account
     try {
-      subAccount = await this.stripe.accounts.create({
+      billingAccount = await this.stripe.accounts.create({
         type: 'standard'
       });
     } catch (e) {
       throw new BackendError({
-        message: 'Unexpected situation - unable to create sub-account',
+        message: 'Unexpected situation - unable to create account',
         detailedMessages: { e },
-        module: MODULE_NAME, action: ServerAction.BILLING_SUB_ACCOUNT_CREATE,
-        method: 'createSubAccount',
+        module: MODULE_NAME, action: ServerAction.BILLING_ACCOUNT_CREATE,
+        method: 'createAccount',
       });
     }
-    // Generate the link to activate the sub-account
+    // Generate the link to activate the account
     let activationLink: Stripe.AccountLink;
     try {
       activationLink = await this.stripe.accountLinks.create({
-        account: subAccount.id,
-        return_url: Utils.buildEvseBillingSubAccountActivationURL(this.tenant, subAccount.id),
+        account: billingAccount.id,
+        return_url: Utils.buildEvseBillingAccountActivationURL(this.tenant, billingAccount.id),
         refresh_url: Utils.buildEvseURL(),
         type: 'account_onboarding',
       });
@@ -1731,12 +1731,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
       throw new BackendError({
         message: 'Unexpected situation - unable to create activation link',
         detailedMessages: { e },
-        module: MODULE_NAME, action: ServerAction.BILLING_SUB_ACCOUNT_CREATE,
-        method: 'createSubAccount',
+        module: MODULE_NAME, action: ServerAction.BILLING_ACCOUNT_CREATE,
+        method: 'createAccount',
       });
     }
     return {
-      accountExternalID: subAccount.id,
+      accountExternalID: billingAccount.id,
       activationLink: activationLink.url,
       status: BillingAccountStatus.IDLE
     };
