@@ -71,7 +71,7 @@ export enum UserNotificationType {
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
   BILLING_PERIODIC_OPERATION_FAILED = 'BillingPeriodicOperationFailed',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
-  BILLING_CREATE_SUB_ACCOUNT = 'BillingAccountCreate',
+  BILLING_CREATE_ACCOUNT = 'BillingAccountCreate',
   BILLING_ACCOUNT_ACTIVATED = 'BillingAccountActivated',
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
   CHECK_AND_APPLY_SMART_CHARGING_FAILED = 'ComputeAndApplyChargingProfilesFailed',

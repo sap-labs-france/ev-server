@@ -503,7 +503,7 @@ export default class BillingService {
     billingAccount.businessOwnerID = user.id;
     // Save the sub account
     billingAccount.id = await BillingStorage.saveAccount(req.tenant, billingAccount);
-    res.status(StatusCodes.CREATED).json(billingAccount);
+    res.status(StatusCodes.CREATED).json(Object.assign(billingAccount, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -530,7 +530,7 @@ export default class BillingService {
     // Notify the user
     void NotificationHandler.sendBillingAccountActivationNotification(
       req.tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
-    res.status(StatusCodes.OK).json(billingAccount);
+    res.status(StatusCodes.OK).json(Object.assign(billingAccount, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -577,10 +577,10 @@ export default class BillingService {
   public static async handleOnboardAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.BILLING_ONBOARD_SUB_ACCOUNT, Entity.BILLING_ACCOUNT, MODULE_NAME, 'handleOnboardAccount');
+      Action.BILLING_ONBOARD_ACCOUNT, Entity.BILLING_ACCOUNT, MODULE_NAME, 'handleOnboardAccount');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingAccountGetReq(req.params);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingAccountAuthorizations(req.tenant, req.user, filteredRequest, Action.BILLING_ONBOARD_SUB_ACCOUNT);
+    await AuthorizationService.checkAndGetBillingAccountAuthorizations(req.tenant, req.user, filteredRequest, Action.BILLING_ONBOARD_ACCOUNT);
     const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, billingAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
     // Check if the sub account onboarding is already sent
@@ -602,7 +602,7 @@ export default class BillingService {
     // Notify the user
     void NotificationHandler.sendBillingAccountCreationLink(
       req.tenant, Utils.generateUUID(), user, { onboardingLink: billingAccount.activationLink, evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
-    res.status(StatusCodes.OK).json(billingAccount);
+    res.status(StatusCodes.OK).json(Object.assign(billingAccount, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 

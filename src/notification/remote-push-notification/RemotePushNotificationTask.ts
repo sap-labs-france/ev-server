@@ -349,7 +349,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18nManager.translate('notifications.billingAccountCreationLink.body',
       { onboardingLink: data.onboardingLink, tenantName: tenant.name });
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_CREATE_SUB_ACCOUNT,
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_CREATE_ACCOUNT,
       title, body, user, { 'onboardingLink': data.onboardingLink }, severity);
   }
 
