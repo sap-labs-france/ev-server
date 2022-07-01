@@ -90,7 +90,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           const billingAccount = await stripeTestHelper.createConnectedAccount();
           expect(billingAccount.accountExternalID).to.exist;
           expect(billingAccount.activationLink).to.include('https://connect.stripe.com/setup/s/');
-          expect(billingAccount.status).to.be.eq(BillingAccountStatus.IDLE);
         });
       });
 
