@@ -210,9 +210,10 @@ export default class BillingStorage {
     // Properties to save
     const billingAccountMDB: any = {
       _id: billingAccount.id ? DatabaseUtils.convertToObjectID(billingAccount.id) : new ObjectId(),
-      accountExternalID: billingAccount.accountExternalID,
       status: billingAccount.status,
-      businessOwnerID: DatabaseUtils.convertToObjectID(billingAccount.businessOwnerID)
+      businessOwnerID: DatabaseUtils.convertToObjectID(billingAccount.businessOwnerID),
+      accountExternalID: billingAccount.accountExternalID,
+      activationLink: billingAccount.activationLink, // Should not be persisted - added here only for troubleshooting purposes
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(billingAccountMDB, billingAccount);

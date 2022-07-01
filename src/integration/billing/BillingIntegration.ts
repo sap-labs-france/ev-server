@@ -708,7 +708,7 @@ export default abstract class BillingIntegration {
 
   abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]>;
 
-  abstract createAccount(): Promise<BillingAccount>;
+  abstract createConnectedAccount(): Promise<Partial<BillingAccount>>;
 
   abstract billPlatformFee(transfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice>;
 

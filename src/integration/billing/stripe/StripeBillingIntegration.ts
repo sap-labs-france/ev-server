@@ -1702,7 +1702,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }));
   }
 
-  public async createAccount(): Promise<BillingAccount> {
+  public async createConnectedAccount(): Promise<Partial<BillingAccount>> {
     await this.checkConnection();
     let billingAccount: Stripe.Account;
     // Create the account
@@ -1737,8 +1737,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     return {
       accountExternalID: billingAccount.id,
-      activationLink: activationLink.url,
-      status: BillingAccountStatus.IDLE
+      activationLink: activationLink.url
     };
   }
 
