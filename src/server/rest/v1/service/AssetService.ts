@@ -318,6 +318,14 @@ export default class AssetService {
   }
 
   public static async handleGetAssetImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleGetAssetImage', action: action,
+      });
+    }
     // This endpoint is not protected, so no need to check user's access
     const filteredRequest = AssetValidatorRest.getInstance().validateAssetGetImageReq(req.query);
     // Get the image
