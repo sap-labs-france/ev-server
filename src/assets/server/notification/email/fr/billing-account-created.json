@@ -4,7 +4,7 @@
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Connection du compte de facturation",
+      "title": "Connexion du compte de facturation",
       "image": {
         "left": {
           "height": 60,
