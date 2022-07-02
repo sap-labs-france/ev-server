@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
+import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
 
@@ -34,7 +34,7 @@ const isBillingProperlyConfigured = stripeTestHelper.isBillingProperlyConfigured
 
 describeif(isBillingProperlyConfigured)('Billing', () => {
   // Do not run the tests when the settings are not properly set
-  jest.setTimeout(1000000);
+  jest.setTimeout(60000);
 
   beforeAll(async () => {
     global.database = new MongoDBStorage(config.get('storage'));
@@ -85,7 +85,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         await stripeTestHelper.forceBillingSettings(immediateBilling);
       });
 
-      describe('Sub-accounts', () => {
+      xdescribe('Sub-accounts', () => {
         it('Should create a account with its associated activation link', async () => {
           const billingAccount = await stripeTestHelper.createConnectedAccount();
           expect(billingAccount.accountExternalID).to.exist;

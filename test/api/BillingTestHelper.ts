@@ -829,7 +829,7 @@ export default class BillingTestHelper {
     return billingAccount;
   }
 
-  public async getActivatedBillingAccount(): Promise<BillingAccount> {
+  public async getActivatedAccount(): Promise<BillingAccount> {
     if (!this.billingAccount) {
       this.billingAccount = await this.createActivatedAccount();
       // this.billingAccount = await this.userService.billingApi.readBillingAccount(accountID) as BillingAccount;

@@ -32,7 +32,7 @@ const isBillingProperlyConfigured = stripeTestHelper.isBillingProperlyConfigured
 
 describeif(isBillingProperlyConfigured)('Billing', () => {
   // Do not run the tests when the settings are not properly set
-  jest.setTimeout(1000000);
+  jest.setTimeout(60000);
 
   beforeAll(async () => {
     global.database = new MongoDBStorage(config.get('storage'));
@@ -95,13 +95,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
     });
 
-    describe('Connected Accounts', () => {
+    xdescribe('Connected Accounts', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       beforeAll(async () => {
         billingTestHelper.initUserContextAsAdmin();
       });
 
-      it('should create a sub account', async () => {
+      it('should create a account', async () => {
         const response = await billingTestHelper.userService.billingApi.createBillingAccount({
           businessOwnerID: billingTestHelper.userContext.id
         });
@@ -115,25 +115,25 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // expect(billingAccount.status).to.be.eq(BillingAccountStatus.IDLE);
       });
 
-      it('should create a sub account and activate it', async () => {
-        // Create a sub account
+      it('should create a account and activate it', async () => {
+        // Create a account
         await billingTestHelper.createActivatedAccount();
       });
 
-      it('should not activate an inexistent sub account', async () => {
+      it('should not activate an inexistent account', async () => {
         const activationResponse = await billingTestHelper.userService.billingApi.activateBillingAccount({ accountID: '5ce249a1a39ae1c056c389bd', TenantID: billingTestHelper.tenantContext.getTenant().id });
         expect(activationResponse.status).to.be.eq(StatusCodes.NOT_FOUND);
       });
 
-      it('should not activate a sub account twice', async () => {
-        // Create a sub account
-        const billingAccount = await billingTestHelper.getActivatedBillingAccount();
+      it('should not activate a account twice', async () => {
+        // Create a account
+        const billingAccount = await billingTestHelper.getActivatedAccount();
         const activationResponse = await billingTestHelper.userService.billingApi.activateBillingAccount({ accountID: billingAccount.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
         expect(activationResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
       it('should create a company assigned to a account', async () => {
-        const billingAccount = await billingTestHelper.getActivatedBillingAccount();
+        const billingAccount = await billingTestHelper.getActivatedAccount();
         const platformFeeStrategy = BillingPlatformFeeStrategyFactory.build();
         let companyResponse = await billingTestHelper.userService.companyApi.create({
           ...CompanyFactory.build(),
@@ -149,7 +149,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should update a company to assign a account', async () => {
-        const billingAccount = await billingTestHelper.getActivatedBillingAccount();
+        const billingAccount = await billingTestHelper.getActivatedAccount();
 
         let companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
         expect(companyResponse.status).to.be.eq(StatusCodes.OK);
@@ -171,7 +171,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should create a site assigned to a account', async () => {
-        const billingAccount = await billingTestHelper.getActivatedBillingAccount();
+        const billingAccount = await billingTestHelper.getActivatedAccount();
 
         // Create a company
         const companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
@@ -193,7 +193,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should update a site to assign a account', async () => {
-        const billingAccount = await billingTestHelper.getActivatedBillingAccount();
+        const billingAccount = await billingTestHelper.getActivatedAccount();
 
         // Create a company
         const companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
@@ -224,7 +224,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should list accounts', async () => {
-        const billingAccount = await billingTestHelper.getActivatedBillingAccount();
+        const billingAccount = await billingTestHelper.getActivatedAccount();
 
         // List accounts
         const response = await billingTestHelper.userService.billingApi.readBillingAccounts({
@@ -236,7 +236,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should read account', async () => {
-        const billingAccount = await billingTestHelper.getActivatedBillingAccount();
+        const billingAccount = await billingTestHelper.getActivatedAccount();
 
         // Get the account
         const response = await billingTestHelper.userService.billingApi.readBillingAccount(billingAccount.id);
@@ -273,7 +273,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should not able to send account onboarding for an activated account', async () => {
-        // Create the sub account
+        // Create the account
         const billingAccountCreateResponse = await billingTestHelper.userService.billingApi.createBillingAccount({
           businessOwnerID: billingTestHelper.userContext.id
         });
@@ -317,7 +317,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should finalize transfer', async () => {
-        const billingAccount = await billingTestHelper.getActivatedBillingAccount();
+        const billingAccount = await billingTestHelper.getActivatedAccount();
         const transfer: BillingTransfer = { ...BillingTransferFactory.build(), accountID: billingAccount.id, status: BillingTransferStatus.DRAFT };
         const transferID = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
         transfer.id = transferID;
@@ -363,16 +363,16 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
     });
 
     describe('Connected Accounts', () => {
-      it('should not be able to create a sub account', async () => {
+      it('should not be able to create a account', async () => {
         const response = await billingTestHelper.userService.billingApi.createBillingAccount({
           businessOwnerID: billingTestHelper.userContext.id
         });
         expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 
-      it('should not activate an inexistent sub account', async () => {
+      it('should not activate an inexistent account', async () => {
         const activationResponse = await billingTestHelper.userService.billingApi.activateBillingAccount({
-          accountID: '5ce249a1a39ae1c056c389bd', // inexistent sub account
+          accountID: '5ce249a1a39ae1c056c389bd', // inexistent account
           TenantID: billingTestHelper.tenantContext.getTenant().id
         });
         expect(activationResponse.status).to.be.eq(StatusCodes.NOT_FOUND);
@@ -385,13 +385,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
       it('should not be able to read account', async () => {
         // List accounts
-        const response = await billingTestHelper.userService.billingApi.readBillingAccount('62978713f146ea8cb3bf8a95'); // inexistent sub account
+        const response = await billingTestHelper.userService.billingApi.readBillingAccount('62978713f146ea8cb3bf8a95'); // inexistent account
         expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 
       it('should not be able to send account onboarding', async () => {
         // List accounts
-        const response = await billingTestHelper.userService.billingApi.onboardBillingAccount('62978713f146ea8cb3bf8a95'); // inexistent sub account
+        const response = await billingTestHelper.userService.billingApi.onboardBillingAccount('62978713f146ea8cb3bf8a95'); // inexistent account
         expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
     });
