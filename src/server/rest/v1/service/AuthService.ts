@@ -365,8 +365,20 @@ export default class AuthService {
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthEulaReq(req.query);
     // Get it
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(Constants.DEFAULT_TENANT_OBJECT, filteredRequest.Language);
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(
+      Constants.DEFAULT_TENANT_OBJECT, filteredRequest.Language);
     res.json(endUserLicenseAgreement);
+    next();
+  }
+
+  public static async handleGetEndUserLicenseAgreementHtml(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = AuthValidatorRest.getInstance().validateAuthEulaReq(req.query);
+    // Get it
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(
+      Constants.DEFAULT_TENANT_OBJECT, filteredRequest.Language);
+    res.setHeader('Content-Type', 'text/html');
+    res.send(endUserLicenseAgreement.text);
     next();
   }
 

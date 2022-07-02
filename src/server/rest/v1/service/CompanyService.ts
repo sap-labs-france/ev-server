@@ -77,7 +77,7 @@ export default class CompanyService {
         encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
         logo = logo.substring(logo.indexOf(',') + 1);
       }
-      res.setHeader('content-type', header);
+      res.setHeader('Content-Type', header);
       res.send(Buffer.from(logo, encoding));
     } else {
       res.status(StatusCodes.NOT_FOUND);
