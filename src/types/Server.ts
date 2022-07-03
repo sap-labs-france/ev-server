@@ -493,6 +493,7 @@ export enum RESTServerRoute {
   REST_PASSWORD_RESET = 'password/reset',
   REST_END_USER_LICENSE_AGREEMENT = 'eula',
   REST_END_USER_LICENSE_AGREEMENT_CHECK = 'eula/check',
+  REST_END_USER_LICENSE_AGREEMENT_HTML = 'eula/html',
   REST_MAIL_CHECK = 'mail/check',
   REST_MAIL_RESEND = 'mail/resend',
 

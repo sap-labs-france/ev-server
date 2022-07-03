@@ -19,7 +19,8 @@ export default class AuthRouter {
     this.buildRouteVerifyMail();
     this.buildRouteResendVerificationMail();
     this.buildRouteEndUserLicenseAgreement();
-    this.buildRouteCheckEndUserLicenseAgreement();
+    this.buildRouteEndUserLicenseAgreementHtml();
+    this.buildRouteEndUserLicenseAgreementCheck();
     return this.router;
   }
 
@@ -65,7 +66,13 @@ export default class AuthRouter {
     });
   }
 
-  protected buildRouteCheckEndUserLicenseAgreement(): void {
+  protected buildRouteEndUserLicenseAgreementHtml(): void {
+    this.router.get(`/${RESTServerRoute.REST_END_USER_LICENSE_AGREEMENT_HTML}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(AuthService.handleGetEndUserLicenseAgreementHtml.bind(this), ServerAction.END_USER_LICENSE_AGREEMENT, req, res, next);
+    });
+  }
+
+  protected buildRouteEndUserLicenseAgreementCheck(): void {
     this.router.get(`/${RESTServerRoute.REST_END_USER_LICENSE_AGREEMENT_CHECK}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleRestServerAction(AuthService.handleCheckEndUserLicenseAgreement.bind(this), ServerAction.CHECK_END_USER_LICENSE_AGREEMENT, req, res, next);
     });
