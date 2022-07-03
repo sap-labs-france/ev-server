@@ -23,7 +23,7 @@ export default class SessionHashService {
       // Get Tenant
       let tenant: Tenant;
       if (tenantID === Constants.DEFAULT_TENANT_ID) {
-        tenant = { id: Constants.DEFAULT_TENANT_ID } as Tenant;
+        tenant = Constants.DEFAULT_TENANT_OBJECT;
       } else {
         tenant = await TenantStorage.getTenant(tenantID);
       }

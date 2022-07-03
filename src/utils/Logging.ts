@@ -677,7 +677,8 @@ export default class Logging {
     }
     // Send error
     if (!res.headersSent) {
-      const errorCode = exception['params'] ? exception['params']['errorCode'] : HTTPError.GENERAL_ERROR;
+      const errorCode = exception['params'] && exception['params']['errorCode'] ?
+        exception['params']['errorCode'] : HTTPError.GENERAL_ERROR;
       res.status(errorCode)
         .send({
           errorCode,

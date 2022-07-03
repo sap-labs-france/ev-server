@@ -508,6 +508,14 @@ export default class BillingService {
   }
 
   public static async handleActivateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleActivateSubAccount', action: action,
+      });
+    }
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingActivateSubAccountReq({ ...req.params, ...req.body });
     const subAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
