@@ -248,47 +248,51 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       it('should send account onboarding', async () => {
-        const billingAccountCreateResponse = await billingTestHelper.userService.billingApi.createBillingAccount({
+        let response = await billingTestHelper.userService.billingApi.createBillingAccount({
           businessOwnerID: billingTestHelper.userContext.id
         });
-        expect(billingAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
-
-        const billingAccountOnboardResponse = await billingTestHelper.userService.billingApi.onboardBillingAccount(billingAccountCreateResponse.data.id);
-        expect(billingAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
-        expect(billingAccountOnboardResponse.data.status).to.be.eq(BillingAccountStatus.PENDING);
+        expect(response.status).to.be.eq(StatusCodes.OK);
+        response = await billingTestHelper.userService.billingApi.onboardBillingAccount(response.data.id);
+        expect(response.status).to.be.eq(StatusCodes.OK);
+        response = await billingTestHelper.userService.billingApi.readBillingAccount(response.data.id);
+        expect(response.status).to.be.eq(StatusCodes.OK);
+        expect(response.data.status).to.be.eq(BillingAccountStatus.PENDING);
       });
 
       it('should not able to send account onboarding twice', async () => {
-        const billingAccountCreateResponse = await billingTestHelper.userService.billingApi.createBillingAccount({
+        let response = await billingTestHelper.userService.billingApi.createBillingAccount({
           businessOwnerID: billingTestHelper.userContext.id
         });
-        expect(billingAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
-
-        let billingAccountOnboardResponse = await billingTestHelper.userService.billingApi.onboardBillingAccount(billingAccountCreateResponse.data.id);
-        expect(billingAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
-        expect(billingAccountOnboardResponse.data.status).to.be.eq(BillingAccountStatus.PENDING);
-
-        billingAccountOnboardResponse = await billingTestHelper.userService.billingApi.onboardBillingAccount(billingAccountCreateResponse.data.id);
-        expect(billingAccountOnboardResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.status).to.be.eq(StatusCodes.OK);
+        response = await billingTestHelper.userService.billingApi.onboardBillingAccount(response.data.id);
+        expect(response.status).to.be.eq(StatusCodes.OK);
+        response = await billingTestHelper.userService.billingApi.readBillingAccount(response.data.id);
+        expect(response.status).to.be.eq(StatusCodes.OK);
+        expect(response.data.status).to.be.eq(BillingAccountStatus.PENDING);
+        response = await billingTestHelper.userService.billingApi.onboardBillingAccount(response.data.id);
+        expect(response.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
       it('should not able to send account onboarding for an activated account', async () => {
         // Create the account
-        const billingAccountCreateResponse = await billingTestHelper.userService.billingApi.createBillingAccount({
+        let response = await billingTestHelper.userService.billingApi.createBillingAccount({
           businessOwnerID: billingTestHelper.userContext.id
         });
-        expect(billingAccountCreateResponse.status).to.be.eq(StatusCodes.CREATED);
+        expect(response.status).to.be.eq(StatusCodes.OK);
         // Send onboarding
-        let billingAccountOnboardResponse = await billingTestHelper.userService.billingApi.onboardBillingAccount(billingAccountCreateResponse.data.id);
-        expect(billingAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
-        expect(billingAccountOnboardResponse.data.status).to.be.eq(BillingAccountStatus.PENDING);
+        response = await billingTestHelper.userService.billingApi.onboardBillingAccount(response.data.id);
+        expect(response.status).to.be.eq(StatusCodes.OK);
+        response = await billingTestHelper.userService.billingApi.readBillingAccount(response.data.id);
+        expect(response.status).to.be.eq(StatusCodes.OK);
+        expect(response.data.status).to.be.eq(BillingAccountStatus.PENDING);
         // Activate it
-        const activationResponse = await billingTestHelper.userService.billingApi.activateBillingAccount({ accountID: billingAccountCreateResponse.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
-        expect(activationResponse.status).to.be.eq(StatusCodes.OK);
-        expect(activationResponse.data.status).to.be.eq(BillingAccountStatus.ACTIVE);
+        response = await billingTestHelper.userService.billingApi.activateBillingAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
+        expect(response.status).to.be.eq(StatusCodes.OK);
+        response = await billingTestHelper.userService.billingApi.readBillingAccount(response.data.id);
+        expect(response.data.status).to.be.eq(BillingAccountStatus.ACTIVE);
         // Try to re-send onboarding
-        billingAccountOnboardResponse = await billingTestHelper.userService.billingApi.onboardBillingAccount(billingAccountCreateResponse.data.id);
-        expect(billingAccountOnboardResponse.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
+        response = await billingTestHelper.userService.billingApi.onboardBillingAccount(response.data.id);
+        expect(response.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
       });
     });
 
