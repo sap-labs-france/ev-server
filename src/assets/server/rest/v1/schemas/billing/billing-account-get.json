@@ -1,6 +1,6 @@
 {
-  "$id": "billing-sub-account-get",
-  "title": "Get billing sub account Request",
+  "$id": "billing-account-get",
+  "title": "Get billing account Request",
   "type": "object",
   "properties": {
     "ID": {

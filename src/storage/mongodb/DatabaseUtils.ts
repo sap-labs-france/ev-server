@@ -276,7 +276,7 @@ export default class DatabaseUtils {
   }
 
   public static pushAccountLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
-    DatabaseUtils.pushCollectionLookupInAggregation('billingsubaccounts', {
+    DatabaseUtils.pushCollectionLookupInAggregation('billingaccounts', {
       // objectIDFields: ['createdBy'],
       ...lookupParams
     }, additionalPipeline);

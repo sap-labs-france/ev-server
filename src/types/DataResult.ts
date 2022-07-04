@@ -97,12 +97,12 @@ export interface BillingPaymentMethodDataResult extends DataResult<BillingPaymen
   canCreate?: boolean;
 }
 
-export interface BillingSubaccountsDataResult extends DataResult<BillingAccount> {
+export interface BillingAccountsDataResult extends DataResult<BillingAccount> {
   canListUsers?: boolean;
 }
 
 export interface BillingTransfersDataResult extends DataResult<BillingTransfer> {
-  canListSubAccounts?: boolean;
+  canListAccounts?: boolean;
 }
 
 export interface TransactionRefundDataResult {
