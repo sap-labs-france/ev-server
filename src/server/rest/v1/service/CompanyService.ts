@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
 
+import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import Company from '../../../../types/Company';
@@ -12,7 +13,6 @@ import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -55,6 +55,14 @@ export default class CompanyService {
   }
 
   public static async handleGetCompanyLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleGetCompanyLogo', action: action,
+      });
+    }
     // Filter
     const filteredRequest = CompanyValidatorRest.getInstance().validateCompanyLogoGetReq(req.query);
     // Get the Logo

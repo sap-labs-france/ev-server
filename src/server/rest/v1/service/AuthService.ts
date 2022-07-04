@@ -57,6 +57,14 @@ export default class AuthService {
   }
 
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleLogIn', action: action,
+      });
+    }
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthSignInReq(req.body);
     req.user = { tenantID: req.tenant.id };
@@ -108,6 +116,14 @@ export default class AuthService {
   }
 
   public static async handleRegisterUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleRegisterUser', action: action,
+      });
+    }
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthSignOnReq(req.body);
     // Override
@@ -293,6 +309,15 @@ export default class AuthService {
   }
 
   public static async handleUserPasswordReset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleUserPasswordReset', action: action,
+      });
+    }
+    // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthPasswordResetReq(req.body);
     // Check hash
     if (filteredRequest.hash) {
@@ -305,6 +330,14 @@ export default class AuthService {
   }
 
   public static async handleCheckEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleCheckEndUserLicenseAgreement', action: action,
+      });
+    }
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthEulaCheckReq(req.query);
     // Get User
@@ -350,6 +383,14 @@ export default class AuthService {
   }
 
   public static async handleVerifyEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleVerifyEmail', action: action,
+      });
+    }
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthEmailVerifyReq(req.query);
     // Check that this is not the super tenant
@@ -448,6 +489,15 @@ export default class AuthService {
   }
 
   public static async handleResendVerificationEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleResendVerificationEmail', action: action,
+      });
+    }
+    // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthVerificationEmailResendReq(req.body);
     // Check that this is not the super tenant
     if (req.tenant.id === Constants.DEFAULT_TENANT_ID) {
