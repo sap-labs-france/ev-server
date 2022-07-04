@@ -95,7 +95,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
     });
 
-    xdescribe('Connected Accounts', () => {
+    describe('Connected Accounts', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       beforeAll(async () => {
         billingTestHelper.initUserContextAsAdmin();

@@ -812,7 +812,7 @@ export default class BillingTestHelper {
   }
 
   public async createActivatedAccount(): Promise<BillingAccount> {
-    const response = await this.userService.billingApi.createBillingAccount({
+    let response = await this.userService.billingApi.createBillingAccount({
       businessOwnerID: this.userContext.id
     });
     expect(response.status).to.be.eq(StatusCodes.OK);
@@ -823,8 +823,10 @@ export default class BillingTestHelper {
     // Activate the account
     const activationResponse = await this.userService.billingApi.activateBillingAccount({ accountID: response.data.id, TenantID: this.tenantContext.getTenant().id });
     expect(activationResponse.status).to.be.eq(StatusCodes.OK);
-    const accountID = activationResponse.id ;
-    const billingAccount = await this.userService.billingApi.readBillingAccount(accountID) as BillingAccount;
+    const accountID = activationResponse.data?.id ;
+    response = await this.userService.billingApi.readBillingAccount(accountID);
+    assert(response.status === StatusCodes.OK, 'Response status should be 200');
+    const billingAccount = response.data as BillingAccount ;
     expect(billingAccount.status).to.be.eq(BillingAccountStatus.ACTIVE);
     return billingAccount;
   }
