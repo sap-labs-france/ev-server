@@ -61669,10 +61669,10 @@
 					"name": "billing",
 					"item": [
 						{
-							"name": "sub-accounts",
+							"name": "accounts",
 							"item": [
 								{
-									"name": "/api/billing/sub-accounts",
+									"name": "/api/billing/accounts",
 									"request": {
 										"auth": {
 											"type": "bearer",
@@ -61692,14 +61692,14 @@
 											}
 										],
 										"url": {
-											"raw": "{{baseUrl}}/api/billing/sub-accounts?UserID=sint consequat&Status=sint consequat&StartDateTime=sint consequat&EndDateTime=sint consequat&Search=sint consequat&Skip=0&Limit=100&SortFields=id",
+											"raw": "{{baseUrl}}/api/billing/accounts?UserID=sint consequat&Status=sint consequat&StartDateTime=sint consequat&EndDateTime=sint consequat&Search=sint consequat&Skip=0&Limit=100&SortFields=id",
 											"host": [
 												"{{baseUrl}}"
 											],
 											"path": [
 												"api",
 												"billing",
-												"sub-accounts"
+												"accounts"
 											],
 											"query": [
 												{
@@ -61744,11 +61744,11 @@
 												}
 											]
 										},
-										"description": "Get Sub-Accounts"
+										"description": "Get Accounts"
 									},
 									"response": [
 										{
-											"name": "Return sub-accounts",
+											"name": "Return accounts",
 											"originalRequest": {
 												"method": "GET",
 												"header": [
@@ -61759,14 +61759,14 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts?UserID=sint consequat&Status=sint consequat&StartDateTime=sint consequat&EndDateTime=sint consequat&Search=sint consequat&Skip=0&Limit=100&SortFields=id",
+													"raw": "{{baseUrl}}/api/billing/accounts?UserID=sint consequat&Status=sint consequat&StartDateTime=sint consequat&EndDateTime=sint consequat&Search=sint consequat&Skip=0&Limit=100&SortFields=id",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts"
+														"accounts"
 													],
 													"query": [
 														{
@@ -61828,14 +61828,14 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts?UserID=sint consequat&Status=sint consequat&StartDateTime=sint consequat&EndDateTime=sint consequat&Search=sint consequat&Skip=0&Limit=100&SortFields=id",
+													"raw": "{{baseUrl}}/api/billing/accounts?UserID=sint consequat&Status=sint consequat&StartDateTime=sint consequat&EndDateTime=sint consequat&Search=sint consequat&Skip=0&Limit=100&SortFields=id",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts"
+														"accounts"
 													],
 													"query": [
 														{
@@ -61897,14 +61897,14 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts?UserID=sint consequat&Status=sint consequat&StartDateTime=sint consequat&EndDateTime=sint consequat&Search=sint consequat&Skip=0&Limit=100&SortFields=id",
+													"raw": "{{baseUrl}}/api/billing/accounts?UserID=sint consequat&Status=sint consequat&StartDateTime=sint consequat&EndDateTime=sint consequat&Search=sint consequat&Skip=0&Limit=100&SortFields=id",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts"
+														"accounts"
 													],
 													"query": [
 														{
@@ -61966,14 +61966,14 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts?UserID=sint consequat&Status=sint consequat&StartDateTime=sint consequat&EndDateTime=sint consequat&Search=sint consequat&Skip=0&Limit=100&SortFields=id",
+													"raw": "{{baseUrl}}/api/billing/accounts?UserID=sint consequat&Status=sint consequat&StartDateTime=sint consequat&EndDateTime=sint consequat&Search=sint consequat&Skip=0&Limit=100&SortFields=id",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts"
+														"accounts"
 													],
 													"query": [
 														{
@@ -62026,7 +62026,7 @@
 									]
 								},
 								{
-									"name": "/api/billing/sub-accounts",
+									"name": "/api/billing/accounts",
 									"request": {
 										"auth": {
 											"type": "bearer",
@@ -62059,21 +62059,21 @@
 											}
 										},
 										"url": {
-											"raw": "{{baseUrl}}/api/billing/sub-accounts",
+											"raw": "{{baseUrl}}/api/billing/accounts",
 											"host": [
 												"{{baseUrl}}"
 											],
 											"path": [
 												"api",
 												"billing",
-												"sub-accounts"
+												"accounts"
 											]
 										},
-										"description": "Create a Billing sub-account"
+										"description": "Create a Billing account"
 									},
 									"response": [
 										{
-											"name": "Pending sub-account created",
+											"name": "Pending account created",
 											"originalRequest": {
 												"method": "POST",
 												"header": [
@@ -62093,14 +62093,14 @@
 													}
 												},
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts",
+													"raw": "{{baseUrl}}/api/billing/accounts",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts"
+														"accounts"
 													]
 												}
 											},
@@ -62137,14 +62137,14 @@
 													}
 												},
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts",
+													"raw": "{{baseUrl}}/api/billing/accounts",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts"
+														"accounts"
 													]
 												}
 											},
@@ -62181,14 +62181,14 @@
 													}
 												},
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts",
+													"raw": "{{baseUrl}}/api/billing/accounts",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts"
+														"accounts"
 													]
 												}
 											},
@@ -62225,14 +62225,14 @@
 													}
 												},
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts",
+													"raw": "{{baseUrl}}/api/billing/accounts",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts"
+														"accounts"
 													]
 												}
 											},
@@ -62269,14 +62269,14 @@
 													}
 												},
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts",
+													"raw": "{{baseUrl}}/api/billing/accounts",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts"
+														"accounts"
 													]
 												}
 											},
@@ -62295,7 +62295,7 @@
 									]
 								},
 								{
-									"name": "/api/billing/sub-accounts/:id",
+									"name": "/api/billing/accounts/:id",
 									"request": {
 										"auth": {
 											"type": "bearer",
@@ -62315,29 +62315,29 @@
 											}
 										],
 										"url": {
-											"raw": "{{baseUrl}}/api/billing/sub-accounts/:id",
+											"raw": "{{baseUrl}}/api/billing/accounts/:id",
 											"host": [
 												"{{baseUrl}}"
 											],
 											"path": [
 												"api",
 												"billing",
-												"sub-accounts",
+												"accounts",
 												":id"
 											],
 											"variable": [
 												{
 													"key": "id",
 													"value": "sint consequat",
-													"description": "(Required) Sub-account ID"
+													"description": "(Required) Account ID"
 												}
 											]
 										},
-										"description": "Get Sub-Accounts"
+										"description": "Get Accounts"
 									},
 									"response": [
 										{
-											"name": "Return sub-account",
+											"name": "Return account",
 											"originalRequest": {
 												"method": "GET",
 												"header": [
@@ -62348,21 +62348,21 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts/:id",
+													"raw": "{{baseUrl}}/api/billing/accounts/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts",
+														"accounts",
 														":id"
 													],
 													"variable": [
 														{
 															"key": "id",
 															"value": "sint consequat",
-															"description": "(Required) Sub-account ID"
+															"description": "(Required) Account ID"
 														}
 													]
 												}
@@ -62391,21 +62391,21 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts/:id",
+													"raw": "{{baseUrl}}/api/billing/accounts/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts",
+														"accounts",
 														":id"
 													],
 													"variable": [
 														{
 															"key": "id",
 															"value": "sint consequat",
-															"description": "(Required) Sub-account ID"
+															"description": "(Required) Account ID"
 														}
 													]
 												}
@@ -62434,21 +62434,21 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts/:id",
+													"raw": "{{baseUrl}}/api/billing/accounts/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts",
+														"accounts",
 														":id"
 													],
 													"variable": [
 														{
 															"key": "id",
 															"value": "sint consequat",
-															"description": "(Required) Sub-account ID"
+															"description": "(Required) Account ID"
 														}
 													]
 												}
@@ -62477,21 +62477,21 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts/:id",
+													"raw": "{{baseUrl}}/api/billing/accounts/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts",
+														"accounts",
 														":id"
 													],
 													"variable": [
 														{
 															"key": "id",
 															"value": "sint consequat",
-															"description": "(Required) Sub-account ID"
+															"description": "(Required) Account ID"
 														}
 													]
 												}
@@ -62520,21 +62520,21 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/billing/sub-accounts/:id",
+													"raw": "{{baseUrl}}/api/billing/accounts/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"api",
 														"billing",
-														"sub-accounts",
+														"accounts",
 														":id"
 													],
 													"variable": [
 														{
 															"key": "id",
 															"value": "sint consequat",
-															"description": "(Required) Sub-account ID"
+															"description": "(Required) Account ID"
 														}
 													]
 												}

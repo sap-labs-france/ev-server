@@ -1,20 +1,16 @@
 /* eslint-disable max-len */
-import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus, BillingTransfer, BillingTransferStatus } from '../../src/types/Billing';
-import { BillingPlatformFeeStrategyFactory, BillingTransferFactory } from '../factories/BillingFactory';
+import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
 
 import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
-import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import BillingTestHelper from './BillingTestHelper';
 import CentralServerService from './client/CentralServerService';
-import CompanyFactory from '../factories/CompanyFactory';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
-import SiteFactory from '../factories/SiteFactory';
 import { StatusCodes } from 'http-status-codes';
 import StripeTestHelper from './StripeTestHelper';
 import TestConstants from './client/utils/TestConstants';
@@ -38,7 +34,7 @@ const isBillingProperlyConfigured = stripeTestHelper.isBillingProperlyConfigured
 
 describeif(isBillingProperlyConfigured)('Billing', () => {
   // Do not run the tests when the settings are not properly set
-  jest.setTimeout(1000000);
+  jest.setTimeout(60000);
 
   beforeAll(async () => {
     global.database = new MongoDBStorage(config.get('storage'));
@@ -89,12 +85,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         await stripeTestHelper.forceBillingSettings(immediateBilling);
       });
 
-      describe('Sub-accounts', () => {
-        it('Should create a sub-account with its associated activation link', async () => {
-          const subAccount = await stripeTestHelper.createSubAccount();
-          expect(subAccount.accountExternalID).to.exist;
-          expect(subAccount.activationLink).to.include('https://connect.stripe.com/setup/s/');
-          expect(subAccount.status).to.be.eq(BillingAccountStatus.IDLE);
+      xdescribe('Sub-accounts', () => {
+        it('Should create a account with its associated activation link', async () => {
+          const billingAccount = await stripeTestHelper.createConnectedAccount();
+          expect(billingAccount.accountExternalID).to.exist;
+          expect(billingAccount.activationLink).to.include('https://connect.stripe.com/setup/s/');
         });
       });
 

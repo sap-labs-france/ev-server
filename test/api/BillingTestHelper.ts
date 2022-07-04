@@ -57,7 +57,7 @@ export default class BillingTestHelper {
   // Billing Implementation - STRIPE?
   public billingImpl: StripeBillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
-  public subAccount: BillingAccount;
+  public billingAccount: BillingAccount;
 
   public async initialize(tenant: string) : Promise<void> {
     this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenant);
@@ -811,26 +811,31 @@ export default class BillingTestHelper {
     assert(response?.data?.entityName === siteArea.name, 'The Site Area data should be retrieved as well');
   }
 
-  public async createActivatedSubAccount(): Promise<BillingAccount> {
-    const response = await this.userService.billingApi.createSubAccount({
+  public async createActivatedAccount(): Promise<BillingAccount> {
+    let response = await this.userService.billingApi.createBillingAccount({
       businessOwnerID: this.userContext.id
     });
-    expect(response.status).to.be.eq(StatusCodes.CREATED);
+    expect(response.status).to.be.eq(StatusCodes.OK);
     // Send the activation link
-    const subAccountOnboardResponse = await this.userService.billingApi.sendSubAccountOnboarding(response.data.id);
-    expect(subAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
-    expect(subAccountOnboardResponse.data.status).to.be.eq(BillingAccountStatus.PENDING);
-    // Activate the sub account
-    const activationResponse = await this.userService.billingApi.activateSubAccount({ accountID: response.data.id, TenantID: this.tenantContext.getTenant().id });
+    const billingAccountOnboardResponse = await this.userService.billingApi.onboardBillingAccount(response.data.id);
+    expect(billingAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
+    // expect(billingAccountOnboardResponse.data.status).to.be.eq(BillingAccountStatus.PENDING);
+    // Activate the account
+    const activationResponse = await this.userService.billingApi.activateBillingAccount({ accountID: response.data.id, TenantID: this.tenantContext.getTenant().id });
     expect(activationResponse.status).to.be.eq(StatusCodes.OK);
-    expect(activationResponse.data.status).to.be.eq(BillingAccountStatus.ACTIVE);
-    return activationResponse.data;
+    const accountID = activationResponse.data?.id ;
+    response = await this.userService.billingApi.readBillingAccount(accountID);
+    assert(response.status === StatusCodes.OK, 'Response status should be 200');
+    const billingAccount = response.data as BillingAccount ;
+    expect(billingAccount.status).to.be.eq(BillingAccountStatus.ACTIVE);
+    return billingAccount;
   }
 
-  public async getSubAccount(): Promise<BillingAccount> {
-    if (!this.subAccount) {
-      this.subAccount = await this.createActivatedSubAccount();
+  public async getActivatedAccount(): Promise<BillingAccount> {
+    if (!this.billingAccount) {
+      this.billingAccount = await this.createActivatedAccount();
+      // this.billingAccount = await this.userService.billingApi.readBillingAccount(accountID) as BillingAccount;
     }
-    return this.subAccount;
+    return this.billingAccount;
   }
 }
