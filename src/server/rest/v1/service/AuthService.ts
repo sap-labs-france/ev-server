@@ -6,7 +6,6 @@ import User, { UserRole, UserStatus } from '../../../../types/User';
 import AppError from '../../../../exception/AppError';
 import AuthValidatorRest from '../validator/AuthValidatorRest';
 import Authorizations from '../../../../authorization/Authorizations';
-import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { Details } from 'express-useragent';
@@ -438,29 +437,6 @@ export default class AuthService {
     }
     // Save User Status
     await UserStorage.saveUserStatus(req.tenant, user.id, userStatus);
-    // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    if (billingImpl) {
-      try {
-        await billingImpl.synchronizeUser(user);
-        await Logging.logInfo({
-          tenantID: req.tenant.id,
-          module: MODULE_NAME, method: 'handleVerifyEmail',
-          action: action,
-          user: user,
-          message: 'User has been created successfully in the billing system'
-        });
-      } catch (error) {
-        await Logging.logError({
-          tenantID: req.tenant.id,
-          module: MODULE_NAME, method: 'handleVerifyEmail',
-          action: action,
-          user: user,
-          message: 'User cannot be created in the billing system',
-          detailedMessages: { error: error.stack }
-        });
-      }
-    }
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(req.tenant, user.id,
       { verificationToken: null, verifiedAt: new Date() });
