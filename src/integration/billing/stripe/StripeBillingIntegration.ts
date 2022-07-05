@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
@@ -1746,14 +1746,25 @@ export default class StripeBillingIntegration extends BillingIntegration {
     try {
       // Create invoice items
       await Promise.all(billingTransfer.sessions.map(async (session) => {
+        // Build the description with the business owner locale
+        const description = this.buildTransferLineItemDescription(user, session);
         // A single tax rate per session
         const tax_rates = (session.accountSessionFee.taxExternalID) ? [ session.accountSessionFee.taxExternalID ] : [];
-        return this.createStripeInvoiceItem({
-          amount: session.accountSessionFee.feeAmount,
+        // Prepare item parameters
+        const parameters: Stripe.InvoiceItemCreateParams = {
           customer: user.billingData.customerID,
           currency: billingTransfer.currency,
-          tax_rates
-        }, this.buildIdemPotencyKey(session.transactionID, 'invoice', 'platformFee'));
+          tax_rates,
+          description,
+          amount: session.accountSessionFee.feeAmount,
+          metadata: {
+            userID: user.id,
+            transferID: billingTransfer.id,
+            tenantID: this.tenant.id,
+          }
+        };
+        // Create the invoice item
+        return this.createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(session.transactionID, 'invoice', 'platformFee'));
       }));
     } catch (e) {
       throw new BackendError({
@@ -1822,4 +1833,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
     return invoice;
   }
+
+  private buildTransferLineItemDescription(user: User, session: BillingTransferSession) {
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    const sessionID = session.transactionID;
+    const formattedAmount = i18nManager.formatNumber(session.amount);
+    const description = i18nManager.translate('billing.transfer-itemDescription', {
+      sessionID,
+      amount: formattedAmount
+    });
+    return description;
+  }
+
 }

@@ -7,7 +7,7 @@ export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtr
   .attr('totalAmount', () => faker.datatype.number())
   .attr('accountID', () => faker.datatype.hexaDecimal(24).substring(2).toLowerCase())
   .attr('status', () => faker.random.arrayElement([BillingTransferStatus.DRAFT, BillingTransferStatus.PENDING, BillingTransferStatus.FINALIZED, BillingTransferStatus.TRANSFERRED]))
-  .attr('transferAmount', () => faker.datatype.number())
+  .attr('transferAmount', null)
   .attr('transferExternalID', () => null)
   .attr('platformFeeData', () => ({
     feeAmount: 0,
