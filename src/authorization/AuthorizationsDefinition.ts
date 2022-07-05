@@ -481,7 +481,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.BILLING_ACCOUNT,
         action: [Action.LIST, Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.BILLING_ONBOARD_ACCOUNT],
         attributes: [
-          'id', 'accountExternalID', 'businessOwnerID', 'user.id', 'user.firstName', 'user.name', 'user.email', 'status'
+          'id', 'accountExternalID', 'businessOwnerID', 'businessOwner.id', 'businessOwner.firstName', 'businessOwner.name', 'businessOwner.email', 'status'
         ]
       },
       {

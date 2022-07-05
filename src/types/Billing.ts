@@ -164,8 +164,8 @@ export interface BillingPlatformFeeStrategy {
 
 export interface BillingAccount extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
   id?: string;
-  businessOwnerID?: string;
-  user?: User;
+  businessOwnerID: string;
+  businessOwner?: User;
   status: BillingAccountStatus;
   activationLink?: string;
   accountExternalID: string;

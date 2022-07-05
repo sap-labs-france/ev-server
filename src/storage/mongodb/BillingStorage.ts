@@ -307,7 +307,7 @@ export default class BillingStorage {
     });
     // Add Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'businessOwnerID',
+      tenantID: tenant.id, aggregation: aggregation, asField: 'businessOwner', localField: 'businessOwnerID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Add Last Changed / Created
