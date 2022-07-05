@@ -1,10 +1,11 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { BillingAccountStatus, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTransferStatus } from '../../../../types/Billing';
-import { BillingInvoiceDataResult, BillingPaymentMethodDataResult } from '../../../../types/DataResult';
+import { BillingAccount, BillingAccountStatus, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTransferStatus } from '../../../../types/Billing';
+import { BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult } from '../../../../types/DataResult';
 import { NextFunction, Request, Response } from 'express';
 
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
+import { BillingAccountCreationLinkNotification } from '../../../../types/UserNotifications';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import BillingSecurity from './security/BillingSecurity';
 import { BillingSettings } from '../../../../types/Setting';
@@ -20,7 +21,6 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
@@ -175,7 +175,12 @@ export default class BillingService {
     }
     // Get taxes
     const taxes = await billingImpl.getTaxes();
-    res.json(taxes);
+    const dataResult: BillingTaxDataResult = {
+      count: taxes.length,
+      result: taxes,
+    };
+    AuthorizationService.addTaxesAuthorizations(req.tenant, req.user, dataResult, authorizations);
+    res.json(dataResult);
     next();
   }
 
@@ -471,20 +476,20 @@ export default class BillingService {
     next();
   }
 
-  public static async handleCreateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.CREATE, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleCreateSubAccount');
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingCreateSubAccountReq(req.body);
+      Action.CREATE, Entity.BILLING_ACCOUNT, MODULE_NAME, 'handleCreateAccount');
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingCreateAccountReq(req.body);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingSubAccountAuthorizations(req.tenant, req.user, {}, Action.CREATE, filteredRequest);
+    await AuthorizationService.checkAndGetBillingAccountAuthorizations(req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     // Get the billing impl
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleCreateSubAccount',
+        module: MODULE_NAME, method: 'handleCreateAccount',
         action: action,
         user: req.user
       });
@@ -492,54 +497,65 @@ export default class BillingService {
     // Get the user
     const user = await UserStorage.getUser(req.tenant, filteredRequest.businessOwnerID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.businessOwnerID}' does not exist`,
-      MODULE_NAME, 'handleCreateSubAccount', req.user);
-    // Create the sub account
-    const subAccount = await billingImpl.createSubAccount();
-    subAccount.businessOwnerID = user.id;
-    // Save the sub account
-    subAccount.id = await BillingStorage.saveSubAccount(req.tenant, subAccount);
-    res.status(StatusCodes.CREATED).json(subAccount);
+      MODULE_NAME, 'handleCreateAccount', req.user);
+    // Create a initial Account data - stripe creation is postponed
+    const billingAccount: BillingAccount = {
+      businessOwnerID: user.id,
+      status: BillingAccountStatus.IDLE,
+      accountExternalID: null
+    };
+    // Save the account
+    billingAccount.id = await BillingStorage.saveAccount(req.tenant, billingAccount);
+    res.json(Object.assign({ id: billingAccount.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
-  public static async handleActivateSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingActivateSubAccountReq({ ...req.params, ...req.body });
-    const subAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
-    // Check if the sub account onboarding has been sent
-    if (subAccount.status !== BillingAccountStatus.PENDING) {
+  public static async handleActivateAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleActivateAccount', action: action,
+      });
+    }
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingActivateAccountReq({ ...req.params, ...req.body });
+    const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, billingAccount, `Account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleActivateAccount', req.user);
+    // Check if the account onboarding has been sent
+    if (billingAccount.status !== BillingAccountStatus.PENDING) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Sub-account onboarding aborted - current status should be PENDING',
-        module: MODULE_NAME, method: 'handleActivateSubAccount',
+        message: 'Account onboarding aborted - current status should be PENDING',
+        module: MODULE_NAME, method: 'handleActivateAccount',
         action: action,
         user: req.user
       });
     }
-    // Get the sub account owner
-    const user = await UserStorage.getUser(req.tenant, subAccount.businessOwnerID);
-    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleActivateSubAccount', req.user);
-    // Activate and save the sub account
-    subAccount.status = BillingAccountStatus.ACTIVE;
-    await BillingStorage.saveSubAccount(req.tenant, subAccount);
+    // Get the account owner
+    const user = await UserStorage.getUser(req.tenant, billingAccount.businessOwnerID);
+    UtilsService.assertObjectExists(action, user, `User ID '${billingAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleActivateAccount', req.user);
+    // Activate and save the account
+    billingAccount.status = BillingAccountStatus.ACTIVE;
+    await BillingStorage.saveAccount(req.tenant, billingAccount);
     // Notify the user
-    void NotificationHandler.sendBillingSubAccountActivationNotification(
+    void NotificationHandler.sendBillingAccountActivationNotification(
       req.tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
-    res.status(StatusCodes.OK).json(subAccount);
+    res.json(Object.assign({ id: billingAccount.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
-  public static async handleBillingGetSubAccounts(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleBillingGetAccounts(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountsGetReq(req.query);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingAccountsGetReq(req.query);
     // Check auth
-    const authorizations = await AuthorizationService.checkAndGetBillingSubAccountsAuthorizations(req.tenant, req.user, filteredRequest /* , false */);
+    const authorizations = await AuthorizationService.checkAndGetBillingAccountsAuthorizations(req.tenant, req.user, filteredRequest /* , false */);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-    // Get the billing sub accounts
-    const subAccounts = await BillingStorage.getSubAccounts(req.tenant, {
+    // Get the billing accounts
+    const billingAccounts = await BillingStorage.getAccounts(req.tenant, {
       IDs: filteredRequest.ID ? filteredRequest.ID.split('|') : null,
       userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
       search: filteredRequest.Search ? filteredRequest.Search : null,
@@ -552,52 +568,71 @@ export default class BillingService {
     },
     authorizations.projectFields
     );
-    await AuthorizationService.addSubAccountsAuthorizations(req.tenant, req.user, subAccounts, authorizations);
-    res.json(subAccounts);
+    await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
+    res.json(billingAccounts);
     next();
   }
 
-  public static async handleBillingGetSubAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleBillingGetAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountGetReq(req.params);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingAccountGetReq(req.params);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.READ, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleBillingGetSubAccount');
-    // Get the billing sub accounts
-    const subAccount = await UtilsService.checkAndGetBillingSubAccountAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
-    res.json(subAccount);
+      Action.READ, Entity.BILLING_ACCOUNT, MODULE_NAME, 'handleBillingGetAccount');
+    // Get the billing accounts
+    const billingAccount = await UtilsService.checkAndGetBillingAccountAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
+    res.json(billingAccount);
     next();
   }
 
   public static async handleOnboardAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.BILLING_ONBOARD_SUB_ACCOUNT, Entity.BILLING_SUB_ACCOUNT, MODULE_NAME, 'handleOnboardAccount');
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingSubAccountGetReq(req.params);
+      Action.BILLING_ONBOARD_ACCOUNT, Entity.BILLING_ACCOUNT, MODULE_NAME, 'handleOnboardAccount');
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingAccountGetReq(req.params);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingSubAccountAuthorizations(req.tenant, req.user, filteredRequest, Action.BILLING_ONBOARD_SUB_ACCOUNT);
-    const subAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, subAccount, `Sub account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
-    // Check if the sub account onboarding is already sent
-    if (subAccount.status !== BillingAccountStatus.IDLE) {
+    await AuthorizationService.checkAndGetBillingAccountAuthorizations(req.tenant, req.user, filteredRequest, Action.BILLING_ONBOARD_ACCOUNT);
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Sub-account onboarding aborted - current status should be IDLE',
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleCreateAccount',
+        action: action,
+        user: req.user
+      });
+    }
+    // Fetch the current account data
+    let billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, billingAccount, `Account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
+    // Check if the account onboarding is already sent
+    if (billingAccount.status !== BillingAccountStatus.IDLE) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Account onboarding aborted - current status should be IDLE',
         module: MODULE_NAME, method: 'handleOnboardAccount',
         action: action,
         user: req.user
       });
     }
-    // Get the sub account owner
-    const user = await UserStorage.getUser(req.tenant, subAccount.businessOwnerID);
-    UtilsService.assertObjectExists(action, user, `User ID '${subAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
-    // Activate and save the sub account
-    subAccount.status = BillingAccountStatus.PENDING;
-    await BillingStorage.saveSubAccount(req.tenant, subAccount);
+    // Get the account owner
+    const user = await UserStorage.getUser(req.tenant, billingAccount.businessOwnerID);
+    UtilsService.assertObjectExists(action, user, `User ID '${billingAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
+    // Trigger the creation of the connected account
+    billingAccount = { ...billingAccount, ...await billingImpl.createConnectedAccount() };
+    // Activate and save the account
+    billingAccount.status = BillingAccountStatus.PENDING;
+    await BillingStorage.saveAccount(req.tenant, billingAccount);
     // Notify the user
-    void NotificationHandler.sendBillingSubAccountCreationLink(
-      req.tenant, Utils.generateUUID(), user, { onboardingLink: subAccount.activationLink, evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
-    res.status(StatusCodes.OK).json(subAccount);
+    const notificationData : BillingAccountCreationLinkNotification = {
+      onboardingLink: billingAccount.activationLink,
+      evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain),
+      user
+    };
+    // Send the notification
+    void NotificationHandler.sendBillingAccountCreationLink(req.tenant, Utils.generateUUID(), user, notificationData);
+    res.json(Object.assign({ id: billingAccount.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -610,7 +645,7 @@ export default class BillingService {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-    // Get the billing sub accounts
+    // Get the billing accounts
     const transfers = await BillingStorage.getTransfers(req.tenant, {
       IDs: filteredRequest.ID ? filteredRequest.ID.split('|') : null,
       accountIDs: filteredRequest.AccountID ? filteredRequest.AccountID.split('|') : null,
@@ -637,6 +672,18 @@ export default class BillingService {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransferFinalizeReq(req.params);
     // Check authorization
     await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.BILLING_FINALIZE_TRANSFER);
+    // Get the billing implementation
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleFinalizeTransfer',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get the transfer
     const transfer = await BillingStorage.getTransferByID(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, transfer, `Transfer ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleFinalizeTransfer', req.user);
     // Check if the transfer is in draft status
@@ -649,9 +696,65 @@ export default class BillingService {
         user: req.user
       });
     }
+    // Get the targeted account
+    const billingAccount = await BillingStorage.getAccountByID(req.tenant, transfer.accountID);
+    UtilsService.assertObjectExists(action, billingAccount, `Account ID '${transfer.accountID}' does not exist`, MODULE_NAME, 'handleSendTransferInvoice', req.user);
+    // Get the account owner
+    const user = await UserStorage.getUser(req.tenant, billingAccount.businessOwnerID);
+    UtilsService.assertObjectExists(action, user, `User ID '${transfer.accountID}' does not exist`, MODULE_NAME, 'handleSendTransferInvoice', req.user);
+    // Synchronize owner if needed
+    if (!user.billingData || !user.billingData.customerID) {
+      user.billingData = (await billingImpl.forceSynchronizeUser(user)).billingData;
+      await UserStorage.saveUser(req.tenant, user);
+    }
+    // Generate the invoice with a fee per session
+    const invoice = await billingImpl.billPlatformFee(transfer, user);
+    // Let's keep track of the invoice data
+    transfer.invoice = invoice;
+    // We now know how much we can transfer to the sub-account!
+    const amountIncludingTaxes = invoice.totalAmount;
+    transfer.transferAmount = Utils.createDecimal(transfer.totalAmount).minus(amountIncludingTaxes).toNumber();
+    // Update the transfer status
     transfer.status = BillingTransferStatus.FINALIZED;
     await BillingStorage.saveTransfer(req.tenant, transfer);
-    // TODO Generate an invoice for the transfer
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleSendTransferInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+      Action.BILLING_SEND_TRANSFER, Entity.BILLING_TRANSFER, MODULE_NAME, 'handleSendTransferInvoice');
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransferSendReq(req.params);
+    // Check authorization
+    await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.BILLING_SEND_TRANSFER);
+    // Get the billing implementation
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleSendTransferInvoice',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get the transfer
+    const transfer = await BillingStorage.getTransferByID(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, transfer, `Transfer ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleSendTransferInvoice', req.user);
+    // Check if the transfer is in draft status
+    if (transfer.status !== BillingTransferStatus.FINALIZED) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Transfer finalization aborted - current status should be FINALIZED',
+        module: MODULE_NAME, method: 'handleSendTransferInvoice',
+        action: action,
+        user: req.user
+      });
+    }
+    transfer.status = BillingTransferStatus.TRANSFERRED;
+    await BillingStorage.saveTransfer(req.tenant, transfer);
+    // TODO - send an email notification with the invoice
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

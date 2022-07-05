@@ -28,7 +28,7 @@ export default class UtilRouter {
     this.buildRouteChargingStationDownloadFirmware();
     this.buildRouteGetSiteImage();
     this.buildRouteGetTenantLogo();
-    this.buildRouteBillingActivateSubAccount();
+    this.buildRouteBillingActivateAccount();
     return this.router;
   }
 
@@ -87,10 +87,10 @@ export default class UtilRouter {
     });
   }
 
-  private buildRouteBillingActivateSubAccount(): void {
-    this.router.patch(`/${RESTServerRoute.REST_BILLING_SUB_ACCOUNT_ACTIVATE}`, (req: Request, res: Response, next: NextFunction) => {
+  private buildRouteBillingActivateAccount(): void {
+    this.router.patch(`/${RESTServerRoute.REST_BILLING_ACCOUNT_ACTIVATE}`, (req: Request, res: Response, next: NextFunction) => {
       req.params.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(BillingService.handleActivateSubAccount.bind(this), ServerAction.BILLING_SUB_ACCOUNT_ACTIVATE, req, res, next);
+      void RouterUtils.handleRestServerAction(BillingService.handleActivateAccount.bind(this), ServerAction.BILLING_ACCOUNT_ACTIVATE, req, res, next);
     });
   }
 }

@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingSessionAccountData, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
@@ -287,7 +287,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       metadata: {
         tenantID: this.tenant.id,
         userID
-      }
+      },
     }, {
       // idempotency_key: idempotencyKey?.toString(),
       idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property as been renamed!!!
@@ -1008,7 +1008,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           module: MODULE_NAME, method: 'billTransaction',
           message: `Billing process is about to start - transaction ID: ${transaction.id}`,
         });
-        // Retrieve billing sub-account settings from the company or the site
+        // Retrieve billing account settings from the company or the site
         const accountData = await this.retrieveAccountData(transaction);
         // ACHTUNG: a single transaction may generate several lines in the invoice - one line per paring dimension
         const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction, accountData);
@@ -1702,28 +1702,28 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }));
   }
 
-  public async createSubAccount(): Promise<BillingAccount> {
+  public async createConnectedAccount(): Promise<Partial<BillingAccount>> {
     await this.checkConnection();
-    let subAccount: Stripe.Account;
-    // Create the sub-account
+    let billingAccount: Stripe.Account;
+    // Create the account
     try {
-      subAccount = await this.stripe.accounts.create({
+      billingAccount = await this.stripe.accounts.create({
         type: 'standard'
       });
     } catch (e) {
       throw new BackendError({
-        message: 'Unexpected situation - unable to create sub-account',
+        message: 'Unexpected situation - unable to create account',
         detailedMessages: { e },
-        module: MODULE_NAME, action: ServerAction.BILLING_SUB_ACCOUNT_CREATE,
-        method: 'createSubAccount',
+        module: MODULE_NAME, action: ServerAction.BILLING_ACCOUNT_CREATE,
+        method: 'createConnectedAccount',
       });
     }
-    // Generate the link to activate the sub-account
+    // Generate the link to activate the account
     let activationLink: Stripe.AccountLink;
     try {
       activationLink = await this.stripe.accountLinks.create({
-        account: subAccount.id,
-        return_url: Utils.buildEvseBillingSubAccountActivationURL(this.tenant, subAccount.id),
+        account: billingAccount.id,
+        return_url: Utils.buildEvseBillingAccountActivationURL(this.tenant, billingAccount.id),
         refresh_url: Utils.buildEvseURL(),
         type: 'account_onboarding',
       });
@@ -1731,14 +1731,95 @@ export default class StripeBillingIntegration extends BillingIntegration {
       throw new BackendError({
         message: 'Unexpected situation - unable to create activation link',
         detailedMessages: { e },
-        module: MODULE_NAME, action: ServerAction.BILLING_SUB_ACCOUNT_CREATE,
-        method: 'createSubAccount',
+        module: MODULE_NAME, action: ServerAction.BILLING_ACCOUNT_CREATE,
+        method: 'createConnectedAccount',
       });
     }
     return {
-      accountExternalID: subAccount.id,
-      activationLink: activationLink.url,
-      status: BillingAccountStatus.IDLE
+      accountExternalID: billingAccount.id,
+      activationLink: activationLink.url
     };
+  }
+
+  public async billPlatformFee(billingTransfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice> {
+    await this.checkConnection();
+    try {
+      // Create invoice items
+      await Promise.all(billingTransfer.sessions.map(async (session) => {
+        // A single tax rate per session
+        const tax_rates = (session.accountSessionFee.taxExternalID) ? [ session.accountSessionFee.taxExternalID ] : [];
+        return this.createStripeInvoiceItem({
+          amount: session.accountSessionFee.feeAmount,
+          customer: user.billingData.customerID,
+          currency: billingTransfer.currency,
+          tax_rates
+        }, this.buildIdemPotencyKey(session.transactionID, 'invoice', 'platformFee'));
+      }));
+    } catch (e) {
+      throw new BackendError({
+        message: 'Unexpected situation - unable to create invoice item',
+        detailedMessages: { e },
+        module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
+        method: 'billPlatformFee',
+      });
+    }
+    // Create invoice
+    let stripeInvoice: Stripe.Invoice;
+    try {
+      // -------------------------------------------------------------------------------------------
+      // TODO - Assuming the business owner is also an EV driver, we have here a potential conflict
+      // -------------------------------------------------------------------------------------------
+      // > Consider the STRIPE's new options: 'pending_invoice_items_behavior'
+      // -------------------------------------------------------------------------------------------
+      stripeInvoice = await this.createStripeInvoice(user.billingData.customerID, user.id, this.buildIdemPotencyKey(billingTransfer.id, 'invoice', 'platformFee'));
+    } catch (e) {
+      throw new BackendError({
+        message: 'Unexpected situation - unable to create transfer invoice',
+        detailedMessages: { e },
+        module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
+        method: 'billPlatformFee',
+      });
+    }
+    if (!stripeInvoice) {
+      throw new BackendError({
+        message: 'Unexpected situation - platform invoice is not set',
+        module: MODULE_NAME, action: ServerAction.BILLING,
+        method: 'convertToBillingPlatformInvoice',
+      });
+    }
+    try {
+      stripeInvoice = await this.stripe.invoices.pay(stripeInvoice.id, {
+        // Do not charge the customer
+        paid_out_of_band: true
+      });
+    } catch (e) {
+      throw new BackendError({
+        message: 'Unexpected situation - unable to flag the invoice as paid out of band',
+        detailedMessages: { e },
+        module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
+        method: 'billPlatformFee',
+      });
+    }
+    const invoice = this.convertToBillingPlatformInvoice(stripeInvoice);
+    return invoice;
+  }
+
+  public convertToBillingPlatformInvoice(stripeInvoice: Stripe.Invoice): BillingPlatformInvoice {
+    // eslint-disable-next-line id-blacklist, max-len
+    const { id: invoiceID, customer, number: invoiceNumber, livemode: liveMode, amount_due: amount, status, currency: invoiceCurrency, metadata } = stripeInvoice;
+    const customerID = customer as string;
+    const currency = invoiceCurrency?.toUpperCase();
+    const epoch = stripeInvoice.status_transitions?.finalized_at || stripeInvoice.created;
+    const createdOn = moment.unix(epoch).toDate(); // epoch to Date!
+    const userID = metadata.userID;
+    // Amount is in cents!
+    const totalAmount = amount * 100;
+    const invoice: BillingPlatformInvoice = {
+      invoiceID, invoiceNumber, liveMode, userID,
+      status: status as BillingInvoiceStatus,
+      amount, totalAmount, currency,
+      customerID, createdOn
+    };
+    return invoice;
   }
 }

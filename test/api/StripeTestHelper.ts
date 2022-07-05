@@ -452,7 +452,7 @@ export default class StripeTestHelper {
     }
   }
 
-  public async createSubAccount(): Promise<BillingAccount> {
-    return await this.billingImpl.createSubAccount();
+  public async createConnectedAccount(): Promise<Partial<BillingAccount>> {
+    return this.billingImpl.createConnectedAccount();
   }
 }

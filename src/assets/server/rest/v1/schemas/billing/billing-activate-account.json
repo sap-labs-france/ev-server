@@ -1,6 +1,6 @@
 {
-  "$id": "billing-transfer-finalize",
-  "title": "Finalize transfer Request",
+  "$id": "billing-activate-account",
+  "title": "Activate a Billing account Request",
   "type": "object",
   "properties": {
     "ID": {

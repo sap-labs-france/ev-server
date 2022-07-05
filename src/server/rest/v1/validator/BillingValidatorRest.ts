@@ -1,7 +1,6 @@
-import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingSubAccountActivateRequest, HttpBillingSubAccountCreateRequest, HttpBillingSubAccountGetRequest, HttpBillingSubAccountsGetRequest, HttpBillingTransferFinalizeRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingAccountActivateRequest, HttpBillingAccountCreateRequest, HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingTransferFinalizeRequest, HttpBillingTransferSendRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 
 import { BillingSettings } from '../../../../types/Setting';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
 import fs from 'fs';
@@ -15,12 +14,13 @@ export default class BillingValidatorRest extends SchemaValidator {
   private billingSetupUserPaymentMethod: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-setup-payment-method.json`, 'utf8'));
   private billingInvoicesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoices-get.json`, 'utf8'));
   private billingInvoiceGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/invoice-get.json`, 'utf8'));
-  private billingCreateSubAccount: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-create-sub-account.json`, 'utf8'));
-  private billingActivateSubAccount: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-activate-sub-account.json`, 'utf8'));
-  private billingSubAccountsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-sub-accounts-get.json`, 'utf8'));
-  private billingSubAccountGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-sub-account-get.json`, 'utf8'));
+  private billingCreateAccount: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-create-account.json`, 'utf8'));
+  private billingActivateAccount: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-activate-account.json`, 'utf8'));
+  private billingAccountsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-accounts-get.json`, 'utf8'));
+  private billingAccountGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-account-get.json`, 'utf8'));
   private billingTransfersGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-transfers-get.json`, 'utf8'));
   private billingTransferFinalize: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-transfer-finalize.json`, 'utf8'));
+  private billingTransferSend: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-transfer-send.json`, 'utf8'));
 
   private constructor() {
     super('BillingValidatorRest');
@@ -57,20 +57,20 @@ export default class BillingValidatorRest extends SchemaValidator {
     return this.validate(this.billingInvoiceGet, data);
   }
 
-  public validateBillingCreateSubAccountReq(data: Record<string, unknown>): HttpBillingSubAccountCreateRequest {
-    return this.validate(this.billingCreateSubAccount, data);
+  public validateBillingCreateAccountReq(data: Record<string, unknown>): HttpBillingAccountCreateRequest {
+    return this.validate(this.billingCreateAccount, data);
   }
 
-  public validateBillingActivateSubAccountReq(data: Record<string, unknown>): HttpBillingSubAccountActivateRequest {
-    return this.validate(this.billingActivateSubAccount, data);
+  public validateBillingActivateAccountReq(data: Record<string, unknown>): HttpBillingAccountActivateRequest {
+    return this.validate(this.billingActivateAccount, data);
   }
 
-  public validateBillingSubAccountsGetReq(data: Record<string, unknown>): HttpBillingSubAccountsGetRequest {
-    return this.validate(this.billingSubAccountsGet, data);
+  public validateBillingAccountsGetReq(data: Record<string, unknown>): HttpBillingAccountsGetRequest {
+    return this.validate(this.billingAccountsGet, data);
   }
 
-  public validateBillingSubAccountGetReq(data: Record<string, unknown>): HttpBillingSubAccountGetRequest {
-    return this.validate(this.billingSubAccountGet, data);
+  public validateBillingAccountGetReq(data: Record<string, unknown>): HttpBillingAccountGetRequest {
+    return this.validate(this.billingAccountGet, data);
   }
 
   public validateBillingTransfersGetReq(data: Record<string, unknown>): HttpBillingTransfersGetRequest {
@@ -79,5 +79,9 @@ export default class BillingValidatorRest extends SchemaValidator {
 
   public validateBillingTransferFinalizeReq(data: Record<string, unknown>): HttpBillingTransferFinalizeRequest {
     return this.validate(this.billingTransferFinalize, data);
+  }
+
+  public validateBillingTransferSendReq(data: Record<string, unknown>): HttpBillingTransferSendRequest {
+    return this.validate(this.billingTransferSend, data);
   }
 }

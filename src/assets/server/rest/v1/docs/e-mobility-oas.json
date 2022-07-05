@@ -13649,29 +13649,37 @@
         ],
         "responses": {
           "200": {
-            "description": "Return billing taxes",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "description": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "displayName": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "percentage": {
-                        "type": "number",
-                        "example": "20"
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "txr_1LBZyWF5e1VSb1v6Zc1rbkV9"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "VTA 20% (exclusive)"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "example": "VAT"
+                          },
+                          "percentage": {
+                            "type": "number",
+                            "example": "20"
+                          }
+                        }
                       }
                     }
                   }
@@ -13848,14 +13856,14 @@
         }
       }
     },
-    "/api/billing/sub-accounts": {
+    "/api/billing/accounts": {
       "get": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Get Sub-Accounts",
+        "description": "Get Accounts",
         "parameters": [
           {
             "$ref": "#/components/parameters/UserIDs"
@@ -13893,7 +13901,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Return sub-accounts",
+            "description": "Return accounts",
             "content": {
               "application/json": {
                 "schema": {
@@ -13906,7 +13914,7 @@
                     "result": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/SubAccount"
+                        "$ref": "#/components/schemas/Account"
                       }
                     }
                   }
@@ -13931,7 +13939,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Create a Billing sub-account",
+        "description": "Create a Billing account",
         "tags": [
           "Billing"
         ],
@@ -13953,7 +13961,7 @@
         },
         "responses": {
           "201": {
-            "description": "Pending sub-account created",
+            "description": "Pending account created",
             "content": {
               "application/json": {
                 "example": {
@@ -13981,19 +13989,19 @@
         }
       }
     },
-    "/api/billing/sub-accounts/{id}": {
+    "/api/billing/accounts/{id}": {
       "get": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Get Sub-Accounts",
+        "description": "Get Accounts",
         "parameters": [
           {
             "in": "path",
             "name": "id",
-            "description": "Sub-account ID",
+            "description": "Account ID",
             "schema": {
               "type": "string"
             },
@@ -14005,11 +14013,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Return sub-account",
+            "description": "Return account",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubAccount"
+                  "$ref": "#/components/schemas/Account"
                 }
               }
             }
@@ -14141,6 +14149,47 @@
         "responses": {
           "200": {
             "description": "Transfer finalized"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/billing/transfers/{id}/send": {
+      "patch": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Triggers the transfer of funds to the account",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Transfer ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transfer sent"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -16642,7 +16691,7 @@
           }
         }
       },
-      "SubAccount": {
+      "Account": {
         "type": "object",
         "properties": {
           "accountID": {
@@ -16699,8 +16748,22 @@
               "roundedAmount": {
                 "type": "number"
               },
-              "platformFeeStrategy": {
-                "type": "object"
+              "accountSessionFee": {
+                "type": "object",
+                "properties": {
+                  "flatFeePerSession": {
+                    "type": "number"
+                  },
+                  "percentage": {
+                    "type": "number"
+                  },
+                  "feeAmount": {
+                    "type": "number"
+                  },
+                  "externalTaxID": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
@@ -16713,17 +16776,11 @@
           "platformFeeData": {
             "type": "object",
             "properties": {
-              "taxExternalID": {
-                "type": "string"
-              },
               "feeAmount": {
                 "type": "number"
               },
               "feeTaxAmount": {
                 "type": "number"
-              },
-              "invoiceExternalID": {
-                "type": "string"
               }
             }
           },

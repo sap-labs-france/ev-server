@@ -192,7 +192,6 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorID: filteredRequest.ConnectorID,
-        withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: filteredRequest.WithSiteArea,
         siteIDs: filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null,
         ...authorizations.filters
@@ -659,7 +658,7 @@ export default class ChargingStationService {
   public static async handleOcpiAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.UPDATE, Entity.CHARGING_STATION, MODULE_NAME, 'handleOcpiAction');
+      Action.READ, Entity.CHARGING_STATION, MODULE_NAME, 'handleOcpiAction');
     // Check and get dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, req.body.chargingStationID, Action.READ, action, null, { withSiteArea: true });

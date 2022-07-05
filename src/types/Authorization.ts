@@ -79,7 +79,7 @@ export enum Entity {
   PRICING_DEFINITION = 'PricingDefinition',
   BILLING = 'Billing',
   BILLING_PLATFORM = 'BillingPlatform',
-  BILLING_SUB_ACCOUNT = 'BillingSubAccount',
+  BILLING_ACCOUNT = 'BillingAccount',
   BILLING_TRANSFER = 'BillingTransfer',
   SETTING = 'Setting',
   ASYNC_TASK = 'AsyncTask',
@@ -139,9 +139,10 @@ export enum Action {
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
-  BILLING_ACTIVATE_SUB_ACCOUNT = 'BillingSubAccountActivate',
-  BILLING_ONBOARD_SUB_ACCOUNT = 'BillingSubAccountOnboard',
+  BILLING_ACTIVATE_ACCOUNT = 'BillingAccountActivate',
+  BILLING_ONBOARD_ACCOUNT = 'BillingAccountOnboard',
   BILLING_FINALIZE_TRANSFER = 'BillingFinalizeTransfer',
+  BILLING_SEND_TRANSFER = 'BillingSendTransfer',
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
@@ -241,6 +242,8 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
   canMaintainPricingDefinitions?: boolean;
 }
 
+export type BillingTaxAuthorizationActions = AuthorizationActions;
+
 export interface BillingInvoiceAuthorizationActions extends AuthorizationActions {
   canDownload?: boolean;
 }
@@ -299,7 +302,6 @@ export enum DynamicAuthorizationFilterName {
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
   EXCLUDE_ACTION = 'ExcludeAction',
-  INCLUDE_ALL_EXTERNAL_SITES = 'IncludeAllExternalSites',
 }
 
 export enum DynamicAuthorizationAssertName {
@@ -317,7 +319,6 @@ export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
   EXCLUDE_ACTION = 'ExcludeAction',
-  INCLUDE_ALL_EXTERNAL_SITES = 'IncludeAllExternalSites',
 }
 
 export interface DynamicAuthorizationDataSourceData { }
@@ -337,7 +338,6 @@ export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAut
 export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
-
 export interface SiteAdminUsersDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   userIDs?: string[];
 }
