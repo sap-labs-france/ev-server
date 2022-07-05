@@ -1,14 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { Action } from '../../../../types/Authorization';
-import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import { ChargingStationTemplate } from '../../../../types/ChargingStation';
 import { ChargingStationTemplateDataResult } from '../../../../types/DataResult';
 import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
 import ChargingStationTemplateValidator from '../validator/ChargingStationTemplateValidatorRest';
 import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
@@ -22,18 +20,10 @@ export default class ChargingStationTemplateService {
     // Check dynamic auth
     await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
-    const foundTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(filteredRequest.id);
-    if (foundTemplate) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Charging station template with id '${filteredRequest.id}' already exists`,
-        module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
-        user: req.user,
-        action: action
-      });
-    }
     const newChargingStationTemplate: ChargingStationTemplate = {
-      id: filteredRequest.id,
+      id: null,
+      createdBy: { id: req.user.id },
+      createdOn: new Date(),
       template : {
         hash : Utils.hash(JSON.stringify(filteredRequest)),
         hashTechnical : Utils.hash(JSON.stringify(filteredRequest.template.technical)),
@@ -45,10 +35,9 @@ export default class ChargingStationTemplateService {
         ocppStandardParameters: filteredRequest.template.ocppStandardParameters,
         ocppVendorParameters: filteredRequest.template.ocppVendorParameters,
         extraFilters: filteredRequest.template.extraFilters,
-        technical: filteredRequest.template.technical
+        technical: filteredRequest.template.technical,
       }
     };
-
     newChargingStationTemplate.id = await ChargingStationTemplateStorage.saveChargingStationTemplate(newChargingStationTemplate);
     await Logging.logInfo({
       tenantID: req.tenant.id,
@@ -67,9 +56,14 @@ export default class ChargingStationTemplateService {
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetChargingStationTemplatesAuthorizations(
       req.tenant, req.user, Action.LIST, filteredRequest);
-    // Get the tokens
+    if (!authorizations.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
+    // Get the templates list
     const chargingStationTemplates = await ChargingStationTemplateStorage.getChargingStationTemplates(
       {
+        withUser: filteredRequest.WithUser,
         search: filteredRequest.Search,
         ...authorizations.filters
       },
@@ -95,7 +89,7 @@ export default class ChargingStationTemplateService {
   public static async handleGetChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateGetReq(req.body);
-    // Check and Get Registration Token
+    // Check and get templates
     const chargingStationTemplate = await UtilsService.checkAndGetChargingStationTemplateAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.READ, action, null, {}, true);
     res.json(chargingStationTemplate);
@@ -105,7 +99,7 @@ export default class ChargingStationTemplateService {
   public static async handleDeleteChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const chargingStationTemplateID = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateDeleteReq(req.body).id;
-    // Check and get charging station template
+    // Check and get template by id
     const chargingStationTemplate = await UtilsService.checkAndGetChargingStationTemplateAuthorization(req.tenant, req.user, chargingStationTemplateID, Action.DELETE, action);
     // Delete
     await ChargingStationTemplateStorage.deleteChargingStationTemplate(req.tenant, chargingStationTemplate.id);
@@ -123,7 +117,7 @@ export default class ChargingStationTemplateService {
   public static async handleUpdateChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateUpdateReq(req.body);
-    // Check and get charging station template
+    // Check and get template by id
     const chargingStationTemplate = await UtilsService.checkAndGetChargingStationTemplateAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
     const template = filteredRequest.template;
     chargingStationTemplate.template = {
@@ -139,6 +133,8 @@ export default class ChargingStationTemplateService {
       ocppStandardParameters: template.ocppStandardParameters,
       ocppVendorParameters: template.ocppVendorParameters,
     };
+    chargingStationTemplate.lastChangedBy = { id: req.user.id };
+    chargingStationTemplate.lastChangedOn = new Date();
     // Save
     await ChargingStationTemplateStorage.saveChargingStationTemplate(chargingStationTemplate);
     await Logging.logInfo({

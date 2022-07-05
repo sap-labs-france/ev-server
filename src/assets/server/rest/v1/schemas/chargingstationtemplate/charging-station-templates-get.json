@@ -13,6 +13,10 @@
     "SortFields": {
       "$ref": "common#/definitions/sortFields"
     },
+    "WithUser": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "Skip": {
       "$ref": "common#/definitions/skip"
     },

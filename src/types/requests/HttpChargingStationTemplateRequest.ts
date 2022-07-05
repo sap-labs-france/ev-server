@@ -9,6 +9,7 @@ export interface HttpGetChargingStationTemplatesRequest extends ChargingStationT
   OnlyRecordCount: boolean;
   Skip: number;
   Limit: number;
+  WithUser?: boolean;
   Search?: string;
   Issuer?: boolean;
 }

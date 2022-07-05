@@ -443,8 +443,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, authAction,
-      authorizationFilters, filteredRequest, null, true);
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, authAction, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 

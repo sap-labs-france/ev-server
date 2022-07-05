@@ -1,9 +1,9 @@
 {
-  "$id": "chargingstation-template",
+  "$id": "chargingstation-template-save",
   "title": "Validate the Charging Station's template",
   "type": "object",
   "properties": {
-    "_id": {
+    "id": {
       "$ref": "common#/definitions/id"
     },
     "template": {
@@ -481,6 +481,6 @@
     }
   },
   "required": [
-    "_id"
+    "id"
   ]
 }

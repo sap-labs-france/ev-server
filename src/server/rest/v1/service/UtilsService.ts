@@ -163,7 +163,7 @@ export default class UtilsService {
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       tenant, userToken, { id: chargingStationTemplateID }, authAction, entityData);
-    // Get ChargingStationTemplate
+    // Get one template
     const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(chargingStationTemplateID,
       {
         ...additionalFilters,
