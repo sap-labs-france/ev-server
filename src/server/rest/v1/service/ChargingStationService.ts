@@ -296,7 +296,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingProfileUpdateReq({ ...req.params, ...req.body });
     // Check dynamic auth
-    await AuthorizationService.checkAndGetChargingProfileAuthorizations(req.tenant, req.user, { ID: filteredRequest.id }, Action.UPDATE);
+    await UtilsService.checkAndGetChargingProfileAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Update
     const chargingProfileID = await ChargingStationService.setAndSaveChargingProfile(filteredRequest, action, req);
     res.send(Object.assign({ id: chargingProfileID }, Constants.REST_RESPONSE_SUCCESS));

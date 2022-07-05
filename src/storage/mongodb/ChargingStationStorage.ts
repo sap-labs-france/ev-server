@@ -792,6 +792,11 @@ export default class ChargingStationStorage {
         tenantID: tenant.id, aggregation, localField: 'chargingStationID', foreignField: '_id',
         asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
+      // Site
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID: tenant.id, aggregation: aggregation, localField: 'chargingStation.siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
       // Site Areas
       if (params.withSiteArea || !Utils.isEmptyArray(params.siteIDs)) {
         DatabaseUtils.pushSiteAreaLookupInAggregation({
@@ -803,6 +808,7 @@ export default class ChargingStationStorage {
       }
       // Convert
       DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteID');
       // TODO: Optimization: add the Site ID to the Charging Profile
       // Site ID
       if (!Utils.isEmptyArray(params.siteIDs)) {
