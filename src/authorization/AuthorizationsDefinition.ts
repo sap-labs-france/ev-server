@@ -221,7 +221,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
+          'id', 'chargingStationID', 'chargePointID', 'connectorID',
+          'chargingStation.id', 'chargingStation.siteID', 'chargingStation.siteAreaID',
           'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower','chargingStation.siteArea.siteID',
           'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel', 'profile.chargingSchedule'
         ]
@@ -1679,7 +1680,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
+          'id', 'chargingStationID', 'chargePointID', 'connectorID',
+          'chargingStation.id', 'chargingStation.siteID', 'chargingStation.siteAreaID',
           'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower','chargingStation.siteArea.siteID',
           'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel', 'profile.chargingSchedule'
         ]
