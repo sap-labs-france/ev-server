@@ -16759,23 +16759,6 @@
           "transferAmount": {
             "type": "number"
           },
-          "platformFeeData": {
-            "type": "object",
-            "properties": {
-              "taxExternalID": {
-                "type": "string"
-              },
-              "feeAmount": {
-                "type": "number"
-              },
-              "feeTaxAmount": {
-                "type": "number"
-              },
-              "invoiceExternalID": {
-                "type": "string"
-              }
-            }
-          },
           "transferExternalID": {
             "type": "string"
           }

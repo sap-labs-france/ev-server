@@ -490,7 +490,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'status', 'createdOn', 'sessions', 'totalAmount', 'transferAmount', 'accountID', 'transferExternalID',
           'account.businessOwnerID', 'account.accountExternalID', 'businessOwner.name', 'businessOwner.firstName',
-          'platformFeeData.feeAmount', 'platformFeeData.feeTaxAmount', 'platformFeeData.invoiceExternalID', 'platformFeeData.taxExternalID', 'currency'
+          'platformFeeData.feeAmount', 'platformFeeData.feeTaxAmount', 'currency'
         ]
       },
       { resource: Entity.TAX, action: [Action.LIST] },

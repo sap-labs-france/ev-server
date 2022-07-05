@@ -187,10 +187,8 @@ export enum BillingTransferStatus {
 }
 
 export interface BillingPlatformFeeData {
-  taxExternalID: string; // Tax to apply on the platform fee
   feeAmount: number;
   feeTaxAmount: number;
-  invoiceExternalID?: string; // Invoice sent to the CPO
 }
 
 export interface BillingAccountSessionFee extends BillingPlatformFeeStrategy {

@@ -360,10 +360,8 @@ export default class BillingStorage {
     };
     if (transfer.platformFeeData) {
       transferMDB.platformFeeData = {
-        taxExternalID: transfer.platformFeeData.taxExternalID,
         feeAmount: transfer.platformFeeData.feeAmount,
         feeTaxAmount: transfer.platformFeeData.feeTaxAmount,
-        invoiceExternalID: transfer.platformFeeData.invoiceExternalID
       };
     }
     if (transfer.invoice) {

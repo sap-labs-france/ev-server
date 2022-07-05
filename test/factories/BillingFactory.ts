@@ -8,12 +8,10 @@ export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtr
   .attr('accountID', () => faker.datatype.hexaDecimal(24).substring(2).toLowerCase())
   .attr('status', () => faker.random.arrayElement([BillingTransferStatus.DRAFT, BillingTransferStatus.PENDING, BillingTransferStatus.FINALIZED, BillingTransferStatus.TRANSFERRED]))
   .attr('transferAmount', () => faker.datatype.number())
-  .attr('transferExternalID', () => faker.datatype.uuid())
+  .attr('transferExternalID', () => null)
   .attr('platformFeeData', () => ({
-    feeAmount: faker.datatype.number(),
-    feeTaxAmount: faker.datatype.number(),
-    taxExternalID: faker.datatype.uuid(),
-    invoiceExternalID: faker.datatype.uuid(),
+    feeAmount: 0,
+    feeTaxAmount: 0
   }))
   .attr('sessions', () =>
     [BillingTransferSessionFactory.build()])
@@ -23,18 +21,18 @@ export const BillingTransferSessionFactory = Factory.define<BillingTransferSessi
   .attr('transactionID', () => faker.datatype.number())
   .attr('amount', () => faker.datatype.number())
   .attr('accountSessionFee', () => ({
-    flatFeePerSession: faker.datatype.number(),
-    percentage: faker.datatype.number(),
-    taxExternalID: faker.datatype.string(),
-    feeAmount: faker.datatype.number()
+    flatFeePerSession: 0.5,
+    percentage: 3,
+    taxExternalID: null,
+    feeAmount: 0
   }));
 
 export const BillingPlatformFeeStrategyFactory = Factory.define<BillingPlatformFeeStrategy>('billingplatformfeestrategy')
-  .attr('flatFeePerSession', () => faker.datatype.number())
-  .attr('percentage', () => faker.datatype.number());
+  .attr('flatFeePerSession', () => 0.5)
+  .attr('percentage', () => 3);
 
 export const BillingPlatformSessionFeeFactory = Factory.define<BillingAccountSessionFee>('billingaccountSessionFee')
-  .attr('flatFeePerSession', () => faker.datatype.number())
-  .attr('percentage', () => faker.datatype.number())
-  .attr('taxExternalID', () => faker.datatype.string())
-  .attr('feeAmount', () => faker.datatype.number());
+  .attr('flatFeePerSession', 0.5)
+  .attr('percentage', 3)
+  .attr('taxExternalID', null)
+  .attr('feeAmount', 0);
