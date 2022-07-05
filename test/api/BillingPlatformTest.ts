@@ -331,7 +331,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         expect(finalizedTransfer.status).to.eq(BillingTransferStatus.FINALIZED);
       });
 
-      it('should not finalize not draft transfer', async () => {
+      it('should not finalize a draft transfer', async () => {
         const transfer = BillingTransferFactory.build();
         transfer.status = BillingTransferStatus.FINALIZED;
         const transferID = await BillingStorage.saveTransfer(billingTestHelper.tenantContext.getTenant(), transfer);
