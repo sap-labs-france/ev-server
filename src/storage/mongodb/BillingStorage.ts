@@ -354,16 +354,14 @@ export default class BillingStorage {
         amountAsDecimal: session.amountAsDecimal,
         amount: session.amount,
         roundedAmount: session.roundedAmount,
-        platformFeeStrategy: session.platformFeeStrategy,
+        accountSessionFee: session.accountSessionFee,
       })),
       currency: transfer.currency,
     };
     if (transfer.platformFeeData) {
       transferMDB.platformFeeData = {
-        taxExternalID: transfer.platformFeeData.taxExternalID,
         feeAmount: transfer.platformFeeData.feeAmount,
         feeTaxAmount: transfer.platformFeeData.feeTaxAmount,
-        invoiceExternalID: transfer.platformFeeData.invoiceExternalID
       };
     }
     if (transfer.invoice) {
