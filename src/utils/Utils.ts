@@ -1740,4 +1740,18 @@ export default class Utils {
       };
     }
   }
+
+  public static deleteUserPropertiesFromEntity(entityData?: EntityData): void {
+    Utils.deletePropertiesFromEntity(entityData, ['user', 'currentTagID']);
+  }
+
+  private static deletePropertiesFromEntity(entityData?: EntityData, properties?: string[]): void {
+    if (!Utils.isNullOrUndefined(entityData) && !Utils.isNullOrUndefined(properties)) {
+      for (const propertyName of properties) {
+        if (Utils.objectHasProperty(entityData, propertyName) && !Utils.isNullOrUndefined(entityData[propertyName])) {
+          delete entityData[propertyName];
+        }
+      }
+    }
+  }
 }
