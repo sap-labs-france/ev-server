@@ -16748,8 +16748,22 @@
               "roundedAmount": {
                 "type": "number"
               },
-              "platformFeeStrategy": {
-                "type": "object"
+              "accountSessionFee": {
+                "type": "object",
+                "properties": {
+                  "flatFeePerSession": {
+                    "type": "number"
+                  },
+                  "percentage": {
+                    "type": "number"
+                  },
+                  "feeAmount": {
+                    "type": "number"
+                  },
+                  "externalTaxID": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
@@ -16758,6 +16772,17 @@
           },
           "transferAmount": {
             "type": "number"
+          },
+          "platformFeeData": {
+            "type": "object",
+            "properties": {
+              "feeAmount": {
+                "type": "number"
+              },
+              "feeTaxAmount": {
+                "type": "number"
+              }
+            }
           },
           "transferExternalID": {
             "type": "string"
