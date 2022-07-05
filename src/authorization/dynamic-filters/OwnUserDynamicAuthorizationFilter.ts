@@ -31,6 +31,7 @@ export default class OwnUserDynamicAuthorizationFilter extends DynamicAuthorizat
     // Delete user property in entity in case we are not authorized
     if (!authorizationFilters.authorized) {
       Utils.deleteUserPropertiesFromEntity(entityData);
+      Utils.deleteTagPropertiesFromEntity(entityData);
     }
   }
 

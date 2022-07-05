@@ -1742,7 +1742,11 @@ export default class Utils {
   }
 
   public static deleteUserPropertiesFromEntity(entityData?: EntityData): void {
-    Utils.deletePropertiesFromEntity(entityData, ['user', 'currentTagID']);
+    Utils.deletePropertiesFromEntity(entityData, ['user']);
+  }
+
+  public static deleteTagPropertiesFromEntity(entityData?: EntityData): void {
+    Utils.deletePropertiesFromEntity(entityData, ['tag', 'currentTagID']);
   }
 
   private static deletePropertiesFromEntity(entityData?: EntityData, properties?: string[]): void {
