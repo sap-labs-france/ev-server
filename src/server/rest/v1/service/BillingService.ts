@@ -707,10 +707,15 @@ export default class BillingService {
       user.billingData = (await billingImpl.forceSynchronizeUser(user)).billingData;
       await UserStorage.saveUser(req.tenant, user);
     }
+    // Generate the invoice with a fee per session
     const invoice = await billingImpl.billPlatformFee(transfer, user);
+    // Let's keep track of the invoice data
+    transfer.invoice = invoice;
+    // We now know how much we can transfer to the sub-account!
+    const amountIncludingTaxes = invoice.totalAmount;
+    transfer.transferAmount = Utils.createDecimal(transfer.totalAmount).minus(amountIncludingTaxes).toNumber();
     // Update the transfer status
     transfer.status = BillingTransferStatus.FINALIZED;
-    transfer.invoice = invoice;
     await BillingStorage.saveTransfer(req.tenant, transfer);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();

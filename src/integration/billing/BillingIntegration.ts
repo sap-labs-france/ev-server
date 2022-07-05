@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import { AsyncTaskType, AsyncTasks } from '../../types/AsyncTask';
-import { BillingAccount, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingSessionData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingTransferStatus, BillingUser } from '../../types/Billing';
+import { BillingAccount, BillingAccountSessionFee, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingSessionData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingTransferStatus, BillingUser } from '../../types/Billing';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
@@ -749,13 +749,13 @@ export default abstract class BillingIntegration {
       const accountIDs = [ ...new Set(allAccountIDs)];
       if (accountIDs.length > 0) {
         for (const accountID of accountIDs) {
-          await this.processTransferForAccount(accountID, billingInvoice);
+          await this.dispatchFundsPerAccount(accountID, billingInvoice);
         }
       }
     }
   }
 
-  public async processTransferForAccount(accountID: string, invoice: BillingInvoice): Promise<void> {
+  public async dispatchFundsPerAccount(accountID: string, invoice: BillingInvoice): Promise<void> {
     try {
       const sessions = invoice.sessions.filter((session) => accountID === session?.accountData?.accountID);
       // Get the existing DRAFT transfer (if any)
@@ -776,16 +776,19 @@ export default abstract class BillingIntegration {
       // Process all sessions of the invoice matching the current account ID
       for (const session of sessions) {
       // Compute the session amount (adding the 4 pricing dimensions)
-        const amountAsDecimal = BillingHelpers.getBilledPrice(session.pricingData); // TODO - consider tax rate settings!
+        const amountAsDecimal = BillingHelpers.getBilledPrice(session.pricingData);
+        const amount = amountAsDecimal.toNumber();
+        const roundedAmount = Utils.roundTo(amountAsDecimal, 2);
+        const accountSessionFee = this.computeAccountSessionFee(session, roundedAmount);
         // Extract current session data
         const sessionData: BillingTransferSession = {
           transactionID: session.transactionID,
           invoiceID: invoice.id,
           invoiceNumber: invoice.number,
           amountAsDecimal,
-          amount: amountAsDecimal.toNumber(),
-          roundedAmount: Utils.roundTo(amountAsDecimal, 2),
-          platformFeeStrategy: session.accountData.platformFeeStrategy
+          amount,
+          roundedAmount,
+          accountSessionFee
         };
         // Update the collection of sessions in the DRAFT transfer
         transfer.sessions.push(sessionData);
@@ -797,6 +800,8 @@ export default abstract class BillingIntegration {
       });
       // Round the final result only!
       transfer.totalAmount = Utils.roundTo(transferAmountAsDecimal, 2);
+      // Amount to transfer is not yet known - The invoice must be generated to take the tax rates into account
+      transfer.transferAmount = null;
       // Finally - create or update the transfer
       await BillingStorage.saveTransfer(this.tenant, transfer);
     } catch (error) {
@@ -808,5 +813,16 @@ export default abstract class BillingIntegration {
         detailedMessages: { error: error.stack }
       });
     }
+  }
+
+  private computeAccountSessionFee(session: BillingSessionData, sessionTotalAmount: number): BillingAccountSessionFee {
+    const { percentage, flatFeePerSession } = session.accountData.platformFeeStrategy;
+    const feeAmount = Utils.createDecimal(sessionTotalAmount).mul(percentage).div(100).plus(flatFeePerSession).toNumber();
+    return {
+      percentage,
+      flatFeePerSession,
+      taxExternalID: null, // TODO - consider tax rates
+      feeAmount
+    };
   }
 }

@@ -1,4 +1,4 @@
-import { BillingPlatformFeeStrategy, BillingTransfer, BillingTransferSession, BillingTransferStatus } from '../../src/types/Billing';
+import { BillingAccountSessionFee, BillingPlatformFeeStrategy, BillingTransfer, BillingTransferSession, BillingTransferStatus } from '../../src/types/Billing';
 
 import { Factory } from 'rosie';
 import faker from 'faker';
@@ -22,11 +22,19 @@ export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtr
 export const BillingTransferSessionFactory = Factory.define<BillingTransferSession>('billingtransfersession')
   .attr('transactionID', () => faker.datatype.number())
   .attr('amount', () => faker.datatype.number())
-  .attr('platformFeeStrategy', () => ({
+  .attr('accountSessionFee', () => ({
     flatFeePerSession: faker.datatype.number(),
     percentage: faker.datatype.number(),
+    taxExternalID: faker.datatype.string(),
+    feeAmount: faker.datatype.number()
   }));
 
 export const BillingPlatformFeeStrategyFactory = Factory.define<BillingPlatformFeeStrategy>('billingplatformfeestrategy')
   .attr('flatFeePerSession', () => faker.datatype.number())
   .attr('percentage', () => faker.datatype.number());
+
+export const BillingPlatformSessionFeeFactory = Factory.define<BillingAccountSessionFee>('billingaccountSessionFee')
+  .attr('flatFeePerSession', () => faker.datatype.number())
+  .attr('percentage', () => faker.datatype.number())
+  .attr('taxExternalID', () => faker.datatype.string())
+  .attr('feeAmount', () => faker.datatype.number());

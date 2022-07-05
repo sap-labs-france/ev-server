@@ -354,7 +354,7 @@ export default class BillingStorage {
         amountAsDecimal: session.amountAsDecimal,
         amount: session.amount,
         roundedAmount: session.roundedAmount,
-        platformFeeStrategy: session.platformFeeStrategy,
+        accountSessionFee: session.accountSessionFee,
       })),
       currency: transfer.currency,
     };
