@@ -182,7 +182,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TAG, action: Action.LIST,
         attributes: [
           'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
-          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn', 'limit'
+          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn',
+          'limit.limitKwhEnabled', 'limit.limitKwh', 'limit.limitKwhConsumed',
         ]
       },
       { resource: Entity.TAG, action: [Action.IMPORT, Action.EXPORT] },
@@ -197,7 +198,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id',
-          'user.name', 'user.firstName', 'user.email', 'limit'
+          'user.name', 'user.firstName', 'user.email',
+          'limit.limitKwhEnabled', 'limit.limitKwh', 'limit.limitKwhConsumed',
+          'limit.changeHistory.lastChangedOn', 'limit.changeHistory.lastChangedBy', 'limit.changeHistory.oldLimitKwh',
+          'limit.changeHistory.oldLimitKwhConsumed', 'limit.changeHistory.newLimitKwh', 'limit.changeHistory.newLimitKwhConsumed'
         ]
       },
       {
