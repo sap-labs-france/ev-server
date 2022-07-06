@@ -39,6 +39,7 @@ export default class AssetGetConsumptionTask extends TenantSchedulerTask {
       // Process them
       for (const asset of dynamicAssets.result) {
         if (asset.usesPushAPI) {
+          this.processSmartChargingFromAsset(asset, triggerSmartChargingSiteAreas, smartChargingActive);
           continue;
         }
         const assetLock = await LockingHelper.acquireAssetRetrieveConsumptionsLock(tenant.id, asset);
@@ -83,14 +84,7 @@ export default class AssetGetConsumptionTask extends TenantSchedulerTask {
                 }
                 // Save Asset
                 await AssetStorage.saveAsset(tenant, asset);
-                // Check if variation since last smart charging run exceeds the variation threshold
-                if (smartChargingActive && this.checkVariationSinceLastSmartChargingRun(asset)) {
-                  // Check if Site Area is already pushed
-                  const siteAreaAlreadyPushed = triggerSmartChargingSiteAreas.findIndex((siteArea) => siteArea.id === asset.siteArea.id);
-                  if (siteAreaAlreadyPushed === -1) {
-                    triggerSmartChargingSiteAreas.push(asset.siteArea);
-                  }
-                }
+                this.processSmartChargingFromAsset(asset, triggerSmartChargingSiteAreas, smartChargingActive);
               }
             }
           } catch (error) {
@@ -105,6 +99,17 @@ export default class AssetGetConsumptionTask extends TenantSchedulerTask {
       // Execute smart charging on site areas which are exceeding variation threshold
       for (const siteArea of triggerSmartChargingSiteAreas) {
         await this.triggerSmartCharging(tenant, siteArea);
+      }
+    }
+  }
+
+  private processSmartChargingFromAsset(asset: Asset, triggerSmartChargingSiteAreas: SiteArea[], smartChargingActive: boolean) {
+    // Check if variation since last smart charging run exceeds the variation threshold
+    if (smartChargingActive && this.checkVariationSinceLastSmartChargingRun(asset) && !asset.excludeFromSmartCharging) {
+      // Check if Site Area is already pushed
+      const siteAreaAlreadyPushed = triggerSmartChargingSiteAreas.findIndex((siteArea) => siteArea.id === asset.siteArea.id);
+      if (siteAreaAlreadyPushed === -1) {
+        triggerSmartChargingSiteAreas.push(asset.siteArea);
       }
     }
   }

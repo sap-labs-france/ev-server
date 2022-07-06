@@ -33,6 +33,7 @@ import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
+import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
@@ -317,7 +318,21 @@ export default class UserService {
     const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, userID, Action.READ, action);
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.tenant, user.id);
-    res.json(userImage);
+    let image = userImage?.image;
+    if (image) {
+      // Header
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      if (image.startsWith('data:image/')) {
+        header = image.substring(5, image.indexOf(';'));
+        encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
+        image = image.substring(image.indexOf(',') + 1);
+      }
+      res.setHeader('Content-Type', header);
+      res.send(Buffer.from(image, encoding));
+    } else {
+      res.status(StatusCodes.NOT_FOUND);
+    }
     next();
   }
 

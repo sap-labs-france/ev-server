@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
-import { BillingAccount, BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
@@ -57,9 +57,10 @@ export default class BillingTestHelper {
   // Billing Implementation - STRIPE?
   public billingImpl: StripeBillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
+  public billingAccount: BillingAccount;
 
-  public async initialize(tenant: string) : Promise<void> {
-    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenant);
+  public async initialize(tenantContext = ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING) : Promise<void> {
+    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenantContext);
     this.adminUserContext = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     this.adminUserService = new CentralServerService(
       this.tenantContext.getTenant().subdomain,
@@ -808,5 +809,33 @@ export default class BillingTestHelper {
     response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
     assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
     assert(response?.data?.entityName === siteArea.name, 'The Site Area data should be retrieved as well');
+  }
+
+  public async createActivatedAccount(): Promise<BillingAccount> {
+    let response = await this.userService.billingApi.createBillingAccount({
+      businessOwnerID: this.userContext.id
+    });
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    // Send the activation link
+    const billingAccountOnboardResponse = await this.userService.billingApi.onboardBillingAccount(response.data.id);
+    expect(billingAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
+    // expect(billingAccountOnboardResponse.data.status).to.be.eq(BillingAccountStatus.PENDING);
+    // Activate the account
+    const activationResponse = await this.userService.billingApi.activateBillingAccount({ accountID: response.data.id, TenantID: this.tenantContext.getTenant().id });
+    expect(activationResponse.status).to.be.eq(StatusCodes.OK);
+    const accountID = activationResponse.data?.id ;
+    response = await this.userService.billingApi.readBillingAccount(accountID);
+    assert(response.status === StatusCodes.OK, 'Response status should be 200');
+    const billingAccount = response.data as BillingAccount ;
+    expect(billingAccount.status).to.be.eq(BillingAccountStatus.ACTIVE);
+    return billingAccount;
+  }
+
+  public async getActivatedAccount(): Promise<BillingAccount> {
+    if (!this.billingAccount) {
+      this.billingAccount = await this.createActivatedAccount();
+      // this.billingAccount = await this.userService.billingApi.readBillingAccount(accountID) as BillingAccount;
+    }
+    return this.billingAccount;
   }
 }

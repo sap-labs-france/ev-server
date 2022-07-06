@@ -31,19 +31,18 @@ export interface HttpDeletePaymentMethod {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpBillingSubAccountCreateRequest extends BillingAccount {
+export interface HttpBillingAccountCreateRequest extends BillingAccount {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpBillingSubAccountUpdateRequest extends BillingAccount {
+export interface HttpBillingAccountUpdateRequest extends BillingAccount {
 }
 
-export interface HttpBillingSubAccountActivateRequest {
+export interface HttpBillingAccountActivateRequest {
   ID: string;
-  TenantID: string;
 }
 
-export interface HttpBillingSubAccountsGetRequest extends HttpDatabaseRequest {
+export interface HttpBillingAccountsGetRequest extends HttpDatabaseRequest {
   ID?: string;
   UserID?: string;
   Status?: string;
@@ -52,7 +51,7 @@ export interface HttpBillingSubAccountsGetRequest extends HttpDatabaseRequest {
   Search?: string;
 }
 
-export interface HttpBillingSubAccountGetRequest extends HttpByIDRequest {
+export interface HttpBillingAccountGetRequest extends HttpByIDRequest {
   ID: string;
 }
 
@@ -62,4 +61,12 @@ export interface HttpBillingTransfersGetRequest extends HttpDatabaseRequest {
   Status?: string;
   TransferExternalID?: string;
   Search?: string;
+}
+
+export interface HttpBillingTransferFinalizeRequest extends HttpByIDRequest {
+  ID: string;
+}
+
+export interface HttpBillingTransferSendRequest extends HttpByIDRequest {
+  ID: string;
 }

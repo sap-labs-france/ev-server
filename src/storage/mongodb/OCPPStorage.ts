@@ -112,7 +112,7 @@ export default class OCPPStorage {
 
   public static async getStatusNotifications(tenant: Tenant,
       params: { dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string },
-      dbParams: DbParams): Promise<DataResult<OCPPStatusNotificationRequestExtended>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OCPPStatusNotificationRequestExtended>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -152,6 +152,8 @@ export default class OCPPStorage {
     const statusNotificationsCountMDB = await global.database.getCollection<any>(tenant.id, 'statusnotifications')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray() as DatabaseCount[];
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
@@ -290,7 +292,7 @@ export default class OCPPStorage {
   }
 
   public static async getBootNotifications(tenant: Tenant, params: {chargeBoxID?: string},
-      dbParams: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -319,6 +321,8 @@ export default class OCPPStorage {
       .toArray() as DatabaseCount[];
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };

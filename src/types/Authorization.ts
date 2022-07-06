@@ -67,6 +67,7 @@ export enum Entity {
   SITE_AREA = 'SiteArea',
   COMPANY = 'Company',
   CHARGING_STATION = 'ChargingStation',
+  CONNECTOR = 'Connector',
   TENANT = 'Tenant',
   TRANSACTION = 'Transaction',
   REPORT = 'Report',
@@ -78,7 +79,7 @@ export enum Entity {
   PRICING_DEFINITION = 'PricingDefinition',
   BILLING = 'Billing',
   BILLING_PLATFORM = 'BillingPlatform',
-  BILLING_SUB_ACCOUNT = 'BillingSubAccount',
+  BILLING_ACCOUNT = 'BillingAccount',
   BILLING_TRANSFER = 'BillingTransfer',
   SETTING = 'Setting',
   ASYNC_TASK = 'AsyncTask',
@@ -138,8 +139,10 @@ export enum Action {
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
-  BILLING_ACTIVATE_SUB_ACCOUNT = 'BillingSubAccountActivate',
-  BILLING_ONBOARD_SUB_ACCOUNT = 'BillingSubAccountOnboard',
+  BILLING_ACTIVATE_ACCOUNT = 'BillingAccountActivate',
+  BILLING_ONBOARD_ACCOUNT = 'BillingAccountOnboard',
+  BILLING_FINALIZE_TRANSFER = 'BillingFinalizeTransfer',
+  BILLING_SEND_TRANSFER = 'BillingSendTransfer',
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
@@ -165,6 +168,15 @@ export enum Action {
   GENERATE_QR = 'GenerateQrCode',
   MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
   RESOLVE = 'Resolve',
+  GET_STATUS_NOTIFICATION = 'GetStatusNotification',
+  GET_BOOT_NOTIFICATION = 'GetBootNotification',
+  RESERVE_NOW = 'ReserveNow',
+  UPDATE_OCPP_PARAMS = 'UpdateOCPPParams',
+  LIMIT_POWER = 'LimitPower',
+  DELETE_CHARGING_PROFILE = 'DeleteChargingProfile',
+  GET_OCPP_PARAMS = 'GetOCPPParams',
+  UPDATE_CHARGING_PROFILE = 'UpdateChargingProfile',
+  GET_CONNECTOR_QR_CODE = 'GetConnectorQRCode',
 }
 
 export interface AuthorizationContext {
@@ -255,10 +267,50 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
   canMaintainPricingDefinitions?: boolean;
 }
 
+export type BillingTaxAuthorizationActions = AuthorizationActions;
+
 export interface BillingInvoiceAuthorizationActions extends AuthorizationActions {
   canDownload?: boolean;
 }
 
+export interface ChargingStationAuthorizationActions extends AuthorizationActions {
+  canReserveNow?:boolean;
+  canReset?:boolean;
+  canClearCache?:boolean;
+  canGetConfiguration?:boolean;
+  canChangeConfiguration?:boolean;
+  canSetChargingProfile?:boolean;
+  canGetCompositeSchedule?:boolean;
+  canClearChargingProfile?:boolean;
+  canGetDiagnostics?:boolean;
+  canUpdateFirmware?:boolean;
+  canRemoteStopTransaction?:boolean;
+  canStopTransaction?:boolean;
+  canStarTransaction?:boolean;
+  canChangeAvailability?:boolean;
+  canRemoteStartTransaction?:boolean;
+  canUnlockConnector?:boolean;
+  canDataTransfer?:boolean;
+  canGenerateQrCode?:boolean;
+  canMaintainPricingDefinitions?:boolean;
+  canUpdateOCPPParams?:boolean;
+  canLimitPower?:boolean;
+  canDeleteChargingProfile?:boolean;
+  canGetOCPPParams?:boolean;
+  canUpdateChargingProfile?:boolean;
+  canGetConnectorQRCode?:boolean;
+}
+
+export interface ConnectorAuthorizationActions extends AuthorizationActions {
+  canRemoteStopTransaction?:boolean;
+  canRemoteStartTransaction?:boolean;
+  canUnlockConnector?:boolean;
+}
+
+export interface ChargingProfileAuthorizationActions extends AuthorizationActions {
+  canDownload?:boolean;
+  canReadSiteArea?:boolean;
+}
 export interface BillingAccountAuthorizationActions extends AuthorizationActions {
   canOnboard?: boolean;
 }
@@ -317,7 +369,6 @@ export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAut
 export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
-
 export interface SiteAdminUsersDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   userIDs?: string[];
 }

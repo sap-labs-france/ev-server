@@ -1,6 +1,6 @@
 {
-  "$id": "site-area-get-image",
-  "title": "Get Site Area Image Request",
+  "$id": "billing-activate-account",
+  "title": "Activate a Billing account Request",
   "type": "object",
   "properties": {
     "ID": {

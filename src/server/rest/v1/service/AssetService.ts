@@ -1,8 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
-import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Asset from '../../../../types/Asset';
 import { AssetDataResult } from '../../../../types/DataResult';
@@ -14,6 +12,7 @@ import AuthorizationService from './AuthorizationService';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPUtils from '../../../../server/ocpp/utils/OCPPUtils';
@@ -21,7 +20,6 @@ import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -320,13 +318,18 @@ export default class AssetService {
   }
 
   public static async handleGetAssetImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleGetAssetImage', action: action,
+      });
+    }
     // This endpoint is not protected, so no need to check user's access
     const filteredRequest = AssetValidatorRest.getInstance().validateAssetGetImageReq(req.query);
-    // Get the tenant
-    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
-    UtilsService.assertObjectExists(action, tenant, 'Tenant does not exist', MODULE_NAME, 'handleGetAssetImage', req.user);
     // Get the image
-    const assetImage = await AssetStorage.getAssetImage(tenant, filteredRequest.ID);
+    const assetImage = await AssetStorage.getAssetImage(req.tenant, filteredRequest.ID);
     let image = assetImage?.image;
     if (image) {
       // Header
@@ -337,7 +340,7 @@ export default class AssetService {
         encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
         image = image.substring(image.indexOf(',') + 1);
       }
-      res.setHeader('content-type', header);
+      res.setHeader('Content-Type', header);
       res.send(Buffer.from(image, encoding));
     } else {
       res.status(StatusCodes.NOT_FOUND);

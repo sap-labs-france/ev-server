@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import { AsyncTaskType, AsyncTasks } from '../../types/AsyncTask';
-import { BillingAccount, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingSessionAccountData, BillingSessionData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingTransferStatus, BillingUser } from '../../types/Billing';
+import { BillingAccount, BillingAccountSessionFee, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingSessionData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingTransferStatus, BillingUser } from '../../types/Billing';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
@@ -175,17 +175,18 @@ export default abstract class BillingIntegration {
       // Do not send notifications for invoices that are not yet finalized!
       if (billingInvoice.status === BillingInvoiceStatus.OPEN || billingInvoice.status === BillingInvoiceStatus.PAID) {
         // Send link to the user using our notification framework (link to the front-end + download)
+        const user = await UserStorage.getUser(this.tenant, billingInvoice.userID);
         // Stripe saves amount in cents
         const invoiceAmountAsDecimal = new Decimal(billingInvoice.amount).div(100);
         // Format amount with currency symbol depending on locale
-        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(invoiceAmountAsDecimal.toNumber());
+        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(invoiceAmountAsDecimal.toNumber());
         // Send async notification
         void NotificationHandler.sendBillingNewInvoiceNotification(
           this.tenant,
           billingInvoice.id,
-          billingInvoice.user,
+          user,
           {
-            user: billingInvoice.user,
+            user,
             evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(this.tenant.subdomain),
             evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
             invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(this.tenant.subdomain, billingInvoice.id),
@@ -707,7 +708,11 @@ export default abstract class BillingIntegration {
 
   abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]>;
 
-  abstract createSubAccount(): Promise<BillingAccount>;
+  abstract createConnectedAccount(): Promise<Partial<BillingAccount>>;
+
+  abstract billPlatformFee(transfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice>;
+
+  abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
 
   protected async triggerTransferPreparation(billingInvoice: BillingInvoice): Promise<void> {
     if (!billingInvoice.sessions) {
@@ -746,13 +751,13 @@ export default abstract class BillingIntegration {
       const accountIDs = [ ...new Set(allAccountIDs)];
       if (accountIDs.length > 0) {
         for (const accountID of accountIDs) {
-          await this.processTransferForAccount(accountID, billingInvoice);
+          await this.dispatchFundsPerAccount(accountID, billingInvoice);
         }
       }
     }
   }
 
-  public async processTransferForAccount(accountID: string, invoice: BillingInvoice): Promise<void> {
+  public async dispatchFundsPerAccount(accountID: string, invoice: BillingInvoice): Promise<void> {
     try {
       const sessions = invoice.sessions.filter((session) => accountID === session?.accountData?.accountID);
       // Get the existing DRAFT transfer (if any)
@@ -767,21 +772,25 @@ export default abstract class BillingIntegration {
         transfer = {
           accountID, status: BillingTransferStatus.DRAFT, sessions: [], totalAmount: 0, transferAmount: 0,
           platformFeeData: null, transferExternalID: null,
+          currency: invoice.currency
         };
       }
       // Process all sessions of the invoice matching the current account ID
       for (const session of sessions) {
       // Compute the session amount (adding the 4 pricing dimensions)
-        const amountAsDecimal = BillingHelpers.getBilledPrice(session.pricingData); // TODO - consider tax rate settings!
+        const amountAsDecimal = BillingHelpers.getBilledPrice(session.pricingData);
+        const amount = amountAsDecimal.toNumber();
+        const roundedAmount = Utils.roundTo(amountAsDecimal, 2);
+        const accountSessionFee = this.computeAccountSessionFee(session, roundedAmount);
         // Extract current session data
         const sessionData: BillingTransferSession = {
           transactionID: session.transactionID,
           invoiceID: invoice.id,
           invoiceNumber: invoice.number,
           amountAsDecimal,
-          amount: amountAsDecimal.toNumber(),
-          roundedAmount: Utils.roundTo(amountAsDecimal, 2),
-          platformFeeStrategy: session.accountData.platformFeeStrategy
+          amount,
+          roundedAmount,
+          accountSessionFee
         };
         // Update the collection of sessions in the DRAFT transfer
         transfer.sessions.push(sessionData);
@@ -793,6 +802,8 @@ export default abstract class BillingIntegration {
       });
       // Round the final result only!
       transfer.totalAmount = Utils.roundTo(transferAmountAsDecimal, 2);
+      // Amount to transfer is not yet known - The invoice must be generated to take the tax rates into account
+      transfer.transferAmount = null;
       // Finally - create or update the transfer
       await BillingStorage.saveTransfer(this.tenant, transfer);
     } catch (error) {
@@ -806,4 +817,14 @@ export default abstract class BillingIntegration {
     }
   }
 
+  private computeAccountSessionFee(session: BillingSessionData, sessionTotalAmount: number): BillingAccountSessionFee {
+    const { percentage, flatFeePerSession } = session.accountData.platformFeeStrategy;
+    const feeAmount = Utils.createDecimal(sessionTotalAmount).mul(percentage).div(100).plus(flatFeePerSession).toNumber();
+    return {
+      percentage,
+      flatFeePerSession,
+      taxExternalID: null, // TODO - consider tax rates
+      feeAmount
+    };
+  }
 }

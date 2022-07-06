@@ -200,7 +200,7 @@ describe('Tenant Settings', () => {
     );
 
     it(
-      'Billing sub-accounts : Check that the setting has been created in the tenant after activation',
+      'Billing accounts : Check that the setting has been created in the tenant after activation',
       async () => {
         // Fill in the data
         testData.data = {
