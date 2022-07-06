@@ -60,7 +60,7 @@ export default class ChargingStationRouter {
 
   private buildRouteChargingStation(): void {
     this.router.get(`/${RESTServerRoute.REST_CHARGING_STATION}`, (req: Request, res: Response, next: NextFunction) => {
-      req.body.ID = sanitize(req.params.id);
+      req.query.ID = req.params.id;
       void RouterUtils.handleRestServerAction(ChargingStationService.handleGetChargingStation.bind(this), ServerAction.CHARGING_STATION, req, res, next);
     });
   }

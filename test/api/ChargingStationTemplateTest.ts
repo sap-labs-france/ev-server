@@ -1,13 +1,9 @@
 import CentralServerService from './client/CentralServerService';
 import { ChargingStationTemplate } from '../../src/types/ChargingStation';
-import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import { HTTPError } from '../../src/types/HTTPError';
 import { StatusCodes } from 'http-status-codes';
 import { expect } from 'chai';
-import faker from 'faker';
-import moment from 'moment';
 
 class TestData {
   public newChargingStationTemplate: ChargingStationTemplate;
