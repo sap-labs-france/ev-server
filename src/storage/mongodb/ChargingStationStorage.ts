@@ -119,7 +119,6 @@ export default class ChargingStationStorage {
       projectFields?: string[]): Promise<ChargingProfile> {
     const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenant, {
       chargingProfileID: id,
-      withSiteArea: params.withSiteArea,
       siteIDs: params.siteIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
@@ -738,7 +737,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingProfiles(tenant: Tenant,
       params: { search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
-        profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean;
+        profilePurposeType?: ChargingProfilePurposeType; transactionId?: number;
         withSiteArea?: boolean; siteIDs?: string[]; } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<ChargingProfileDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -786,35 +785,33 @@ export default class ChargingStationStorage {
         $match: filters
       });
     }
-    if (params.withChargingStation || params.withSiteArea || !Utils.isEmptyArray(params.siteIDs)) {
-      // Charging Stations
-      DatabaseUtils.pushChargingStationLookupInAggregation({
-        tenantID: tenant.id, aggregation, localField: 'chargingStationID', foreignField: '_id',
-        asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    // Charging Stations
+    DatabaseUtils.pushChargingStationLookupInAggregation({
+      tenantID: tenant.id, aggregation, localField: 'chargingStationID', foreignField: '_id',
+      asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Site Areas
+    if (params.withSiteArea) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
+        asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
-      // Site Areas
-      if (params.withSiteArea || !Utils.isEmptyArray(params.siteIDs)) {
-        DatabaseUtils.pushSiteAreaLookupInAggregation({
-          tenantID: tenant.id, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
-          asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-        });
-        // Convert
-        DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
-      }
       // Convert
-      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
-      // TODO: Optimization: add the Site ID to the Charging Profile
-      // Site ID
-      if (!Utils.isEmptyArray(params.siteIDs)) {
-        // Build filter
-        aggregation.push({
-          $match: {
-            'chargingStation.siteArea.siteID': {
-              $in: params.siteIDs
-            }
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
+    }
+    // Convert
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteID');
+    // Site ID
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          'chargingStation.siteID': {
+            $in: params.siteIDs
           }
-        });
-      }
+        }
+      });
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {

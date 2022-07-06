@@ -221,7 +221,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
+          'id', 'chargingStationID', 'chargePointID', 'connectorID',
+          'chargingStation.id', 'chargingStation.siteID', 'chargingStation.siteAreaID',
           'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower','chargingStation.siteArea.siteID',
           'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel', 'profile.chargingSchedule'
         ]
@@ -943,7 +944,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
           'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode',
           'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'lastReboot', 'createdOn', 'companyID',
-          'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email',
+          'connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email', 'connectors.currentTagID',
           'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
           'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
           'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs'
@@ -1679,7 +1680,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
+          'id', 'chargingStationID', 'chargePointID', 'connectorID',
+          'chargingStation.id', 'chargingStation.siteID', 'chargingStation.siteAreaID',
           'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower','chargingStation.siteArea.siteID',
           'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel', 'profile.chargingSchedule'
         ]
