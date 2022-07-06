@@ -7,7 +7,8 @@
     "flatFee-shortItemDescription": "Frais fixes",
     "energy-shortItemDescription": "Energie Consommée : {{quantity}} kWh",
     "chargingTime-shortItemDescription": "Durée de la charge : {{duration}}",
-    "parkingTime-shortItemDescription": "Durée de stationnement: {{duration}}"
+    "parkingTime-shortItemDescription": "Durée de stationnement: {{duration}}",
+    "transfer-itemDescription": "Commission pour la session: {{sessionID}} - Montant: {{amount}}"
   },
   "chargers": {
     "chargeBoxSN": "Numéro de série de la borne",

@@ -4,7 +4,7 @@ import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax } from
 import { Car, CarCatalog } from '../../../../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
-import { HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 import { HttpCarCatalogGetRequest, HttpCarCatalogsGetRequest, HttpCarGetRequest, HttpCarsGetRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingProfileRequest, HttpChargingProfilesGetRequest, HttpChargingStationGetRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesGetRequest, HttpCompanyGetRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -603,12 +603,14 @@ export default class AuthorizationService {
       authorizationFilter: AuthorizationFilter): Promise<void> {
     chargingProfile.canRead = true; // Always true as it should be filtered upfront
     chargingProfile.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.CHARGING_PROFILE, Action.UPDATE, authorizationFilter, { chargingStationID: chargingProfile.id }, chargingProfile);
+      tenant, userToken, Entity.CHARGING_PROFILE, Action.UPDATE, authorizationFilter,
+      { chargingStationID: chargingProfile.id, SiteAreaID: chargingProfile.chargingStation?.siteAreaID, SiteID: chargingProfile.chargingStation?.siteID }, chargingProfile);
     chargingProfile.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.CHARGING_PROFILE, Action.DELETE, authorizationFilter, { chargingStationID: chargingProfile.id }, chargingProfile);
+      tenant, userToken, Entity.CHARGING_PROFILE, Action.DELETE, authorizationFilter,
+      { chargingStationID: chargingProfile.id, SiteAreaID: chargingProfile.chargingStation?.siteAreaID, SiteID: chargingProfile.chargingStation?.siteID }, chargingProfile);
     chargingProfile.canReadSiteArea = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.READ, authorizationFilter,
-      { SiteAreaID: chargingProfile.chargingStation?.siteArea.id, SiteID: chargingProfile.chargingStation?.siteID }, chargingProfile);
+      { SiteAreaID: chargingProfile.chargingStation?.siteAreaID, SiteID: chargingProfile.chargingStation?.siteID }, chargingProfile);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(chargingProfile);
   }

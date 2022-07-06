@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingAccountStatus, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
@@ -1743,40 +1743,64 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async billPlatformFee(billingTransfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice> {
     await this.checkConnection();
-    // Create invoice items
     try {
-      await Promise.all(billingTransfer.sessions.map(async (session) =>
-        this.createStripeInvoiceItem({
-          amount: session.amount * 100, // TODO - bill the platform fee (not the session amount)
+      // Synchronize owner if needed
+      if (!user.billingData || !user.billingData.customerID) {
+        user.billingData = (await this.synchronizeUser(user)).billingData;
+        await UserStorage.saveUser(this.tenant, user);
+      }
+      // Create invoice items
+      await Promise.all(billingTransfer.sessions.map(async (session) => {
+        // Build the description with the business owner locale
+        const description = this.buildTransferLineItemDescription(user, session);
+        // A single tax rate per session
+        const tax_rates = (session.accountSessionFee.taxExternalID) ? [ session.accountSessionFee.taxExternalID ] : [];
+        // Prepare item parameters
+        const parameters: Stripe.InvoiceItemCreateParams = {
           customer: user.billingData.customerID,
-          currency: billingTransfer.currency
-        }, this.buildIdemPotencyKey(session.transactionID, 'invoice', 'platformFee'))
-      ));
+          currency: billingTransfer.currency,
+          tax_rates,
+          description,
+          amount: session.accountSessionFee.feeAmount,
+          metadata: {
+            userID: user.id,
+            transferID: billingTransfer.id,
+            tenantID: this.tenant.id,
+          }
+        };
+        // Create the invoice item
+        return this.createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(session.transactionID, 'invoice', 'platformFee'));
+      }));
     } catch (e) {
       throw new BackendError({
         message: 'Unexpected situation - unable to create invoice item',
-        detailedMessages: { e },
         module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
         method: 'billPlatformFee',
+        detailedMessages: { e },
       });
     }
     // Create invoice
     let stripeInvoice: Stripe.Invoice;
     try {
+      // -------------------------------------------------------------------------------------------
+      // TODO - Assuming the business owner is also an EV driver, we have here a potential conflict
+      // -------------------------------------------------------------------------------------------
+      // > Consider the STRIPE's new options: 'pending_invoice_items_behavior'
+      // -------------------------------------------------------------------------------------------
       stripeInvoice = await this.createStripeInvoice(user.billingData.customerID, user.id, this.buildIdemPotencyKey(billingTransfer.id, 'invoice', 'platformFee'));
     } catch (e) {
       throw new BackendError({
-        message: 'Unexpected situation - unable to create transfer invoice',
-        detailedMessages: { e },
+        message: 'Unexpected situation - unable to create the invoice for the platform fee',
         module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
         method: 'billPlatformFee',
+        detailedMessages: { e },
       });
     }
     if (!stripeInvoice) {
       throw new BackendError({
         message: 'Unexpected situation - platform invoice is not set',
-        module: MODULE_NAME, action: ServerAction.BILLING,
-        method: 'convertToBillingPlatformInvoice',
+        module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
+        method: 'billPlatformFee',
       });
     }
     try {
@@ -1787,9 +1811,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     } catch (e) {
       throw new BackendError({
         message: 'Unexpected situation - unable to flag the invoice as paid out of band',
-        detailedMessages: { e },
         module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_FINALIZE,
         method: 'billPlatformFee',
+        detailedMessages: { e },
       });
     }
     const invoice = this.convertToBillingPlatformInvoice(stripeInvoice);
@@ -1813,5 +1837,55 @@ export default class StripeBillingIntegration extends BillingIntegration {
       customerID, createdOn
     };
     return invoice;
+  }
+
+  private buildTransferLineItemDescription(user: User, session: BillingTransferSession) {
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    const sessionID = session.transactionID;
+    const formattedAmount = i18nManager.formatNumber(session.amount);
+    const description = i18nManager.translate('billing.transfer-itemDescription', {
+      sessionID,
+      amount: formattedAmount
+    });
+    return description;
+  }
+
+  public async sendTransfer(billingTransfer: BillingTransfer, user: User): Promise<string> {
+    await this.checkConnection();
+    // Synchronize owner if needed
+    if (!user.billingData || !user.billingData.customerID) {
+      user.billingData = (await this.synchronizeUser(user)).billingData;
+      await UserStorage.saveUser(this.tenant, user);
+    }
+    // Create the actual transfer of funds
+    let stripeTransfer: Stripe.Transfer;
+    try {
+      stripeTransfer = await this.stripe.transfers.create({
+        amount: billingTransfer.transferAmount,
+        currency: billingTransfer.currency,
+        destination: billingTransfer.account.accountExternalID,
+        // transfer_group: billingTransfer.id,  // TODO - is there any benefit to set a transfer_group?
+        metadata: {
+          userID: user.id,
+          transferID: billingTransfer.id,
+          tenantID: this.tenant.id,
+        }
+      });
+    } catch (e) {
+      throw new BackendError({
+        message: 'Unexpected situation - unable to create transfer invoice',
+        module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_SEND,
+        method: 'sendTransfer',
+        detailedMessages: { e },
+      });
+    }
+    if (!stripeTransfer) {
+      throw new BackendError({
+        message: 'Unexpected situation - platform transfer is not set',
+        module: MODULE_NAME, action: ServerAction.BILLING_TRANSFER_SEND,
+        method: 'sendTransfer',
+      });
+    }
+    return stripeTransfer.id;
   }
 }
