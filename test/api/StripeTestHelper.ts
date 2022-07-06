@@ -38,9 +38,9 @@ export default class StripeTestHelper {
   public billingImpl: StripeBillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
 
-  public async initialize(): Promise<void> {
+  public async initialize(tenantContext = ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING): Promise<void> {
 
-    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenantContext);
     this.adminUserContext = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     this.adminUserService = new CentralServerService(
       this.tenantContext.getTenant().subdomain,
@@ -141,13 +141,26 @@ export default class StripeTestHelper {
   public async assignPaymentMethod(stripe_test_token: string) : Promise<Stripe.CustomerSource> {
     // Assign a source using test tokens (instead of test card numbers)
     // c.f.: https://stripe.com/docs/testing#cards
-    const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
-    const stripeInstance = await concreteImplementation.getStripeInstance();
+    const stripeInstance = await this.billingImpl.getStripeInstance();
     const source = await stripeInstance.customers.createSource(this.getCustomerID(), {
       source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
     });
     expect(source).to.not.be.null;
     return source;
+  }
+
+  public async addFundsToBalance(amount: number, stripe_test_token = 'btok_us_verified') : Promise<Stripe.Topup> {
+    // Assign funds to the stripe balance is a prerequisite for testing transfers
+    // c.f.: https://stripe.com/docs/connect/testing#testing-top-ups
+    const stripeInstance = await this.billingImpl.getStripeInstance();
+    const topup = await stripeInstance.topups.create({
+      amount,
+      currency: 'eur',
+      description: 'test-addFundsToBalance',
+      source:stripe_test_token,
+    });
+    expect(topup).to.not.be.null;
+    return topup;
   }
 
   // Detach the latest assigned source

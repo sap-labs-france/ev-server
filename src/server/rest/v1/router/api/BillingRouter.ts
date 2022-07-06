@@ -191,7 +191,7 @@ export default class BillingRouter {
   private buildRouteBillingSendTransfer(): void {
     this.router.patch(`/${RESTServerRoute.REST_BILLING_TRANSFER_SEND}`, (req: Request, res: Response, next: NextFunction) => {
       req.params.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(BillingService.handleSendTransferInvoice.bind(this), ServerAction.BILLING_TRANSFER_SEND, req, res, next);
+      void RouterUtils.handleRestServerAction(BillingService.handleSendTransfer.bind(this), ServerAction.BILLING_TRANSFER_SEND, req, res, next);
     });
   }
 }
