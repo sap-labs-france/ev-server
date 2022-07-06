@@ -458,6 +458,11 @@ export default class TagStorage {
         tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
         foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
+      // Users on Limit's history
+      DatabaseUtils.pushArrayLookupInAggregation('limit.changeHistory', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
+        tenantID: tenant.id, aggregation: aggregation, localField: 'limit.changeHistory.lastChangedBy', foreignField: '_id',
+        asField: 'limit.changeHistory.lastChangedBy', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
+      }, { sort: dbParams.sort });
     }
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);

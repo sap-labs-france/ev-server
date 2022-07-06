@@ -183,6 +183,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
           'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn',
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
           'limit.limitKwhEnabled', 'limit.limitKwh', 'limit.limitKwhConsumed',
         ]
       },
@@ -200,8 +201,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id',
           'user.name', 'user.firstName', 'user.email',
           'limit.limitKwhEnabled', 'limit.limitKwh', 'limit.limitKwhConsumed',
-          'limit.changeHistory.lastChangedOn', 'limit.changeHistory.lastChangedBy', 'limit.changeHistory.oldLimitKwh',
-          'limit.changeHistory.oldLimitKwhConsumed', 'limit.changeHistory.newLimitKwh', 'limit.changeHistory.newLimitKwhConsumed'
+          'limit.changeHistory.lastChangedBy.name', 'limit.changeHistory.lastChangedBy.firstName', 'limit.changeHistory.lastChangedOn',
+          'limit.changeHistory.oldLimitKwh', 'limit.changeHistory.oldLimitKwhConsumed', 'limit.changeHistory.newLimitKwh', 'limit.changeHistory.newLimitKwhConsumed'
         ]
       },
       {
