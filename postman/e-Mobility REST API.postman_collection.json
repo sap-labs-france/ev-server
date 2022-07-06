@@ -37,7 +37,7 @@
 											}
 										],
 										"url": {
-											"raw": "{{baseUrl}}/api/tenants/:id?ProjectFields=",
+											"raw": "{{baseUrl}}/api/tenants/:id",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -76,7 +76,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/tenants/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/tenants/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -124,7 +124,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/tenants/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/tenants/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -172,7 +172,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/tenants/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/tenants/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -220,7 +220,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/tenants/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/tenants/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -268,7 +268,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/tenants/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/tenants/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -5680,7 +5680,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W",
+															"value": "I|E|W",
 															"description": "Pipe separated Inactivity Statuses (I, W, E)"
 														},
 														{
@@ -5830,7 +5830,7 @@
 																},
 																{
 																	"key": "InactivityStatus",
-																	"value": "I|E|I|E|I|W"
+																	"value": "I|E|W"
 																},
 																{
 																	"key": "Statistics",
@@ -5980,7 +5980,7 @@
 																},
 																{
 																	"key": "InactivityStatus",
-																	"value": "I|E|I|E|I|W"
+																	"value": "I|E|W"
 																},
 																{
 																	"key": "Statistics",
@@ -6130,7 +6130,7 @@
 																},
 																{
 																	"key": "InactivityStatus",
-																	"value": "I|E|I|E|I|W"
+																	"value": "I|E|W"
 																},
 																{
 																	"key": "Statistics",
@@ -6280,7 +6280,7 @@
 																},
 																{
 																	"key": "InactivityStatus",
-																	"value": "I|E|I|E|I|W"
+																	"value": "I|E|W"
 																},
 																{
 																	"key": "Statistics",
@@ -6460,7 +6460,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W",
+															"value": "I|E|W",
 															"description": "Pipe separated Inactivity Statuses (I, W, E)"
 														},
 														{
@@ -6611,7 +6611,7 @@
 																},
 																{
 																	"key": "InactivityStatus",
-																	"value": "I|E|I|E|I|W"
+																	"value": "I|E|W"
 																},
 																{
 																	"key": "Statistics",
@@ -6762,7 +6762,7 @@
 																},
 																{
 																	"key": "InactivityStatus",
-																	"value": "I|E|I|E|I|W"
+																	"value": "I|E|W"
 																},
 																{
 																	"key": "Statistics",
@@ -6913,7 +6913,7 @@
 																},
 																{
 																	"key": "InactivityStatus",
-																	"value": "I|E|I|E|I|W"
+																	"value": "I|E|W"
 																},
 																{
 																	"key": "Statistics",
@@ -7064,7 +7064,7 @@
 																},
 																{
 																	"key": "InactivityStatus",
-																	"value": "I|E|I|E|I|W"
+																	"value": "I|E|W"
 																},
 																{
 																	"key": "Statistics",
@@ -7753,7 +7753,7 @@
 												},
 												{
 													"key": "InactivityStatus",
-													"value": "I|E|I|E|I|W",
+													"value": "I|E|W",
 													"description": "Pipe separated Inactivity Statuses (I, W, E)"
 												},
 												{
@@ -7903,7 +7903,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -8053,7 +8053,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -8203,7 +8203,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -8353,7 +8353,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -8532,7 +8532,7 @@
 												},
 												{
 													"key": "InactivityStatus",
-													"value": "I|E|I|E|I|W",
+													"value": "I|E|W",
 													"description": "Pipe separated Inactivity Statuses (I, W, E)"
 												},
 												{
@@ -8682,7 +8682,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -8832,7 +8832,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -8982,7 +8982,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -9132,7 +9132,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -12025,7 +12025,7 @@
 												},
 												{
 													"key": "InactivityStatus",
-													"value": "I|E|I|E|I|W",
+													"value": "I|E|W",
 													"description": "Pipe separated Inactivity Statuses (I, W, E)"
 												},
 												{
@@ -12171,7 +12171,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -12317,7 +12317,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -12463,7 +12463,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -12609,7 +12609,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "Statistics",
@@ -12788,7 +12788,7 @@
 										},
 										{
 											"key": "InactivityStatus",
-											"value": "I|E|I|E|I|W",
+											"value": "I|E|W",
 											"description": "Pipe separated Inactivity Statuses (I, W, E)"
 										},
 										{
@@ -12936,7 +12936,7 @@
 												},
 												{
 													"key": "InactivityStatus",
-													"value": "I|E|I|E|I|W"
+													"value": "I|E|W"
 												},
 												{
 													"key": "Statistics",
@@ -13084,7 +13084,7 @@
 												},
 												{
 													"key": "InactivityStatus",
-													"value": "I|E|I|E|I|W"
+													"value": "I|E|W"
 												},
 												{
 													"key": "Statistics",
@@ -13232,7 +13232,7 @@
 												},
 												{
 													"key": "InactivityStatus",
-													"value": "I|E|I|E|I|W"
+													"value": "I|E|W"
 												},
 												{
 													"key": "Statistics",
@@ -13380,7 +13380,7 @@
 												},
 												{
 													"key": "InactivityStatus",
-													"value": "I|E|I|E|I|W"
+													"value": "I|E|W"
 												},
 												{
 													"key": "Statistics",
@@ -15610,7 +15610,7 @@
 											}
 										],
 										"url": {
-											"raw": "{{baseUrl}}/api/charging-stations/:id?ProjectFields=",
+											"raw": "{{baseUrl}}/api/charging-stations/:id",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -15649,7 +15649,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/charging-stations/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/charging-stations/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -15697,7 +15697,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/charging-stations/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/charging-stations/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -15745,7 +15745,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/charging-stations/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/charging-stations/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -15793,7 +15793,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/charging-stations/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/charging-stations/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -19522,7 +19522,7 @@
 												},
 												{
 													"key": "InactivityStatus",
-													"value": "I|E|I|E|I|W",
+													"value": "I|E|W",
 													"description": "Pipe separated Inactivity Statuses (I, W, E)"
 												},
 												{
@@ -19648,7 +19648,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "RefundStatus",
@@ -19773,7 +19773,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "RefundStatus",
@@ -19898,7 +19898,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "RefundStatus",
@@ -20023,7 +20023,7 @@
 														},
 														{
 															"key": "InactivityStatus",
-															"value": "I|E|I|E|I|W"
+															"value": "I|E|W"
 														},
 														{
 															"key": "RefundStatus",
@@ -26214,7 +26214,7 @@
 											}
 										],
 										"url": {
-											"raw": "{{baseUrl}}/api/users/:id?ProjectFields=",
+											"raw": "{{baseUrl}}/api/users/:id",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -26253,7 +26253,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/users/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/users/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -26301,7 +26301,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/users/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/users/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -26349,7 +26349,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/users/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/users/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -26397,7 +26397,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/users/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/users/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -26445,7 +26445,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/users/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/users/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -30569,7 +30569,7 @@
 											}
 										],
 										"url": {
-											"raw": "{{baseUrl}}/api/tags/:id?ProjectFields=",
+											"raw": "{{baseUrl}}/api/tags/:id",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -30608,7 +30608,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/tags/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/tags/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -30656,7 +30656,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/tags/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/tags/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -30704,7 +30704,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/tags/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/tags/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -30752,7 +30752,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/tags/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/tags/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -30800,7 +30800,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/api/tags/:id?ProjectFields=",
+													"raw": "{{baseUrl}}/api/tags/:id",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -61692,7 +61692,7 @@
 											}
 										],
 										"url": {
-											"raw": "{{baseUrl}}/api/billing/accounts?UserID=sint consequat&Status=sint consequat&StartDateTime=sint consequat&EndDateTime=sint consequat&Search=sint consequat&Skip=0&Limit=100&SortFields=id",
+											"raw": "{{baseUrl}}/api/billing/accounts?Limit=100&SortFields=id",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -61711,16 +61711,6 @@
 													"key": "Status",
 													"value": "sint consequat",
 													"description": "Pipe separated invoice status (idle, pending, active)"
-												},
-												{
-													"key": "StartDateTime",
-													"value": "sint consequat",
-													"description": "Start Date (ISO format)"
-												},
-												{
-													"key": "EndDateTime",
-													"value": "sint consequat",
-													"description": "End Date (ISO format)"
 												},
 												{
 													"key": "Search",
