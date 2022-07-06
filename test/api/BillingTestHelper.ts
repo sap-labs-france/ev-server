@@ -59,8 +59,8 @@ export default class BillingTestHelper {
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
   public billingAccount: BillingAccount;
 
-  public async initialize(tenant: string) : Promise<void> {
-    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenant);
+  public async initialize(tenantContext = ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING) : Promise<void> {
+    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenantContext);
     this.adminUserContext = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     this.adminUserService = new CentralServerService(
       this.tenantContext.getTenant().subdomain,
