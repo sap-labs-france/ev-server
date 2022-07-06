@@ -41,7 +41,7 @@ export default class CommonService {
       // No Tenant info found
       if (!tenantID && !tenantSubdomain) {
         // Handle the default tenant
-        if (Utils.objectHasProperty(httpRequest, 'tenant')) {
+        if (Utils.objectHasProperty(httpRequest, 'tenant') || Utils.objectHasProperty(httpRequest, 'Tenant')) {
           req.tenant = await AuthService.getTenant('');
         }
         next();

@@ -1743,15 +1743,18 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async billPlatformFee(billingTransfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice> {
     await this.checkConnection();
-    // Create invoice items
     try {
-      await Promise.all(billingTransfer.sessions.map(async (session) =>
-        this.createStripeInvoiceItem({
-          amount: session.amount * 100, // TODO - bill the platform fee (not the session amount)
+      // Create invoice items
+      await Promise.all(billingTransfer.sessions.map(async (session) => {
+        // A single tax rate per session
+        const tax_rates = (session.accountSessionFee.taxExternalID) ? [ session.accountSessionFee.taxExternalID ] : [];
+        return this.createStripeInvoiceItem({
+          amount: session.accountSessionFee.feeAmount,
           customer: user.billingData.customerID,
-          currency: billingTransfer.currency
-        }, this.buildIdemPotencyKey(session.transactionID, 'invoice', 'platformFee'))
-      ));
+          currency: billingTransfer.currency,
+          tax_rates
+        }, this.buildIdemPotencyKey(session.transactionID, 'invoice', 'platformFee'));
+      }));
     } catch (e) {
       throw new BackendError({
         message: 'Unexpected situation - unable to create invoice item',
@@ -1763,6 +1766,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Create invoice
     let stripeInvoice: Stripe.Invoice;
     try {
+      // -------------------------------------------------------------------------------------------
+      // TODO - Assuming the business owner is also an EV driver, we have here a potential conflict
+      // -------------------------------------------------------------------------------------------
+      // > Consider the STRIPE's new options: 'pending_invoice_items_behavior'
+      // -------------------------------------------------------------------------------------------
       stripeInvoice = await this.createStripeInvoice(user.billingData.customerID, user.id, this.buildIdemPotencyKey(billingTransfer.id, 'invoice', 'platformFee'));
     } catch (e) {
       throw new BackendError({

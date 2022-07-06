@@ -192,7 +192,6 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorID: filteredRequest.ConnectorID,
-        withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: filteredRequest.WithSiteArea,
         siteIDs: filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null,
         ...authorizations.filters

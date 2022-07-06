@@ -290,6 +290,11 @@ export default class BillingStorage {
     }
     // Remove the limit
     aggregation.pop();
+    // Add Users
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID: tenant.id, aggregation: aggregation, asField: 'businessOwner', localField: 'businessOwnerID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
@@ -304,11 +309,6 @@ export default class BillingStorage {
     // Limit
     aggregation.push({
       $limit: dbParams.limit
-    });
-    // Add Users
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'businessOwnerID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Add Last Changed / Created
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
@@ -354,16 +354,14 @@ export default class BillingStorage {
         amountAsDecimal: session.amountAsDecimal,
         amount: session.amount,
         roundedAmount: session.roundedAmount,
-        platformFeeStrategy: session.platformFeeStrategy,
+        accountSessionFee: session.accountSessionFee,
       })),
       currency: transfer.currency,
     };
     if (transfer.platformFeeData) {
       transferMDB.platformFeeData = {
-        taxExternalID: transfer.platformFeeData.taxExternalID,
         feeAmount: transfer.platformFeeData.feeAmount,
         feeTaxAmount: transfer.platformFeeData.feeTaxAmount,
-        invoiceExternalID: transfer.platformFeeData.invoiceExternalID
       };
     }
     if (transfer.invoice) {
