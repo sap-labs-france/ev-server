@@ -22,7 +22,18 @@
       "$ref": "tag#/definitions/userID"
     },
     "limit": {
-      "$ref": "tag#/definitions/limit"
+      "type": "object",
+      "properties": {
+        "limitKwhEnabled": {
+          "$ref": "tag#/definitions/limit/properties/limitKwhEnabled"
+        },
+        "limitKwh": {
+          "$ref": "tag#/definitions/limit/properties/limitKwh"
+        },
+        "limitKwhConsumed": {
+          "$ref": "tag#/definitions/limit/properties/limitKwhConsumed"
+        }
+      }
     }
   },
   "required": [

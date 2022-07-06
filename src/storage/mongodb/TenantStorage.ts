@@ -39,6 +39,7 @@ export default class TenantStorage {
 
   public static async saveTenant(tenantToSave: Partial<Tenant>, saveLogo = true): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
+    // Validate
     const tenantMDB = TenantValidatorStorage.getInstance().validateTenantSave(tenantToSave);
     // Build Request
     DatabaseUtils.switchIDToMongoDBID(tenantMDB);

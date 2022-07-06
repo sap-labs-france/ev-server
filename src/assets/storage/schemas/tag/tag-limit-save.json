@@ -1,0 +1,43 @@
+{
+  "$id": "tag-limit-save",
+  "title": "Save Tag limitation",
+  "type": "object",
+  "properties": {
+    "limitKwhEnabled": {
+      "$ref": "tag#/definitions/limit/properties/limitKwhEnabled",
+      "default": false
+    },
+    "limitKwh": {
+      "$ref": "tag#/definitions/limit/properties/limitKwh"
+    },
+    "limitKwhConsumed": {
+      "$ref": "tag#/definitions/limit/properties/limitKwhConsumed"
+    },
+    "changeHistory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lastChangedOn": {
+            "$ref": "common#/definitions/date"
+          },
+          "lastChangedBy": {
+            "$ref": "common#/definitions/user-id-mongo"
+          },
+          "oldLimitKwh": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwh"
+          },
+          "oldLimitKwhConsumed": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwhConsumed"
+          },
+          "newLimitKwh": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/newLimitKwh"
+          },
+          "newLimitKwhConsumed": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/newLimitKwhConsumed"
+          }
+        }
+      }
+    }
+  }
+}

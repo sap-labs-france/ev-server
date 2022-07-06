@@ -8,6 +8,7 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
 import { ServerAction } from '../../types/Server';
+import TagValidatorStorage from '../validator/TagValidatorStorage';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
@@ -65,10 +66,12 @@ export default class TagStorage {
   public static async saveTagLimit(tenant: Tenant, tagID: string, tagLimit: TagLimit): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
+    // Validate
+    const tagLimitMDB = TagValidatorStorage.getInstance().validateTagLimitSave(tagLimit);
     // Save
     await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
       { '_id': tagID },
-      { $set: { limit: tagLimit } },
+      { $set: { limit: tagLimitMDB } },
       { upsert: true, returnDocument: 'after' });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTagLimit', startTime, tagLimit);
   }

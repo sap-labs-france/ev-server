@@ -29,15 +29,55 @@
       "properties": {
         "limitKwhEnabled": {
           "type": "boolean",
-          "sanitize": "mongo"
-            },
+          "sanitize": "mongo",
+          "default": false
+        },
         "limitKwh": {
           "type": "number",
-          "sanitize": "mongo"
+          "sanitize": "mongo",
+          "minimum": 0,
+          "default": 0
         },
         "limitKwhConsumed": {
           "type": "number",
-          "sanitize": "mongo"
+          "sanitize": "mongo",
+          "minimum": 0,
+          "default": 0
+        },
+        "changeHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "lastChangedOn": {
+                "type": "string",
+                "format": "date-time",
+                "customType": "date",
+                "sanitize": "mongo",
+                "nullable": true
+              },
+              "lastChangedBy": {
+                "type": "string",
+                "sanitize": "mongo"
+              },
+              "oldLimitKwh": {
+                "type": "number",
+                "sanitize": "mongo"
+              },
+              "oldLimitKwhConsumed": {
+                "type": "number",
+                "sanitize": "mongo"
+              },
+              "newLimitKwh": {
+                "type": "number",
+                "sanitize": "mongo"
+              },
+              "newLimitKwhConsumed": {
+                "type": "number",
+                "sanitize": "mongo"
+              }
+            }
+          }
         }
       }
     },
