@@ -994,7 +994,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id','issuer','public','siteAreaID','lastSeen','inactive','isUnavailable','forceInactive','manualConfiguration','voltage','coordinates','chargingStationURL', 'forceInactive',
+          'id','issuer','public','siteAreaID','lastSeen','inactive','forceInactive','manualConfiguration','voltage','coordinates','chargingStationURL', 'forceInactive',
           'tariffID', 'maximumPower', 'masterSlave',
           'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
           'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
@@ -1313,7 +1313,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'issuer', 'public', 'siteAreaID', 'lastSeen', 'inactive', 'isUnavailable', 'forceInactive', 'manualConfiguration', 'voltage', 'coordinates', 'chargingStationURL',
+          'id', 'issuer', 'public', 'siteAreaID', 'lastSeen', 'inactive', 'forceInactive', 'manualConfiguration', 'voltage', 'coordinates', 'chargingStationURL',
           'forceInactive', 'tariffID', 'maximumPower', 'masterSlave',
           'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
           'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
@@ -1647,7 +1647,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           },
         },
         attributes: [
-          'id', 'issuer', 'public', 'siteAreaID', 'lastSeen', 'inactive', 'isUnavailable', 'forceInactive', 'manualConfiguration', 'voltage', 'coordinates', 'chargingStationURL',
+          'id', 'issuer', 'public', 'siteAreaID', 'lastSeen', 'inactive', 'forceInactive', 'manualConfiguration', 'voltage', 'coordinates', 'chargingStationURL',
           'forceInactive', 'tariffID', 'maximumPower', 'masterSlave',
           'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
           'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
