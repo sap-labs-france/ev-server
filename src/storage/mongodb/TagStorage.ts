@@ -68,6 +68,12 @@ export default class TagStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Validate
     const tagLimitMDB = TagValidatorStorage.getInstance().validateTagLimitSave(tagLimit);
+    // Sort history
+    if (!Utils.isEmptyArray(tagLimitMDB.changeHistory)) {
+      // Sort
+      tagLimitMDB.changeHistory = tagLimitMDB.changeHistory.sort((changeHistory1, changeHistory2) =>
+        changeHistory2.lastChangedOn.getTime() - changeHistory1.lastChangedOn.getTime());
+    }
     // Save
     await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
       { '_id': tagID },
