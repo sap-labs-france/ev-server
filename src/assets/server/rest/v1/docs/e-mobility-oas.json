@@ -14061,7 +14061,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Onboarding sent account",
+            "description": "Sent the account onboarding link by mail",
             "content": {
               "application/json": {
                 "schema": {
