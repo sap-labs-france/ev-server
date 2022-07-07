@@ -210,7 +210,7 @@ export default class AuthService {
     if (req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
-        '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
+        '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
       // Notify (Async)
       void NotificationHandler.sendNewRegisteredUser(
         req.tenant,
@@ -258,7 +258,7 @@ export default class AuthService {
     });
     // Send notification
     const evseDashboardResetPassURL = Utils.buildEvseURL(req.tenant.subdomain) +
-      '/define-password?hash=' + resetHash;
+      '/auth/define-password?hash=' + resetHash;
     // Notify
     void NotificationHandler.sendRequestPassword(
       tenant,
@@ -528,7 +528,7 @@ export default class AuthService {
     });
     // Send notification
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
-      '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+      '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
     // Notify
     void NotificationHandler.sendVerificationEmail(

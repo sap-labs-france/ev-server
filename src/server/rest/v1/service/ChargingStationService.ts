@@ -434,7 +434,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationsGetReq(req.query);
     // Check and get charging stations: site and siteArea are mandatory
     const chargingStations = await ChargingStationService.getChargingStations(req, filteredRequest, Action.EXPORT,
-      { withSite: filteredRequest.WithSite, withSiteArea: filteredRequest.WithSiteArea });
+      { withSite: true, withSiteArea: true });
     // Set the attachment name
     res.attachment('exported-ocpp-params.csv');
     let writeHeader = true;
