@@ -111,7 +111,8 @@ export default class BillingTestHelper {
 
   public async initContext2TestConnectedAccounts() : Promise<void> {
     // Assign a tariff the the charger
-    const chargingStationContext = await this.initChargingStationContext2TestChargingTime();
+    // const chargingStationContext = await this.initChargingStationContext2TestChargingTime();
+    const chargingStationContext = await this.initChargingStationContext2TestCS3Phased();
     // Get an active account (create it if necessary)
     const billingAccount = await this.getActivatedAccount();
     const chargingStation = chargingStationContext.getChargingStation();
@@ -512,7 +513,17 @@ export default class BillingTestHelper {
     await this.adminUserService.settingApi.update(componentSetting);
   }
 
-  public async checkTransactionBillingData(transactionId: number, expectedInvoiceStatus: BillingInvoiceStatus, expectedPrice: number = null) : Promise<void> {
+  public async checkInvoiceData(invoiceID: string, expectedStatus: BillingInvoiceStatus, expectedSessionCounter: number, expectedAmount: number): Promise<void> {
+    const response = await this.userService.billingApi.readInvoice(invoiceID);
+    expect(response.status).to.equal(StatusCodes.OK);
+    const invoice = response.data as BillingInvoice;
+    expect(invoice.status).to.equal(expectedStatus);
+    expect(invoice.sessions?.length).to.equal(expectedSessionCounter);
+    expect(invoice.amount).to.equal(expectedAmount * 100); // TODO - This is in cents - migration required :(
+    expect(response.data?.billingData, 'Billing Data should be set');
+  }
+
+  public async checkTransactionBillingData(transactionId: number, expectedInvoiceStatus: BillingInvoiceStatus, expectedPrice: number = null) : Promise<BillingDataTransactionStop> {
     // Check the transaction status
     const transactionResponse = await this.adminUserService.transactionApi.readById(transactionId);
     expect(transactionResponse.status).to.equal(StatusCodes.OK);
@@ -538,6 +549,8 @@ export default class BillingTestHelper {
       const billedPrice = this.getBilledRoundedPrice(billingDataStop);
       assert(billedPrice.equals(expectedPrice), `The billed price should be: ${expectedPrice} - actual value: ${billedPrice.toNumber()}`);
     }
+    // Returns the STOP information
+    return billingDataStop;
   }
 
   public getBilledRoundedPrice(billingDataStop: BillingDataTransactionStop): Decimal {
@@ -579,7 +592,15 @@ export default class BillingTestHelper {
     }
   }
 
-  public async generateTransaction(user: any, expectedStatus = 'Accepted', expectedStartDate = new Date(), withSoftStopSimulation = false): Promise<number> {
+  public async generateTransactionAndCheckBillingStatus(expectedBillingStatus : BillingInvoiceStatus): Promise<number> {
+    const transactionID = await this.generateTransaction();
+    assert(transactionID, 'transactionID should not be null');
+    // Check that we have a new invoice with an invoiceID and but no invoiceNumber yet
+    await this.checkTransactionBillingData(transactionID, expectedBillingStatus);
+    return transactionID;
+  }
+
+  public async generateTransaction(expectedStatus = 'Accepted', expectedStartDate = new Date(), withSoftStopSimulation = false): Promise<number> {
     const meterStart = 0;
     const meterStop = 32325; // Unit: Wh
     const meterValueRampUp = Utils.createDecimal(meterStop).divToInt(80).toNumber();
@@ -587,8 +608,10 @@ export default class BillingTestHelper {
     const meterValuePoorConsumption = 0; // Simulate a gap in the energy provisioning
     const meterValuePhaseOut = Utils.createDecimal(meterStop).divToInt(60).toNumber();
     const connectorId = 1;
-    assert((user.tags && user.tags.length), 'User must have a valid tag');
-    const tagId = user.tags[0].id;
+    // TODO - wrong type User vs UserContext?
+    const user = this.userContext as any;
+    const tagId = user?.tags?.[0]?.id;
+    assert(tagId, 'User must have a valid tag');
     // # Begin
     const startDate = moment(expectedStartDate);
     // Let's send an OCCP status notification to simulate some extra inactivities

@@ -44,8 +44,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       await stripeTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM);
       // TODO - This is ugly and confusing - rethink that part (merge BillingTestHelper and StripeTestHelper methods)
       await billingTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM);
-      // Initialize the Billing module
-      await billingTestHelper.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF, so periodicBilling ON */);
       // Set the admin as the current user context
       billingTestHelper.setCurrentUserContextAsAdmin();
     });
@@ -249,10 +247,12 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         await billingTestHelper.initContext2TestConnectedAccounts();
       });
 
-      it('should create an invoice, and get transfers generated', async () => {
-        // -------------------------------------------------------------------------------------------------------------
-        // -------------------------------------------------------------------------------------------------------------
-        // -------------------------------------------------------------------------------------------------------------
+      describe('with Periodic Billing ON ', () => {
+        beforeAll(async () => {
+          // Initialize the Billing module
+          await billingTestHelper.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF */);
+        });
+
         // -------------------------------------------------------------------------------------------------------------
         // TO DO - GENERATE SEVERAL TRANSACTIONS
         // -------------------------------------------------------------------------------------------------------------
@@ -267,28 +267,54 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // - finalize the transfers!!!!
         // - send the transfers to STRIPE to generate the real transfer of funds
         // -------------------------------------------------------------------------------------------------------------
-        // Create a account
-        await billingTestHelper.makeCurrentUserContextReadyForBilling();
-        const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
-        assert(transactionID, 'transactionID should not be null');
-        // Check that we have a new invoice with an invoiceID and but no invoiceNumber yet
-        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.DRAFT);
-        // Let's simulate the periodic billing operation
-        const taskConfiguration: BillingPeriodicOperationTaskConfig = {
-          onlyProcessUnpaidInvoices: false,
-          forceOperation: true
-        };
-        const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
-        assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
-        assert(operationResult.inError === 0, 'The operation should detect any errors');
-        // The transaction should now have a different status and know the final invoice number
-        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
-        // The user should have no DRAFT invoices
-        const nbDraftInvoices = await billingTestHelper.checkForDraftInvoices();
-        assert(nbDraftInvoices === 0, 'The expected number of DRAFT invoices is not correct');
+        it('should create an invoice, and get transfers generated', async () => {
+          // Create a account
+          await billingTestHelper.makeCurrentUserContextReadyForBilling();
+          // Generate a DRAFT transaction
+          const transactionID1 = await billingTestHelper.generateTransactionAndCheckBillingStatus(BillingInvoiceStatus.DRAFT);
+          const transactionID2 = await billingTestHelper.generateTransactionAndCheckBillingStatus(BillingInvoiceStatus.DRAFT);
+          // Let's simulate the periodic billing operation
+          const taskConfiguration: BillingPeriodicOperationTaskConfig = {
+            onlyProcessUnpaidInvoices: false,
+            forceOperation: true
+          };
+          const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
+          assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
+          assert(operationResult.inError === 0, 'The operation should detect any errors');
+          // The transaction should now have a different status and know the final invoice number
+          const billingDataStop1 = await billingTestHelper.checkTransactionBillingData(transactionID1, BillingInvoiceStatus.PAID);
+          const billingDataStop2 = await billingTestHelper.checkTransactionBillingData(transactionID2, BillingInvoiceStatus.PAID);
+          // Check billing data
+          assert(billingDataStop1.invoiceID === billingDataStop2.invoiceID, 'The two transactions should be billed by a single invoice');
+          await billingTestHelper.checkInvoiceData(billingDataStop1.invoiceID, BillingInvoiceStatus.PAID, 2, 20.16);
+          // The user should have no DRAFT invoices
+          const nbDraftInvoices = await billingTestHelper.checkForDraftInvoices();
+          assert(nbDraftInvoices === 0, 'The expected number of DRAFT invoices is not correct');
+        });
       });
-    });
 
+      describe('with Immediate Billing ON ', () => {
+        beforeAll(async () => {
+          // Initialize the Billing module
+          await billingTestHelper.setBillingSystemValidCredentials(true, true /* immediateBillingAllowed ON */);
+        });
+
+        it('should create an invoice, pay for it immediately and get a transfer generated or updated', async () => {
+          // Create a account
+          await billingTestHelper.makeCurrentUserContextReadyForBilling();
+          // Generate a PAID transaction
+          const transactionID = await billingTestHelper.generateTransactionAndCheckBillingStatus(BillingInvoiceStatus.PAID);
+          // The transaction should now have a different status and know the final invoice number
+          const billingDataStop = await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+          // Check billing data
+          await billingTestHelper.checkInvoiceData(billingDataStop.invoiceID, BillingInvoiceStatus.PAID, 1, 10.08);
+          // The user should have no DRAFT invoices
+          const nbDraftInvoices = await billingTestHelper.checkForDraftInvoices();
+          assert(nbDraftInvoices === 0, 'The expected number of DRAFT invoices is not correct');
+        });
+      });
+
+    });
   });
 
   describe('Where basic user', () => {
