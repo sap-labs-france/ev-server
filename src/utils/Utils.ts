@@ -1741,11 +1741,24 @@ export default class Utils {
     }
   }
 
-  public static deleteUserPropertiesFromEntity(entityData?: EntityData): void {
+  public static removeSensibeDataFromEntity(extraFilters: Record<string, any>, entityData?: EntityData): void {
+    // User data
+    if (Utils.objectHasProperty(extraFilters, 'UserData') &&
+    !Utils.isNullOrUndefined(extraFilters['UserData']) && extraFilters['UserData']) {
+      Utils.deleteUserPropertiesFromEntity(entityData);
+    }
+    // Tag data
+    if (Utils.objectHasProperty(extraFilters, 'TagData') &&
+    !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
+      Utils.deleteTagPropertiesFromEntity(entityData);
+    }
+  }
+
+  private static deleteUserPropertiesFromEntity(entityData?: EntityData): void {
     Utils.deletePropertiesFromEntity(entityData, ['user']);
   }
 
-  public static deleteTagPropertiesFromEntity(entityData?: EntityData): void {
+  private static deleteTagPropertiesFromEntity(entityData?: EntityData): void {
     Utils.deletePropertiesFromEntity(entityData, ['tag', 'currentTagID']);
   }
 

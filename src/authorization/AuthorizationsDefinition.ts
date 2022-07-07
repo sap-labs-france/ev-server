@@ -407,6 +407,17 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
+        resource: Entity.CHARGING_STATION,
+        action: [Action.VIEW_USER_DATA],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+      },
+      {
         resource: Entity.CONNECTOR,
         action: [Action.STOP_TRANSACTION, Action.START_TRANSACTION],
         condition: {
@@ -420,6 +431,17 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.CONNECTOR,
         action: [Action.REMOTE_STOP_TRANSACTION, Action.REMOTE_START_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+      },
+      {
+        resource: Entity.CONNECTOR,
+        action: [Action.VIEW_USER_DATA],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -993,6 +1015,17 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
+        resource: Entity.CHARGING_STATION,
+        action: [Action.VIEW_USER_DATA],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+      },
+      {
         resource: Entity.CONNECTOR,
         action: Action.START_TRANSACTION,
         condition: {
@@ -1010,6 +1043,17 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: ['OwnUser'],
+            filters: ['OwnUser']
+          }
+        },
+      },
+      {
+        resource: Entity.CONNECTOR,
+        action: [Action.VIEW_USER_DATA],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
             filters: ['OwnUser']
           }
         },
@@ -1650,6 +1694,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
+        resource: Entity.CHARGING_STATION, action: [Action.VIEW_USER_DATA],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminUsers']
+          }
+        },
+      },
+      {
         resource: Entity.CONNECTOR,
         action: [Action.REMOTE_STOP_TRANSACTION, Action.REMOTE_START_TRANSACTION],
         condition: {
@@ -1667,6 +1721,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: {
             asserts: [],
             filters: ['AssignedSites', 'LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.CONNECTOR, action: [Action.VIEW_USER_DATA],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminUsers']
           }
         },
       },
