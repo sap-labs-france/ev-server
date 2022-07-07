@@ -410,7 +410,7 @@ export default class BillingTestHelper {
     return this.chargingStationContext;
   }
 
-  public async setBillingSystemValidCredentials(activateTransactionBilling = true, immediateBillingAllowed = false) : Promise<StripeBillingIntegration> {
+  public async setBillingSystemValidCredentials(activateTransactionBilling = true, immediateBillingAllowed = false) : Promise<void> {
     const billingSettings = this.getLocalSettings(immediateBillingAllowed);
     // Here we switch ON or OFF the billing of charging sessions
     billingSettings.billing.isTransactionBillingActivated = activateTransactionBilling;
@@ -421,10 +421,10 @@ export default class BillingTestHelper {
     billingSettings.stripe.secretKey = await Cypher.encrypt(tenant, billingSettings.stripe.secretKey);
     const billingImpl = StripeBillingIntegration.getInstance(tenant, billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
-    return billingImpl;
+    this.billingImpl = billingImpl;
   }
 
-  public async setBillingSystemInvalidCredentials() : Promise<StripeBillingIntegration> {
+  public async setBillingSystemInvalidCredentials() : Promise<void> {
     const billingSettings = this.getLocalSettings(false);
     const tenant = this.tenantContext?.getTenant();
     assert(!!tenant, 'Tenant cannot be null');
@@ -432,7 +432,7 @@ export default class BillingTestHelper {
     await this.saveBillingSettings(billingSettings);
     const billingImpl = StripeBillingIntegration.getInstance(tenant, billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
-    return billingImpl;
+    this.billingImpl = billingImpl;
   }
 
   public getLocalSettings(immediateBillingAllowed: boolean): BillingSettings {

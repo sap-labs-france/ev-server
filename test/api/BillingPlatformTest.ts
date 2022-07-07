@@ -42,58 +42,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
   describe('Billing Service (utbillingplatform)', () => {
     beforeAll(async () => {
       await stripeTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM);
+      // TODO - This is ugly and confusing - rethink that part (merge BillingTestHelper and StripeTestHelper methods)
       await billingTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM);
-      const immediateBilling = false;
-      await stripeTestHelper.forceBillingSettings(immediateBilling);
-    });
+      // Initialize the Billing module
+      await billingTestHelper.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF, so periodicBilling ON */);
 
-    describe('Where admin user', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
-      beforeAll(async () => {
-        billingTestHelper.initUserContextAsAdmin();
-        // Initialize the charging station context
-        await billingTestHelper.initChargingStationContext2TestChargingTime();
-      });
-
-      xit('should create an invoice, and get transfers generated', async () => {
-        // -------------------------------------------------------------------------------------------------------------
-        // -------------------------------------------------------------------------------------------------------------
-        // -------------------------------------------------------------------------------------------------------------
-        // -------------------------------------------------------------------------------------------------------------
-        // TO DO - GENERATE SEVERAL TRANSACTIONS
-        // -------------------------------------------------------------------------------------------------------------
-        // - create and onboard two accounts
-        // - assign a account at a company level (with a platform fee strategy)
-        // - Override the account at a site level (with a distinct platform fee strategy)
-        // - Generate several transactions
-        // - Make sure to select the periodic billing mode and generate DRAFT invoices
-        // - Make sure to have several sessions per invoices
-        // - Make sure each invoices targets SEVERAL SUB-ACCOUNTS
-        // - force the periodic billing and thus GENERATE SEVERAL TRANSFERS
-        // - finalize the transfers!!!!
-        // - send the transfers to STRIPE to generate the real transfer of funds
-        // -------------------------------------------------------------------------------------------------------------
-        await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
-        const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
-        await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
-        const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
-        assert(transactionID, 'transactionID should not be null');
-        // Check that we have a new invoice with an invoiceID and but no invoiceNumber yet
-        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.DRAFT);
-        // Let's simulate the periodic billing operation
-        const taskConfiguration: BillingPeriodicOperationTaskConfig = {
-          onlyProcessUnpaidInvoices: false,
-          forceOperation: true
-        };
-        const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
-        assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
-        assert(operationResult.inError === 0, 'The operation should detect any errors');
-        // The transaction should now have a different status and know the final invoice number
-        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
-        // The user should have no DRAFT invoices
-        const nbDraftInvoices = await billingTestHelper.checkForDraftInvoices();
-        assert(nbDraftInvoices === 0, 'The expected number of DRAFT invoices is not correct');
-      });
     });
 
     describe('Connected Accounts', () => {
@@ -292,12 +245,61 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
     });
 
+    describe('Where admin user', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      beforeAll(async () => {
+        billingTestHelper.initUserContextAsAdmin();
+        // Initialize the charging station context
+        await billingTestHelper.initChargingStationContext2TestChargingTime();
+      });
+
+      it('should create an invoice, and get transfers generated', async () => {
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------
+        // TO DO - GENERATE SEVERAL TRANSACTIONS
+        // -------------------------------------------------------------------------------------------------------------
+        // - create and onboard two accounts
+        // - assign a account at a company level (with a platform fee strategy)
+        // - Override the account at a site level (with a distinct platform fee strategy)
+        // - Generate several transactions
+        // - Make sure to select the periodic billing mode and generate DRAFT invoices
+        // - Make sure to have several sessions per invoices
+        // - Make sure each invoices targets SEVERAL SUB-ACCOUNTS
+        // - force the periodic billing and thus GENERATE SEVERAL TRANSFERS
+        // - finalize the transfers!!!!
+        // - send the transfers to STRIPE to generate the real transfer of funds
+        // -------------------------------------------------------------------------------------------------------------
+        await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
+        const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+        await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+        const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
+        assert(transactionID, 'transactionID should not be null');
+        // Check that we have a new invoice with an invoiceID and but no invoiceNumber yet
+        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.DRAFT);
+        // Let's simulate the periodic billing operation
+        const taskConfiguration: BillingPeriodicOperationTaskConfig = {
+          onlyProcessUnpaidInvoices: false,
+          forceOperation: true
+        };
+        const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
+        assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
+        assert(operationResult.inError === 0, 'The operation should detect any errors');
+        // The transaction should now have a different status and know the final invoice number
+        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+        // The user should have no DRAFT invoices
+        const nbDraftInvoices = await billingTestHelper.checkForDraftInvoices();
+        assert(nbDraftInvoices === 0, 'The expected number of DRAFT invoices is not correct');
+      });
+    });
+
   });
 
   describe('Where basic user', () => {
 
     beforeAll(async () => {
-      billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
+      await billingTestHelper.setBillingSystemValidCredentials();
       billingTestHelper.userContext = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
       billingTestHelper.userService = new CentralServerService(
         billingTestHelper.tenantContext.getTenant().subdomain,

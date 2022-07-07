@@ -129,7 +129,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       beforeAll(async () => {
         billingTestHelper.initUserContextAsAdmin();
         // Initialize the Billing module with transaction billing ON
-        billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials(false);
+        await billingTestHelper.setBillingSystemValidCredentials(false);
       });
 
       it('Should be able to invoke Billing Settings endpoints', async () => {
@@ -195,7 +195,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       beforeAll(async () => {
         billingTestHelper.initUserContextAsAdmin();
         // Initialize the Billing module with transaction billing ON
-        billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
+        await billingTestHelper.setBillingSystemValidCredentials();
       });
 
       it('Should be able to invoke Billing Settings endpoints', async () => {
@@ -275,7 +275,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // Initialize the charing station context
         await billingTestHelper.initChargingStationContext();
         // Initialize the Billing module
-        billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
+        await billingTestHelper.setBillingSystemValidCredentials();
         // Make sure the required users are in sync
         const adminUser: User = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         const basicUser: User = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -392,7 +392,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('Where basic user', () => {
 
         beforeAll(async () => {
-          billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
+          await billingTestHelper.setBillingSystemValidCredentials();
           billingTestHelper.userContext = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           billingTestHelper.userService = new CentralServerService(
             billingTestHelper.tenantContext.getTenant().subdomain,
@@ -471,7 +471,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         afterAll(async () => {
         // Restore VALID STRIPE credentials
-          billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
+          await billingTestHelper.setBillingSystemValidCredentials();
         });
 
         it('Should recover after a synchronization issue', async () => {
@@ -479,14 +479,14 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             ...Factory.user.build(),
           } as User;
           fakeUser.issuer = true;
-          billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemInvalidCredentials();
+          await billingTestHelper.setBillingSystemInvalidCredentials();
           assert(billingTestHelper.billingImpl, 'Billing implementation should not be null');
           await billingTestHelper.userService.createEntity(
             billingTestHelper.userService.userApi,
             fakeUser
           );
           billingTestHelper.createdUsers.push(fakeUser);
-          billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
+          await billingTestHelper.setBillingSystemValidCredentials();
           const billingUser = await billingTestHelper.billingImpl.synchronizeUser(fakeUser);
           expect(billingUser).to.be.not.null;
           const userExists = await billingTestHelper.billingImpl.isUserSynchronized(fakeUser);
@@ -499,13 +499,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         beforeAll(async () => {
           billingTestHelper.initUserContextAsAdmin();
           // Force INVALID STRIPE credentials
-          billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemInvalidCredentials();
+          await billingTestHelper.setBillingSystemInvalidCredentials();
           assert(billingTestHelper.billingImpl, 'Billing implementation should not be null');
         });
 
         afterAll(async () => {
         // Restore VALID STRIPE credentials
-          billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
+          await billingTestHelper.setBillingSystemValidCredentials();
         });
 
         it('Should not be able to start a transaction', async () => {
@@ -520,7 +520,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         beforeAll(async () => {
           billingTestHelper.initUserContextAsAdmin();
           // Set STRIPE credentials
-          billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemInvalidCredentials();
+          await billingTestHelper.setBillingSystemInvalidCredentials();
         });
 
         afterAll(async () => {
@@ -541,7 +541,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         expect(billingTestHelper.userContext).to.not.be.null;
         await billingTestHelper.initChargingStationContext();
         // Initialize the Billing module
-        billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials(false);
+        await billingTestHelper.setBillingSystemValidCredentials(false);
       });
 
       describe('Where admin user', () => {
@@ -573,7 +573,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       beforeAll(async () => {
         billingTestHelper.initUserContextAsAdmin();
         // Initialize the Billing module
-        billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials(true, true /* immediateBillingAllowed ON */);
+        await billingTestHelper.setBillingSystemValidCredentials(true, true /* immediateBillingAllowed ON */);
       });
 
       describe('FF + CT', () => {
@@ -801,7 +801,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         beforeAll(async () => {
           // Initialize the charging station context
           await billingTestHelper.initChargingStationContext();
-          billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
+          await billingTestHelper.setBillingSystemValidCredentials();
           billingTestHelper.adminUserContext = await billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(billingTestHelper.adminUserContext).to.not.be.null;
           billingTestHelper.userContext = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -843,7 +843,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         beforeAll(async () => {
           // Initialize the charging station context
           await billingTestHelper.initChargingStationContext();
-          billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials();
+          await billingTestHelper.setBillingSystemValidCredentials();
           billingTestHelper.adminUserContext = await billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(billingTestHelper.adminUserContext).to.not.be.null;
           billingTestHelper.userContext = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -883,7 +883,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       beforeAll(async () => {
         billingTestHelper.initUserContextAsAdmin();
         // Initialize the Billing module
-        billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF, so periodicBilling ON */);
+        await billingTestHelper.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF, so periodicBilling ON */);
       });
 
       describe('Where admin user', () => {
@@ -935,7 +935,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       beforeAll(async () => {
         billingTestHelper.initUserContextAsAdmin();
         // Initialize the Billing module
-        billingTestHelper.billingImpl = await billingTestHelper.setBillingSystemValidCredentials(true, true /* immediateBillingAllowed ON */);
+        await billingTestHelper.setBillingSystemValidCredentials(true, true /* immediateBillingAllowed ON */);
         await billingTestHelper.initChargingStationContext2TestChargingTime();
       });
 
