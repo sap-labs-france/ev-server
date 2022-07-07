@@ -1,18 +1,16 @@
 /* eslint-disable max-len */
 import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
+import StripeTestHelper, { BillingTestConfigHelper } from './StripeTestHelper';
 import chai, { expect } from 'chai';
 
 import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingTestHelper from './BillingTestHelper';
-import CentralServerService from './client/CentralServerService';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
-import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { StatusCodes } from 'http-status-codes';
-import StripeTestHelper from './StripeTestHelper';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
 import assert from 'assert';
@@ -29,11 +27,9 @@ const stripeTestHelper = new StripeTestHelper();
 const billingTestHelper = new BillingTestHelper();
 // Conditional test execution function
 const describeif = (condition) => condition ? describe : describe.skip;
-// Do not run the tests when the settings are not properly set
-const isBillingProperlyConfigured = stripeTestHelper.isBillingProperlyConfigured();
+const isBillingProperlyConfigured = BillingTestConfigHelper.isBillingProperlyConfigured();
 
 describeif(isBillingProperlyConfigured)('Billing', () => {
-  // Do not run the tests when the settings are not properly set
   jest.setTimeout(60000);
 
   beforeAll(async () => {
@@ -737,7 +733,16 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
       });
 
-      describe('When basic user has a free access', () => {
+    });
+
+    describe('when Basic User', () => {
+      beforeAll(async () => {
+        billingTestHelper.setCurrentUserContextAsBasic();
+        // Initialize the Billing module
+        await billingTestHelper.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF, so periodicBilling ON */);
+      });
+
+      describe('has free access', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
           // Initialize the charging station context
@@ -745,8 +750,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           await billingTestHelper.setBillingSystemValidCredentials();
           // Update the freeAccess flag for the basic user:
           await billingTestHelper.getAdminUserService().userApi.update({
-            id: ContextDefinition.TENANT_USER_LIST[2].id,
-            freeAccess: true
+            id: billingTestHelper.getBasicUserContext().id,
+            freeAccess: true // Switch ON freeAccess flag
           });
         });
 
@@ -757,24 +762,21 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
             const transactionID = await billingTestHelper.generateTransaction();
             assert(transactionID, 'transactionID should not be null');
-            // await testData.checkTransactionBillingData(transactionID); // TODO - Check not yet possible!
-            // await testData.userService.billingApi.synchronizeInvoices({});
             const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
             expect(itemsAfter).eq(itemsBefore);
           }
         );
       });
 
-      describe('When basic user does not have a free access', () => {
+      describe('does not have a free access', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
           // Initialize the charging station context
           await billingTestHelper.initChargingStationContext();
           await billingTestHelper.setBillingSystemValidCredentials();
-          // Update the freeAccess flag for the basic user:
           await billingTestHelper.getAdminUserService().userApi.update({
-            id: ContextDefinition.TENANT_USER_LIST[2].id,
-            freeAccess: false
+            id: billingTestHelper.getBasicUserContext().id,
+            freeAccess: false // Switch OFF freeAccess flag
           });
         });
 
@@ -783,10 +785,15 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
           const transactionID = await billingTestHelper.generateTransaction();
           assert(transactionID, 'transactionID should not be null');
-          // await testData.checkTransactionBillingData(transactionID); // TODO - Check not yet possible!
-          // await testData.userService.billingApi.synchronizeInvoices({});
           const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
           expect(itemsAfter).to.be.gt(itemsBefore);
+        });
+      });
+
+      afterAll(async () => {
+        await billingTestHelper.getAdminUserService().userApi.update({
+          id: billingTestHelper.getBasicUserContext().id,
+          freeAccess: false // Restore initial state
         });
       });
 
@@ -802,7 +809,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       describe('Where admin user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
-          // Initialize the charing station context
+          // Initialize the charging station context
           await billingTestHelper.initChargingStationContext2TestChargingTime();
         });
 

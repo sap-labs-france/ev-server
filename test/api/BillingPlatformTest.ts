@@ -5,6 +5,7 @@ import chai, { expect } from 'chai';
 
 import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
+import { BillingTestConfigHelper } from './StripeTestHelper';
 import BillingTestHelper from './BillingTestHelper';
 import CompanyFactory from '../factories/CompanyFactory';
 import Constants from '../../src/utils/Constants';
@@ -12,7 +13,6 @@ import ContextDefinition from './context/ContextDefinition';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import SiteFactory from '../factories/SiteFactory';
 import { StatusCodes } from 'http-status-codes';
-import StripeTestHelper from './StripeTestHelper';
 import assert from 'assert';
 import chaiSubset from 'chai-subset';
 import config from '../config';
@@ -22,16 +22,12 @@ import responseHelper from '../helpers/responseHelper';
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
-// TODO - Get rid of the stripe helper which provide redundant convenience methods
-const stripeTestHelper = new StripeTestHelper();
 const billingTestHelper = new BillingTestHelper();
 // Conditional test execution function
 const describeif = (condition) => condition ? describe : describe.skip;
-// Do not run the tests when the settings are not properly set
-const isBillingProperlyConfigured = stripeTestHelper.isBillingProperlyConfigured();
+const isBillingProperlyConfigured = BillingTestConfigHelper.isBillingProperlyConfigured();
 
 describeif(isBillingProperlyConfigured)('Billing', () => {
-  // Do not run the tests when the settings are not properly set
   jest.setTimeout(60000);
 
   beforeAll(async () => {
@@ -41,8 +37,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
   describe('Billing Platform (utbillingplatform)', () => {
     beforeAll(async () => {
-      // TODO - This is ugly and confusing - rethink that part (merge BillingTestHelper and StripeTestHelper methods)
-      await stripeTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM);
       await billingTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM);
     });
 
