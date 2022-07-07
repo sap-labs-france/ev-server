@@ -28,15 +28,15 @@ chai.use(responseHelper);
 
 export default class StripeTestHelper {
   // Tenant: utbilling
-  public tenantContext: TenantContext;
+  private tenantContext: TenantContext;
   // User Service for action requiring admin permissions (e.g.: set/reset stripe settings)
-  public adminUserContext: User;
-  public adminUserService: CentralServerService;
+  private adminUserContext: User;
+  private adminUserService: CentralServerService;
   // Dynamic User for testing billing against an test STRIPE account
-  public dynamicUser: User;
+  private dynamicUser: User;
   // Billing Implementation - STRIPE
-  public billingImpl: StripeBillingIntegration;
-  public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
+  private billingImpl: StripeBillingIntegration;
+  private billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
 
   public async initialize(tenantContext = ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING): Promise<void> {
 

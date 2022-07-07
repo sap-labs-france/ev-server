@@ -42,6 +42,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
   });
 
   describe('Billing Stripe Service (utbilling)', () => {
+
     beforeAll(async () => {
       await stripeTestHelper.initialize();
     });
@@ -115,13 +116,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
   describe('Billing Settings (utbilling)', () => {
     beforeAll(async () => {
-      billingTestHelper.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
-      billingTestHelper.adminUserContext = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-      billingTestHelper.adminUserService = new CentralServerService(
-        billingTestHelper.tenantContext.getTenant().subdomain,
-        billingTestHelper.adminUserContext
-      );
-      expect(billingTestHelper.userContext).to.not.be.null;
+      await billingTestHelper.initialize();
     });
 
     describe('As an admin - with transaction billing OFF', () => {
@@ -134,7 +129,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
       it('Should be able to invoke Billing Settings endpoints', async () => {
         // Get the Billing settings
-        let response = await billingTestHelper.userService.billingApi.getBillingSetting();
+        let response = await billingTestHelper.getCurrentUserService().billingApi.getBillingSetting();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         const billingSettings = response.data as BillingSettings ;
         assert(billingSettings.billing, 'Billing Properties should not be null');
@@ -143,7 +138,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         assert(billingSettings.stripe.secretKey, 'Secret Key should not be null');
         assert(billingSettings.id, 'ID should not be null');
         // Check billing connection to STRIPE
-        response = await billingTestHelper.userService.billingApi.checkBillingConnection();
+        response = await billingTestHelper.getCurrentUserService().billingApi.checkBillingConnection();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         assert(response.data, 'Response data should not be null');
         assert(response.data.connectionIsValid === true, 'Connection should be valid');
@@ -151,7 +146,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
       it('Should be able to update the secret key', async () => {
         // Get the Billing settings
-        let response = await billingTestHelper.userService.billingApi.getBillingSetting();
+        let response = await billingTestHelper.getCurrentUserService().billingApi.getBillingSetting();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         let billingSettings = response.data as BillingSettings ;
         assert(billingSettings.billing, 'Billing Properties should not be null');
@@ -160,10 +155,10 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         const keyHash = billingSettings.stripe.secretKey;
         // Let's attempt to update the secret key
         billingSettings.stripe.secretKey = config.get('stripe.secretKey'),
-        response = await billingTestHelper.userService.billingApi.updateBillingSetting(billingSettings);
+        response = await billingTestHelper.getCurrentUserService().billingApi.updateBillingSetting(billingSettings);
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         // Check that the hash is still correct
-        response = await billingTestHelper.userService.billingApi.getBillingSetting();
+        response = await billingTestHelper.getCurrentUserService().billingApi.getBillingSetting();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         billingSettings = response.data as BillingSettings ;
         assert(billingSettings.billing, 'Billing Properties should not be null');
@@ -173,16 +168,16 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       it(
         'Should check prerequisites when switching Transaction Billing ON',
         async () => {
-          let response = await billingTestHelper.userService.billingApi.getBillingSetting();
+          let response = await billingTestHelper.getCurrentUserService().billingApi.getBillingSetting();
           assert(response.status === StatusCodes.OK, 'Response status should be 200');
           const billingSettings = response.data as BillingSettings ;
           // Let's attempt to switch ON the billing of transactions
           billingSettings.billing.isTransactionBillingActivated = true;
-          response = await billingTestHelper.userService.billingApi.updateBillingSetting(billingSettings);
+          response = await billingTestHelper.getCurrentUserService().billingApi.updateBillingSetting(billingSettings);
           // taxID is not set - so the prerequisites are not met
           assert(response.status !== StatusCodes.OK, 'Response status should not be 200');
           // Check again the billing connection to STRIPE
-          response = await billingTestHelper.userService.billingApi.checkBillingConnection();
+          response = await billingTestHelper.getCurrentUserService().billingApi.checkBillingConnection();
           assert(response.status === StatusCodes.OK, 'Response status should be 200');
           assert(response.data, 'Response data should not be null');
           assert(response.data.connectionIsValid === true, 'Connection should be valid');
@@ -200,7 +195,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
       it('Should be able to invoke Billing Settings endpoints', async () => {
         // Get the Billing settings
-        let response = await billingTestHelper.userService.billingApi.getBillingSetting();
+        let response = await billingTestHelper.getCurrentUserService().billingApi.getBillingSetting();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         const billingSettings = response.data as BillingSettings ;
         assert(billingSettings.billing, 'Billing Properties should not be null');
@@ -209,7 +204,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         assert(billingSettings.stripe.secretKey, 'Secret Key should not be null');
         assert(billingSettings.id, 'ID should not be null');
         // Check billing connection to STRIPE
-        response = await billingTestHelper.userService.billingApi.checkBillingConnection();
+        response = await billingTestHelper.getCurrentUserService().billingApi.checkBillingConnection();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         assert(response.data, 'Response data should not be null');
         assert(response.data.connectionIsValid === true, 'Connection should be valid');
@@ -219,7 +214,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         'Should not be able to alter the secretKey when transaction billing is ON',
         async () => {
           // Get the Billing settings
-          let response = await billingTestHelper.userService.billingApi.getBillingSetting();
+          let response = await billingTestHelper.getCurrentUserService().billingApi.getBillingSetting();
           assert(response.status === StatusCodes.OK, 'Response status should be 200');
           let billingSettings = response.data as BillingSettings ;
           assert(billingSettings.billing, 'Billing Properties should not be null');
@@ -228,17 +223,17 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           const keyHash = billingSettings.stripe.secretKey;
           // Let's attempt to alter the secret key while transaction billing is ON
           billingSettings.stripe.secretKey = '1234567890';
-          response = await billingTestHelper.userService.billingApi.updateBillingSetting(billingSettings);
+          response = await billingTestHelper.getCurrentUserService().billingApi.updateBillingSetting(billingSettings);
           // Here it does not fail - but the initial secret key should have been preserved!
           assert(response.status === StatusCodes.OK, 'Response status should be 200');
           // Check that the secret key was preserved
-          response = await billingTestHelper.userService.billingApi.getBillingSetting();
+          response = await billingTestHelper.getCurrentUserService().billingApi.getBillingSetting();
           assert(response.status === StatusCodes.OK, 'Response status should be 200');
           billingSettings = response.data as BillingSettings ;
           assert(billingSettings.billing, 'Billing Properties should not be null');
           assert(keyHash === billingSettings.stripe.secretKey, 'Hash of the secret key should not have changed');
           // Check again the billing connection to STRIPE
-          response = await billingTestHelper.userService.billingApi.checkBillingConnection();
+          response = await billingTestHelper.getCurrentUserService().billingApi.checkBillingConnection();
           assert(response.status === StatusCodes.OK, 'Response status should be 200');
           assert(response.data, 'Response data should not be null');
           assert(response.data.connectionIsValid === true, 'Connection should be valid');
@@ -247,17 +242,17 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
       it('Should not be able to switch the transaction billing OFF', async () => {
         // Get the Billing settings
-        let response = await billingTestHelper.userService.billingApi.getBillingSetting();
+        let response = await billingTestHelper.getCurrentUserService().billingApi.getBillingSetting();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         const billingSettings = response.data as BillingSettings ;
         assert(billingSettings.billing, 'Billing Properties should not be null');
         assert(billingSettings.billing.isTransactionBillingActivated, 'Transaction Billing should be ON');
         // Let's attempt to switch the transaction billing OFF
         billingSettings.billing.isTransactionBillingActivated = false;
-        response = await billingTestHelper.userService.billingApi.updateBillingSetting(billingSettings);
+        response = await billingTestHelper.getCurrentUserService().billingApi.updateBillingSetting(billingSettings);
         assert(response.status === StatusCodes.METHOD_NOT_ALLOWED, 'Response status should be 405');
         // Check again the billing connection to STRIPE
-        response = await billingTestHelper.userService.billingApi.checkBillingConnection();
+        response = await billingTestHelper.getCurrentUserService().billingApi.checkBillingConnection();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         assert(response.data, 'Response data should not be null');
         assert(response.data.connectionIsValid === true, 'Connection should be valid');
@@ -267,7 +262,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
   describe('Billing Service (utbilling)', () => {
     beforeAll(async () => {
-      await billingTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+      await billingTestHelper.initialize();
     });
 
     describe('with Transaction Billing ON', () => {
@@ -276,12 +271,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         await billingTestHelper.initChargingStationContext();
         // Initialize the Billing module
         await billingTestHelper.setBillingSystemValidCredentials();
-        // Make sure the required users are in sync
-        const adminUser: User = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-        const basicUser: User = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-        // Synchronize at least these 2 users - this creates a customer on the STRIPE side
-        await billingTestHelper.billingImpl.forceSynchronizeUser(adminUser);
-        await billingTestHelper.billingImpl.forceSynchronizeUser(basicUser);
       });
 
       xdescribe('Tune user profiles', () => {
@@ -291,15 +280,15 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         });
 
         it('Should change admin user locale to fr_FR', async () => {
-          const user: User = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+          const user = billingTestHelper.getCurrentUserContext();
           const { id, email, name, firstName } = user;
-          await billingTestHelper.userService.updateEntity(billingTestHelper.userService.userApi, { id, email, name, firstName, locale: 'fr_FR' }, true);
+          await billingTestHelper.getCurrentUserService().updateEntity(billingTestHelper.getCurrentUserService().userApi, { id, email, name, firstName, locale: 'fr_FR' }, true);
         });
 
         it('Should change basic user locale to es_ES', async () => {
-          const user: User = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+          const user = billingTestHelper.getCurrentUserContext();
           const { id, email, name, firstName } = user;
-          await billingTestHelper.userService.updateEntity(billingTestHelper.userService.userApi, { id, email, name, firstName, locale: 'es_ES' }, true);
+          await billingTestHelper.getCurrentUserService().updateEntity(billingTestHelper.getCurrentUserService().userApi, { id, email, name, firstName, locale: 'es_ES' }, true);
         });
       });
 
@@ -311,10 +300,10 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         it('should add an item to a DRAFT invoice after a transaction', async () => {
           await billingTestHelper.makeCurrentUserContextReadyForBilling();
-          const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
+          const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
           const transactionID = await billingTestHelper.generateTransaction();
           assert(transactionID, 'transactionID should not be null');
-          const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
+          const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
           expect(itemsAfter).to.be.gt(itemsBefore);
         });
       });
@@ -326,7 +315,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         });
 
         it('Should connect to Billing Provider', async () => {
-          const response = await billingTestHelper.userService.billingApi.testConnection();
+          const response = await billingTestHelper.getCurrentUserService().billingApi.testConnection();
           expect(response.data.connectionIsValid).to.be.true;
           expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
         });
@@ -337,8 +326,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           } as User;
           fakeUser.issuer = true;
           // Let's create a user
-          await billingTestHelper.userService.createEntity(
-            billingTestHelper.userService.userApi,
+          await billingTestHelper.getCurrentUserService().createEntity(
+            billingTestHelper.getCurrentUserService().userApi,
             fakeUser
           );
           billingTestHelper.createdUsers.push(fakeUser);
@@ -349,8 +338,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           fakeUser.firstName = 'Test';
           fakeUser.name = 'NAME';
           fakeUser.issuer = true;
-          await billingTestHelper.userService.updateEntity(
-            billingTestHelper.userService.userApi,
+          await billingTestHelper.getCurrentUserService().updateEntity(
+            billingTestHelper.getCurrentUserService().userApi,
             fakeUser,
             false
           );
@@ -358,8 +347,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           billingUser = await billingTestHelper.billingImpl.getUser(fakeUser);
           expect(billingUser.name).to.be.eq(fakeUser.firstName + ' ' + fakeUser.name);
           // Let's delete the user
-          await billingTestHelper.userService.deleteEntity(
-            billingTestHelper.userService.userApi,
+          await billingTestHelper.getCurrentUserService().deleteEntity(
+            billingTestHelper.getCurrentUserService().userApi,
             { id: billingTestHelper.createdUsers[0].id }
           );
           // Verify that the corresponding billing user is gone
@@ -371,17 +360,17 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         it(
           'should add an item to the existing invoice after a transaction',
           async () => {
-            await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
-            const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
+            await billingTestHelper.getCurrentUserService().billingApi.forceSynchronizeUser({ id: billingTestHelper.getCurrentUserContext().id });
+            const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
             const transactionID = await billingTestHelper.generateTransaction();
             expect(transactionID).to.not.be.null;
-            const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
+            const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
             expect(itemsAfter).to.be.eq(itemsBefore + 1);
           }
         );
 
         it('Should list invoices', async () => {
-          const response = await billingTestHelper.userService.billingApi.readInvoices({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
+          const response = await billingTestHelper.getCurrentUserService().billingApi.readInvoices({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.result.length).to.be.gt(0);
         });
@@ -391,16 +380,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         beforeAll(async () => {
           await billingTestHelper.setBillingSystemValidCredentials();
-          billingTestHelper.userContext = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-          billingTestHelper.userService = new CentralServerService(
-            billingTestHelper.tenantContext.getTenant().subdomain,
-            billingTestHelper.userContext
-          );
-          expect(billingTestHelper.userService).to.not.be.null;
+          billingTestHelper.setCurrentUserContextAsBasic();
         });
 
         it('Should not be able to test connection to Billing Provider', async () => {
-          const response = await billingTestHelper.userService.billingApi.testConnection();
+          const response = await billingTestHelper.getCurrentUserService().billingApi.testConnection();
           expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
 
@@ -416,32 +400,22 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           const fakeUser = {
             ...Factory.user.build(),
           } as User;
-          const response = await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: fakeUser.id });
+          const response = await billingTestHelper.getCurrentUserService().billingApi.forceSynchronizeUser({ id: fakeUser.id });
           expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
         });
 
         it('Should create an invoice after a transaction', async () => {
-          const adminUser = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-          const basicUser = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           // Connect as Admin to Force synchronize basic user
-          billingTestHelper.userContext = adminUser;
-          billingTestHelper.userService = new CentralServerService(
-            billingTestHelper.tenantContext.getTenant().subdomain,
-            billingTestHelper.userContext
-          );
-          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: basicUser.id });
+          billingTestHelper.setCurrentUserContextAsAdmin();
+          await billingTestHelper.getCurrentUserService().billingApi.forceSynchronizeUser({ id: billingTestHelper.getBasicUserContext().id });
           // Reconnect as Basic user
-          billingTestHelper.userContext = basicUser;
-          billingTestHelper.userService = new CentralServerService(
-            billingTestHelper.tenantContext.getTenant().subdomain,
-            billingTestHelper.userContext
-          );
-          const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
+          billingTestHelper.setCurrentUserContextAsBasic();
+          const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.getCurrentUserContext());
           await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
-          const itemsBefore = await billingTestHelper.getNumberOfSessions(basicUser.id);
+          const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.getBasicUserContext().id);
           const transactionID = await billingTestHelper.generateTransaction();
           assert(transactionID, 'transactionID should not be null');
-          const itemsAfter = await billingTestHelper.getNumberOfSessions(basicUser.id);
+          const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.getBasicUserContext().id);
           expect(itemsAfter).to.be.eq(itemsBefore + 1);
         });
       });
@@ -455,7 +429,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         it('should not delete a transaction linked to an invoice', async () => {
           const transactionID = await billingTestHelper.generateTransaction();
           expect(transactionID).to.not.be.null;
-          const transactionDeleted = await billingTestHelper.userService.transactionApi.delete(transactionID);
+          const transactionDeleted = await billingTestHelper.getCurrentUserService().transactionApi.delete(transactionID);
           expect(transactionDeleted.data.inError).to.be.eq(1);
           expect(transactionDeleted.data.inSuccess).to.be.eq(0);
         });
@@ -479,8 +453,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           fakeUser.issuer = true;
           await billingTestHelper.setBillingSystemInvalidCredentials();
           assert(billingTestHelper.billingImpl, 'Billing implementation should not be null');
-          await billingTestHelper.userService.createEntity(
-            billingTestHelper.userService.userApi,
+          await billingTestHelper.getCurrentUserService().createEntity(
+            billingTestHelper.getCurrentUserService().userApi,
             fakeUser
           );
           billingTestHelper.createdUsers.push(fakeUser);
@@ -526,7 +500,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         xit('Should set a transaction in error', async () => {
           const transactionID = await billingTestHelper.generateTransaction();
-          const transactions = await billingTestHelper.userService.transactionApi.readAllInError({});
+          const transactions = await billingTestHelper.getCurrentUserService().transactionApi.readAllInError({});
           expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
         });
 
@@ -536,7 +510,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
     describe('with Transaction Billing OFF', () => {
       beforeAll(async () => {
-        expect(billingTestHelper.userContext).to.not.be.null;
+        expect(billingTestHelper.getCurrentUserContext()).to.not.be.null;
         await billingTestHelper.initChargingStationContext();
         // Initialize the Billing module
         await billingTestHelper.setBillingSystemValidCredentials(false);
@@ -551,11 +525,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         it(
           'should NOT add an item to a DRAFT invoice after a transaction',
           async () => {
-            await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
-            const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
+            await billingTestHelper.getCurrentUserService().billingApi.forceSynchronizeUser({ id: billingTestHelper.getCurrentUserContext().id });
+            const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
             const transactionID = await billingTestHelper.generateTransaction();
             assert(transactionID, 'transactionID should not be null');
-            const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
+            const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
             expect(itemsAfter).to.be.eq(itemsBefore);
           }
         );
@@ -769,20 +743,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           // Initialize the charging station context
           await billingTestHelper.initChargingStationContext();
           await billingTestHelper.setBillingSystemValidCredentials();
-          billingTestHelper.adminUserContext = await billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-          expect(billingTestHelper.adminUserContext).to.not.be.null;
-          billingTestHelper.userContext = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-          billingTestHelper.userService = new CentralServerService(
-            billingTestHelper.tenantContext.getTenant().subdomain,
-            billingTestHelper.userContext
-          );
-          billingTestHelper.adminUserService = new CentralServerService(
-            billingTestHelper.tenantContext.getTenant().subdomain,
-            billingTestHelper.adminUserContext
-          );
-          expect(billingTestHelper.userService).to.not.be.null;
           // Update the freeAccess flag for the basic user:
-          await billingTestHelper.adminUserService.userApi.update({
+          await billingTestHelper.getAdminUserService().userApi.update({
             id: ContextDefinition.TENANT_USER_LIST[2].id,
             freeAccess: true
           });
@@ -792,12 +754,12 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           'should NOT add an item to a DRAFT invoice after a transaction',
           async () => {
             await billingTestHelper.makeCurrentUserContextReadyForBilling();
-            const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
+            const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
             const transactionID = await billingTestHelper.generateTransaction();
             assert(transactionID, 'transactionID should not be null');
             // await testData.checkTransactionBillingData(transactionID); // TODO - Check not yet possible!
             // await testData.userService.billingApi.synchronizeInvoices({});
-            const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
+            const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
             expect(itemsAfter).eq(itemsBefore);
           }
         );
@@ -809,33 +771,21 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           // Initialize the charging station context
           await billingTestHelper.initChargingStationContext();
           await billingTestHelper.setBillingSystemValidCredentials();
-          billingTestHelper.adminUserContext = await billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-          expect(billingTestHelper.adminUserContext).to.not.be.null;
-          billingTestHelper.userContext = billingTestHelper.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-          billingTestHelper.userService = new CentralServerService(
-            billingTestHelper.tenantContext.getTenant().subdomain,
-            billingTestHelper.userContext
-          );
-          billingTestHelper.adminUserService = new CentralServerService(
-            billingTestHelper.tenantContext.getTenant().subdomain,
-            billingTestHelper.adminUserContext
-          );
-          expect(billingTestHelper.userService).to.not.be.null;
           // Update the freeAccess flag for the basic user:
-          await billingTestHelper.adminUserService.userApi.update({
+          await billingTestHelper.getAdminUserService().userApi.update({
             id: ContextDefinition.TENANT_USER_LIST[2].id,
             freeAccess: false
           });
         });
 
         it('should add an item to a DRAFT invoice after a transaction', async () => {
-          await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
-          const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
+          await billingTestHelper.getCurrentUserService().billingApi.forceSynchronizeUser({ id: billingTestHelper.getCurrentUserContext().id });
+          const itemsBefore = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
           const transactionID = await billingTestHelper.generateTransaction();
           assert(transactionID, 'transactionID should not be null');
           // await testData.checkTransactionBillingData(transactionID); // TODO - Check not yet possible!
           // await testData.userService.billingApi.synchronizeInvoices({});
-          const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.userContext.id);
+          const itemsAfter = await billingTestHelper.getNumberOfSessions(billingTestHelper.getCurrentUserContext().id);
           expect(itemsAfter).to.be.gt(itemsBefore);
         });
       });
