@@ -780,9 +780,18 @@ export default class AuthorizationService {
           ChargePointStatus.FAULTED,
           ChargePointStatus.SUSPENDED_EVSE,
         ].includes(connector.status);
+      // Remove sensible data
+      await AuthorizationService.canPerformAuthorizationAction(
+        tenant, userToken, Entity.CONNECTOR, Action.VIEW_USER_DATA, authorizationFilter,
+        { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID, UserData: true, TagData: true }, connector);
+      // Remove properties
       Utils.removeCanPropertiesWithFalseValue(connector);
     }
-    // Optimize data over the net
+    // Remove sensible data
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.VIEW_USER_DATA, authorizationFilter,
+      { chargingStationID: chargingStation.id, UserID: userToken.user.id, SiteID: chargingStation.siteID, UserData: true, TagData: true }, chargingStation);
+    // Remove properties
     Utils.removeCanPropertiesWithFalseValue(chargingStation);
   }
 
