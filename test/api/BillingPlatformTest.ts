@@ -290,6 +290,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           // The user should have no DRAFT invoices
           const nbDraftInvoices = await billingTestHelper.checkForDraftInvoices();
           assert(nbDraftInvoices === 0, 'The expected number of DRAFT invoices is not correct');
+          // TODO - check the generated transfer
         });
       });
 
@@ -311,6 +312,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           // The user should have no DRAFT invoices
           const nbDraftInvoices = await billingTestHelper.checkForDraftInvoices();
           assert(nbDraftInvoices === 0, 'The expected number of DRAFT invoices is not correct');
+          // TODO - check the generated transfer
         });
       });
 
