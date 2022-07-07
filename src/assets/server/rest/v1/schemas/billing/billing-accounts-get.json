@@ -6,8 +6,13 @@
     "ID": {
       "$ref": "common#/definitions/ids"
     },
-    "userID": {
+    "UserID": {
       "$ref": "common#/definitions/ids"
+    },
+    "Status": {
+      "type": "string",
+      "pattern": "^((idle|pending|active)(\\|idle|\\|pending|\\|active)*)?$",
+      "sanitize": "mongo"
     },
     "Search": {
       "$ref": "common#/definitions/search"

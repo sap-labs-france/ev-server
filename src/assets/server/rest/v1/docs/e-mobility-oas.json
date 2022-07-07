@@ -14037,6 +14037,64 @@
         }
       }
     },
+    "/api/billing/accounts/{id}/onboard": {
+      "patch": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Send onboarding to account's owner",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Account ID",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sent the account onboarding link by mail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "id": {
+                      "type": "string",
+                      "example": "###"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/billing/transfers": {
       "get": {
         "security": [
