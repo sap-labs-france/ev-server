@@ -1206,8 +1206,8 @@ export default class AuthorizationService {
     }
   }
 
-  private static async processDynamicAsserts(tenant: Tenant, userToken: UserToken, authAction: Action, authEntity: Entity,
-      authorizationFilters: AuthorizationFilter, authorizationContext: AuthorizationContext, entityData?: EntityData): Promise<void> {
+  private static processDynamicAsserts(tenant: Tenant, userToken: UserToken, authAction: Action, authEntity: Entity,
+      authorizationFilters: AuthorizationFilter, authorizationContext: AuthorizationContext, entityData?: EntityData): void {
     if (entityData && !Utils.isEmptyArray(authorizationContext.asserts)) {
       // First array is an AND between assertions
       for (let assertsToProcess of authorizationContext.asserts) {
@@ -1236,15 +1236,6 @@ export default class AuthorizationService {
           // Negate the assertion
           if (dynamicAssert.isNegateAssert()) {
             authorizationFilters.authorized = !authorizationFilters.authorized;
-          }
-          if (!authorizationFilters.authorized) {
-            await Logging.logError({
-              tenantID: tenant.id,
-              user: userToken,
-              module: MODULE_NAME, method: 'processDynamicAsserts',
-              message: `Dynamic Authorization '${assertToProcess}' did not allow to perform '${authAction}' on '${authEntity}'`,
-              action: ServerAction.AUTHORIZATIONS
-            });
           }
           authorized = authorized || authorizationFilters.authorized;
         }
@@ -1283,7 +1274,7 @@ export default class AuthorizationService {
       // Keep the Meta Data
       authorizationFilters.metadata = authResult.context.metadata;
       // Process Dynamic Assertions
-      await AuthorizationService.processDynamicAsserts(tenant, userToken, authAction, authEntity,
+      AuthorizationService.processDynamicAsserts(tenant, userToken, authAction, authEntity,
         authorizationFilters, authorizationContext, entityData);
     }
     // Filter projected fields
@@ -1326,7 +1317,7 @@ export default class AuthorizationService {
     // Keep the Meta Data
     authorizations.metadata = authResult.context.metadata;
     // Process Dynamic Assertions
-    await AuthorizationService.processDynamicAsserts(tenant, userToken, authAction, authEntity,
+    AuthorizationService.processDynamicAsserts(tenant, userToken, authAction, authEntity,
       authorizations, authorizationContext, entityData);
     if (!authorizations.authorized) {
       throw new AppAuthError({
