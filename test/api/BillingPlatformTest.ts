@@ -39,20 +39,20 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
     await global.database.start();
   });
 
-  describe('Billing Service (utbillingplatform)', () => {
+  describe('Where the admin user', () => {
     beforeAll(async () => {
       await stripeTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM);
       // TODO - This is ugly and confusing - rethink that part (merge BillingTestHelper and StripeTestHelper methods)
       await billingTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM);
       // Initialize the Billing module
       await billingTestHelper.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF, so periodicBilling ON */);
-
+      // Set the admin as the current user context
+      billingTestHelper.setCurrentUserContextAsAdmin();
     });
 
     describe('Connected Accounts', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       beforeAll(async () => {
-        billingTestHelper.initUserContextAsAdmin();
       });
 
       it('should create an account in an IDLE state and list it', async () => {
@@ -94,9 +94,9 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         expect(companyResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
       });
 
-      it('should update a company to assign a account', async () => {
+      // Already tested
+      xit('should update a company to assign a account', async () => {
         const billingAccount = await billingTestHelper.getActivatedAccount();
-
         let companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
         expect(companyResponse.status).to.be.eq(StatusCodes.OK);
         const companyID = companyResponse.data.id;
@@ -110,7 +110,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           }
         });
         expect(companyResponse.status).to.be.eq(StatusCodes.OK);
-
         companyResponse = await billingTestHelper.userService.companyApi.readById(companyID);
         expect(companyResponse.data.accountData.accountID).to.eq(billingAccount.id);
         expect(companyResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
@@ -190,9 +189,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
     describe('Transfers', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       beforeAll(async () => {
-        billingTestHelper.initUserContextAsAdmin();
         // Initialize the charging station context
-        await billingTestHelper.initChargingStationContext2TestChargingTime();
+        // await billingTestHelper.initChargingStationContext2TestChargingTime();
       });
 
       it('should list transfers', async () => {
@@ -245,12 +243,10 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
     });
 
-    describe('Where admin user', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
+    describe('Invoicing', () => {
       beforeAll(async () => {
-        billingTestHelper.initUserContextAsAdmin();
         // Initialize the charging station context
-        await billingTestHelper.initChargingStationContext2TestChargingTime();
+        await billingTestHelper.initContext2TestConnectedAccounts();
       });
 
       it('should create an invoice, and get transfers generated', async () => {
@@ -271,9 +267,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // - finalize the transfers!!!!
         // - send the transfers to STRIPE to generate the real transfer of funds
         // -------------------------------------------------------------------------------------------------------------
-        await billingTestHelper.userService.billingApi.forceSynchronizeUser({ id: billingTestHelper.userContext.id });
-        const userWithBillingData = await billingTestHelper.billingImpl.getUser(billingTestHelper.userContext);
-        await billingTestHelper.assignPaymentMethod(userWithBillingData, 'tok_fr');
+        // Create a account
+        await billingTestHelper.makeCurrentUserContextReadyForBilling();
         const transactionID = await billingTestHelper.generateTransaction(billingTestHelper.userContext);
         assert(transactionID, 'transactionID should not be null');
         // Check that we have a new invoice with an invoiceID and but no invoiceNumber yet

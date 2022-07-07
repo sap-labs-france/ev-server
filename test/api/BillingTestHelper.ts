@@ -9,8 +9,10 @@ import chai, { expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import BillingFacade from '../../src/integration/billing/BillingFacade';
+import { BillingPlatformFeeStrategyFactory } from '../factories/BillingFactory';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
+import Company from '../../src/types/Company';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -68,6 +70,19 @@ export default class BillingTestHelper {
     );
   }
 
+  public getCurrentUserContext(): User {
+    // TODO - wrong type? UserContext vs User???
+    return this.userContext;
+  }
+
+  public async makeCurrentUserContextReadyForBilling(forceSynchronization = true) : Promise<void> {
+    if (forceSynchronization) {
+      await this.userService.billingApi.forceSynchronizeUser({ id: this.getCurrentUserContext().id });
+    }
+    const userWithBillingData = await this.billingImpl.getUser(this.getCurrentUserContext());
+    await this.assignPaymentMethod(userWithBillingData, 'tok_fr');
+  }
+
   public async assignPaymentMethod(user: BillingUser, stripe_test_token: string) : Promise<Stripe.CustomerSource> {
     // Assign a source using test tokens (instead of test card numbers)
     // c.f.: https://stripe.com/docs/testing#cards
@@ -88,12 +103,37 @@ export default class BillingTestHelper {
     return source;
   }
 
-  public initUserContextAsAdmin() : void {
-    expect(this.userContext).to.not.be.null;
+  public setCurrentUserContextAsAdmin() : void {
+    // TODO - rethink this old logic
     this.userContext = this.adminUserContext;
-    assert(this.userContext, 'User context cannot be null');
     this.userService = this.adminUserService;
-    assert(!!this.userService, 'User service cannot be null');
+  }
+
+  public async initContext2TestConnectedAccounts() : Promise<void> {
+    // Assign a tariff the the charger
+    const chargingStationContext = await this.initChargingStationContext2TestChargingTime();
+    // Get an active account (create it if necessary)
+    const billingAccount = await this.getActivatedAccount();
+    const chargingStation = chargingStationContext.getChargingStation();
+    let response = await this.userService.chargingStationApi.readById(chargingStation.id);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    const companyID = response.data.companyID;
+    response = await this.userService.companyApi.readById(companyID);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    const company = response.data as Company;
+    const platformFeeStrategy = BillingPlatformFeeStrategyFactory.build();
+    response = await this.userService.companyApi.update({
+      id: companyID,
+      ...company,
+      accountData: {
+        accountID: billingAccount.id,
+        platformFeeStrategy
+      }
+    });
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    response = await this.userService.companyApi.readById(companyID);
+    expect(response.data.accountData.accountID).to.eq(billingAccount.id);
+    expect(response.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
   }
 
   public async initChargingStationContext() : Promise<ChargingStationContext> {
@@ -546,7 +586,6 @@ export default class BillingTestHelper {
     const meterValueHighConsumption = Utils.createDecimal(meterStop).divToInt(30).toNumber();
     const meterValuePoorConsumption = 0; // Simulate a gap in the energy provisioning
     const meterValuePhaseOut = Utils.createDecimal(meterStop).divToInt(60).toNumber();
-    // const user:any = this.userContext;
     const connectorId = 1;
     assert((user.tags && user.tags.length), 'User must have a valid tag');
     const tagId = user.tags[0].id;
