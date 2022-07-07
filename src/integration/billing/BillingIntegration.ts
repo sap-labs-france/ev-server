@@ -712,6 +712,8 @@ export default abstract class BillingIntegration {
 
   abstract billPlatformFee(transfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice>;
 
+  abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
+
   protected async triggerTransferPreparation(billingInvoice: BillingInvoice): Promise<void> {
     if (!billingInvoice.sessions) {
       // This should not happen!
