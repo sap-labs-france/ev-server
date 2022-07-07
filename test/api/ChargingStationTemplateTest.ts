@@ -6,7 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 import { expect } from 'chai';
 
 class TestData {
-  public newChargingStationTemplate: ChargingStationTemplate;
+  public newChargingStationTemplateID: any = {};
   public updatedChargingStationTemplate: ChargingStationTemplate;
   public tenantContext: any;
   public superAdminCentralService: CentralServerService;
@@ -34,53 +34,53 @@ describe('Charging Station Template', () => {
     describe('Success cases', () => {
       it('Should be able to create a new cst', async () => {
         const cstToCreate = Factory.chargingStationTemplate.build();
-        const response = await testData.superAdminCentralService.createEntity(testData.superAdminCentralService.chargingStationTemplateApi,cstToCreate, false);
+        const response = await testData.superAdminCentralService.createEntity(testData.superAdminCentralService.chargingStationTemplateApi, cstToCreate, false);
         expect(response.status).to.equal(StatusCodes.OK);
         expect(response.data).not.null;
         expect(response.data.status).to.eql('Success');
         expect(response.data).to.have.property('id');
-        testData.createdChargingStationTemplates.push(response);
-        testData.newChargingStationTemplate = response.data;
+        testData.createdChargingStationTemplates.push(cstToCreate);
+        testData.newChargingStationTemplateID.id = response.data.id;
       });
 
       it('Should find the created cst by id', async () => {
-        expect(testData.newChargingStationTemplate).to.not.be.null;
+        expect(testData.newChargingStationTemplateID.id).to.not.be.null;
         // Retrieve it from the backend
-        const response = await testData.superAdminCentralService.chargingStationTemplateApi.readById(testData.newChargingStationTemplate.id);
+        const response = await testData.superAdminCentralService.chargingStationTemplateApi.readById(testData.newChargingStationTemplateID.id);
         // Check if ok
         expect(response.status).to.equal(StatusCodes.OK);
-        expect(response.data.id).is.eql(testData.newChargingStationTemplate.id);
+        expect(response.data.id).is.eql(testData.newChargingStationTemplateID.id);
       });
 
-      // Check creation readAll
+      // useless for me
       it(
-        'Should find the created cst in the tokens list',
+        'Should find the created cst in the db',
         async () => {
           // Check if the created entity is in the list
-          await testData.superAdminCentralService.checkEntityInList(
+          await testData.superAdminCentralService.getEntityById(
             testData.superAdminCentralService.chargingStationTemplateApi,
-            testData.newChargingStationTemplate
+            testData.newChargingStationTemplateID
           );
         }
       );
 
       // Update
       it('Should be able to update a cst', async () => {
-        const CSTtoUpdate = Factory.chargingStationTemplate.build();
-        CSTtoUpdate.chargePointVendor = 'new chargePointVendor';
+        const CSTtoUpdate = testData.createdChargingStationTemplates[0];
+        CSTtoUpdate.template.chargePointVendor = 'new chargePointVendor';
         await testData.superAdminCentralService.updateEntity(
           testData.superAdminCentralService.chargingStationTemplateApi,
-          CSTtoUpdate,
+          { ...CSTtoUpdate, ...testData.newChargingStationTemplateID },
         );
       });
 
       // Delete
       it('Should be able to delete the created cst',
         async () => {
-        // Delete the created entity
+        // Delete the created CST
           await testData.superAdminCentralService.deleteEntity(
             testData.superAdminCentralService.chargingStationTemplateApi,
-            testData.newChargingStationTemplate
+            testData.newChargingStationTemplateID
           );
         });
     });

@@ -38,7 +38,8 @@ export default class ChargingStationTemplateRouter {
 
   private buildRouteChargingStationTemplateCreate(): void {
     this.router.post(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.body.template = JSON.parse(req.body.template);
+      // req.body.template = JSON.parse(req.body.template);
+      // a garder
       await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleCreateChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE_CREATE, req, res, next);
     });
   }
@@ -52,7 +53,8 @@ export default class ChargingStationTemplateRouter {
 
   private buildRouteChargingStationTemplateUpdate(): void {
     this.router.put(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.body.template = JSON.parse(req.body.template);
+      // req.body.template = JSON.parse(req.body.template);
+      // a garder
       await RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleUpdateChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE_UPDATE, req, res, next);
     });
   }
