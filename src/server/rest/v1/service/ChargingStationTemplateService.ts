@@ -21,7 +21,7 @@ export default class ChargingStationTemplateService {
     await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     const newChargingStationTemplate: ChargingStationTemplate = {
-      id: null,
+      id: '',
       createdBy: { id: req.user.id },
       createdOn: new Date(),
       template : {
@@ -80,7 +80,6 @@ export default class ChargingStationTemplateService {
       chargingStationTemplates.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    // eslint-disable-next-line max-len
     await AuthorizationService.addChargingStationTemplatesAuthorizations(req.tenant, req.user, chargingStationTemplates as ChargingStationTemplateDataResult, authorizations);
     res.json(chargingStationTemplates);
     next();
