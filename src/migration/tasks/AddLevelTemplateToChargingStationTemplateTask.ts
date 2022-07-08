@@ -1,6 +1,8 @@
 import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ObjectId } from 'mongodb';
+import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
@@ -8,22 +10,20 @@ const MODULE_NAME = 'AddLevelTemplateToChargingStationTemplateTask';
 
 export default class AddLevelTemplateToChargingStationTemplateTask extends MigrationTask {
 
-  public async migrate() {
+  public async migrate(): Promise<void> {
     const templates = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').find({})
-      // .project({ carID: 1, userID: 1, default: 1 })
       .toArray();
     if (!Utils.isEmptyArray(templates)) {
       for (const template of templates) {
         // Put _id in id const and get template without id
         const { ['_id']: id, ...noIdTemplate } = template;
         // Delete template
-        const currentTemplate = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').findOneAndDelete(
-          // Find by current id
+        await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').findOneAndDelete(
+          // Find and delete by current id
           { _id: id },
         );
-        console.log(currentTemplate);
         await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').insertOne(
-          // Generate new id and create new template document with "template" level and date
+          // Generate new id and create new template document and date then "template" level
           {
             _id: new ObjectId(),
             lastChangedOn: new Date(),
@@ -31,11 +31,17 @@ export default class AddLevelTemplateToChargingStationTemplateTask extends Migra
           },
         );
       }
+      await Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        module: MODULE_NAME, method: 'migrate',
+        action: ServerAction.MIGRATION,
+        message: `ChargingStationTemplates have been migrated with template level on ${Constants.DEFAULT_TENANT_ID} tenant`
+      });
     }
   }
 
   public getVersion(): string {
-    return '0.2';
+    return '1.0';
   }
 
   public getName(): string {

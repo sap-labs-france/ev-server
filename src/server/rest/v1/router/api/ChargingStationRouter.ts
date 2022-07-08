@@ -4,7 +4,6 @@ import express, { NextFunction, Request, Response } from 'express';
 import ChargingStationService from '../../service/ChargingStationService';
 import RouterUtils from '../../../../../utils/RouterUtils';
 import TransactionService from '../../service/TransactionService';
-import sanitize from 'mongo-sanitize';
 
 export default class ChargingStationRouter {
   private router: express.Router;

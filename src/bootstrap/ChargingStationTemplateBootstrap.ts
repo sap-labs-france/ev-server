@@ -11,7 +11,7 @@ import global from './../types/GlobalType';
 export default class ChargingStationTemplateBootstrap {
   public static async uploadChargingStationTemplatesFromFile(): Promise<void> {
     // Read File
-    let chargingStationTemplates: ChargingStationTemplate[];
+    let chargingStationTemplates: any[];
     try {
       chargingStationTemplates = JSON.parse(
         fs.readFileSync(`${global.appRoot}/assets/charging-station-templates/charging-stations.json`, 'utf8'));
@@ -23,15 +23,20 @@ export default class ChargingStationTemplateBootstrap {
     await ChargingStationStorage.deleteChargingStationTemplates();
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
+      const { id, ...noIdTemplate } = chargingStationTemplate;
+      const chargingStationTemplateToSave: ChargingStationTemplate = {
+        id: '',
+        template: noIdTemplate
+      };
       try {
         // Set the hashes
-        chargingStationTemplate.template.hash = Utils.hash(JSON.stringify(chargingStationTemplate));
-        chargingStationTemplate.template.hashTechnical = Utils.hash(JSON.stringify(chargingStationTemplate.template.technical));
-        chargingStationTemplate.template.hashCapabilities = Utils.hash(JSON.stringify(chargingStationTemplate.template.capabilities));
-        chargingStationTemplate.template.hashOcppStandard = Utils.hash(JSON.stringify(chargingStationTemplate.template.ocppStandardParameters));
-        chargingStationTemplate.template.hashOcppVendor = Utils.hash(JSON.stringify(chargingStationTemplate.template.ocppVendorParameters));
+        chargingStationTemplateToSave.template.hash = Utils.hash(JSON.stringify(chargingStationTemplateToSave));
+        chargingStationTemplateToSave.template.hashTechnical = Utils.hash(JSON.stringify(chargingStationTemplateToSave.template.technical));
+        chargingStationTemplateToSave.template.hashCapabilities = Utils.hash(JSON.stringify(chargingStationTemplateToSave.template.capabilities));
+        chargingStationTemplateToSave.template.hashOcppStandard = Utils.hash(JSON.stringify(chargingStationTemplateToSave.template.ocppStandardParameters));
+        chargingStationTemplateToSave.template.hashOcppVendor = Utils.hash(JSON.stringify(chargingStationTemplateToSave.template.ocppVendorParameters));
         // Save
-        await ChargingStationTemplateStorage.saveChargingStationTemplate(chargingStationTemplate);
+        await ChargingStationTemplateStorage.saveChargingStationTemplate(chargingStationTemplateToSave);
       } catch (error) {
         error.message = `Charging Station Template ID '${chargingStationTemplate.id}' is not valid: ${error.message as string}`;
         await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT_ID, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
