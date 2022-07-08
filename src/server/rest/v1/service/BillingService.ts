@@ -476,6 +476,66 @@ export default class BillingService {
     next();
   }
 
+  public static async handleOnboardAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+      Action.BILLING_ONBOARD_ACCOUNT, Entity.BILLING_ACCOUNT, MODULE_NAME, 'handleOnboardAccount');
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingAccountGetReq(req.params);
+    // Check authorization
+    await AuthorizationService.checkAndGetBillingAccountAuthorizations(req.tenant, req.user, filteredRequest, Action.BILLING_ONBOARD_ACCOUNT);
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleCreateAccount',
+        action: action,
+        user: req.user
+      });
+    }
+    // Fetch the current account data
+    let billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, billingAccount, `Account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
+    // Check if the account onboarding is already sent
+    if (billingAccount.status !== BillingAccountStatus.IDLE) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Account onboarding aborted - current status should be IDLE',
+        module: MODULE_NAME, method: 'handleOnboardAccount',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get the account owner
+    const user = await UserStorage.getUser(req.tenant, billingAccount.businessOwnerID);
+    UtilsService.assertObjectExists(action, user, `User ID '${billingAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
+    // Trigger the creation of the connected account
+    const connectedAccount = await billingImpl.createConnectedAccount();
+    // Update account properties
+    billingAccount = {
+      ...billingAccount,
+      ...connectedAccount,
+      status: BillingAccountStatus.PENDING,
+      lastChangedBy: { 'id': req.user.id },
+      lastChangedOn: new Date()
+    };
+    // Save the account
+    await BillingStorage.saveAccount(req.tenant, billingAccount);
+    // URL to the DASHBOARD Onboarding Page
+    const onboardingURL = Utils.buildEvseBillingAccountOnboardingURL(req.tenant, billingAccount.id);
+    // Notify the user
+    const notificationData : BillingAccountCreationLinkNotification = {
+      onboardingLink: onboardingURL,
+      evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain),
+      user
+    };
+    // Send the notification
+    void NotificationHandler.sendBillingAccountCreationLink(req.tenant, Utils.generateUUID(), user, notificationData);
+    res.json(Object.assign({ id: billingAccount.id }, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
   public static async handleCreateAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
@@ -509,6 +569,61 @@ export default class BillingService {
     // Save the account
     billingAccount.id = await BillingStorage.saveAccount(req.tenant, billingAccount);
     res.json(Object.assign({ id: billingAccount.id }, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
+  public static async handleRefreshAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleRefreshAccount', action: action,
+      });
+    }
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingActivateAccountReq({ ...req.params, ...req.body });
+    let billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, billingAccount, `Account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleRefreshAccount', req.user);
+    // Check if the account onboarding has been sent
+    if (billingAccount.status !== BillingAccountStatus.PENDING) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Account onboarding aborted - current status should be PENDING',
+        module: MODULE_NAME, method: 'handleRefreshAccount',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get the account owner
+    const user = await UserStorage.getUser(req.tenant, billingAccount.businessOwnerID);
+    UtilsService.assertObjectExists(action, user, `User ID '${billingAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleRefreshAccount', req.user);
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleRefreshAccount',
+        action: action,
+        user: req.user
+      });
+    }
+    // URL to the DASHBOARD Onboarding Page
+    const onboardingURL = Utils.buildEvseBillingAccountOnboardingURL(req.tenant, billingAccount.id);
+    // Refresh the activation link
+    const refreshedAccount = await billingImpl.refreshConnectedAccount(billingAccount, onboardingURL);
+    // Update account properties
+    billingAccount = {
+      ...billingAccount,
+      activationLink: refreshedAccount.activationLink, // URL to the STRIPE Onboarding Wizard
+    };
+    // Save the account
+    await BillingStorage.saveAccount(req.tenant, billingAccount);
+    // Send back the activation link
+    res.json(Object.assign({
+      id: billingAccount.id,
+      activationLink: billingAccount.activationLink
+    }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -584,64 +699,6 @@ export default class BillingService {
     // Get the billing accounts
     const billingAccount = await UtilsService.checkAndGetBillingAccountAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
     res.json(billingAccount);
-    next();
-  }
-
-  public static async handleOnboardAccount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.BILLING_ONBOARD_ACCOUNT, Entity.BILLING_ACCOUNT, MODULE_NAME, 'handleOnboardAccount');
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingAccountGetReq(req.params);
-    // Check authorization
-    await AuthorizationService.checkAndGetBillingAccountAuthorizations(req.tenant, req.user, filteredRequest, Action.BILLING_ONBOARD_ACCOUNT);
-    // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleCreateAccount',
-        action: action,
-        user: req.user
-      });
-    }
-    // Fetch the current account data
-    let billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, billingAccount, `Account ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
-    // Check if the account onboarding is already sent
-    if (billingAccount.status !== BillingAccountStatus.IDLE) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Account onboarding aborted - current status should be IDLE',
-        module: MODULE_NAME, method: 'handleOnboardAccount',
-        action: action,
-        user: req.user
-      });
-    }
-    // Get the account owner
-    const user = await UserStorage.getUser(req.tenant, billingAccount.businessOwnerID);
-    UtilsService.assertObjectExists(action, user, `User ID '${billingAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
-    // Trigger the creation of the connected account
-    const connectedAccount = await billingImpl.createConnectedAccount();
-    // Update account properties
-    billingAccount = {
-      ...billingAccount,
-      ...connectedAccount,
-      status: BillingAccountStatus.PENDING,
-      lastChangedBy: { 'id': req.user.id },
-      lastChangedOn: new Date()
-    };
-    // Save the account
-    await BillingStorage.saveAccount(req.tenant, billingAccount);
-    // Notify the user
-    const notificationData : BillingAccountCreationLinkNotification = {
-      onboardingLink: billingAccount.activationLink,
-      evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain),
-      user
-    };
-    // Send the notification
-    void NotificationHandler.sendBillingAccountCreationLink(req.tenant, Utils.generateUUID(), user, notificationData);
-    res.json(Object.assign({ id: billingAccount.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
