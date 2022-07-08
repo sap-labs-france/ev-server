@@ -38,16 +38,20 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
   describe('Billing Platform (utbillingplatform)', () => {
     beforeAll(async () => {
       await billingTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM);
+      // Initialize the Billing module
+      await billingTestHelper.setBillingSystemValidCredentials();
     });
 
     describe('Where the admin user', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
-      beforeAll(async () => {
-      // Set the admin as the current user context
-        billingTestHelper.setCurrentUserContextAsAdmin();
-      });
 
       describe('Connected Accounts', () => {
+
+        // eslint-disable-next-line @typescript-eslint/require-await
+        beforeAll(async () => {
+        // Set the admin as the current user context
+          billingTestHelper.setCurrentUserContextAsAdmin();
+        });
+
         it('should create an account in an IDLE state and list it', async () => {
           const accountID = await billingTestHelper.createBillingAccount();
           // List accounts
@@ -181,6 +185,12 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
       describe('Transfers', () => {
 
+        // eslint-disable-next-line @typescript-eslint/require-await
+        beforeAll(async () => {
+        // Set the admin as the current user context
+          billingTestHelper.setCurrentUserContextAsAdmin();
+        });
+
         it('should list transfers', async () => {
           const transfer = BillingTransferFactory.build();
           const transferID = await BillingStorage.saveTransfer(billingTestHelper.getTenant(), transfer);
@@ -232,8 +242,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       describe('Invoicing', () => {
+
+
+        // eslint-disable-next-line @typescript-eslint/require-await
         beforeAll(async () => {
-        // Initialize the charging station context
+        // Set the admin as the current user context
+          billingTestHelper.setCurrentUserContextAsAdmin();
+          // Initialize the charging station context
           await billingTestHelper.initContext2TestConnectedAccounts();
         });
 
@@ -313,10 +328,16 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
       beforeAll(async () => {
         await billingTestHelper.setBillingSystemValidCredentials();
-        billingTestHelper.setCurrentUserContextAsBasic();
       });
 
       describe('Connected Accounts', () => {
+
+        // eslint-disable-next-line @typescript-eslint/require-await
+        beforeAll(async () => {
+          // Set the basic user as the current user context
+          billingTestHelper.setCurrentUserContextAsBasic();
+        });
+
         it('should not be able to create a account', async () => {
           const response = await billingTestHelper.getCurrentUserService().billingApi.createBillingAccount({
             businessOwnerID: billingTestHelper.getCurrentUserContext().id
@@ -351,6 +372,13 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
       });
 
       describe('Transfers', () => {
+
+        // eslint-disable-next-line @typescript-eslint/require-await
+        beforeAll(async () => {
+          // Set the basic user as the current user context
+          billingTestHelper.setCurrentUserContextAsBasic();
+        });
+
         it('should not be able to list transfers', async () => {
           const transfersResponse = await billingTestHelper.getCurrentUserService().billingApi.readTransfers({});
           expect(transfersResponse.status).to.be.eq(StatusCodes.FORBIDDEN);

@@ -935,7 +935,7 @@ export default class BillingTestHelper {
     // Send the activation link
     const billingAccountOnboardResponse = await this.getCurrentUserService().billingApi.onboardBillingAccount(accountID);
     expect(billingAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
-    let response = await this.getCurrentUserService().billingApi.activateBillingAccount({ accountID, TenantID: this.tenantContext.getTenant().id });
+    let response = await this.getCurrentUserService().billingApi.activateBillingAccount({ accountID, TenantID: this.getTenantID() });
     expect(response.status).to.be.eq(StatusCodes.OK);
     expect(response.data?.id).to.be.eq(accountID);
     response = await this.getCurrentUserService().billingApi.readBillingAccount(accountID);

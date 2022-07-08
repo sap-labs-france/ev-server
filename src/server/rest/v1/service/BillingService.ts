@@ -502,7 +502,9 @@ export default class BillingService {
     const billingAccount: BillingAccount = {
       businessOwnerID: user.id,
       status: BillingAccountStatus.IDLE,
-      accountExternalID: null
+      accountExternalID: null,
+      createdBy: { id: req.user.id },
+      createdOn: new Date()
     };
     // Save the account
     billingAccount.id = await BillingStorage.saveAccount(req.tenant, billingAccount);
@@ -620,9 +622,16 @@ export default class BillingService {
     const user = await UserStorage.getUser(req.tenant, billingAccount.businessOwnerID);
     UtilsService.assertObjectExists(action, user, `User ID '${billingAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleOnboardAccount', req.user);
     // Trigger the creation of the connected account
-    billingAccount = { ...billingAccount, ...await billingImpl.createConnectedAccount() };
-    // Activate and save the account
-    billingAccount.status = BillingAccountStatus.PENDING;
+    const connectedAccount = await billingImpl.createConnectedAccount();
+    // Update account properties
+    billingAccount = {
+      ...billingAccount,
+      ...connectedAccount,
+      status: BillingAccountStatus.PENDING,
+      lastChangedBy: { 'id': req.user.id },
+      lastChangedOn: new Date()
+    };
+    // Save the account
     await BillingStorage.saveAccount(req.tenant, billingAccount);
     // Notify the user
     const notificationData : BillingAccountCreationLinkNotification = {
@@ -684,7 +693,7 @@ export default class BillingService {
       });
     }
     // Get the transfer
-    const transfer = await BillingStorage.getTransferByID(req.tenant, filteredRequest.ID);
+    let transfer = await BillingStorage.getTransferByID(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, transfer, `Transfer ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleFinalizeTransfer', req.user);
     // Check if the transfer is in draft status
     if (transfer.status !== BillingTransferStatus.DRAFT) {
@@ -704,13 +713,18 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, user, `User ID '${billingAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleSendTransferInvoice', req.user);
     // Generate the invoice with a fee per session
     const invoice = await billingImpl.billPlatformFee(transfer, user);
-    // Let's keep track of the invoice data
-    transfer.invoice = invoice;
-    // We now know how much we can transfer to the sub-account!
-    const amountIncludingTaxes = invoice.totalAmount;
-    transfer.transferAmount = Utils.createDecimal(transfer.totalAmount).minus(amountIncludingTaxes).toNumber();
-    // Update the transfer status
-    transfer.status = BillingTransferStatus.FINALIZED;
+    // Funds to transfer
+    const transferAmount = Utils.createDecimal(transfer.totalAmount).minus(invoice.totalAmount).toNumber();
+    // Update transfer properties
+    transfer = {
+      ...transfer,
+      status: BillingTransferStatus.FINALIZED,
+      transferAmount,
+      invoice, // Keep track of some invoice data
+      lastChangedBy: { id: req.user.id },
+      lastChangedOn: new Date()
+    };
+    // Save transfer
     await BillingStorage.saveTransfer(req.tenant, transfer);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -735,7 +749,7 @@ export default class BillingService {
       });
     }
     // Get the transfer
-    const transfer = await BillingStorage.getTransferByID(req.tenant, filteredRequest.ID);
+    let transfer = await BillingStorage.getTransferByID(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, transfer, `Transfer ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleSendTransfer', req.user);
     // Check if the transfer is in draft status
     if (transfer.status !== BillingTransferStatus.FINALIZED) {
@@ -754,10 +768,17 @@ export default class BillingService {
     const user = await UserStorage.getUser(req.tenant, billingAccount.businessOwnerID);
     UtilsService.assertObjectExists(action, user, `User ID '${billingAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleSendTransfer', req.user);
     // Send the funds
-    transfer.transferExternalID = await billingImpl.sendTransfer(transfer, user);
-    transfer.status = BillingTransferStatus.TRANSFERRED;
+    const transferExternalID = await billingImpl.sendTransfer(transfer, user);
+    // Update transfer properties
+    transfer = {
+      ...transfer,
+      transferExternalID,
+      status: BillingTransferStatus.TRANSFERRED,
+      lastChangedBy: { id: req.user.id },
+      lastChangedOn: new Date()
+    };
+    // Save transfer
     await BillingStorage.saveTransfer(req.tenant, transfer);
-    // TODO - send an email notification with the invoice
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
