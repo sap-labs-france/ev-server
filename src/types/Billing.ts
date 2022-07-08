@@ -231,7 +231,7 @@ export interface BillingPlatformInvoice {
   userID: string;
   invoiceNumber: string;
   status: BillingInvoiceStatus;
-  amount: number;
+  amount: number; // This one is in cents
   totalAmount: number;
   currency: string;
   customerID: string;
