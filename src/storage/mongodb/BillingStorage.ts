@@ -266,6 +266,12 @@ export default class BillingStorage {
         $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
       };
     }
+    // Status
+    if (!Utils.isEmptyArray(params.status)) {
+      filters.status = {
+        $in: params.status
+      };
+    }
     // Set filters
     if (!Utils.isEmptyJSon(filters)) {
       aggregation.push({

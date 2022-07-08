@@ -102,23 +102,15 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         billingTestHelper.initUserContextAsAdmin();
       });
 
-      it('should create a account', async () => {
-        const response = await billingTestHelper.userService.billingApi.createBillingAccount({
-          businessOwnerID: billingTestHelper.userContext.id
+      it('should create an account in an IDLE state and list it', async () => {
+        const accountID = await billingTestHelper.createBillingAccount();
+        // List accounts
+        const response = await billingTestHelper.userService.billingApi.readBillingAccounts({
+          userID: billingTestHelper.userContext.id,
+          ID: accountID
         });
         expect(response.status).to.be.eq(StatusCodes.OK);
-        const billingAccount = response.data as BillingAccount;
-        expect(billingAccount.id).to.not.be.null;
-        // Todo - must read the data to check the result
-        // expect(billingAccount.accountExternalID).to.not.be.null;
-        // expect(billingAccount.businessOwnerID).to.eq(billingTestHelper.userContext.id);
-        // expect(billingAccount.activationLink).to.not.be.null;
-        // expect(billingAccount.status).to.be.eq(BillingAccountStatus.IDLE);
-      });
-
-      it('should create a account and activate it', async () => {
-        // Create a account
-        await billingTestHelper.createActivatedAccount();
+        expect(response.data.result.map((account: BillingAccount) => account.id)).to.include(accountID);
       });
 
       it('should not activate an inexistent account', async () => {
@@ -171,9 +163,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         expect(companyResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
       });
 
-      it('should create a site assigned to a account', async () => {
+      it('should assign an account to a site', async () => {
         const billingAccount = await billingTestHelper.getActivatedAccount();
-
         // Create a company
         const companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
         expect(companyResponse.status).to.be.eq(StatusCodes.OK);
@@ -195,7 +186,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
       it('should update a site to assign a account', async () => {
         const billingAccount = await billingTestHelper.getActivatedAccount();
-
         // Create a company
         const companyResponse = await billingTestHelper.userService.companyApi.create(CompanyFactory.build());
         expect(companyResponse.status).to.be.eq(StatusCodes.OK);
@@ -224,31 +214,8 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         expect(siteResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
       });
 
-      it('should list accounts', async () => {
-        const billingAccount = await billingTestHelper.getActivatedAccount();
-
-        // List accounts
-        const response = await billingTestHelper.userService.billingApi.readBillingAccounts({
-          userID: billingTestHelper.userContext.id,
-          ID: billingAccount.id
-        });
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        expect(response.data.result.map((account: BillingAccount) => account.id)).to.include(billingAccount.id);
-      });
-
-      it('should read account', async () => {
-        const billingAccount = await billingTestHelper.getActivatedAccount();
-
-        // Get the account
-        const response = await billingTestHelper.userService.billingApi.readBillingAccount(billingAccount.id);
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        const account = response.data as BillingAccount;
-        expect(account.id).to.be.eq(billingAccount.id);
-        expect(account.businessOwnerID).to.be.eq(billingTestHelper.userContext.id);
-        expect(account.status).to.be.eq(BillingAccountStatus.ACTIVE);
-      });
-
-      it('should send account onboarding', async () => {
+      xit('should send account onboarding', async () => {
+        // Already tested
         let response = await billingTestHelper.userService.billingApi.createBillingAccount({
           businessOwnerID: billingTestHelper.userContext.id
         });
@@ -258,41 +225,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         response = await billingTestHelper.userService.billingApi.readBillingAccount(response.data.id);
         expect(response.status).to.be.eq(StatusCodes.OK);
         expect(response.data.status).to.be.eq(BillingAccountStatus.PENDING);
-      });
-
-      it('should not able to send account onboarding twice', async () => {
-        let response = await billingTestHelper.userService.billingApi.createBillingAccount({
-          businessOwnerID: billingTestHelper.userContext.id
-        });
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        response = await billingTestHelper.userService.billingApi.onboardBillingAccount(response.data.id);
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        response = await billingTestHelper.userService.billingApi.readBillingAccount(response.data.id);
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        expect(response.data.status).to.be.eq(BillingAccountStatus.PENDING);
-        response = await billingTestHelper.userService.billingApi.onboardBillingAccount(response.data.id);
-        expect(response.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
       it('should not able to send account onboarding for an activated account', async () => {
-        // Create the account
-        let response = await billingTestHelper.userService.billingApi.createBillingAccount({
-          businessOwnerID: billingTestHelper.userContext.id
-        });
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        // Send onboarding
-        response = await billingTestHelper.userService.billingApi.onboardBillingAccount(response.data.id);
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        response = await billingTestHelper.userService.billingApi.readBillingAccount(response.data.id);
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        expect(response.data.status).to.be.eq(BillingAccountStatus.PENDING);
-        // Activate it
-        response = await billingTestHelper.userService.billingApi.activateBillingAccount({ accountID: response.data.id, TenantID: billingTestHelper.tenantContext.getTenant().id });
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        response = await billingTestHelper.userService.billingApi.readBillingAccount(response.data.id);
-        expect(response.data.status).to.be.eq(BillingAccountStatus.ACTIVE);
-        // Try to re-send onboarding
-        response = await billingTestHelper.userService.billingApi.onboardBillingAccount(response.data.id);
+        const billingAccount = await billingTestHelper.getActivatedAccount();
+        const response = await billingTestHelper.userService.billingApi.onboardBillingAccount(billingAccount.id);
         expect(response.status).to.be.eq(StatusCodes.INTERNAL_SERVER_ERROR);
       });
     });
