@@ -819,7 +819,8 @@ export default abstract class BillingIntegration {
 
   private computeAccountSessionFee(session: BillingSessionData, sessionTotalAmount: number): BillingAccountSessionFee {
     const { percentage, flatFeePerSession } = session.accountData.platformFeeStrategy;
-    const feeAmount = Utils.createDecimal(sessionTotalAmount).mul(percentage).div(100).plus(flatFeePerSession).toNumber();
+    const feeAmountAsDecimal = Utils.createDecimal(sessionTotalAmount).mul(percentage).div(100).plus(flatFeePerSession);
+    const feeAmount = Utils.roundTo(feeAmountAsDecimal, 2);
     return {
       percentage,
       flatFeePerSession,
