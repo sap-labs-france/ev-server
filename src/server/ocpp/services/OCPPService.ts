@@ -582,18 +582,18 @@ export default class OCPPService {
   }
 
   public async checkAuthorizeStopTransactionAndGetUsers(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction,
-      tagId: string, isStoppedByCentralSystem: boolean): Promise<{ user: User; alternateUser: User; }> {
+      tagID: string, isStoppedByCentralSystem: boolean): Promise<{ user: User; alternateUser: User; }> {
     let user: User;
     let alternateUser: User;
     if (!isStoppedByCentralSystem) {
       // Check and get the authorized Users
       const authorizedUsers = await CommonUtilsService.isAuthorizedToStopTransaction(
-        tenant, chargingStation, transaction, tagId, ServerAction.OCPP_STOP_TRANSACTION, Action.STOP_TRANSACTION);
+        tenant, chargingStation, transaction, tagID, ServerAction.OCPP_STOP_TRANSACTION, Action.STOP_TRANSACTION);
       user = authorizedUsers.user;
       alternateUser = authorizedUsers.alternateUser;
     } else {
       // Get the User
-      user = await UserStorage.getUserByTagID(tenant, tagId);
+      user = await UserStorage.getUserByTagID(tenant, tagID);
     }
     // Already Stopped?
     if (transaction.stop) {
