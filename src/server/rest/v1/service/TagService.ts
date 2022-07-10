@@ -920,21 +920,24 @@ export default class TagService {
   private static async updateTagLimit(tenant: Tenant, tag: Tag, limit: TagLimit) {
     // Save limit
     if (limit) {
-      // Check if limit is changed
+      // Init history
+      if (!tag.limit.changeHistory) {
+        limit.changeHistory = [];
+      } else {
+        limit.changeHistory = tag.limit.changeHistory;
+      }
+      // Check if limit has changed
       if (tag.limit &&
           (tag.limit.limitKwh !== limit.limitKwh ||
+          tag.limit.limitKwhEnabled !== limit.limitKwhEnabled ||
           tag.limit.limitKwhConsumed !== limit.limitKwhConsumed)) {
-        // Keep the changed data
-        if (!tag.limit.changeHistory) {
-          limit.changeHistory = [];
-        } else {
-          limit.changeHistory = tag.limit.changeHistory;
-        }
         limit.changeHistory.push({
           lastChangedBy: tag.lastChangedBy,
           lastChangedOn: tag.lastChangedOn,
+          oldLimitKwhEnabled: tag.limit.limitKwhEnabled,
           oldLimitKwh: tag.limit.limitKwh,
           oldLimitKwhConsumed: tag.limit.limitKwhConsumed,
+          newLimitKwhEnabled: limit.limitKwhEnabled,
           newLimitKwh: limit.limitKwh,
           newLimitKwhConsumed: limit.limitKwhConsumed,
         });

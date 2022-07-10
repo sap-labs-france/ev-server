@@ -32,6 +32,8 @@ export interface TagLimit {
 export interface TagChangeHistory {
   lastChangedOn: Date;
   lastChangedBy: Partial<User>;
+  oldLimitKwhEnabled: boolean;
+  newLimitKwhEnabled: boolean;
   oldLimitKwh: number;
   oldLimitKwhConsumed: number;
   newLimitKwh: number;

@@ -202,7 +202,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.name', 'user.firstName', 'user.email',
           'limit.limitKwhEnabled', 'limit.limitKwh', 'limit.limitKwhConsumed',
           'limit.changeHistory.lastChangedBy.name', 'limit.changeHistory.lastChangedBy.firstName', 'limit.changeHistory.lastChangedOn',
-          'limit.changeHistory.oldLimitKwh', 'limit.changeHistory.oldLimitKwhConsumed', 'limit.changeHistory.newLimitKwh', 'limit.changeHistory.newLimitKwhConsumed'
+          'limit.changeHistory.oldLimitKwhEnabled', 'limit.changeHistory.newLimitKwhEnabled',
+          'limit.changeHistory.oldLimitKwh', 'limit.changeHistory.oldLimitKwhConsumed', 'limit.changeHistory.newLimitKwh', 'limit.changeHistory.newLimitKwhConsumed',
         ]
       },
       {

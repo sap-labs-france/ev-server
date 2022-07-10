@@ -60,6 +60,10 @@
                 "type": "string",
                 "sanitize": "mongo"
               },
+              "oldLimitKwhEnabled": {
+                "type": "boolean",
+                "sanitize": "mongo"
+              },
               "oldLimitKwh": {
                 "type": "number",
                 "sanitize": "mongo",
@@ -71,6 +75,10 @@
                 "sanitize": "mongo",
                 "minimum": 0,
                 "default": 0
+              },
+              "newLimitKwhEnabled": {
+                "type": "boolean",
+                "sanitize": "mongo"
               },
               "newLimitKwh": {
                 "type": "number",

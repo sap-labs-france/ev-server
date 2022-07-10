@@ -28,6 +28,10 @@
           "lastChangedBy": {
             "$ref": "common#/definitions/user-id-mongo"
           },
+          "oldLimitKwhEnabled": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwhEnabled",
+            "default": false
+          },
           "oldLimitKwh": {
             "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwh",
             "minimum": 0,
@@ -37,6 +41,9 @@
             "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwhConsumed",
             "minimum": 0,
             "default": 0
+          },
+          "newLimitKwhEnabled": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwhEnabled"
           },
           "newLimitKwh": {
             "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/newLimitKwh",
