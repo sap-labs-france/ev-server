@@ -35,14 +35,8 @@
   },
   "storage": {
     "implementation": "mongodb",
-    "uri": null,
-    "host": "localhost",
-    "port": 32500,
-    "user": "evse-user",
-    "password": "",
-    "database": "evse",
+    "uri": "",
     "poolSize": 200,
-    "replicaSet": "rs0",
     "debug": false
   },
   "billing": {

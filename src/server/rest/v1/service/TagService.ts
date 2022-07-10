@@ -5,7 +5,7 @@ import Busboy, { FileInfo } from 'busboy';
 import { DataResult, TagDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import Tag, { ImportedTag, TagRequiredImportProperties } from '../../../../types/Tag';
+import Tag, { ImportedTag, TagLimit, TagRequiredImportProperties } from '../../../../types/Tag';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -328,7 +328,7 @@ export default class TagService {
     const filteredRequest = TagValidatorRest.getInstance().validateTagUpdateReq({ ...req.params, ...req.body });
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
-      filteredRequest, { withUser: true }, true);
+      filteredRequest, { withUser: true });
     if (filteredRequest.userID) {
       await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
         Action.READ, ServerAction.TAG_UPDATE);
@@ -380,10 +380,8 @@ export default class TagService {
     tag.lastChangedOn = new Date();
     // Save
     await TagStorage.saveTag(req.tenant, tag);
-    // Save limit
-    if (filteredRequest.limit) {
-      await TagStorage.saveTagLimit(req.tenant, tag.id, filteredRequest.limit);
-    }
+    // Save Tag Limit
+    await TagService.updateTagLimit(req.tenant, tag, filteredRequest.limit);
     // Ensure former User has a default Tag
     if (formerTagUserID && formerTagDefault) {
       await TagService.setDefaultTagForUser(req.tenant, formerTagUserID);
@@ -402,7 +400,6 @@ export default class TagService {
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
-
 
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -917,6 +914,35 @@ export default class TagService {
           detailedMessages: { error: error.stack }
         });
       }
+    }
+  }
+
+  private static async updateTagLimit(tenant: Tenant, tag: Tag, limit: TagLimit) {
+    // Save limit
+    if (limit) {
+      // Init history
+      if (!tag.limit.changeHistory) {
+        limit.changeHistory = [];
+      } else {
+        limit.changeHistory = tag.limit.changeHistory;
+      }
+      // Check if limit has changed
+      if (tag.limit &&
+          (tag.limit.limitKwh !== limit.limitKwh ||
+          tag.limit.limitKwhEnabled !== limit.limitKwhEnabled ||
+          tag.limit.limitKwhConsumed !== limit.limitKwhConsumed)) {
+        limit.changeHistory.push({
+          lastChangedBy: tag.lastChangedBy,
+          lastChangedOn: tag.lastChangedOn,
+          oldLimitKwhEnabled: tag.limit.limitKwhEnabled,
+          oldLimitKwh: tag.limit.limitKwh,
+          oldLimitKwhConsumed: tag.limit.limitKwhConsumed,
+          newLimitKwhEnabled: limit.limitKwhEnabled,
+          newLimitKwh: limit.limitKwh,
+          newLimitKwhConsumed: limit.limitKwhConsumed,
+        });
+      }
+      await TagStorage.saveTagLimit(tenant, tag.id, limit);
     }
   }
 }

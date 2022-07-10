@@ -1,10 +1,23 @@
 {
   "$id": "common",
   "definitions": {
+    "date": {
+      "type": ["string", "object"],
+      "format": "date"
+    },
     "id": {
       "type": "string",
       "pattern": "^$|^[0-9a-fA-F]{24}$",
       "sanitize": "mongo"
+    },
+    "id-mongo": {
+      "type": "string",
+      "pattern": "^$|^[0-9a-fA-F]{24}$",
+      "customType": "objectId"
+    },
+    "user-id-mongo": {
+      "type": "object",
+      "customType": "objectId"
     },
     "ids": {
       "type": "string",

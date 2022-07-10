@@ -8,6 +8,7 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
 import { ServerAction } from '../../types/Server';
+import TagValidatorStorage from '../validator/TagValidatorStorage';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
@@ -65,10 +66,18 @@ export default class TagStorage {
   public static async saveTagLimit(tenant: Tenant, tagID: string, tagLimit: TagLimit): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
+    // Validate
+    const tagLimitMDB = TagValidatorStorage.getInstance().validateTagLimitSave(tagLimit);
+    // Sort history
+    if (!Utils.isEmptyArray(tagLimitMDB.changeHistory)) {
+      // Sort
+      tagLimitMDB.changeHistory = tagLimitMDB.changeHistory.sort((changeHistory1, changeHistory2) =>
+        changeHistory2.lastChangedOn.getTime() - changeHistory1.lastChangedOn.getTime());
+    }
     // Save
     await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
       { '_id': tagID },
-      { $set: { limit: tagLimit } },
+      { $set: { limit: tagLimitMDB } },
       { upsert: true, returnDocument: 'after' });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTagLimit', startTime, tagLimit);
   }
@@ -455,6 +464,11 @@ export default class TagStorage {
         tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
         foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
+      // Users on Limit's history
+      DatabaseUtils.pushArrayLookupInAggregation('limit.changeHistory', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
+        tenantID: tenant.id, aggregation: aggregation, localField: 'limit.changeHistory.lastChangedBy', foreignField: '_id',
+        asField: 'limit.changeHistory.lastChangedBy', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
+      }, { sort: dbParams.sort });
     }
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);

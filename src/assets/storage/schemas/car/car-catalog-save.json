@@ -358,8 +358,7 @@
       }
     },
     "lastChangedOn": {
-      "type": ["string", "object"],
-      "format": "date"
+      "$ref": "common#/definitions/date"
     }
   },
   "required": [

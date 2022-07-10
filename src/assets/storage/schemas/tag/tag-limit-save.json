@@ -1,0 +1,70 @@
+{
+  "$id": "tag-limit-save",
+  "title": "Save Tag limitation",
+  "type": "object",
+  "properties": {
+    "limitKwhEnabled": {
+      "$ref": "tag#/definitions/limit/properties/limitKwhEnabled",
+      "default": false
+    },
+    "limitKwh": {
+      "$ref": "tag#/definitions/limit/properties/limitKwh",
+      "minimum": 0,
+      "default": 0
+},
+    "limitKwhConsumed": {
+      "$ref": "tag#/definitions/limit/properties/limitKwhConsumed",
+      "minimum": 0,
+      "default": 0
+},
+    "changeHistory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lastChangedOn": {
+            "$ref": "common#/definitions/date"
+          },
+          "lastChangedBy": {
+            "$ref": "common#/definitions/user-id-mongo"
+          },
+          "oldLimitKwhEnabled": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwhEnabled",
+            "default": false
+          },
+          "oldLimitKwh": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwh",
+            "minimum": 0,
+            "default": 0
+          },
+          "oldLimitKwhConsumed": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwhConsumed",
+            "minimum": 0,
+            "default": 0
+          },
+          "newLimitKwhEnabled": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwhEnabled"
+          },
+          "newLimitKwh": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/newLimitKwh",
+            "minimum": 0,
+            "default": 0
+          },
+          "newLimitKwhConsumed": {
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/newLimitKwhConsumed",
+            "minimum": 0,
+            "default": 0
+          }
+        },
+        "required": [
+          "lastChangedOn",
+          "lastChangedBy",
+          "oldLimitKwh",
+          "oldLimitKwhConsumed",
+          "newLimitKwh",
+          "newLimitKwhConsumed"
+        ]
+      }
+    }
+  }
+}

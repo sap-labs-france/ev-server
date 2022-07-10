@@ -182,7 +182,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TAG, action: Action.LIST,
         attributes: [
           'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
-          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn', 'limit'
+          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn',
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
+          'limit.limitKwhEnabled', 'limit.limitKwh', 'limit.limitKwhConsumed',
         ]
       },
       { resource: Entity.TAG, action: [Action.IMPORT, Action.EXPORT] },
@@ -197,7 +199,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id',
-          'user.name', 'user.firstName', 'user.email', 'limit'
+          'user.name', 'user.firstName', 'user.email',
+          'limit.limitKwhEnabled', 'limit.limitKwh', 'limit.limitKwhConsumed',
+          'limit.changeHistory.lastChangedBy.name', 'limit.changeHistory.lastChangedBy.firstName', 'limit.changeHistory.lastChangedOn',
+          'limit.changeHistory.oldLimitKwhEnabled', 'limit.changeHistory.newLimitKwhEnabled',
+          'limit.changeHistory.oldLimitKwh', 'limit.changeHistory.oldLimitKwhConsumed', 'limit.changeHistory.newLimitKwh', 'limit.changeHistory.newLimitKwhConsumed',
         ]
       },
       {
@@ -869,7 +875,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['OwnUser']
+            filters: ['OwnUser'],
+            metadata: {
+              id: {
+                visible: false
+              }
+            },
           }
         },
         attributes: [
@@ -884,11 +895,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: {
             asserts: [],
             filters: ['OwnUser'],
-            metadata: {
-              id: {
-                visible: false
-              }
-            },
           }
         },
         attributes: [

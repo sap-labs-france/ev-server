@@ -203,47 +203,13 @@ const config = convict({
     },
     uri: {
       doc: 'connection string URI',
-      default: null
-    },
-    host: {
-      doc: 'host name',
-      format: String,
-      default: 'localhost'
-    },
-    port: {
-      doc: 'port number',
-      format: 'port',
-      default: 32500
-    },
-    user: {
-      doc: 'user name',
       format: String,
       default: ''
-    },
-    password: {
-      doc: 'password',
-      format: String,
-      default: ''
-    },
-    database: {
-      doc: 'db name',
-      format: String,
-      default: 'evse'
     },
     poolSize: {
       doc: 'pool size',
       format: Number,
       default: 20
-    },
-    replicaSet: {
-      doc: 'replica set name',
-      format: String,
-      default: 'rs0'
-    },
-    monitorDBChange: {
-      doc: 'monitor changes',
-      format: Boolean,
-      default: false
     },
     debug: {
       doc: 'debug',

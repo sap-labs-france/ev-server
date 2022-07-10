@@ -160,6 +160,9 @@ export default class SchemaValidator {
         return (data: string, dataValidationCxt: DataValidationCxt): boolean => {
           // Convert to Mongo ObjectID
           if (data && schema === 'objectId') {
+            if (typeof data === 'object') {
+              data = data['id'];
+            }
             dataValidationCxt.parentData[dataValidationCxt.parentDataProperty] = new ObjectId(data);
           }
           // Convert to Date
