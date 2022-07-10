@@ -62,19 +62,25 @@
               },
               "oldLimitKwh": {
                 "type": "number",
-                "sanitize": "mongo"
+                "sanitize": "mongo",
+                "minimum": 0,
+                "default": 0
               },
               "oldLimitKwhConsumed": {
                 "type": "number",
-                "sanitize": "mongo"
+                "sanitize": "mongo",
+                "minimum": 0,
+                "default": 0
               },
               "newLimitKwh": {
                 "type": "number",
-                "sanitize": "mongo"
+                "sanitize": "mongo",
+                "minimum": 0
               },
               "newLimitKwhConsumed": {
                 "type": "number",
-                "sanitize": "mongo"
+                "sanitize": "mongo",
+                "minimum": 0
               }
             }
           }

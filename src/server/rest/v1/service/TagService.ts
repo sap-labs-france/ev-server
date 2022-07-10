@@ -381,7 +381,7 @@ export default class TagService {
     // Save
     await TagStorage.saveTag(req.tenant, tag);
     // Save Tag Limit
-    void TagService.updateTagLimit(req.tenant, tag, filteredRequest.limit);
+    await TagService.updateTagLimit(req.tenant, tag, filteredRequest.limit);
     // Ensure former User has a default Tag
     if (formerTagUserID && formerTagDefault) {
       await TagService.setDefaultTagForUser(req.tenant, formerTagUserID);

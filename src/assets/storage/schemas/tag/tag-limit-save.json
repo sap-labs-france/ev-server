@@ -8,11 +8,15 @@
       "default": false
     },
     "limitKwh": {
-      "$ref": "tag#/definitions/limit/properties/limitKwh"
-    },
+      "$ref": "tag#/definitions/limit/properties/limitKwh",
+      "minimum": 0,
+      "default": 0
+},
     "limitKwhConsumed": {
-      "$ref": "tag#/definitions/limit/properties/limitKwhConsumed"
-    },
+      "$ref": "tag#/definitions/limit/properties/limitKwhConsumed",
+      "minimum": 0,
+      "default": 0
+},
     "changeHistory": {
       "type": "array",
       "items": {
@@ -25,18 +29,34 @@
             "$ref": "common#/definitions/user-id-mongo"
           },
           "oldLimitKwh": {
-            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwh"
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwh",
+            "minimum": 0,
+            "default": 0
           },
           "oldLimitKwhConsumed": {
-            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwhConsumed"
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/oldLimitKwhConsumed",
+            "minimum": 0,
+            "default": 0
           },
           "newLimitKwh": {
-            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/newLimitKwh"
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/newLimitKwh",
+            "minimum": 0,
+            "default": 0
           },
           "newLimitKwhConsumed": {
-            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/newLimitKwhConsumed"
+            "$ref": "tag#/definitions/limit/properties/changeHistory/items/properties/newLimitKwhConsumed",
+            "minimum": 0,
+            "default": 0
           }
-        }
+        },
+        "required": [
+          "lastChangedOn",
+          "lastChangedBy",
+          "oldLimitKwh",
+          "oldLimitKwhConsumed",
+          "newLimitKwh",
+          "newLimitKwhConsumed"
+        ]
       }
     }
   }
