@@ -214,7 +214,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
           transfer.id = transferID;
           const finalizeResponse = await billingTestHelper.getCurrentUserService().billingApi.finalizeTransfer(transferID);
           expect(finalizeResponse.status).to.be.eq(StatusCodes.OK);
-          const finalizedTransfer = await BillingStorage.getTransferByID(billingTestHelper.getTenant(), transferID);
+          const finalizedTransfer = await BillingStorage.getTransfer(billingTestHelper.getTenant(), transferID);
           expect(finalizedTransfer.status).to.eq(BillingTransferStatus.FINALIZED);
         });
 
@@ -295,7 +295,10 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             // The user should have no DRAFT invoices
             const nbDraftInvoices = await billingTestHelper.checkForDraftInvoices();
             assert(nbDraftInvoices === 0, 'The expected number of DRAFT invoices is not correct');
-          // TODO - check the generated transfer
+            // Check Transfer Data for the current account ID
+            const nbDraftTransfers = await billingTestHelper.checkForDraftTransfers();
+            assert(nbDraftTransfers === 1, 'The expected number of DRAFT transfers is not correct');
+            await billingTestHelper.finalizeDraftTransfer();
           });
         });
 
@@ -317,7 +320,10 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             // The user should have no DRAFT invoices
             const nbDraftInvoices = await billingTestHelper.checkForDraftInvoices();
             assert(nbDraftInvoices === 0, 'The expected number of DRAFT invoices is not correct');
-          // TODO - check the generated transfer
+            // Check Transfer Data for the current account ID
+            const nbDraftTransfers = await billingTestHelper.checkForDraftTransfers();
+            assert(nbDraftTransfers === 1, 'The expected number of DRAFT transfers is not correct');
+            await billingTestHelper.finalizeDraftTransfer();
           });
         });
 
@@ -402,7 +408,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         const transferID = await BillingStorage.saveTransfer(billingTestHelper.getTenant(), transfer);
         expect(transferID).to.not.be.null;
 
-        const retrievedTransfer = await BillingStorage.getTransferByID(billingTestHelper.getTenant(), transferID);
+        const retrievedTransfer = await BillingStorage.getTransfer(billingTestHelper.getTenant(), transferID);
         expect(retrievedTransfer).to.containSubset(transfer);
       });
 

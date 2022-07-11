@@ -706,7 +706,7 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransfersGetReq(req.query);
     // Check auth
-    const authorizations = await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest /* , false */);
+    const authorizations = await AuthorizationService.checkAndGetTransfersAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest /* , false */);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -731,13 +731,25 @@ export default class BillingService {
     next();
   }
 
+  public static async handleGetTransfer(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+      Action.READ, Entity.BILLING_TRANSFER, MODULE_NAME, 'handleGetTransfer');
+    // Filter
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransferGetReq(req.query);
+    // Check and Get Company
+    const transfer = await UtilsService.checkAndGetTransferAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
+    res.json(transfer);
+    next();
+  }
+
   public static async handleFinalizeTransfer(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
       Action.BILLING_FINALIZE_TRANSFER, Entity.BILLING_TRANSFER, MODULE_NAME, 'handleFinalizeTransfer');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransferFinalizeReq(req.params);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.BILLING_FINALIZE_TRANSFER);
+    await AuthorizationService.checkAndGetTransfersAuthorizations(req.tenant, req.user, Action.BILLING_FINALIZE_TRANSFER);
     // Get the billing implementation
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -750,7 +762,7 @@ export default class BillingService {
       });
     }
     // Get the transfer
-    let transfer = await BillingStorage.getTransferByID(req.tenant, filteredRequest.ID);
+    let transfer = await BillingStorage.getTransfer(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, transfer, `Transfer ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleFinalizeTransfer', req.user);
     // Check if the transfer is in draft status
     if (transfer.status !== BillingTransferStatus.DRAFT) {
@@ -793,7 +805,7 @@ export default class BillingService {
       Action.BILLING_SEND_TRANSFER, Entity.BILLING_TRANSFER, MODULE_NAME, 'handleSendTransferInvoice');
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransferSendReq(req.params);
     // Check authorization
-    await AuthorizationService.checkAndGetBillingTransfersAuthorizations(req.tenant, req.user, Action.BILLING_SEND_TRANSFER);
+    await AuthorizationService.checkAndGetTransfersAuthorizations(req.tenant, req.user, Action.BILLING_SEND_TRANSFER);
     // Get the billing implementation
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -806,7 +818,7 @@ export default class BillingService {
       });
     }
     // Get the transfer
-    let transfer = await BillingStorage.getTransferByID(req.tenant, filteredRequest.ID);
+    let transfer = await BillingStorage.getTransfer(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, transfer, `Transfer ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleSendTransfer', req.user);
     // Check if the transfer is in draft status
     if (transfer.status !== BillingTransferStatus.FINALIZED) {

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 /* eslint-disable max-len */
 import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
-import { BillingAccount, BillingAccountStatus, BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingTransfer, BillingTransferStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
@@ -987,5 +987,42 @@ export default class BillingTestHelper {
       }
     }
     return this.billingAccount;
+  }
+
+  public async checkForDraftTransfers(): Promise<number> {
+    const result = await this.getDraftTransfers();
+    return result.length;
+  }
+
+  public async getDraftTransfers() : Promise<any> {
+    const accountID = this.billingAccount?.id;
+    assert(accountID, 'accountID should not be null - make sure the context has been initialized with ==> billingTestHelper.initContext2TestConnectedAccounts()');
+    const params = { Status: BillingInvoiceStatus.DRAFT, AccountID: [accountID] };
+    const paging = TestConstants.DEFAULT_PAGING;
+    const ordering = [{ field: '-createdOn' }];
+    const response = await this.adminUserService.billingApi.readTransfers(params, paging, ordering);
+    return response?.data?.result;
+  }
+
+  public async getLatestDraftTransfer(): Promise<BillingTransfer> {
+    const draftTransfers = await this.getDraftTransfers();
+    return (draftTransfers && draftTransfers.length > 0) ? draftTransfers[0] : null;
+  }
+
+  public async getNumberOfSessionsInTransfer(): Promise<number> {
+    // ACHTUNG: There is no data after running: npm run mochatest:createContext
+    // In that situation we return 0!
+    const draftTransfer = await this.getLatestDraftTransfer();
+    return (draftTransfer) ? draftTransfer.sessions?.length : 0;
+  }
+
+  public async finalizeDraftTransfer(): Promise<void> {
+    const transfer = await this.getLatestDraftTransfer();
+    assert(transfer?.id, 'transfer ID should not be null');
+    let response = await this.getCurrentUserService().billingApi.finalizeTransfer(transfer.id);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    response = await this.adminUserService.billingApi.readTransfer(transfer.id);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    expect(response.data.status).to.eq(BillingTransferStatus.FINALIZED);
   }
 }
