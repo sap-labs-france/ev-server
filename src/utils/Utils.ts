@@ -966,8 +966,8 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
-  public static buildEvseBillingSubAccountActivationURL(tenant: Tenant, subAccountID: string): string {
-    return `${Utils.buildEvseURL(tenant.subdomain)}/billing/sub-accounts/${subAccountID}?TenantID=${tenant.id}`;
+  public static buildEvseBillingAccountOnboardingURL(tenant: Tenant, billingAccountID: string): string {
+    return `${Utils.buildEvseURL(tenant.subdomain)}/auth/account-onboarding?TenantID=${tenant.id}&AccountID=${billingAccountID}`;
   }
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
@@ -1738,6 +1738,37 @@ export default class Utils {
       exception.params.detailedMessages = {
         error: exception.stack,
       };
+    }
+  }
+
+  public static removeSensibeDataFromEntity(extraFilters: Record<string, any>, entityData?: EntityData): void {
+    // User data
+    if (Utils.objectHasProperty(extraFilters, 'UserData') &&
+    !Utils.isNullOrUndefined(extraFilters['UserData']) && extraFilters['UserData']) {
+      Utils.deleteUserPropertiesFromEntity(entityData);
+    }
+    // Tag data
+    if (Utils.objectHasProperty(extraFilters, 'TagData') &&
+    !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
+      Utils.deleteTagPropertiesFromEntity(entityData);
+    }
+  }
+
+  private static deleteUserPropertiesFromEntity(entityData?: EntityData): void {
+    Utils.deletePropertiesFromEntity(entityData, ['user']);
+  }
+
+  private static deleteTagPropertiesFromEntity(entityData?: EntityData): void {
+    Utils.deletePropertiesFromEntity(entityData, ['tag', 'currentTagID']);
+  }
+
+  private static deletePropertiesFromEntity(entityData?: EntityData, properties?: string[]): void {
+    if (!Utils.isNullOrUndefined(entityData) && !Utils.isNullOrUndefined(properties)) {
+      for (const propertyName of properties) {
+        if (Utils.objectHasProperty(entityData, propertyName) && !Utils.isNullOrUndefined(entityData[propertyName])) {
+          delete entityData[propertyName];
+        }
+      }
     }
   }
 }

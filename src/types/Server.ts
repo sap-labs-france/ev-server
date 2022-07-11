@@ -453,11 +453,12 @@ export enum ServerAction {
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   BILLING_TEST_DATA_CLEANUP = 'BillingTestDataCleanup',
   BILLING_BILL_PENDING_TRANSACTION = 'BillingBillPendingTransaction',
-  BILLING_SUB_ACCOUNT_CREATE = 'BillingSubAccountCreate',
-  BILLING_SUB_ACCOUNT_ACTIVATE = 'BillingSubAccountActivate',
-  BILLING_SUB_ACCOUNT_ONBOARD = 'BillingSubAccountOnboard',
-  BILLING_SUB_ACCOUNT = 'BillingSubAccount',
-  BILLING_SUB_ACCOUNTS = 'BillingSubAccounts',
+  BILLING_ACCOUNT_CREATE = 'BillingAccountCreate',
+  BILLING_ACCOUNT_REFRESH = 'BillingAccountRefresh',
+  BILLING_ACCOUNT_ACTIVATE = 'BillingAccountActivate',
+  BILLING_ACCOUNT_ONBOARD = 'BillingAccountOnboard',
+  BILLING_ACCOUNT = 'BillingAccount',
+  BILLING_ACCOUNTS = 'BillingAccounts',
   BILLING_TRANSFERS = 'BillingTransfers',
   BILLING_TRANSFER_FINALIZE = 'BillingTransferFinalize',
   BILLING_TRANSFER_SEND = 'BillingTransferSend',
@@ -493,6 +494,7 @@ export enum RESTServerRoute {
   REST_PASSWORD_RESET = 'password/reset',
   REST_END_USER_LICENSE_AGREEMENT = 'eula',
   REST_END_USER_LICENSE_AGREEMENT_CHECK = 'eula/check',
+  REST_END_USER_LICENSE_AGREEMENT_HTML = 'eula/html',
   REST_MAIL_CHECK = 'mail/check',
   REST_MAIL_RESEND = 'mail/resend',
 
@@ -688,10 +690,11 @@ export enum RESTServerRoute {
 
   REST_BILLING_TAXES = 'billing/taxes',
 
-  REST_BILLING_SUB_ACCOUNTS = 'billing/sub-accounts',
-  REST_BILLING_SUB_ACCOUNT = 'billing/sub-accounts/:id',
-  REST_BILLING_SUB_ACCOUNT_ONBOARD = 'billing/sub-accounts/:id/onboard',
-  REST_BILLING_SUB_ACCOUNT_ACTIVATE = 'billing/sub-accounts/:id/activate',
+  REST_BILLING_ACCOUNTS = 'billing/accounts',
+  REST_BILLING_ACCOUNT = 'billing/accounts/:id',
+  REST_BILLING_ACCOUNT_ONBOARD = 'billing/accounts/:id/onboard',
+  REST_BILLING_ACCOUNT_REFRESH = 'billing/accounts/:id/refresh',
+  REST_BILLING_ACCOUNT_ACTIVATE = 'billing/accounts/:id/activate',
 
   // BILLING URLs for CRUD operations on INVOICES
   REST_BILLING_INVOICES = 'invoices',

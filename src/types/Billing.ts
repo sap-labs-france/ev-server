@@ -89,7 +89,7 @@ export interface BillingInvoiceItem {
   transactionID: number;
   currency: string;
   pricingData: PricedConsumptionData[]
-  accountData?: BillingSessionAccountData; // Each session may target a distinct sub-account - but the 4 pricing dimensions MUST share the same info
+  accountData?: BillingSessionAccountData; // Each session may target a distinct account - but the 4 pricing dimensions MUST share the same info
   headerDescription?: string,
   metadata?: {
     // Just a flat list of key/value pairs!
@@ -100,7 +100,7 @@ export interface BillingInvoiceItem {
 export interface BillingSessionData {
   transactionID: number;
   pricingData: PricedConsumptionData[];
-  accountData?: BillingSessionAccountData; // Each session may target a distinct sub-account
+  accountData?: BillingSessionAccountData; // Each session may target a distinct account
 }
 
 export enum BillingInvoiceStatus {
@@ -164,7 +164,8 @@ export interface BillingPlatformFeeStrategy {
 
 export interface BillingAccount extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
   id?: string;
-  businessOwnerID?: string;
+  businessOwnerID: string;
+  businessOwner?: User;
   status: BillingAccountStatus;
   activationLink?: string;
   accountExternalID: string;
@@ -187,10 +188,13 @@ export enum BillingTransferStatus {
 }
 
 export interface BillingPlatformFeeData {
-  taxExternalID: string; // Tax to apply on the platform fee
   feeAmount: number;
   feeTaxAmount: number;
-  invoiceExternalID?: string; // Invoice sent to the CPO
+}
+
+export interface BillingAccountSessionFee extends BillingPlatformFeeStrategy {
+  taxExternalID: string; // Tax to apply on the platform fee
+  feeAmount: number;
 }
 
 export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
@@ -218,7 +222,7 @@ export interface BillingTransferSession {
   amountAsDecimal: BillingAmount
   amount: number; // ACHTUNG - That one should not include any taxes
   roundedAmount: number;
-  platformFeeStrategy: BillingPlatformFeeStrategy;
+  accountSessionFee: BillingAccountSessionFee;
 }
 
 export interface BillingPlatformInvoice {
@@ -227,7 +231,7 @@ export interface BillingPlatformInvoice {
   userID: string;
   invoiceNumber: string;
   status: BillingInvoiceStatus;
-  amount: number;
+  amount: number; // This one is in cents
   totalAmount: number;
   currency: string;
   customerID: string;

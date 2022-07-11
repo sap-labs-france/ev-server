@@ -2,7 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { CryptoSettings, CryptoSettingsType, SettingDB, TechnicalSettings, UserSettings, UserSettingsType } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import Tenant, { TenantComponents, TenantLogo } from '../../../../types/Tenant';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -76,6 +76,14 @@ export default class TenantService {
   }
 
   public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleGetTenantLogo', action: action,
+      });
+    }
     // Get Logo
     const tenantLogo = await TenantStorage.getTenantLogo(req.tenant);
     let logo = tenantLogo?.logo;
@@ -88,7 +96,7 @@ export default class TenantService {
         encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
         logo = logo.substring(logo.indexOf(',') + 1);
       }
-      res.setHeader('content-type', header);
+      res.setHeader('Content-Type', header);
       res.send(Buffer.from(logo, encoding));
     } else {
       res.status(StatusCodes.NOT_FOUND);
@@ -273,7 +281,7 @@ export default class TenantService {
     await UserStorage.saveUserPassword(tenant, tenantUser.id, { passwordResetHash: resetHash });
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
-      '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+      '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
     // Notify
     void NotificationHandler.sendNewRegisteredUser(

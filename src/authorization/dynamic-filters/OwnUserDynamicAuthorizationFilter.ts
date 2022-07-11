@@ -28,9 +28,9 @@ export default class OwnUserDynamicAuthorizationFilter extends DynamicAuthorizat
     if (!Utils.isEmptyArray(authorizationFilters.filters.userIDs)) {
       authorizationFilters.authorized = true;
     }
-    // Delete user property in entity in case we are not authorized
-    if (!authorizationFilters.authorized && Utils.objectHasProperty(entityData, 'user') && !Utils.isNullOrUndefined(entityData['user'])) {
-      delete entityData['user'];
+    // Remove sensible data if not authorized and filter is provided
+    if (!authorizationFilters.authorized) {
+      Utils.removeSensibeDataFromEntity(extraFilters, entityData);
     }
   }
 

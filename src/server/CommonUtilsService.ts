@@ -33,7 +33,7 @@ export class CommonUtilsService {
     let user: User, alternateUser: User, tag: Tag, alternateTag: Tag;
     // Check if same user
     if (tagID !== transaction.tagID) {
-    // Check alternate User
+      // Check alternate User
       const result = await CommonUtilsService.isTagIDAuthorizedOnChargingStation(
         tenant, chargingStation, transaction, tagID, action, authAction);
       alternateUser = result.user;
@@ -42,7 +42,7 @@ export class CommonUtilsService {
       user = await UserStorage.getUserByTagID(tenant, transaction.tagID);
       tag = await TagStorage.getTag(tenant, transaction.tagID);
     } else {
-    // Check User
+      // Check User
       const result = await CommonUtilsService.isTagIDAuthorizedOnChargingStation(
         tenant, chargingStation, transaction, transaction.tagID, action, authAction);
       user = result.user;
@@ -53,11 +53,11 @@ export class CommonUtilsService {
 
   private static async isTagIDAuthorizedOnChargingStation(tenant: Tenant, chargingStation: ChargingStation,
       transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<{ user: User, tag?: Tag }> {
-  // Check Organization
+    // Check Organization
     if (Authorizations.isChargingStationValidInOrganization(action, tenant, chargingStation)) {
-    // Access Control is disabled?
+      // Access Control is disabled?
       if (!chargingStation.siteArea.accessControl) {
-      // No ACL: Always try to get the user
+        // No ACL: Always try to get the user
         const user = await UserStorage.getUserByTagID(tenant, tagID);
         const tag = await TagStorage.getTag(tenant, tagID);
         return { user, tag };
@@ -66,7 +66,7 @@ export class CommonUtilsService {
     // Get Authorized Tag
     const tag = await Authorizations.checkAndGetAuthorizedTag(action, tenant, chargingStation, tagID);
     if (!tag) {
-    // Check OICP first
+      // Check OICP first
       const user = await Authorizations.checkAndGetOICPAuthorizedUser(action, tenant, transaction, tagID);
       if (user) {
         return { user };
@@ -85,7 +85,7 @@ export class CommonUtilsService {
 
   private static async checkAndGetAuthorizedUserFromTag(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
       transaction: Transaction, tag: Tag, authAction: Action): Promise<User> {
-  // Get User
+    // Get User
     const user = await UserStorage.getUser(tenant, tag.user.id);
     // User status
     if (user.status !== UserStatus.ACTIVE) {
@@ -100,7 +100,7 @@ export class CommonUtilsService {
     }
     // Check Auth if local User
     if (user.issuer && authAction) {
-    // Build the JWT Token
+      // Build the JWT Token
       const userToken = await Authorizations.buildUserToken(tenant, user, [tag]);
       const authorization = await AuthorizationService.checkAndGetChargingStationsAuthorizations(tenant, userToken, authAction);
       if (!authorization.authorized) {

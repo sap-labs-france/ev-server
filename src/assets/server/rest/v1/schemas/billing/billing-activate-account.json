@@ -1,6 +1,6 @@
 {
-  "$id": "billing-activate-sub-account",
-  "title": "Activate a Billing sub-account Request",
+  "$id": "billing-activate-account",
+  "title": "Activate a Billing account Request",
   "type": "object",
   "properties": {
     "ID": {

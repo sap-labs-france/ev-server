@@ -9,14 +9,7 @@ export default class ConfigurationValidatorStorage extends SchemaValidator {
   private configurationSave: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/storage/schemas/configuration/configuration-save.json`, 'utf8'));
 
   private constructor() {
-    super('ConfigurationValidatorStorage', {
-      strict: true,
-      allErrors: true,
-      removeAdditional: 'all',
-      allowUnionTypes: true,
-      coerceTypes: true,
-      verbose: true,
-    });
+    super('ConfigurationValidatorStorage');
   }
 
   public static getInstance(): ConfigurationValidatorStorage {
@@ -27,6 +20,6 @@ export default class ConfigurationValidatorStorage extends SchemaValidator {
   }
 
   public validateConfigurationSave(data: any): Configuration {
-    return this.validate(this.configurationSave, data);
+    return this.validate(this.configurationSave, data, true);
   }
 }
