@@ -28,7 +28,7 @@ import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpLogGetRequest } from '../../../../types/requests/HttpLogRequest';
 import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
-import Logging from '../../../../utils/Logging';
+import { OCPICapability } from '../../../../types/ocpi/OCPIEvse';
 import PricingDefinition from '../../../../types/Pricing';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import { ServerAction } from '../../../../types/Server';
@@ -747,11 +747,27 @@ export default class AuthorizationService {
     chargingStation.canMaintainPricingDefinitions = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.MAINTAIN_PRICING_DEFINITIONS, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+    // Remote start stop capability using OCPI data (Roaming)
+    let hasRemoteStartStopCapability = true;
+    if (!chargingStation.issuer) {
+      hasRemoteStartStopCapability = false;
+      if (!Utils.isNullOrUndefined(chargingStation.ocpiData?.evses)) {
+        for (const evse of chargingStation.ocpiData.evses) {
+          for (const capability of evse.capabilities) {
+            if (capability === OCPICapability.REMOTE_START_STOP_CAPABLE) {
+              hasRemoteStartStopCapability = true;
+              break;
+            }
+          }
+        }
+      }
+    }
     // Add connector authorization
     for (const connector of chargingStation.connectors) {
       // Start transaction (Auth check should be done first to apply filter)
       connector.canRemoteStopTransaction = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_STOP_TRANSACTION,
         authorizationFilter, { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector)
+        && hasRemoteStartStopCapability
         && !chargingStation.inactive
         && [
           ChargePointStatus.CHARGING,
@@ -764,6 +780,7 @@ export default class AuthorizationService {
       connector.canRemoteStartTransaction = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.CONNECTOR, Action.REMOTE_START_TRANSACTION, authorizationFilter,
         { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector)
+        && hasRemoteStartStopCapability
         && !chargingStation.inactive
         && !connector.canRemoteStopTransaction
         && [
