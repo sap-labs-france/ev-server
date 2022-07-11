@@ -1704,10 +1704,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async createConnectedAccount(): Promise<Partial<BillingAccount>> {
     await this.checkConnection();
-    let billingAccount: Stripe.Account;
+    let stripeAccount: Stripe.Account;
     // Create the account
     try {
-      billingAccount = await this.stripe.accounts.create({
+      stripeAccount = await this.stripe.accounts.create({
         type: 'standard'
       });
     } catch (e) {
@@ -1718,13 +1718,20 @@ export default class StripeBillingIntegration extends BillingIntegration {
         method: 'createConnectedAccount',
       });
     }
+    return {
+      accountExternalID: stripeAccount.id
+    };
+  }
+
+  public async refreshConnectedAccount(billingAccount: BillingAccount, accountActivationURL: string): Promise<Partial<BillingAccount>> {
+    await this.checkConnection();
     // Generate the link to activate the account
     let activationLink: Stripe.AccountLink;
     try {
       activationLink = await this.stripe.accountLinks.create({
-        account: billingAccount.id,
-        return_url: Utils.buildEvseBillingAccountActivationURL(this.tenant, billingAccount.id),
-        refresh_url: Utils.buildEvseURL(),
+        account: billingAccount.accountExternalID,
+        return_url: accountActivationURL + '&OperationResult=Success',
+        refresh_url: accountActivationURL + '&OperationResult=Refresh',
         type: 'account_onboarding',
       });
     } catch (e) {
@@ -1736,7 +1743,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     return {
-      accountExternalID: billingAccount.id,
+      id: billingAccount.id,
       activationLink: activationLink.url
     };
   }
@@ -1761,7 +1768,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           currency: billingTransfer.currency,
           tax_rates,
           description,
-          amount: session.accountSessionFee.feeAmount,
+          amount: session.accountSessionFee.feeAmount * 100, // Stripe expects cents !!!
           metadata: {
             userID: user.id,
             transferID: billingTransfer.id,
@@ -1822,14 +1829,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public convertToBillingPlatformInvoice(stripeInvoice: Stripe.Invoice): BillingPlatformInvoice {
     // eslint-disable-next-line id-blacklist, max-len
-    const { id: invoiceID, customer, number: invoiceNumber, livemode: liveMode, amount_due: amount, status, currency: invoiceCurrency, metadata } = stripeInvoice;
+    const { id: invoiceID, customer, number: invoiceNumber, livemode: liveMode, amount_due: amountCents, status, currency: invoiceCurrency, metadata } = stripeInvoice;
     const customerID = customer as string;
     const currency = invoiceCurrency?.toUpperCase();
     const epoch = stripeInvoice.status_transitions?.finalized_at || stripeInvoice.created;
     const createdOn = moment.unix(epoch).toDate(); // epoch to Date!
     const userID = metadata.userID;
     // Amount is in cents!
-    const totalAmount = amount * 100;
+    const amount = amountCents ;
+    const totalAmount = Utils.createDecimal(amountCents).div(100).toNumber();
     const invoice: BillingPlatformInvoice = {
       invoiceID, invoiceNumber, liveMode, userID,
       status: status as BillingInvoiceStatus,

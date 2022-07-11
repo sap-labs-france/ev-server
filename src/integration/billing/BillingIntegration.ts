@@ -710,6 +710,8 @@ export default abstract class BillingIntegration {
 
   abstract createConnectedAccount(): Promise<Partial<BillingAccount>>;
 
+  abstract refreshConnectedAccount(billingAccount: BillingAccount, url: string): Promise<Partial<BillingAccount>>;
+
   abstract billPlatformFee(transfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice>;
 
   abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
@@ -819,7 +821,8 @@ export default abstract class BillingIntegration {
 
   private computeAccountSessionFee(session: BillingSessionData, sessionTotalAmount: number): BillingAccountSessionFee {
     const { percentage, flatFeePerSession } = session.accountData.platformFeeStrategy;
-    const feeAmount = Utils.createDecimal(sessionTotalAmount).mul(percentage).div(100).plus(flatFeePerSession).toNumber();
+    const feeAmountAsDecimal = Utils.createDecimal(sessionTotalAmount).mul(percentage).div(100).plus(flatFeePerSession);
+    const feeAmount = Utils.roundTo(feeAmountAsDecimal, 2);
     return {
       percentage,
       flatFeePerSession,
