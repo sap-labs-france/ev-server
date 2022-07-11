@@ -1077,7 +1077,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['OwnUser']
+            filters: ['OwnUser'],
+            metadata: {
+              id: {
+                visible: false
+              }
+            },
           }
         },
         attributes: [
@@ -1092,11 +1097,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: {
             asserts: [],
             filters: ['OwnUser'],
-            metadata: {
-              id: {
-                visible: false
-              }
-            },
           }
         },
         attributes: [
