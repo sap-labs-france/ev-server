@@ -749,14 +749,15 @@ export default class AuthorizationService {
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
     // Remote start stop capability using OCPI data (Roaming)
     let hasRemoteStartStopCapability = true;
-    if (!chargingStation.issuer && !Utils.isNullOrUndefined(chargingStation.ocpiData?.evses)) {
-      // Use OCPI data to determine capability
+    if (!chargingStation.issuer) {
       hasRemoteStartStopCapability = false;
-      for (const evse of chargingStation.ocpiData.evses) {
-        for (const capability of evse.capabilities) {
-          if (capability === OCPICapability.REMOTE_START_STOP_CAPABLE) {
-            hasRemoteStartStopCapability = true;
-            break;
+      if (!Utils.isNullOrUndefined(chargingStation.ocpiData?.evses)) {
+        for (const evse of chargingStation.ocpiData.evses) {
+          for (const capability of evse.capabilities) {
+            if (capability === OCPICapability.REMOTE_START_STOP_CAPABLE) {
+              hasRemoteStartStopCapability = true;
+              break;
+            }
           }
         }
       }
