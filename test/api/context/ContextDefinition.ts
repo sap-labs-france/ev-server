@@ -402,7 +402,7 @@ export default class ContextDefinition {
           type: PricingSettingsType.SIMPLE,
           simple: {
             price: ContextDefinition.DEFAULT_PRICE,
-            currency: 'EUR'
+            currency: 'USD'
           }
         }
       },

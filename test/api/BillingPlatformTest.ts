@@ -8,7 +8,6 @@ import BillingStorage from '../../src/storage/mongodb/BillingStorage';
 import { BillingTestConfigHelper } from './StripeTestHelper';
 import BillingTestHelper from './BillingTestHelper';
 import CompanyFactory from '../factories/CompanyFactory';
-import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import SiteFactory from '../factories/SiteFactory';
@@ -25,7 +24,8 @@ chai.use(responseHelper);
 const billingTestHelper = new BillingTestHelper();
 // Conditional test execution function
 const describeif = (condition) => condition ? describe : describe.skip;
-const isBillingProperlyConfigured = BillingTestConfigHelper.isBillingProperlyConfigured();
+// ACHTUNG - STRIPE Limitation - We cannot test transfer capabilities with accounts in Europe
+const isBillingProperlyConfigured = BillingTestConfigHelper.isBillingProperlyConfigured('USD');
 
 describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', () => {
   jest.setTimeout(60000);
@@ -205,7 +205,12 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
 
       it('should finalize transfer', async () => {
         const billingAccount = await billingTestHelper.getActivatedAccount();
-        const transfer: BillingTransfer = { ...BillingTransferFactory.build(), accountID: billingAccount.id, status: BillingTransferStatus.DRAFT };
+        const transfer: BillingTransfer = {
+          ...BillingTransferFactory.build(),
+          currency: billingTestHelper.getCurrentCurrency(),
+          accountID: billingAccount.id,
+          status: BillingTransferStatus.DRAFT
+        };
         const transferID = await BillingStorage.saveTransfer(billingTestHelper.getTenant(), transfer);
         transfer.id = transferID;
         const finalizeResponse = await billingTestHelper.getCurrentUserService().billingApi.finalizeTransfer(transferID);
@@ -215,7 +220,10 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
       });
 
       it('should not finalize a draft transfer', async () => {
-        const transfer = BillingTransferFactory.build();
+        const transfer = {
+          ...BillingTransferFactory.build(),
+          currency: billingTestHelper.getCurrentCurrency(),
+        };
         transfer.status = BillingTransferStatus.FINALIZED;
         const transferID = await BillingStorage.saveTransfer(billingTestHelper.getTenant(), transfer);
         transfer.id = transferID;
@@ -225,15 +233,19 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
 
       it('should send a transfer', async () => {
         const billingAccount = await billingTestHelper.createActivatedAccount();
-        const transfer: BillingTransfer = { ...BillingTransferFactory.build(), status: BillingTransferStatus.DRAFT, accountID: billingAccount.id };
-        // Only works for bank accounts using the USD currency!!!!
-        // await stripeTestHelper.addFundsToBalance(transfer.totalAmount);
+        const transfer: BillingTransfer = {
+          ...BillingTransferFactory.build(),
+          currency: billingTestHelper.getCurrentCurrency(),
+          status: BillingTransferStatus.DRAFT,
+          accountID: billingAccount.id
+        };
         transfer.id = await BillingStorage.saveTransfer(billingTestHelper.getTenant(), transfer);
         const finalizeResponse = await billingTestHelper.getCurrentUserService().billingApi.finalizeTransfer(transfer.id);
         expect(finalizeResponse.status).to.be.eq(StatusCodes.OK);
+        // Only works for bank accounts using the USD currency!!!!
+        await billingTestHelper.addFundsToBalance(transfer.totalAmount);
         const sendResponse = await billingTestHelper.getCurrentUserService().billingApi.sendTransfer(transfer.id);
-        // Does not yet work as expected - funds cannot be sent because of the balance
-        // expect(sendResponse.status).to.be.eq(StatusCodes.OK);
+        expect(sendResponse.status).to.be.eq(StatusCodes.OK);
       });
     });
 

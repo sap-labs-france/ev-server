@@ -290,6 +290,23 @@ const config = convict({
       default: ''
     },
   },
+  stripeUSD: {
+    url: {
+      doc: 'Billing provider dashboard',
+      format: String,
+      default: ''
+    },
+    publicKey: {
+      doc: 'Public key',
+      format: String,
+      default: ''
+    },
+    secretKey: {
+      doc: 'Secret Key',
+      format: String,
+      default: ''
+    },
+  },
   smartCharging: {
     optimizerUrl: {
       doc: 'Smart charging url',

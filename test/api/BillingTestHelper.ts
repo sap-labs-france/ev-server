@@ -12,6 +12,7 @@ import chai, { expect } from 'chai';
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import BillingFacade from '../../src/integration/billing/BillingFacade';
 import { BillingPlatformFeeStrategyFactory } from '../factories/BillingFactory';
+import { BillingTestConfigHelper } from './StripeTestHelper';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Company from '../../src/types/Company';
@@ -45,6 +46,7 @@ chai.use(responseHelper);
 export default class BillingTestHelper {
   // Tenant: utbilling
   private tenantContext: TenantContext;
+  private tenantCurrency = 'EUR';
   // Context with Admin permissions
   private adminUserContext: User;
   private adminUserService: CentralServerService;
@@ -67,6 +69,9 @@ export default class BillingTestHelper {
 
   public async initialize(tenantContext = ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING) : Promise<void> {
     this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenantContext);
+    if (tenantContext === ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM) {
+      this.tenantCurrency = 'USD';
+    }
     this.adminUserContext = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     this.adminUserService = new CentralServerService(
       this.tenantContext.getTenant().subdomain,
@@ -85,6 +90,10 @@ export default class BillingTestHelper {
 
   public getTenantID(): string {
     return this.tenantContext.getTenant().id;
+  }
+
+  public getCurrentCurrency(): string {
+    return this.tenantCurrency;
   }
 
   public getAdminUserService(): CentralServerService {
@@ -496,7 +505,7 @@ export default class BillingTestHelper {
   }
 
   public async setBillingSystemValidCredentials(activateTransactionBilling = true, immediateBillingAllowed = false) : Promise<void> {
-    const billingSettings = this.getLocalSettings(immediateBillingAllowed);
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(this.tenantCurrency, immediateBillingAllowed);
     // Here we switch ON or OFF the billing of charging sessions
     billingSettings.billing.isTransactionBillingActivated = activateTransactionBilling;
     // Invoke the generic setting service API to properly persist this information
@@ -510,7 +519,7 @@ export default class BillingTestHelper {
   }
 
   public async setBillingSystemInvalidCredentials() : Promise<void> {
-    const billingSettings = this.getLocalSettings(false);
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(this.tenantCurrency, false);
     const tenant = this.tenantContext?.getTenant();
     assert(!!tenant, 'Tenant cannot be null');
     billingSettings.stripe.secretKey = await Cypher.encrypt(tenant, 'sk_test_' + 'invalid_credentials');
@@ -518,31 +527,6 @@ export default class BillingTestHelper {
     const billingImpl = StripeBillingIntegration.getInstance(tenant, billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
     this.billingImpl = billingImpl;
-  }
-
-  public getLocalSettings(immediateBillingAllowed: boolean): BillingSettings {
-    // ---------------------------------------------------------------------
-    // ACHTUNG: Our test may need the immediate billing to be switched off!
-    // Because we want to check the DRAFT state of the invoice
-    // ---------------------------------------------------------------------
-    const billingProperties = {
-      isTransactionBillingActivated: true, // config.get('billing.isTransactionBillingActivated'),
-      immediateBillingAllowed: immediateBillingAllowed, // config.get('billing.immediateBillingAllowed'),
-      periodicBillingAllowed: !immediateBillingAllowed, // config.get('billing.periodicBillingAllowed'),
-      taxID: config.get('billing.taxID')
-    };
-    const stripeProperties = {
-      url: config.get('stripe.url'),
-      publicKey: config.get('stripe.publicKey'),
-      secretKey: config.get('stripe.secretKey'),
-    };
-    const settings: BillingSettings = {
-      identifier: TenantComponents.BILLING,
-      type: BillingSettingsType.STRIPE,
-      billing: billingProperties,
-      stripe: stripeProperties,
-    };
-    return settings;
   }
 
   public async saveBillingSettings(billingSettings: BillingSettings) : Promise<void> {
@@ -793,14 +777,6 @@ export default class BillingTestHelper {
     return response?.data?.result;
   }
 
-  public isBillingProperlyConfigured(): boolean {
-    const billingSettings = this.getLocalSettings(false);
-    // Check that the mandatory settings are properly provided
-    return (!!billingSettings.stripe.publicKey
-      && !!billingSettings.stripe.secretKey
-      && !!billingSettings.stripe.url);
-  }
-
   public async getLatestDraftInvoice(userId?: string): Promise<BillingInvoice> {
     // ACHTUNG: There is no data after running: npm run mochatest:createContext
     // In that situation we return 0!
@@ -1025,4 +1001,19 @@ export default class BillingTestHelper {
     expect(response.status).to.be.eq(StatusCodes.OK);
     expect(response.data.status).to.eq(BillingTransferStatus.FINALIZED);
   }
+
+  public async addFundsToBalance(amount: number, stripe_test_token = 'btok_us_verified') : Promise<Stripe.Topup> {
+    // Assign funds to the stripe balance is a prerequisite for testing transfers
+    // c.f.: https://stripe.com/docs/connect/testing#testing-top-ups
+    const stripeInstance = await this.billingImpl.getStripeInstance();
+    const topup = await stripeInstance.topups.create({
+      amount,
+      currency: 'eur',
+      description: 'test-addFundsToBalance',
+      source:stripe_test_token,
+    });
+    expect(topup).to.not.be.null;
+    return topup;
+  }
+
 }

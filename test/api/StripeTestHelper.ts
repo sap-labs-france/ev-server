@@ -27,25 +27,45 @@ chai.use(chaiSubset);
 chai.use(responseHelper);
 
 export class BillingTestConfigHelper {
-  public static isBillingProperlyConfigured(): boolean {
-    const billingSettings = BillingTestConfigHelper.getLocalSettings(false);
+  public static isBillingProperlyConfigured(tenantCurrency: string): boolean {
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(tenantCurrency, false);
     // Check that the mandatory settings are properly provided
     return (!!billingSettings.stripe.publicKey
       && !!billingSettings.stripe.secretKey
       && !!billingSettings.stripe.url);
   }
 
-  public static getLocalSettings(immediateBillingAllowed: boolean): BillingSettings {
+  public static getLocalSettings(tenantCurrency: string, immediateBillingAllowed: boolean): BillingSettings {
+    // ----------------------------------
+    // CONFIGURATION EXAMPLE - in test/local.json
+    // ----------------------------------
+    // "billing": {
+    //   "isTransactionBillingActivated": true,
+    //   "immediateBillingAllowed": true,
+    //   "periodicBillingAllowed": false,
+    //   "taxID": ""
+    // },
+    // "stripe": {
+    //   "url": "https://dashboard.stripe.com/b/acct_1FFFFFFFFFFF",
+    //   "publicKey": "pk_test_511FFFFFFFFFFF",
+    //   "secretKey": "sk_test_51K1FFFFFFFFFF"
+    // },
+    // "stripeUSD": {
+    //   "url": "https://dashboard.stripe.com/b/acct_1AAAAAAAAAAA",
+    //   "publicKey": "pk_test_51AAAAAAAAAAA",
+    //   "secretKey": "sk_test_52AAAAAAAAAAA"
+    // },
+    const propertySuffix = (tenantCurrency !== 'EUR') ? tenantCurrency : '';
     const billingProperties = {
       isTransactionBillingActivated: config.get('billing.isTransactionBillingActivated'),
-      immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
-      periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
+      immediateBillingAllowed: immediateBillingAllowed, // config.get('billing.immediateBillingAllowed'),
+      periodicBillingAllowed: !immediateBillingAllowed, // config.get('billing.periodicBillingAllowed'),
       taxID: config.get('billing.taxID')
     };
     const stripeProperties = {
-      url: config.get('stripe.url'),
-      publicKey: config.get('stripe.publicKey'),
-      secretKey: config.get('stripe.secretKey'),
+      url: config.get(`stripe${propertySuffix}.url`),
+      publicKey: config.get(`stripe${propertySuffix}.publicKey`),
+      secretKey: config.get(`stripe${propertySuffix}.secretKey`),
     };
     const settings: BillingSettings = {
       identifier: TenantComponents.BILLING,
@@ -66,6 +86,7 @@ export class BillingTestConfigHelper {
 export default class StripeTestHelper {
   // Tenant: utbilling
   private tenantContext: TenantContext;
+  private tenantCurrency = 'EUR';
   // User Service for action requiring admin permissions (e.g.: set/reset stripe settings)
   private adminUserContext: User;
   private adminUserService: CentralServerService;
@@ -78,6 +99,9 @@ export default class StripeTestHelper {
   public async initialize(tenantContext = ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING): Promise<void> {
 
     this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenantContext);
+    if (tenantContext === ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM) {
+      this.tenantCurrency = 'USD';
+    }
     this.adminUserContext = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     this.adminUserService = new CentralServerService(
       this.tenantContext.getTenant().subdomain,
@@ -110,7 +134,7 @@ export default class StripeTestHelper {
   }
 
   public async setBillingSystemValidCredentials(immediateBilling: boolean) : Promise<void> {
-    const billingSettings = BillingTestConfigHelper.getLocalSettings(immediateBilling);
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(this.tenantCurrency, immediateBilling);
     await this.saveBillingSettings(billingSettings);
     billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenant(), billingSettings.stripe.secretKey);
     this.billingImpl = StripeBillingIntegration.getInstance(this.getTenant(), billingSettings);
@@ -118,7 +142,7 @@ export default class StripeTestHelper {
   }
 
   public async fakeLiveBillingSettings() : Promise<StripeBillingIntegration> {
-    const billingSettings = BillingTestConfigHelper.getLocalSettings(true);
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(this.tenantCurrency, true);
     const mode = 'live';
     billingSettings.stripe.secretKey = `sk_${mode}_0234567890`;
     billingSettings.stripe.publicKey = `pk_${mode}_0234567890`;
@@ -149,20 +173,6 @@ export default class StripeTestHelper {
     });
     expect(source).to.not.be.null;
     return source;
-  }
-
-  public async addFundsToBalance(amount: number, stripe_test_token = 'btok_us_verified') : Promise<Stripe.Topup> {
-    // Assign funds to the stripe balance is a prerequisite for testing transfers
-    // c.f.: https://stripe.com/docs/connect/testing#testing-top-ups
-    const stripeInstance = await this.billingImpl.getStripeInstance();
-    const topup = await stripeInstance.topups.create({
-      amount,
-      currency: 'eur',
-      description: 'test-addFundsToBalance',
-      source:stripe_test_token,
-    });
-    expect(topup).to.not.be.null;
-    return topup;
   }
 
   // Detach the latest assigned source

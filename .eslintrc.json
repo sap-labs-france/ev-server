@@ -213,7 +213,7 @@
   },
   "overrides": [
     {
-      "files": ["*.ts", "*.tsx"],
+      "files": ["src/**/*.ts", "*.tsx"],
       "rules": {
         "@typescript-eslint/explicit-member-accessibility": ["error"]
       }
