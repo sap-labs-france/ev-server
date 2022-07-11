@@ -774,7 +774,9 @@ export default abstract class BillingIntegration {
         transfer = {
           accountID, status: BillingTransferStatus.DRAFT, sessions: [], totalAmount: 0, transferAmount: 0,
           platformFeeData: null, transferExternalID: null,
-          currency: invoice.currency
+          currency: invoice.currency,
+          createdBy: null,
+          createdOn: new Date()
         };
       }
       // Process all sessions of the invoice matching the current account ID
