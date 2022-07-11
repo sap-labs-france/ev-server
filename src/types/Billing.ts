@@ -229,7 +229,7 @@ export interface BillingPlatformInvoice {
   invoiceID: string;
   liveMode: boolean;
   userID: string;
-  invoiceNumber: string;
+  documentNumber: string;
   status: BillingInvoiceStatus;
   amount: number; // This one is in cents
   totalAmount: number;

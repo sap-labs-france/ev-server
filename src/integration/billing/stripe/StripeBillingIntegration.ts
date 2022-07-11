@@ -1855,7 +1855,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public convertToBillingPlatformInvoice(stripeInvoice: Stripe.Invoice): BillingPlatformInvoice {
     // eslint-disable-next-line id-blacklist, max-len
-    const { id: invoiceID, customer, number: invoiceNumber, livemode: liveMode, amount_due: amountCents, status, currency: invoiceCurrency, metadata } = stripeInvoice;
+    const { id: invoiceID, customer, number: documentNumber, livemode: liveMode, amount_due: amountCents, status, currency: invoiceCurrency, metadata } = stripeInvoice;
     const customerID = customer as string;
     const currency = invoiceCurrency?.toUpperCase();
     const epoch = stripeInvoice.status_transitions?.finalized_at || stripeInvoice.created;
@@ -1865,7 +1865,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const amount = amountCents ;
     const totalAmount = Utils.createDecimal(amountCents).div(100).toNumber();
     const invoice: BillingPlatformInvoice = {
-      invoiceID, invoiceNumber, liveMode, userID,
+      invoiceID, documentNumber, liveMode, userID,
       status: status as BillingInvoiceStatus,
       amount, totalAmount, currency,
       customerID, createdOn

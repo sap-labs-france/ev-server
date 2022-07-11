@@ -375,7 +375,7 @@ export default class BillingStorage {
         invoiceID: transfer.invoice.invoiceID,
         liveMode: transfer.invoice.liveMode,
         userID: transfer.invoice.userID,
-        invoiceNumber: transfer.invoice.invoiceNumber,
+        documentNumber: transfer.invoice.documentNumber,
         status: transfer.invoice.status,
         amount: transfer.invoice.amount,
         totalAmount: transfer.invoice.totalAmount,
