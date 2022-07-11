@@ -932,15 +932,45 @@ export default class BillingTestHelper {
 
   public async createActivatedAccount(): Promise<BillingAccount> {
     const accountID = await this.createBillingAccount();
-    // Send the activation link
-    const billingAccountOnboardResponse = await this.getCurrentUserService().billingApi.onboardBillingAccount(accountID);
-    expect(billingAccountOnboardResponse.status).to.be.eq(StatusCodes.OK);
-    let response = await this.getCurrentUserService().billingApi.activateBillingAccount({ accountID, TenantID: this.getTenantID() });
+    // ----------------------------------------------------
+    // Send the onboarding mail to the business user
+    // ----------------------------------------------------
+    let response = await this.getCurrentUserService().billingApi.onboardBillingAccount(accountID);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    // --------------------------------------------------------------
+    // Account is now in a PENDING state
+    // --------------------------------------------------------------
+    response = await this.getCurrentUserService().billingApi.readBillingAccount(accountID);
+    let billingAccount = response.data as BillingAccount ;
+    expect(billingAccount.status).to.be.eq(BillingAccountStatus.PENDING);
+    // ----------------------------------------------------
+    // Generate the link to the onboarding page
+    // ----------------------------------------------------
+    response = await this.getCurrentUserService().billingApi.refreshBillingAccount({ accountID, TenantID: this.getTenantID() });
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    // --------------------------------------------------------------
+    // Account is now still in a PENDING state
+    // --------------------------------------------------------------
+    response = await this.getCurrentUserService().billingApi.readBillingAccount(accountID);
+    billingAccount = response.data as BillingAccount ;
+    expect(billingAccount.status).to.be.eq(BillingAccountStatus.PENDING);
+    expect(billingAccount.activationLink).to.be.not.null;
+    // --------------------------------------------------------------
+    // Navigate to the Onboarding page
+    // --------------------------------------------------------------
+    // TODO - how to test it!
+    // --------------------------------------------------------------
+    // Let's assume the onboarding has been completed successfully
+    // --------------------------------------------------------------
+    response = await this.getCurrentUserService().billingApi.activateBillingAccount({ accountID, TenantID: this.getTenantID() });
     expect(response.status).to.be.eq(StatusCodes.OK);
     expect(response.data?.id).to.be.eq(accountID);
+    // --------------------------------------------------------------
+    // Account is now in a ACTIVE state
+    // --------------------------------------------------------------
     response = await this.getCurrentUserService().billingApi.readBillingAccount(accountID);
     expect(response.status).to.be.eq(StatusCodes.OK);
-    const billingAccount = response.data as BillingAccount ;
+    billingAccount = response.data as BillingAccount ;
     expect(billingAccount.status).to.be.eq(BillingAccountStatus.ACTIVE);
     return billingAccount;
   }

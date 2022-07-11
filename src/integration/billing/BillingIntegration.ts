@@ -710,6 +710,8 @@ export default abstract class BillingIntegration {
 
   abstract createConnectedAccount(): Promise<Partial<BillingAccount>>;
 
+  abstract refreshConnectedAccount(billingAccount: BillingAccount, url: string): Promise<Partial<BillingAccount>>;
+
   abstract billPlatformFee(transfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice>;
 
   abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;

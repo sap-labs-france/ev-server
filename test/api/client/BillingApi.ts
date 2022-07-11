@@ -60,6 +60,10 @@ export default class BillingApi extends CrudApi {
     return super.create(params, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_ACCOUNTS));
   }
 
+  public async refreshBillingAccount(params) {
+    return super.patch(params, super.buildUtilRestEndpointUrl(RESTServerRoute.REST_BILLING_ACCOUNT_REFRESH, { id: params.accountID }));
+  }
+
   public async activateBillingAccount(params) {
     return super.patch(params, super.buildUtilRestEndpointUrl(RESTServerRoute.REST_BILLING_ACCOUNT_ACTIVATE, { id: params.accountID }));
   }
