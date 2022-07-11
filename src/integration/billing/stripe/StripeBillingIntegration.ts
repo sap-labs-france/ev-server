@@ -1802,31 +1802,45 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private async addItemsToPlatformFeeInvoice(stripeInvoice: Stripe.Invoice, billingTransfer: BillingTransfer, user: User): Promise<void> {
     // Create invoice items
     try {
-      await Promise.all(billingTransfer.sessions.map(async (session) => {
-        // Build the description with the business owner locale
-        const description = this.buildTransferLineItemDescription(user, session);
-        // A single tax rate per session
-        const tax_rates = [];
-        // Prepare item parameters
-        const parameters: Stripe.InvoiceItemCreateParams = {
-          invoice: stripeInvoice.id,
-          customer: user.billingData.customerID,
-          currency: billingTransfer.currency,
-          tax_rates,
-          description,
-          amount: session.accountSessionFee.feeAmount * 100, // Stripe expects cents !!!
-          metadata: {
-            userID: user.id,
-            transferID: billingTransfer.id,
-            tenantID: this.tenant.id,
-          }
-        };
-        // Create the invoice item
-        const itemIdempotencyKey = this.buildIdemPotencyKey(session.transactionID, 'invoice', 'platformFee');
-        return await this.stripe.invoiceItems.create(parameters, {
-          idempotencyKey: itemIdempotencyKey // STRIPE version 8.137.0 - property has been renamed!!!
-        });
+      // Extract session amounts
+      const amounts = billingTransfer.sessions.map((session) => ({
+        amount: session.amount,
+        flatFeePerSession: session.accountSessionFee.flatFeePerSession,
+        feeAmount: session.accountSessionFee.feeAmount,
       }));
+      // Sum session amounts
+      const totalAmount = amounts.reduce((previous, current) => ({
+        amount: previous.amount + current.amount,
+        flatFeePerSession: previous.flatFeePerSession + current.flatFeePerSession,
+        feeAmount: previous.feeAmount + current.feeAmount,
+      }), {
+        amount: 0,
+        flatFeePerSession: 0,
+        feeAmount: 0
+      });
+      // Generate the invoice item
+      const description = this.buildTransferFeeItemDescription(user, amounts.length);
+      // A single tax rate per session
+      const tax_rates = [];
+      // Prepare item parameters
+      const parameters: Stripe.InvoiceItemCreateParams = {
+        invoice: stripeInvoice.id,
+        customer: user.billingData.customerID,
+        currency: billingTransfer.currency,
+        tax_rates,
+        description,
+        amount: totalAmount.feeAmount * 100, // Stripe expects cents !!!
+        metadata: {
+          userID: user.id,
+          transferID: billingTransfer.id,
+          tenantID: this.tenant.id,
+        }
+      };
+      // Create the invoice item
+      const idempotencyKey = this.buildIdemPotencyKey(billingTransfer.id, 'invoice', 'platformFee-item');
+      await this.stripe.invoiceItems.create(parameters, {
+        idempotencyKey
+      });
     } catch (e) {
       throw new BackendError({
         message: 'Unexpected situation - unable to create platform fee invoice item',
@@ -1873,13 +1887,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return invoice;
   }
 
-  private buildTransferLineItemDescription(user: User, session: BillingTransferSession) {
+  private buildTransferFeeItemDescription(user: User, nbSessions: number) {
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    const sessionID = session.transactionID;
-    const formattedAmount = i18nManager.formatNumber(session.amount);
-    const description = i18nManager.translate('billing.transfer-itemDescription', {
-      sessionID,
-      amount: formattedAmount
+    const description = i18nManager.translate('billing.transfer-feeItemDescription', {
+      nbSessions,
     });
     return description;
   }
