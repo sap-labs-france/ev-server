@@ -1806,7 +1806,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Build the description with the business owner locale
         const description = this.buildTransferLineItemDescription(user, session);
         // A single tax rate per session
-        const tax_rates = (session.accountSessionFee.taxExternalID) ? [ session.accountSessionFee.taxExternalID ] : [];
+        const tax_rates = [];
         // Prepare item parameters
         const parameters: Stripe.InvoiceItemCreateParams = {
           invoice: stripeInvoice.id,
