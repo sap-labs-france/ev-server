@@ -4,7 +4,7 @@ import { Factory } from 'rosie';
 import faker from 'faker';
 
 export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtransfer')
-  .attr('totalAmount', () => faker.datatype.number())
+  .attr('totalAmount', () => faker.datatype.number({ min: 70, max: 79 }))
   .attr('accountID', () => faker.datatype.hexaDecimal(24).substring(2).toLowerCase())
   .attr('status', () => faker.random.arrayElement([BillingTransferStatus.DRAFT, BillingTransferStatus.PENDING, BillingTransferStatus.FINALIZED, BillingTransferStatus.TRANSFERRED]))
   .attr('transferAmount', null)
