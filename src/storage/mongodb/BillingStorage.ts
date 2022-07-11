@@ -513,7 +513,7 @@ export default class BillingStorage {
     };
   }
 
-  public static async getTransferByID(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingTransfer> {
+  public static async getTransfer(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingTransfer> {
     const transferMDB = await BillingStorage.getTransfers(tenant, {
       IDs: [id]
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);

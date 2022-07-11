@@ -84,6 +84,10 @@ export default class BillingApi extends CrudApi {
     return super.readAll(params, paging, ordering, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_TRANSFERS));
   }
 
+  public async readTransfer(id: string) {
+    return super.read({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_TRANSFER, { id }));
+  }
+
   public async finalizeTransfer(id) {
     return super.patch({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_TRANSFER_FINALIZE, { id }));
   }
