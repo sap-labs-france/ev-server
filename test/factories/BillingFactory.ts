@@ -23,7 +23,6 @@ export const BillingTransferSessionFactory = Factory.define<BillingTransferSessi
   .attr('accountSessionFee', () => ({
     flatFeePerSession: 0.5,
     percentage: 3,
-    taxExternalID: null,
     feeAmount: 0
   }));
 
@@ -34,5 +33,4 @@ export const BillingPlatformFeeStrategyFactory = Factory.define<BillingPlatformF
 export const BillingPlatformSessionFeeFactory = Factory.define<BillingAccountSessionFee>('billingaccountSessionFee')
   .attr('flatFeePerSession', 0.5)
   .attr('percentage', 3)
-  .attr('taxExternalID', null)
   .attr('feeAmount', 0);

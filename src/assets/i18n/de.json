@@ -8,7 +8,7 @@
     "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
     "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
     "parkingTime-shortItemDescription": "Parking Time: {{duration}}",
-    "transfer-itemDescription": "Platform fee for session: {{sessionID}} - Amount: {{amount}}"
+    "transfer-feeItemDescription": "Fee charged for {{nbSessions}} session(s)"
   },
   "chargers": {
     "chargeBoxSN": "Seriennummer Ladestation",

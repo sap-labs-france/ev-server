@@ -828,7 +828,6 @@ export default abstract class BillingIntegration {
     return {
       percentage,
       flatFeePerSession,
-      taxExternalID: null, // TODO - consider tax rates
       feeAmount
     };
   }
