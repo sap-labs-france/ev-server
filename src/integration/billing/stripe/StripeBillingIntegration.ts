@@ -1704,10 +1704,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async createConnectedAccount(): Promise<Partial<BillingAccount>> {
     await this.checkConnection();
-    let billingAccount: Stripe.Account;
+    let stripeAccount: Stripe.Account;
     // Create the account
     try {
-      billingAccount = await this.stripe.accounts.create({
+      stripeAccount = await this.stripe.accounts.create({
         type: 'standard'
       });
     } catch (e) {
@@ -1718,13 +1718,20 @@ export default class StripeBillingIntegration extends BillingIntegration {
         method: 'createConnectedAccount',
       });
     }
+    return {
+      accountExternalID: stripeAccount.id
+    };
+  }
+
+  public async refreshConnectedAccount(billingAccount: BillingAccount, accountActivationURL: string): Promise<Partial<BillingAccount>> {
+    await this.checkConnection();
     // Generate the link to activate the account
     let activationLink: Stripe.AccountLink;
     try {
       activationLink = await this.stripe.accountLinks.create({
-        account: billingAccount.id,
-        return_url: Utils.buildEvseBillingAccountActivationURL(this.tenant, billingAccount.id),
-        refresh_url: Utils.buildEvseURL(),
+        account: billingAccount.accountExternalID,
+        return_url: accountActivationURL + '&OperationResult=Success',
+        refresh_url: accountActivationURL + '&OperationResult=Refresh',
         type: 'account_onboarding',
       });
     } catch (e) {
@@ -1736,7 +1743,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     return {
-      accountExternalID: billingAccount.id,
+      id: billingAccount.id,
       activationLink: activationLink.url
     };
   }
