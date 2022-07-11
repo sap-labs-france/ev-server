@@ -117,7 +117,8 @@ export default class ChargingStationTemplateService {
     // Filter
     const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateUpdateReq(req.body);
     // Check and get template by id
-    const chargingStationTemplate = await UtilsService.checkAndGetChargingStationTemplateAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
+    const chargingStationTemplate = await UtilsService.checkAndGetChargingStationTemplateAuthorization(
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest, { withUser: true });
     const template = filteredRequest.template;
     chargingStationTemplate.template = {
       hash: Utils.hash(JSON.stringify(filteredRequest)),
