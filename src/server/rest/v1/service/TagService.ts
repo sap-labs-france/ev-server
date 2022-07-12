@@ -7,6 +7,7 @@ import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tag, { ImportedTag, TagLimit, TagRequiredImportProperties } from '../../../../types/Tag';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
+import User, { ImportedUser } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -17,7 +18,6 @@ import CSVError from 'csvtojson/v2/CSVError';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import { HttpTagsGetRequest } from '../../../../types/requests/HttpTagRequest';
-import { ImportedUser } from '../../../../types/User';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -760,6 +760,8 @@ export default class TagService {
         'firstName',
         'name',
         'email',
+        'lastChangedBy',
+        'lastChangedOn',
       ].join(Constants.CSV_SEPARATOR);
     }
     // Content
@@ -773,6 +775,8 @@ export default class TagService {
         tag.user?.firstName,
         tag.user?.name,
         tag.user?.email,
+        tag.lastChangedBy ? Utils.buildUserFullName(tag.lastChangedBy as User, false) : '',
+        tag.lastChangedOn ? tag.lastChangedOn.toISOString() : '',
       ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
