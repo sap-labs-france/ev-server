@@ -193,7 +193,6 @@ export interface BillingPlatformFeeData {
 }
 
 export interface BillingAccountSessionFee extends BillingPlatformFeeStrategy {
-  taxExternalID: string; // Tax to apply on the platform fee
   feeAmount: number;
 }
 
@@ -229,9 +228,9 @@ export interface BillingPlatformInvoice {
   invoiceID: string;
   liveMode: boolean;
   userID: string;
-  invoiceNumber: string;
+  documentNumber: string;
   status: BillingInvoiceStatus;
-  amount: number;
+  amount: number; // This one is in cents
   totalAmount: number;
   currency: string;
   customerID: string;

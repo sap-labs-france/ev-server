@@ -1,10 +1,10 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { AssetDataResult, BillingAccountsDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, SiteUserDataResult, TagDataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
-import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax } from '../../../../types/Billing';
+import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
-import { HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingTransferGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 import { HttpCarCatalogGetRequest, HttpCarCatalogsGetRequest, HttpCarGetRequest, HttpCarsGetRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingProfileRequest, HttpChargingProfilesGetRequest, HttpChargingStationGetRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesGetRequest, HttpCompanyGetRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -29,7 +29,7 @@ import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpLogGetRequest } from '../../../../types/requests/HttpLogRequest';
 import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
-import Logging from '../../../../utils/Logging';
+import { OCPICapability } from '../../../../types/ocpi/OCPIEvse';
 import PricingDefinition from '../../../../types/Pricing';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import { ServerAction } from '../../../../types/Server';
@@ -825,11 +825,27 @@ export default class AuthorizationService {
     chargingStation.canMaintainPricingDefinitions = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.MAINTAIN_PRICING_DEFINITIONS, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+    // Remote start stop capability using OCPI data (Roaming)
+    let hasRemoteStartStopCapability = true;
+    if (!chargingStation.issuer) {
+      hasRemoteStartStopCapability = false;
+      if (!Utils.isNullOrUndefined(chargingStation.ocpiData?.evses)) {
+        for (const evse of chargingStation.ocpiData.evses) {
+          for (const capability of evse.capabilities) {
+            if (capability === OCPICapability.REMOTE_START_STOP_CAPABLE) {
+              hasRemoteStartStopCapability = true;
+              break;
+            }
+          }
+        }
+      }
+    }
     // Add connector authorization
     for (const connector of chargingStation.connectors) {
       // Start transaction (Auth check should be done first to apply filter)
       connector.canRemoteStopTransaction = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_STOP_TRANSACTION,
         authorizationFilter, { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector)
+        && hasRemoteStartStopCapability
         && !chargingStation.inactive
         && [
           ChargePointStatus.CHARGING,
@@ -842,6 +858,7 @@ export default class AuthorizationService {
       connector.canRemoteStartTransaction = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.CONNECTOR, Action.REMOTE_START_TRANSACTION, authorizationFilter,
         { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector)
+        && hasRemoteStartStopCapability
         && !chargingStation.inactive
         && !connector.canRemoteStopTransaction
         && [
@@ -858,9 +875,18 @@ export default class AuthorizationService {
           ChargePointStatus.FAULTED,
           ChargePointStatus.SUSPENDED_EVSE,
         ].includes(connector.status);
+      // Remove sensible data
+      await AuthorizationService.canPerformAuthorizationAction(
+        tenant, userToken, Entity.CONNECTOR, Action.VIEW_USER_DATA, authorizationFilter,
+        { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID, UserData: true, TagData: true }, connector);
+      // Remove properties
       Utils.removeCanPropertiesWithFalseValue(connector);
     }
-    // Optimize data over the net
+    // Remove sensible data
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.VIEW_USER_DATA, authorizationFilter,
+      { chargingStationID: chargingStation.id, UserID: userToken.user.id, SiteID: chargingStation.siteID, UserData: true, TagData: true }, chargingStation);
+    // Remove properties
     Utils.removeCanPropertiesWithFalseValue(chargingStation);
   }
 
@@ -892,7 +918,7 @@ export default class AuthorizationService {
     return authorizations;
   }
 
-  public static async checkAndGetBillingTransfersAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
+  public static async checkAndGetTransfersAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
       filteredRequest?: Partial<HttpBillingTransfersGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
@@ -904,6 +930,12 @@ export default class AuthorizationService {
     await this.canPerformAuthorizationAction(
       tenant, userToken, Entity.BILLING_TRANSFER, authAction, authorizations, filteredRequest, null, failsWithException);
     return authorizations;
+  }
+
+  public static async checkAndGetTransferAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpBillingTransferGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.BILLING_TRANSFER, userToken, filteredRequest, filteredRequest.ID ? { TransferID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetTaxesAuthorizations(tenant: Tenant, userToken: UserToken, failsWithException = true): Promise<AuthorizationFilter> {
@@ -972,6 +1004,15 @@ export default class AuthorizationService {
       tenant, userToken, Entity.INVOICE, Action.DOWNLOAD, authorizationFilter, billingInvoice.userID ? { UserID: billingInvoice.userID } : {}, billingInvoice);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(billingInvoice);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async addTransferAuthorizations(tenant: Tenant, userToken: UserToken, billingTransfer: BillingTransfer, authorizationFilter: AuthorizationFilter): Promise<void> {
+    billingTransfer.canRead = true; // Always true as it should be filtered upfront
+    // billingTransfer.canDownload = await AuthorizationService.canPerformAuthorizationAction(
+    //   tenant, userToken, Entity.TRANSFER, Action.DOWNLOAD, authorizationFilter, billingTransfer.businessOwnerID ? { UserID: billingTransfer.businessOwnerID } : {}, billingTransfer);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(billingTransfer);
   }
 
   public static async addAccountsAuthorizations(tenant: Tenant, userToken: UserToken, billingAccounts: BillingAccountsDataResult,
@@ -1247,8 +1288,8 @@ export default class AuthorizationService {
     }
   }
 
-  private static async processDynamicAsserts(tenant: Tenant, userToken: UserToken, authAction: Action, authEntity: Entity,
-      authorizationFilters: AuthorizationFilter, authorizationContext: AuthorizationContext, entityData?: EntityData): Promise<void> {
+  private static processDynamicAsserts(tenant: Tenant, userToken: UserToken, authAction: Action, authEntity: Entity,
+      authorizationFilters: AuthorizationFilter, authorizationContext: AuthorizationContext, entityData?: EntityData): void {
     if (entityData && !Utils.isEmptyArray(authorizationContext.asserts)) {
       // First array is an AND between assertions
       for (let assertsToProcess of authorizationContext.asserts) {
@@ -1277,15 +1318,6 @@ export default class AuthorizationService {
           // Negate the assertion
           if (dynamicAssert.isNegateAssert()) {
             authorizationFilters.authorized = !authorizationFilters.authorized;
-          }
-          if (!authorizationFilters.authorized) {
-            await Logging.logError({
-              tenantID: tenant.id,
-              user: userToken,
-              module: MODULE_NAME, method: 'processDynamicAsserts',
-              message: `Dynamic Authorization '${assertToProcess}' did not allow to perform '${authAction}' on '${authEntity}'`,
-              action: ServerAction.AUTHORIZATIONS
-            });
           }
           authorized = authorized || authorizationFilters.authorized;
         }
@@ -1324,7 +1356,7 @@ export default class AuthorizationService {
       // Keep the Meta Data
       authorizationFilters.metadata = authResult.context.metadata;
       // Process Dynamic Assertions
-      await AuthorizationService.processDynamicAsserts(tenant, userToken, authAction, authEntity,
+      AuthorizationService.processDynamicAsserts(tenant, userToken, authAction, authEntity,
         authorizationFilters, authorizationContext, entityData);
     }
     // Filter projected fields
@@ -1367,7 +1399,7 @@ export default class AuthorizationService {
     // Keep the Meta Data
     authorizations.metadata = authResult.context.metadata;
     // Process Dynamic Assertions
-    await AuthorizationService.processDynamicAsserts(tenant, userToken, authAction, authEntity,
+    AuthorizationService.processDynamicAsserts(tenant, userToken, authAction, authEntity,
       authorizations, authorizationContext, entityData);
     if (!authorizations.authorized) {
       throw new AppAuthError({

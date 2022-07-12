@@ -966,8 +966,8 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
-  public static buildEvseBillingAccountActivationURL(tenant: Tenant, billingAccountID: string): string {
-    return `${Utils.buildEvseURL(tenant.subdomain)}/billing/accounts/${billingAccountID}?TenantID=${tenant.id}`;
+  public static buildEvseBillingAccountOnboardingURL(tenant: Tenant, billingAccountID: string): string {
+    return `${Utils.buildEvseURL(tenant.subdomain)}/auth/account-onboarding?TenantID=${tenant.id}&AccountID=${billingAccountID}`;
   }
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
@@ -1741,11 +1741,24 @@ export default class Utils {
     }
   }
 
-  public static deleteUserPropertiesFromEntity(entityData?: EntityData): void {
+  public static removeSensibeDataFromEntity(extraFilters: Record<string, any>, entityData?: EntityData): void {
+    // User data
+    if (Utils.objectHasProperty(extraFilters, 'UserData') &&
+    !Utils.isNullOrUndefined(extraFilters['UserData']) && extraFilters['UserData']) {
+      Utils.deleteUserPropertiesFromEntity(entityData);
+    }
+    // Tag data
+    if (Utils.objectHasProperty(extraFilters, 'TagData') &&
+    !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
+      Utils.deleteTagPropertiesFromEntity(entityData);
+    }
+  }
+
+  private static deleteUserPropertiesFromEntity(entityData?: EntityData): void {
     Utils.deletePropertiesFromEntity(entityData, ['user']);
   }
 
-  public static deleteTagPropertiesFromEntity(entityData?: EntityData): void {
+  private static deleteTagPropertiesFromEntity(entityData?: EntityData): void {
     Utils.deletePropertiesFromEntity(entityData, ['tag', 'currentTagID']);
   }
 

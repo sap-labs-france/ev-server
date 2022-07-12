@@ -883,7 +883,7 @@ export default class Authorizations {
   // Get Tag
     const tag = await TagStorage.getTag(tenant, tagID, { withUser: true });
     if (tag) {
-    // Inactive Tag
+      // Inactive Tag
       if (!tag.active) {
         throw new BackendError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),

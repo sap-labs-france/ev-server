@@ -96,7 +96,7 @@ export enum Entity {
   NOTIFICATION = 'Notification',
   TAG = 'Tag',
   PAYMENT_METHOD = 'PaymentMethod',
-  SOURCE = 'Source',
+  SOURCE = 'Source'
 }
 
 export enum Action {
@@ -177,6 +177,7 @@ export enum Action {
   GET_OCPP_PARAMS = 'GetOCPPParams',
   UPDATE_CHARGING_PROFILE = 'UpdateChargingProfile',
   GET_CONNECTOR_QR_CODE = 'GetConnectorQRCode',
+  VIEW_USER_DATA = 'ViewUserData',
 }
 
 export interface AuthorizationContext {
@@ -322,6 +323,7 @@ export interface BillingTransferAuthorizationActions extends AuthorizationAction
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
+  SITES_ADMIN_USERS = 'SitesAdminUsers',
   SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
@@ -341,6 +343,7 @@ export enum DynamicAuthorizationAssertName {
 export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
+  SITES_ADMIN_USERS = 'SitesAdminUsers',
   SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
@@ -362,6 +365,10 @@ export interface SitesAdminOrOwnerDynamicAuthorizationDataSourceData extends Dyn
   siteIDs?: string[];
 }
 
+export interface SitesAdminUsersDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteIDs?: string[];
+  userID?: string;
+}
 export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
