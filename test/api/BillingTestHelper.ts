@@ -1,16 +1,21 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 /* eslint-disable max-len */
 import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
-import { BillingAccount, BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingTransfer, BillingTransferStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
 import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
+import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import BillingFacade from '../../src/integration/billing/BillingFacade';
+import { BillingPlatformFeeStrategyFactory } from '../factories/BillingFactory';
+import { BillingTestConfigHelper } from './StripeTestHelper';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
+import Company from '../../src/types/Company';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -23,7 +28,6 @@ import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
-import { TenantComponents } from '../../src/types/Tenant';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import TestUtils from './TestUtils';
@@ -32,7 +36,6 @@ import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
 import assert from 'assert';
 import chaiSubset from 'chai-subset';
-import config from '../config';
 import moment from 'moment-timezone';
 import responseHelper from '../helpers/responseHelper';
 
@@ -41,30 +44,85 @@ chai.use(responseHelper);
 
 export default class BillingTestHelper {
   // Tenant: utbilling
-  public tenantContext: TenantContext;
-  // User Service for action requiring admin permissions (e.g.: set/reset stripe settings)
-  public adminUserContext: User;
-  public adminUserService: CentralServerService;
-  // User Service for common actions
-  public userContext: User;
-  public userService: CentralServerService;
+  private tenantContext: TenantContext;
+  // Context with Admin permissions
+  private adminUserContext: User;
+  private adminUserService: CentralServerService;
+  // Context with Basic permissions
+  private basicUserContext: User;
+  private basicUserService: CentralServerService;
   // Other test resources
   public siteContext: SiteContext;
   public siteAreaContext: SiteAreaContext;
   public chargingStationContext: ChargingStationContext;
+  // TODO - get rid of this stuff!
   public createdUsers: User[] = [];
   // Dynamic User for testing billing against an empty STRIPE account
   // Billing Implementation - STRIPE?
   public billingImpl: StripeBillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
+  public billingAccount: BillingAccount;
+  // Perform operations either as an Admin or as a Basic user
+  private modeAdmin = true;
 
-  public async initialize(tenant: string) : Promise<void> {
-    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenant);
+  public async initialize(tenantContext = ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING) : Promise<void> {
+    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenantContext);
     this.adminUserContext = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     this.adminUserService = new CentralServerService(
       this.tenantContext.getTenant().subdomain,
       this.adminUserContext
     );
+    this.basicUserContext = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+    this.basicUserService = new CentralServerService(
+      this.tenantContext.getTenant().subdomain,
+      this.basicUserContext
+    );
+  }
+
+  public getTenant(): Tenant {
+    return this.tenantContext.getTenant();
+  }
+
+  public getTenantID(): string {
+    return this.tenantContext.getTenant().id;
+  }
+
+  public getAdminUserService(): CentralServerService {
+    return this.adminUserService;
+  }
+
+  public getBasicUserService(): CentralServerService {
+    return this.basicUserService;
+  }
+
+  public getAdminUserContext(): User {
+    return this.adminUserContext;
+  }
+
+  public getBasicUserContext(): User {
+    return this.basicUserContext;
+  }
+
+  public getCurrentUserContext(): User {
+    if (this.modeAdmin) {
+      return this.adminUserContext;
+    }
+    return this.basicUserContext;
+  }
+
+  public getCurrentUserService(): CentralServerService {
+    if (this.modeAdmin) {
+      return this.adminUserService;
+    }
+    return this.basicUserService;
+  }
+
+  public async makeCurrentUserContextReadyForBilling(forceSynchronization = true) : Promise<void> {
+    if (forceSynchronization) {
+      await this.getCurrentUserService().billingApi.forceSynchronizeUser({ id: this.getCurrentUserContext().id });
+    }
+    const userWithBillingData = await this.billingImpl.getUser(this.getCurrentUserContext());
+    await this.assignPaymentMethod(userWithBillingData, 'tok_fr');
   }
 
   public async assignPaymentMethod(user: BillingUser, stripe_test_token: string) : Promise<Stripe.CustomerSource> {
@@ -87,12 +145,40 @@ export default class BillingTestHelper {
     return source;
   }
 
-  public initUserContextAsAdmin() : void {
-    expect(this.userContext).to.not.be.null;
-    this.userContext = this.adminUserContext;
-    assert(this.userContext, 'User context cannot be null');
-    this.userService = this.adminUserService;
-    assert(!!this.userService, 'User service cannot be null');
+  public setCurrentUserContextAsAdmin() : void {
+    this.modeAdmin = true;
+  }
+
+  public setCurrentUserContextAsBasic() : void {
+    this.modeAdmin = false;
+  }
+
+  public async initContext2TestConnectedAccounts() : Promise<void> {
+    // Assign a tariff the the charger
+    // const chargingStationContext = await this.initChargingStationContext2TestChargingTime();
+    const chargingStationContext = await this.initChargingStationContext2TestCS3Phased();
+    // Get an active account (create it if necessary)
+    const billingAccount = await this.getActivatedAccount();
+    const chargingStation = chargingStationContext.getChargingStation();
+    let response = await this.getCurrentUserService().chargingStationApi.readById(chargingStation.id);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    const companyID = response.data.companyID;
+    response = await this.getCurrentUserService().companyApi.readById(companyID);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    const company = response.data as Company;
+    const platformFeeStrategy = BillingPlatformFeeStrategyFactory.build();
+    response = await this.getCurrentUserService().companyApi.update({
+      id: companyID,
+      ...company,
+      accountData: {
+        accountID: billingAccount.id,
+        platformFeeStrategy
+      }
+    });
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    response = await this.getCurrentUserService().companyApi.readById(companyID);
+    expect(response.data.accountData.accountID).to.eq(billingAccount.id);
+    expect(response.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
   }
 
   public async initChargingStationContext() : Promise<ChargingStationContext> {
@@ -409,8 +495,8 @@ export default class BillingTestHelper {
     return this.chargingStationContext;
   }
 
-  public async setBillingSystemValidCredentials(activateTransactionBilling = true, immediateBillingAllowed = false) : Promise<StripeBillingIntegration> {
-    const billingSettings = this.getLocalSettings(immediateBillingAllowed);
+  public async setBillingSystemValidCredentials(activateTransactionBilling = true, immediateBillingAllowed = false) : Promise<void> {
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(immediateBillingAllowed);
     // Here we switch ON or OFF the billing of charging sessions
     billingSettings.billing.isTransactionBillingActivated = activateTransactionBilling;
     // Invoke the generic setting service API to properly persist this information
@@ -420,43 +506,18 @@ export default class BillingTestHelper {
     billingSettings.stripe.secretKey = await Cypher.encrypt(tenant, billingSettings.stripe.secretKey);
     const billingImpl = StripeBillingIntegration.getInstance(tenant, billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
-    return billingImpl;
+    this.billingImpl = billingImpl;
   }
 
-  public async setBillingSystemInvalidCredentials() : Promise<StripeBillingIntegration> {
-    const billingSettings = this.getLocalSettings(false);
+  public async setBillingSystemInvalidCredentials() : Promise<void> {
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(false);
     const tenant = this.tenantContext?.getTenant();
     assert(!!tenant, 'Tenant cannot be null');
     billingSettings.stripe.secretKey = await Cypher.encrypt(tenant, 'sk_test_' + 'invalid_credentials');
     await this.saveBillingSettings(billingSettings);
     const billingImpl = StripeBillingIntegration.getInstance(tenant, billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
-    return billingImpl;
-  }
-
-  public getLocalSettings(immediateBillingAllowed: boolean): BillingSettings {
-    // ---------------------------------------------------------------------
-    // ACHTUNG: Our test may need the immediate billing to be switched off!
-    // Because we want to check the DRAFT state of the invoice
-    // ---------------------------------------------------------------------
-    const billingProperties = {
-      isTransactionBillingActivated: true, // config.get('billing.isTransactionBillingActivated'),
-      immediateBillingAllowed: immediateBillingAllowed, // config.get('billing.immediateBillingAllowed'),
-      periodicBillingAllowed: !immediateBillingAllowed, // config.get('billing.periodicBillingAllowed'),
-      taxID: config.get('billing.taxID')
-    };
-    const stripeProperties = {
-      url: config.get('stripe.url'),
-      publicKey: config.get('stripe.publicKey'),
-      secretKey: config.get('stripe.secretKey'),
-    };
-    const settings: BillingSettings = {
-      identifier: TenantComponents.BILLING,
-      type: BillingSettingsType.STRIPE,
-      billing: billingProperties,
-      stripe: stripeProperties,
-    };
-    return settings;
+    this.billingImpl = billingImpl;
   }
 
   public async saveBillingSettings(billingSettings: BillingSettings) : Promise<void> {
@@ -471,7 +532,17 @@ export default class BillingTestHelper {
     await this.adminUserService.settingApi.update(componentSetting);
   }
 
-  public async checkTransactionBillingData(transactionId: number, expectedInvoiceStatus: BillingInvoiceStatus, expectedPrice: number = null) : Promise<void> {
+  public async checkInvoiceData(invoiceID: string, expectedStatus: BillingInvoiceStatus, expectedSessionCounter: number, expectedAmount: number): Promise<void> {
+    const response = await this.getCurrentUserService().billingApi.readInvoice(invoiceID);
+    expect(response.status).to.equal(StatusCodes.OK);
+    const invoice = response.data as BillingInvoice;
+    expect(invoice.status).to.equal(expectedStatus);
+    expect(invoice.sessions?.length).to.equal(expectedSessionCounter);
+    expect(invoice.amount).to.equal(expectedAmount * 100); // TODO - This is in cents - migration required :(
+    expect(response.data?.billingData, 'Billing Data should be set');
+  }
+
+  public async checkTransactionBillingData(transactionId: number, expectedInvoiceStatus: BillingInvoiceStatus, expectedPrice: number = null) : Promise<BillingDataTransactionStop> {
     // Check the transaction status
     const transactionResponse = await this.adminUserService.transactionApi.readById(transactionId);
     expect(transactionResponse.status).to.equal(StatusCodes.OK);
@@ -497,6 +568,8 @@ export default class BillingTestHelper {
       const billedPrice = this.getBilledRoundedPrice(billingDataStop);
       assert(billedPrice.equals(expectedPrice), `The billed price should be: ${expectedPrice} - actual value: ${billedPrice.toNumber()}`);
     }
+    // Returns the STOP information
+    return billingDataStop;
   }
 
   public getBilledRoundedPrice(billingDataStop: BillingDataTransactionStop): Decimal {
@@ -538,17 +611,26 @@ export default class BillingTestHelper {
     }
   }
 
-  public async generateTransaction(user: any, expectedStatus = 'Accepted', expectedStartDate = new Date(), withSoftStopSimulation = false): Promise<number> {
+  public async generateTransactionAndCheckBillingStatus(expectedBillingStatus : BillingInvoiceStatus): Promise<number> {
+    const transactionID = await this.generateTransaction();
+    assert(transactionID, 'transactionID should not be null');
+    // Check that we have a new invoice with an invoiceID and but no invoiceNumber yet
+    await this.checkTransactionBillingData(transactionID, expectedBillingStatus);
+    return transactionID;
+  }
+
+  public async generateTransaction(expectedStatus = 'Accepted', expectedStartDate = new Date(), withSoftStopSimulation = false): Promise<number> {
     const meterStart = 0;
     const meterStop = 32325; // Unit: Wh
     const meterValueRampUp = Utils.createDecimal(meterStop).divToInt(80).toNumber();
     const meterValueHighConsumption = Utils.createDecimal(meterStop).divToInt(30).toNumber();
     const meterValuePoorConsumption = 0; // Simulate a gap in the energy provisioning
     const meterValuePhaseOut = Utils.createDecimal(meterStop).divToInt(60).toNumber();
-    // const user:any = this.userContext;
     const connectorId = 1;
-    assert((user.tags && user.tags.length), 'User must have a valid tag');
-    const tagId = user.tags[0].id;
+    // TODO - wrong type User vs UserContext?
+    const user = this.getCurrentUserContext() as any;
+    const tagId = user?.tags?.[0]?.id;
+    assert(tagId, 'User must have a valid tag');
     // # Begin
     const startDate = moment(expectedStartDate);
     // Let's send an OCCP status notification to simulate some extra inactivities
@@ -675,7 +757,7 @@ export default class BillingTestHelper {
   public async getDraftInvoices(userId?: string) : Promise<any> {
     let params;
     if (userId) {
-      params = { Status: BillingInvoiceStatus.DRAFT, UserID: [this.userContext.id] };
+      params = { Status: BillingInvoiceStatus.DRAFT, UserID: [this.getCurrentUserContext().id] };
     } else {
       params = { Status: BillingInvoiceStatus.DRAFT };
     }
@@ -684,14 +766,6 @@ export default class BillingTestHelper {
     const ordering = [{ field: '-createdOn' }];
     const response = await this.adminUserService.billingApi.readInvoices(params, paging, ordering);
     return response?.data?.result;
-  }
-
-  public isBillingProperlyConfigured(): boolean {
-    const billingSettings = this.getLocalSettings(false);
-    // Check that the mandatory settings are properly provided
-    return (!!billingSettings.stripe.publicKey
-      && !!billingSettings.stripe.secretKey
-      && !!billingSettings.stripe.url);
   }
 
   public async getLatestDraftInvoice(userId?: string): Promise<BillingInvoice> {
@@ -809,4 +883,138 @@ export default class BillingTestHelper {
     assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
     assert(response?.data?.entityName === siteArea.name, 'The Site Area data should be retrieved as well');
   }
+
+  public async createBillingAccount(): Promise<string> {
+    let response = await this.getCurrentUserService().billingApi.createBillingAccount({
+      businessOwnerID: this.getCurrentUserContext().id
+    });
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    const accountID = response.data?.id ;
+    response = await this.getCurrentUserService().billingApi.readBillingAccount(accountID);
+    assert(response.status === StatusCodes.OK, 'Response status should be 200');
+    const billingAccount = response.data as BillingAccount ;
+    expect(billingAccount.status).to.be.eq(BillingAccountStatus.IDLE);
+    return accountID;
+  }
+
+  public async createActivatedAccount(): Promise<BillingAccount> {
+    const accountID = await this.createBillingAccount();
+    // ----------------------------------------------------
+    // Send the onboarding mail to the business user
+    // ----------------------------------------------------
+    let response = await this.getCurrentUserService().billingApi.onboardBillingAccount(accountID);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    // --------------------------------------------------------------
+    // Account is now in a PENDING state
+    // --------------------------------------------------------------
+    response = await this.getCurrentUserService().billingApi.readBillingAccount(accountID);
+    let billingAccount = response.data as BillingAccount ;
+    expect(billingAccount.status).to.be.eq(BillingAccountStatus.PENDING);
+    // ----------------------------------------------------
+    // Generate the link to the onboarding page
+    // ----------------------------------------------------
+    response = await this.getCurrentUserService().billingApi.refreshBillingAccount({ accountID, TenantID: this.getTenantID() });
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    // --------------------------------------------------------------
+    // Account is now still in a PENDING state
+    // --------------------------------------------------------------
+    response = await this.getCurrentUserService().billingApi.readBillingAccount(accountID);
+    billingAccount = response.data as BillingAccount ;
+    expect(billingAccount.status).to.be.eq(BillingAccountStatus.PENDING);
+    expect(billingAccount.activationLink).to.be.not.null;
+    // --------------------------------------------------------------
+    // Navigate to the Onboarding page
+    // --------------------------------------------------------------
+    // TODO - how to test it!
+    // --------------------------------------------------------------
+    // Let's assume the onboarding has been completed successfully
+    // --------------------------------------------------------------
+    response = await this.getCurrentUserService().billingApi.activateBillingAccount({ accountID, TenantID: this.getTenantID() });
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    expect(response.data?.id).to.be.eq(accountID);
+    // --------------------------------------------------------------
+    // Account is now in a ACTIVE state
+    // --------------------------------------------------------------
+    response = await this.getCurrentUserService().billingApi.readBillingAccount(accountID);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    billingAccount = response.data as BillingAccount ;
+    expect(billingAccount.status).to.be.eq(BillingAccountStatus.ACTIVE);
+    return billingAccount;
+  }
+
+  public async getActivatedAccount(createIfMissing = true): Promise<BillingAccount> {
+    if (!this.billingAccount) {
+      const params = { Status: BillingAccountStatus.ACTIVE };
+      const paging = TestConstants.DEFAULT_PAGING;
+      const ordering = [{ field: '-createdOn' }];
+      const response = await this.adminUserService.billingApi.readBillingAccounts(params, paging, ordering);
+      this.billingAccount = response?.data?.result?.[0] as BillingAccount;
+      if (!this.billingAccount && createIfMissing) {
+        this.billingAccount = await this.createActivatedAccount();
+      }
+    }
+    return this.billingAccount;
+  }
+
+  public async checkForDraftTransfers(): Promise<number> {
+    const result = await this.getTransfers(BillingTransferStatus.DRAFT);
+    return result.length;
+  }
+
+  public async getTransfers(status: BillingTransferStatus) : Promise<any> {
+    const accountID = this.billingAccount?.id;
+    assert(accountID, 'accountID should not be null - make sure the context has been initialized with ==> billingTestHelper.initContext2TestConnectedAccounts()');
+    const params = { Status: status, AccountID: [accountID] };
+    const paging = TestConstants.DEFAULT_PAGING;
+    const ordering = [{ field: '-createdOn' }];
+    const response = await this.adminUserService.billingApi.readTransfers(params, paging, ordering);
+    return response?.data?.result;
+  }
+
+  public async getLatestTransfer(status: BillingTransferStatus): Promise<BillingTransfer> {
+    const draftTransfers = await this.getTransfers(status);
+    return (draftTransfers && draftTransfers.length > 0) ? draftTransfers[0] : null;
+  }
+
+  public async getNumberOfSessionsInTransfer(): Promise<number> {
+    // ACHTUNG: There is no data after running: npm run mochatest:createContext
+    // In that situation we return 0!
+    const draftTransfer = await this.getLatestTransfer(BillingTransferStatus.DRAFT);
+    return (draftTransfer) ? draftTransfer.sessions?.length : 0;
+  }
+
+  public async finalizeDraftTransfer(): Promise<void> {
+    const transfer = await this.getLatestTransfer(BillingTransferStatus.DRAFT);
+    assert(transfer?.id, 'transfer ID should not be null');
+    let response = await this.getCurrentUserService().billingApi.finalizeTransfer(transfer.id);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    response = await this.adminUserService.billingApi.readTransfer(transfer.id);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    expect(response.data.status).to.eq(BillingTransferStatus.FINALIZED);
+  }
+
+  public async sendFinalizedTransfer(): Promise<void> {
+    const transfer = await this.getLatestTransfer(BillingTransferStatus.FINALIZED);
+    assert(transfer?.id, 'transfer ID should not be null');
+    let response = await this.getCurrentUserService().billingApi.sendTransfer(transfer.id);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    response = await this.adminUserService.billingApi.readTransfer(transfer.id);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    expect(response.data.status).to.eq(BillingTransferStatus.TRANSFERRED);
+  }
+
+  public async addFundsToBalance(amount: number, stripe_test_token = 'btok_us_verified', currency = 'usd') : Promise<Stripe.Topup> {
+    // Assign funds to the stripe balance is a prerequisite for testing transfers
+    // c.f.: https://stripe.com/docs/connect/testing#testing-top-ups
+    const stripeInstance = await this.billingImpl.getStripeInstance();
+    const topup = await stripeInstance.topups.create({
+      amount: amount * 100, // This one is in cents
+      currency,
+      description: 'test-addFundsToBalance',
+      source:stripe_test_token,
+    });
+    expect(topup).to.not.be.null;
+    return topup;
+  }
+
 }

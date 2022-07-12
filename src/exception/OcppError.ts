@@ -6,7 +6,7 @@ export default class OCPPError extends Error {
   public code: string;
   public details?: any;
 
-  public constructor(readonly params: {
+  public constructor(public readonly params: {
     module: string;
     method: string;
     code: string;
@@ -16,6 +16,7 @@ export default class OCPPError extends Error {
     siteID?: string;
     siteAreaID?: string;
     companyID?: string;
+    detailedMessages?: any;
   }) {
     super(params.message);
     this.code = params.code;

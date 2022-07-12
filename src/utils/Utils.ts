@@ -10,12 +10,15 @@ import crypto, { CipherGCMTypes, randomUUID } from 'crypto';
 import global, { EntityData } from '../types/GlobalType';
 
 import Address from '../types/Address';
+import AppAuthError from '../exception/AppAuthError';
+import AppError from '../exception/AppError';
 import { AxiosError } from 'axios';
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import { Decimal } from 'decimal.js';
 import LoggingHelper from './LoggingHelper';
+import OCPPError from '../exception/OcppError';
 import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
 import { Request } from 'express';
@@ -963,8 +966,8 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
-  public static buildEvseBillingSubAccountActivationURL(tenant: Tenant, subAccountID: string): string {
-    return `${Utils.buildEvseURL(tenant.subdomain)}/billing/sub-accounts/${subAccountID}?TenantID=${tenant.id}`;
+  public static buildEvseBillingAccountOnboardingURL(tenant: Tenant, billingAccountID: string): string {
+    return `${Utils.buildEvseURL(tenant.subdomain)}/auth/account-onboarding?TenantID=${tenant.id}&AccountID=${billingAccountID}`;
   }
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
@@ -1708,5 +1711,64 @@ export default class Utils {
       totalDurationSecs = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     }
     return moment.duration(totalDurationSecs, 's').format('h[h]mm', { trim: false });
+  }
+
+  public static handleExceptionDetailedMessages(exception: AppError | BackendError | AppAuthError | OCPPError): void {
+    // Add Exception stack
+    if (exception.params.detailedMessages) {
+      // Error already provided (previous exception)
+      if (exception.params.detailedMessages.error) {
+        // Keep the previous exception
+        exception.params.detailedMessages = {
+          ...exception.params.detailedMessages,
+          error: exception.stack,
+          previous: {
+            error: exception.params.detailedMessages.error
+          }
+        };
+      } else {
+        // Add error and keep detailed messages
+        exception.params.detailedMessages = {
+          ...exception.params.detailedMessages,
+          error: exception.stack,
+        };
+      }
+    } else {
+      // Create detailed messages with Error stack
+      exception.params.detailedMessages = {
+        error: exception.stack,
+      };
+    }
+  }
+
+  public static removeSensibeDataFromEntity(extraFilters: Record<string, any>, entityData?: EntityData): void {
+    // User data
+    if (Utils.objectHasProperty(extraFilters, 'UserData') &&
+    !Utils.isNullOrUndefined(extraFilters['UserData']) && extraFilters['UserData']) {
+      Utils.deleteUserPropertiesFromEntity(entityData);
+    }
+    // Tag data
+    if (Utils.objectHasProperty(extraFilters, 'TagData') &&
+    !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
+      Utils.deleteTagPropertiesFromEntity(entityData);
+    }
+  }
+
+  private static deleteUserPropertiesFromEntity(entityData?: EntityData): void {
+    Utils.deletePropertiesFromEntity(entityData, ['user']);
+  }
+
+  private static deleteTagPropertiesFromEntity(entityData?: EntityData): void {
+    Utils.deletePropertiesFromEntity(entityData, ['tag', 'currentTagID']);
+  }
+
+  private static deletePropertiesFromEntity(entityData?: EntityData, properties?: string[]): void {
+    if (!Utils.isNullOrUndefined(entityData) && !Utils.isNullOrUndefined(properties)) {
+      for (const propertyName of properties) {
+        if (Utils.objectHasProperty(entityData, propertyName) && !Utils.isNullOrUndefined(entityData[propertyName])) {
+          delete entityData[propertyName];
+        }
+      }
+    }
   }
 }

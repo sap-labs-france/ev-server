@@ -19,10 +19,10 @@
     "beforeActionLines": [
       "Dear <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "Your billing account onboarding must be completed by following the link below:"
+      "Click the link below to complete the onboarding of your billing account"
     ],
     "actions": [{
-        "title": "Finish billing account onboarding",
+        "title": "Connect",
         "url": "<%- onboardingLink %>"
       }],
     "afterActionLines": [

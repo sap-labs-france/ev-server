@@ -7,7 +7,8 @@
     "flatFee-shortItemDescription": "Flat Fee",
     "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
     "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
-    "parkingTime-shortItemDescription": "Parking Time: {{duration}}"
+    "parkingTime-shortItemDescription": "Parking Time: {{duration}}",
+    "transfer-feeItemDescription": "Fee charged for {{nbSessions}} session(s)"
   },
   "chargers": {
     "chargeBoxSN": "Charge Box S/N",
@@ -147,11 +148,11 @@
       "title": "New invoice to pay",
       "body": "A new invoice ({{invoiceNumber}}) amounting {{amount}} is now available. Please check your email to finalize the payment"
     },
-    "billingSubAccountCreationLink": {
+    "billingAccountCreationLink": {
       "title": "Billing account onboarding",
       "body": "You have been invited to create a billing account. Please check your email to complete the process"
     },
-    "billingSubAccountActivated": {
+    "billingAccountActivated": {
       "title": "Billing account activated",
       "body": "Your billing account has been activated"
     },
