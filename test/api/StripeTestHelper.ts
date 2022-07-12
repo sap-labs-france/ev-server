@@ -36,10 +36,24 @@ export class BillingTestConfigHelper {
   }
 
   public static getLocalSettings(immediateBillingAllowed: boolean): BillingSettings {
+    // ----------------------------------
+    // CONFIGURATION EXAMPLE - in test/local.json
+    // ----------------------------------
+    // "billing": {
+    //   "isTransactionBillingActivated": true,
+    //   "immediateBillingAllowed": true,
+    //   "periodicBillingAllowed": false,
+    //   "taxID": ""
+    // },
+    // "stripe": {
+    //   "url": "https://dashboard.stripe.com/b/acct_1FFFFFFFFFFF",
+    //   "publicKey": "pk_test_511FFFFFFFFFFF",
+    //   "secretKey": "sk_test_51K1FFFFFFFFFF"
+    // },
     const billingProperties = {
       isTransactionBillingActivated: config.get('billing.isTransactionBillingActivated'),
-      immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
-      periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
+      immediateBillingAllowed: immediateBillingAllowed, // config.get('billing.immediateBillingAllowed'),
+      periodicBillingAllowed: !immediateBillingAllowed, // config.get('billing.periodicBillingAllowed'),
       taxID: config.get('billing.taxID')
     };
     const stripeProperties = {
@@ -149,20 +163,6 @@ export default class StripeTestHelper {
     });
     expect(source).to.not.be.null;
     return source;
-  }
-
-  public async addFundsToBalance(amount: number, stripe_test_token = 'btok_us_verified') : Promise<Stripe.Topup> {
-    // Assign funds to the stripe balance is a prerequisite for testing transfers
-    // c.f.: https://stripe.com/docs/connect/testing#testing-top-ups
-    const stripeInstance = await this.billingImpl.getStripeInstance();
-    const topup = await stripeInstance.topups.create({
-      amount,
-      currency: 'eur',
-      description: 'test-addFundsToBalance',
-      source:stripe_test_token,
-    });
-    expect(topup).to.not.be.null;
-    return topup;
   }
 
   // Detach the latest assigned source

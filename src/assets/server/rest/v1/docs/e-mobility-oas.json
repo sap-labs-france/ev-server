@@ -16782,6 +16782,7 @@
             "enum": [
               "draft",
               "pending",
+              "finalized",
               "transferred"
             ]
           },

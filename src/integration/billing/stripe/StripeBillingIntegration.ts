@@ -1905,7 +1905,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     let stripeTransfer: Stripe.Transfer;
     try {
       stripeTransfer = await this.stripe.transfers.create({
-        amount: billingTransfer.transferAmount,
+        amount: Utils.createDecimal(billingTransfer.transferAmount).mul(100).toNumber(),
         currency: billingTransfer.currency,
         destination: billingTransfer.account.accountExternalID,
         // transfer_group: billingTransfer.id,  // TODO - is there any benefit to set a transfer_group?
