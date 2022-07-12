@@ -25,7 +25,7 @@ const billingTestHelper = new BillingTestHelper();
 // Conditional test execution function
 const describeif = (condition) => condition ? describe : describe.skip;
 // ACHTUNG - STRIPE Limitation - We cannot test transfer capabilities with accounts in Europe
-const isBillingProperlyConfigured = BillingTestConfigHelper.isBillingProperlyConfigured('USD');
+const isBillingProperlyConfigured = BillingTestConfigHelper.isBillingProperlyConfigured();
 
 describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', () => {
   jest.setTimeout(60000);
@@ -207,7 +207,7 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
         const billingAccount = await billingTestHelper.getActivatedAccount();
         const transfer: BillingTransfer = {
           ...BillingTransferFactory.build(),
-          currency: billingTestHelper.getCurrentCurrency(),
+          currency: 'USD',
           accountID: billingAccount.id,
           status: BillingTransferStatus.DRAFT
         };
@@ -222,7 +222,7 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
       it('should not finalize a draft transfer', async () => {
         const transfer = {
           ...BillingTransferFactory.build(),
-          currency: billingTestHelper.getCurrentCurrency(),
+          currency: 'USD',
         };
         transfer.status = BillingTransferStatus.FINALIZED;
         const transferID = await BillingStorage.saveTransfer(billingTestHelper.getTenant(), transfer);
@@ -235,7 +235,7 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
         const billingAccount = await billingTestHelper.createActivatedAccount();
         const transfer: BillingTransfer = {
           ...BillingTransferFactory.build(),
-          currency: billingTestHelper.getCurrentCurrency(),
+          currency: 'USD',
           status: BillingTransferStatus.DRAFT,
           accountID: billingAccount.id
         };

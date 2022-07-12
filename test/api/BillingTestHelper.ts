@@ -36,7 +36,6 @@ import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
 import assert from 'assert';
 import chaiSubset from 'chai-subset';
-import config from '../config';
 import moment from 'moment-timezone';
 import responseHelper from '../helpers/responseHelper';
 
@@ -46,7 +45,6 @@ chai.use(responseHelper);
 export default class BillingTestHelper {
   // Tenant: utbilling
   private tenantContext: TenantContext;
-  private tenantCurrency = 'EUR';
   // Context with Admin permissions
   private adminUserContext: User;
   private adminUserService: CentralServerService;
@@ -69,9 +67,6 @@ export default class BillingTestHelper {
 
   public async initialize(tenantContext = ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING) : Promise<void> {
     this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenantContext);
-    if (tenantContext === ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM) {
-      this.tenantCurrency = 'USD';
-    }
     this.adminUserContext = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     this.adminUserService = new CentralServerService(
       this.tenantContext.getTenant().subdomain,
@@ -90,10 +85,6 @@ export default class BillingTestHelper {
 
   public getTenantID(): string {
     return this.tenantContext.getTenant().id;
-  }
-
-  public getCurrentCurrency(): string {
-    return this.tenantCurrency;
   }
 
   public getAdminUserService(): CentralServerService {
@@ -505,7 +496,7 @@ export default class BillingTestHelper {
   }
 
   public async setBillingSystemValidCredentials(activateTransactionBilling = true, immediateBillingAllowed = false) : Promise<void> {
-    const billingSettings = BillingTestConfigHelper.getLocalSettings(this.tenantCurrency, immediateBillingAllowed);
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(immediateBillingAllowed);
     // Here we switch ON or OFF the billing of charging sessions
     billingSettings.billing.isTransactionBillingActivated = activateTransactionBilling;
     // Invoke the generic setting service API to properly persist this information
@@ -519,7 +510,7 @@ export default class BillingTestHelper {
   }
 
   public async setBillingSystemInvalidCredentials() : Promise<void> {
-    const billingSettings = BillingTestConfigHelper.getLocalSettings(this.tenantCurrency, false);
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(false);
     const tenant = this.tenantContext?.getTenant();
     assert(!!tenant, 'Tenant cannot be null');
     billingSettings.stripe.secretKey = await Cypher.encrypt(tenant, 'sk_test_' + 'invalid_credentials');
@@ -1002,13 +993,13 @@ export default class BillingTestHelper {
     expect(response.data.status).to.eq(BillingTransferStatus.FINALIZED);
   }
 
-  public async addFundsToBalance(amount: number, stripe_test_token = 'btok_us_verified') : Promise<Stripe.Topup> {
+  public async addFundsToBalance(amount: number, stripe_test_token = 'btok_us_verified', currency = 'usd') : Promise<Stripe.Topup> {
     // Assign funds to the stripe balance is a prerequisite for testing transfers
     // c.f.: https://stripe.com/docs/connect/testing#testing-top-ups
     const stripeInstance = await this.billingImpl.getStripeInstance();
     const topup = await stripeInstance.topups.create({
       amount,
-      currency: 'eur',
+      currency,
       description: 'test-addFundsToBalance',
       source:stripe_test_token,
     });
