@@ -1,6 +1,6 @@
 {
   "$id": "billing-transfers-get",
-  "title": "Get billing transfers Request",
+  "title": "Get transfers",
   "type": "object",
   "properties": {
     "ID": {
@@ -11,6 +11,7 @@
       "enum": [
         "pending",
         "draft",
+        "finalized",
         "transferred"
       ]
     },

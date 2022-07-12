@@ -957,34 +957,34 @@ export default class BillingTestHelper {
   }
 
   public async checkForDraftTransfers(): Promise<number> {
-    const result = await this.getDraftTransfers();
+    const result = await this.getTransfers(BillingTransferStatus.DRAFT);
     return result.length;
   }
 
-  public async getDraftTransfers() : Promise<any> {
+  public async getTransfers(status: BillingTransferStatus) : Promise<any> {
     const accountID = this.billingAccount?.id;
     assert(accountID, 'accountID should not be null - make sure the context has been initialized with ==> billingTestHelper.initContext2TestConnectedAccounts()');
-    const params = { Status: BillingInvoiceStatus.DRAFT, AccountID: [accountID] };
+    const params = { Status: status, AccountID: [accountID] };
     const paging = TestConstants.DEFAULT_PAGING;
     const ordering = [{ field: '-createdOn' }];
     const response = await this.adminUserService.billingApi.readTransfers(params, paging, ordering);
     return response?.data?.result;
   }
 
-  public async getLatestDraftTransfer(): Promise<BillingTransfer> {
-    const draftTransfers = await this.getDraftTransfers();
+  public async getLatestTransfer(status: BillingTransferStatus): Promise<BillingTransfer> {
+    const draftTransfers = await this.getTransfers(status);
     return (draftTransfers && draftTransfers.length > 0) ? draftTransfers[0] : null;
   }
 
   public async getNumberOfSessionsInTransfer(): Promise<number> {
     // ACHTUNG: There is no data after running: npm run mochatest:createContext
     // In that situation we return 0!
-    const draftTransfer = await this.getLatestDraftTransfer();
+    const draftTransfer = await this.getLatestTransfer(BillingTransferStatus.DRAFT);
     return (draftTransfer) ? draftTransfer.sessions?.length : 0;
   }
 
   public async finalizeDraftTransfer(): Promise<void> {
-    const transfer = await this.getLatestDraftTransfer();
+    const transfer = await this.getLatestTransfer(BillingTransferStatus.DRAFT);
     assert(transfer?.id, 'transfer ID should not be null');
     let response = await this.getCurrentUserService().billingApi.finalizeTransfer(transfer.id);
     expect(response.status).to.be.eq(StatusCodes.OK);
@@ -993,12 +993,22 @@ export default class BillingTestHelper {
     expect(response.data.status).to.eq(BillingTransferStatus.FINALIZED);
   }
 
+  public async sendFinalizedTransfer(): Promise<void> {
+    const transfer = await this.getLatestTransfer(BillingTransferStatus.FINALIZED);
+    assert(transfer?.id, 'transfer ID should not be null');
+    let response = await this.getCurrentUserService().billingApi.sendTransfer(transfer.id);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    response = await this.adminUserService.billingApi.readTransfer(transfer.id);
+    expect(response.status).to.be.eq(StatusCodes.OK);
+    expect(response.data.status).to.eq(BillingTransferStatus.TRANSFERRED);
+  }
+
   public async addFundsToBalance(amount: number, stripe_test_token = 'btok_us_verified', currency = 'usd') : Promise<Stripe.Topup> {
     // Assign funds to the stripe balance is a prerequisite for testing transfers
     // c.f.: https://stripe.com/docs/connect/testing#testing-top-ups
     const stripeInstance = await this.billingImpl.getStripeInstance();
     const topup = await stripeInstance.topups.create({
-      amount,
+      amount: amount * 100, // This one is in cents
       currency,
       description: 'test-addFundsToBalance',
       source:stripe_test_token,

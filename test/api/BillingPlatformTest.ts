@@ -307,6 +307,10 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           const nbDraftTransfers = await billingTestHelper.checkForDraftTransfers();
           assert(nbDraftTransfers === 1, 'The expected number of DRAFT transfers is not correct');
           await billingTestHelper.finalizeDraftTransfer();
+          // Make sure we have the more than the required amount
+          await billingTestHelper.addFundsToBalance(20.16);
+          // Send the the money to to sub account
+          await billingTestHelper.sendFinalizedTransfer();
         });
       });
 
@@ -332,6 +336,10 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           const nbDraftTransfers = await billingTestHelper.checkForDraftTransfers();
           assert(nbDraftTransfers === 1, 'The expected number of DRAFT transfers is not correct');
           await billingTestHelper.finalizeDraftTransfer();
+          // Make sure we have the more than the required amount
+          await billingTestHelper.addFundsToBalance(10.08);
+          // Send the the money to to sub account
+          await billingTestHelper.sendFinalizedTransfer();
         });
       });
 
