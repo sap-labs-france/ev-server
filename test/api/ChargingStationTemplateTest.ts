@@ -3,25 +3,22 @@ import { ChargingStationTemplate } from '../../src/types/ChargingStation';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import { StatusCodes } from 'http-status-codes';
+import TenantContext from './context/TenantContext';
 import { expect } from 'chai';
 
 class TestData {
-  public newChargingStationTemplateID: any = {};
-  public updatedChargingStationTemplate: ChargingStationTemplate;
-  public tenantContext: any;
+  public tenantContext: TenantContext;
   public superAdminCentralService: CentralServerService;
-  public basicUserContext: any;
-  public basicCentralService: CentralServerService;
-  public adminUserContext: any;
+  public newChargingStationTemplate: Partial<ChargingStationTemplate> = {};
   public createdChargingStationTemplates: ChargingStationTemplate[] = [];
 }
 
 const testData: TestData = new TestData();
 
 describe('Charging Station Template', () => {
-  jest.setTimeout(30000);
+  jest.setTimeout(60000);
 
-  beforeAll(async () => {
+  beforeAll(() => {
     testData.superAdminCentralService = new CentralServerService('');
   });
 
@@ -30,59 +27,45 @@ describe('Charging Station Template', () => {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With all component (super)', () => {
+  describe('In super tenant', () => {
     describe('Success cases', () => {
-      it('Should be able to create a new cst', async () => {
-        const cstToCreate = Factory.chargingStationTemplate.build();
-        const response = await testData.superAdminCentralService.createEntity(testData.superAdminCentralService.chargingStationTemplateApi, cstToCreate, false);
+      it('Should be able to create a new template', async () => {
+        const templateToCreate = Factory.chargingStationTemplate.build();
+        const response = await testData.superAdminCentralService.createEntity(testData.superAdminCentralService.chargingStationTemplateApi, templateToCreate, false);
         expect(response.status).to.equal(StatusCodes.OK);
         expect(response.data).not.null;
         expect(response.data.status).to.eql('Success');
         expect(response.data).to.have.property('id');
-        testData.createdChargingStationTemplates.push(cstToCreate);
-        testData.newChargingStationTemplateID.id = response.data.id;
+        testData.createdChargingStationTemplates.push(templateToCreate);
+        testData.newChargingStationTemplate.id = response.data.id;
       });
 
-      it('Should find the created cst by id', async () => {
-        expect(testData.newChargingStationTemplateID.id).to.not.be.null;
+      it('Should find the created template by id', async () => {
+        expect(testData.newChargingStationTemplate.id).to.not.be.null;
         // Retrieve it from the backend
-        const response = await testData.superAdminCentralService.chargingStationTemplateApi.readById(testData.newChargingStationTemplateID.id);
+        const response = await testData.superAdminCentralService.chargingStationTemplateApi.readById(testData.newChargingStationTemplate.id);
         // Check if ok
         expect(response.status).to.equal(StatusCodes.OK);
-        expect(response.data.id).is.eql(testData.newChargingStationTemplateID.id);
+        expect(response.data.id).is.eql(testData.newChargingStationTemplate.id);
       });
 
-      // useless for me
-      it(
-        'Should find the created cst in the db',
-        async () => {
-          // Check if the created entity is in the list
-          await testData.superAdminCentralService.getEntityById(
-            testData.superAdminCentralService.chargingStationTemplateApi,
-            testData.newChargingStationTemplateID
-          );
-        }
-      );
-
       // Update
-      it('Should be able to update a cst', async () => {
-        const CSTtoUpdate = testData.createdChargingStationTemplates[0];
-        CSTtoUpdate.template.chargePointVendor = 'new chargePointVendor';
+      it('Should be able to update a template', async () => {
+        const templateToUpdate = testData.createdChargingStationTemplates[0];
+        templateToUpdate.template.chargePointVendor = 'new chargePointVendor';
         await testData.superAdminCentralService.updateEntity(
           testData.superAdminCentralService.chargingStationTemplateApi,
-          { ...CSTtoUpdate, ...testData.newChargingStationTemplateID },
+          { ...templateToUpdate, ...testData.newChargingStationTemplate },
         );
       });
 
       // Delete
-      it('Should be able to delete the created cst',
-        async () => {
-        // Delete the created CST
-          await testData.superAdminCentralService.deleteEntity(
-            testData.superAdminCentralService.chargingStationTemplateApi,
-            testData.newChargingStationTemplateID
-          );
-        });
+      it('Should be able to delete the created template', async () => {
+        await testData.superAdminCentralService.deleteEntity(
+          testData.superAdminCentralService.chargingStationTemplateApi,
+          testData.newChargingStationTemplate
+        );
+      });
     });
   });
 });
