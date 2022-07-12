@@ -1841,7 +1841,7 @@ export default class OCPPUtils {
 
   private static async isValidEnergyConsumption(meterValueWh: number, lastMeterValueWh: number, durationSecs: number, chargingStation: ChargingStation, transaction: Transaction,
       tenantID: string, meterValue: OCPPNormalizedMeterValue): Promise<boolean> {
-    if (meterValueWh === lastMeterValueWh) {
+    if (isNaN(meterValueWh) || meterValueWh === lastMeterValueWh) {
       return false;
     }
     if (meterValueWh < lastMeterValueWh) {
@@ -1872,9 +1872,6 @@ export default class OCPPUtils {
       });
       return false;
     }
-    if (meterValueWh > lastMeterValueWh) {
-      return true;
-    }
-    return false;
+    return true;
   }
 }
