@@ -1,5 +1,5 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { BillingAccount, BillingInvoice } from '../../../../types/Billing';
+import { BillingAccount, BillingInvoice, BillingTransfer } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, ChargingStationTemplate, Command } from '../../../../types/ChargingStation';
 import { EntityData, URLInfo } from '../../../../types/GlobalType';
@@ -27,6 +27,7 @@ import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
+import { HttpBillingTransferGetRequest } from '../../../../types/requests/HttpBillingRequest';
 import { Log } from '../../../../types/Log';
 import LogStorage from '../../../../storage/mongodb/LogStorage';
 import Logging from '../../../../utils/Logging';
@@ -858,6 +859,47 @@ export default class UtilsService {
       });
     }
     return invoice;
+  }
+
+  public static async checkAndGetTransferAuthorization(tenant: Tenant, userToken: UserToken, ID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingTransfer> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, ID, MODULE_NAME, 'checkAndGetTransferAuthorization', userToken);
+    // Get dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetTransferAuthorizations(
+      tenant, userToken, { ID }, authAction, entityData);
+    // Get Invoice
+    const transfer = await BillingStorage.getTransfer(tenant, ID,
+    // TODO - authorizations
+    //   {
+    //     ...additionalFilters,
+    //     ...authorizations.filters
+    //   },
+      applyProjectFields ? authorizations.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, transfer, `Transfer ID '${ID}' does not exist`,
+      MODULE_NAME, 'checkAndGetTransferAuthorization', userToken);
+    // Assign projected fields
+    if (authorizations.projectFields && applyProjectFields) {
+      transfer.projectFields = authorizations.projectFields;
+    }
+    // Assign Metadata
+    if (authorizations.metadata) {
+      transfer.metadata = authorizations.metadata;
+    }
+    // Add Actions
+    await AuthorizationService.addTransferAuthorizations(tenant, userToken, transfer, authorizations);
+    const authorized = AuthorizationService.canPerformAction(transfer, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.BILLING_TRANSFER,
+        module: MODULE_NAME, method: 'checkAndGetTransferAuthorization',
+        value: ID
+      });
+    }
+    return transfer;
   }
 
   public static async checkAndGetTagAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,

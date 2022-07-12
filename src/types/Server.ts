@@ -466,6 +466,7 @@ export enum ServerAction {
   BILLING_ACCOUNT = 'BillingAccount',
   BILLING_ACCOUNTS = 'BillingAccounts',
   BILLING_TRANSFERS = 'BillingTransfers',
+  BILLING_TRANSFER = 'BillingTransfer',
   BILLING_TRANSFER_FINALIZE = 'BillingTransferFinalize',
   BILLING_TRANSFER_SEND = 'BillingTransferSend',
 
@@ -713,6 +714,7 @@ export enum RESTServerRoute {
   REST_BILLING_DOWNLOAD_INVOICE = 'invoices/:invoiceID/download',
 
   REST_BILLING_TRANSFERS = 'billing/transfers',
+  REST_BILLING_TRANSFER = 'billing/transfers/:id',
   REST_BILLING_TRANSFER_FINALIZE = 'billing/transfers/:id/finalize',
   REST_BILLING_TRANSFER_SEND = 'billing/transfers/:id/send',
 
