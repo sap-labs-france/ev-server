@@ -375,7 +375,7 @@ export default class BillingStorage {
         invoiceID: transfer.invoice.invoiceID,
         liveMode: transfer.invoice.liveMode,
         userID: transfer.invoice.userID,
-        invoiceNumber: transfer.invoice.invoiceNumber,
+        documentNumber: transfer.invoice.documentNumber,
         status: transfer.invoice.status,
         amount: transfer.invoice.amount,
         totalAmount: transfer.invoice.totalAmount,
@@ -513,7 +513,7 @@ export default class BillingStorage {
     };
   }
 
-  public static async getTransferByID(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingTransfer> {
+  public static async getTransfer(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingTransfer> {
     const transferMDB = await BillingStorage.getTransfers(tenant, {
       IDs: [id]
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);

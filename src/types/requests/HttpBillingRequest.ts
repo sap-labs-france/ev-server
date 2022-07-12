@@ -63,6 +63,10 @@ export interface HttpBillingTransfersGetRequest extends HttpDatabaseRequest {
   Search?: string;
 }
 
+export interface HttpBillingTransferGetRequest extends HttpByIDRequest {
+  ID: string;
+}
+
 export interface HttpBillingTransferFinalizeRequest extends HttpByIDRequest {
   ID: string;
 }
