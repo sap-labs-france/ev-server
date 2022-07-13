@@ -98,9 +98,8 @@ export class StripeTaxHelper {
     if (!taxRate) {
       // Not found - let's create it!
       taxRate = await stripeInstance.taxRates.create({
-        display_name: 'TVA',
-        description: `TVA France - ${rate}%`,
-        jurisdiction: 'FR',
+        display_name: 'Tax',
+        description: `Tax rate - ${rate}%`,
         percentage: rate,
         inclusive: false
       });
