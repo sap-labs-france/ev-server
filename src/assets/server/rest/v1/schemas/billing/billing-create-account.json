@@ -5,6 +5,10 @@
   "properties": {
     "businessOwnerID": {
       "$ref": "common#/definitions/id"
+    },
+    "taxID": {
+      "type": "string",
+      "sanitize": "mongo"
     }
   },
   "required": [

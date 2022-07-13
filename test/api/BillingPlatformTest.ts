@@ -306,9 +306,10 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           // Check Transfer Data for the current account ID
           const nbDraftTransfers = await billingTestHelper.checkForDraftTransfers();
           assert(nbDraftTransfers === 1, 'The expected number of DRAFT transfers is not correct');
-          await billingTestHelper.finalizeDraftTransfer();
+          const transferID = await billingTestHelper.finalizeDraftTransfer();
+          await billingTestHelper.checkTransferData(transferID, BillingTransferStatus.FINALIZED, 2, 20.16, 1.68, 18.48);
           // Make sure we have the more than the required amount
-          await billingTestHelper.addFundsToBalance(20.16);
+          await billingTestHelper.addFundsToBalance(18.48);
           // Send the the money to to sub account
           await billingTestHelper.sendFinalizedTransfer();
         });
@@ -335,9 +336,10 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           // Check Transfer Data for the current account ID
           const nbDraftTransfers = await billingTestHelper.checkForDraftTransfers();
           assert(nbDraftTransfers === 1, 'The expected number of DRAFT transfers is not correct');
-          await billingTestHelper.finalizeDraftTransfer();
+          const transferID = await billingTestHelper.finalizeDraftTransfer();
+          await billingTestHelper.checkTransferData(transferID, BillingTransferStatus.FINALIZED, 1, 10.08, 0.84, 9.24);
           // Make sure we have the more than the required amount
-          await billingTestHelper.addFundsToBalance(10.08);
+          await billingTestHelper.addFundsToBalance(9.24);
           // Send the the money to to sub account
           await billingTestHelper.sendFinalizedTransfer();
         });

@@ -16752,18 +16752,32 @@
       "Account": {
         "type": "object",
         "properties": {
-          "accountID": {
-            "type": "string"
-          },
-          "userID": {
-            "type": "string"
-          },
           "id": {
             "type": "string",
             "readOnly": true
           },
-          "user": {
+          "businessOwnerID": {
+            "type": "string"
+          },
+          "businessOwner": {
             "$ref": "#/components/schemas/User"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "pending",
+              "active"
+            ]
+          },
+          "activationLink": {
+            "type": "string"
+          },
+          "accountExternalID": {
+            "type": "string"
+          },
+          "taxID": {
+            "type": "string"
           }
         }
       },
