@@ -654,67 +654,67 @@ export default abstract class BillingIntegration {
     };
   }
 
-  abstract checkConnection(): Promise<void>;
+  public abstract checkConnection(): Promise<void>;
 
-  abstract checkActivationPrerequisites(): Promise<void>;
+  public abstract checkActivationPrerequisites(): Promise<void>;
 
-  abstract checkTestDataCleanupPrerequisites() : Promise<void>;
+  public abstract checkTestDataCleanupPrerequisites() : Promise<void>;
 
-  abstract resetConnectionSettings() : Promise<BillingSettings>;
+  public abstract resetConnectionSettings() : Promise<BillingSettings>;
 
-  abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
+  public abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 
-  abstract updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate>;
+  public abstract updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate>;
 
-  abstract stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
+  public abstract stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
 
-  abstract endTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
+  public abstract endTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
 
-  abstract billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
+  public abstract billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
 
-  abstract checkIfUserCanBeCreated(user: User): Promise<boolean>;
+  public abstract checkIfUserCanBeCreated(user: User): Promise<boolean>;
 
-  abstract checkIfUserCanBeUpdated(user: User): Promise<boolean>;
+  public abstract checkIfUserCanBeUpdated(user: User): Promise<boolean>;
 
-  abstract checkIfUserCanBeDeleted(user: User): Promise<boolean>;
+  public abstract checkIfUserCanBeDeleted(user: User): Promise<boolean>;
 
-  abstract getUser(user: User): Promise<BillingUser>;
+  public abstract getUser(user: User): Promise<BillingUser>;
 
-  abstract createUser(user: User): Promise<BillingUser>;
+  public abstract createUser(user: User): Promise<BillingUser>;
 
-  abstract updateUser(user: User): Promise<BillingUser>;
+  public abstract updateUser(user: User): Promise<BillingUser>;
 
-  abstract repairUser(user: User): Promise<BillingUser>;
+  public abstract repairUser(user: User): Promise<BillingUser>;
 
-  abstract deleteUser(user: User): Promise<void>;
+  public abstract deleteUser(user: User): Promise<void>;
 
-  abstract isUserSynchronized(user: User): Promise<boolean>;
+  public abstract isUserSynchronized(user: User): Promise<boolean>;
 
-  abstract getTaxes(): Promise<BillingTax[]>;
+  public abstract getTaxes(): Promise<BillingTax[]>;
 
-  abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem): Promise<BillingInvoice>;
+  public abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem): Promise<BillingInvoice>;
 
-  abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
+  public abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
 
-  abstract chargeInvoice(invoice: BillingInvoice): Promise<BillingInvoice>;
+  public abstract chargeInvoice(invoice: BillingInvoice): Promise<BillingInvoice>;
 
-  abstract consumeBillingEvent(req: Request): Promise<boolean>;
+  public abstract consumeBillingEvent(req: Request): Promise<boolean>;
 
-  abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
+  public abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 
-  abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
+  public abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
 
-  abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
+  public abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 
-  abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]>;
+  public abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]>;
 
-  abstract createConnectedAccount(): Promise<Partial<BillingAccount>>;
+  public abstract createConnectedAccount(): Promise<Partial<BillingAccount>>;
 
-  abstract refreshConnectedAccount(billingAccount: BillingAccount, url: string): Promise<Partial<BillingAccount>>;
+  public abstract refreshConnectedAccount(billingAccount: BillingAccount, url: string): Promise<Partial<BillingAccount>>;
 
-  abstract billPlatformFee(transfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice>;
+  public abstract billPlatformFee(transfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice>;
 
-  abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
+  public abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
 
   protected async triggerTransferPreparation(billingInvoice: BillingInvoice): Promise<void> {
     if (!billingInvoice.sessions) {
@@ -759,45 +759,70 @@ export default abstract class BillingIntegration {
     }
   }
 
-  public async dispatchFundsPerAccount(accountID: string, invoice: BillingInvoice): Promise<void> {
+  private async getLatestDraftTransferForAccount(accountID: string) : Promise<BillingTransfer> {
+    const filter = {
+      // TODO - add filtering on the dates - we should have a transfer per month !?!
+      accountIDs: [accountID],
+      status: [BillingTransferStatus.DRAFT],
+    };
+    const sort = { createdOn: -1 };
+    const transfers = await BillingStorage.getTransfers(this.tenant, filter, { skip: 0, limit: 1, sort });
+    return transfers.result[0];
+  }
+
+  private initNewDraftTransfer(accountID: string, currency: string) : BillingTransfer {
+    return {
+      accountID, status: BillingTransferStatus.DRAFT, sessions: [], totalAmount: 0, transferAmount: 0,
+      platformFeeData: null, transferExternalID: null,
+      currency: currency,
+      createdBy: null,
+      createdOn: new Date()
+    };
+  }
+
+  private isSessionAlreadyInTransfer(transfer: BillingTransfer, session: BillingSessionData): boolean {
+    // Check whether a particular session is already part of the transfer's sessions
+    const foundSession = transfer.sessions.find((sessionInTransfer) => sessionInTransfer.transactionID === session.transactionID);
+    return !!foundSession;
+  }
+
+  private async dispatchFundsPerAccount(accountID: string, invoice: BillingInvoice): Promise<void> {
     try {
       const sessions = invoice.sessions.filter((session) => accountID === session?.accountData?.accountID);
       // Get the existing DRAFT transfer (if any)
-      const transfers = await BillingStorage.getTransfers(
-        this.tenant, {
-          accountIDs: [accountID],
-          status: [BillingTransferStatus.DRAFT],
-        }, Constants.DB_PARAMS_SINGLE_RECORD
-      );
-      let transfer: BillingTransfer = transfers.result[0];
+      let transfer = await this.getLatestDraftTransferForAccount(accountID);
       if (!transfer) {
-        transfer = {
-          accountID, status: BillingTransferStatus.DRAFT, sessions: [], totalAmount: 0, transferAmount: 0,
-          platformFeeData: null, transferExternalID: null,
-          currency: invoice.currency,
-          createdBy: null,
-          createdOn: new Date()
-        };
+        transfer = this.initNewDraftTransfer(accountID, invoice.currency);
       }
       // Process all sessions of the invoice matching the current account ID
       for (const session of sessions) {
-      // Compute the session amount (adding the 4 pricing dimensions)
-        const amountAsDecimal = BillingHelpers.getBilledPrice(session.pricingData);
-        const amount = amountAsDecimal.toNumber();
-        const roundedAmount = Utils.roundTo(amountAsDecimal, 2);
-        const accountSessionFee = this.computeAccountSessionFee(session, roundedAmount);
-        // Extract current session data
-        const sessionData: BillingTransferSession = {
-          transactionID: session.transactionID,
-          invoiceID: invoice.id,
-          invoiceNumber: invoice.number,
-          amountAsDecimal,
-          amount,
-          roundedAmount,
-          accountSessionFee
-        };
-        // Update the collection of sessions in the DRAFT transfer
-        transfer.sessions.push(sessionData);
+        if (this.isSessionAlreadyInTransfer(transfer, session)) {
+          // This should not happen - Session is already in the session list
+          await Logging.logError({
+            tenantID: this.tenant.id,
+            action: ServerAction.BILLING_PREPARE_TRANSFER,
+            module: MODULE_NAME, method: 'dispatchFundsPerAccount',
+            message: `Unexpected situation - the transfer ${transfer.id} already includes the session ${session.transactionID}`
+          });
+        } else {
+          // Compute the session amount (adding the 4 pricing dimensions)
+          const amountAsDecimal = BillingHelpers.getBilledPrice(session.pricingData);
+          const amount = amountAsDecimal.toNumber();
+          const roundedAmount = Utils.roundTo(amountAsDecimal, 2);
+          const accountSessionFee = this.computeAccountSessionFee(session, roundedAmount);
+          // Extract current session data
+          const sessionData: BillingTransferSession = {
+            transactionID: session.transactionID,
+            invoiceID: invoice.id,
+            invoiceNumber: invoice.number,
+            amountAsDecimal,
+            amount,
+            roundedAmount,
+            accountSessionFee
+          };
+          // Update the collection of sessions in the DRAFT transfer
+          transfer.sessions.push(sessionData);
+        }
       }
       // Accumulate the amount of each session
       let transferAmountAsDecimal = Utils.createDecimal(0);
