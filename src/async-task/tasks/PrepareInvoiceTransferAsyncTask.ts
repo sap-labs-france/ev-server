@@ -44,7 +44,7 @@ export default class PrepareInvoiceTransferAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_PREPARE_TRANSFER, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_TRANSFER_PREPARE, error);
       }
     }
   }
