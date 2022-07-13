@@ -1748,7 +1748,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  public async billPlatformFee(billingTransfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice> {
+  public async billPlatformFee(billingTransfer: BillingTransfer, user: User, billingAccount: BillingAccount): Promise<BillingPlatformInvoice> {
     await this.checkConnection();
     if (!user.billingData || !user.billingData.customerID) {
       // Synchronize owner if needed
@@ -1765,7 +1765,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     // Add items to the invoice
-    await this.addItemsToPlatformFeeInvoice(stripeInvoice, billingTransfer, user);
+    await this.addItemsToPlatformFeeInvoice(stripeInvoice, billingTransfer, user, billingAccount);
     // Mark the invoice as paid
     const stripePaidInvoice = await this.markStripeInvoiceAsPaid(stripeInvoice);
     // Preserve some information
@@ -1799,7 +1799,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private async addItemsToPlatformFeeInvoice(stripeInvoice: Stripe.Invoice, billingTransfer: BillingTransfer, user: User): Promise<void> {
+  private async addItemsToPlatformFeeInvoice(stripeInvoice: Stripe.Invoice, billingTransfer: BillingTransfer, user: User, billingAccount: BillingAccount): Promise<void> {
     // Create invoice items
     try {
       // Extract session amounts
@@ -1821,7 +1821,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Generate the invoice item
       const description = this.buildTransferFeeItemDescription(user, amounts.length);
       // A single tax rate per session
-      const tax_rates = [];
+      const tax_rates = (billingAccount.taxID) ? [billingAccount.taxID] : [] ;
       // Prepare item parameters
       const parameters: Stripe.InvoiceItemCreateParams = {
         invoice: stripeInvoice.id,

@@ -3,6 +3,7 @@
 import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import { BillingAccount, BillingAccountStatus, BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingTransfer, BillingTransferStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
+import { BillingTestConfigHelper, StripeTaxHelper } from './StripeTestHelper';
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
 import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
@@ -11,7 +12,6 @@ import chai, { expect } from 'chai';
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import BillingFacade from '../../src/integration/billing/BillingFacade';
 import { BillingPlatformFeeStrategyFactory } from '../factories/BillingFactory';
-import { BillingTestConfigHelper } from './StripeTestHelper';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Company from '../../src/types/Company';
@@ -885,8 +885,11 @@ export default class BillingTestHelper {
   }
 
   public async createBillingAccount(): Promise<string> {
+    // Assign a tax rate (5% exclusive) to apply to the platform fee
+    const taxRate = StripeTaxHelper.fetchOrCreateTaxRate(this.billingImpl, 5 /* 5% */);
     let response = await this.getCurrentUserService().billingApi.createBillingAccount({
-      businessOwnerID: this.getCurrentUserContext().id
+      businessOwnerID: this.getCurrentUserContext().id,
+      taxID: (await taxRate).id
     });
     if (response.status !== StatusCodes.OK) {
       await this.dumpLastErrors();
@@ -995,7 +998,7 @@ export default class BillingTestHelper {
     return (draftTransfer) ? draftTransfer.sessions?.length : 0;
   }
 
-  public async finalizeDraftTransfer(): Promise<void> {
+  public async finalizeDraftTransfer(): Promise<string> {
     const transfer = await this.getLatestTransfer(BillingTransferStatus.DRAFT);
     assert(transfer?.id, 'transfer ID should not be null');
     let response = await this.getCurrentUserService().billingApi.finalizeTransfer(transfer.id);
@@ -1006,6 +1009,24 @@ export default class BillingTestHelper {
     response = await this.adminUserService.billingApi.readTransfer(transfer.id);
     expect(response.status).to.be.eq(StatusCodes.OK);
     expect(response.data.status).to.eq(BillingTransferStatus.FINALIZED);
+    expect(response.data.id).not.to.be.null;
+    return response.data.id;
+  }
+
+  public async checkTransferData(transferID: string,
+      expectedStatus: BillingTransferStatus,
+      expectedSessionCounter: number,
+      expectedCollectedFunds: number,
+      expectedCollectedFee: number,
+      expectedTransferAmount: number) : Promise<void> {
+    const response = await this.getCurrentUserService().billingApi.readTransfer(transferID);
+    expect(response.status).to.equal(StatusCodes.OK);
+    const transfer = response.data as BillingTransfer;
+    expect(transfer.status).to.equal(expectedStatus);
+    expect(transfer.sessions?.length).to.equal(expectedSessionCounter);
+    expect(transfer.totalAmount).to.equal(expectedCollectedFunds);
+    expect(transfer.transferAmount).to.equal(expectedTransferAmount);
+    expect(transfer.invoice?.totalAmount).to.equal(expectedCollectedFee); // Includes the taxes (c.f.: taxID - 5% exclusive at the account level)
   }
 
   public async sendFinalizedTransfer(): Promise<void> {
