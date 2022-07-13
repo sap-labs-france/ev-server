@@ -437,7 +437,6 @@ export enum ServerAction {
 
   BILLING = 'Billing',
   BILLING_TRANSACTION = 'BillingTransaction',
-  BILLING_PREPARE_TRANSFER = 'BillingPrepareTransfer',
   BILLING_SYNCHRONIZE_USER = 'BillingSynchronizeUser',
   BILLING_FORCE_SYNCHRONIZE_USER = 'BillingForceSynchronizeUser',
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',
@@ -461,6 +460,7 @@ export enum ServerAction {
   BILLING_ACCOUNTS = 'BillingAccounts',
   BILLING_TRANSFERS = 'BillingTransfers',
   BILLING_TRANSFER = 'BillingTransfer',
+  BILLING_TRANSFER_PREPARE = 'BillingTransferPrepare',
   BILLING_TRANSFER_FINALIZE = 'BillingTransferFinalize',
   BILLING_TRANSFER_SEND = 'BillingTransferSend',
 

@@ -727,7 +727,7 @@ export default abstract class BillingIntegration {
       // Create async task to proceed with the transfer of funds
       await AsyncTaskBuilder.createAndSaveAsyncTasks({
         name: AsyncTasks.PREPARE_INVOICE_TRANSFER,
-        action: ServerAction.BILLING_PREPARE_TRANSFER,
+        action: ServerAction.BILLING_TRANSFER_PREPARE,
         type: AsyncTaskType.TASK,
         tenantID: this.tenant.id,
         parameters: {
@@ -800,7 +800,7 @@ export default abstract class BillingIntegration {
           // This should not happen - Session is already in the session list
           await Logging.logError({
             tenantID: this.tenant.id,
-            action: ServerAction.BILLING_PREPARE_TRANSFER,
+            action: ServerAction.BILLING_TRANSFER_PREPARE,
             module: MODULE_NAME, method: 'dispatchFundsPerAccount',
             message: `Unexpected situation - the transfer ${transfer.id} already includes the session ${session.transactionID}`
           });
@@ -838,7 +838,7 @@ export default abstract class BillingIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_PREPARE_TRANSFER,
+        action: ServerAction.BILLING_TRANSFER_PREPARE,
         module: MODULE_NAME, method: 'processTransferForAccount',
         message: `Transfer preparation failed - accountID: ${accountID} - Invoice: ${invoice.id} - ${invoice.number}`,
         detailedMessages: { error: error.stack }
