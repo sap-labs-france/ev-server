@@ -190,6 +190,21 @@ export default class CompanyStorage {
       DatabaseUtils.pushSiteLookupInAggregation(
         { tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'companyID', asField: 'sites' });
     }
+    // if (params.withAccount) {
+    // With Accounts
+    DatabaseUtils.pushAccountLookupInAggregation({
+      tenantID: tenant.id, aggregation,
+      asField: 'accountData.account', localField: 'accountData.accountID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // With Account owner
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID: tenant.id, aggregation: aggregation,
+      asField: 'accountData.account.businessOwner',
+      localField: 'accountData.account.businessOwnerID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // }
     // Company Logo
     if (params.withLogo) {
       aggregation.push({

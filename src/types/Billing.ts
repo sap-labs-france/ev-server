@@ -173,6 +173,7 @@ export interface BillingAccount extends CreatedUpdatedProps, BillingTransferAuth
 
 export interface BillingAccountData {
   accountID: string;
+  account?: BillingAccount;
   platformFeeStrategy?: BillingPlatformFeeStrategy;
 }
 
