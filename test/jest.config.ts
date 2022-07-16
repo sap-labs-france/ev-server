@@ -1,4 +1,4 @@
-import type {Config} from '@jest/types';
+import type { Config } from '@jest/types';
 
 const config: Config.InitialOptions = {
   // All imported modules in your tests should be mocked automatically
@@ -96,7 +96,17 @@ const config: Config.InitialOptions = {
   // projects: undefined,
 
   // Use this configuration option to add custom reporters to Jest
-  reporters: ['default', './JestEvseReporter.js'],
+  'reporters': [
+    'default',
+    './JestEvseReporter.js',
+    [
+      '../node_modules/jest-html-reporter',
+      {
+        'pageTitle': 'Test Report'
+      }
+    ]
+  ],
+  // reporters: ['default', './JestEvseReporter.js'],
 
   // Automatically reset mock state before every test
   // resetMocks: false,
