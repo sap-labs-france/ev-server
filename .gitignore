@@ -4,7 +4,7 @@ users.json
 users-imported.json
 src/assets/config.json
 manifest.yml
-test-report.html
+test/results
 
 # Logs
 logs

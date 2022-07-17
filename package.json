@@ -218,7 +218,7 @@
     "eslint-plugin-jsdoc": "^39.3.3",
     "faker": "^5.5.3",
     "jest": "^27.5.1",
-    "jest-html-reporter": "^3.6.0",
+    "jest-stare": "^2.4.1",
     "json-schema-faker": "^0.5.0-rcv.44",
     "maildev": "^1.1.0",
     "ncp": "^2.0.0",

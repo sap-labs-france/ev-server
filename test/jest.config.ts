@@ -31,12 +31,7 @@ const config: Config.InitialOptions = {
   coverageProvider: 'v8',
 
   // A list of reporter names that Jest uses when writing coverage reports
-  // coverageReporters: [
-  //   "json",
-  //   "text",
-  //   "lcov",
-  //   "clover"
-  // ],
+  // coverageReporters: ['clover', 'json', 'text', 'lcov', 'cobertura'],
 
   // An object that configures minimum threshold enforcement for coverage results
   // coverageThreshold: undefined,
@@ -100,9 +95,10 @@ const config: Config.InitialOptions = {
     'default',
     './JestEvseReporter.js',
     [
-      '../node_modules/jest-html-reporter',
+      '../node_modules/jest-stare',
       {
-        'pageTitle': 'Test Report'
+        'resultDir': 'test/results',
+        'reportTitle': 'Test Report'
       }
     ]
   ],
