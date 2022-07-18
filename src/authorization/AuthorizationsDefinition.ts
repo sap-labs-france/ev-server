@@ -175,7 +175,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country',
           'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'accountData'
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
       },
       {
@@ -233,7 +233,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'issuer', 'logo',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
-          'address.department', 'address.region', 'address.country', 'address.coordinates', 'accountData'
+          'address.department', 'address.region', 'address.country', 'address.coordinates',
+          'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession', 'accountData.platformFeeStrategy.percentage',
+          'accountData.account.businessOwner'
         ]
       },
       {
@@ -256,7 +258,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'address.department', 'address.region', 'address.country',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectorStats', 'accountData'
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectorStats'
         ]
       },
       {
@@ -265,7 +267,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
-          'address.department', 'address.region', 'address.country', 'address.coordinates', 'accountData'
+          'address.department', 'address.region', 'address.country', 'address.coordinates',
+          'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession', 'accountData.platformFeeStrategy.percentage',
+          'accountData.account.businessOwner'
         ]
       },
       {
