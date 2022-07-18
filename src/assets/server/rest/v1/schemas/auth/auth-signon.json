@@ -18,9 +18,6 @@
     "acceptEula": {
       "$ref": "common#/definitions/acceptEula"
     },
-    "tenant": {
-      "$ref": "common#/definitions/authSubdomain"
-    },
     "captcha": {
       "$ref": "common#/definitions/captcha"
     },

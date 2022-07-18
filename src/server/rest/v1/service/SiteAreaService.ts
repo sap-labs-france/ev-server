@@ -21,7 +21,6 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteAreaValidatorRest from '../validator/SiteAreaValidatorRest';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import { StatusCodes } from 'http-status-codes';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -162,11 +161,19 @@ export default class SiteAreaService {
   }
 
   public static async handleGetSiteAreaImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleGetSiteAreaImage', action: action,
+      });
+    }
     // Filter
     const filteredRequest = SiteAreaValidatorRest.getInstance().validateSiteAreaGetImageReq(req.query);
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(
-      await TenantStorage.getTenant(filteredRequest.TenantID), filteredRequest.ID);
+      req.tenant, filteredRequest.ID);
     let image = siteAreaImage?.image;
     if (image) {
       // Header
@@ -177,7 +184,7 @@ export default class SiteAreaService {
         encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
         image = image.substring(image.indexOf(',') + 1);
       }
-      res.setHeader('content-type', header);
+      res.setHeader('Content-Type', header);
       res.send(Buffer.from(image, encoding));
     } else {
       res.status(StatusCodes.NOT_FOUND);

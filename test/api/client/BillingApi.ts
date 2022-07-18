@@ -49,14 +49,50 @@ export default class BillingApi extends CrudApi {
   }
 
   public async readInvoices(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_INVOICES, params));
+    return super.readAll(params, paging, ordering, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_INVOICES));
   }
 
-  public async createSubAccount(params) {
-    return super.create(params, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_SUB_ACCOUNTS));
+  public async readInvoice(id: string) {
+    return super.read({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_INVOICE, { invoiceID: id }));
   }
 
-  public async activateSubAccount(params) {
-    return super.read(params, super.buildUtilRestEndpointUrl(RESTServerRoute.REST_BILLING_SUB_ACCOUNT_ACTIVATE, { id: params.accountID }));
+  public async createBillingAccount(params) {
+    return super.create(params, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_ACCOUNTS));
+  }
+
+  public async refreshBillingAccount(params) {
+    return super.patch(params, super.buildUtilRestEndpointUrl(RESTServerRoute.REST_BILLING_ACCOUNT_REFRESH, { id: params.accountID }));
+  }
+
+  public async activateBillingAccount(params) {
+    return super.patch(params, super.buildUtilRestEndpointUrl(RESTServerRoute.REST_BILLING_ACCOUNT_ACTIVATE, { id: params.accountID }));
+  }
+
+  public async readBillingAccounts(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_ACCOUNTS));
+  }
+
+  public async readBillingAccount(id: string) {
+    return super.read({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_ACCOUNT, { id }));
+  }
+
+  public async onboardBillingAccount(id: string) {
+    return super.patch({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_ACCOUNT_ONBOARD, { id }));
+  }
+
+  public async readTransfers(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_TRANSFERS));
+  }
+
+  public async readTransfer(id: string) {
+    return super.read({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_TRANSFER, { id }));
+  }
+
+  public async finalizeTransfer(id) {
+    return super.patch({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_TRANSFER_FINALIZE, { id }));
+  }
+
+  public async sendTransfer(id) {
+    return super.patch({}, super.buildRestEndpointUrl(RESTServerRoute.REST_BILLING_TRANSFER_SEND, { id }));
   }
 }

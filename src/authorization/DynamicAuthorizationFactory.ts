@@ -18,6 +18,8 @@ import PoolCarDynamicAuthorizationAssert from './dynamic-assert/PoolCarDynamicAu
 import SiteAreaMandatoryDynamicAuthorizationAssert from './dynamic-assert/SiteAreaMandatoryDynamicAuthorizationAssert';
 import SitesAdminDynamicAuthorizationDataSource from './dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
 import SitesAdminDynamicAuthorizationFilter from './dynamic-filters/SitesAdminDynamicAuthorizationFilter';
+import SitesAdminUsersDynamicAuthorizationDataSource from './dynamic-data-source/SitesAdminUsersDynamicAuthorizationDataSource';
+import SitesAdminUsersDynamicAuthorizationFilter from './dynamic-filters/SitesAdminUsersDynamicAuthorizationFilter';
 import SitesOwnerDynamicAuthorizationDataSource from './dynamic-data-source/SitesOwnerDynamicAuthorizationDataSource';
 import SitesOwnerDynamicAuthorizationFilter from './dynamic-filters/SitesOwnerDynamicAuthorizationFilter';
 import Tenant from '../types/Tenant';
@@ -43,6 +45,9 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationFilterName.SITES_ADMIN:
         dynamicFilter = new SitesAdminDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        break;
+      case DynamicAuthorizationFilterName.SITES_ADMIN_USERS:
+        dynamicFilter = new SitesAdminUsersDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
       case DynamicAuthorizationFilterName.SITES_OWNER:
         dynamicFilter = new SitesOwnerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
@@ -105,6 +110,9 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationDataSourceName.SITES_ADMIN:
         dataSource = new SitesAdminDynamicAuthorizationDataSource(tenant, user);
+        break;
+      case DynamicAuthorizationDataSourceName.SITES_ADMIN_USERS:
+        dataSource = new SitesAdminUsersDynamicAuthorizationDataSource(tenant, user);
         break;
       case DynamicAuthorizationDataSourceName.SITES_OWNER:
         dataSource = new SitesOwnerDynamicAuthorizationDataSource(tenant, user);

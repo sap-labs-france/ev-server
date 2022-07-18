@@ -1,0 +1,36 @@
+{
+  "$id": "billing-accounts-get",
+  "title": "Get billing accounts Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "UserID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "Status": {
+      "type": "string",
+      "pattern": "^((idle|pending|active)(\\|idle|\\|pending|\\|active)*)?$",
+      "sanitize": "mongo"
+    },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  }
+}

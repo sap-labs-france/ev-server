@@ -271,6 +271,12 @@ export default class SiteStorage {
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
+    if (siteToSave.accountData) {
+      siteMDB.accountData = {
+        accountID: DatabaseUtils.convertToObjectID(siteToSave.accountData.accountID),
+        platformFeeStrategy: siteToSave.accountData.platformFeeStrategy,
+      };
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
     // Modify and return the modified document

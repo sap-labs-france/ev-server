@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
+import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
@@ -17,7 +18,6 @@ import SiteValidatorRest from '../validator/SiteValidatorRest';
 import SitesAdminDynamicAuthorizationDataSource from '../../../../authorization/dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -250,24 +250,19 @@ export default class SiteService {
   }
 
   public static async handleGetSiteImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleGetSiteImage', action: action,
+      });
+    }
     // This endpoint is not protected, so no need to check user's access
     const filteredRequest = SiteValidatorRest.getInstance().validateSiteGetImageReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteImage', req.user);
-    if (!filteredRequest.TenantID) {
-      // Object does not exist
-      throw new AppError({
-        action,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The ID must be provided',
-        module: MODULE_NAME, method: 'handleGetSiteImage',
-      });
-    }
-    // Get Tenant
-    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
-    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`,
-      MODULE_NAME, 'handleGetSiteImage', req.user);
     // Get the image
-    const siteImage = await SiteStorage.getSiteImage(tenant, filteredRequest.ID);
+    const siteImage = await SiteStorage.getSiteImage(req.tenant, filteredRequest.ID);
     let image = siteImage?.image;
     if (image) {
       // Header
@@ -278,7 +273,7 @@ export default class SiteService {
         encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
         image = image.substring(image.indexOf(',') + 1);
       }
-      res.setHeader('content-type', header);
+      res.setHeader('Content-Type', header);
       res.send(Buffer.from(image, encoding));
     } else {
       res.status(StatusCodes.NOT_FOUND);
@@ -305,6 +300,13 @@ export default class SiteService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Site;
+    // If the site is assigned to a billing account, check if the billing is active
+    if (filteredRequest.accountData) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+        Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
+      const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.accountData.accountID);
+      UtilsService.assertObjectExists(action, billingAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleCreateSite', req.user);
+    }
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     await Logging.logInfo({
@@ -369,6 +371,17 @@ export default class SiteService {
     }
     site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
+    // If the site is assigned to a billing account, check if the billing is active
+    if (filteredRequest.accountData) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+        Action.CREATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
+      const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.accountData.accountID);
+      UtilsService.assertObjectExists(action, billingAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateSite', req.user);
+      site.accountData = {
+        accountID: billingAccount.id,
+        platformFeeStrategy: filteredRequest.accountData.platformFeeStrategy,
+      };
+    }
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     // Update all refs

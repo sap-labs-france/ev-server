@@ -1,7 +1,8 @@
-import { AuthorizationActions, BillingInvoiceAuthorizationActions } from './Authorization';
+import { AuthorizationActions, BillingInvoiceAuthorizationActions, BillingTaxAuthorizationActions, BillingTransferAuthorizationActions } from './Authorization';
 
 import { ActionsResponse } from './GlobalType';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import Decimal from 'decimal.js';
 import { PricedConsumptionData } from './Pricing';
 import User from './User';
 
@@ -56,7 +57,7 @@ export interface BillingChargeInvoiceAction extends ActionsResponse {
   billingData?: BillingUserData;
 }
 
-export interface BillingTax {
+export interface BillingTax extends BillingTaxAuthorizationActions {
   id: string;
   description: string;
   displayName: string;
@@ -88,6 +89,7 @@ export interface BillingInvoiceItem {
   transactionID: number;
   currency: string;
   pricingData: PricedConsumptionData[]
+  accountData?: BillingSessionAccountData; // Each session may target a distinct account - but the 4 pricing dimensions MUST share the same info
   headerDescription?: string,
   metadata?: {
     // Just a flat list of key/value pairs!
@@ -98,6 +100,7 @@ export interface BillingInvoiceItem {
 export interface BillingSessionData {
   transactionID: number;
   pricingData: PricedConsumptionData[];
+  accountData?: BillingSessionAccountData; // Each session may target a distinct account
 }
 
 export enum BillingInvoiceStatus {
@@ -148,16 +151,90 @@ export enum BillingErrorCode {
   CARD_ERROR = 'card_error',
 }
 
-export interface BillingAdditionalData {
-  session?: BillingSessionData,
-  lastError?: BillingError,
+export enum BillingAccountStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  ACTIVE = 'active'
 }
 
-export interface BillingAccount {
+export interface BillingPlatformFeeStrategy {
+  flatFeePerSession: number; // e.g.: 0.25 per charging session
+  percentage: number; // e.g.: 2% per charging session
+}
+
+export interface BillingAccount extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
   id?: string;
-  accountID: string;
+  businessOwnerID: string;
+  businessOwner?: User;
+  status: BillingAccountStatus;
   activationLink?: string;
-  userID?: string;
-  pending: boolean;
+  accountExternalID: string;
+  taxID: string;
+}
+
+export interface BillingAccountData {
+  accountID: string;
+  platformFeeStrategy?: BillingPlatformFeeStrategy;
+}
+
+export interface BillingSessionAccountData extends BillingAccountData {
+  withTransferActive: boolean
+}
+
+export enum BillingTransferStatus {
+  DRAFT = 'draft',
+  PENDING = 'pending',
+  FINALIZED = 'finalized',
+  TRANSFERRED = 'transferred'
+}
+
+export interface BillingPlatformFeeData {
+  feeAmount: number;
+  feeTaxAmount: number;
+}
+
+export interface BillingAccountSessionFee extends BillingPlatformFeeStrategy {
+  feeAmount: number;
+}
+
+export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
+  id?: string;
+  status: BillingTransferStatus;
+  sessions: BillingTransferSession[];
+  totalAmount: number; // Depends on the fee strategy and thus on the final number of sessions
+  transferAmount: number // Amount transferred after applying platform fees
+  accountID: string;
+  account?: BillingAccount;
+  businessOwner?: User;
+  platformFeeData: BillingPlatformFeeData;
+  transferExternalID: string; // Transfer sent to the CPO
+  currency: string;
+  invoice?: BillingPlatformInvoice; // The invoice generated to bill the platform fee
+}
+
+// Very important - preserve maximal precision - Decimal type is persisted as an object in the DB
+export type BillingAmount = Decimal.Value;
+
+export interface BillingTransferSession {
+  transactionID: number;
+  invoiceID: string;
+  invoiceNumber: string;
+  amountAsDecimal: BillingAmount
+  amount: number; // ACHTUNG - That one should not include any taxes
+  roundedAmount: number;
+  accountSessionFee: BillingAccountSessionFee;
+}
+
+export interface BillingPlatformInvoice {
+  invoiceID: string;
+  liveMode: boolean;
+  userID: string;
+  documentNumber: string;
+  status: BillingInvoiceStatus;
+  amount: number; // This one is in cents
+  totalAmount: number;
+  currency: string;
+  customerID: string;
+  createdOn: Date;
 }
 

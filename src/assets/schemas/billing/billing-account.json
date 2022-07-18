@@ -1,0 +1,21 @@
+{
+  "$id": "billing-account",
+  "definitions": {
+    "accountID": {
+      "$ref": "common#/definitions/id"
+    },
+    "platformFeeStrategy": {
+      "type": "object",
+      "properties": {
+        "flatFeePerSession": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "percentage": {
+          "type": "number",
+          "sanitize": "mongo"
+        }
+      }
+    }
+  }
+}

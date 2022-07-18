@@ -72,14 +72,6 @@ export default class LockingHelper {
     return lock;
   }
 
-  public static async acquireBillingSyncInvoicesLock(tenantID: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.INVOICE, 'synchronize-billing-invoices');
-    if (!(await LockingManager.acquire(lock))) {
-      return null;
-    }
-    return lock;
-  }
-
   public static async acquireBillingPeriodicOperationLock(tenantID: string): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.INVOICE, 'periodic-billing');
     if (!(await LockingManager.acquire(lock))) {
@@ -87,6 +79,15 @@ export default class LockingHelper {
     }
     return lock;
   }
+
+  public static async acquireBillingPrepareInvoiceTransferLock(tenantID: string, invoiceID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.INVOICE, `prepare-invoice-transfer-${invoiceID}`);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
 
   public static async acquireAssetRetrieveConsumptionsLock(tenantID: string, asset: Asset): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASSET, `${asset.id}-consumptions`);
@@ -180,7 +181,7 @@ export default class LockingHelper {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.USER, `bill-user-${userID}`);
     // ----------------------------------------------------------------------------------------
     // We may have concurrent attempts to create an invoice when running billing async tasks.
-    // On the otherhand, we cannot just give up too early in case of conflicts
+    // On the other hand, we cannot just give up too early in case of conflicts
     // To prevent such situation, we have here a timeout of 60 seconds.
     // This means that we assume here that the billing concrete layer (stripe) will be able to
     // create within a minute both the invoice item and the corresponding invoice.

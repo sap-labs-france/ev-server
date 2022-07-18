@@ -65,7 +65,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-        // Send EVSE statuses
+        // Pull Locations
         const result = await ocpiClient.pullLocations(config.partial);
         await Logging.logInfo({
           tenantID: tenant.id,

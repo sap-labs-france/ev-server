@@ -1,0 +1,10 @@
+{
+  "$id": "billing-account-get",
+  "title": "Get billing account Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/id"
+    }
+  }
+}

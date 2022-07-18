@@ -1,0 +1,191 @@
+{
+  "$id": "authorization-role-save",
+  "type": "object",
+  "properties": {
+    "$extend": {
+      "type": "object",
+      "properties": {
+        "basic": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "grants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string"
+          },
+          "action": {
+            "type": ["array", "string"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "condition": {
+            "type": "object",
+            "properties": {
+              "Fn": {
+                "type": "string"
+              },
+              "args": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "asserts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "filters": {
+                            "type": "array",
+                            "items": {
+                              "anyOf": [
+                                { 
+                                  "type": "string" 
+                                },
+                                {  
+                                  "type": "array",
+                                  "items": {
+                                    "type":"string"
+                                  }                        
+                                }
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "minProperties": 1,
+                            "patternProperties": {
+                              ".*": {
+                                "type": "object",
+                                "properties": {
+                                  "visible": {
+                                    "type": "boolean"
+                                  },
+                                  "enabled": {
+                                    "type": "boolean"
+                                  },
+                                  "mandatory": {
+                                    "type": "boolean"
+                                  },
+                                  "defaultValue": {
+                                    "type": ["null", "boolean", "string", "number"]
+                                  },
+                                  "values": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": ["boolean", "string", "number"]
+                                    }
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            }
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["filters", "asserts"]
+                      },
+                      {
+                        "properties": {
+                          "Fn": {
+                            "type": "string"
+                          },
+                          "args": {
+                            "type": "object",
+                            "patternProperties": {
+                              ".*": {
+                                "type": ["string", "null"]
+                              }
+                            }
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": ["Fn", "args"]
+                      },
+                      {
+                        "properties": {
+                          "sitesOwner": {
+                            "type": "string"
+                          },
+                          "sitesAdmin": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false,
+                        "oneOf": [
+                          { "required": ["sitesOwner"] },
+                          { "required": ["sitesAdmin"] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "Fn": {
+                          "type": "string"
+                        },
+                        "args": {
+                          "type": "object",
+                          "patternProperties": {
+                            ".*": {
+                              "type": ["string", "null"]
+                            }
+                          }
+                        }
+                      },
+                      "additionalProperties": false,
+                      "required": [
+                        "Fn",
+                        "args"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "Fn",
+              "args"
+            ]
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "args": {
+            "type": "object",
+            "patternProperties": {
+              ".*": {
+                "type": ["string", "null"]
+              }
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "resource",
+          "action"
+        ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "grants"
+  ]
+}

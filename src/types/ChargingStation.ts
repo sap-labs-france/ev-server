@@ -1,6 +1,6 @@
 import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+import { ChargingStationAuthorizationActions, ConnectorAuthorizationActions } from './Authorization';
 
-import { AuthorizationActions } from './Authorization';
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
@@ -12,7 +12,7 @@ import Site from './Site';
 import SiteArea from './SiteArea';
 import User from './User';
 
-export default interface ChargingStation extends CreatedUpdatedProps, AuthorizationActions {
+export default interface ChargingStation extends CreatedUpdatedProps, ChargingStationAuthorizationActions {
   id?: string;
   templateHash?: string;
   templateHashCapabilities?: string;
@@ -136,7 +136,7 @@ export enum StaticLimitAmps {
   MIN_LIMIT_PER_PHASE = 6,
 }
 
-export interface Connector {
+export interface Connector extends ConnectorAuthorizationActions {
   id?: string;
   connectorId: number;
   currentInstantWatts?: number;

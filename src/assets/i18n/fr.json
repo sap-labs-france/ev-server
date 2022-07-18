@@ -7,7 +7,8 @@
     "flatFee-shortItemDescription": "Frais fixes",
     "energy-shortItemDescription": "Energie Consommée : {{quantity}} kWh",
     "chargingTime-shortItemDescription": "Durée de la charge : {{duration}}",
-    "parkingTime-shortItemDescription": "Durée de stationnement: {{duration}}"
+    "parkingTime-shortItemDescription": "Durée de stationnement: {{duration}}",
+    "transfer-feeItemDescription": "Frais facturés pour {{nbSessions}} session(s)"
   },
   "chargers": {
     "chargeBoxSN": "Numéro de série de la borne",
@@ -147,11 +148,11 @@
       "title": "Nouvelle facture a payer",
       "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}} est disponible, vérifiez vos emails pour finaliser le paiement"
     },
-    "billingSubAccountCreationLink": {
+    "billingAccountCreationLink": {
       "title": "Création compte de facturation",
       "body": "Vous avez été invité à créer un compte de facturation. Veuillez vérifier vos emails pour terminer le processus"
     },
-    "billingSubAccountActivated": {
+    "billingAccountActivated": {
       "title": "Compte de facturation activé",
       "body": "Votre compte de facturation a été activé"
     },

@@ -8847,7 +8847,7 @@
       }
     },
     "/api/sites/{id}/assign": {
-      "get": {
+      "put": {
         "description": "Assign users to a site",
         "tags": [
           "Sites"
@@ -8904,7 +8904,7 @@
       }
     },
     "/api/sites/{id}/unassign": {
-      "get": {
+      "put": {
         "description": "Unassign users from a site",
         "tags": [
           "Sites"
@@ -13649,29 +13649,37 @@
         ],
         "responses": {
           "200": {
-            "description": "Return billing taxes",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "description": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "displayName": {
-                        "type": "string",
-                        "example": "###"
-                      },
-                      "percentage": {
-                        "type": "number",
-                        "example": "20"
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "txr_1LBZyWF5e1VSb1v6Zc1rbkV9"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "VTA 20% (exclusive)"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "example": "VAT"
+                          },
+                          "percentage": {
+                            "type": "number",
+                            "example": "20"
+                          }
+                        }
                       }
                     }
                   }
@@ -13848,14 +13856,90 @@
         }
       }
     },
-    "/api/billing/sub-accounts": {
+    "/api/billing/accounts": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Accounts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "in": "query",
+            "name": "Status",
+            "description": "Pipe separated invoice status (idle, pending, active)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Account"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
       "post": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Create a Billing sub-account",
+        "description": "Create a Billing account",
         "tags": [
           "Billing"
         ],
@@ -13864,10 +13948,10 @@
             "application/json": {
               "schema": {
                 "required": [
-                  "userID"
+                  "businessOwnerID"
                 ],
                 "properties": {
-                  "userID": {
+                  "businessOwnerID": {
                     "type": "string"
                   }
                 }
@@ -13877,14 +13961,14 @@
         },
         "responses": {
           "201": {
-            "description": "Pending sub-account created",
+            "description": "Pending account created",
             "content": {
               "application/json": {
                 "example": {
-                  "userID": "###",
-                  "accountID": "###",
+                  "businessOwnerID": "###",
+                  "accountExternalID": "###",
                   "activationLink": "###",
-                  "pending": true,
+                  "status": "idle",
                   "id": "###"
                 }
               }
@@ -13900,6 +13984,281 @@
             "$ref": "#/components/responses/BackendError"
           },
           "404": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/billing/accounts/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Accounts",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Account ID",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/billing/accounts/{id}/onboard": {
+      "patch": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Send onboarding to account's owner",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Account ID",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Sent the account onboarding link by mail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "id": {
+                      "type": "string",
+                      "example": "###"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/billing/transfers": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Transfers",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "AccountID",
+            "description": "Account ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "TransferExternalID",
+            "description": "Transfer External ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "Status",
+            "description": "Pipe separated invoice status (draft, pending, transferred)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return transfers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Transfer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/billing/transfers/{id}/finalize": {
+      "patch": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Finalize a Transfer",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Transfer ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transfer finalized"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/billing/transfers/{id}/send": {
+      "patch": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Triggers the transfer of funds to the account",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Transfer ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transfer sent"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
@@ -15250,6 +15609,25 @@
           "issuer": {
             "type": "boolean",
             "readOnly": true
+          },
+          "accountData": {
+            "type": "object",
+            "properties": {
+              "accountID": {
+                "type": "string"
+              },
+              "platformFeeStrategy": {
+                "type": "object",
+                "properties": {
+                  "flatFeePerSession": {
+                    "type": "number"
+                  },
+                  "percentage": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -15486,6 +15864,25 @@
           "id": {
             "type": "string",
             "readOnly": true
+          },
+          "accountData": {
+            "type": "object",
+            "properties": {
+              "accountID": {
+                "type": "string"
+              },
+              "platformFeeStrategy": {
+                "type": "object",
+                "properties": {
+                  "flatFeePerSession": {
+                    "type": "number"
+                  },
+                  "percentage": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -16349,6 +16746,119 @@
                 }
               }
             }
+          }
+        }
+      },
+      "Account": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "businessOwnerID": {
+            "type": "string"
+          },
+          "businessOwner": {
+            "$ref": "#/components/schemas/User"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "pending",
+              "active"
+            ]
+          },
+          "activationLink": {
+            "type": "string"
+          },
+          "accountExternalID": {
+            "type": "string"
+          },
+          "taxID": {
+            "type": "string"
+          }
+        }
+      },
+      "Transfer": {
+        "type": "object",
+        "properties": {
+          "accountID": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "pending",
+              "finalized",
+              "transferred"
+            ]
+          },
+          "sessions": {
+            "type": "object",
+            "properties": {
+              "transactionID": {
+                "type": "number"
+              },
+              "invoiceID": {
+                "type": "string"
+              },
+              "invoiceNumber": {
+                "type": "string"
+              },
+              "amountAsDecimal": {
+                "type": "object"
+              },
+              "amount": {
+                "type": "number"
+              },
+              "roundedAmount": {
+                "type": "number"
+              },
+              "accountSessionFee": {
+                "type": "object",
+                "properties": {
+                  "flatFeePerSession": {
+                    "type": "number"
+                  },
+                  "percentage": {
+                    "type": "number"
+                  },
+                  "feeAmount": {
+                    "type": "number"
+                  },
+                  "externalTaxID": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "totalAmount": {
+            "type": "number"
+          },
+          "transferAmount": {
+            "type": "number"
+          },
+          "platformFeeData": {
+            "type": "object",
+            "properties": {
+              "feeAmount": {
+                "type": "number"
+              },
+              "feeTaxAmount": {
+                "type": "number"
+              }
+            }
+          },
+          "transferExternalID": {
+            "type": "string"
           }
         }
       }

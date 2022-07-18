@@ -5,7 +5,6 @@ import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
 import { Action } from '../../../types/Authorization';
-import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
 import BillingFacade from '../../../integration/billing/BillingFacade';
 import CarConnectorFactory from '../../../integration/car-connector/CarConnectorFactory';
@@ -13,6 +12,7 @@ import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import { CommonUtilsService } from '../../CommonUtilsService';
 import Constants from '../../../utils/Constants';
 import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
@@ -28,7 +28,7 @@ import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { OCPPRemoteStartStopStatus } from '../../../types/ocpp/OCPPClient';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
-import OCPPValidation from '../validation/OCPPValidation';
+import OCPPValidator from '../validator/OCPPValidator';
 import OICPFacade from '../../oicp/OICPFacade';
 import PricingFacade from '../../../integration/pricing/PricingFacade';
 import { ServerAction } from '../../../types/Server';
@@ -39,6 +39,7 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import UtilsService from '../../rest/v1/service/UtilsService';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 
@@ -57,7 +58,7 @@ export default class OCPPService {
     try {
       const { tenant } = headers;
       let { chargingStation } = headers;
-      OCPPValidation.getInstance().validateBootNotification(headers, bootNotification);
+      OCPPValidator.getInstance().validateBootNotification(headers, bootNotification);
       // Enrich Boot Notification
       this.enrichBootNotification(headers, bootNotification);
       // Get heartbeat interval
@@ -118,7 +119,7 @@ export default class OCPPService {
       if (!heartbeat) {
         heartbeat = {} as OCPPHeartbeatRequestExtended;
       }
-      OCPPValidation.getInstance().validateHeartbeat(heartbeat);
+      OCPPValidator.getInstance().validateHeartbeat(heartbeat);
       // Set Heart Beat Object
       heartbeat.chargeBoxID = chargingStation.id;
       heartbeat.timestamp = new Date();
@@ -150,7 +151,7 @@ export default class OCPPService {
       // Get the header infos
       const { chargingStation, tenant } = headers;
       // Check props
-      OCPPValidation.getInstance().validateStatusNotification(statusNotification);
+      OCPPValidator.getInstance().validateStatusNotification(statusNotification);
       // Set Header
       this.enrichOCPPRequest(chargingStation, statusNotification, false);
       // Skip connectorId = 0 case
@@ -179,7 +180,7 @@ export default class OCPPService {
     try {
       // Get the header infos
       const { chargingStation, tenant } = headers;
-      await OCPPValidation.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
+      await OCPPValidator.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
       // Normalize Meter Values
       const normalizedMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
       // Handle Charging Station's specificities
@@ -262,8 +263,8 @@ export default class OCPPService {
       // Get the header infos
       const { chargingStation, tenant } = headers;
       // Check props
-      OCPPValidation.getInstance().validateAuthorize(authorize);
-      const { user } = await Authorizations.isAuthorizedOnChargingStation(tenant, chargingStation,
+      OCPPValidator.getInstance().validateAuthorize(authorize);
+      const { user } = await CommonUtilsService.isAuthorizedOnChargingStation(tenant, chargingStation,
         authorize.idTag, ServerAction.OCPP_AUTHORIZE, Action.AUTHORIZE);
       // Check Billing Prerequisites
       await OCPPUtils.checkBillingPrerequisites(tenant, ServerAction.OCPP_AUTHORIZE, chargingStation, user);
@@ -303,7 +304,7 @@ export default class OCPPService {
     const { chargingStation, tenant } = headers;
     try {
       // Check props
-      OCPPValidation.getInstance().validateDiagnosticsStatusNotification(diagnosticsStatusNotification);
+      OCPPValidator.getInstance().validateDiagnosticsStatusNotification(diagnosticsStatusNotification);
       // Enrich
       this.enrichOCPPRequest(chargingStation, diagnosticsStatusNotification);
       // Save it
@@ -330,7 +331,7 @@ export default class OCPPService {
     const { chargingStation, tenant } = headers;
     try {
       // Check props
-      OCPPValidation.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
+      OCPPValidator.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
       // Enrich
       this.enrichOCPPRequest(chargingStation, firmwareStatusNotification);
       // Save the status to Charging Station
@@ -358,13 +359,13 @@ export default class OCPPService {
       // Get the header infos
       const { chargingStation, tenant } = headers;
       // Check props
-      OCPPValidation.getInstance().validateStartTransaction(chargingStation, startTransaction);
+      OCPPValidator.getInstance().validateStartTransaction(chargingStation, startTransaction);
       // Enrich
       this.enrichStartTransaction(tenant, startTransaction, chargingStation);
       // Create Transaction
       const newTransaction = await this.createTransaction(tenant, startTransaction);
       // Check User
-      const { user, tag } = await Authorizations.isAuthorizedToStartTransaction(
+      const { user, tag } = await CommonUtilsService.isAuthorizedToStartTransaction(
         tenant, chargingStation, startTransaction.tagID, newTransaction, ServerAction.OCPP_START_TRANSACTION, Action.START_TRANSACTION);
       if (user) {
         startTransaction.userID = user.id;
@@ -427,7 +428,7 @@ export default class OCPPService {
       // Get the header infos
       const { chargingStation, tenant } = headers;
       // Check props
-      OCPPValidation.getInstance().validateDataTransfer(chargingStation, dataTransfer);
+      OCPPValidator.getInstance().validateDataTransfer(chargingStation, dataTransfer);
       // Enrich
       this.enrichOCPPRequest(chargingStation, dataTransfer);
       // Save it
@@ -459,7 +460,7 @@ export default class OCPPService {
       // Get the header infos
       const { chargingStation, tenant } = headers;
       // Check props
-      OCPPValidation.getInstance().validateStopTransaction(chargingStation, stopTransaction);
+      OCPPValidator.getInstance().validateStopTransaction(chargingStation, stopTransaction);
       // Set header
       this.enrichOCPPRequest(chargingStation, stopTransaction, false);
       // Bypass Stop Transaction?
@@ -581,18 +582,18 @@ export default class OCPPService {
   }
 
   public async checkAuthorizeStopTransactionAndGetUsers(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction,
-      tagId: string, isStoppedByCentralSystem: boolean): Promise<{ user: User; alternateUser: User; }> {
+      tagID: string, isStoppedByCentralSystem: boolean): Promise<{ user: User; alternateUser: User; }> {
     let user: User;
     let alternateUser: User;
     if (!isStoppedByCentralSystem) {
       // Check and get the authorized Users
-      const authorizedUsers = await Authorizations.isAuthorizedToStopTransaction(
-        tenant, chargingStation, transaction, tagId, ServerAction.OCPP_STOP_TRANSACTION, Action.STOP_TRANSACTION);
+      const authorizedUsers = await CommonUtilsService.isAuthorizedToStopTransaction(
+        tenant, chargingStation, transaction, tagID, ServerAction.OCPP_STOP_TRANSACTION, Action.STOP_TRANSACTION);
       user = authorizedUsers.user;
       alternateUser = authorizedUsers.alternateUser;
     } else {
       // Get the User
-      user = await UserStorage.getUserByTagID(tenant, tagId);
+      user = await UserStorage.getUserByTagID(tenant, tagID);
     }
     // Already Stopped?
     if (transaction.stop) {
@@ -691,6 +692,8 @@ export default class OCPPService {
     if (!ignoreStatusNotification) {
       // Check last Transaction
       await this.checkAndUpdateLastCompletedTransactionFromStatusNotification(tenant, chargingStation, statusNotification, connector);
+      // Keep previous connector status for smart charging
+      const previousStatus = connector.status;
       // Update Connector
       connector.connectorId = statusNotification.connectorId;
       connector.status = statusNotification.status;
@@ -712,7 +715,7 @@ export default class OCPPService {
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       // Process Smart Charging
-      await this.processSmartChargingFromStatusNotification(tenant, chargingStation, connector);
+      await this.processSmartChargingFromStatusNotification(tenant, chargingStation, connector, previousStatus);
       await Logging.logInfo({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
@@ -726,9 +729,10 @@ export default class OCPPService {
     }
   }
 
-  private async processSmartChargingFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<void> {
+  private async processSmartChargingFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
+      connector: Connector, previousStatus: ChargePointStatus): Promise<void> {
     // Trigger Smart Charging
-    if (connector.status === ChargePointStatus.CHARGING ||
+    if ((connector.status === ChargePointStatus.CHARGING && previousStatus !== ChargePointStatus.SUSPENDED_EVSE) ||
       connector.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging

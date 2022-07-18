@@ -1,16 +1,16 @@
 import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
+import { ChargingProfileDataResult, ChargingStationDataResult, ChargingStationInErrorDataResult, DataResult } from '../../types/DataResult';
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationOicpData, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, RemoteAuthorization, Voltage } from '../../types/ChargingStation';
-import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId, UpdateResult } from 'mongodb';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
-import ChargingStationValidatorStorage from './validator/ChargingStationValidatorStorage';
+import { ChargingStationInErrorType } from '../../types/InError';
+import ChargingStationValidatorStorage from '../validator/ChargingStationValidatorStorage';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { InactivityStatus } from '../../types/Transaction';
@@ -114,6 +114,16 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
+  public static async getChargingProfile(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
+      params: { siteIDs?: string[]; withSiteArea?: boolean; } = {},
+      projectFields?: string[]): Promise<ChargingProfile> {
+    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenant, {
+      chargingProfileID: id,
+      siteIDs: params.siteIDs,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
+  }
+
   public static async getChargingStationByOcpiLocationEvseUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
       ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
       projectFields?: string[]): Promise<ChargingStation> {
@@ -143,7 +153,7 @@ export default class ChargingStationStorage {
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
       },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<ChargingStationDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -222,7 +232,7 @@ export default class ChargingStationStorage {
       filters.issuer = params.issuer;
     }
     // Add Charging Station inactive flag
-    DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
+    DatabaseUtils.pushChargingStationInactiveFlagInAggregation(aggregation);
     // Add in aggregation
     aggregation.push({
       $match: filters
@@ -251,7 +261,7 @@ export default class ChargingStationStorage {
     }
     // Check Company ID
     if (!Utils.isEmptyArray(params.companyIDs)) {
-      // Query by siteID
+      // Query by companyID
       filters.companyID = { $in: params.companyIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
     // Date before provided
@@ -352,7 +362,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStationsInError(tenant: Tenant,
       params: { search?: string; siteIDs?: string[]; siteAreaIDs: string[]; errorType?: string[] },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationInError>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<ChargingStationInErrorDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -364,7 +374,7 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Add Charging Station inactive flag
-    DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
+    DatabaseUtils.pushChargingStationInactiveFlagInAggregation(aggregation);
     // Set the filters
     const filters: FilterParams = {};
     // Search filters
@@ -725,18 +735,11 @@ export default class ChargingStationStorage {
     };
   }
 
-  public static async getChargingProfile(tenant: Tenant, id: string): Promise<ChargingProfile> {
-    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenant, {
-      chargingProfileID: id
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return chargingProfilesMDB.count === 1 ? chargingProfilesMDB.result[0] : null;
-  }
-
   public static async getChargingProfiles(tenant: Tenant,
       params: { search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
-        profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean;
+        profilePurposeType?: ChargingProfilePurposeType; transactionId?: number;
         withSiteArea?: boolean; siteIDs?: string[]; } = {},
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<ChargingProfileDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -782,35 +785,33 @@ export default class ChargingStationStorage {
         $match: filters
       });
     }
-    if (params.withChargingStation || params.withSiteArea || !Utils.isEmptyArray(params.siteIDs)) {
-      // Charging Stations
-      DatabaseUtils.pushChargingStationLookupInAggregation({
-        tenantID: tenant.id, aggregation, localField: 'chargingStationID', foreignField: '_id',
-        asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    // Charging Stations
+    DatabaseUtils.pushChargingStationLookupInAggregation({
+      tenantID: tenant.id, aggregation, localField: 'chargingStationID', foreignField: '_id',
+      asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Site Areas
+    if (params.withSiteArea) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
+        asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
-      // Site Areas
-      if (params.withSiteArea || !Utils.isEmptyArray(params.siteIDs)) {
-        DatabaseUtils.pushSiteAreaLookupInAggregation({
-          tenantID: tenant.id, aggregation, localField: 'chargingStation.siteAreaID', foreignField: '_id',
-          asField: 'chargingStation.siteArea', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-        });
-        // Convert
-        DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
-      }
       // Convert
-      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
-      // TODO: Optimization: add the Site ID to the Charging Profile
-      // Site ID
-      if (!Utils.isEmptyArray(params.siteIDs)) {
-        // Build filter
-        aggregation.push({
-          $match: {
-            'chargingStation.siteArea.siteID': {
-              $in: params.siteIDs
-            }
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteArea.siteID');
+    }
+    // Convert
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteID');
+    // Site ID
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          'chargingStation.siteID': {
+            $in: params.siteIDs
           }
-        });
-      }
+        }
+      });
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {

@@ -26,6 +26,21 @@
     },
     "image": {
       "$ref": "site#/definitions/image"
+    },
+    "accountData": {
+      "type": "object",
+      "properties": {
+        "accountID": {
+          "$ref": "billing-account#/definitions/accountID"
+        },
+        "platformFeeStrategy": {
+          "$ref": "billing-account#/definitions/platformFeeStrategy"
+        }
+      },
+      "required": [
+        "accountID",
+        "platformFeeStrategy"
+      ]
     }
   },
   "required": [
