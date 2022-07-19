@@ -170,6 +170,7 @@ export interface BillingAccount extends CreatedUpdatedProps, BillingTransferAuth
   status: BillingAccountStatus;
   activationLink?: string;
   accountExternalID: string;
+  taxID: string;
 }
 
 export interface BillingAccountData {

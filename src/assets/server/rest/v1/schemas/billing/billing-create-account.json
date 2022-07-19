@@ -9,6 +9,10 @@
     "companyName": {
       "type": "string",
       "sanitize": "mongo"
+    },
+    "taxID": {
+      "type": "string",
+      "sanitize": "mongo"
     }
   },
   "required": [

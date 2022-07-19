@@ -213,6 +213,7 @@ export default class BillingStorage {
       status: billingAccount.status,
       businessOwnerID: DatabaseUtils.convertToObjectID(billingAccount.businessOwnerID),
       accountExternalID: billingAccount.accountExternalID,
+      taxID: billingAccount.taxID,
       activationLink: billingAccount.activationLink, // Should not be persisted - added here only for troubleshooting purposes
       companyName: billingAccount.companyName
     };
