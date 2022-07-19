@@ -16,6 +16,11 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     // Process them
     for (const tenant of tenants.result) {
+      // Check if redirect domain is provided
+      if (tenant.redirectDomain) {
+        // Ignore this tenant
+        continue;
+      }
       const tenantCorrelationID = Utils.generateShortNonUniqueID();
       const startTimeInTenant = moment();
       await Logging.logDebug({
