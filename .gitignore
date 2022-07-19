@@ -5,6 +5,7 @@ users-imported.json
 src/assets/config.json
 manifest.yml
 test/results
+test/results-eslint
 
 # Logs
 logs
