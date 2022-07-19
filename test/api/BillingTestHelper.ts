@@ -886,7 +886,8 @@ export default class BillingTestHelper {
 
   public async createBillingAccount(): Promise<string> {
     let response = await this.getCurrentUserService().billingApi.createBillingAccount({
-      businessOwnerID: this.getCurrentUserContext().id
+      businessOwnerID: this.getCurrentUserContext().id,
+      companyName: 'utbillingdemo'
     });
     expect(response.status).to.be.eq(StatusCodes.OK);
     const accountID = response.data?.id ;

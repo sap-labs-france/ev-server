@@ -214,6 +214,7 @@ export default class BillingStorage {
       businessOwnerID: DatabaseUtils.convertToObjectID(billingAccount.businessOwnerID),
       accountExternalID: billingAccount.accountExternalID,
       activationLink: billingAccount.activationLink, // Should not be persisted - added here only for troubleshooting purposes
+      companyName: billingAccount.companyName
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(billingAccountMDB, billingAccount);
