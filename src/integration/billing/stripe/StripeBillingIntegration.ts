@@ -1803,6 +1803,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Create invoice items
     try {
       // Extract session amounts
+      // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
       const amounts = billingTransfer.sessions.map((session) => ({
         amount: session.amount,
         flatFeePerSession: session.accountSessionFee.flatFeePerSession,

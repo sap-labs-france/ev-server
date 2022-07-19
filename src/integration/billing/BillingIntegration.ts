@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import { AsyncTaskType, AsyncTasks } from '../../types/AsyncTask';
-import { BillingAccount, BillingAccountSessionFee, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingSessionData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingTransferStatus, BillingUser } from '../../types/Billing';
+import { BillingAccount, BillingAccountSessionFee, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingSessionData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingTransferStatus, BillingUser, TransactionTransferData } from '../../types/Billing';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
@@ -770,67 +770,74 @@ export default abstract class BillingIntegration {
     return transfers.result[0];
   }
 
-  private initNewDraftTransfer(accountID: string, currency: string) : BillingTransfer {
-    return {
-      accountID, status: BillingTransferStatus.DRAFT, sessions: [], totalAmount: 0, transferAmount: 0,
+  // private initNewDraftTransfer(accountID: string, currency: string) : BillingTransfer {
+  //   return {
+  //     accountID, status: BillingTransferStatus.DRAFT, /* sessions: [], */ totalAmount: 0, transferAmount: 0,
+  //     platformFeeData: null, transferExternalID: null,
+  //     currency: currency,
+  //     createdBy: null,
+  //     createdOn: new Date()
+  //   };
+  // }
+
+  private async createNewDraftTransfer(accountID: string, currency: string) : Promise<string> {
+    const transferID = BillingStorage.saveTransfer(this.tenant, {
+      accountID, status: BillingTransferStatus.DRAFT, /* sessions: [], */ totalAmount: 0, transferAmount: 0,
       platformFeeData: null, transferExternalID: null,
       currency: currency,
       createdBy: null,
       createdOn: new Date()
-    };
-  }
-
-  private isSessionAlreadyInTransfer(transfer: BillingTransfer, session: BillingSessionData): boolean {
-    // Check whether a particular session is already part of the transfer's sessions
-    const foundSession = transfer.sessions.find((sessionInTransfer) => sessionInTransfer.transactionID === session.transactionID);
-    return !!foundSession;
+    });
+    return transferID;
   }
 
   private async dispatchFundsPerAccount(accountID: string, invoice: BillingInvoice): Promise<void> {
+    // Transfer ID being created or updated
+    let transferID: string;
+    // Total amount
+    let totalAmount = Utils.createDecimal(0);
     try {
       const sessions = invoice.sessions.filter((session) => accountID === session?.accountData?.accountID);
       // Get the existing DRAFT transfer (if any)
-      let transfer = await this.getLatestDraftTransferForAccount(accountID);
-      if (!transfer) {
-        transfer = this.initNewDraftTransfer(accountID, invoice.currency);
-      }
+      const transfer = await this.getLatestDraftTransferForAccount(accountID);
+      transferID = (transfer?.id) ? transfer.id : await this.createNewDraftTransfer(accountID, invoice.currency);
       // Process all sessions of the invoice matching the current account ID
-      for (const session of sessions) {
-        if (this.isSessionAlreadyInTransfer(transfer, session)) {
-          // This should not happen - Session is already in the session list
+      const transactionIDs = sessions.map((session) => session.transactionID);
+      const transactions = await TransactionStorage.getTransactions(this.tenant, { transactionIDs }, Constants.DB_PARAMS_MAX_LIMIT, [ 'id', 'transferData' ]);
+      for (const transaction of transactions.result) {
+        if (transaction.transferData?.transferID) {
           await Logging.logError({
             tenantID: this.tenant.id,
             action: ServerAction.BILLING_TRANSFER_PREPARE,
             module: MODULE_NAME, method: 'dispatchFundsPerAccount',
-            message: `Unexpected situation - the transfer ${transfer.id} already includes the session ${session.transactionID}`
+            message: `Unexpected situation - the session ${transaction.id} is already marked as transferred - actual transfer ID: ${transaction.transferData.transferID}`
           });
         } else {
-          // Compute the session amount (adding the 4 pricing dimensions)
-          const amountAsDecimal = BillingHelpers.getBilledPrice(session.pricingData);
-          const amount = amountAsDecimal.toNumber();
+          const currentSession = sessions.find((session) => session.transactionID === transaction.id);
+          const amountAsDecimal = BillingHelpers.getBilledPrice(currentSession.pricingData);
           const roundedAmount = Utils.roundTo(amountAsDecimal, 2);
-          const accountSessionFee = this.computeAccountSessionFee(session, roundedAmount);
-          // Extract current session data
-          const sessionData: BillingTransferSession = {
-            transactionID: session.transactionID,
-            invoiceID: invoice.id,
-            invoiceNumber: invoice.number,
-            amountAsDecimal,
-            amount,
-            roundedAmount,
+          const accountSessionFee = this.computeAccountSessionFee(currentSession, roundedAmount);
+          const transferData: TransactionTransferData = {
+            transferID,
             accountSessionFee
           };
-          // Update the collection of sessions in the DRAFT transfer
-          transfer.sessions.push(sessionData);
+          await TransactionStorage.saveTransactionTransferData(this.tenant, transaction.id, transferData);
+          totalAmount = totalAmount.plus(roundedAmount);
         }
       }
-      // Accumulate the amount of each session
-      let transferAmountAsDecimal = Utils.createDecimal(0);
-      transfer.sessions.forEach((session) => {
-        transferAmountAsDecimal = transferAmountAsDecimal.plus(session.amountAsDecimal);
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSFER_PREPARE,
+        module: MODULE_NAME, method: 'dispatchFundsPerAccount',
+        message: `Transfer preparation failed - accountID: ${accountID} - Invoice: ${invoice.id} - ${invoice.number}`,
+        detailedMessages: { error: error.stack }
       });
-      // Round the final result only!
-      transfer.totalAmount = Utils.roundTo(transferAmountAsDecimal, 2);
+    }
+    // Let's now update the transfer
+    try {
+      const transfer = await BillingStorage.getTransfer(this.tenant, transferID);
+      transfer.totalAmount += totalAmount.toNumber();
       // Amount to transfer is not yet known - The invoice must be generated to take the tax rates into account
       transfer.transferAmount = null;
       // Finally - create or update the transfer
@@ -839,7 +846,7 @@ export default abstract class BillingIntegration {
       await Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSFER_PREPARE,
-        module: MODULE_NAME, method: 'processTransferForAccount',
+        module: MODULE_NAME, method: 'dispatchFundsPerAccount',
         message: `Transfer preparation failed - accountID: ${accountID} - Invoice: ${invoice.id} - ${invoice.number}`,
         detailedMessages: { error: error.stack }
       });

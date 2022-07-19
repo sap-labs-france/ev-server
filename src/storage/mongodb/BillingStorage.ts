@@ -354,15 +354,15 @@ export default class BillingStorage {
       transferAmount: transfer.transferAmount,
       accountID: DatabaseUtils.convertToObjectID(transfer.accountID),
       transferExternalID: transfer.transferExternalID,
-      sessions: transfer.sessions.map((session) => ({
-        transactionID: session.transactionID,
-        invoiceID: session.invoiceID,
-        invoiceNumber: session.invoiceNumber,
-        amountAsDecimal: session.amountAsDecimal,
-        amount: session.amount,
-        roundedAmount: session.roundedAmount,
-        accountSessionFee: session.accountSessionFee,
-      })),
+      // sessions: transfer.sessions.map((session) => ({
+      //   transactionID: session.transactionID,
+      //   invoiceID: session.invoiceID,
+      //   invoiceNumber: session.invoiceNumber,
+      //   amountAsDecimal: session.amountAsDecimal,
+      //   amount: session.amount,
+      //   roundedAmount: session.roundedAmount,
+      //   accountSessionFee: session.accountSessionFee,
+      // })),
       currency: transfer.currency,
     };
     if (transfer.platformFeeData) {

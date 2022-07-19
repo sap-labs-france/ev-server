@@ -1,6 +1,7 @@
 import { Car, CarCatalog } from './Car';
 import Consumption, { AbstractCurrentConsumption } from './Consumption';
 import { OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
+import { TransactionBillingData, TransactionTransferData } from './Billing';
 
 import ChargingStation from '../types/ChargingStation';
 import Company from './Company';
@@ -13,7 +14,6 @@ import { ResolvedPricingModel } from './Pricing';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
-import { TransactionBillingData } from './Billing';
 import { TransactionRefundData } from './Refund';
 import User from './User';
 
@@ -133,6 +133,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   ocpiData?: TransactionOcpiData;
   oicpData?: TransactionOicpData;
   billingData?: TransactionBillingData;
+  transferData?: TransactionTransferData;
   refundData?: TransactionRefundData;
   migrationTag?: string;
   authorizationID?: string;

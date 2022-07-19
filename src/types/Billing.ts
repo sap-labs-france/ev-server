@@ -12,6 +12,11 @@ export interface TransactionBillingData {
   stop?: BillingDataTransactionStop;
 }
 
+export interface TransactionTransferData {
+  transferID: string;
+  accountSessionFee: BillingAccountSessionFee;
+}
+
 export interface BillingDataTransactionStart {
   withBillingActive: boolean;
 }
@@ -200,7 +205,7 @@ export interface BillingAccountSessionFee extends BillingPlatformFeeStrategy {
 export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
   id?: string;
   status: BillingTransferStatus;
-  sessions: BillingTransferSession[];
+  // sessions: BillingTransferSession[];
   totalAmount: number; // Depends on the fee strategy and thus on the final number of sessions
   transferAmount: number // Amount transferred after applying platform fees
   accountID: string;

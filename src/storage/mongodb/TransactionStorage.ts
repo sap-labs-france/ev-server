@@ -1,4 +1,4 @@
-import { BillingStatus, TransactionBillingData } from '../../types/Billing';
+import { BillingStatus, TransactionBillingData, TransactionTransferData } from '../../types/Billing';
 import { DataResult, TransactionDataResult } from '../../types/DataResult';
 import RefundReport, { RefundStatus, TransactionRefundData } from '../../types/Refund';
 import Transaction, { TransactionOcpiData, TransactionOicpData, TransactionStatisticsType, TransactionStats, TransactionStatus } from '../../types/Transaction';
@@ -175,6 +175,9 @@ export default class TransactionStorage {
     if (transactionToSave.billingData) {
       transactionMDB.billingData = TransactionStorage.normalizeBillingData(transactionToSave.billingData);
     }
+    if (transactionToSave.transferData) {
+      transactionMDB.transferData = TransactionStorage.normalizeTransferData(transactionToSave.transferData);
+    }
     if (transactionToSave.ocpiData) {
       transactionMDB.ocpiData = {
         session: transactionToSave.ocpiData.session,
@@ -280,6 +283,24 @@ export default class TransactionStorage {
       },
       { upsert: false });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionBillingData', startTime, billingData);
+  }
+
+  public static async saveTransactionTransferData(tenant: Tenant, id: number, transferData: TransactionTransferData): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Normalize billing data
+    const dataMDB = TransactionStorage.normalizeTransferData(transferData);
+    // Modify document
+    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: {
+          transferData: dataMDB
+        }
+      },
+      { upsert: false }
+    );
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionBillingData', startTime, transferData);
   }
 
   public static async saveTransactionRefundData(tenant: Tenant, id: number,
@@ -1344,6 +1365,21 @@ export default class TransactionStorage {
           invoiceStatus: billingData.stop?.invoiceStatus,
           invoiceItem: billingData.stop?.invoiceItem,
         },
+      };
+    }
+    return null;
+  }
+
+  private static normalizeTransferData(transferData: TransactionTransferData): any {
+    if (transferData) {
+      return {
+        status: transferData?.status,
+        transferID: DatabaseUtils.convertToObjectID(transferData.transferID),
+        accountSessionFee: {
+          flatFeePerSession: transferData.accountSessionFee.flatFeePerSession,
+          percentage: transferData.accountSessionFee.percentage,
+          feeAmount: transferData.accountSessionFee.feeAmount
+        }
       };
     }
     return null;
