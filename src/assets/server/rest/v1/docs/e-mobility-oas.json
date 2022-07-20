@@ -16800,47 +16800,13 @@
               "transferred"
             ]
           },
-          "sessions": {
-            "type": "object",
-            "properties": {
-              "transactionID": {
-                "type": "number"
-              },
-              "invoiceID": {
-                "type": "string"
-              },
-              "invoiceNumber": {
-                "type": "string"
-              },
-              "amountAsDecimal": {
-                "type": "object"
-              },
-              "amount": {
-                "type": "number"
-              },
-              "roundedAmount": {
-                "type": "number"
-              },
-              "accountSessionFee": {
-                "type": "object",
-                "properties": {
-                  "flatFeePerSession": {
-                    "type": "number"
-                  },
-                  "percentage": {
-                    "type": "number"
-                  },
-                  "feeAmount": {
-                    "type": "number"
-                  },
-                  "externalTaxID": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
+          "sessionCounter": {
+            "type": "number"
           },
-          "totalAmount": {
+          "collectedFunds": {
+            "type": "number"
+          },
+          "collectedFees": {
             "type": "number"
           },
           "transferAmount": {
