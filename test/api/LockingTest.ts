@@ -56,6 +56,7 @@ describe('Locking', () => {
   afterAll(async () => {
     // Clean context
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
+    await global.database.stop();
   });
 
   describe('Exclusive Locks', () => {

@@ -316,6 +316,8 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
     afterAll(async () => {
       await testData.chargingStationContext.cleanUpCreatedData();
       await testData.chargingStationContext1.cleanUpCreatedData();
+      // Close DB connection
+      await global.database.stop();
     });
 
     it('Should connect to Smart Charging Provider', async () => {

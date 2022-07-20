@@ -19,6 +19,7 @@ import urlencode from 'urlencode';
 const MODULE_NAME = 'MongoDBStorage';
 
 export default class MongoDBStorage {
+  private mongoDBClient: MongoClient;
   private database: Db;
   private dbPingFailed = 0;
   private readonly dbConfig: StorageConfiguration;
@@ -231,6 +232,14 @@ export default class MongoDBStorage {
     return new GridFSBucket(this.database, { bucketName: name });
   }
 
+  public async stop(): Promise<void> {
+    if (this.mongoDBClient) {
+      await this.mongoDBClient.close();
+      this.database = null;
+      this.mongoDBClient = null;
+    }
+  }
+
   public async start(): Promise<void> {
     Logging.logConsoleDebug(`Connecting to '${this.dbConfig.implementation}'...`);
     // Build EVSE URL
@@ -269,7 +278,8 @@ export default class MongoDBStorage {
       }
     );
     // Get the EVSE DB
-    this.database = mongoDBClient.db();
+    this.mongoDBClient = mongoDBClient;
+    this.database = this.mongoDBClient.db();
     // Keep a global reference
     global.database = this;
     // Check Database only when migration is active
