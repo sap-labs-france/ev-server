@@ -192,3 +192,16 @@ export interface TransactionStop {
   transactionData?: OCPP15TransactionData|OCPPMeterValue[];
   signedData?: string;
 }
+
+export interface CollectedFundReport {
+  key: {
+    accountID: string,
+    currency: string,
+  }
+  collectedFunds: number,
+  collectedFlatFees: number,
+  collectedFees: number,
+  totalConsumptionWh: number,
+  totalDurationSecs: number,
+  transactionIDs: number[],
+}

@@ -243,7 +243,7 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
         const finalizeResponse = await billingTestHelper.getCurrentUserService().billingApi.finalizeTransfer(transfer.id);
         expect(finalizeResponse.status).to.be.eq(StatusCodes.OK);
         // Only works for bank accounts using the USD currency!!!!
-        await billingTestHelper.addFundsToBalance(transfer.totalAmount);
+        await billingTestHelper.addFundsToBalance(transfer.collectedFunds);
         const sendResponse = await billingTestHelper.getCurrentUserService().billingApi.sendTransfer(transfer.id);
         expect(sendResponse.status).to.be.eq(StatusCodes.OK);
       });
@@ -294,6 +294,8 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
           assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
           assert(operationResult.inError === 0, 'The operation should detect any errors');
+          // // Explicit call to dispatch collected funds
+          await billingTestHelper.billingImpl.dispatchCollectedFunds({ forceOperation: true });
           // The transaction should now have a different status and know the final invoice number
           const billingDataStop1 = await billingTestHelper.checkTransactionBillingData(transactionID1, BillingInvoiceStatus.PAID);
           const billingDataStop2 = await billingTestHelper.checkTransactionBillingData(transactionID2, BillingInvoiceStatus.PAID);

@@ -58,7 +58,7 @@
     "import-sort": "npx import-sort-cli --write 'src/**/*.ts{,x}' 'test/**/*.ts{,x}' 'types/**/*.ts{,x}'",
     "test": "npm run test:jest -- test/**/*Test.ts",
     "test:createContext": "npm run test:jest -- test/**/**/ContextBuilderRunner.ts",
-    "test:create:utbilling": "npm run test:jest -- test/**/**/ContextBuilderRunner.ts",
+    "test:create:utbilling": "cross-env TS_NODE_FILES=true TENANT_FILTER=utbilling.* jest --config='test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- test/**/**/ContextBuilderRunner.ts",
     "test:asset": "npm run test:jest -- test/**/AssetTest.ts",
     "test:authentication": "npm run test:jest -- test/**/AuthenticationTest.ts",
     "test:billing": "npm run test:jest -- test/**/BillingTest.ts",

@@ -32,6 +32,7 @@ export interface BillingDataTransactionStop {
   invoiceNumber?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
+  transferID?: string;
 }
 
 export interface BillingUserData {
@@ -178,7 +179,8 @@ export interface BillingAccountData {
 }
 
 export interface BillingSessionAccountData extends BillingAccountData {
-  withTransferActive: boolean
+  withTransferActive: boolean,
+  feeAmount?: number
 }
 
 export enum BillingTransferStatus {
@@ -200,8 +202,12 @@ export interface BillingAccountSessionFee extends BillingPlatformFeeStrategy {
 export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
   id?: string;
   status: BillingTransferStatus;
-  sessions: BillingTransferSession[];
-  totalAmount: number; // Depends on the fee strategy and thus on the final number of sessions
+  sessionCounter: number, // Number of transactions
+  collectedFunds: number, // Total amount of the priced transactions
+  collectedFlatFees: number,
+  collectedFees: number, // Total amount of the platform fee collected
+  totalConsumptionWh: number,
+  totalDurationSecs: number,
   transferAmount: number // Amount transferred after applying platform fees
   accountID: string;
   account?: BillingAccount;

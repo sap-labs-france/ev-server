@@ -1,7 +1,7 @@
 import { BillingStatus, TransactionBillingData } from '../../types/Billing';
 import { DataResult, TransactionDataResult } from '../../types/DataResult';
 import RefundReport, { RefundStatus, TransactionRefundData } from '../../types/Refund';
-import Transaction, { TransactionOcpiData, TransactionOicpData, TransactionStatisticsType, TransactionStats, TransactionStatus } from '../../types/Transaction';
+import Transaction, { CollectedFundReport, TransactionOcpiData, TransactionOicpData, TransactionStatisticsType, TransactionStats, TransactionStatus } from '../../types/Transaction';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 import global, { FilterParams } from './../../types/GlobalType';
 
@@ -1332,9 +1332,77 @@ export default class TransactionStorage {
     };
   }
 
+  public static async getCollectedFunds(tenant: Tenant, projectFields?: string[]): Promise<{ count: number; result: CollectedFundReport[] }> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Create Aggregation
+    const aggregation = [];
+    // Authorization window
+    aggregation.push({
+      $match: {
+        $and: [
+          { 'billingData.withBillingActive': { $eq: true } },
+          { 'billingData.stop.invoiceItem.accountData.accountID': { $exists: true } },
+          { 'billingData.stop.transferID': { $exists: false } },
+        ]
+      }
+    });
+    // Group by accountID
+    aggregation.push({
+      $group: {
+        '_id': { accountID: '$billingData.stop.invoiceItem.accountData.accountID', currency: '$stop.priceUnit' },
+        collectedFunds: { $sum: '$stop.roundedPrice' },
+        collectedFlatFees: { $sum: '$billingData.stop.invoiceItem.accountData.platformFeeStrategy.flatFeePerSession' },
+        collectedFees: { $sum: '$billingData.stop.invoiceItem.accountData.feeAmount' },
+        totalConsumptionWh: { $sum: '$stop.totalConsumptionWh' },
+        totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
+        transactionIDs: { $push: '$_id' },
+      },
+    });
+    // Format Data
+    aggregation.push({
+      $project: {
+        _id: 1,
+        key: '$_id',
+        collectedFunds: 1,
+        collectedFlatFees: 1,
+        collectedFees: 1,
+        totalConsumptionWh: 1,
+        totalDurationSecs: 1,
+        transactionIDs: 1
+      }
+    });
+    // Read DB
+    const resultMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
+      .toArray() as CollectedFundReport[];
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCollectedFunds', startTime, aggregation, resultMDB);
+    return {
+      count: resultMDB.length,
+      result: resultMDB
+    };
+  }
+
+  public static async updateTransactionsWithTransferData(tenant: Tenant, transactionsIDs: number[], transferID: string): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // At least one ChargingStation
+    if (!Utils.isEmptyArray(transactionsIDs)) {
+      // Update all transactions
+      await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
+        { '_id': { $in: transactionsIDs } },
+        {
+          $set: {
+            'billingData.stop.transferID' : DatabaseUtils.convertToObjectID(transferID)
+          }
+        });
+    }
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateTransactionsWithTransferData', startTime, transactionsIDs);
+  }
+
   private static normalizeBillingData(billingData: TransactionBillingData): any {
     if (billingData) {
-      return {
+      const normalizedData = {
         withBillingActive: billingData.withBillingActive,
         lastUpdate: Utils.convertToDate(billingData.lastUpdate),
         stop: {
@@ -1343,8 +1411,14 @@ export default class TransactionStorage {
           invoiceNumber: billingData.stop?.invoiceNumber,
           invoiceStatus: billingData.stop?.invoiceStatus,
           invoiceItem: billingData.stop?.invoiceItem,
+          transferID: DatabaseUtils.convertToObjectID(billingData.stop?.transferID),
         },
       };
+      if (!billingData.stop?.transferID) {
+        // This is very important!
+        delete normalizedData.stop.transferID;
+      }
+      return normalizedData;
     }
     return null;
   }
