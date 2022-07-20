@@ -3,8 +3,8 @@ import { LoggingDatabaseTableCleanupTaskConfig, TaskConfig } from '../../types/T
 import Constants from '../../utils/Constants';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
-import Logging from '../../utils/Logging';
 import LogStorage from '../../storage/mongodb/LogStorage';
+import Logging from '../../utils/Logging';
 import PerformanceStorage from '../../storage/mongodb/PerformanceStorage';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -32,7 +32,7 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
     const logsCleanUpLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.LOG, 'cleanup');
     if (await LockingManager.acquire(logsCleanUpLock)) {
       try {
-        const lastLogMDB = global.database.getCollection(tenant.id, 'logs').find({})
+        const lastLogMDB = global.database.getCollection<any>(tenant.id, 'logs').find({})
           .sort({ timestamp: -1 })
           .skip(10 * 1000 * 1000)
           .limit(1)
@@ -75,7 +75,7 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
     const performanceCleanUpLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.PERFORMANCE, 'cleanup');
     if (await LockingManager.acquire(performanceCleanUpLock)) {
       try {
-        const lastLogMDB = global.database.getCollection(tenant.id, 'performances').find({})
+        const lastLogMDB = global.database.getCollection<any>(tenant.id, 'performances').find({})
           .sort({ timestamp: -1 })
           .skip(25 * 1000 * 1000)
           .limit(1)

@@ -6,7 +6,7 @@ export default class UserCleanUpTask extends TenantMigrationTask {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public async migrateTenant(tenant: Tenant) {
     // Clean up
-    await global.database.getCollection(tenant.id, 'users').updateMany(
+    await global.database.getCollection<any>(tenant.id, 'users').updateMany(
       {}, { $unset: { lastSelectedCarID: '', lastSelectedCar: '' } });
   }
 

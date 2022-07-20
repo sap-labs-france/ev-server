@@ -296,7 +296,7 @@ export default class SiteStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
-    await global.database.getCollection(tenant.id, 'siteimages').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'siteimages').findOneAndUpdate(
       { _id: DatabaseUtils.convertToObjectID(siteID) },
       { $set: { image: siteImageToSave } },
       { upsert: true, returnDocument: 'after' }
