@@ -87,27 +87,6 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
         expect(companyResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
       });
 
-      // Already tested
-      xit('should update a company to assign a account', async () => {
-        const billingAccount = await billingTestHelper.getActivatedAccount();
-        let companyResponse = await billingTestHelper.getCurrentUserService().companyApi.create(CompanyFactory.build());
-        expect(companyResponse.status).to.be.eq(StatusCodes.OK);
-        const companyID = companyResponse.data.id;
-        const platformFeeStrategy = BillingPlatformFeeStrategyFactory.build();
-        companyResponse = await billingTestHelper.getCurrentUserService().companyApi.update({
-          id: companyID,
-          ...CompanyFactory.build(),
-          accountData: {
-            accountID: billingAccount.id,
-            platformFeeStrategy
-          }
-        });
-        expect(companyResponse.status).to.be.eq(StatusCodes.OK);
-        companyResponse = await billingTestHelper.getCurrentUserService().companyApi.readById(companyID);
-        expect(companyResponse.data.accountData.accountID).to.eq(billingAccount.id);
-        expect(companyResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
-      });
-
       it('should assign an account to a site', async () => {
         const billingAccount = await billingTestHelper.getActivatedAccount();
         // Create a company
@@ -124,7 +103,7 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           }
         });
         expect(siteResponse.status).to.be.eq(StatusCodes.OK);
-        siteResponse = await billingTestHelper.getCurrentUserService().siteApi.readById(siteResponse.data.id);
+        siteResponse = await billingTestHelper.getCurrentUserService().siteApi.readById(siteResponse.data.id as string);
         expect(siteResponse.data.accountData.accountID).to.eq(billingAccount.id);
         expect(siteResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
       });
@@ -154,22 +133,9 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
         });
         expect(siteResponse.status).to.be.eq(StatusCodes.OK);
 
-        siteResponse = await billingTestHelper.getCurrentUserService().siteApi.readById(siteID);
+        siteResponse = await billingTestHelper.getCurrentUserService().siteApi.readById(siteID as string);
         expect(siteResponse.data.accountData.accountID).to.eq(billingAccount.id);
         expect(siteResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
-      });
-
-      xit('should send account onboarding', async () => {
-        // Already tested
-        let response = await billingTestHelper.getCurrentUserService().billingApi.createBillingAccount({
-          businessOwnerID: billingTestHelper.getCurrentUserContext().id
-        });
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        response = await billingTestHelper.getCurrentUserService().billingApi.onboardBillingAccount(response.data.id);
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        response = await billingTestHelper.getCurrentUserService().billingApi.readBillingAccount(response.data.id);
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        expect(response.data.status).to.be.eq(BillingAccountStatus.PENDING);
       });
 
       it('should not able to send account onboarding for an activated account', async () => {

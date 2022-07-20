@@ -492,13 +492,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
 
         afterAll(async () => {
         });
-
-        xit('Should set a transaction in error', async () => {
-          const transactionID = await billingTestHelper.generateTransaction();
-          const transactions = await billingTestHelper.getCurrentUserService().transactionApi.readAllInError({});
-          expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
-        });
-
       });
 
     });
