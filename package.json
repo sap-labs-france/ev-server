@@ -62,6 +62,7 @@
     "test:asset": "npm run test:jest -- test/**/AssetTest.ts",
     "test:authentication": "npm run test:jest -- test/**/AuthenticationTest.ts",
     "test:billing": "npm run test:jest -- test/**/BillingTest.ts",
+    "test:bp": "npm run test:jest -- test/**/BillingPlatformTest.ts",
     "test:car": "npm run test:jest -- test/**/CarTest.ts",
     "test:componentActivation": "npm run test:jest -- test/**/ComponentActivation*Test.ts",
     "test:crypto": "npm run test:jest -- test/**/EncryptionSettingTest.ts",

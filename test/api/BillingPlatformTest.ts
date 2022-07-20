@@ -328,6 +328,8 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           await billingTestHelper.makeCurrentUserContextReadyForBilling();
           // Generate a PAID transaction
           const transactionID = await billingTestHelper.generateTransactionAndCheckBillingStatus(BillingInvoiceStatus.PAID);
+          // // Explicit call to dispatch collected funds
+          await billingTestHelper.billingImpl.dispatchCollectedFunds({ forceOperation: true });
           // The transaction should now have a different status and know the final invoice number
           const billingDataStop = await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
           // Check billing data

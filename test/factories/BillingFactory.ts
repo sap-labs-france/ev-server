@@ -4,6 +4,8 @@ import { Factory } from 'rosie';
 import faker from 'faker';
 
 export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtransfer')
+  .attr('sessionCounter', () => 0)
+  .attr('currency', () => 'USD')
   .attr('collectedFunds', () => faker.datatype.number({ min: 70, max: 79 }))
   .attr('collectedFlatFees', () => 0)
   .attr('collectedFees', () => faker.datatype.number({ min: 0.7, max: 0.79 }))
