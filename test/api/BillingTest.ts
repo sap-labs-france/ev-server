@@ -36,6 +36,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
     await global.database.start();
   });
 
+  afterAll(async () => {
+    // Close DB connection
+    await global.database.stop();
+  });
+
   describe('Billing Stripe Service (utbilling)', () => {
 
     beforeAll(async () => {

@@ -1,10 +1,13 @@
+/* eslint-disable max-len */
 import ContextDefinition, { TenantDefinition } from './ContextDefinition';
 import PricingDefinition, { PricingEntity } from '../../../src/types/Pricing';
 import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
+import Tenant, { TenantComponents } from '../../../src/types/Tenant';
 
 import AssetStorage from '../../../src/storage/mongodb/AssetStorage';
 import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../../src/types/ChargingStation';
+import Company from '../../../src/types/Company';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import Factory from '../../factories/Factory';
 import { HTTPError } from '../../../src/types/HTTPError';
@@ -23,7 +26,6 @@ import StatisticsContext from './StatisticsContext';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../src/types/Tag';
 import TagStorage from '../../../src/storage/mongodb/TagStorage';
-import { TenantComponents } from '../../../src/types/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
@@ -41,9 +43,8 @@ export default class ContextBuilder {
 
   private superAdminCentralServerService: CentralServerService;
   private tenantsContexts: TenantContext[];
-  private initialized: boolean;
 
-  constructor() {
+  public constructor() {
     // Create a super admin interface
     this.superAdminCentralServerService = new CentralServerService(null, {
       email: config.get('superadmin.username'),
@@ -52,7 +53,6 @@ export default class ContextBuilder {
     this.tenantsContexts = [];
     // Create MongoDB
     global.database = new MongoDBStorage(config.get('storage'));
-    this.initialized = false;
   }
 
   public static generateLocalToken(role: OCPIRole, tenantSubdomain: string): string {
@@ -63,15 +63,26 @@ export default class ContextBuilder {
     return OCPIUtils.btoa(JSON.stringify(newToken));
   }
 
-  async init(): Promise<void> {
-    if (!this.initialized) {
-      // Connect to the DB
-      await global.database.start();
+  public async prepareContexts(): Promise<void> {
+    // Connect to the DB
+    await global.database.start();
+    await this.destroyTestTenants();
+    // Build each tenant context
+
+    let tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST;
+    if (process.env.TENANT_FILTER) {
+      // Just an optimization allowing to only initialize a single tenant
+      // e.g.: npm run mochatest:create:utbilling
+      tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST.filter((def) => RegExp(process.env.TENANT_FILTER).exec(def.subdomain));
     }
-    this.initialized = true;
+    for (const tenantContextDef of tenantDefinitions) {
+      await this.buildTenantContext(tenantContextDef);
+    }
+    // Close DB connection
+    await global.database.stop();
   }
 
-  async destroy(): Promise<void> {
+  private async destroyTestTenants(): Promise<void> {
     if (this.tenantsContexts && this.tenantsContexts.length > 0) {
       for (const tenantContext of this.tenantsContexts) {
         console.log(`Delete Tenant context '${tenantContext.getTenant().id} (${tenantContext.getTenant().subdomain})`);
@@ -91,29 +102,13 @@ export default class ContextBuilder {
     }
   }
 
-  async prepareContexts(): Promise<void> {
-    await this.init();
-    await this.destroy();
-    // Build each tenant context
-
-    let tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST;
-    if (process.env.TENANT_FILTER) {
-      // Just an optimization allowing to only initialize a single tenant
-      // e.g.: npm run mochatest:create:utbilling
-      tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST.filter((def) => RegExp(process.env.TENANT_FILTER).exec(def.subdomain));
-    }
-    for (const tenantContextDef of tenantDefinitions) {
-      await this.buildTenantContext(tenantContextDef);
-    }
-  }
-
-  async buildTenantContext(tenantContextDef: TenantDefinition): Promise<TenantContext> {
+  private async buildTenantContext(tenantContextDef: TenantDefinition): Promise<TenantContext> {
     // Build component list
     const components = {};
     if (tenantContextDef.componentSettings) {
       for (const component in TenantComponents) {
         const componentName = TenantComponents[component];
-        if (Utils.objectHasProperty(tenantContextDef.componentSettings, componentName)) {
+        if (Utils.objectHasProperty(tenantContextDef.componentSettings, componentName as string)) {
           components[componentName] = {
             active: true
           };
@@ -128,7 +123,7 @@ export default class ContextBuilder {
       console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.name}. Please run a destroy context`);
       throw new Error('Tenant id exist already');
     }
-    let buildTenant: any = {};
+    let buildTenant: Tenant = null;
     // Create Tenant
     const dummyTenant = TenantFactory.build();
     dummyTenant.name = tenantContextDef.tenantName;
@@ -295,10 +290,10 @@ export default class ContextBuilder {
       buildTenant.components[TenantComponents.ORGANIZATION].active) {
       // Create the company
       for (const companyDef of ContextDefinition.TENANT_COMPANY_LIST) {
-        const dummyCompany = Factory.company.build();
+        const dummyCompany: Company = Factory.company.build();
         dummyCompany.id = companyDef.id;
         dummyCompany.createdBy = { id: adminUser.id };
-        dummyCompany.createdOn = moment().toISOString();
+        dummyCompany.createdOn = new Date();
         dummyCompany.issuer = true;
         console.log(`${buildTenant.id} (${buildTenant.name}) - Company '${dummyCompany.name}'`);
         await CompanyStorage.saveCompany(buildTenant, dummyCompany);
@@ -390,7 +385,7 @@ export default class ContextBuilder {
           dummyAsset.siteAreaID = assetDef.siteAreaID;
           dummyAsset.assetType = 'CO';
           console.log(`${buildTenant.id} (${buildTenant.name}) - Asset '${dummyAsset.name}'`);
-          await AssetStorage.saveAsset(buildTenant.id, dummyAsset);
+          await AssetStorage.saveAsset(buildTenant, dummyAsset);
           newTenantContext.getContext().assets.push(dummyAsset);
         }
       }

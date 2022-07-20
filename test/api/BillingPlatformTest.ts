@@ -38,6 +38,11 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
     await billingTestHelper.setBillingSystemValidCredentials();
   });
 
+  afterAll(async () => {
+    // Close DB connection
+    await global.database.stop();
+  });
+
   describe('Where the admin user', () => {
 
     describe('Connected Accounts', () => {
