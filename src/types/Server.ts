@@ -463,6 +463,7 @@ export enum ServerAction {
   BILLING_TRANSFER_PREPARE = 'BillingTransferPrepare',
   BILLING_TRANSFER_FINALIZE = 'BillingTransferFinalize',
   BILLING_TRANSFER_SEND = 'BillingTransferSend',
+  BILLING_TRANSFER_DISPATCH_FUNDS = 'BillingTransferDispatchFunds',
 
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',

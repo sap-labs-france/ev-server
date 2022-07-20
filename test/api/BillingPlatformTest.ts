@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus, BillingTransfer, BillingTransferStatus } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingInvoiceStatus, BillingTransfer, BillingTransferStatus } from '../../src/types/Billing';
 import { BillingPlatformFeeStrategyFactory, BillingTransferFactory } from '../factories/BillingFactory';
 import chai, { expect } from 'chai';
 
@@ -291,7 +291,7 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
             onlyProcessUnpaidInvoices: false,
             forceOperation: true
           };
-          const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
+          const operationResult = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
           assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
           assert(operationResult.inError === 0, 'The operation should detect any errors');
           // // Explicit call to dispatch collected funds

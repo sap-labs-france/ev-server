@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformFeeStrategy, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingTransferStatus, BillingUser } from '../../types/Billing';
+import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformFeeStrategy, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingTransferStatus, BillingUser } from '../../types/Billing';
 import { BillingPeriodicOperationTaskConfig, DispatchFundsTaskConfig } from '../../types/TaskConfig';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { CollectedFundReport, StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
+import { ActionsResponse } from '../../types/GlobalType';
 import BackendError from '../../exception/BackendError';
 import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
@@ -97,8 +98,8 @@ export default abstract class BillingIntegration {
     return billingUser;
   }
 
-  public async chargeInvoices(taskConfig: BillingPeriodicOperationTaskConfig): Promise<BillingChargeInvoiceAction> {
-    const actionsDone: BillingChargeInvoiceAction = {
+  public async chargeInvoices(taskConfig: BillingPeriodicOperationTaskConfig): Promise<ActionsResponse> {
+    const actionsDone: ActionsResponse = {
       inSuccess: 0,
       inError: 0
     };
@@ -715,13 +716,34 @@ export default abstract class BillingIntegration {
 
   public abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
 
-  public async dispatchCollectedFunds(taskConfig: DispatchFundsTaskConfig): Promise<void> {
+  public async dispatchCollectedFunds(taskConfig: DispatchFundsTaskConfig): Promise<ActionsResponse> {
+    const actionsDone: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
+    };
+    if (taskConfig.forceOperation && Utils.isDevelopmentEnv()) {
+      Logging.logConsoleDebug('Funds dispatching is being forced for testing purposes reasons!');
+    }
     const collectedFunds = await TransactionStorage.getCollectedFunds(this.tenant);
     if (collectedFunds.count) {
       for (const collectedFundReport of collectedFunds.result) {
-        await this.dispatchCollectedFundsToAccount(collectedFundReport);
+        try {
+          await this.dispatchCollectedFundsToAccount(collectedFundReport);
+          // successfully dispatched funds to the account
+          actionsDone.inSuccess++;
+        } catch (error) {
+          actionsDone.inError++;
+          await Logging.logError({
+            tenantID: this.tenant.id,
+            action: ServerAction.BILLING_TRANSFER_DISPATCH_FUNDS,
+            module: MODULE_NAME, method: 'dispatchCollectedFunds',
+            message: `Failed to dispatch funds to account ID: '${collectedFundReport.key?.accountID}'`,
+            detailedMessages: { error: error.stack }
+          });
+        }
       }
     }
+    return actionsDone;
   }
 
   public async dispatchCollectedFundsToAccount(collectedFundReport: CollectedFundReport): Promise<void> {
@@ -745,6 +767,12 @@ export default abstract class BillingIntegration {
           };
           const transferID = await BillingStorage.saveTransfer(this.tenant, transferToSave);
           await TransactionStorage.updateTransactionsWithTransferData(this.tenant, collectedFundReport.transactionIDs, transferID);
+          await Logging.logInfo({
+            tenantID: this.tenant.id,
+            action: ServerAction.BILLING_TRANSFER_DISPATCH_FUNDS,
+            module: MODULE_NAME, method: 'dispatchCollectedFunds',
+            message: `Funds dispatched - account ID: '${collectedFundReport.key?.accountID}' - Collected funds: ${collectedFunds} - Collected fees: ${collectedFees}`,
+          });
         } finally {
           // Release the lock
           await LockingManager.release(lock);
@@ -759,17 +787,15 @@ export default abstract class BillingIntegration {
   private async getDraftTransferForAccount(accountID: string, currency: string) : Promise<BillingTransfer> {
     const filter = {
       // TODO - add filtering on the dates - we should have a transfer per month !?!
+      // TODO - filter on the currency as well?
       accountIDs: [accountID],
       status: [BillingTransferStatus.DRAFT],
     };
     const sort = { createdOn: -1 };
     const transfers = await BillingStorage.getTransfers(this.tenant, filter, { skip: 0, limit: 1, sort });
-    if (transfers.result[0]) {
-      // Return the existing DRAFT transfer
-      return transfers.result[0];
-    }
-    // Create a new DRAFT transfer for the account
-    return {
+    const transfer = transfers.result[0];
+    // Return the existing DRAFT transfer or a new one!
+    return (transfer) ? transfer : {
       accountID, status: BillingTransferStatus.DRAFT, sessionCounter: 0,
       collectedFunds: 0, collectedFlatFees: 0, collectedFees: 0, totalConsumptionWh: 0, totalDurationSecs: 0, transferAmount: 0,
       platformFeeData: null, transferExternalID: null,

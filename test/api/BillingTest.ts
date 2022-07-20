@@ -1,13 +1,12 @@
-/* eslint-disable max-len */
-import { BillingChargeInvoiceAction, BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
 import StripeTestHelper, { BillingTestConfigHelper } from './StripeTestHelper';
 import chai, { expect } from 'chai';
 
+/* eslint-disable max-len */
+import { BillingInvoiceStatus } from '../../src/types/Billing';
 import { BillingPeriodicOperationTaskConfig } from '../../src/types/TaskConfig';
 import BillingTestHelper from './BillingTestHelper';
 import Constants from '../../src/utils/Constants';
-import ContextDefinition from './context/ContextDefinition';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { StatusCodes } from 'http-status-codes';
@@ -824,7 +823,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             onlyProcessUnpaidInvoices: false,
             forceOperation: true
           };
-          const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
+          const operationResult = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
           assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
           assert(operationResult.inError === 0, 'The operation should detect any errors');
           // The transaction should now have a different status and know the final invoice number

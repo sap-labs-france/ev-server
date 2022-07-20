@@ -54,10 +54,6 @@ export interface BillingUserSynchronizeAction extends ActionsResponse {
   billingData?: BillingUserData;
 }
 
-export interface BillingChargeInvoiceAction extends ActionsResponse {
-  billingData?: BillingUserData;
-}
-
 export interface BillingTax extends BillingTaxAuthorizationActions {
   id: string;
   description: string;

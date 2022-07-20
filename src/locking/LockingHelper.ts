@@ -80,8 +80,8 @@ export default class LockingHelper {
     return lock;
   }
 
-  public static async acquireDispatchCollectedFundsLock(tenantID: string, transactionID: string): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.INVOICE, `dispatch-funds-${transactionID}`);
+  public static async acquireDispatchCollectedFundsLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.INVOICE, 'dispatch-collected-funds');
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
