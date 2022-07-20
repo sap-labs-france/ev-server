@@ -45,9 +45,9 @@ export default class TenantStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenants').findOneAndUpdate(
+    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT_ID, 'tenants').findOneAndUpdate(
       { _id: tenantMDB['_id'] },
-      { $set: tenantMDB },
+      { $set: { ...tenantMDB } },
       { upsert: true, returnDocument: 'after' });
     // Save Logo
     if (saveLogo) {

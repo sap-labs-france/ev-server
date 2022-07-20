@@ -785,7 +785,7 @@ export default class BillingService {
     // Generate the invoice with a fee per session
     const invoice = await billingImpl.billPlatformFee(transfer, user, billingAccount);
     // Funds to transfer
-    const transferAmount = Utils.createDecimal(transfer.totalAmount).minus(invoice.totalAmount).toNumber();
+    const transferAmount = Utils.createDecimal(transfer.collectedFunds).minus(invoice.totalAmount).toNumber();
     // Update transfer properties
     transfer = {
       ...transfer,
