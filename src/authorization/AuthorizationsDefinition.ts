@@ -234,8 +234,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'issuer', 'logo',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates',
-          'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession', 'accountData.platformFeeStrategy.percentage',
-          'accountData.account.businessOwner'
+          'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession',
+          'accountData.platformFeeStrategy.percentage', 'accountData.account.companyName',
+          'accountData.account.businessOwner.id', 'accountData.account.businessOwner.email',
+          'accountData.account.businessOwner.firstName', 'accountData.account.businessOwner.name'
         ]
       },
       {
@@ -509,7 +511,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.BILLING_ACCOUNT,
         action: [Action.LIST, Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.BILLING_ONBOARD_ACCOUNT],
         attributes: [
-          'id', 'accountExternalID', 'taxID', 'businessOwnerID', 'businessOwner.id', 'businessOwner.firstName', 'businessOwner.name', 'businessOwner.email', 'status'
+          'id', 'accountExternalID', 'taxID', 'businessOwnerID', 'businessOwner.id', 'businessOwner.firstName',
+          'businessOwner.name', 'businessOwner.email', 'status', 'companyName'
         ]
       },
       {
