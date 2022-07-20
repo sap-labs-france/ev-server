@@ -39,6 +39,7 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
   });
 
   afterAll(async () => {
+    // Close DB connection
     await global.database.stop();
   });
 

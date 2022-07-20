@@ -37,6 +37,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
   });
 
   afterAll(async () => {
+    // Close DB connection
     await global.database.stop();
   });
 

@@ -56,6 +56,7 @@ describe('Locking', () => {
   afterAll(async () => {
     // Clean context
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
+    // Close DB connection
     await global.database.stop();
   });
 
