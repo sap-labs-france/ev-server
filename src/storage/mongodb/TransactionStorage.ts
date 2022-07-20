@@ -1332,7 +1332,7 @@ export default class TransactionStorage {
     };
   }
 
-  public static async getCollectedFunds(tenant: Tenant, projectFields?: string[]): Promise<{ count: number; result: CollectedFundReport[] }> {
+  public static async getCollectedFunds(tenant: Tenant): Promise<{ count: number; result: CollectedFundReport[] }> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation
@@ -1342,6 +1342,7 @@ export default class TransactionStorage {
       $match: {
         $and: [
           { 'billingData.withBillingActive': { $eq: true } },
+          { 'billingData.stop.status': { $eq: BillingStatus.BILLED } },
           { 'billingData.stop.invoiceItem.accountData.accountID': { $exists: true } },
           { 'billingData.stop.transferID': { $exists: false } },
         ]
