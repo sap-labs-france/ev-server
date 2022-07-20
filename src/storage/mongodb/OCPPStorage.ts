@@ -25,7 +25,7 @@ export default class OCPPStorage {
       timezone: authorize.timezone
     };
     // Insert
-    await global.database.getCollection(tenant.id, 'authorizes')
+    await global.database.getCollection<any>(tenant.id, 'authorizes')
       .insertOne(authorizeMDB);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveAuthorize', startTime, authorizeMDB);
   }
@@ -105,7 +105,7 @@ export default class OCPPStorage {
       timestamp: timestamp,
       timezone: heartbeat.timezone
     };
-    await global.database.getCollection(tenant.id, 'heartbeats')
+    await global.database.getCollection<any>(tenant.id, 'heartbeats')
       .insertOne(heartBeatMDB);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveHeartbeat', startTime, heartBeatMDB);
   }
@@ -244,7 +244,7 @@ export default class OCPPStorage {
       vendorErrorCode: statusNotificationToSave.vendorErrorCode
     };
     // Insert
-    await global.database.getCollection(tenant.id, 'statusnotifications')
+    await global.database.getCollection<any>(tenant.id, 'statusnotifications')
       .insertOne(statusNotificationMDB);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveStatusNotification', startTime, statusNotificationMDB);
   }
@@ -263,7 +263,7 @@ export default class OCPPStorage {
       timestamp: timestamp,
       timezone: dataTransfer.timezone
     };
-    await global.database.getCollection(tenant.id, 'datatransfers')
+    await global.database.getCollection<any>(tenant.id, 'datatransfers')
       .insertOne(dataTransferMDB);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveDataTransfer', startTime, dataTransferMDB);
   }
@@ -286,7 +286,7 @@ export default class OCPPStorage {
       endpoint: bootNotification.endpoint,
       timestamp: timestamp
     };
-    await global.database.getCollection(tenant.id, 'bootnotifications')
+    await global.database.getCollection<any>(tenant.id, 'bootnotifications')
       .insertOne(bootNotificationMDB);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveBootNotification', startTime, bootNotificationMDB);
   }
@@ -361,7 +361,7 @@ export default class OCPPStorage {
       timestamp: timestamp,
       timezone: diagnosticsStatusNotification.timezone
     };
-    await global.database.getCollection(tenant.id, 'diagnosticsstatusnotifications')
+    await global.database.getCollection<any>(tenant.id, 'diagnosticsstatusnotifications')
       .insertOne(diagnosticsStatusNotificationMDB);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveDiagnosticsStatusNotification', startTime, diagnosticsStatusNotificationMDB);
   }
@@ -378,7 +378,7 @@ export default class OCPPStorage {
       timestamp: timestamp,
       timezone: firmwareStatusNotification.timezone
     };
-    await global.database.getCollection(tenant.id, 'firmwarestatusnotifications')
+    await global.database.getCollection<any>(tenant.id, 'firmwarestatusnotifications')
       .insertOne(firmwareStatusNotificationMDB);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveFirmwareStatusNotification', startTime, firmwareStatusNotificationMDB);
   }
@@ -399,7 +399,7 @@ export default class OCPPStorage {
         attribute: meterValueToSave.attribute,
       };
       // Execute
-      await global.database.getCollection(tenant.id, 'metervalues').insertOne(meterValueMDB);
+      await global.database.getCollection<any>(tenant.id, 'metervalues').insertOne(meterValueMDB);
     }
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveMeterValues', startTime, meterValuesToSave);
   }

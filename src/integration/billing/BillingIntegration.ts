@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { AsyncTaskType, AsyncTasks } from '../../types/AsyncTask';
-import { BillingAccount, BillingAccountSessionFee, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingSessionData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingTransferStatus, BillingUser } from '../../types/Billing';
+import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformFeeStrategy, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingTransferStatus, BillingUser } from '../../types/Billing';
+import { BillingPeriodicOperationTaskConfig, DispatchFundsTaskConfig } from '../../types/TaskConfig';
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
+import Transaction, { CollectedFundReport, StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
-import AsyncTaskBuilder from '../../async-task/AsyncTaskBuilder';
+import { ActionsResponse } from '../../types/GlobalType';
 import BackendError from '../../exception/BackendError';
-import BillingHelpers from './BillingHelpers';
-import { BillingPeriodicOperationTaskConfig } from '../../types/TaskConfig';
 import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import { Decimal } from 'decimal.js';
+import LockingHelper from '../../locking/LockingHelper';
+import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationHandler from '../../notification/NotificationHandler';
@@ -98,8 +98,8 @@ export default abstract class BillingIntegration {
     return billingUser;
   }
 
-  public async chargeInvoices(taskConfig: BillingPeriodicOperationTaskConfig): Promise<BillingChargeInvoiceAction> {
-    const actionsDone: BillingChargeInvoiceAction = {
+  public async chargeInvoices(taskConfig: BillingPeriodicOperationTaskConfig): Promise<ActionsResponse> {
+    const actionsDone: ActionsResponse = {
       inSuccess: 0,
       inError: 0
     };
@@ -716,63 +716,88 @@ export default abstract class BillingIntegration {
 
   public abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
 
-  protected async triggerTransferPreparation(billingInvoice: BillingInvoice): Promise<void> {
-    if (!billingInvoice.sessions) {
-      // This should not happen!
-      return;
+  public async dispatchCollectedFunds(taskConfig: DispatchFundsTaskConfig): Promise<ActionsResponse> {
+    const actionsDone: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
+    };
+    if (taskConfig.forceOperation && Utils.isDevelopmentEnv()) {
+      Logging.logConsoleDebug('Funds dispatching is being forced for testing purposes reasons!');
     }
-    // The invoice may include several sessions - let's check if at least one of these needs a transfer
-    const sessions = billingInvoice.sessions.filter((session) => session?.accountData?.withTransferActive);
-    if (sessions.length > 0) {
-      // Create async task to proceed with the transfer of funds
-      await AsyncTaskBuilder.createAndSaveAsyncTasks({
-        name: AsyncTasks.PREPARE_INVOICE_TRANSFER,
-        action: ServerAction.BILLING_TRANSFER_PREPARE,
-        type: AsyncTaskType.TASK,
-        tenantID: this.tenant.id,
-        parameters: {
-          invoiceID: billingInvoice.id
-        },
-        module: MODULE_NAME,
-        method: 'triggerTransferPreparation',
-      });
+    const collectedFunds = await TransactionStorage.getCollectedFunds(this.tenant);
+    if (collectedFunds.count) {
+      for (const collectedFundReport of collectedFunds.result) {
+        try {
+          await this.dispatchCollectedFundsToAccount(collectedFundReport);
+          // successfully dispatched funds to the account
+          actionsDone.inSuccess++;
+        } catch (error) {
+          actionsDone.inError++;
+          await Logging.logError({
+            tenantID: this.tenant.id,
+            action: ServerAction.BILLING_TRANSFER_DISPATCH_FUNDS,
+            module: MODULE_NAME, method: 'dispatchCollectedFunds',
+            message: `Failed to dispatch funds to account ID: '${collectedFundReport.key?.accountID}'`,
+            detailedMessages: { error: error.stack }
+          });
+        }
+      }
     }
+    return actionsDone;
   }
 
-  public async prepareInvoiceTransfer(billingInvoice: BillingInvoice): Promise<void> {
-    if (!billingInvoice.sessions) {
-      // This should not happen!
-      return;
-    }
-    // The invoice may include several sessions - let's check if at least one of these needs a transfer
-    const sessions = billingInvoice.sessions.filter((session) => session?.accountData?.withTransferActive);
-    if (sessions.length > 0) {
-      // Get the list of account IDs
-      const allAccountIDs = sessions.map((session) => session?.accountData?.accountID);
-      // Remove duplicates
-      const accountIDs = [ ...new Set(allAccountIDs)];
-      if (accountIDs.length > 0) {
-        for (const accountID of accountIDs) {
-          await this.dispatchFundsPerAccount(accountID, billingInvoice);
+  public async dispatchCollectedFundsToAccount(collectedFundReport: CollectedFundReport): Promise<void> {
+    const accountID = collectedFundReport.key.accountID;
+    const currency = collectedFundReport.key.currency;
+
+    const nbTransactions = collectedFundReport.transactionIDs.length;
+    if (nbTransactions) {
+      const lock = await LockingHelper.acquireDispatchCollectedFundsToAccountLock(this.tenant.id, accountID);
+      if (lock) {
+        try {
+          const transfer = await this.getDraftTransferForAccount(accountID, currency);
+          const collectedFunds = Utils.createDecimal(transfer.collectedFunds).plus(collectedFundReport.collectedFunds).toNumber();
+          const collectedFees = Utils.createDecimal(transfer.collectedFees).plus(collectedFundReport.collectedFees).toNumber();
+          const sessionCounter = transfer.sessionCounter + nbTransactions;
+          const transferToSave: BillingTransfer = {
+            ...transfer,
+            collectedFunds,
+            collectedFees,
+            sessionCounter,
+          };
+          const transferID = await BillingStorage.saveTransfer(this.tenant, transferToSave);
+          await TransactionStorage.updateTransactionsWithTransferData(this.tenant, collectedFundReport.transactionIDs, transferID);
+          await Logging.logInfo({
+            tenantID: this.tenant.id,
+            action: ServerAction.BILLING_TRANSFER_DISPATCH_FUNDS,
+            module: MODULE_NAME, method: 'dispatchCollectedFunds',
+            message: `Funds dispatched - account ID: '${collectedFundReport.key?.accountID}' - Collected funds: ${collectedFunds} - Collected fees: ${collectedFees}`,
+          });
+        } finally {
+          // Release the lock
+          await LockingManager.release(lock);
         }
+      } else {
+        // Lock couldn't be acquired
+        // We do not mind - Operation will be tried again on the next job execution
       }
     }
   }
 
-  private async getLatestDraftTransferForAccount(accountID: string) : Promise<BillingTransfer> {
+  private async getDraftTransferForAccount(accountID: string, currency: string) : Promise<BillingTransfer> {
     const filter = {
       // TODO - add filtering on the dates - we should have a transfer per month !?!
+      // TODO - filter on the currency as well?
       accountIDs: [accountID],
       status: [BillingTransferStatus.DRAFT],
     };
     const sort = { createdOn: -1 };
     const transfers = await BillingStorage.getTransfers(this.tenant, filter, { skip: 0, limit: 1, sort });
-    return transfers.result[0];
-  }
-
-  private initNewDraftTransfer(accountID: string, currency: string) : BillingTransfer {
-    return {
-      accountID, status: BillingTransferStatus.DRAFT, sessions: [], totalAmount: 0, transferAmount: 0,
+    const transfer = transfers.result[0];
+    // Return the existing DRAFT transfer or a new one!
+    return (transfer) ? transfer : {
+      accountID, status: BillingTransferStatus.DRAFT, sessionCounter: 0,
+      collectedFunds: 0, collectedFlatFees: 0, collectedFees: 0, totalConsumptionWh: 0, totalDurationSecs: 0, transferAmount: 0,
       platformFeeData: null, transferExternalID: null,
       currency: currency,
       createdBy: null,
@@ -780,80 +805,10 @@ export default abstract class BillingIntegration {
     };
   }
 
-  private isSessionAlreadyInTransfer(transfer: BillingTransfer, session: BillingSessionData): boolean {
-    // Check whether a particular session is already part of the transfer's sessions
-    const foundSession = transfer.sessions.find((sessionInTransfer) => sessionInTransfer.transactionID === session.transactionID);
-    return !!foundSession;
-  }
-
-  private async dispatchFundsPerAccount(accountID: string, invoice: BillingInvoice): Promise<void> {
-    try {
-      const sessions = invoice.sessions.filter((session) => accountID === session?.accountData?.accountID);
-      // Get the existing DRAFT transfer (if any)
-      let transfer = await this.getLatestDraftTransferForAccount(accountID);
-      if (!transfer) {
-        transfer = this.initNewDraftTransfer(accountID, invoice.currency);
-      }
-      // Process all sessions of the invoice matching the current account ID
-      for (const session of sessions) {
-        if (this.isSessionAlreadyInTransfer(transfer, session)) {
-          // This should not happen - Session is already in the session list
-          await Logging.logError({
-            tenantID: this.tenant.id,
-            action: ServerAction.BILLING_TRANSFER_PREPARE,
-            module: MODULE_NAME, method: 'dispatchFundsPerAccount',
-            message: `Unexpected situation - the transfer ${transfer.id} already includes the session ${session.transactionID}`
-          });
-        } else {
-          // Compute the session amount (adding the 4 pricing dimensions)
-          const amountAsDecimal = BillingHelpers.getBilledPrice(session.pricingData);
-          const amount = amountAsDecimal.toNumber();
-          const roundedAmount = Utils.roundTo(amountAsDecimal, 2);
-          const accountSessionFee = this.computeAccountSessionFee(session, roundedAmount);
-          // Extract current session data
-          const sessionData: BillingTransferSession = {
-            transactionID: session.transactionID,
-            invoiceID: invoice.id,
-            invoiceNumber: invoice.number,
-            amountAsDecimal,
-            amount,
-            roundedAmount,
-            accountSessionFee
-          };
-          // Update the collection of sessions in the DRAFT transfer
-          transfer.sessions.push(sessionData);
-        }
-      }
-      // Accumulate the amount of each session
-      let transferAmountAsDecimal = Utils.createDecimal(0);
-      transfer.sessions.forEach((session) => {
-        transferAmountAsDecimal = transferAmountAsDecimal.plus(session.amountAsDecimal);
-      });
-      // Round the final result only!
-      transfer.totalAmount = Utils.roundTo(transferAmountAsDecimal, 2);
-      // Amount to transfer is not yet known - The invoice must be generated to take the tax rates into account
-      transfer.transferAmount = null;
-      // Finally - create or update the transfer
-      await BillingStorage.saveTransfer(this.tenant, transfer);
-    } catch (error) {
-      await Logging.logError({
-        tenantID: this.tenant.id,
-        action: ServerAction.BILLING_TRANSFER_PREPARE,
-        module: MODULE_NAME, method: 'processTransferForAccount',
-        message: `Transfer preparation failed - accountID: ${accountID} - Invoice: ${invoice.id} - ${invoice.number}`,
-        detailedMessages: { error: error.stack }
-      });
-    }
-  }
-
-  private computeAccountSessionFee(session: BillingSessionData, sessionTotalAmount: number): BillingAccountSessionFee {
-    const { percentage, flatFeePerSession } = session.accountData.platformFeeStrategy;
+  protected computeAccountSessionFee(platformFeeStrategy: BillingPlatformFeeStrategy, sessionTotalAmount: number): number {
+    const { percentage, flatFeePerSession } = platformFeeStrategy;
     const feeAmountAsDecimal = Utils.createDecimal(sessionTotalAmount).mul(percentage).div(100).plus(flatFeePerSession);
     const feeAmount = Utils.roundTo(feeAmountAsDecimal, 2);
-    return {
-      percentage,
-      flatFeePerSession,
-      feeAmount
-    };
+    return feeAmount;
   }
 }
