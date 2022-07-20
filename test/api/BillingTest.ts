@@ -481,19 +481,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         });
 
       });
-
-      describe('Negative tests', () => {
-        // eslint-disable-next-line @typescript-eslint/require-await
-        beforeAll(async () => {
-          billingTestHelper.setCurrentUserContextAsAdmin();
-          // Set STRIPE credentials
-          await billingTestHelper.setBillingSystemInvalidCredentials();
-        });
-
-        afterAll(async () => {
-        });
-      });
-
     });
 
     describe('with Transaction Billing OFF', () => {
