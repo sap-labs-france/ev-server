@@ -1,14 +1,11 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { AsyncTaskType, AsyncTasks } from '../../types/AsyncTask';
-import { BillingAccount, BillingAccountSessionFee, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformFeeStrategy, BillingPlatformInvoice, BillingSessionAccountData, BillingSessionData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingTransferStatus, BillingUser, TransactionBillingData } from '../../types/Billing';
+import { BillingAccount, BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformFeeStrategy, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingTransferStatus, BillingUser } from '../../types/Billing';
 import { BillingPeriodicOperationTaskConfig, DispatchFundsTaskConfig } from '../../types/TaskConfig';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import Transaction, { CollectedFundReport, StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
-import AsyncTaskBuilder from '../../async-task/AsyncTaskBuilder';
 import BackendError from '../../exception/BackendError';
-import BillingHelpers from './BillingHelpers';
 import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import ChargingStation from '../../types/ChargingStation';

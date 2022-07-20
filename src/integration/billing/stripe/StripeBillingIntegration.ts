@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingAccountSessionFee, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';

@@ -1,4 +1,4 @@
-import { BillingAccountSessionFee, BillingPlatformFeeStrategy, BillingTransfer, BillingTransferSession, BillingTransferStatus } from '../../src/types/Billing';
+import { BillingPlatformFeeStrategy, BillingTransfer, BillingTransferStatus } from '../../src/types/Billing';
 
 import { Factory } from 'rosie';
 import faker from 'faker';
@@ -18,20 +18,6 @@ export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtr
     feeTaxAmount: 0
   }));
 
-export const BillingTransferSessionFactory = Factory.define<BillingTransferSession>('billingtransfersession')
-  .attr('transactionID', () => faker.datatype.number())
-  .attr('amount', () => faker.datatype.number())
-  .attr('accountSessionFee', () => ({
-    flatFeePerSession: 0.5,
-    percentage: 3,
-    feeAmount: 0
-  }));
-
 export const BillingPlatformFeeStrategyFactory = Factory.define<BillingPlatformFeeStrategy>('billingplatformfeestrategy')
   .attr('flatFeePerSession', () => 0.5)
   .attr('percentage', () => 3);
-
-export const BillingPlatformSessionFeeFactory = Factory.define<BillingAccountSessionFee>('billingaccountSessionFee')
-  .attr('flatFeePerSession', 0.5)
-  .attr('percentage', 3)
-  .attr('feeAmount', 0);

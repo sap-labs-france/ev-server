@@ -190,13 +190,10 @@ export enum BillingTransferStatus {
   TRANSFERRED = 'transferred'
 }
 
+// TODO - TO BE CLARIFIED - REDUNDANT INFORMATION
 export interface BillingPlatformFeeData {
   feeAmount: number;
   feeTaxAmount: number;
-}
-
-export interface BillingAccountSessionFee extends BillingPlatformFeeStrategy {
-  feeAmount: number;
 }
 
 export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
@@ -220,16 +217,6 @@ export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAut
 
 // Very important - preserve maximal precision - Decimal type is persisted as an object in the DB
 export type BillingAmount = Decimal.Value;
-
-export interface BillingTransferSession {
-  transactionID: number;
-  invoiceID: string;
-  invoiceNumber: string;
-  amountAsDecimal: BillingAmount
-  amount: number; // ACHTUNG - That one should not include any taxes
-  roundedAmount: number;
-  accountSessionFee: BillingAccountSessionFee;
-}
 
 export interface BillingPlatformInvoice {
   invoiceID: string;
