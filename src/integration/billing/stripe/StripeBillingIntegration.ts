@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingTransferSession, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
@@ -10,6 +10,7 @@ import AsyncTaskBuilder from '../../../async-task/AsyncTaskBuilder';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
+import BillingHelpers from '../BillingHelpers';
 import BillingIntegration from '../BillingIntegration';
 import { BillingSettings } from '../../../types/Setting';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
@@ -454,10 +455,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     void this.sendInvoiceNotification(billingInvoice);
     // Update transactions with invoice data
     await this.updateTransactionsBillingData(billingInvoice);
-    // Trigger transfer preparation task
-    if (billingInvoice.status === BillingInvoiceStatus.PAID) {
-      await this.triggerTransferPreparation(billingInvoice);
-    }
     return billingInvoice;
   }
 
@@ -1084,6 +1081,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const transactionID = transaction.id;
     const currency = transaction.stop.priceUnit;
     const pricingData = this.extractTransactionPricingData(transaction);
+    if (accountData?.platformFeeStrategy) {
+      // Compute the session fee
+      accountData.feeAmount = this.computeAccountSessionFee(accountData.platformFeeStrategy, BillingHelpers.getBilledPrice(pricingData));
+    }
     const billingInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
@@ -1214,10 +1215,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Save invoice
     const invoiceID = await BillingStorage.saveInvoice(this.tenant, billingInvoice);
     billingInvoice.id = invoiceID;
-    // Trigger transfer preparation task
-    if (billingInvoice.status === BillingInvoiceStatus.PAID) {
-      await this.triggerTransferPreparation(billingInvoice);
-    }
     // Return the billing invoice
     return billingInvoice;
   }
@@ -1748,7 +1745,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  public async billPlatformFee(billingTransfer: BillingTransfer, user: User): Promise<BillingPlatformInvoice> {
+  public async billPlatformFee(billingTransfer: BillingTransfer, user: User, billingAccount: BillingAccount): Promise<BillingPlatformInvoice> {
     await this.checkConnection();
     if (!user.billingData || !user.billingData.customerID) {
       // Synchronize owner if needed
@@ -1765,7 +1762,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     // Add items to the invoice
-    await this.addItemsToPlatformFeeInvoice(stripeInvoice, billingTransfer, user);
+    await this.addItemsToPlatformFeeInvoice(stripeInvoice, billingTransfer, user, billingAccount);
     // Mark the invoice as paid
     const stripePaidInvoice = await this.markStripeInvoiceAsPaid(stripeInvoice);
     // Preserve some information
@@ -1799,29 +1796,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private async addItemsToPlatformFeeInvoice(stripeInvoice: Stripe.Invoice, billingTransfer: BillingTransfer, user: User): Promise<void> {
+  private async addItemsToPlatformFeeInvoice(stripeInvoice: Stripe.Invoice, billingTransfer: BillingTransfer, user: User, billingAccount: BillingAccount): Promise<void> {
     // Create invoice items
     try {
-      // Extract session amounts
-      const amounts = billingTransfer.sessions.map((session) => ({
-        amount: session.amount,
-        flatFeePerSession: session.accountSessionFee.flatFeePerSession,
-        feeAmount: session.accountSessionFee.feeAmount,
-      }));
-      // Sum session amounts
-      const totalAmount = amounts.reduce((previous, current) => ({
-        amount: previous.amount + current.amount,
-        flatFeePerSession: previous.flatFeePerSession + current.flatFeePerSession,
-        feeAmount: previous.feeAmount + current.feeAmount,
-      }), {
-        amount: 0,
-        flatFeePerSession: 0,
-        feeAmount: 0
-      });
+      // Convert to cents
+      const amount = Utils.createDecimal(billingTransfer.collectedFees).mul(100).toNumber(); // This one is in cents!
       // Generate the invoice item
-      const description = this.buildTransferFeeItemDescription(user, amounts.length);
+      const description = this.buildTransferFeeItemDescription(user, billingTransfer.sessionCounter);
       // A single tax rate per session
-      const tax_rates = [];
+      const tax_rates = (billingAccount.taxID) ? [billingAccount.taxID] : [] ;
       // Prepare item parameters
       const parameters: Stripe.InvoiceItemCreateParams = {
         invoice: stripeInvoice.id,
@@ -1829,7 +1812,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         currency: billingTransfer.currency,
         tax_rates,
         description,
-        amount: totalAmount.feeAmount * 100, // Stripe expects cents !!!
+        amount, // Stripe expects cents !!!
         metadata: {
           userID: user.id,
           transferID: billingTransfer.id,

@@ -32,6 +32,7 @@ export interface BillingDataTransactionStop {
   invoiceNumber?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
+  transferID?: string;
 }
 
 export interface BillingUserData {
@@ -50,10 +51,6 @@ export interface BillingUser {
 }
 
 export interface BillingUserSynchronizeAction extends ActionsResponse {
-  billingData?: BillingUserData;
-}
-
-export interface BillingChargeInvoiceAction extends ActionsResponse {
   billingData?: BillingUserData;
 }
 
@@ -169,6 +166,7 @@ export interface BillingAccount extends CreatedUpdatedProps, BillingTransferAuth
   status: BillingAccountStatus;
   activationLink?: string;
   accountExternalID: string;
+  taxID: string;
 }
 
 export interface BillingAccountData {
@@ -177,7 +175,8 @@ export interface BillingAccountData {
 }
 
 export interface BillingSessionAccountData extends BillingAccountData {
-  withTransferActive: boolean
+  withTransferActive: boolean,
+  feeAmount?: number
 }
 
 export enum BillingTransferStatus {
@@ -187,20 +186,21 @@ export enum BillingTransferStatus {
   TRANSFERRED = 'transferred'
 }
 
+// TODO - TO BE CLARIFIED - REDUNDANT INFORMATION
 export interface BillingPlatformFeeData {
   feeAmount: number;
   feeTaxAmount: number;
 }
 
-export interface BillingAccountSessionFee extends BillingPlatformFeeStrategy {
-  feeAmount: number;
-}
-
 export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
   id?: string;
   status: BillingTransferStatus;
-  sessions: BillingTransferSession[];
-  totalAmount: number; // Depends on the fee strategy and thus on the final number of sessions
+  sessionCounter: number, // Number of transactions
+  collectedFunds: number, // Total amount of the priced transactions
+  collectedFlatFees: number,
+  collectedFees: number, // Total amount of the platform fee collected
+  totalConsumptionWh: number,
+  totalDurationSecs: number,
   transferAmount: number // Amount transferred after applying platform fees
   accountID: string;
   account?: BillingAccount;
@@ -213,16 +213,6 @@ export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAut
 
 // Very important - preserve maximal precision - Decimal type is persisted as an object in the DB
 export type BillingAmount = Decimal.Value;
-
-export interface BillingTransferSession {
-  transactionID: number;
-  invoiceID: string;
-  invoiceNumber: string;
-  amountAsDecimal: BillingAmount
-  amount: number; // ACHTUNG - That one should not include any taxes
-  roundedAmount: number;
-  accountSessionFee: BillingAccountSessionFee;
-}
 
 export interface BillingPlatformInvoice {
   invoiceID: string;

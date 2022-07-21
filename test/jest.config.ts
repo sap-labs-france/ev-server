@@ -1,4 +1,4 @@
-import type {Config} from '@jest/types';
+import type { Config } from '@jest/types';
 
 const config: Config.InitialOptions = {
   // All imported modules in your tests should be mocked automatically
@@ -31,12 +31,8 @@ const config: Config.InitialOptions = {
   coverageProvider: 'v8',
 
   // A list of reporter names that Jest uses when writing coverage reports
-  // coverageReporters: [
-  //   "json",
-  //   "text",
-  //   "lcov",
-  //   "clover"
-  // ],
+  // coverageReporters: ['clover', 'json', 'text', 'lcov', 'cobertura'],
+  coverageReporters: ['lcov'],
 
   // An object that configures minimum threshold enforcement for coverage results
   // coverageThreshold: undefined,
@@ -96,7 +92,33 @@ const config: Config.InitialOptions = {
   // projects: undefined,
 
   // Use this configuration option to add custom reporters to Jest
-  reporters: ['default', './JestEvseReporter.js'],
+  'reporters': [
+    'default',
+    './JestEvseReporter.js',
+    [
+      'jest-html-reporter',
+      {
+        'pageTitle': 'Unit Tests Report',
+        'append': false,
+        'includeConsoleLog': true,
+        'includeFailureMsg': true,
+        'includeSuiteFailure': true,
+        'outputPath': './test/results/test-report.html',
+      }
+    ],
+    [
+      'jest-stare',
+      {
+        'resultDir': 'test/results',
+        'reportTitle': 'Unit Tests Report',
+        'reportHeadline': 'ev-server',
+        'jestStareConfigJson': 'jest-stare.json',
+        'jestGlobalConfigJson': 'globalStuff.json',
+        'log': true
+      }
+    ]
+  ],
+  // reporters: ['default', './JestEvseReporter.js'],
 
   // Automatically reset mock state before every test
   // resetMocks: false,
@@ -164,7 +186,7 @@ const config: Config.InitialOptions = {
   // testResultsProcessor: undefined,
 
   // This option allows use of a custom test runner
-  // testRunner: "jest-circus/runner",
+  testRunner: 'jest-circus/runner',
 
   // This option sets the URL for the jsdom environment. It is reflected in properties such as location.href
   // testURL: "http://localhost",

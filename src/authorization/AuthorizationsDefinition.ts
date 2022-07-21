@@ -539,14 +539,15 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.BILLING_ACCOUNT,
         action: [Action.LIST, Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.BILLING_ONBOARD_ACCOUNT],
         attributes: [
-          'id', 'accountExternalID', 'businessOwnerID', 'businessOwner.id', 'businessOwner.firstName', 'businessOwner.name', 'businessOwner.email', 'status'
+          'id', 'accountExternalID', 'taxID', 'businessOwnerID', 'businessOwner.id', 'businessOwner.firstName', 'businessOwner.name', 'businessOwner.email', 'status'
         ]
       },
       {
         resource: Entity.BILLING_TRANSFER,
         action: [Action.LIST, Action.READ, Action.BILLING_FINALIZE_TRANSFER, Action.BILLING_SEND_TRANSFER],
         attributes: [
-          'id', 'status', 'createdOn', 'sessions', 'totalAmount', 'transferAmount', 'accountID', 'transferExternalID',
+          'id', 'status', 'createdOn', 'sessionCounter', 'collectedFunds', 'collectedFlatFees', 'collectedFees', 'totalConsumptionWh', 'totalDurationSecs',
+          'transferAmount', 'accountID', 'transferExternalID',
           'account.businessOwnerID', 'account.accountExternalID', 'businessOwner.name', 'businessOwner.firstName',
           'platformFeeData.feeAmount', 'platformFeeData.feeTaxAmount', 'currency', 'invoice.documentNumber', 'invoice.totalAmount'
         ]
