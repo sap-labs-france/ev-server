@@ -1,4 +1,4 @@
-import { BillingAccount, BillingChargeInvoiceAction, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
+import { BillingAccount, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { expect } from 'chai';
@@ -269,7 +269,7 @@ export default class StripeTestHelper {
       forceOperation: true
     };
     // Here we simulate the periodic operation which is supposed to try to pay again after a payment failure
-    const operationResult: BillingChargeInvoiceAction = await this.billingImpl.chargeInvoices(taskConfiguration);
+    const operationResult = await this.billingImpl.chargeInvoices(taskConfiguration);
     assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
     assert(operationResult.inError === 0, 'The operation should detect any errors');
     // Let's check whether the nb of paid invoices has changed

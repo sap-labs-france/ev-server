@@ -1,15 +1,9 @@
-import { BillingInvoiceItem } from '../../types/Billing';
-import Decimal from 'decimal.js';
 import { PricedConsumptionData } from '../../types/Pricing';
 import Utils from '../../utils/Utils';
 
 export default class BillingHelpers {
 
-  public static getItemPrice(billingInvoiceItem: BillingInvoiceItem): Decimal {
-    return BillingHelpers.getBilledPrice(billingInvoiceItem.pricingData);
-  }
-
-  public static getBilledPrice(pricedData: PricedConsumptionData[]): Decimal {
+  public static getBilledPrice(pricedData: PricedConsumptionData[]): number {
     let price = Utils.createDecimal(0);
     if (pricedData) {
       // --------------------------------------------------------------------------------
@@ -24,6 +18,6 @@ export default class BillingHelpers {
         price = price.plus(pricedConsumptionData.chargingTime?.amountAsDecimal || 0);
       });
     }
-    return price;
+    return price.toNumber();
   }
 }

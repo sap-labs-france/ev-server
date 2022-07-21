@@ -26,6 +26,10 @@ export interface BillingPeriodicOperationTaskConfig extends TaskConfig {
   forceOperation?: boolean;
 }
 
+export interface DispatchFundsTaskConfig extends TaskConfig {
+  forceOperation?: boolean;
+}
+
 export interface OCPIPullTokensTaskConfig extends TaskConfig {
   partial?: boolean;
 }

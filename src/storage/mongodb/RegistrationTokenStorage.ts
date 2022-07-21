@@ -27,7 +27,7 @@ export default class RegistrationTokenStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(registrationTokenMDB, registrationToken);
     // Modify
-    await global.database.getCollection(tenant.id, 'registrationtokens').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'registrationtokens').findOneAndUpdate(
       { _id: registrationTokenMDB._id },
       { $set: registrationTokenMDB },
       { upsert: true, returnDocument: 'after' }
