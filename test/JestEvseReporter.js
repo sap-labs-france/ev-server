@@ -19,13 +19,13 @@ class JestEvseReporter {
     const testPrintmessage = testCaseResult.title;
     if (testCaseResult.status === 'passed') {
       this.testInSuccess.push(testCaseResult);
-      this.log('\u2713  ' + testPrintmessage + this.getReportMessage());
+      this.log('\x1b[32m \u2713 \x1b[0m' + testPrintmessage + this.getReportMessage());
     } else if (testCaseResult.status === 'failed') {
       this.log('');
       this.testInError.push(testCaseResult);
       this.log(testCaseResult.fullName);
       this.log(testCaseResult.failureMessages);
-      this.log('\u2717  ' + testPrintmessage + this.getReportMessage());
+      this.log('\x1b[31m \u2717 \x1b[0m' + testPrintmessage + this.getReportMessage());
       this.log('');
       this.log('#### Stack associated to this error is above ! ####');
       this.log('\n');
@@ -43,7 +43,7 @@ class JestEvseReporter {
   }
 
   log(message) {
-    process.stderr.write(message + '\n');
+    console.log(message);
   }
 }
 
