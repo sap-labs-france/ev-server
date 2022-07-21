@@ -141,7 +141,7 @@
     "password-generator": "^2.3.2",
     "pdfkit": "^0.13.0",
     "prom-client": "^14.0.1",
-    "qrcode": "^1.5.0",
+    "qrcode": "^1.5.1",
     "rfc2047": "^3.0.1",
     "role-acl": "^4.5.4",
     "simple-odata-server": "^1.1.2",
@@ -154,7 +154,7 @@
     "urlencode": "^1.1.0",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.10.0",
     "validator": "^13.7.0",
-    "ws": "^8.4.2"
+    "ws": "^8.8.1"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.6",
@@ -202,7 +202,7 @@
     "@types/urlencode": "^1.1.2",
     "@types/uuid": "^8.3.4",
     "@types/validator": "^13.7.4",
-    "@types/ws": "^8.2.2",
+    "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
     "autocannon": "^7.6.0",
