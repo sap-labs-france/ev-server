@@ -582,18 +582,18 @@ export default class OCPPService {
   }
 
   public async checkAuthorizeStopTransactionAndGetUsers(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction,
-      tagId: string, isStoppedByCentralSystem: boolean): Promise<{ user: User; alternateUser: User; }> {
+      tagID: string, isStoppedByCentralSystem: boolean): Promise<{ user: User; alternateUser: User; }> {
     let user: User;
     let alternateUser: User;
     if (!isStoppedByCentralSystem) {
       // Check and get the authorized Users
       const authorizedUsers = await CommonUtilsService.isAuthorizedToStopTransaction(
-        tenant, chargingStation, transaction, tagId, ServerAction.OCPP_STOP_TRANSACTION, Action.STOP_TRANSACTION);
+        tenant, chargingStation, transaction, tagID, ServerAction.OCPP_STOP_TRANSACTION, Action.STOP_TRANSACTION);
       user = authorizedUsers.user;
       alternateUser = authorizedUsers.alternateUser;
     } else {
       // Get the User
-      user = await UserStorage.getUserByTagID(tenant, tagId);
+      user = await UserStorage.getUserByTagID(tenant, tagID);
     }
     // Already Stopped?
     if (transaction.stop) {
@@ -692,6 +692,8 @@ export default class OCPPService {
     if (!ignoreStatusNotification) {
       // Check last Transaction
       await this.checkAndUpdateLastCompletedTransactionFromStatusNotification(tenant, chargingStation, statusNotification, connector);
+      // Keep previous connector status for smart charging
+      const previousStatus = connector.status;
       // Update Connector
       connector.connectorId = statusNotification.connectorId;
       connector.status = statusNotification.status;
@@ -713,7 +715,7 @@ export default class OCPPService {
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       // Process Smart Charging
-      await this.processSmartChargingFromStatusNotification(tenant, chargingStation, connector);
+      await this.processSmartChargingFromStatusNotification(tenant, chargingStation, connector, previousStatus);
       await Logging.logInfo({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
@@ -727,9 +729,10 @@ export default class OCPPService {
     }
   }
 
-  private async processSmartChargingFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<void> {
+  private async processSmartChargingFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
+      connector: Connector, previousStatus: ChargePointStatus): Promise<void> {
     // Trigger Smart Charging
-    if (connector.status === ChargePointStatus.CHARGING ||
+    if ((connector.status === ChargePointStatus.CHARGING && previousStatus !== ChargePointStatus.SUSPENDED_EVSE) ||
       connector.status === ChargePointStatus.SUSPENDED_EV) {
       try {
         // Trigger Smart Charging

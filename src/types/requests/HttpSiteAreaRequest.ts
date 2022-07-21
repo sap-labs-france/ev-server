@@ -42,7 +42,6 @@ export interface HttpAssignChargingStationToSiteAreaRequest {
 
 export interface HttpSiteAreaImageGetRequest extends HttpByIDRequest {
   ID: string;
-  TenantID: string;
 }
 
 export interface HttpAssignAssetsToSiteAreaRequest {

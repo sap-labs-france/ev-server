@@ -1,5 +1,5 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { BillingAccount, BillingInvoice } from '../../../../types/Billing';
+import { BillingAccount, BillingInvoice, BillingTransfer } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, Command } from '../../../../types/ChargingStation';
 import { EntityData, URLInfo } from '../../../../types/GlobalType';
@@ -26,6 +26,7 @@ import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
+import { HttpBillingTransferGetRequest } from '../../../../types/requests/HttpBillingRequest';
 import { Log } from '../../../../types/Log';
 import LogStorage from '../../../../storage/mongodb/LogStorage';
 import Logging from '../../../../utils/Logging';
@@ -839,6 +840,47 @@ export default class UtilsService {
     return invoice;
   }
 
+  public static async checkAndGetTransferAuthorization(tenant: Tenant, userToken: UserToken, ID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingTransfer> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, ID, MODULE_NAME, 'checkAndGetTransferAuthorization', userToken);
+    // Get dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetTransferAuthorizations(
+      tenant, userToken, { ID }, authAction, entityData);
+    // Get Invoice
+    const transfer = await BillingStorage.getTransfer(tenant, ID,
+    // TODO - authorizations
+    //   {
+    //     ...additionalFilters,
+    //     ...authorizations.filters
+    //   },
+      applyProjectFields ? authorizations.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, transfer, `Transfer ID '${ID}' does not exist`,
+      MODULE_NAME, 'checkAndGetTransferAuthorization', userToken);
+    // Assign projected fields
+    if (authorizations.projectFields && applyProjectFields) {
+      transfer.projectFields = authorizations.projectFields;
+    }
+    // Assign Metadata
+    if (authorizations.metadata) {
+      transfer.metadata = authorizations.metadata;
+    }
+    // Add Actions
+    await AuthorizationService.addTransferAuthorizations(tenant, userToken, transfer, authorizations);
+    const authorized = AuthorizationService.canPerformAction(transfer, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.BILLING_TRANSFER,
+        module: MODULE_NAME, method: 'checkAndGetTransferAuthorization',
+        value: ID
+      });
+    }
+    return transfer;
+  }
+
   public static async checkAndGetTagAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Tag> {
     return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTag.bind(this),
@@ -851,39 +893,39 @@ export default class UtilsService {
       authAction, action, entityData, additionalFilters, applyProjectFields);
   }
 
-  public static async checkAndGetBillingSubAccountAuthorization(tenant: Tenant, userToken: UserToken, subAccountID: string, authAction: Action,
+  public static async checkAndGetBillingAccountAuthorization(tenant: Tenant, userToken: UserToken, billingAccountID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingAccount> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, subAccountID, MODULE_NAME, 'checkAndGetBillingSubAccountAuthorization', userToken);
+    UtilsService.assertIdIsProvided(action, billingAccountID, MODULE_NAME, 'checkAndGetBillingAccountAuthorization', userToken);
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetBillingSubAccountAuthorizations(
-      tenant, userToken, { ID: subAccountID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetBillingAccountAuthorizations(
+      tenant, userToken, { ID: billingAccountID }, authAction, entityData);
     // Get Invoice
-    const subAccount = await BillingStorage.getSubAccountByID(tenant, subAccountID,
+    const billingAccount = await BillingStorage.getAccountByID(tenant, billingAccountID,
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, subAccount, `Billing sub-account ID '${subAccountID}' does not exist`,
-      MODULE_NAME, 'checkAndGetBillingSubAccountAuthorization', userToken);
+    UtilsService.assertObjectExists(action, billingAccount, `Billing account ID '${billingAccountID}' does not exist`,
+      MODULE_NAME, 'checkAndGetBillingAccountAuthorization', userToken);
     // Assign projected fields
     if (authorizations.projectFields && applyProjectFields) {
-      subAccount.projectFields = authorizations.projectFields;
+      billingAccount.projectFields = authorizations.projectFields;
     }
     // Assign Metadata
     if (authorizations.metadata) {
-      subAccount.metadata = authorizations.metadata;
+      billingAccount.metadata = authorizations.metadata;
     }
-    AuthorizationService.addSubAccountAuthorizations(tenant, userToken, subAccount);
-    const authorized = AuthorizationService.canPerformAction(subAccount, authAction);
+    AuthorizationService.addAccountAuthorizations(tenant, userToken, billingAccount);
+    const authorized = AuthorizationService.canPerformAction(billingAccount, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: authAction, entity: Entity.INVOICE,
         module: MODULE_NAME, method: 'checkAndGetInvoiceAuthorization',
-        value: subAccountID
+        value: billingAccountID
       });
     }
-    return subAccount;
+    return billingAccount;
   }
 
   public static sendEmptyDataResult(res: Response, next: NextFunction): void {
@@ -1278,7 +1320,7 @@ export default class UtilsService {
     if (tenant.components.billingPlatform?.active && !tenant.components.billing?.active) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing sub-accounts cannot be active without the Billing component',
+        message: 'Billing accounts cannot be active without the Billing component',
         module: MODULE_NAME, method: 'checkIfTenantValid',
         user: req.user.id
       });

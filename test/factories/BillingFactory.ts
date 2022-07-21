@@ -1,31 +1,25 @@
-import { BillingPlatformFeeStrategy, BillingTransfer, BillingTransferSession, BillingTransferStatus } from '../../src/types/Billing';
+import { BillingPlatformFeeStrategy, BillingTransfer, BillingTransferStatus } from '../../src/types/Billing';
 
 import { Factory } from 'rosie';
 import faker from 'faker';
 
 export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtransfer')
-  .attr('totalAmount', () => faker.datatype.number())
+  .attr('sessionCounter', () => 0)
+  .attr('currency', () => 'USD')
+  .attr('collectedFunds', () => faker.datatype.number({ min: 70, max: 79 }))
+  .attr('collectedFlatFees', () => 0)
+  .attr('collectedFees', () => faker.datatype.number({ min: 0.7, max: 0.79 }))
+  .attr('totalConsumptionWh', () => faker.datatype.number({ min: 10000, max: 90000 }))
+  .attr('totalDurationSecs', () => faker.datatype.number({ min: 3600, max: 7200 }))
   .attr('accountID', () => faker.datatype.hexaDecimal(24).substring(2).toLowerCase())
   .attr('status', () => faker.random.arrayElement([BillingTransferStatus.DRAFT, BillingTransferStatus.PENDING, BillingTransferStatus.FINALIZED, BillingTransferStatus.TRANSFERRED]))
-  .attr('transferAmount', () => faker.datatype.number())
-  .attr('transferExternalID', () => faker.datatype.uuid())
+  .attr('transferAmount', null)
+  .attr('transferExternalID', () => null)
   .attr('platformFeeData', () => ({
-    feeAmount: faker.datatype.number(),
-    feeTaxAmount: faker.datatype.number(),
-    taxExternalID: faker.datatype.uuid(),
-    invoiceExternalID: faker.datatype.uuid(),
-  }))
-  .attr('sessions', () =>
-    [BillingTransferSessionFactory.build()]);
-
-export const BillingTransferSessionFactory = Factory.define<BillingTransferSession>('billingtransfersession')
-  .attr('transactionID', () => faker.datatype.number())
-  .attr('amount', () => faker.datatype.number())
-  .attr('platformFeeStrategy', () => ({
-    flatFeePerSession: faker.datatype.number(),
-    percentage: faker.datatype.number(),
+    feeAmount: 0,
+    feeTaxAmount: 0
   }));
 
 export const BillingPlatformFeeStrategyFactory = Factory.define<BillingPlatformFeeStrategy>('billingplatformfeestrategy')
-  .attr('flatFeePerSession', () => faker.datatype.number())
-  .attr('percentage', () => faker.datatype.number());
+  .attr('flatFeePerSession', () => 0.5)
+  .attr('percentage', () => 3);

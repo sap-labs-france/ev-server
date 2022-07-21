@@ -1,5 +1,5 @@
 import User, { UserRole } from '../types/User';
-import UserNotifications, { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingSubAccountActivationNotification, BillingSubAccountCreationLinkNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
@@ -1367,8 +1367,8 @@ export default class NotificationHandler {
     }
   }
 
-  public static async sendBillingSubAccountCreationLink(tenant: Tenant, notificationID: string, user: User,
-      sourceData: BillingSubAccountCreationLinkNotification): Promise<void> {
+  public static async sendBillingAccountCreationLink(tenant: Tenant, notificationID: string, user: User,
+      sourceData: BillingAccountCreationLinkNotification): Promise<void> {
     if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
     // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
@@ -1383,20 +1383,20 @@ export default class NotificationHandler {
           try {
           // Save
             await NotificationHandler.saveNotification(
-              tenant, notificationSource.channel, notificationID, ServerAction.BILLING_SUB_ACCOUNT_CREATE, { user });
+              tenant, notificationSource.channel, notificationID, ServerAction.BILLING_ACCOUNT_CREATE, { user });
             // Send
-            void notificationSource.notificationTask.sendBillingSubAccountCreationLink(
+            void notificationSource.notificationTask.sendBillingAccountCreationLink(
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
-            await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_SUB_ACCOUNT_CREATE, error);
+            await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_ACCOUNT_CREATE, error);
           }
         }
       }
     }
   }
 
-  public static async sendBillingSubAccountActivationNotification(tenant: Tenant, notificationID: string, user: User,
-      sourceData: BillingSubAccountActivationNotification): Promise<void> {
+  public static async sendBillingAccountActivationNotification(tenant: Tenant, notificationID: string, user: User,
+      sourceData: BillingAccountActivationNotification): Promise<void> {
     if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Get the Tenant logo
       if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
@@ -1411,12 +1411,12 @@ export default class NotificationHandler {
           try {
             // Save
             await NotificationHandler.saveNotification(
-              tenant, notificationSource.channel, notificationID, ServerAction.BILLING_SUB_ACCOUNT_ACTIVATE, { user });
+              tenant, notificationSource.channel, notificationID, ServerAction.BILLING_ACCOUNT_ACTIVATE, { user });
             // Send
-            void notificationSource.notificationTask.sendBillingSubAccountActivationNotification(
+            void notificationSource.notificationTask.sendBillingAccountActivationNotification(
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
-            await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_SUB_ACCOUNT_ACTIVATE, error);
+            await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_ACCOUNT_ACTIVATE, error);
           }
         }
       }

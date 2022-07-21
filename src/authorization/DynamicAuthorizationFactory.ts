@@ -10,7 +10,6 @@ import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from './DynamicAuthorizationFilter';
 import ExcludeActionDynamicAuthorizationDataSource from './dynamic-data-source/ExcludeActionDynamicAuthorizationDataSource';
 import ExcludeActionDynamicAuthorizationFilter from './dynamic-filters/ExcludeActionDynamicAuthorizationFilter';
-import IncludeAllExternalSitesDynamicAuthorizationFilter from './dynamic-filters/IncludeAllExternalSitesDynamicAuthorizationFilter';
 import LocalIssuerDynamicAuthorizationFilter from './dynamic-filters/LocalIssuerDynamicAuthorizationFilter';
 import OwnUserDynamicAuthorizationAssert from './dynamic-assert/OwnUserDynamicAuthorizationAssert';
 import OwnUserDynamicAuthorizationDataSource from './dynamic-data-source/OwnUserDynamicAuthorizationDataSource';
@@ -19,6 +18,8 @@ import PoolCarDynamicAuthorizationAssert from './dynamic-assert/PoolCarDynamicAu
 import SiteAreaMandatoryDynamicAuthorizationAssert from './dynamic-assert/SiteAreaMandatoryDynamicAuthorizationAssert';
 import SitesAdminDynamicAuthorizationDataSource from './dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
 import SitesAdminDynamicAuthorizationFilter from './dynamic-filters/SitesAdminDynamicAuthorizationFilter';
+import SitesAdminUsersDynamicAuthorizationDataSource from './dynamic-data-source/SitesAdminUsersDynamicAuthorizationDataSource';
+import SitesAdminUsersDynamicAuthorizationFilter from './dynamic-filters/SitesAdminUsersDynamicAuthorizationFilter';
 import SitesOwnerDynamicAuthorizationDataSource from './dynamic-data-source/SitesOwnerDynamicAuthorizationDataSource';
 import SitesOwnerDynamicAuthorizationFilter from './dynamic-filters/SitesOwnerDynamicAuthorizationFilter';
 import Tenant from '../types/Tenant';
@@ -45,6 +46,9 @@ export default class DynamicAuthorizationFactory {
       case DynamicAuthorizationFilterName.SITES_ADMIN:
         dynamicFilter = new SitesAdminDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
+      case DynamicAuthorizationFilterName.SITES_ADMIN_USERS:
+        dynamicFilter = new SitesAdminUsersDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        break;
       case DynamicAuthorizationFilterName.SITES_OWNER:
         dynamicFilter = new SitesOwnerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
@@ -59,9 +63,6 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationFilterName.LOCAL_ISSUER:
         dynamicFilter = new LocalIssuerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
-        break;
-      case DynamicAuthorizationFilterName.INCLUDE_ALL_EXTERNAL_SITES:
-        dynamicFilter = new IncludeAllExternalSitesDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
     }
     // Init Data Source
@@ -109,6 +110,9 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationDataSourceName.SITES_ADMIN:
         dataSource = new SitesAdminDynamicAuthorizationDataSource(tenant, user);
+        break;
+      case DynamicAuthorizationDataSourceName.SITES_ADMIN_USERS:
+        dataSource = new SitesAdminUsersDynamicAuthorizationDataSource(tenant, user);
         break;
       case DynamicAuthorizationDataSourceName.SITES_OWNER:
         dataSource = new SitesOwnerDynamicAuthorizationDataSource(tenant, user);

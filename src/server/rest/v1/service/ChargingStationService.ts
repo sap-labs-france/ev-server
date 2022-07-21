@@ -192,7 +192,6 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorID: filteredRequest.ConnectorID,
-        withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: filteredRequest.WithSiteArea,
         siteIDs: filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null,
         ...authorizations.filters
@@ -435,7 +434,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationsGetReq(req.query);
     // Check and get charging stations: site and siteArea are mandatory
     const chargingStations = await ChargingStationService.getChargingStations(req, filteredRequest, Action.EXPORT,
-      { withSite: filteredRequest.WithSite, withSiteArea: filteredRequest.WithSiteArea });
+      { withSite: true, withSiteArea: true });
     // Set the attachment name
     res.attachment('exported-ocpp-params.csv');
     let writeHeader = true;
@@ -659,7 +658,7 @@ export default class ChargingStationService {
   public static async handleOcpiAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.UPDATE, Entity.CHARGING_STATION, MODULE_NAME, 'handleOcpiAction');
+      Action.READ, Entity.CHARGING_STATION, MODULE_NAME, 'handleOcpiAction');
     // Check and get dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, req.body.chargingStationID, Action.READ, action, null, { withSiteArea: true });
@@ -1123,7 +1122,7 @@ export default class ChargingStationService {
   private static async setAndSaveChargingProfile(filteredRequest: ChargingProfile, action: ServerAction, req: Request): Promise<string> {
     // Check dynamic auth
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE_CHARGING_PROFILE, action, null, { withSiteArea: true });
+      req.tenant, req.user, filteredRequest.chargingStationID, Action.UPDATE_CHARGING_PROFILE, action, null, { withSiteArea: true });
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
     UtilsService.assertObjectExists(action, chargePoint, `Charge Point ID '${filteredRequest.chargePointID}' does not exist.`,
       MODULE_NAME, 'setAndSaveChargingProfile', req.user);
