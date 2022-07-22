@@ -17,7 +17,7 @@ import Utils from '../../../src/utils/Utils';
 import { Voltage } from '../../../src/types/ChargingStation';
 import config from '../../config';
 import { expect } from 'chai';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export default class TenantContext {
 

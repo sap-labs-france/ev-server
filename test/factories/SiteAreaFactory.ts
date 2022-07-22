@@ -1,7 +1,7 @@
 import { Factory } from 'rosie';
 import { Voltage } from '../../src/types/ChargingStation';
 import address from './AddressFactory';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export default Factory.define('siteArea')
   .attr('name', () => faker.company.companyName())
