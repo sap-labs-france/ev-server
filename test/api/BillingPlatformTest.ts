@@ -237,20 +237,6 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           await billingTestHelper.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF */);
         });
 
-        // -------------------------------------------------------------------------------------------------------------
-        // TO DO - GENERATE SEVERAL TRANSACTIONS
-        // -------------------------------------------------------------------------------------------------------------
-        // - create and onboard two accounts
-        // - assign a account at a company level (with a platform fee strategy)
-        // - Override the account at a site level (with a distinct platform fee strategy)
-        // - Generate several transactions
-        // - Make sure to select the periodic billing mode and generate DRAFT invoices
-        // - Make sure to have several sessions per invoices
-        // - Make sure each invoices targets SEVERAL SUB-ACCOUNTS
-        // - force the periodic billing and thus GENERATE SEVERAL TRANSFERS
-        // - finalize the transfers!!!!
-        // - send the transfers to STRIPE to generate the real transfer of funds
-        // -------------------------------------------------------------------------------------------------------------
         it('should create an invoice, and get transfers generated', async () => {
           // Create a account
           await billingTestHelper.makeCurrentUserContextReadyForBilling();

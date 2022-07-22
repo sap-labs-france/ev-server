@@ -61,11 +61,18 @@ export default class CompanyStorage {
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
-    if (companyToSave.accountData && Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
-      companyMDB.accountData = {
-        accountID: DatabaseUtils.convertToObjectID(companyToSave.accountData.accountID),
-        platformFeeStrategy: companyToSave.accountData.platformFeeStrategy,
-      };
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
+      if (companyToSave.accountData) {
+        companyMDB.accountData = {
+          accountID: DatabaseUtils.convertToObjectID(companyToSave.accountData.accountID),
+          platformFeeStrategy: {
+            flatFeePerSession: companyToSave.accountData.platformFeeStrategy?.flatFeePerSession || 0,
+            percentage: companyToSave.accountData.platformFeeStrategy?.percentage || 0,
+          }
+        };
+      } else {
+        companyToSave.accountData = null;
+      }
     }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(companyMDB, companyToSave);
