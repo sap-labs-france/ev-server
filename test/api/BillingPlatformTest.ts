@@ -326,7 +326,7 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
       it('should not be able to create a account', async () => {
         const response = await billingTestHelper.getCurrentUserService().billingApi.createBillingAccount({
           businessOwnerID: billingTestHelper.getCurrentUserContext().id,
-          companyName: 'utbilling'
+          companyName: 'UT-Account-' + new Date().toISOString()
         });
         expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
