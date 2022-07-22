@@ -62,7 +62,7 @@ export default class CompanyStorage {
       };
     }
     if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
-      if (companyToSave.accountData) {
+      if (companyToSave.accountData?.accountID) {
         companyMDB.accountData = {
           accountID: DatabaseUtils.convertToObjectID(companyToSave.accountData.accountID),
           platformFeeStrategy: {
@@ -71,7 +71,7 @@ export default class CompanyStorage {
           }
         };
       } else {
-        companyToSave.accountData = null;
+        companyMDB.accountData = null;
       }
     }
     // Add Last Changed/Created props
