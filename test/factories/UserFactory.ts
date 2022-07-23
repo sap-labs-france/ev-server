@@ -1,6 +1,6 @@
 import { Factory } from 'rosie';
 import UserNotifications from '../../src/types/UserNotifications';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 const userFactory = Factory.define('user')
   .attr('firstName', () => faker.name.firstName())

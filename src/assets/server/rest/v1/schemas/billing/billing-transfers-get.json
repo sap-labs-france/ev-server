@@ -8,12 +8,8 @@
     },
     "Status": {
       "type": "string",
-      "enum": [
-        "pending",
-        "draft",
-        "finalized",
-        "transferred"
-      ]
+      "pattern": "^((pending|draft|finalized|transferred)(\\|pending|\\|draft|\\|finalized|\\|transferred)*)?$",
+      "sanitize": "mongo"
     },
     "AccountID": {
       "$ref": "common#/definitions/ids"

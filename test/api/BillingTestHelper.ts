@@ -3,16 +3,15 @@
 import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import { BillingAccount, BillingAccountStatus, BillingDataTransactionStop, BillingInvoice, BillingInvoiceStatus, BillingStatus, BillingTransfer, BillingTransferStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
+import { BillingTestConfigHelper, StripeTaxHelper } from './StripeTestHelper';
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
 import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
-import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import BillingFacade from '../../src/integration/billing/BillingFacade';
 import { BillingPlatformFeeStrategyFactory } from '../factories/BillingFactory';
-import { BillingTestConfigHelper } from './StripeTestHelper';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Company from '../../src/types/Company';
@@ -28,6 +27,7 @@ import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
+import Tenant from '../../src/types/Tenant';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import TestUtils from './TestUtils';
@@ -560,7 +560,7 @@ export default class BillingTestHelper {
       // --------------------------------
       // Check transaction rounded price
       // --------------------------------
-      const roundedPrice = Utils.createDecimal(transactionResponse.data.stop.roundedPrice);
+      const roundedPrice = Utils.createDecimal(transactionResponse.data.stop.roundedPrice as number);
       assert(roundedPrice.equals(expectedPrice), `The rounded price should be: ${expectedPrice} - actual value: ${roundedPrice.toNumber()}`);
       // ---------------------------
       // Check priced dimensions
@@ -629,7 +629,7 @@ export default class BillingTestHelper {
     const connectorId = 1;
     // TODO - wrong type User vs UserContext?
     const user = this.getCurrentUserContext() as any;
-    const tagId = user?.tags?.[0]?.id;
+    const tagId = user?.tags?.[0]?.id as string;
     assert(tagId, 'User must have a valid tag');
     // # Begin
     const startDate = moment(expectedStartDate);
@@ -813,7 +813,7 @@ export default class BillingTestHelper {
     assert(response?.data?.status === 'Success', 'The operation should succeed');
     assert(response?.data?.id, 'The ID should not be null');
 
-    const pricingDefinitionId = response?.data?.id;
+    const pricingDefinitionId = response?.data?.id as string;
     response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
     assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
     assert(response?.data?.entityName === chargingStation.id);
@@ -878,18 +878,25 @@ export default class BillingTestHelper {
     assert(response?.data?.status === 'Success', 'The operation should succeed');
     assert(response?.data?.id, 'The ID should not be null');
 
-    const pricingDefinitionId = response?.data?.id;
+    const pricingDefinitionId = response?.data?.id as string;
     response = await this.adminUserService.pricingApi.readPricingDefinition(pricingDefinitionId);
     assert(response?.data?.id === pricingDefinitionId, 'The ID should be: ' + pricingDefinitionId);
     assert(response?.data?.entityName === siteArea.name, 'The Site Area data should be retrieved as well');
   }
 
   public async createBillingAccount(): Promise<string> {
+    // Assign a tax rate (5% exclusive) to apply to the platform fee
+    const taxRate = StripeTaxHelper.fetchOrCreateTaxRate(this.billingImpl, 5 /* 5% */);
     let response = await this.getCurrentUserService().billingApi.createBillingAccount({
-      businessOwnerID: this.getCurrentUserContext().id
+      businessOwnerID: this.getCurrentUserContext().id,
+      companyName: 'UT-Account-' + new Date().toISOString(),
+      taxID: (await taxRate).id
     });
+    if (response.status !== StatusCodes.OK) {
+      await this.dumpLastErrors();
+    }
     expect(response.status).to.be.eq(StatusCodes.OK);
-    const accountID = response.data?.id ;
+    const accountID = response.data?.id as string;
     response = await this.getCurrentUserService().billingApi.readBillingAccount(accountID);
     assert(response.status === StatusCodes.OK, 'Response status should be 200');
     const billingAccount = response.data as BillingAccount ;
@@ -903,6 +910,9 @@ export default class BillingTestHelper {
     // Send the onboarding mail to the business user
     // ----------------------------------------------------
     let response = await this.getCurrentUserService().billingApi.onboardBillingAccount(accountID);
+    if (response.status !== StatusCodes.OK) {
+      await this.dumpLastErrors();
+    }
     expect(response.status).to.be.eq(StatusCodes.OK);
     // --------------------------------------------------------------
     // Account is now in a PENDING state
@@ -914,6 +924,9 @@ export default class BillingTestHelper {
     // Generate the link to the onboarding page
     // ----------------------------------------------------
     response = await this.getCurrentUserService().billingApi.refreshBillingAccount({ accountID, TenantID: this.getTenantID() });
+    if (response.status !== StatusCodes.OK) {
+      await this.dumpLastErrors();
+    }
     expect(response.status).to.be.eq(StatusCodes.OK);
     // --------------------------------------------------------------
     // Account is now still in a PENDING state
@@ -930,6 +943,9 @@ export default class BillingTestHelper {
     // Let's assume the onboarding has been completed successfully
     // --------------------------------------------------------------
     response = await this.getCurrentUserService().billingApi.activateBillingAccount({ accountID, TenantID: this.getTenantID() });
+    if (response.status !== StatusCodes.OK) {
+      await this.dumpLastErrors();
+    }
     expect(response.status).to.be.eq(StatusCodes.OK);
     expect(response.data?.id).to.be.eq(accountID);
     // --------------------------------------------------------------
@@ -976,27 +992,44 @@ export default class BillingTestHelper {
     return (draftTransfers && draftTransfers.length > 0) ? draftTransfers[0] : null;
   }
 
-  public async getNumberOfSessionsInTransfer(): Promise<number> {
-    // ACHTUNG: There is no data after running: npm run mochatest:createContext
-    // In that situation we return 0!
-    const draftTransfer = await this.getLatestTransfer(BillingTransferStatus.DRAFT);
-    return (draftTransfer) ? draftTransfer.sessions?.length : 0;
-  }
-
-  public async finalizeDraftTransfer(): Promise<void> {
+  public async finalizeDraftTransfer(): Promise<string> {
     const transfer = await this.getLatestTransfer(BillingTransferStatus.DRAFT);
     assert(transfer?.id, 'transfer ID should not be null');
     let response = await this.getCurrentUserService().billingApi.finalizeTransfer(transfer.id);
+    if (response.status !== StatusCodes.OK) {
+      await this.dumpLastErrors();
+    }
     expect(response.status).to.be.eq(StatusCodes.OK);
     response = await this.adminUserService.billingApi.readTransfer(transfer.id);
     expect(response.status).to.be.eq(StatusCodes.OK);
     expect(response.data.status).to.eq(BillingTransferStatus.FINALIZED);
+    expect(response.data.id).not.to.be.null;
+    return response.data.id;
+  }
+
+  public async checkTransferData(transferID: string,
+      expectedStatus: BillingTransferStatus,
+      expectedSessionCounter: number,
+      expectedCollectedFunds: number,
+      expectedCollectedFee: number,
+      expectedTransferAmount: number) : Promise<void> {
+    const response = await this.getCurrentUserService().billingApi.readTransfer(transferID);
+    expect(response.status).to.equal(StatusCodes.OK);
+    const transfer = response.data as BillingTransfer;
+    expect(transfer.status).to.equal(expectedStatus);
+    expect(transfer.sessionCounter).to.equal(expectedSessionCounter);
+    expect(transfer.collectedFunds).to.equal(expectedCollectedFunds);
+    expect(transfer.transferAmount).to.equal(expectedTransferAmount);
+    expect(transfer.invoice?.totalAmount).to.equal(expectedCollectedFee); // Includes the taxes (c.f.: taxID - 5% exclusive at the account level)
   }
 
   public async sendFinalizedTransfer(): Promise<void> {
     const transfer = await this.getLatestTransfer(BillingTransferStatus.FINALIZED);
     assert(transfer?.id, 'transfer ID should not be null');
     let response = await this.getCurrentUserService().billingApi.sendTransfer(transfer.id);
+    if (response.status !== StatusCodes.OK) {
+      await this.dumpLastErrors();
+    }
     expect(response.status).to.be.eq(StatusCodes.OK);
     response = await this.adminUserService.billingApi.readTransfer(transfer.id);
     expect(response.status).to.be.eq(StatusCodes.OK);

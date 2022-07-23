@@ -563,8 +563,10 @@ export default class BillingService {
       businessOwnerID: user.id,
       status: BillingAccountStatus.IDLE,
       accountExternalID: null,
+      taxID: filteredRequest.taxID,
       createdBy: { id: req.user.id },
-      createdOn: new Date()
+      createdOn: new Date(),
+      companyName: filteredRequest.companyName
     };
     // Save the account
     billingAccount.id = await BillingStorage.saveAccount(req.tenant, billingAccount);
@@ -781,9 +783,9 @@ export default class BillingService {
     const user = await UserStorage.getUser(req.tenant, billingAccount.businessOwnerID);
     UtilsService.assertObjectExists(action, user, `User ID '${billingAccount.businessOwnerID}' does not exist`, MODULE_NAME, 'handleSendTransferInvoice', req.user);
     // Generate the invoice with a fee per session
-    const invoice = await billingImpl.billPlatformFee(transfer, user);
+    const invoice = await billingImpl.billPlatformFee(transfer, user, billingAccount);
     // Funds to transfer
-    const transferAmount = Utils.createDecimal(transfer.totalAmount).minus(invoice.totalAmount).toNumber();
+    const transferAmount = Utils.createDecimal(transfer.collectedFunds).minus(invoice.totalAmount).toNumber();
     // Update transfer properties
     transfer = {
       ...transfer,

@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { BillingAccount, BillingAccountStatus, BillingChargeInvoiceAction, BillingInvoiceStatus, BillingTransfer, BillingTransferStatus } from '../../src/types/Billing';
+import { BillingAccount, BillingAccountStatus, BillingInvoiceStatus, BillingTransfer, BillingTransferStatus } from '../../src/types/Billing';
 import { BillingPlatformFeeStrategyFactory, BillingTransferFactory } from '../factories/BillingFactory';
 import chai, { expect } from 'chai';
 
@@ -36,6 +36,11 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
     await billingTestHelper.initialize(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING_PLATFORM);
     // Initialize the Billing module
     await billingTestHelper.setBillingSystemValidCredentials();
+  });
+
+  afterAll(async () => {
+    // Close DB connection
+    await global.database.stop();
   });
 
   describe('Where the admin user', () => {
@@ -87,27 +92,6 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
         expect(companyResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
       });
 
-      // Already tested
-      xit('should update a company to assign a account', async () => {
-        const billingAccount = await billingTestHelper.getActivatedAccount();
-        let companyResponse = await billingTestHelper.getCurrentUserService().companyApi.create(CompanyFactory.build());
-        expect(companyResponse.status).to.be.eq(StatusCodes.OK);
-        const companyID = companyResponse.data.id;
-        const platformFeeStrategy = BillingPlatformFeeStrategyFactory.build();
-        companyResponse = await billingTestHelper.getCurrentUserService().companyApi.update({
-          id: companyID,
-          ...CompanyFactory.build(),
-          accountData: {
-            accountID: billingAccount.id,
-            platformFeeStrategy
-          }
-        });
-        expect(companyResponse.status).to.be.eq(StatusCodes.OK);
-        companyResponse = await billingTestHelper.getCurrentUserService().companyApi.readById(companyID);
-        expect(companyResponse.data.accountData.accountID).to.eq(billingAccount.id);
-        expect(companyResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
-      });
-
       it('should assign an account to a site', async () => {
         const billingAccount = await billingTestHelper.getActivatedAccount();
         // Create a company
@@ -124,7 +108,7 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           }
         });
         expect(siteResponse.status).to.be.eq(StatusCodes.OK);
-        siteResponse = await billingTestHelper.getCurrentUserService().siteApi.readById(siteResponse.data.id);
+        siteResponse = await billingTestHelper.getCurrentUserService().siteApi.readById(siteResponse.data.id as string);
         expect(siteResponse.data.accountData.accountID).to.eq(billingAccount.id);
         expect(siteResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
       });
@@ -154,22 +138,9 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
         });
         expect(siteResponse.status).to.be.eq(StatusCodes.OK);
 
-        siteResponse = await billingTestHelper.getCurrentUserService().siteApi.readById(siteID);
+        siteResponse = await billingTestHelper.getCurrentUserService().siteApi.readById(siteID as string);
         expect(siteResponse.data.accountData.accountID).to.eq(billingAccount.id);
         expect(siteResponse.data.accountData.platformFeeStrategy).to.deep.eq(platformFeeStrategy);
-      });
-
-      xit('should send account onboarding', async () => {
-        // Already tested
-        let response = await billingTestHelper.getCurrentUserService().billingApi.createBillingAccount({
-          businessOwnerID: billingTestHelper.getCurrentUserContext().id
-        });
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        response = await billingTestHelper.getCurrentUserService().billingApi.onboardBillingAccount(response.data.id);
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        response = await billingTestHelper.getCurrentUserService().billingApi.readBillingAccount(response.data.id);
-        expect(response.status).to.be.eq(StatusCodes.OK);
-        expect(response.data.status).to.be.eq(BillingAccountStatus.PENDING);
       });
 
       it('should not able to send account onboarding for an activated account', async () => {
@@ -243,7 +214,7 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
         const finalizeResponse = await billingTestHelper.getCurrentUserService().billingApi.finalizeTransfer(transfer.id);
         expect(finalizeResponse.status).to.be.eq(StatusCodes.OK);
         // Only works for bank accounts using the USD currency!!!!
-        await billingTestHelper.addFundsToBalance(transfer.totalAmount);
+        await billingTestHelper.addFundsToBalance(transfer.collectedFunds);
         const sendResponse = await billingTestHelper.getCurrentUserService().billingApi.sendTransfer(transfer.id);
         expect(sendResponse.status).to.be.eq(StatusCodes.OK);
       });
@@ -266,20 +237,6 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           await billingTestHelper.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF */);
         });
 
-        // -------------------------------------------------------------------------------------------------------------
-        // TO DO - GENERATE SEVERAL TRANSACTIONS
-        // -------------------------------------------------------------------------------------------------------------
-        // - create and onboard two accounts
-        // - assign a account at a company level (with a platform fee strategy)
-        // - Override the account at a site level (with a distinct platform fee strategy)
-        // - Generate several transactions
-        // - Make sure to select the periodic billing mode and generate DRAFT invoices
-        // - Make sure to have several sessions per invoices
-        // - Make sure each invoices targets SEVERAL SUB-ACCOUNTS
-        // - force the periodic billing and thus GENERATE SEVERAL TRANSFERS
-        // - finalize the transfers!!!!
-        // - send the transfers to STRIPE to generate the real transfer of funds
-        // -------------------------------------------------------------------------------------------------------------
         it('should create an invoice, and get transfers generated', async () => {
           // Create a account
           await billingTestHelper.makeCurrentUserContextReadyForBilling();
@@ -291,9 +248,11 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
             onlyProcessUnpaidInvoices: false,
             forceOperation: true
           };
-          const operationResult: BillingChargeInvoiceAction = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
+          const operationResult = await billingTestHelper.billingImpl.chargeInvoices(taskConfiguration);
           assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
           assert(operationResult.inError === 0, 'The operation should detect any errors');
+          // // Explicit call to dispatch collected funds
+          await billingTestHelper.billingImpl.dispatchCollectedFunds({ forceOperation: true });
           // The transaction should now have a different status and know the final invoice number
           const billingDataStop1 = await billingTestHelper.checkTransactionBillingData(transactionID1, BillingInvoiceStatus.PAID);
           const billingDataStop2 = await billingTestHelper.checkTransactionBillingData(transactionID2, BillingInvoiceStatus.PAID);
@@ -306,9 +265,10 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           // Check Transfer Data for the current account ID
           const nbDraftTransfers = await billingTestHelper.checkForDraftTransfers();
           assert(nbDraftTransfers === 1, 'The expected number of DRAFT transfers is not correct');
-          await billingTestHelper.finalizeDraftTransfer();
+          const transferID = await billingTestHelper.finalizeDraftTransfer();
+          await billingTestHelper.checkTransferData(transferID, BillingTransferStatus.FINALIZED, 2, 20.16, 1.68, 18.48);
           // Make sure we have the more than the required amount
-          await billingTestHelper.addFundsToBalance(20.16);
+          await billingTestHelper.addFundsToBalance(18.48);
           // Send the the money to to sub account
           await billingTestHelper.sendFinalizedTransfer();
         });
@@ -325,6 +285,8 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           await billingTestHelper.makeCurrentUserContextReadyForBilling();
           // Generate a PAID transaction
           const transactionID = await billingTestHelper.generateTransactionAndCheckBillingStatus(BillingInvoiceStatus.PAID);
+          // // Explicit call to dispatch collected funds
+          await billingTestHelper.billingImpl.dispatchCollectedFunds({ forceOperation: true });
           // The transaction should now have a different status and know the final invoice number
           const billingDataStop = await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
           // Check billing data
@@ -335,9 +297,10 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
           // Check Transfer Data for the current account ID
           const nbDraftTransfers = await billingTestHelper.checkForDraftTransfers();
           assert(nbDraftTransfers === 1, 'The expected number of DRAFT transfers is not correct');
-          await billingTestHelper.finalizeDraftTransfer();
+          const transferID = await billingTestHelper.finalizeDraftTransfer();
+          await billingTestHelper.checkTransferData(transferID, BillingTransferStatus.FINALIZED, 1, 10.08, 0.84, 9.24);
           // Make sure we have the more than the required amount
-          await billingTestHelper.addFundsToBalance(10.08);
+          await billingTestHelper.addFundsToBalance(9.24);
           // Send the the money to to sub account
           await billingTestHelper.sendFinalizedTransfer();
         });
@@ -362,7 +325,8 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
 
       it('should not be able to create a account', async () => {
         const response = await billingTestHelper.getCurrentUserService().billingApi.createBillingAccount({
-          businessOwnerID: billingTestHelper.getCurrentUserContext().id
+          businessOwnerID: billingTestHelper.getCurrentUserContext().id,
+          companyName: 'UT-Account-' + new Date().toISOString()
         });
         expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });

@@ -280,10 +280,18 @@ const describeif = (condition) => condition ? describe : describe.skip;
 describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
   jest.setTimeout(1000000);
 
+  beforeAll(async () => {
+    global.database = new MongoDBStorage(config.get('storage'));
+    await global.database.start();
+  });
+
+  afterAll(async () => {
+    // Close DB connection
+    await global.database.stop();
+  });
+
   describe('With component SmartCharging (utsmartcharging)', () => {
     beforeAll(async () => {
-      global.database = new MongoDBStorage(config.get('storage'));
-      await global.database.start();
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_SMART_CHARGING);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);

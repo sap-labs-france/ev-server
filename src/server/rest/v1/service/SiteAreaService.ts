@@ -408,7 +408,7 @@ export default class SiteAreaService {
         req.tenant, siteArea, { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
     }
     // Retrigger Smart Charging
-    SiteAreaService.triggerSmartCharging(req.tenant, action, siteArea);
+    void SiteAreaService.triggerSmartCharging(req.tenant, action, siteArea);
     await Logging.logInfo({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
       tenantID: req.tenant.id,
@@ -477,30 +477,27 @@ export default class SiteAreaService {
     }
   }
 
-  private static triggerSmartCharging(tenant: Tenant, action: ServerAction, siteArea: SiteArea) {
+  private static async triggerSmartCharging(tenant: Tenant, action: ServerAction, siteArea: SiteArea) {
     if (siteArea.smartCharging) {
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      setTimeout(async () => {
-        const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea);
-        if (siteAreaLock) {
-          try {
-            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant);
-            if (smartCharging) {
-              await smartCharging.computeAndApplyChargingProfiles(siteArea);
-            }
-          } catch (error) {
-            await Logging.logError({
-              ...LoggingHelper.getSiteAreaProperties(siteArea),
-              tenantID: tenant.id,
-              action, module: MODULE_NAME, method: 'triggerSmartCharging',
-              message: 'An error occurred while trying to call smart charging',
-              detailedMessages: { error: error.stack }
-            });
-          } finally {
-            await LockingManager.release(siteAreaLock);
+      const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea);
+      if (siteAreaLock) {
+        try {
+          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant);
+          if (smartCharging) {
+            await smartCharging.computeAndApplyChargingProfiles(siteArea);
           }
+        } catch (error) {
+          await Logging.logError({
+            ...LoggingHelper.getSiteAreaProperties(siteArea),
+            tenantID: tenant.id,
+            action, module: MODULE_NAME, method: 'triggerSmartCharging',
+            message: 'An error occurred while trying to call smart charging',
+            detailedMessages: { error: error.stack }
+          });
+        } finally {
+          await LockingManager.release(siteAreaLock);
         }
-      }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
+      }
     }
   }
 

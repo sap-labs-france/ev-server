@@ -175,7 +175,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country',
           'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'accountData'
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
       },
       {
@@ -233,7 +233,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'issuer', 'logo',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
-          'address.department', 'address.region', 'address.country', 'address.coordinates', 'accountData'
+          'address.department', 'address.region', 'address.country', 'address.coordinates',
+          'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession',
+          'accountData.platformFeeStrategy.percentage', 'accountData.account.companyName',
+          'accountData.account.businessOwner.id', 'accountData.account.businessOwner.email',
+          'accountData.account.businessOwner.firstName', 'accountData.account.businessOwner.name'
         ]
       },
       {
@@ -256,7 +260,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'address.department', 'address.region', 'address.country',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectorStats', 'accountData'
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectorStats'
         ]
       },
       {
@@ -265,7 +269,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
-          'address.department', 'address.region', 'address.country', 'address.coordinates', 'accountData'
+          'address.department', 'address.region', 'address.country', 'address.coordinates',
+          'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession', 'accountData.platformFeeStrategy.percentage',
+          'accountData.account.businessOwner'
         ]
       },
       {
@@ -505,15 +511,17 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.BILLING_ACCOUNT,
         action: [Action.LIST, Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.BILLING_ONBOARD_ACCOUNT],
         attributes: [
-          'id', 'accountExternalID', 'businessOwnerID', 'businessOwner.id', 'businessOwner.firstName', 'businessOwner.name', 'businessOwner.email', 'status'
+          'id', 'accountExternalID', 'taxID', 'businessOwnerID', 'businessOwner.id', 'businessOwner.firstName',
+          'businessOwner.name', 'businessOwner.email', 'status', 'companyName'
         ]
       },
       {
         resource: Entity.BILLING_TRANSFER,
         action: [Action.LIST, Action.READ, Action.BILLING_FINALIZE_TRANSFER, Action.BILLING_SEND_TRANSFER],
         attributes: [
-          'id', 'status', 'createdOn', 'sessions', 'totalAmount', 'transferAmount', 'accountID', 'transferExternalID',
-          'account.businessOwnerID', 'account.accountExternalID', 'businessOwner.name', 'businessOwner.firstName',
+          'id', 'status', 'createdOn', 'sessionCounter', 'collectedFunds', 'collectedFlatFees', 'collectedFees', 'totalConsumptionWh', 'totalDurationSecs',
+          'transferAmount', 'accountID', 'transferExternalID',
+          'account.companyName', 'account.businessOwnerID', 'account.accountExternalID', 'businessOwner.name', 'businessOwner.firstName',
           'platformFeeData.feeAmount', 'platformFeeData.feeTaxAmount', 'currency', 'invoice.documentNumber', 'invoice.totalAmount'
         ]
       },

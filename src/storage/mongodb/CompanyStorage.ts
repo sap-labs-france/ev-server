@@ -1,3 +1,4 @@
+import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams, Logo } from '../../types/GlobalType';
 
 import Company from '../../types/Company';
@@ -8,7 +9,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
 import SiteStorage from './SiteStorage';
-import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CompanyStorage';
@@ -61,11 +61,18 @@ export default class CompanyStorage {
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
-    if (companyToSave.accountData) {
-      companyMDB.accountData = {
-        accountID: DatabaseUtils.convertToObjectID(companyToSave.accountData.accountID),
-        platformFeeStrategy: companyToSave.accountData.platformFeeStrategy,
-      };
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
+      if (companyToSave.accountData?.accountID) {
+        companyMDB.accountData = {
+          accountID: DatabaseUtils.convertToObjectID(companyToSave.accountData.accountID),
+          platformFeeStrategy: {
+            flatFeePerSession: companyToSave.accountData.platformFeeStrategy?.flatFeePerSession || 0,
+            percentage: companyToSave.accountData.platformFeeStrategy?.percentage || 0,
+          }
+        };
+      } else {
+        companyMDB.accountData = null;
+      }
     }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(companyMDB, companyToSave);
@@ -189,6 +196,22 @@ export default class CompanyStorage {
     if (params.withSite) {
       DatabaseUtils.pushSiteLookupInAggregation(
         { tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'companyID', asField: 'sites' });
+    }
+    // Connected account
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
+      // Account data
+      DatabaseUtils.pushAccountLookupInAggregation({
+        tenantID: tenant.id, aggregation,
+        asField: 'accountData.account', localField: 'accountData.accountID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+      // Business Owner
+      DatabaseUtils.pushUserLookupInAggregation({
+        tenantID: tenant.id, aggregation: aggregation,
+        asField: 'accountData.account.businessOwner',
+        localField: 'accountData.account.businessOwnerID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
     }
     // Company Logo
     if (params.withLogo) {
