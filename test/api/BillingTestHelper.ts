@@ -937,6 +937,7 @@ export default class BillingTestHelper {
     const taxRate = StripeTaxHelper.fetchOrCreateTaxRate(this.billingImpl, 5 /* 5% */);
     let response = await this.getCurrentUserService().billingApi.createBillingAccount({
       businessOwnerID: this.getCurrentUserContext().id,
+      companyName: 'UT-Account-' + new Date().toISOString(),
       taxID: (await taxRate).id
     });
     if (response.status !== StatusCodes.OK) {

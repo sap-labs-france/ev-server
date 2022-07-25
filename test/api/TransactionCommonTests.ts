@@ -10,7 +10,7 @@ import TestUtils from './TestUtils';
 import { TransactionInErrorType } from '../../src/types/InError';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 

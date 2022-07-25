@@ -1,6 +1,6 @@
 import { Factory } from 'rosie';
 import { ObjectId } from 'mongodb';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export default Factory.define('tag')
   .attr('id', () => faker.random.alphaNumeric(20).toString().toUpperCase())

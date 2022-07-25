@@ -41,7 +41,7 @@ export default class BillingRouter {
     // -----------------------------------
     this.buildRouteBillingGetTaxes();
     // -----------------------------------
-    // ROUTES for SUB-ACCOUNTS
+    // ROUTES for Connected Accounts
     // -----------------------------------
     this.buildRouteBillingCreateAccount();
     this.buildRouteBillingGetAccounts();
