@@ -25,7 +25,7 @@ import Company from '../../../../types/Company';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import { HttpGetChargingStationTemplateRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
+import { HttpGetChargingStationTemplatesRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
 import { HttpLogGetRequest } from '../../../../types/requests/HttpLogRequest';
 import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
@@ -435,7 +435,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetChargingStationTemplatesAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
-      filteredRequest: Partial<HttpGetChargingStationTemplateRequest>): Promise<AuthorizationFilter> {
+      filteredRequest: HttpGetChargingStationTemplatesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

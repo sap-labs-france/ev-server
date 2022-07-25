@@ -31,7 +31,7 @@ export default class ChargingStationTemplateStorage {
   }
 
   public static async getChargingStationTemplates(
-      params: { withUser?: boolean, search?: string; IDs?: string[];} = {},
+      params: { withUser?: boolean; search?: string; IDs?: string[];} = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationTemplate>> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
