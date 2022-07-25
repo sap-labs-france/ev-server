@@ -378,6 +378,19 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
+  public async downloadTransferDocument(transfer: BillingTransfer): Promise<Buffer> {
+    await this.checkConnection();
+    // Get fresh data because persisted url expires after 30 days
+    const stripeTransferInvoice = await this.getStripeInvoice(transfer.invoice.invoiceID);
+    const downloadUrl = stripeTransferInvoice.invoice_pdf;
+    // Get document
+    const response = await this.axiosInstance.get(downloadUrl, {
+      responseType: 'arraybuffer'
+    });
+    // Convert
+    return Buffer.from(response.data);
+  }
+
   // eslint-disable-next-line @typescript-eslint/require-await
   public async consumeBillingEvent(req: Request): Promise<boolean> {
     let event: { data, type: string };
