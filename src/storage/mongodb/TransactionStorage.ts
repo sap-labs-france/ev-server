@@ -1063,13 +1063,16 @@ export default class TransactionStorage {
   }
 
   public static async getTransaction(tenant: Tenant, id: number = Constants.UNKNOWN_NUMBER_ID,
-      params: { withTag?: boolean; withCar?: boolean; withUser?: boolean, withChargingStation?: boolean } = {}, projectFields?: string[]): Promise<Transaction> {
+      params: { withTag?: boolean; withCar?: boolean; withUser?: boolean, withChargingStation?: boolean, siteIDs?: string[]; userIDs?: string[] } = {},
+      projectFields?: string[]): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenant, {
       transactionIDs: [id],
       withTag: params.withTag,
       withCar: params.withCar,
       withChargingStation: params.withChargingStation,
       withUser: params.withUser,
+      userIDs: params.userIDs,
+      siteIDs: params.siteIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }

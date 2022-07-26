@@ -54,6 +54,18 @@ export interface AuthorizationFilter {
   metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
+export interface DynamicAuthorizationsFilter {
+  UserID: string;
+  SiteID: string;
+  CompanyID: string;
+}
+
+export enum DynamicFilter {
+  USER_ID = 'UserID',
+  SITE_ID = 'SiteID',
+  COMPANY_ID = 'CompanyID',
+}
+
 export interface Grant {
   resource: Entity;
   action: Action | Action[];
@@ -175,6 +187,8 @@ export enum Action {
   UPDATE_CHARGING_PROFILE = 'UpdateChargingProfile',
   GET_CONNECTOR_QR_CODE = 'GetConnectorQRCode',
   VIEW_USER_DATA = 'ViewUserData',
+  SYNCHRONIZE_REFUNDED_TRANSACTION = 'SynchronizeRefundedTransaction',
+  PUSH_TRANSACTION_CDR = 'PushTransactionCDR',
 }
 
 export interface AuthorizationContext {
@@ -274,6 +288,7 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canGetOCPPParams?:boolean;
   canUpdateChargingProfile?:boolean;
   canGetConnectorQRCode?:boolean;
+  canPushTransactionCDR?: boolean;
 }
 
 export interface ConnectorAuthorizationActions extends AuthorizationActions {
@@ -292,6 +307,12 @@ export interface BillingAccountAuthorizationActions extends AuthorizationActions
 
 export interface BillingTransferAuthorizationActions extends AuthorizationActions {
   canTransfer?: boolean;
+}
+
+export interface TransactionAuthorizationActions extends AuthorizationActions {
+  canSynchronizeRefundedTransaction?: boolean;
+  canRefundTransaction?: boolean;
+  canPushTransactionCDR?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

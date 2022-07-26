@@ -1,4 +1,4 @@
-import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, DynamicAuthorizationsFilter, Entity } from '../../../../types/Authorization';
 import { AssetDataResult, BillingAccountsDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, TransactionDataResult, UserDataResult } from '../../../../types/DataResult';
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
@@ -29,7 +29,6 @@ import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpLogGetRequest } from '../../../../types/requests/HttpLogRequest';
 import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
-import Logging from '../../../../utils/Logging';
 import { OCPICapability } from '../../../../types/ocpi/OCPIEvse';
 import PricingDefinition from '../../../../types/Pricing';
 import RegistrationToken from '../../../../types/RegistrationToken';
@@ -750,6 +749,9 @@ export default class AuthorizationService {
     chargingStation.canMaintainPricingDefinitions = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.MAINTAIN_PRICING_DEFINITIONS, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+    chargingStation.canPushTransactionCDR = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.PUSH_TRANSACTION_CDR, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
     // Remote start stop capability using OCPI data (Roaming)
     let hasRemoteStartStopCapability = true;
     if (!chargingStation.issuer) {
@@ -1128,9 +1130,8 @@ export default class AuthorizationService {
     Utils.removeCanPropertiesWithFalseValue(carCatalog);
   }
 
-  // Transaction NEW
   public static async checkAndGetTransactionsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
-      filteredRequest: Partial<HttpTransactionsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      filteredRequest?: Partial<HttpTransactionsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -1149,9 +1150,11 @@ export default class AuthorizationService {
       tenant, Entity.TRANSACTION, userToken, filteredRequest, filteredRequest.ID ? { TransactionID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
-  public static async addTransactionsAuthorizations(tenant: Tenant, userToken: UserToken, transactions: TransactionDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
-  // Add Meta Data
+  public static async addTransactionsAuthorizations(tenant: Tenant, userToken: UserToken,
+      transactions: TransactionDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Meta Data
     transactions.metadata = authorizationFilter.metadata;
+    transactions.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
     // Add Authorizations
     for (const transaction of transactions.result) {
       await AuthorizationService.addTransactionAuthorizations(tenant, userToken, transaction, authorizationFilter);
@@ -1159,17 +1162,32 @@ export default class AuthorizationService {
   }
 
   public static async addTransactionAuthorizations(tenant: Tenant, userToken: UserToken, transaction: Transaction, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Set entity dynamic auth filters that will be used by auth framework
+    const dynamicAuthorizationFilter: DynamicAuthorizationsFilter = { CompanyID: transaction.companyID, SiteID: transaction.siteID, UserID: transaction.userID };
     transaction.canRead = true; // Always true as it should be filtered upfront
     transaction.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.DELETE, authorizationFilter, { CarID: transaction.id }, transaction);
+      tenant, userToken, Entity.TRANSACTION, Action.DELETE, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.UPDATE, authorizationFilter, { CarID: transaction.id }, transaction);
-    transaction.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+      tenant, userToken, Entity.TRANSACTION, Action.UPDATE, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canRefundTransaction = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.REFUND_TRANSACTION, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canSynchronizeRefundedTransaction = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canPushTransactionCDR = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.PUSH_TRANSACTION_CDR, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    // Check and remove sensible data
+    const sensibleUserData = { UserData: true, TagData: true, CarCatalogData: true, CarData: true, BillingData: true };
+    // Transaction sensible data
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter,
+      { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction);
+    // Transaction stop sensible data
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter,
+      { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction.stop);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(transaction);
   }
-  // End transaction
 
   private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,
       filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {

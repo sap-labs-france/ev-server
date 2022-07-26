@@ -96,7 +96,7 @@ export default class TransactionCommonTests {
       expect(transactionResponse.data).not.null;
       expect(transactionResponse.data.tagID).eq(tagId);
     } else {
-      expect(transactionResponse.status).eq(StatusCodes.FORBIDDEN);
+      expect(transactionResponse.status).eq(StatusCodes.NOT_FOUND);
       expect(transactionResponse.data).not.null;
     }
   }
@@ -1081,30 +1081,55 @@ export default class TransactionCommonTests {
   }
 
   public async testMultiDeleteNotFoundTransactions() {
+    // Only non-existent
     const response = await this.transactionUserService.transactionApi.deleteMany([faker.datatype.number(100000), faker.datatype.number(100000)]);
-    expect(response.status).to.equal(StatusCodes.OK);
-    expect(response.data.inSuccess).to.equal(0);
-    expect(response.data.inError).to.equal(2);
-  }
-
-  public async testMultiDeleteTransactions(allowed = true) {
+    expect(response.status).to.equal(StatusCodes.NOT_FOUND);
+    // Mix existing and non-existent
     const connectorId = 1;
     const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const meterStop = 1000;
     const startDate = moment();
     const stopDate = startDate.clone().add(1, 'hour');
+    // Transaction 1
     const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(startTransactionResponse).to.be.transactionValid;
     const transactionId = startTransactionResponse.transactionId;
     const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+    // Delete
     const transactionsDeleted = await this.transactionUserService.transactionApi.deleteMany([transactionId, faker.datatype.number(100000)]);
+    expect(transactionsDeleted.status).to.equal(StatusCodes.NOT_FOUND);
+  }
+
+  public async testMultiDeleteExistingTransactions(allowed = true) {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tags[0].id;
+    const meterStart = 0;
+    const meterStop = 1000;
+    const startDate = moment();
+    const stopDate = startDate.clone().add(1, 'hour');
+    // Transaction 1
+    const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(startTransactionResponse).to.be.transactionValid;
+    const transactionId = startTransactionResponse.transactionId;
+    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
+    expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+    // Transaction 2
+    const startTransactionResponse2 = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(startTransactionResponse2).to.be.transactionValid;
+    const transactionId2 = startTransactionResponse2.transactionId;
+    const stopTransactionResponse2 = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate.toDate());
+    expect(stopTransactionResponse2).to.be.transactionStatus('Accepted');
+    // Delete
+    const transactionsDeleted = await this.transactionUserService.transactionApi.deleteMany([transactionId, transactionId2]);
     if (allowed) {
       expect(transactionsDeleted.status).to.equal(StatusCodes.OK);
-      expect(transactionsDeleted.data.inSuccess).to.equal(1);
-      expect(transactionsDeleted.data.inError).to.equal(1);
+      expect(transactionsDeleted.data.inSuccess).to.equal(2);
+      expect(transactionsDeleted.data.inError).to.equal(0);
     } else {
       expect(transactionsDeleted.status).to.equal(StatusCodes.FORBIDDEN);
     }

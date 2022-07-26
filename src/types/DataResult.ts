@@ -83,6 +83,7 @@ export interface TagDataResult extends DataResult<Tag> {
 
 export interface TransactionDataResult extends DataResult<Transaction> {
   stats: TransactionStats;
+  canListUsers?: boolean;
 }
 
 export interface BillingInvoiceDataResult extends DataResult<BillingInvoice> {
