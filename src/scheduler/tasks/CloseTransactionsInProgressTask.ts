@@ -28,7 +28,7 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
         const ocppService = new OCPPService(Configuration.getChargingStationConfig());
         // Get opened transactions to close
         const transactions = await TransactionStorage.getTransactions(
-          tenant, { transactionsToClose: true, issuer: true }, Constants.DB_PARAMS_MAX_LIMIT);
+          tenant, { transactionsToStop: true, issuer: true }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const transaction of transactions.result) {
           try {
             // Soft stop transaction

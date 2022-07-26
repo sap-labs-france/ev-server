@@ -1,0 +1,22 @@
+{
+  "$id": "billing-create-account",
+  "title": "Create a Billing account Request",
+  "type": "object",
+  "properties": {
+    "businessOwnerID": {
+      "$ref": "common#/definitions/id"
+    },
+    "companyName": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "taxID": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "businessOwnerID",
+    "companyName"
+  ]
+}

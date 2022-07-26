@@ -5,13 +5,9 @@
   "properties": {
     "Email": {
       "$ref": "user#/definitions/email"
-    },
-    "Tenant": {
-      "$ref": "common#/definitions/authSubdomain"
     }
   },
   "required": [
-    "Email",
-    "Tenant"
+    "Email"
   ]
 }

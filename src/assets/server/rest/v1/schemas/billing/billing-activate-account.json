@@ -1,0 +1,13 @@
+{
+  "$id": "billing-activate-account",
+  "title": "Activate a Billing account Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

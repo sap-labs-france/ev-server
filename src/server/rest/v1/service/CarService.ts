@@ -97,7 +97,7 @@ export default class CarService {
         encoding = image.substring(image.indexOf(';') + 1, image.indexOf(',')) as BufferEncoding;
         image = image.substring(image.indexOf(',') + 1);
       }
-      res.setHeader('content-type', header);
+      res.setHeader('Content-Type', header);
       res.send(Buffer.from(image, encoding));
     } else {
       res.status(StatusCodes.NOT_FOUND);

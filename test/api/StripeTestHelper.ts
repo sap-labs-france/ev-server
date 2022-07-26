@@ -1,4 +1,4 @@
-import { BillingAccount, BillingChargeInvoiceAction, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
+import { BillingAccount, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { expect } from 'chai';
@@ -26,21 +26,104 @@ import responseHelper from '../helpers/responseHelper';
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
+export class BillingTestConfigHelper {
+  public static isBillingProperlyConfigured(): boolean {
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(false);
+    // Check that the mandatory settings are properly provided
+    return (!!billingSettings.stripe.publicKey
+      && !!billingSettings.stripe.secretKey
+      && !!billingSettings.stripe.url);
+  }
+
+  public static getLocalSettings(immediateBillingAllowed: boolean): BillingSettings {
+    // ----------------------------------
+    // CONFIGURATION EXAMPLE - in test/local.json
+    // ----------------------------------
+    // "billing": {
+    //   "isTransactionBillingActivated": true,
+    //   "immediateBillingAllowed": true,
+    //   "periodicBillingAllowed": false,
+    //   "taxID": ""
+    // },
+    // "stripe": {
+    //   "url": "https://dashboard.stripe.com/b/acct_1FFFFFFFFFFF",
+    //   "publicKey": "pk_test_511FFFFFFFFFFF",
+    //   "secretKey": "sk_test_51K1FFFFFFFFFF"
+    // },
+    const billingProperties = {
+      isTransactionBillingActivated: config.get('billing.isTransactionBillingActivated'),
+      immediateBillingAllowed: immediateBillingAllowed, // config.get('billing.immediateBillingAllowed'),
+      periodicBillingAllowed: !immediateBillingAllowed, // config.get('billing.periodicBillingAllowed'),
+      taxID: config.get('billing.taxID')
+    };
+    const stripeProperties = {
+      url: config.get('stripe.url'),
+      publicKey: config.get('stripe.publicKey'),
+      secretKey: config.get('stripe.secretKey'),
+    };
+    const settings: BillingSettings = {
+      identifier: TenantComponents.BILLING,
+      type: BillingSettingsType.STRIPE,
+      billing: billingProperties,
+      stripe: stripeProperties,
+    };
+
+    // -----------------------------------------------------------------
+    // Our test may need the immediate billing to be switched off!
+    // Because we want to check the DRAFT state of the invoice
+    settings.billing.immediateBillingAllowed = immediateBillingAllowed;
+    // -----------------------------------------------------------------
+    return settings;
+  }
+}
+
+export class StripeTaxHelper {
+  public static async fetchOrCreateTaxRate(billingImplementation: StripeBillingIntegration, rate: number) : Promise<Stripe.TaxRate> {
+    // Get the stripe facade
+    const stripeInstance = await billingImplementation.getStripeInstance();
+    // Get the list of tax rates
+    const taxRates = await stripeInstance.taxRates.list({
+      limit: 10,
+      active: true,
+      inclusive: false
+    });
+    let taxRate = null;
+    // Iterate the list to find one having the expected rate
+    for (const existingTaxRate of taxRates.data) {
+      if (existingTaxRate.percentage === rate && !existingTaxRate.inclusive) {
+        taxRate = existingTaxRate;
+        break;
+      }
+    }
+    if (!taxRate) {
+      // Not found - let's create it!
+      taxRate = await stripeInstance.taxRates.create({
+        display_name: 'Tax',
+        description: `Tax rate - ${rate}%`,
+        percentage: rate,
+        inclusive: false
+      });
+    }
+    expect(taxRate).to.not.be.null;
+    return taxRate;
+  }
+}
+
 export default class StripeTestHelper {
   // Tenant: utbilling
-  public tenantContext: TenantContext;
+  private tenantContext: TenantContext;
   // User Service for action requiring admin permissions (e.g.: set/reset stripe settings)
-  public adminUserContext: User;
-  public adminUserService: CentralServerService;
+  private adminUserContext: User;
+  private adminUserService: CentralServerService;
   // Dynamic User for testing billing against an test STRIPE account
-  public dynamicUser: User;
+  private dynamicUser: User;
   // Billing Implementation - STRIPE
-  public billingImpl: StripeBillingIntegration;
-  public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
+  private billingImpl: StripeBillingIntegration;
+  private billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
 
-  public async initialize(): Promise<void> {
+  public async initialize(tenantContext = ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING): Promise<void> {
 
-    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+    this.tenantContext = await ContextProvider.defaultInstance.getTenantContext(tenantContext);
     this.adminUserContext = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     this.adminUserService = new CentralServerService(
       this.tenantContext.getTenant().subdomain,
@@ -73,7 +156,7 @@ export default class StripeTestHelper {
   }
 
   public async setBillingSystemValidCredentials(immediateBilling: boolean) : Promise<void> {
-    const billingSettings = this.getLocalSettings(immediateBilling);
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(immediateBilling);
     await this.saveBillingSettings(billingSettings);
     billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenant(), billingSettings.stripe.secretKey);
     this.billingImpl = StripeBillingIntegration.getInstance(this.getTenant(), billingSettings);
@@ -81,7 +164,7 @@ export default class StripeTestHelper {
   }
 
   public async fakeLiveBillingSettings() : Promise<StripeBillingIntegration> {
-    const billingSettings = this.getLocalSettings(true);
+    const billingSettings = BillingTestConfigHelper.getLocalSettings(true);
     const mode = 'live';
     billingSettings.stripe.secretKey = `sk_${mode}_0234567890`;
     billingSettings.stripe.publicKey = `pk_${mode}_0234567890`;
@@ -89,33 +172,6 @@ export default class StripeTestHelper {
     const billingImpl = StripeBillingIntegration.getInstance(this.getTenant(), billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
     return billingImpl;
-  }
-
-  public getLocalSettings(immediateBillingAllowed: boolean): BillingSettings {
-    const billingProperties = {
-      isTransactionBillingActivated: config.get('billing.isTransactionBillingActivated'),
-      immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
-      periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
-      taxID: config.get('billing.taxID')
-    };
-    const stripeProperties = {
-      url: config.get('stripe.url'),
-      publicKey: config.get('stripe.publicKey'),
-      secretKey: config.get('stripe.secretKey'),
-    };
-    const settings: BillingSettings = {
-      identifier: TenantComponents.BILLING,
-      type: BillingSettingsType.STRIPE,
-      billing: billingProperties,
-      stripe: stripeProperties,
-    };
-
-    // -----------------------------------------------------------------
-    // Our test may need the immediate billing to be switched off!
-    // Because we want to check the DRAFT state of the invoice
-    settings.billing.immediateBillingAllowed = immediateBillingAllowed;
-    // -----------------------------------------------------------------
-    return settings;
   }
 
   public async saveBillingSettings(billingSettings: BillingSettings) : Promise<void> {
@@ -130,19 +186,10 @@ export default class StripeTestHelper {
     await this.adminUserService.settingApi.update(componentSetting);
   }
 
-  public isBillingProperlyConfigured(): boolean {
-    const billingSettings = this.getLocalSettings(false);
-    // Check that the mandatory settings are properly provided
-    return (!!billingSettings.stripe.publicKey
-      && !!billingSettings.stripe.secretKey
-      && !!billingSettings.stripe.url);
-  }
-
   public async assignPaymentMethod(stripe_test_token: string) : Promise<Stripe.CustomerSource> {
     // Assign a source using test tokens (instead of test card numbers)
     // c.f.: https://stripe.com/docs/testing#cards
-    const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
-    const stripeInstance = await concreteImplementation.getStripeInstance();
+    const stripeInstance = await this.billingImpl.getStripeInstance();
     const source = await stripeInstance.customers.createSource(this.getCustomerID(), {
       source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
     });
@@ -156,7 +203,7 @@ export default class StripeTestHelper {
     // TODO: check this is not the default pm as here we are dealing with source and not pm
     const operationResult: BillingOperationResult = await concreteImplementation.deletePaymentMethod(this.dynamicUser, newSourceId);
     expect(operationResult.internalData).to.not.be.null;
-    const paymentMethod = operationResult.internalData as any;
+    const paymentMethod = operationResult.internalData as { id: string };
     await this.retrievePaymentMethod(paymentMethod.id);
   }
 
@@ -172,18 +219,7 @@ export default class StripeTestHelper {
   }
 
   public async assignTaxRate(rate: number) : Promise<Stripe.TaxRate> {
-    // Let's create a tax rate
-    const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
-    const stripeInstance = await concreteImplementation.getStripeInstance();
-    const taxRate = await stripeInstance.taxRates.create({
-      display_name: 'TVA',
-      description: `TVA France - ${rate}%`,
-      jurisdiction: 'FR',
-      percentage: rate,
-      inclusive: false
-    });
-    expect(taxRate).to.not.be.null;
-    return taxRate;
+    return StripeTaxHelper.fetchOrCreateTaxRate(this.billingImpl, rate);
   }
 
   public async checkBusinessProcessBillToPay(paymentShouldFail: boolean, withTax?:boolean) : Promise<void> {
@@ -233,7 +269,7 @@ export default class StripeTestHelper {
       forceOperation: true
     };
     // Here we simulate the periodic operation which is supposed to try to pay again after a payment failure
-    const operationResult: BillingChargeInvoiceAction = await this.billingImpl.chargeInvoices(taskConfiguration);
+    const operationResult = await this.billingImpl.chargeInvoices(taskConfiguration);
     assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
     assert(operationResult.inError === 0, 'The operation should detect any errors');
     // Let's check whether the nb of paid invoices has changed
@@ -452,7 +488,7 @@ export default class StripeTestHelper {
     }
   }
 
-  public async createSubAccount(): Promise<BillingAccount> {
-    return await this.billingImpl.createSubAccount();
+  public async createConnectedAccount(): Promise<Partial<BillingAccount>> {
+    return this.billingImpl.createConnectedAccount();
   }
 }

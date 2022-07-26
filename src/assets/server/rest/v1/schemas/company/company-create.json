@@ -16,16 +16,12 @@
       "type": "object",
       "properties": {
         "accountID": {
-          "$ref": "billing-subaccount#/definitions/accountID"
+          "$ref": "billing-account#/definitions/accountID"
         },
         "platformFeeStrategy": {
-          "$ref": "billing-subaccount#/definitions/platformFeeStrategy"
+          "$ref": "billing-account#/definitions/platformFeeStrategy"
         }
-      },
-      "required": [
-        "accountID",
-        "platformFeeStrategy"
-      ]
+      }
     }
   },
   "required": [

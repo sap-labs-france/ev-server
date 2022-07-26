@@ -7,7 +7,7 @@ import { HTTPError } from '../../src/types/HTTPError';
 import { StatusCodes } from 'http-status-codes';
 import TestUtils from './TestUtils';
 import chaiSubset from 'chai-subset';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 chai.use(chaiSubset);
 

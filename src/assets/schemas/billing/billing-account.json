@@ -1,5 +1,5 @@
 {
-  "$id": "billing-subaccount",
+  "$id": "billing-account",
   "definitions": {
     "accountID": {
       "$ref": "common#/definitions/id"

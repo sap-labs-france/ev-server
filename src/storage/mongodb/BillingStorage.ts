@@ -204,29 +204,32 @@ export default class BillingStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteInvoiceByInvoiceID', startTime, { id });
   }
 
-  public static async saveSubAccount(tenant: Tenant, subAccount: BillingAccount): Promise<string> {
+  public static async saveAccount(tenant: Tenant, billingAccount: BillingAccount): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Build Request
     // Properties to save
-    const subAccountMDB: any = {
-      _id: subAccount.id ? DatabaseUtils.convertToObjectID(subAccount.id) : new ObjectId(),
-      accountExternalID: subAccount.accountExternalID,
-      status: subAccount.status,
-      businessOwnerID: DatabaseUtils.convertToObjectID(subAccount.businessOwnerID)
+    const billingAccountMDB: any = {
+      _id: billingAccount.id ? DatabaseUtils.convertToObjectID(billingAccount.id) : new ObjectId(),
+      status: billingAccount.status,
+      businessOwnerID: DatabaseUtils.convertToObjectID(billingAccount.businessOwnerID),
+      accountExternalID: billingAccount.accountExternalID,
+      taxID: billingAccount.taxID,
+      activationLink: billingAccount.activationLink, // Should not be persisted - added here only for troubleshooting purposes
+      companyName: billingAccount.companyName
     };
     // Check Created/Last Changed By
-    DatabaseUtils.addLastChangedCreatedProps(subAccountMDB, subAccount);
+    DatabaseUtils.addLastChangedCreatedProps(billingAccountMDB, billingAccount);
     // Save
-    await global.database.getCollection<any>(tenant.id, 'billingsubaccounts').findOneAndUpdate(
-      { _id: subAccountMDB._id },
-      { $set: subAccountMDB },
+    await global.database.getCollection<any>(tenant.id, 'billingaccounts').findOneAndUpdate(
+      { _id: billingAccountMDB._id },
+      { $set: billingAccountMDB },
       { upsert: true, returnDocument: 'after' }
     );
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveSubAccount', startTime, subAccountMDB);
-    return subAccountMDB._id.toString();
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveAccount', startTime, billingAccountMDB);
+    return billingAccountMDB._id.toString();
   }
 
-  public static async getSubAccounts(tenant: Tenant,
+  public static async getAccounts(tenant: Tenant,
       params: {
         IDs?: string[], accountExternalIDs?: string[], search?: string, userIDs?: string[], status?: string[]
       } = {},
@@ -265,6 +268,12 @@ export default class BillingStorage {
         $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
       };
     }
+    // Status
+    if (!Utils.isEmptyArray(params.status)) {
+      filters.status = {
+        $in: params.status
+      };
+    }
     // Set filters
     if (!Utils.isEmptyJSon(filters)) {
       aggregation.push({
@@ -276,19 +285,24 @@ export default class BillingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const subAccountCountMDB = await global.database.getCollection<any>(tenant.id, 'billingsubaccounts')
+    const billingAccountCountMDB = await global.database.getCollection<any>(tenant.id, 'billingaccounts')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSubAccounts', startTime, aggregation, subAccountCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAccounts', startTime, aggregation, billingAccountCountMDB);
       return {
-        count: (subAccountCountMDB.length > 0 ? subAccountCountMDB[0].count : 0),
+        count: (billingAccountCountMDB.length > 0 ? billingAccountCountMDB[0].count : 0),
         result: []
       };
     }
     // Remove the limit
     aggregation.pop();
+    // Add Users
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID: tenant.id, aggregation: aggregation, asField: 'businessOwner', localField: 'businessOwnerID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
@@ -304,11 +318,6 @@ export default class BillingStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Add Users
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'businessOwnerID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-    });
     // Add Last Changed / Created
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Handle the ID
@@ -318,21 +327,21 @@ export default class BillingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const subAccountMDB = await global.database.getCollection<any>(tenant.id, 'billingsubaccounts')
+    const billingAccountMDB = await global.database.getCollection<any>(tenant.id, 'billingaccounts')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray() as BillingAccount[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSubAccounts', startTime, aggregation, subAccountMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAccounts', startTime, aggregation, billingAccountMDB);
     return {
-      count: DatabaseUtils.getCountFromDatabaseCount(subAccountCountMDB[0]),
-      result: subAccountMDB
+      count: DatabaseUtils.getCountFromDatabaseCount(billingAccountCountMDB[0]),
+      result: billingAccountMDB
     };
   }
 
-  public static async getSubAccountByID(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingAccount> {
-    const subAccountMDB = await BillingStorage.getSubAccounts(tenant, {
+  public static async getAccountByID(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingAccount> {
+    const billingAccountMDB = await BillingStorage.getAccounts(tenant, {
       IDs: [id]
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    return subAccountMDB.count === 1 ? subAccountMDB.result[0] : null;
+    return billingAccountMDB.count === 1 ? billingAccountMDB.result[0] : null;
   }
 
   public static async saveTransfer(tenant: Tenant, transfer: BillingTransfer): Promise<string> {
@@ -342,26 +351,36 @@ export default class BillingStorage {
     const transferMDB: any = {
       _id: transfer.id ? DatabaseUtils.convertToObjectID(transfer.id) : new ObjectId(),
       status: transfer.status,
-      amount: transfer.amount,
-      transferredAmount: transfer.transferredAmount,
+      sessionCounter: transfer.sessionCounter,
+      collectedFunds: transfer.collectedFunds,
+      collectedFlatFees: transfer.collectedFlatFees,
+      collectedFees: transfer.collectedFees,
+      totalConsumptionWh: transfer.totalConsumptionWh,
+      totalDurationSecs: transfer.totalDurationSecs,
+      transferAmount: transfer.transferAmount,
       accountID: DatabaseUtils.convertToObjectID(transfer.accountID),
       transferExternalID: transfer.transferExternalID,
-      sessions: transfer.sessions.map((session) => ({
-        transactionID: session.transactionID,
-        invoiceID: session.invoiceID,
-        invoiceNumber: session.invoiceNumber,
-        amountAsDecimal: session.amountAsDecimal,
-        amount: session.amount,
-        roundedAmount: session.roundedAmount,
-        platformFeeStrategy: session.platformFeeStrategy,
-      }))
+      currency: transfer.currency,
     };
     if (transfer.platformFeeData) {
       transferMDB.platformFeeData = {
-        taxExternalID: transfer.platformFeeData.taxExternalID,
+        // TODO - TO BE CLARIFIED - REDUNDANT INFORMATION
         feeAmount: transfer.platformFeeData.feeAmount,
         feeTaxAmount: transfer.platformFeeData.feeTaxAmount,
-        invoiceExternalID: transfer.platformFeeData.invoiceExternalID
+      };
+    }
+    if (transfer.invoice) {
+      transferMDB.invoice = {
+        invoiceID: transfer.invoice.invoiceID,
+        liveMode: transfer.invoice.liveMode,
+        userID: transfer.invoice.userID,
+        documentNumber: transfer.invoice.documentNumber,
+        status: transfer.invoice.status,
+        amount: transfer.invoice.amount,
+        totalAmount: transfer.invoice.totalAmount,
+        currency: transfer.invoice.currency,
+        customerID: transfer.invoice.customerID,
+        createdOn: transfer.invoice.createdOn,
       };
     }
     // Check Created/Last Changed By
@@ -461,11 +480,24 @@ export default class BillingStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Add connected account information
+    DatabaseUtils.pushAccountLookupInAggregation({
+      tenantID: tenant.id, aggregation: aggregation, asField: 'account', localField: 'accountID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Add Business Owner
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID: tenant.id, aggregation: aggregation, asField: 'businessOwner', localField: 'account.businessOwnerID',
+      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Convert
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'account.businessOwnerID');
     // Add Last Changed / Created
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'accountID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'accountID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
@@ -480,7 +512,7 @@ export default class BillingStorage {
     };
   }
 
-  public static async getTransferByID(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingTransfer> {
+  public static async getTransfer(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingTransfer> {
     const transferMDB = await BillingStorage.getTransfers(tenant, {
       IDs: [id]
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);

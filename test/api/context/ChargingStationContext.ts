@@ -9,7 +9,7 @@ import OCPPService from '../ocpp/OCPPService';
 import { StatusCodes } from 'http-status-codes';
 import TenantContext from './TenantContext';
 import Utils from '../../../src/utils/Utils';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 interface MeterValueParams {
   energyActiveImportMeterValue: number;
@@ -38,7 +38,7 @@ export default class ChargingStationContext {
   private transactionsStarted: Map<number, OCPPStartTransactionResponse> = new Map();
   private transactionsStopped: Map<number, OCPPStopTransactionResponse> = new Map();
 
-  constructor(chargingStation: ChargingStation, tenantContext: TenantContext) {
+  public constructor(chargingStation: ChargingStation, tenantContext: TenantContext) {
     this.chargingStation = chargingStation;
     this.tenantContext = tenantContext;
   }

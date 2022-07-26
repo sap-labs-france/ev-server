@@ -6,7 +6,7 @@ import { HTTPError } from '../../src/types/HTTPError';
 import RegistrationToken from '../../src/types/RegistrationToken';
 import { StatusCodes } from 'http-status-codes';
 import { expect } from 'chai';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import moment from 'moment';
 
 class TestData {
