@@ -929,8 +929,11 @@ export default class ChargingStationService {
       {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
-        withSite: filteredRequest.WithSite,
-        withSiteArea: filteredRequest.WithSiteArea,
+        // TODO: Put back the filters below when the Mobile App would have migrated to new Authorization checks
+        // withSite: filteredRequest.WithSite,
+        // withSiteArea: filteredRequest.WithSiteArea,
+        withSite: true,
+        withSiteArea: true,
         withUser: filteredRequest.WithUser,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorStatuses: (filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null) as ChargePointStatus[],
