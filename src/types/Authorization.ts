@@ -175,6 +175,7 @@ export enum Action {
   UPDATE_CHARGING_PROFILE = 'UpdateChargingProfile',
   GET_CONNECTOR_QR_CODE = 'GetConnectorQRCode',
   VIEW_USER_DATA = 'ViewUserData',
+  VIEW_ADMIN_CHARGING_STATION_DATA = 'ViewAdminChargingStationData',
 }
 
 export interface AuthorizationContext {

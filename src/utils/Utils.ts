@@ -1752,6 +1752,11 @@ export default class Utils {
     !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
       Utils.deleteTagPropertiesFromEntity(entityData);
     }
+    // Charging station data
+    if (Utils.objectHasProperty(extraFilters, 'ChargingStationData') &&
+    !Utils.isNullOrUndefined(extraFilters['ChargingStationData']) && extraFilters['ChargingStationData']) {
+      Utils.deleteChargingStationPropertiesFromEntity(entityData);
+    }
   }
 
   private static deleteUserPropertiesFromEntity(entityData?: EntityData): void {
@@ -1760,6 +1765,15 @@ export default class Utils {
 
   private static deleteTagPropertiesFromEntity(entityData?: EntityData): void {
     Utils.deletePropertiesFromEntity(entityData, ['tag', 'currentTagID']);
+  }
+
+  private static deleteChargingStationPropertiesFromEntity(entityData?: EntityData): void {
+    Utils.deletePropertiesFromEntity(entityData, ['backupConnectors', 'capabilities','cfApplicationIDAndInstanceIndex','chargeBoxSerialNumber', 'chargePointModel',
+      'chargePointSerialNumber', 'chargePointVendor', 'createdBy', 'createdOn', 'currentIPAddress',
+      'deleted', 'endpoint', 'excludeFromSmartCharging', 'firmwareVersion', 'iccid', 'imsi', 'lastChangedBy', 'lastReboot',
+      'meterSerialNumber', 'meterType', 'ocppProtocol', 'ocppStandardParameters', 'ocppVendorParameters', 'ocppVersion',
+      'powerLimitUnit', 'registrationStatus', 'templateHash', 'templateHashCapabilities', 'templateHashOcppStandard',
+      'templateHashOcppVendor', 'templateHashTechnical', 'lastChangedOn', 'cloudHostIP', 'cloudHostName', 'tokenID', 'firmwareUpdateStatus']);
   }
 
   private static deletePropertiesFromEntity(entityData?: EntityData, properties?: string[]): void {
