@@ -1,0 +1,454 @@
+{
+  "$id": "chargingstation-template",
+  "definitions": {
+    "template": {
+      "type": "object",
+      "properties": {
+        "chargePointVendor": {
+          "type": "string"
+        },
+        "extraFilters": {
+          "type": "object",
+          "properties": {
+            "chargePointModel": {
+              "type": "string"
+            },
+            "chargeBoxSerialNumber": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "technical": {
+          "type": "object",
+          "properties": {
+            "masterSlave": {
+              "type": "boolean"
+            },
+            "maximumPower": {
+              "type": "integer"
+            },
+            "voltage": {
+              "type": "integer"
+            },
+            "powerLimitUnit": {
+              "type": "string"
+            },
+            "excludeFromPowerLimitation": {
+              "type": "boolean"
+            },
+            "chargePoints": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "chargePointID": {
+                    "type": "integer"
+                  },
+                  "currentType": {
+                    "type": "string",
+                    "enum": ["AC", "DC"]
+                  },
+                  "amperage": {
+                    "type": "integer"
+                  },
+                  "efficiency": {
+                    "type": "integer"
+                  },
+                  "numberOfConnectedPhase": {
+                    "type": "integer",
+                    "enum": [1, 3]
+                  },
+                  "cannotChargeInParallel": {
+                    "type": "boolean"
+                  },
+                  "sharePowerToAllConnectors": {
+                    "type": "boolean"
+                  },
+                  "excludeFromPowerLimitation": {
+                    "type": "boolean"
+                  },
+                  "ocppParamForPowerLimitation": {
+                    "type": "string"
+                  },
+                  "power": {
+                    "type": "integer"
+                  },
+                  "connectorIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "chargePointID",
+                  "currentType",
+                  "amperage",
+                  "numberOfConnectedPhase",
+                  "cannotChargeInParallel",
+                  "sharePowerToAllConnectors",
+                  "ocppParamForPowerLimitation",
+                  "power",
+                  "connectorIDs"
+                ]
+              }
+            },
+            "connectors": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "connectorId": {
+                    "type": "integer"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["T1", "T2", "CCS", "C", "D"]
+                  },
+                  "power": {
+                    "type": "integer"
+                  },
+                  "amperage": {
+                    "type": "integer"
+                  },
+                  "numberOfConnectedPhase": {
+                    "type": "integer",
+                    "enum": [1, 3]
+                  },
+                  "chargePointID": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "connectorId",
+                  "type",
+                  "power",
+                  "chargePointID"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "maximumPower",
+            "voltage",
+            "powerLimitUnit",
+            "chargePoints",
+            "connectors"
+          ]
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "supportedFirmwareVersions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "supportedOcppVersions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "capabilities": {
+                "type": "object",
+                "properties": {
+                  "supportStaticLimitation": {
+                    "type": "boolean"
+                  },
+                  "supportChargingProfiles": {
+                    "type": "boolean"
+                  },
+                  "supportRemoteStartStopTransaction": {
+                    "type": "boolean"
+                  },
+                  "supportUnlockConnector": {
+                    "type": "boolean"
+                  },
+                  "supportReservation": {
+                    "type": "boolean"
+                  },
+                  "supportCreditCard": {
+                    "type": "boolean"
+                  },
+                  "supportRFIDCard": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "supportStaticLimitation",
+                  "supportChargingProfiles",
+                  "supportRemoteStartStopTransaction",
+                  "supportUnlockConnector",
+                  "supportReservation",
+                  "supportCreditCard",
+                  "supportRFIDCard"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "supportedFirmwareVersions",
+              "supportedOcppVersions",
+              "capabilities"
+            ]
+          }
+        },
+        "ocppStandardParameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "supportedFirmwareVersions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "supportedOcppVersions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "AllowOfflineTxForUnknownId": {
+                    "type": "string"
+                  },
+                  "AuthorizationCacheEnabled": {
+                    "type": "string"
+                  },
+                  "AuthorizeRemoteTxRequests": {
+                    "type": "string"
+                  },
+                  "BlinkRepeat": {
+                    "type": "string"
+                  },
+                  "ClockAlignedDataInterval": {
+                    "type": "string"
+                  },
+                  "ConnectionTimeOut": {
+                    "type": "string"
+                  },
+                  "GetConfigurationMaxKeys": {
+                    "type": "string"
+                  },
+                  "HeartbeatInterval": {
+                    "type": "string"
+                  },
+                  "LightIntensity": {
+                    "type": "string"
+                  },
+                  "LocalAuthorizeOffline": {
+                    "type": "string"
+                  },
+                  "LocalPreAuthorize": {
+                    "type": "string"
+                  },
+                  "MaxEnergyOnInvalidId": {
+                    "type": "string"
+                  },
+                  "MeterValuesAlignedData": {
+                    "type": "string"
+                  },
+                  "MeterValuesAlignedDataMaxLength": {
+                    "type": "string"
+                  },
+                  "MeterValuesSampledData": {
+                    "type": "string"
+                  },
+                  "MeterValuesSampledDataMaxLength": {
+                    "type": "string"
+                  },
+                  "MeterValueSampleInterval": {
+                    "type": "string"
+                  },
+                  "MinimumStatusDuration": {
+                    "type": "string"
+                  },
+                  "NumberOfConnectors": {
+                    "type": "string"
+                  },
+                  "ResetRetries": {
+                    "type": "string"
+                  },
+                  "ConnectorPhaseRotation": {
+                    "type": "string"
+                  },
+                  "ConnectorPhaseRotationMaxLength": {
+                    "type": "string"
+                  },
+                  "StopTransactionOnEVSideDisconnect": {
+                    "type": "string"
+                  },
+                  "StopTransactionOnInvalidId": {
+                    "type": "string"
+                  },
+                  "StopTxnAlignedData": {
+                    "type": "string"
+                  },
+                  "StopTxnAlignedDataMaxLength": {
+                    "type": "string"
+                  },
+                  "StopTxnSampledData": {
+                    "type": "string"
+                  },
+                  "StopTxnSampledDataMaxLength": {
+                    "type": "string"
+                  },
+                  "SupportedFeatureProfiles": {
+                    "type": "string"
+                  },
+                  "SupportedFeatureProfilesMaxLength": {
+                    "type": "string"
+                  },
+                  "TransactionMessageAttempts": {
+                    "type": "string"
+                  },
+                  "TransactionMessageRetryInterval": {
+                    "type": "string"
+                  },
+                  "UnlockConnectorOnEVSideDisconnect": {
+                    "type": "string"
+                  },
+                  "WebSocketPingInterval": {
+                    "type": "string"
+                  },
+                  "LocalAuthListEnabled": {
+                    "type": "string"
+                  },
+                  "LocalAuthListMaxLength": {
+                    "type": "string"
+                  },
+                  "SendLocalListMaxLength": {
+                    "type": "string"
+                  },
+                  "ReserveConnectorZeroSupported": {
+                    "type": "string"
+                  },
+                  "ChargeProfileMaxStackLevel": {
+                    "type": "string"
+                  },
+                  "ChargingScheduleAllowedChargingRateUnit": {
+                    "type": "string"
+                  },
+                  "ChargingScheduleMaxPeriods": {
+                    "type": "string"
+                  },
+                  "ConnectorSwitch3to1PhaseSupported": {
+                    "type": "string"
+                  },
+                  "MaxChargingProfilesInstalled": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                  { "required": ["AllowOfflineTxForUnknownId"] },
+                  { "required": ["AuthorizationCacheEnabled"] },
+                  { "required": ["AuthorizeRemoteTxRequests"] },
+                  { "required": ["BlinkRepeat"] },
+                  { "required": ["ClockAlignedDataInterval"] },
+                  { "required": ["ConnectionTimeOut"] },
+                  { "required": ["GetConfigurationMaxKeys"] },
+                  { "required": ["HeartbeatInterval"] },
+                  { "required": ["LightIntensity"] },
+                  { "required": ["LocalAuthorizeOffline"] },
+                  { "required": ["LocalPreAuthorize"] },
+                  { "required": ["MaxEnergyOnInvalidId"] },
+                  { "required": ["MeterValuesAlignedData"] },
+                  { "required": ["MeterValuesAlignedDataMaxLength"] },
+                  { "required": ["MeterValuesSampledData"] },
+                  { "required": ["MeterValuesSampledDataMaxLength"] },
+                  { "required": ["MeterValueSampleInterval"] },
+                  { "required": ["MinimumStatusDuration"] },
+                  { "required": ["NumberOfConnectors"] },
+                  { "required": ["ResetRetries"] },
+                  { "required": ["ConnectorPhaseRotation"] },
+                  { "required": ["ConnectorPhaseRotationMaxLength"] },
+                  { "required": ["StopTransactionOnEVSideDisconnect"] },
+                  { "required": ["StopTransactionOnInvalidId"] },
+                  { "required": ["StopTxnAlignedData"] },
+                  { "required": ["StopTxnAlignedDataMaxLength"] },
+                  { "required": ["StopTxnSampledData"] },
+                  { "required": ["StopTxnSampledDataMaxLength"] },
+                  { "required": ["SupportedFeatureProfiles"] },
+                  { "required": ["SupportedFeatureProfilesMaxLength"] },
+                  { "required": ["TransactionMessageAttempts"] },
+                  { "required": ["TransactionMessageRetryInterval"] },
+                  { "required": ["UnlockConnectorOnEVSideDisconnect"] },
+                  { "required": ["WebSocketPingInterval"] },
+                  { "required": ["LocalAuthListEnabled"] },
+                  { "required": ["LocalAuthListMaxLength"] },
+                  { "required": ["SendLocalListMaxLength"] },
+                  { "required": ["ReserveConnectorZeroSupported"] },
+                  { "required": ["ChargeProfileMaxStackLevel"] },
+                  { "required": ["ChargingScheduleAllowedChargingRateUnit"] },
+                  { "required": ["ChargingScheduleMaxPeriods"] },
+                  { "required": ["ConnectorSwitch3to1PhaseSupported"] },
+                  { "required": ["MaxChargingProfilesInstalled"] }
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "supportedFirmwareVersions",
+              "supportedOcppVersions",
+              "parameters"
+            ]
+          }
+        },
+        "ocppVendorParameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "supportedFirmwareVersions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "supportedOcppVersions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "parameters": {
+                "type": "object",
+                "patternProperties": {
+                  ".*": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "supportedFirmwareVersions",
+              "supportedOcppVersions",
+              "parameters"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "chargePointVendor",
+        "technical",
+        "capabilities"
+      ]
+    }
+  }
+}
