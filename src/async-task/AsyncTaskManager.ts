@@ -18,7 +18,6 @@ import OCPIPullSessionsAsyncTask from './tasks/ocpi/OCPIPullSessionsAsyncTask';
 import OCPIPullTokensAsyncTask from './tasks/ocpi/OCPIPullTokensAsyncTask';
 import OCPIPushEVSEStatusesAsyncTask from './tasks/ocpi/OCPIPushEVSEStatusesAsyncTask';
 import OCPIPushTokensAsyncTask from './tasks/ocpi/OCPIPushTokensAsyncTask';
-import PrepareInvoiceTransferAsyncTask from './tasks/PrepareInvoiceTransferAsyncTask';
 import { Promise } from 'bluebird';
 import { ServerAction } from '../types/Server';
 import SynchronizeCarCatalogsAsyncTask from './tasks/SynchronizeCarCatalogsAsyncTask';
@@ -171,8 +170,6 @@ export default class AsyncTaskManager {
     switch (asyncTask.name) {
       case AsyncTasks.BILL_TRANSACTION:
         return new BillTransactionAsyncTask(asyncTask, correlationID);
-      case AsyncTasks.PREPARE_INVOICE_TRANSFER:
-        return new PrepareInvoiceTransferAsyncTask(asyncTask, correlationID);
       case AsyncTasks.TAGS_IMPORT:
         return new TagsImportAsyncTask(asyncTask, correlationID);
       case AsyncTasks.USERS_IMPORT:

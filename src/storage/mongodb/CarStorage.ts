@@ -165,7 +165,7 @@ export default class CarStorage {
   public static async deleteCarCatalogImages(id: number): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete car catalogs images
-    await global.database.getCollection(Constants.DEFAULT_TENANT_ID, 'carcatalogimages').deleteMany(
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'carcatalogimages').deleteMany(
       { carID: id }
     );
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteCarImages', startTime, { carID: id });
@@ -553,7 +553,7 @@ export default class CarStorage {
   public static async deleteCar(tenant: Tenant, carID: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete singular site area
-    await global.database.getCollection(tenant.id, 'cars')
+    await global.database.getCollection<any>(tenant.id, 'cars')
       .deleteOne({ '_id': DatabaseUtils.convertToObjectID(carID) });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteCar', startTime, { carID });
   }

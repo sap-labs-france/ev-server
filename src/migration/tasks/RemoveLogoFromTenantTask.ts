@@ -5,7 +5,7 @@ import global from '../../types/GlobalType';
 export default class RemoveLogoFromTenantTask extends MigrationTask {
   public async migrate() {
     // Clean up
-    await global.database.getCollection(Constants.DEFAULT_TENANT_ID, 'tenants').updateMany(
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenants').updateMany(
       {},
       { $unset: { logo: '' } }
     );

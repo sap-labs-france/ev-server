@@ -483,11 +483,11 @@ export default class UserStorage {
         }
       };
       // Modify and return the modified document
-      await global.database.getCollection(tenant.id, 'users').findOneAndUpdate(
+      await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
         { '_id': DatabaseUtils.convertToObjectID(userID) },
         { $set: updatedUserMDB });
     } else {
-      await global.database.getCollection(tenant.id, 'users').findOneAndUpdate(
+      await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
         { '_id': DatabaseUtils.convertToObjectID(userID) },
         { $unset: { billingData: '' } }); // This removes the field from the document
     }

@@ -213,7 +213,9 @@ export default class BillingStorage {
       status: billingAccount.status,
       businessOwnerID: DatabaseUtils.convertToObjectID(billingAccount.businessOwnerID),
       accountExternalID: billingAccount.accountExternalID,
+      taxID: billingAccount.taxID,
       activationLink: billingAccount.activationLink, // Should not be persisted - added here only for troubleshooting purposes
+      companyName: billingAccount.companyName
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(billingAccountMDB, billingAccount);
@@ -349,23 +351,20 @@ export default class BillingStorage {
     const transferMDB: any = {
       _id: transfer.id ? DatabaseUtils.convertToObjectID(transfer.id) : new ObjectId(),
       status: transfer.status,
-      totalAmount: transfer.totalAmount,
+      sessionCounter: transfer.sessionCounter,
+      collectedFunds: transfer.collectedFunds,
+      collectedFlatFees: transfer.collectedFlatFees,
+      collectedFees: transfer.collectedFees,
+      totalConsumptionWh: transfer.totalConsumptionWh,
+      totalDurationSecs: transfer.totalDurationSecs,
       transferAmount: transfer.transferAmount,
       accountID: DatabaseUtils.convertToObjectID(transfer.accountID),
       transferExternalID: transfer.transferExternalID,
-      sessions: transfer.sessions.map((session) => ({
-        transactionID: session.transactionID,
-        invoiceID: session.invoiceID,
-        invoiceNumber: session.invoiceNumber,
-        amountAsDecimal: session.amountAsDecimal,
-        amount: session.amount,
-        roundedAmount: session.roundedAmount,
-        accountSessionFee: session.accountSessionFee,
-      })),
       currency: transfer.currency,
     };
     if (transfer.platformFeeData) {
       transferMDB.platformFeeData = {
+        // TODO - TO BE CLARIFIED - REDUNDANT INFORMATION
         feeAmount: transfer.platformFeeData.feeAmount,
         feeTaxAmount: transfer.platformFeeData.feeTaxAmount,
       };
@@ -481,7 +480,7 @@ export default class BillingStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Add Sub-account
+    // Add connected account information
     DatabaseUtils.pushAccountLookupInAggregation({
       tenantID: tenant.id, aggregation: aggregation, asField: 'account', localField: 'accountID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false

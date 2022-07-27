@@ -1,4 +1,4 @@
-import { BillingAccount, BillingChargeInvoiceAction, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
+import { BillingAccount, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import Tenant, { TenantComponents } from '../../src/types/Tenant';
 import chai, { expect } from 'chai';
@@ -74,6 +74,38 @@ export class BillingTestConfigHelper {
     settings.billing.immediateBillingAllowed = immediateBillingAllowed;
     // -----------------------------------------------------------------
     return settings;
+  }
+}
+
+export class StripeTaxHelper {
+  public static async fetchOrCreateTaxRate(billingImplementation: StripeBillingIntegration, rate: number) : Promise<Stripe.TaxRate> {
+    // Get the stripe facade
+    const stripeInstance = await billingImplementation.getStripeInstance();
+    // Get the list of tax rates
+    const taxRates = await stripeInstance.taxRates.list({
+      limit: 10,
+      active: true,
+      inclusive: false
+    });
+    let taxRate = null;
+    // Iterate the list to find one having the expected rate
+    for (const existingTaxRate of taxRates.data) {
+      if (existingTaxRate.percentage === rate && !existingTaxRate.inclusive) {
+        taxRate = existingTaxRate;
+        break;
+      }
+    }
+    if (!taxRate) {
+      // Not found - let's create it!
+      taxRate = await stripeInstance.taxRates.create({
+        display_name: 'Tax',
+        description: `Tax rate - ${rate}%`,
+        percentage: rate,
+        inclusive: false
+      });
+    }
+    expect(taxRate).to.not.be.null;
+    return taxRate;
   }
 }
 
@@ -171,7 +203,7 @@ export default class StripeTestHelper {
     // TODO: check this is not the default pm as here we are dealing with source and not pm
     const operationResult: BillingOperationResult = await concreteImplementation.deletePaymentMethod(this.dynamicUser, newSourceId);
     expect(operationResult.internalData).to.not.be.null;
-    const paymentMethod = operationResult.internalData as any;
+    const paymentMethod = operationResult.internalData as { id: string };
     await this.retrievePaymentMethod(paymentMethod.id);
   }
 
@@ -187,18 +219,7 @@ export default class StripeTestHelper {
   }
 
   public async assignTaxRate(rate: number) : Promise<Stripe.TaxRate> {
-    // Let's create a tax rate
-    const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
-    const stripeInstance = await concreteImplementation.getStripeInstance();
-    const taxRate = await stripeInstance.taxRates.create({
-      display_name: 'TVA',
-      description: `TVA France - ${rate}%`,
-      jurisdiction: 'FR',
-      percentage: rate,
-      inclusive: false
-    });
-    expect(taxRate).to.not.be.null;
-    return taxRate;
+    return StripeTaxHelper.fetchOrCreateTaxRate(this.billingImpl, rate);
   }
 
   public async checkBusinessProcessBillToPay(paymentShouldFail: boolean, withTax?:boolean) : Promise<void> {
@@ -248,7 +269,7 @@ export default class StripeTestHelper {
       forceOperation: true
     };
     // Here we simulate the periodic operation which is supposed to try to pay again after a payment failure
-    const operationResult: BillingChargeInvoiceAction = await this.billingImpl.chargeInvoices(taskConfiguration);
+    const operationResult = await this.billingImpl.chargeInvoices(taskConfiguration);
     assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
     assert(operationResult.inError === 0, 'The operation should detect any errors');
     // Let's check whether the nb of paid invoices has changed

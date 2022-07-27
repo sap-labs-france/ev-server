@@ -9,7 +9,7 @@ import OCPPService from '../ocpp/OCPPService';
 import { StatusCodes } from 'http-status-codes';
 import TenantContext from './TenantContext';
 import Utils from '../../../src/utils/Utils';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 interface MeterValueParams {
   energyActiveImportMeterValue: number;
