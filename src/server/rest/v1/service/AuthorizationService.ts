@@ -12,7 +12,7 @@ import { HttpPricingDefinitionGetRequest, HttpPricingDefinitionsGetRequest } fro
 import { HttpSiteAreaGetRequest, HttpSiteAreasGetRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteGetRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagGetRequest, HttpTagsGetRequest } from '../../../../types/requests/HttpTagRequest';
-import { HttpTransactionGetRequest, HttpTransactionsGetRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpTransactionConsumptionsGetRequest, HttpTransactionGetRequest } from '../../../../types/requests/HttpTransactionRequest';
 import { HttpUserGetRequest, HttpUserSitesAssignRequest, HttpUserSitesGetRequest, HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
@@ -26,11 +26,13 @@ import Company from '../../../../types/Company';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpLogGetRequest } from '../../../../types/requests/HttpLogRequest';
 import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
 import { OCPICapability } from '../../../../types/ocpi/OCPIEvse';
 import PricingDefinition from '../../../../types/Pricing';
+import RefundReport from '../../../../types/Refund';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import { ServerAction } from '../../../../types/Server';
 import { Setting } from '../../../../types/Setting';
@@ -1131,7 +1133,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetTransactionsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
-      filteredRequest?: Partial<HttpTransactionsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      filteredRequest?: Partial<HttpTransactionConsumptionsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -1175,6 +1177,8 @@ export default class AuthorizationService {
       tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canPushTransactionCDR = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.TRANSACTION, Action.PUSH_TRANSACTION_CDR, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canGetAdvenirConsumption = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.GET_ADVENIR_CONSUMPTION, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     // Check and remove sensible data
     const sensibleUserData = { UserData: true, TagData: true, CarCatalogData: true, CarData: true, BillingData: true };
     // Transaction sensible data
@@ -1187,6 +1191,38 @@ export default class AuthorizationService {
       { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction.stop);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(transaction);
+  }
+
+  public static async addRefundReportsAuthorizations(tenant: Tenant, userToken: UserToken,
+      refundReports: RefundReport[], authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Authorizations
+    for (const refundReport of refundReports) {
+      await AuthorizationService.addRefundReportAuthorizations(tenant, userToken, refundReport, authorizationFilter);
+    }
+  }
+
+  public static async addRefundReportAuthorizations(tenant: Tenant, userToken: UserToken, refundReport: RefundReport, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Check and remove sensible data
+    const sensibleUserData = { UserData: true, TagData: true };
+    // Refund report sensible data (Based on the Transaction)
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter, { ...sensibleUserData }, refundReport);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(refundReport);
+  }
+
+  public static async checkAndGetConsumptionsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
+      filteredRequest?: Partial<HttpByIDRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+    const authorizations: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CONSUMPTION, authAction, authorizations, filteredRequest, null, failsWithException);
+    return authorizations;
   }
 
   private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,

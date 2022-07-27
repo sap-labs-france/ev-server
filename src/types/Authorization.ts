@@ -107,7 +107,8 @@ export enum Entity {
   NOTIFICATION = 'Notification',
   TAG = 'Tag',
   PAYMENT_METHOD = 'PaymentMethod',
-  SOURCE = 'Source'
+  SOURCE = 'Source',
+  CONSUMPTION = 'Consumption',
 }
 
 export enum Action {
@@ -189,6 +190,12 @@ export enum Action {
   VIEW_USER_DATA = 'ViewUserData',
   SYNCHRONIZE_REFUNDED_TRANSACTION = 'SynchronizeRefundedTransaction',
   PUSH_TRANSACTION_CDR = 'PushTransactionCDR',
+  GET_ADVENIR_CONSUMPTION = 'GetAdvenirConsumption',
+  GET_CHARGING_STATION_TRANSACTIONS = 'GetChargingStationTransactions',
+  GET_ACTIVE_TRANSACTION = 'GetActiveTransaction',
+  GET_COMPLETED_TRANSACTION = 'GetCompletedTransaction',
+  GET_TO_REFUND_TRANSACTION = 'GetToRefundTransaction',
+  GET_REFUND_REPORT = 'GetRefundReport',
 }
 
 export interface AuthorizationContext {
@@ -313,6 +320,7 @@ export interface TransactionAuthorizationActions extends AuthorizationActions {
   canSynchronizeRefundedTransaction?: boolean;
   canRefundTransaction?: boolean;
   canPushTransactionCDR?: boolean;
+  canGetAdvenirConsumption?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

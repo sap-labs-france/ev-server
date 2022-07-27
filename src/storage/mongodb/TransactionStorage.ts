@@ -778,7 +778,7 @@ export default class TransactionStorage {
   }
 
   public static async getRefundReports(tenant: Tenant,
-      params: { ownerID?: string; siteAdminIDs?: string[] },
+      params: { siteIDs?: string[]; userIDs?: string[]; siteAreaIDs?: string[]; },
       dbParams: DbParams, projectFields?: string[]): Promise<{ count: number; result: RefundReport[] }> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -791,17 +791,27 @@ export default class TransactionStorage {
     // Create Aggregation
     const aggregation = [];
     const ownerMatch = { $or: [] };
-    const filters = {};
+    const filters: any = { stop: { $exists: true } };
+    // Build filters
     filters['refundData.reportId'] = { '$ne': null };
-    if (params.ownerID) {
+    if (params.userIDs) {
       ownerMatch.$or.push({
-        userID: DatabaseUtils.convertToObjectID(params.ownerID)
+        userID: {
+          $in: params.userIDs.map((user) => DatabaseUtils.convertToObjectID(user))
+        }
       });
     }
-    if (params.siteAdminIDs) {
+    if (params.siteIDs) {
       ownerMatch.$or.push({
         siteID: {
-          $in: params.siteAdminIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+          $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+        }
+      });
+    }
+    if (params.siteAreaIDs) {
+      ownerMatch.$or.push({
+        siteAreaID: {
+          $in: params.siteAreaIDs.map((area) => DatabaseUtils.convertToObjectID(area))
         }
       });
     }
