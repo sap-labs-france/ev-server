@@ -165,7 +165,20 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
           'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
-        ]
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [],
+            metadata: {
+              status: {
+                visible: true,
+                mandatory: true,
+              }
+            },
+          }
+        }
       },
       { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
       {
@@ -316,19 +329,72 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.USERS_SITES, action: Action.LIST,
+        resource: Entity.USER_SITE, action: [Action.ASSIGN, Action.ASSIGN_SITES_TO_USER, Action.READ, Action.UPDATE, Action.LIST],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
         attributes: [
-          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
+          'site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID'
         ]
       },
       {
-        resource: Entity.USERS_SITES,
-        action: [Action.ASSIGN, Action.UNASSIGN, Action.READ],
+        resource: Entity.USER_SITE,
+        action: Action.UNASSIGN,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
             filters: []
+          }
+        }
+      },
+      {
+        resource: Entity.USER_SITE,
+        action: Action.UNASSIGN_SITES_FROM_USER,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['-OwnUser', 'LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.SITE_USER, action: [Action.ASSIGN, Action.ASSIGN_USERS_TO_SITE, Action.READ, Action.UPDATE, Action.LIST],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
+        attributes: [
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteID', 'siteAdmin', 'siteOwner',
+        ]
+      },
+      {
+        resource: Entity.SITE_USER,
+        action: Action.UNASSIGN,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        }
+      },
+      {
+        resource: Entity.SITE_USER,
+        action: Action.UNASSIGN_USERS_FROM_SITE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['-OwnUser', 'LocalIssuer']
           }
         },
       },
@@ -1475,17 +1541,74 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.USERS_SITES, action: [Action.LIST, Action.UNASSIGN, Action.READ],
+        resource: Entity.USER_SITE, action: [Action.ASSIGN, Action.ASSIGN_SITES_TO_USER, Action.READ, Action.UPDATE, Action.LIST],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SitesAdmin', 'LocalIssuer']
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
           }
         },
         attributes: [
-          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
+          'site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID'
         ]
+      },
+      {
+        resource: Entity.USER_SITE,
+        action: Action.UNASSIGN,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.USER_SITE,
+        action: Action.UNASSIGN_SITES_FROM_USER,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['-OwnUser', 'LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.SITE_USER, action: [Action.ASSIGN, Action.ASSIGN_USERS_TO_SITE, Action.READ, Action.UPDATE, Action.LIST],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+        attributes: [
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteID', 'siteAdmin', 'siteOwner',
+        ]
+      },
+      {
+        resource: Entity.SITE_USER,
+        action: Action.UNASSIGN,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.SITE_USER,
+        action: Action.UNASSIGN_USERS_FROM_SITE,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['-OwnUser', 'LocalIssuer']
+          }
+        },
       },
       {
         resource: Entity.SITE, action: [Action.UPDATE, Action.MAINTAIN_PRICING_DEFINITIONS, Action.EXPORT_OCPP_PARAMS],
@@ -2049,6 +2172,32 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
+      },
+      {
+        resource: Entity.USER_SITE, action: [Action.READ, Action.LIST],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+        attributes: [
+          'site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID'
+        ]
+      },
+      {
+        resource: Entity.SITE_USER, action: [Action.READ, Action.LIST],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+        attributes: [
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteID', 'siteAdmin', 'siteOwner',
+        ]
       },
       {
         resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION],

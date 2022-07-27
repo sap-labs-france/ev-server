@@ -1,21 +1,20 @@
-import { Action, DynamicAuthorizationDataSourceName, Entity } from '../../../../types/Authorization';
+import { Action, Entity } from '../../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import { SiteDataResult, SiteUserDataResult } from '../../../../types/DataResult';
 
+import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
-import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
-import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
-import { SiteDataResult } from '../../../../types/DataResult';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SiteValidatorRest from '../validator/SiteValidatorRest';
-import SitesAdminDynamicAuthorizationDataSource from '../../../../authorization/dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
@@ -40,11 +39,9 @@ export default class SiteService {
       });
     }
     // Check and Get Site
-    const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
+    const site = await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.userID, Action.READ, action);
+    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
     await Logging.logInfo({
@@ -91,13 +88,24 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
     // Filter request
     const filteredRequest = SiteValidatorRest.getInstance().validateSiteAssignUsersReq(req.body);
+    const serverAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN_USERS_TO_SITE : Action.UNASSIGN_USERS_FROM_SITE;
     // Check and Get Site
-    const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
+    const site = await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.siteID, serverAction, action);
     // Check and Get Users
-    const users = await UtilsService.checkSiteUsersAuthorization(
-      req.tenant, req.user, site, filteredRequest.userIDs, action);
+    const users = await UtilsService.checkAndGetSiteUsersAuthorization(req.tenant, req.user, site, filteredRequest.userIDs, action);
     // Save
+    for (const user of users) {
+      const authorized = AuthorizationService.canPerformAction(user, serverAction);
+      if (!authorized) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: req.user,
+          action: serverAction, entity: Entity.SITE_USER,
+          module: MODULE_NAME, method: 'handleAssignUsersToSite',
+          value: site.id
+        });
+      }
+    }
     if (action === ServerAction.ADD_USERS_TO_SITE) {
       await SiteStorage.addUsersToSite(req.tenant, site.id, users.map((user) => user.id));
     } else {
@@ -132,7 +140,7 @@ export default class SiteService {
       return;
     }
     // Get Users
-    const users = await SiteStorage.getSiteUsers(req.tenant,
+    const siteUsers = await SiteStorage.getSiteUsers(req.tenant,
       {
         search: filteredRequest.Search,
         siteIDs: [filteredRequest.SiteID],
@@ -146,7 +154,9 @@ export default class SiteService {
       },
       authorizations.projectFields
     );
-    res.json(users);
+    // add user auth
+    await AuthorizationService.addSiteUsersAuthorizations(req.tenant, req.user, siteUsers as SiteUserDataResult, authorizations);
+    res.json(siteUsers);
     next();
   }
 
@@ -208,13 +218,6 @@ export default class SiteService {
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
-    }
-    // Check Site Admin filter
-    if (filteredRequest.SiteAdmin) {
-      // Override Site IDs
-      const siteAdminDataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
-        req.tenant, req.user, DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;
-      authorizations.filters = { ...authorizations.filters, ...siteAdminDataSource.getData() };
     }
     // Get the sites
     const sites = await SiteStorage.getSites(req.tenant,

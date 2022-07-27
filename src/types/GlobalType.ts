@@ -1,6 +1,8 @@
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from './Billing';
 import { Car, CarCatalog } from './Car';
 import ChargingStation, { ChargingStationTemplate, Connector } from './ChargingStation';
+import Site, { UserSite } from './Site';
+import User, { SiteUser } from './User';
 
 import { ChargingProfile } from './ChargingProfile';
 import Company from './Company';
@@ -12,11 +14,9 @@ import PricingDefinition from './Pricing';
 import RegistrationToken from './RegistrationToken';
 import { ServerType } from './Server';
 import { Setting } from './Setting';
-import Site from './Site';
 import SiteArea from './SiteArea';
 import SoapOCPPServer from '../server/ocpp/soap/SoapOCPPServer';
 import Tag from './Tag';
-import User from './User';
 import bluebird from 'bluebird';
 import path from 'path';
 
@@ -85,7 +85,7 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|BillingTax|Setting|BillingAccount|BillingTransfer|ChargingProfile|Connector|ChargingStationTemplate;
+export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|BillingTax|Setting|BillingAccount|BillingTransfer|ChargingProfile|Connector|UserSite|SiteUser|ChargingStationTemplate;
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;

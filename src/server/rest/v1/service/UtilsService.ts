@@ -337,12 +337,11 @@ export default class UtilsService {
   }
 
   public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<User> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<User> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetUserAuthorizations(
-      tenant, userToken, { ID: userID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetUserAuthorizations(tenant, userToken, { ID: userID }, authAction, entityData);
     // Get User
     const user = await UserStorage.getUser(tenant, userID,
       {
@@ -353,17 +352,6 @@ export default class UtilsService {
     );
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
-    // External User
-    // TODO: need alignement of auth definition to remove below check
-    if (checkIssuer && !user.issuer) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User '${user.name}' with ID '${user.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
-        user: userToken,
-        action: action
-      });
-    }
     // Assign projected fields
     if (authorizations.projectFields) {
       user.projectFields = authorizations.projectFields;
@@ -392,8 +380,7 @@ export default class UtilsService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetSiteAuthorizations(
-      tenant, userToken, { ID: siteID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetSiteAuthorizations(tenant, userToken, { ID: siteID }, authAction, entityData);
     // Get Site
     const site = await SiteStorage.getSite(tenant, siteID,
       {
@@ -512,7 +499,7 @@ export default class UtilsService {
     return log;
   }
 
-  public static async checkUserSitesAuthorization(tenant: Tenant, userToken: UserToken, user: User, siteIDs: string[],
+  public static async checkAndGetUserSitesAuthorization(tenant: Tenant, userToken: UserToken, user: User, siteIDs: string[],
       action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Site[]> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, user.id, MODULE_NAME, 'checkUserSitesAuthorization', userToken);
@@ -525,7 +512,7 @@ export default class UtilsService {
       });
     }
     // Check dynamic auth for assignment
-    const authorizations = await AuthorizationService.checkAndAssignUserSitesAuthorizations(
+    const authorizations = await AuthorizationService.checkAssignUserSitesAuthorizations(
       tenant, action, userToken, { userID: user.id, siteIDs });
     // Get Sites
     let sites = (await SiteStorage.getSites(tenant,
@@ -544,14 +531,15 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
-        entity: Entity.USERS_SITES,
+        entity: Entity.USER_SITE,
         module: MODULE_NAME, method: 'checkUserSitesAuthorization',
       });
     }
+    await AuthorizationService.addUserSiteAuthToSitesAuthorizations(tenant, userToken, user, sites, authorizations);
     return sites;
   }
 
-  public static async checkSiteUsersAuthorization(tenant: Tenant, userToken: UserToken, site: Site, userIDs: string[],
+  public static async checkAndGetSiteUsersAuthorization(tenant: Tenant, userToken: UserToken, site: Site, userIDs: string[],
       action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<User[]> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, site.id, MODULE_NAME, 'checkSiteUsersAuthorization', userToken);
@@ -582,11 +570,12 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
-        entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
+        action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN_USERS_TO_SITE : Action.UNASSIGN_USERS_FROM_SITE,
+        entity: Entity.SITE_USER,
+        module: MODULE_NAME, method: 'checkAndGetSiteUsersAuthorization',
       });
     }
+    await AuthorizationService.addSiteUserAuthToUsersAuthorizations(tenant, userToken, site, users, authorizations);
     return users;
   }
 

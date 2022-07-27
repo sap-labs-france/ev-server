@@ -10,9 +10,9 @@ import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
 import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
+import { SiteUser } from '../../types/User';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from './TransactionStorage';
-import { UserSite } from '../../types/User';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SiteStorage';
@@ -98,7 +98,7 @@ export default class SiteStorage {
 
   public static async getSiteUsers(tenant: Tenant,
       params: { search?: string; siteIDs: string[]; siteOwnerOnly?: boolean },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserSite>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -155,14 +155,14 @@ export default class SiteStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const usersCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
+    const siteUsersCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, usersCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, siteUsersCountMDB);
       return {
-        count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+        count: (siteUsersCountMDB.length > 0 ? siteUsersCountMDB[0].count : 0),
         result: []
       };
     }
@@ -193,10 +193,10 @@ export default class SiteStorage {
     // Read DB
     const siteUsersMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as UserSite[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, siteUsersMDB);
+      .toArray() as SiteUser[];
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getSitesUsers', startTime, aggregation, siteUsersCountMDB);
     return {
-      count: DatabaseUtils.getCountFromDatabaseCount(usersCountMDB[0]),
+      count: DatabaseUtils.getCountFromDatabaseCount(siteUsersCountMDB[0]),
       result: siteUsersMDB
     };
   }
@@ -519,18 +519,5 @@ export default class SiteStorage {
     // Delete Sites
     await SiteStorage.deleteSites(tenant, siteIDs);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteCompanySites', startTime, { companyID });
-  }
-
-  public static async siteHasUser(tenant: Tenant, siteID: string, userID: string): Promise<boolean> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    // Exec
-    const result = await global.database.getCollection<any>(tenant.id, 'siteusers').findOne(
-      { siteID: DatabaseUtils.convertToObjectID(siteID), userID: DatabaseUtils.convertToObjectID(userID) });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'siteHasUser', startTime, { siteID });
-    if (!result) {
-      return false;
-    }
-    return true;
   }
 }
