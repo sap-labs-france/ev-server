@@ -414,8 +414,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.CHARGING_STATION,
-        action: [Action.VIEW_USER_DATA],
+        resource: Entity.CHARGING_STATION, action: [Action.VIEW_USER_DATA, Action.VIEW_ADMIN_CHARGING_STATION_DATA],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1026,13 +1025,22 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.CHARGING_STATION,
-        action: [Action.VIEW_USER_DATA],
+        resource: Entity.CHARGING_STATION, action: [Action.VIEW_USER_DATA],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
             filters: ['OwnUser']
+          }
+        },
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: [Action.VIEW_ADMIN_CHARGING_STATION_DATA],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['ExcludeAction']
           }
         },
       },
@@ -1658,7 +1666,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'ocpiData.evses.capabilities',
           'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
           'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
-          'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs'
+          'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs',
+          'firmwareVersion', 'chargePointVendor','chargePointModel','ocppVersion', 'ocppProtocol','firmwareUpdateStatus','chargePointSerialNumber','chargeBoxSerialNumber',
         ]
       },
       {
@@ -1671,17 +1680,20 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           },
         },
         attributes: [
-          'id', 'issuer', 'public', 'siteAreaID', 'lastSeen', 'inactive', 'forceInactive', 'manualConfiguration', 'voltage', 'coordinates', 'chargingStationURL',
-          'forceInactive', 'tariffID', 'maximumPower', 'masterSlave',
+          'backupConnectors', 'capabilities', 'cfApplicationIDAndInstanceIndex', 'chargeBoxSerialNumber', 'chargePointModel', 'chargePointSerialNumber', 'chargePointVendor',
           'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
           'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
           'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs',
-          'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode', 'connectors.connectorId', 'connectors.currentTotalConsumptionWh',
+          'chargingStationURL', 'companyID',
+          'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode', 'connectors.connectorId', 'connectors.currentTotalConsumptionWh', 'connectors.currentTagID',
           'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode', 'connectors.currentTransactionID',
-          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connectors.chargePointID', 'connectors.tariffID','connectors.currentTransactionDate', 'connectors.currentTagID',
-          'ocpiData.evses.capabilities',
-          'siteArea', 'site', 'siteID',
-        ]
+          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connectors.chargePointID', 'connectors.tariffID', 'connectors.currentTransactionDate',
+          'coordinates', 'createdBy', 'createdOn', 'currentIPAddress', 'deleted', 'endpoint', 'excludeFromSmartCharging', 'firmwareVersion', 'forceInactive',
+          'iccid', 'imsi', 'issuer', 'lastChangedBy', 'lastReboot', 'lastSeen', 'manualConfiguration', 'maximumPower', 'meterSerialNumber',
+          'meterType', 'ocppProtocol', 'ocppStandardParameters', 'ocppVendorParameters', 'ocppVersion', 'powerLimitUnit', 'public',
+          'registrationStatus', 'siteAreaID', 'siteID', 'templateHash', 'templateHashCapabilities', 'templateHashOcppStandard',
+          'templateHashOcppVendor', 'templateHashTechnical', 'voltage', 'lastChangedOn', 'ocpiData', 'cloudHostIP', 'cloudHostName',
+          'tokenID', 'tariffID', 'masterSlave', 'firmwareUpdateStatus', 'inactive', 'siteArea', 'site', 'id']
       },
       {
         resource: Entity.CHARGING_STATION,
@@ -1715,6 +1727,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: {
             asserts: [],
             filters: ['SitesAdminUsers']
+          }
+        },
+      },
+      {
+        resource: Entity.CHARGING_STATION, action: [Action.VIEW_ADMIN_CHARGING_STATION_DATA],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdmin']
           }
         },
       },

@@ -797,17 +797,21 @@ export default class AuthorizationService {
           ChargePointStatus.FAULTED,
           ChargePointStatus.SUSPENDED_EVSE,
         ].includes(connector.status);
-      // Remove sensible data
+      // Remove user data
       await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.CONNECTOR, Action.VIEW_USER_DATA, authorizationFilter,
         { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID, UserData: true, TagData: true }, connector);
       // Remove properties
       Utils.removeCanPropertiesWithFalseValue(connector);
     }
-    // Remove sensible data
+    // Remove user data
     await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.VIEW_USER_DATA, authorizationFilter,
       { chargingStationID: chargingStation.id, UserID: userToken.user.id, SiteID: chargingStation.siteID, UserData: true, TagData: true }, chargingStation);
+    // Remove charging station admin data
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.VIEW_ADMIN_CHARGING_STATION_DATA, authorizationFilter,
+      { chargingStationID: chargingStation.id, UserID: userToken.user.id, SiteID: chargingStation.siteID, ChargingStationData: true }, chargingStation);
     // Remove properties
     Utils.removeCanPropertiesWithFalseValue(chargingStation);
   }

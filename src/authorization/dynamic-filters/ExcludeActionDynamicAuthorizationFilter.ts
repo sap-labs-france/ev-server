@@ -2,10 +2,12 @@ import { AuthorizationFilter, DynamicAuthorizationDataSourceName, Entity } from 
 
 import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
 import { EntityData } from '../../types/GlobalType';
+import Utils from '../../utils/Utils';
 
 export default class ExcludeActionDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
   public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>, entityData?: EntityData): void {
     authorizationFilters.authorized = false;
+    Utils.removeSensibeDataFromEntity(extraFilters, entityData);
   }
 
   public getApplicableEntities(): Entity[] {
