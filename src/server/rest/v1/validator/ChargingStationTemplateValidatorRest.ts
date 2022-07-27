@@ -1,4 +1,4 @@
-import { HttpCreateChargingStationTemplateRequest, HttpDeleteChargingStationTemplateRequest, HttpGetChargingStationTemplateRequest, HttpGetChargingStationTemplatesRequest, HttpUpdateChargingStationTemplateRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
+import { HttpChargingStationTemplateCreateRequest, HttpChargingStationTemplateDeleteRequest, HttpChargingStationTemplateGetRequest, HttpChargingStationTemplateUpdateRequest, HttpChargingStationTemplatesGetRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -25,23 +25,23 @@ export default class ChargingStationTemplateValidatorRest extends SchemaValidato
     return ChargingStationTemplateValidatorRest.instance;
   }
 
-  public validateChargingStationTemplateCreateReq(data: Record<string, unknown>): HttpCreateChargingStationTemplateRequest {
+  public validateChargingStationTemplateCreateReq(data: Record<string, unknown>): HttpChargingStationTemplateCreateRequest {
     return this.validate(this.chargingStationTemplateCreate, data);
   }
 
-  public validateChargingStationTemplateGetReq(data: Record<string, unknown>): HttpGetChargingStationTemplateRequest {
+  public validateChargingStationTemplateGetReq(data: Record<string, unknown>): HttpChargingStationTemplateGetRequest {
     return this.validate(this.chargingStationTemplateGet, data);
   }
 
-  public validateChargingStationTemplatesGetReq(data: Record<string, unknown>): HttpGetChargingStationTemplatesRequest {
+  public validateChargingStationTemplatesGetReq(data: Record<string, unknown>): HttpChargingStationTemplatesGetRequest {
     return this.validate(this.chargingStationTemplatesGet, data);
   }
 
-  public validateChargingStationTemplateDeleteReq(data: Record<string, unknown>): HttpDeleteChargingStationTemplateRequest {
+  public validateChargingStationTemplateDeleteReq(data: Record<string, unknown>): HttpChargingStationTemplateDeleteRequest {
     return this.validate(this.chargingStationsTemplateDelete, data);
   }
 
-  public validateChargingStationTemplateUpdateReq(data: Record<string, unknown>): HttpUpdateChargingStationTemplateRequest {
+  public validateChargingStationTemplateUpdateReq(data: Record<string, unknown>): HttpChargingStationTemplateUpdateRequest {
     return this.validate(this.chargingStationTemplateUpdate, data);
   }
 }

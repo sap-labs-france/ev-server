@@ -8,6 +8,7 @@ import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/req
 import { HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingTransferGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 import { HttpCarCatalogGetRequest, HttpCarCatalogsGetRequest, HttpCarGetRequest, HttpCarsGetRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingProfileRequest, HttpChargingProfilesGetRequest, HttpChargingStationGetRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationTemplateGetRequest, HttpChargingStationTemplatesGetRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
 import { HttpCompaniesGetRequest, HttpCompanyGetRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpPricingDefinitionGetRequest, HttpPricingDefinitionsGetRequest } from '../../../../types/requests/HttpPricingRequest';
 import { HttpSiteAreaGetRequest, HttpSiteAreasGetRequest } from '../../../../types/requests/HttpSiteAreaRequest';
@@ -25,7 +26,6 @@ import Company from '../../../../types/Company';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import { HttpGetChargingStationTemplatesRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
 import { HttpLogGetRequest } from '../../../../types/requests/HttpLogRequest';
 import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
@@ -429,13 +429,13 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetChargingStationTemplateAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<ChargingStationTemplate>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpChargingStationTemplateGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
-      tenant, Entity.CHARGING_STATION_TEMPLATE, userToken, filteredRequest, filteredRequest.id ? { chargingStationTemplateID: filteredRequest.id } : {}, authAction, entityData);
+      tenant, Entity.CHARGING_STATION_TEMPLATE, userToken, filteredRequest, filteredRequest.ID ? { chargingStationTemplateID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async checkAndGetChargingStationTemplatesAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
-      filteredRequest: HttpGetChargingStationTemplatesRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpChargingStationTemplatesGetRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

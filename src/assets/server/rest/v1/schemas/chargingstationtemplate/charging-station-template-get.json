@@ -4,12 +4,11 @@
   "description": "",
   "type": "object",
   "properties": {
-    "id": {
-      "type": "string",
-      "sanitize": "mongo"
+    "ID": {
+      "$ref": "common#/definitions/id"
     }
   },
   "required": [
-    "id"
+    "ID"
   ]
 }

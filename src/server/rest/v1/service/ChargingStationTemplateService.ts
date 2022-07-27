@@ -87,17 +87,17 @@ export default class ChargingStationTemplateService {
 
   public static async handleGetChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateGetReq(req.body);
+    const filteredRequest = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateGetReq(req.query);
     // Check and get templates
     const chargingStationTemplate = await UtilsService.checkAndGetChargingStationTemplateAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.READ, action, null, {}, true);
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {}, true);
     res.json(chargingStationTemplate);
     next();
   }
 
   public static async handleDeleteChargingStationTemplate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const chargingStationTemplateID = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateDeleteReq(req.body).id;
+    const chargingStationTemplateID = ChargingStationTemplateValidator.getInstance().validateChargingStationTemplateDeleteReq(req.query).ID;
     // Check and get template by id
     const chargingStationTemplate = await UtilsService.checkAndGetChargingStationTemplateAuthorization(req.tenant, req.user, chargingStationTemplateID, Action.DELETE, action);
     // Delete
