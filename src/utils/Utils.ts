@@ -974,14 +974,6 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/users/${userId}`;
   }
 
-  public static hideShowMessage(message: string): string {
-    // Check Prod
-    if (Utils.isProductionEnv()) {
-      return 'An unexpected server error occurred. Check the server\'s logs!';
-    }
-    return message;
-  }
-
   public static getRequestIP(request: http.IncomingMessage | Partial<Request>): string | string[] {
     if (request['ip']) {
       return request['ip'];

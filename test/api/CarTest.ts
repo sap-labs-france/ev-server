@@ -12,7 +12,7 @@ import TenantContext from './context/TenantContext';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import config from '../config';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 chai.use(chaiSubset);
 class TestData {

@@ -8,7 +8,7 @@ import TenantContext from './TenantContext';
 import TransactionStorage from '../../../src/storage/mongodb/TransactionStorage';
 import User from '../../../src/types/User';
 import chaiSubset from 'chai-subset';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import moment from 'moment';
 import responseHelper from '../../helpers/responseHelper';
 

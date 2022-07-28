@@ -565,7 +565,8 @@ export default class BillingService {
       accountExternalID: null,
       taxID: filteredRequest.taxID,
       createdBy: { id: req.user.id },
-      createdOn: new Date()
+      createdOn: new Date(),
+      companyName: filteredRequest.companyName
     };
     // Save the account
     billingAccount.id = await BillingStorage.saveAccount(req.tenant, billingAccount);

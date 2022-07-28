@@ -308,7 +308,7 @@ export default class SiteService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
         Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
       const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.accountData.accountID);
-      UtilsService.assertObjectExists(action, billingAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleCreateSite', req.user);
+      UtilsService.assertObjectExists(action, billingAccount, `Billing Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleCreateSite', req.user);
     }
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
@@ -379,7 +379,7 @@ export default class SiteService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
         Action.CREATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
       const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.accountData.accountID);
-      UtilsService.assertObjectExists(action, billingAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateSite', req.user);
+      UtilsService.assertObjectExists(action, billingAccount, `Billing Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateSite', req.user);
       site.accountData = {
         accountID: billingAccount.id,
         platformFeeStrategy: filteredRequest.accountData.platformFeeStrategy,

@@ -16,7 +16,7 @@ import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import { fail } from 'assert';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
