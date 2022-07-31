@@ -792,10 +792,9 @@ export default class AuthorizationService {
       // Unlock connector
       connector.canUnlockConnector = !chargingStation.inactive
         && chargingStation.canUnlockConnector
-        && [
-          ChargePointStatus.FINISHING,
-          ChargePointStatus.FAULTED,
-          ChargePointStatus.SUSPENDED_EVSE,
+        && ![
+          ChargePointStatus.AVAILABLE,
+          ChargePointStatus.UNAVAILABLE,
         ].includes(connector.status);
       // Remove sensible data
       await AuthorizationService.canPerformAuthorizationAction(
