@@ -271,11 +271,18 @@ export default class SiteStorage {
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
-    if (siteToSave.accountData) {
-      siteMDB.accountData = {
-        accountID: DatabaseUtils.convertToObjectID(siteToSave.accountData.accountID),
-        platformFeeStrategy: siteToSave.accountData.platformFeeStrategy,
-      };
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
+      if (siteToSave.accountData?.accountID) {
+        siteMDB.accountData = {
+          accountID: DatabaseUtils.convertToObjectID(siteToSave.accountData.accountID),
+          platformFeeStrategy: {
+            flatFeePerSession: siteToSave.accountData.platformFeeStrategy?.flatFeePerSession || 0,
+            percentage: siteToSave.accountData.platformFeeStrategy?.percentage || 0,
+          }
+        };
+      } else {
+        siteMDB.accountData = null;
+      }
     }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
