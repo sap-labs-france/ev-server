@@ -1721,8 +1721,17 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.CONNECTOR,
-        action: [Action.REMOTE_STOP_TRANSACTION, Action.REMOTE_START_TRANSACTION],
+        resource: Entity.CONNECTOR, action: [Action.REMOTE_STOP_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminUsers']
+          }
+        },
+      },
+      {
+        resource: Entity.CONNECTOR, action: [Action.REMOTE_START_TRANSACTION],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
