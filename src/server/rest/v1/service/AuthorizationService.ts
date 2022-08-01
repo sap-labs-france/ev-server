@@ -1181,6 +1181,9 @@ export default class AuthorizationService {
       tenant, userToken, Entity.TRANSACTION, Action.PUSH_TRANSACTION_CDR, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canGetAdvenirConsumption = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.TRANSACTION, Action.GET_ADVENIR_CONSUMPTION, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canRemoteStopTransaction = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.REMOTE_STOP_TRANSACTION, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+
     // Check and remove sensible data
     const sensibleUserData = { UserData: true, TagData: true, CarCatalogData: true, CarData: true, BillingData: true };
     // Transaction sensible data

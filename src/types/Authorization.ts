@@ -323,6 +323,7 @@ export interface TransactionAuthorizationActions extends AuthorizationActions {
   canRefundTransaction?: boolean;
   canPushTransactionCDR?: boolean;
   canGetAdvenirConsumption?: boolean;
+  canRemoteStopTransaction?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

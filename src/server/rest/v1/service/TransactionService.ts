@@ -546,7 +546,7 @@ export default class TransactionService {
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-sessions.csv', filteredRequest,
-      TransactionService.getTransactions_new.bind(this, req, filteredRequest, Action.EXPORT_COMPLETED_TRANSACTION),
+      TransactionService.getTransactions.bind(this, req, filteredRequest, Action.EXPORT_COMPLETED_TRANSACTION),
       TransactionService.convertToCSV.bind(this));
   }
 
@@ -558,7 +558,7 @@ export default class TransactionService {
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-refund-sessions.csv', filteredRequest,
-      TransactionService.getTransactions_new.bind(this, req, filteredRequest, Action.GET_TO_REFUND_TRANSACTION),
+      TransactionService.getTransactions.bind(this, req, filteredRequest, Action.GET_TO_REFUND_TRANSACTION),
       TransactionService.convertToCSV.bind(this));
   }
 
