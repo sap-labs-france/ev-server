@@ -300,12 +300,14 @@ export default class SiteService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Site;
-    // If the site is assigned to a billing account, check if the billing is active
+    // Connected Account
     if (filteredRequest.accountData) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
         Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
-      const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.accountData.accountID);
-      UtilsService.assertObjectExists(action, billingAccount, `Billing Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleCreateSite', req.user);
+      if (filteredRequest.accountData.accountID) {
+        const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.accountData.accountID);
+        UtilsService.assertObjectExists(action, billingAccount, `Billing Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleCreateSite', req.user);
+      }
     }
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
@@ -369,19 +371,18 @@ export default class SiteService {
     if (Utils.objectHasProperty(filteredRequest, 'image')) {
       site.image = filteredRequest.image;
     }
-    site.lastChangedBy = { 'id': req.user.id };
-    site.lastChangedOn = new Date();
-    // If the site is assigned to a billing account, check if the billing is active
+    // Connected Account
     if (filteredRequest.accountData) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-        Action.CREATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
-      const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.accountData.accountID);
-      UtilsService.assertObjectExists(action, billingAccount, `Billing Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateSite', req.user);
-      site.accountData = {
-        accountID: billingAccount.id,
-        platformFeeStrategy: filteredRequest.accountData.platformFeeStrategy,
-      };
+        Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
+      if (filteredRequest.accountData.accountID) {
+        const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.accountData.accountID);
+        UtilsService.assertObjectExists(action, billingAccount, `Billing Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateSite', req.user);
+      }
+      site.accountData = filteredRequest.accountData;
     }
+    site.lastChangedBy = { 'id': req.user.id };
+    site.lastChangedOn = new Date();
     // Save
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     // Update all refs
