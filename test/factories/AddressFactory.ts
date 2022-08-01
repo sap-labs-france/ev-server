@@ -1,6 +1,6 @@
 import { Factory } from 'rosie';
 import Utils from '../../src/utils/Utils';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import moment from 'moment-timezone';
 
 export default Factory.define('address')

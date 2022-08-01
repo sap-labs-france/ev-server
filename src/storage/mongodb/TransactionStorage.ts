@@ -1517,7 +1517,9 @@ export default class TransactionStorage {
     }
   }
 
-  private static pushChargingStationInTransactionAggregation(tenant: Tenant, params: any, projectFields: string[], aggregation: any[]) {
+  private static pushChargingStationInTransactionAggregation(tenant: Tenant,
+      params: { withChargingStation?: boolean, transactionsToStop?: boolean },
+      projectFields: string[], aggregation: any[]) {
     // Add Charging Station
     DatabaseUtils.pushChargingStationLookupInAggregation({
       tenantID: tenant.id, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
@@ -1525,7 +1527,7 @@ export default class TransactionStorage {
     });
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Add Connector and Status
-    if ((projectFields && projectFields.includes('status')) || params.transactionsToClose) {
+    if ((projectFields && projectFields.includes('status')) || params.transactionsToStop) {
       aggregation.push({
         $addFields: {
           connector: {

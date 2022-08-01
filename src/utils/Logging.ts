@@ -682,9 +682,8 @@ export default class Logging {
       res.status(errorCode)
         .send({
           errorCode,
-          errorMessage: Utils.hideShowMessage(exception.message),
-          errorDetailedMessage: Utils.hideShowMessage(
-            exception['params'] ? exception['params']['detailedMessages'] : null),
+          errorMessage: exception.message,
+          errorDetailedMessage: exception['params'] ? exception['params']['detailedMessages'] : null,
         });
     }
     next();
