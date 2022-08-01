@@ -1,5 +1,5 @@
 import { BillingStatus, TransactionBillingData } from '../../types/Billing';
-import { DataResult, TransactionDataResult } from '../../types/DataResult';
+import { DataResult, TransactionDataResult, TransactionInErrorDataResult } from '../../types/DataResult';
 import RefundReport, { RefundStatus, TransactionRefundData } from '../../types/Refund';
 import Transaction, { CollectedFundReport, TransactionOcpiData, TransactionOicpData, TransactionStatisticsType, TransactionStats, TransactionStatus } from '../../types/Transaction';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
@@ -917,8 +917,8 @@ export default class TransactionStorage {
       params: {
         search?: string; issuer?: boolean; userIDs?: string[]; chargingStationIDs?: string[];
         siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
-        withChargingStations?: boolean; errorType?: TransactionInErrorType[]; connectorIDs?: number[];
-      }, dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
+        withChargingStations?: boolean; errorType?: string[]; connectorIDs?: number[];
+      }, dbParams: DbParams, projectFields?: string[]): Promise<TransactionInErrorDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values

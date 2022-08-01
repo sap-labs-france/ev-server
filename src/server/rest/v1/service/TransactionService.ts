@@ -50,7 +50,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions_new(req, filteredRequest);
+    const transactions = await TransactionService.getTransactions(req, filteredRequest);
     res.json(transactions);
     next();
   }
@@ -451,7 +451,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions_new(req, filteredRequest, Action.GET_CHARGING_STATION_TRANSACTIONS);
+    const transactions = await TransactionService.getTransactions(req, filteredRequest, Action.GET_CHARGING_STATION_TRANSACTIONS);
     res.json(transactions);
     next();
   }
@@ -473,7 +473,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions_new(req, filteredRequest, Action.GET_ACTIVE_TRANSACTION);
+    const transactions = await TransactionService.getTransactions(req, filteredRequest, Action.GET_ACTIVE_TRANSACTION);
     res.json(transactions);
     next();
   }
@@ -484,7 +484,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions_new(req, filteredRequest, Action.GET_COMPLETED_TRANSACTION);
+    const transactions = await TransactionService.getTransactions(req, filteredRequest, Action.GET_COMPLETED_TRANSACTION);
     res.json(transactions);
     next();
   }
@@ -499,7 +499,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions_new(req, filteredRequest, Action.GET_TO_REFUND_TRANSACTION);
+    const transactions = await TransactionService.getTransactions(req, filteredRequest, Action.GET_TO_REFUND_TRANSACTION);
     res.json(transactions);
     next();
   }
@@ -513,22 +513,6 @@ export default class TransactionService {
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Check dyna;ic auth
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(req.tenant, req.user, Action.GET_REFUND_REPORT, filteredRequest);
-
-    // TODO: test this should never be used
-    // const filter: any = { stop: { $exists: true } };
-    // Filter
-    // if (Authorizations.isBasic(req.user)) {
-    //   filter.ownerID = req.user.id;
-    // }
-    // if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
-    //   if (filteredRequest.SiteAreaID) {
-    //     filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
-    //   }
-    //   if (filteredRequest.SiteID) {
-    //     filter.siteID = await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID.split('|'));
-    //   }
-    //   filter.siteAdminIDs = await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user);
-    // }
 
 
     // Get Reports
@@ -562,7 +546,7 @@ export default class TransactionService {
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-sessions.csv', filteredRequest,
-      TransactionService.getCompletedTransactionsToExport.bind(this),
+      TransactionService.getTransactions_new.bind(this, req, filteredRequest, Action.EXPORT_COMPLETED_TRANSACTION),
       TransactionService.convertToCSV.bind(this));
   }
 
@@ -574,29 +558,15 @@ export default class TransactionService {
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-refund-sessions.csv', filteredRequest,
-      TransactionService.getRefundedTransactionsToExport.bind(this),
+      TransactionService.getTransactions_new.bind(this, req, filteredRequest, Action.GET_TO_REFUND_TRANSACTION),
       TransactionService.convertToCSV.bind(this));
   }
 
   public static async handleExportTransactionOcpiCdr(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!await Authorizations.canListTransactions(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST,
-        entity: Entity.TRANSACTION,
-        module: MODULE_NAME,
-        method: 'handleExportTransactionOcpiCdr'
-      });
-    }
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionCdrExportReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, {}, ['id', 'ocpiData']);
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
+    const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, filteredRequest.ID, Action.EXPORT_OCPI_CDR, action);
     if (!transaction?.ocpiData) {
       throw new AppError({
         ...LoggingHelper.getTransactionProperties(transaction),
@@ -612,46 +582,15 @@ export default class TransactionService {
   }
 
   public static async handleGetTransactionsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+
     // Check auth
-    if (!await Authorizations.canListTransactionsInError(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.IN_ERROR, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleGetTransactionsInError'
-      });
-    }
-    let projectFields = [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
-      'meterStart', 'siteAreaID', 'siteID', 'companyID', 'errorCode', 'uniqueId', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.stateOfCharge'
-    ];
-    // Check Users
-    if ((await Authorizations.canListUsers(req.user)).authorized) {
-      if (projectFields) {
-        projectFields = [
-          ...projectFields,
-          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
-          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID'
-        ];
-      }
-    }
-    // Check Cars
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (await Authorizations.canListCars(req.user)) {
-        projectFields = [
-          ...projectFields,
-          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-        ];
-      }
-    }
-    const filter: any = {};
+    const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(req.tenant, req.user, Action.IN_ERROR);
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsInErrorGetReq(req.query);
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.tenant,
       {
-        ...filter, search: filteredRequest.Search,
+        search: filteredRequest.Search,
         issuer: true,
         errorType: filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : UtilsService.getTransactionInErrorTypes(req.user),
         endDateTime: filteredRequest.EndDateTime,
@@ -661,19 +600,27 @@ export default class TransactionService {
         siteIDs: await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields)
       },
-      projectFields
+      authorizations.projectFields
     );
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      transactions.projectFields = authorizations.projectFields;
+    }
+    // Add Auth flags
+    await AuthorizationService.addTransactionsInErrorAuthorizations(req.tenant, req.user, transactions, authorizations);
+
     res.json(transactions);
     next();
   }
 
-  public static convertToCSV(req: Request, transactions: Transaction[], writeHeader = true): string {
+  private static convertToCSV(req: Request, transactions: Transaction[], writeHeader = true): string {
     let headers = null;
     // Header
     if (writeHeader) {
@@ -809,7 +756,7 @@ export default class TransactionService {
     return result;
   }
 
-  private static async getTransactions_new(req: Request, filteredRequest: HttpTransactionsGetRequest,
+  private static async getTransactions(req: Request, filteredRequest: HttpTransactionsGetRequest,
       authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
 
     // Get authorization filters
@@ -835,7 +782,6 @@ export default class TransactionService {
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         tagIDs: filteredRequest.TagID ? filteredRequest.TagID.split('|') : null,
-        // ownerID: Authorizations.isBasic(req.user) ? req.user.id : null,
         withTag: filteredRequest.WithTag,
         withUser: filteredRequest.WithUser,
         withChargingStation: filteredRequest.WithChargingStation,
@@ -845,7 +791,6 @@ export default class TransactionService {
         withSiteArea: filteredRequest.WithSiteArea,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
-        // siteAdminIDs: await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user),
         startDateTime: filteredRequest.StartDateTime ? filteredRequest.StartDateTime : null,
         endDateTime: filteredRequest.EndDateTime ? filteredRequest.EndDateTime : null,
         refundStatus: filteredRequest.RefundStatus ? filteredRequest.RefundStatus.split('|') as RefundStatus[] : null,
@@ -873,104 +818,6 @@ export default class TransactionService {
       req.tenant, req.user, transactions, authorizations);
 
     return transactions;
-  }
-
-  private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean, withTag?: boolean } = {},
-      filteredRequest: HttpTransactionsGetRequest, projectFields): Promise<DataResult<Transaction>> {
-    // Check Transactions
-    if (!await Authorizations.canListTransactions(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleGetTransactionsToRefund'
-      });
-    }
-    // Check Users
-    if ((await Authorizations.canListUsers(req.user)).authorized) {
-      if (projectFields) {
-        projectFields = [
-          ...projectFields,
-          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
-          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
-        ];
-      }
-    }
-    // Check Cars
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (await Authorizations.canListCars(req.user)) {
-        projectFields = [
-          ...projectFields,
-          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-        ];
-      }
-      if (await Authorizations.canUpdateCar(req.user)) {
-        projectFields = [
-          ...projectFields,
-          'car.licensePlate',
-        ];
-      }
-    }
-    // Check projection
-    const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
-    if (!Utils.isEmptyArray(httpProjectFields)) {
-      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
-    }
-    // Get Tag IDs from Visual IDs
-    if (filteredRequest.VisualTagID) {
-      const tagIDs = await TagStorage.getTags(req.tenant, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['id']);
-      if (!Utils.isEmptyArray(tagIDs.result)) {
-        filteredRequest.TagID = tagIDs.result.map((tag) => tag.id).join('|');
-      }
-    }
-    // Get the transactions
-    const transactions = await TransactionStorage.getTransactions(req.tenant,
-      {
-        status: filteredRequest.Status,
-        chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
-        issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
-        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
-        tagIDs: filteredRequest.TagID ? filteredRequest.TagID.split('|') : null,
-        ownerID: Authorizations.isBasic(req.user) ? req.user.id : null,
-        withTag: filteredRequest.WithTag,
-        withUser: filteredRequest.WithUser,
-        withChargingStation: filteredRequest.WithChargingStation,
-        withCar: filteredRequest.WithCar,
-        withSite: filteredRequest.WithSite,
-        withCompany: filteredRequest.WithCompany,
-        siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
-        withSiteArea: filteredRequest.WithSiteArea,
-        siteIDs: filteredRequest.SiteID ? await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID.split('|')) : null,
-        siteAdminIDs: await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user),
-        startDateTime: filteredRequest.StartDateTime ? filteredRequest.StartDateTime : null,
-        endDateTime: filteredRequest.EndDateTime ? filteredRequest.EndDateTime : null,
-        refundStatus: filteredRequest.RefundStatus ? filteredRequest.RefundStatus.split('|') as RefundStatus[] : null,
-        minimalPrice: filteredRequest.MinimalPrice ? filteredRequest.MinimalPrice : null,
-        statistics: filteredRequest.Statistics ? filteredRequest.Statistics : null,
-        search: filteredRequest.Search ? filteredRequest.Search : null,
-        reportIDs: filteredRequest.ReportIDs ? filteredRequest.ReportIDs.split('|') : null,
-        connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
-        inactivityStatus: filteredRequest.InactivityStatus ? filteredRequest.InactivityStatus.split('|') : null,
-      },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields), onlyRecordCount: filteredRequest.OnlyRecordCount },
-      projectFields
-    );
-    return transactions;
-  }
-
-  private static async getCompletedTransactionsToExport(req: Request, filteredRequest: HttpTransactionsGetRequest): Promise<DataResult<Transaction>> {
-    // Get Transactions
-    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, {}, filteredRequest, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
-      'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID'
-    ]);
-  }
-
-  private static async getRefundedTransactionsToExport(req: Request, filteredRequest: HttpTransactionsGetRequest): Promise<DataResult<Transaction>> {
-    // Get Transactions
-    return await TransactionService.getTransactions_new(req, filteredRequest, Action.GET_TO_REFUND_TRANSACTION);
   }
 
   private static async transactionSoftStop(action: ServerAction, transaction: Transaction, chargingStation: ChargingStation,

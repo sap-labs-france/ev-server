@@ -1,12 +1,12 @@
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from './Billing';
 import { Car, CarCatalog } from './Car';
+import { ChargingStationInError, TransactionInError } from './InError';
 import Transaction, { TransactionStats } from './Transaction';
 
 import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import { ChargingProfile } from './ChargingProfile';
 import ChargingStation from './ChargingStation';
-import { ChargingStationInError } from './InError';
 import Company from './Company';
 import { Log } from './Log';
 import PricingDefinition from './Pricing';
@@ -83,6 +83,10 @@ export interface TagDataResult extends DataResult<Tag> {
 
 export interface TransactionDataResult extends DataResult<Transaction> {
   stats: TransactionStats;
+  canListUsers?: boolean;
+}
+
+export interface TransactionInErrorDataResult extends DataResult<TransactionInError> {
   canListUsers?: boolean;
 }
 

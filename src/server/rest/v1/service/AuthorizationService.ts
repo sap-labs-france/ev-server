@@ -1,5 +1,5 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, DynamicAuthorizationsFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingAccountsDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, TransactionDataResult, UserDataResult } from '../../../../types/DataResult';
+import { AssetDataResult, BillingAccountsDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult, TransactionDataResult, TransactionInErrorDataResult, UserDataResult } from '../../../../types/DataResult';
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
@@ -40,6 +40,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import Tag from '../../../../types/Tag';
 import Transaction from '../../../../types/Transaction';
+import { TransactionInError } from '../../../../types/InError';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
@@ -1156,7 +1157,7 @@ export default class AuthorizationService {
       transactions: TransactionDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
     transactions.metadata = authorizationFilter.metadata;
-    transactions.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+    transactions.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.LIST, authorizationFilter);
     // Add Authorizations
     for (const transaction of transactions.result) {
       await AuthorizationService.addTransactionAuthorizations(tenant, userToken, transaction, authorizationFilter);
@@ -1174,7 +1175,8 @@ export default class AuthorizationService {
     transaction.canRefundTransaction = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.TRANSACTION, Action.REFUND_TRANSACTION, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canSynchronizeRefundedTransaction = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+      tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter,
+      { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canPushTransactionCDR = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.TRANSACTION, Action.PUSH_TRANSACTION_CDR, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canGetAdvenirConsumption = await AuthorizationService.canPerformAuthorizationAction(
@@ -1190,6 +1192,36 @@ export default class AuthorizationService {
       tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter,
       { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction.stop);
     // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(transaction);
+  }
+
+  public static async addTransactionsInErrorAuthorizations(tenant: Tenant, userToken: UserToken,
+      transactions: TransactionInErrorDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Meta Data
+    transactions.metadata = authorizationFilter.metadata;
+    transactions.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.LIST, authorizationFilter);
+    // Add Authorizations
+    for (const transaction of transactions.result) {
+      await AuthorizationService.addTransactionInErrorAuthorizations(tenant, userToken, transaction, authorizationFilter);
+    }
+  }
+
+  public static async addTransactionInErrorAuthorizations(tenant: Tenant, userToken: UserToken, transaction: TransactionInError,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Set entity dynamic auth filters that will be used by auth framework
+    const dynamicAuthorizationFilter: DynamicAuthorizationsFilter = { CompanyID: transaction.companyID, SiteID: transaction.siteID, UserID: transaction.userID };
+    transaction.canRead = true; // Always true as it should be filtered upfront
+    // Check and remove sensible data
+    const sensibleUserData = { UserData: true, TagData: true, CarCatalogData: true, CarData: true, BillingData: true };
+    // Transaction sensible data
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter,
+      { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction);
+    // Transaction stop sensible data
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter,
+      { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction.stop);
+    // Optimize data
     Utils.removeCanPropertiesWithFalseValue(transaction);
   }
 

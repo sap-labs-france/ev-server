@@ -196,6 +196,8 @@ export enum Action {
   GET_COMPLETED_TRANSACTION = 'GetCompletedTransaction',
   GET_TO_REFUND_TRANSACTION = 'GetToRefundTransaction',
   GET_REFUND_REPORT = 'GetRefundReport',
+  EXPORT_COMPLETED_TRANSACTION = 'ExportCompletedTransaction',
+  EXPORT_OCPI_CDR = 'ExportOcpiCdr',
 }
 
 export interface AuthorizationContext {
