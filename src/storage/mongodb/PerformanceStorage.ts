@@ -21,7 +21,7 @@ export default class PerformanceStorage {
       // Validate
       performanceRecord = PerformanceValidatorStorage.getInstance().validatePerformance(performanceRecord);
       // Insert
-      const result = await global.database.getCollection(Constants.DEFAULT_TENANT_ID, 'performances')
+      const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'performances')
         .insertOne(performanceRecord);
       // Set
       performanceRecord.id = result.insertedId.toString();
@@ -37,7 +37,7 @@ export default class PerformanceStorage {
       // Convert to ObjectID
       DatabaseUtils.switchIDToMongoDBID(performanceRecordMDB);
       // Update
-      await global.database.getCollection(Constants.DEFAULT_TENANT_ID, 'performances').findOneAndUpdate(
+      await global.database.getCollection<PerformanceRecord>(Constants.DEFAULT_TENANT_ID, 'performances').findOneAndUpdate(
         { _id: performanceRecordMDB['_id'] },
         { $set: performanceRecordMDB },
         { upsert: true, returnDocument: 'after' }

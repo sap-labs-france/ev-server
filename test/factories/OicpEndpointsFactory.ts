@@ -1,6 +1,6 @@
 import { Factory } from 'rosie';
 import { OICPRole } from '../../src/types/oicp/OICPRole';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export default Factory.define('oicpEndpoint')
   .attr('name', () => faker.name.lastName())

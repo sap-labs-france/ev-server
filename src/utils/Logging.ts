@@ -13,6 +13,7 @@ import { HTTPError } from '../types/HTTPError';
 import LogConfiguration from '../types/configuration/LogConfiguration';
 import LogStorage from '../storage/mongodb/LogStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
+import OCPPError from '../exception/OcppError';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import { OICPResult } from '../types/oicp/OICPResult';
 import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
@@ -628,6 +629,8 @@ export default class Logging {
       await Logging.logActionAppAuthException(tenantID, action, exception);
     } else if (exception instanceof AppError) {
       await Logging.logActionAppException(tenantID, action, exception);
+    } else if (exception instanceof OCPPError) {
+      await Logging.logActionOcppException(tenantID, action, exception);
     } else if (exception instanceof BackendError) {
       await Logging.logActionBackendException(tenantID, action, exception);
     } else {
@@ -638,15 +641,14 @@ export default class Logging {
 
   // Used to log exception in catch(...) only
   public static async logActionExceptionMessage(tenantID: string, action: ServerAction, exception: Error, detailedMessages = {}): Promise<void> {
-    // Log App Error
     if (exception instanceof AppError) {
       await Logging.logActionAppException(tenantID, action, exception, detailedMessages);
-    // Log Backend Error
     } else if (exception instanceof BackendError) {
       await Logging.logActionBackendException(tenantID, action, exception, detailedMessages);
-    // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       await Logging.logActionAppAuthException(tenantID, action, exception, detailedMessages);
+    } else if (exception instanceof OCPPError) {
+      await Logging.logActionOcppException(tenantID, action, exception);
     } else {
       await Logging.logActionException(tenantID, action, exception, detailedMessages);
     }
@@ -662,27 +664,27 @@ export default class Logging {
     if (req.user && req.user.tenantID) {
       tenantID = req.user.tenantID;
     }
-    let statusCode;
-    // Log App Error
     if (exception instanceof AppError) {
       await Logging.logActionAppException(tenantID, action, exception);
-      statusCode = exception.params.errorCode;
-    // Log Backend Error
     } else if (exception instanceof BackendError) {
       await Logging.logActionBackendException(tenantID, action, exception);
-      statusCode = HTTPError.GENERAL_ERROR;
-    // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       await Logging.logActionAppAuthException(tenantID, action, exception);
-      statusCode = exception.params.errorCode;
+    } else if (exception instanceof OCPPError) {
+      await Logging.logActionOcppException(tenantID, action, exception);
     } else {
       await Logging.logActionException(tenantID, action, exception);
     }
     // Send error
     if (!res.headersSent) {
-      res.status(statusCode ? statusCode : HTTPError.GENERAL_ERROR).send({
-        'message': Utils.hideShowMessage(exception.message)
-      });
+      const errorCode = exception['params'] && exception['params']['errorCode'] ?
+        exception['params']['errorCode'] : HTTPError.GENERAL_ERROR;
+      res.status(errorCode)
+        .send({
+          errorCode,
+          errorMessage: exception.message,
+          errorDetailedMessage: exception['params'] ? exception['params']['detailedMessages'] : null,
+        });
     }
     next();
   }
@@ -794,17 +796,7 @@ export default class Logging {
   }
 
   private static async logActionAppException(tenantID: string, action: ServerAction, exception: AppError, detailedMessages = {}): Promise<void> {
-    // Add Exception stack
-    if (exception.params.detailedMessages) {
-      exception.params.detailedMessages = {
-        'error': exception.stack,
-        'previous': exception.params.detailedMessages
-      };
-    } else {
-      exception.params.detailedMessages = {
-        'error': exception.stack,
-      };
-    }
+    Utils.handleExceptionDetailedMessages(exception);
     await Logging.logError({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
@@ -817,22 +809,15 @@ export default class Logging {
       method: exception.params.method,
       action: action,
       message: exception.message,
-      detailedMessages: { ...exception.params.detailedMessages, ...detailedMessages }
+      detailedMessages: {
+        ...exception.params.detailedMessages,
+        ...detailedMessages
+      }
     });
   }
 
   private static async logActionBackendException(tenantID: string, action: ServerAction, exception: BackendError, detailedMessages = {}): Promise<void> {
-    // Add Exception stack
-    if (exception.params.detailedMessages) {
-      exception.params.detailedMessages = {
-        'error': exception.stack,
-        'previous': exception.params.detailedMessages
-      };
-    } else {
-      exception.params.detailedMessages = {
-        'error': exception.stack,
-      };
-    }
+    Utils.handleExceptionDetailedMessages(exception);
     await Logging.logError({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
@@ -845,12 +830,16 @@ export default class Logging {
       message: exception.message,
       user: exception.params.user,
       actionOnUser: exception.params.actionOnUser,
-      detailedMessages: { ...exception.params.detailedMessages, ...detailedMessages }
+      detailedMessages: {
+        ...exception.params.detailedMessages,
+        ...detailedMessages
+      }
     });
   }
 
   // Used to check URL params (not in catch)
   private static async logActionAppAuthException(tenantID: string, action: ServerAction, exception: AppAuthError, detailedMessages = {}): Promise<void> {
+    Utils.handleExceptionDetailedMessages(exception);
     await Logging.logError({
       tenantID: tenantID,
       user: exception.params.user,
@@ -864,7 +853,26 @@ export default class Logging {
       action: action,
       message: exception.message,
       detailedMessages: {
-        error: exception.stack,
+        ...exception.params.detailedMessages,
+        ...detailedMessages
+      }
+    });
+  }
+
+  private static async logActionOcppException(tenantID: string, action: ServerAction, exception: OCPPError, detailedMessages = {}): Promise<void> {
+    Utils.handleExceptionDetailedMessages(exception);
+    await Logging.logError({
+      tenantID: tenantID,
+      chargingStationID: exception.params.chargingStationID,
+      siteID: exception.params.siteID,
+      siteAreaID: exception.params.siteAreaID,
+      companyID: exception.params.companyID,
+      module: exception.params.module,
+      method: exception.params.method,
+      action: action,
+      message: exception.message,
+      detailedMessages: {
+        ...exception.params.detailedMessages,
         ...detailedMessages
       }
     });

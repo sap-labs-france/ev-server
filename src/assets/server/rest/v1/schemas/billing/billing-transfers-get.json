@@ -1,6 +1,6 @@
 {
   "$id": "billing-transfers-get",
-  "title": "Get billing transfers Request",
+  "title": "Get transfers",
   "type": "object",
   "properties": {
     "ID": {
@@ -8,11 +8,8 @@
     },
     "Status": {
       "type": "string",
-      "enum": [
-        "pending",
-        "draft",
-        "transferred"
-      ]
+      "pattern": "^((pending|draft|finalized|transferred)(\\|pending|\\|draft|\\|finalized|\\|transferred)*)?$",
+      "sanitize": "mongo"
     },
     "AccountID": {
       "$ref": "common#/definitions/ids"

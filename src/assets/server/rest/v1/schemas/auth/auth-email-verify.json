@@ -6,9 +6,6 @@
     "Email": {
       "$ref": "user#/definitions/email"
     },
-    "Tenant": {
-      "$ref": "common#/definitions/authSubdomain"
-    },
     "VerificationToken": {
       "type": "string",
       "sanitize": "mongo"
@@ -16,7 +13,6 @@
   },
   "required": [
     "Email",
-    "Tenant",
     "VerificationToken"
   ]
 }

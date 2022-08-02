@@ -1,0 +1,13 @@
+{
+  "$id": "billing-transfer-send",
+  "title": "Send transfer Request",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}
