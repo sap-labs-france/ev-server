@@ -13,7 +13,6 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
-import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
@@ -110,10 +109,10 @@ export default class UserService {
       Action.UPDATE, Entity.SITE, 'SiteService', 'handleAssignSitesToUser');
     // Filter request
     const filteredRequest = UserValidatorRest.getInstance().validateUserSitesAssignReq(req.body);
-    const serverAction = action === ServerAction.ADD_SITES_TO_USER ? Action.ASSIGN_SITES_TO_USER : Action.UNASSIGN_SITES_FROM_USER;
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, serverAction, action);
+    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, Action.ASSIGN_UNASSIGN_SITES, action);
     // Check and Get Sites
+    const serverAction = action === ServerAction.ADD_SITES_TO_USER ? Action.ASSIGN_SITES_TO_USER : Action.UNASSIGN_SITES_FROM_USER;
     const sites = await UtilsService.checkAndGetUserSitesAuthorization(req.tenant, req.user, user, filteredRequest.siteIDs, action);
     // Save
     for (const site of sites) {
@@ -123,7 +122,7 @@ export default class UserService {
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: serverAction, entity: Entity.USER_SITE,
-          module: MODULE_NAME, method: 'checkAndGetPricingDefinitionAuthorization',
+          module: MODULE_NAME, method: 'handleAssignSitesToUser',
           value: site.id
         });
       }
@@ -354,15 +353,7 @@ export default class UserService {
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUserSitesGetReq(req.query);
-    // Check User
-    try {
-      await UtilsService.checkAndGetUserAuthorization(
-        req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
-    } catch (error) {
-      UtilsService.sendEmptyDataResult(res, next);
-      return;
-    }
-    // Check dynamic auth for reading Sites
+    // Check dynamic auth for listing user sites
     const authorizations = await AuthorizationService.checkAndGetUserSitesAuthorizations(req.tenant,
       req.user, filteredRequest);
     if (!authorizations.authorized) {
@@ -374,7 +365,7 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         userIDs: [filteredRequest.UserID],
-        ...authorizations.filters
+        ...authorizations.filters // ici liste vide si le check and get foire
       },
       {
         limit: filteredRequest.Limit,

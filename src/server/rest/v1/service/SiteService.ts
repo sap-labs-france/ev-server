@@ -88,10 +88,10 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
     // Filter request
     const filteredRequest = SiteValidatorRest.getInstance().validateSiteAssignUsersReq(req.body);
-    const serverAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN_USERS_TO_SITE : Action.UNASSIGN_USERS_FROM_SITE;
     // Check and Get Site
-    const site = await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.siteID, serverAction, action);
+    const site = await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.siteID, Action.ASSIGN_UNASSIGN_USERS, action);
     // Check and Get Users
+    const serverAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN_USERS_TO_SITE : Action.UNASSIGN_USERS_FROM_SITE;
     const users = await UtilsService.checkAndGetSiteUsersAuthorization(req.tenant, req.user, site, filteredRequest.userIDs, action);
     // Save
     for (const user of users) {
@@ -130,9 +130,7 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsers');
     // Filter
     const filteredRequest = SiteValidatorRest.getInstance().validateSiteGetUsersReq(req.query);
-    // Check Site Auth
-    await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.SiteID, Action.READ, action);
-    // Check dynamic auth for reading Users
+    // Check dynamic auth for listing sites users
     const authorizations = await AuthorizationService.checkAndGetSiteUsersAuthorizations(req.tenant,
       req.user, filteredRequest, false);
     if (!authorizations.authorized) {

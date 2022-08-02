@@ -13,9 +13,6 @@ import { HttpSiteAreaGetRequest, HttpSiteAreasGetRequest } from '../../../../typ
 import { HttpSiteAssignUsersRequest, HttpSiteGetRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagGetRequest, HttpTagsGetRequest } from '../../../../types/requests/HttpTagRequest';
 import { HttpUserGetRequest, HttpUserSitesAssignRequest, HttpUserSitesGetRequest, HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
-import Site, { UserSite } from '../../../../types/Site';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
-import User, { SiteUser, UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Asset from '../../../../types/Asset';
@@ -34,8 +31,11 @@ import PricingDefinition from '../../../../types/Pricing';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import { ServerAction } from '../../../../types/Server';
 import { Setting } from '../../../../types/Setting';
+import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import Tag from '../../../../types/Tag';
+import Tenant from '../../../../types/Tenant';
+import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 
@@ -83,10 +83,8 @@ export default class AuthorizationService {
       tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS, authorizationFilter, { SiteID: site.id }, site);
     site.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR, authorizationFilter, { SiteID: site.id }, site);
-    site.canAssignUsers = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITE_USER, Action.ASSIGN, authorizationFilter, { SiteID: site.id }, site);
-    site.canUnassignUsers = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITE_USER, Action.UNASSIGN, authorizationFilter, { SiteID: site.id }, site);
+    site.canAssignUnassignUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE, Action.ASSIGN_UNASSIGN_USERS, authorizationFilter, { SiteID: site.id }, site);
     site.canListSiteUsers = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_USER, Action.LIST, authorizationFilter, { SiteID: site.id }, site);
     // Optimize data over the net
@@ -178,7 +176,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    const authAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN;
+    const authAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN_USERS_TO_SITE : Action.UNASSIGN_USERS_FROM_SITE;
     await this.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_USER, authAction,
       authorizations, filteredRequest, null, true);
     return authorizations;
@@ -205,26 +203,13 @@ export default class AuthorizationService {
     userSites.metadata = authorizationFilter.metadata;
     // Add Authorizations
     userSites.canUpdateUserSites = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER_SITE, Action.UPDATE, authorizationFilter);
-    for (const userSite of userSites.result) {
-      await AuthorizationService.addUserSiteAuthorizations(tenant, userToken, userSite, authorizationFilter);
-    }
   }
 
-  public static async addUserSiteAuthorizations(tenant: Tenant, userToken: UserToken, userSite: UserSite, authorizationFilter: AuthorizationFilter): Promise<void> {
-    userSite.canAssignToUser = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.USER_SITE, Action.ASSIGN, authorizationFilter, { UserID: userSite.userID }, userSite);
-    userSite.canUnassignFromUser = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.USER_SITE, Action.UNASSIGN, authorizationFilter, { UserID: userSite.userID }, userSite);
-    // Optimize data over the net
-    Utils.removeCanPropertiesWithFalseValue(userSite);
-  }
-
-  // eslint-disable-next-line max-len
   public static async addUserSiteAuthToSitesAuthorizations(tenant: Tenant, userToken: UserToken, user: User, sites: Site[], authorizationFilter: AuthorizationFilter): Promise<void> {
     for (const site of sites) {
-      site.canAssignToUser = await AuthorizationService.canPerformAuthorizationAction(
+      site.canAssignSitesToUser = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.USER_SITE, Action.ASSIGN_SITES_TO_USER, authorizationFilter, { UserID: user.id }, site);
-      site.canUnassignFromUser = await AuthorizationService.canPerformAuthorizationAction(
+      site.canUnassignSitesFromUser = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.USER_SITE, Action.UNASSIGN_SITES_FROM_USER, authorizationFilter, { UserID: user.id }, site);
       // Optimize data over the net
       Utils.removeCanPropertiesWithFalseValue(site);
@@ -236,29 +221,17 @@ export default class AuthorizationService {
     siteUsers.metadata = authorizationFilter.metadata;
     // Add Authorizations
     siteUsers.canUpdateSiteUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_USER, Action.UPDATE, authorizationFilter);
-    for (const siteUser of siteUsers.result) {
-      await AuthorizationService.addSiteUserAuthorizations(tenant, userToken, siteUser, authorizationFilter);
-    }
-  }
-
-  public static async addSiteUserAuthorizations(tenant: Tenant, userToken: UserToken, siteUser: SiteUser, authorizationFilter: AuthorizationFilter): Promise<void> {
-    siteUser.canAssignToSite = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITE_USER, Action.ASSIGN, authorizationFilter, { UserID: siteUser.user.id }, siteUser);
-    siteUser.canUnassignFromSite = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITE_USER, Action.UNASSIGN, authorizationFilter, { UserID: siteUser.user.id }, siteUser);
-    // Optimize data over the net
-    Utils.removeCanPropertiesWithFalseValue(siteUser);
   }
 
   // eslint-disable-next-line max-len
   public static async addSiteUserAuthToUsersAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, users: User[], authorizationFilter: AuthorizationFilter): Promise<void> {
     for (const user of users) {
-      user.canAssignToSite = await AuthorizationService.canPerformAuthorizationAction(
+      user.canAssignUsersToSite = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_USER, Action.ASSIGN_USERS_TO_SITE, authorizationFilter, { UserID: user.id }, site);
-      user.canUnassignFromSite = await AuthorizationService.canPerformAuthorizationAction(
+      user.canUnassignUsersFromSite = await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.SITE_USER, Action.UNASSIGN_USERS_FROM_SITE, authorizationFilter, { UserID: user.id }, site);
       // Optimize data over the net
-      Utils.removeCanPropertiesWithFalseValue(site);
+      Utils.removeCanPropertiesWithFalseValue(user);
     }
   }
 
@@ -301,10 +274,8 @@ export default class AuthorizationService {
       tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter, { UserID: user.id }, user);
     user.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter, { UserID: user.id }, user);
-    user.canAssignSites = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.USER_SITE, Action.ASSIGN, authorizationFilter, { UserID: user.id }, user);
-    user.canUnassignSites = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.USER_SITE, Action.UNASSIGN, authorizationFilter, { UserID: user.id }, user);
+    user.canAssignUnassignSites = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.ASSIGN_UNASSIGN_SITES, authorizationFilter, { UserID: user.id }, user);
     user.canListUserSites = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USER_SITE, Action.LIST, authorizationFilter, { UserID: user.id }, user);
     user.canListTags = await AuthorizationService.canPerformAuthorizationAction(
@@ -1203,31 +1174,6 @@ export default class AuthorizationService {
     Utils.removeCanPropertiesWithFalseValue(carCatalog);
   }
 
-  private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,
-      filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
-    if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        // Get assigned Site IDs assigned to user from DB
-        const siteIDs = await Authorizations.getAssignedSiteIDs(tenant, userToken);
-        if (!Utils.isEmptyArray(siteIDs)) {
-          // Force the filter
-          authorizationFilters.filters.siteIDs = siteIDs;
-          // Check if filter is provided
-          if (filteredRequest?.SiteID) {
-            const filteredSiteIDs = filteredRequest.SiteID.split('|');
-            // Override
-            authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
-              (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
-          }
-        }
-        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
-          authorizationFilters.authorized = true;
-        }
-      } else {
-        authorizationFilters.authorized = true;
-      }
-    }
-  }
 
   private static filterProjectFields(authFields: string[], httpProjectField: string): string[] {
     let fields = authFields;
