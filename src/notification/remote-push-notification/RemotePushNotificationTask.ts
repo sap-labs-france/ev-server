@@ -1,16 +1,16 @@
-import { Promise } from 'bluebird';
-import admin from 'firebase-admin';
-
-import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
+import { AccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
 import User, { UserStatus } from '../../types/User';
-import { AccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingSubAccountActivationNotification, BillingSubAccountCreationLinkNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
+
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import I18nManager from '../../utils/I18nManager';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import NotificationTask from '../NotificationTask';
+import { Promise } from 'bluebird';
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
+import Utils from '../../utils/Utils';
+import admin from 'firebase-admin';
 
 const MODULE_NAME = 'RemotePushNotificationTask';
 
@@ -341,27 +341,27 @@ export default class RemotePushNotificationTask implements NotificationTask {
       title, body, user, { 'error': data.nbrInvoicesInError.toString() }, severity);
   }
 
-  public async sendBillingSubAccountCreationLink(data: BillingSubAccountCreationLinkNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendBillingAccountCreationLink(data: BillingAccountCreationLinkNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // Get Message Text
-    const title = i18nManager.translate('notifications.billingSubAccountCreationLink.title');
-    const body = i18nManager.translate('notifications.billingSubAccountCreationLink.body',
+    const title = i18nManager.translate('notifications.billingAccountCreationLink.title');
+    const body = i18nManager.translate('notifications.billingAccountCreationLink.body',
       { onboardingLink: data.onboardingLink, tenantName: tenant.name });
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_CREATE_SUB_ACCOUNT,
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_CREATE_ACCOUNT,
       title, body, user, { 'onboardingLink': data.onboardingLink }, severity);
   }
 
-  public async sendBillingSubAccountActivationNotification(data: BillingSubAccountActivationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendBillingAccountActivationNotification(data: BillingAccountActivationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // Get Message Text
-    const title = i18nManager.translate('notifications.billingSubAccountActivated.title');
-    const body = i18nManager.translate('notifications.billingSubAccountActivated.body',
+    const title = i18nManager.translate('notifications.billingAccountActivated.title');
+    const body = i18nManager.translate('notifications.billingAccountActivated.body',
       { tenantName: tenant.name });
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_SUB_ACCOUNT_ACTIVATED,
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_ACCOUNT_ACTIVATED,
       title, body, user, {}, severity);
   }
 
@@ -395,30 +395,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
       body = i18nManager.translate('notifications.billingNewInvoiceOpen.body',
         { invoiceNumber: data.invoiceNumber, amount: data.invoiceAmount });
     }
-    // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
-      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
-  }
-
-  public async sendBillingNewInvoicePaid(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Set the locale
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    // Get Message Text
-    const title = i18nManager.translate('notifications.billingNewInvoicePaid.title');
-    const body = i18nManager.translate('notifications.billingNewInvoicePaid.body',
-      { invoiceNumber: data.invoiceNumber });
-    // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
-      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
-  }
-
-  public async sendBillingNewInvoiceOpen(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Set the locale
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    // Get Message Text
-    const title = i18nManager.translate('notifications.billingNewInvoiceOpen.title');
-    const body = i18nManager.translate('notifications.billingNewInvoiceOpen.body',
-      { invoiceNumber: data.invoiceNumber });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
       title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);

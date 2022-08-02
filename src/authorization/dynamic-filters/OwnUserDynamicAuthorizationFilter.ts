@@ -28,6 +28,10 @@ export default class OwnUserDynamicAuthorizationFilter extends DynamicAuthorizat
     if (!Utils.isEmptyArray(authorizationFilters.filters.userIDs)) {
       authorizationFilters.authorized = true;
     }
+    // Remove sensible data if not authorized and filter is provided
+    if (!authorizationFilters.authorized) {
+      Utils.removeSensibeDataFromEntity(extraFilters, entityData);
+    }
   }
 
   public getApplicableEntities(): Entity[] {

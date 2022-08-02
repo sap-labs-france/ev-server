@@ -20,9 +20,7 @@ export default class AuthenticationApi {
     if (acceptEula) {
       data.acceptEula = acceptEula;
     }
-    if (tenant) {
-      data.tenant = tenant;
-    }
+    data.tenant = tenant ?? '';
     // Send
     const response = await this.baseApi.send({
       method: 'POST',

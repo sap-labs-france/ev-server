@@ -1,5 +1,5 @@
 import { Factory } from 'rosie';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export default Factory.define('car')
   .attr('vin', () => faker.random.alphaNumeric(17).toUpperCase())

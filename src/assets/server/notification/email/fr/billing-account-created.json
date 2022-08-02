@@ -1,10 +1,10 @@
 {
-  "subject": "Billing account onboarding",
+  "subject": "Initialisation du compte de facturation",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Billing account onboarding",
+      "title": "Connexion du compte de facturation",
       "image": {
         "left": {
           "height": 60,
@@ -17,16 +17,16 @@
       }
     },
     "beforeActionLines": [
-      "Dear <%- (user.firstName ? user.firstName : user.name) %>,",
+      "Cher <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "Your billing account onboarding must be completed by following the link below:"
+      "Cliquer le lien ci-dessous pour finaliser la connexion de votre compte de facturation"
     ],
     "actions": [{
-        "title": "Finish billing account onboarding",
+        "title": "Connexion",
         "url": "<%- onboardingLink %>"
       }],
     "afterActionLines": [
-      "Best Regards,",
+      "Cordialement,",
       "EV Admins."
     ],
     "footer": {

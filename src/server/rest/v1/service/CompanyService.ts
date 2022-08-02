@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
 
+import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import Company from '../../../../types/Company';
@@ -12,7 +13,6 @@ import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -55,14 +55,18 @@ export default class CompanyService {
   }
 
   public static async handleGetCompanyLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleGetCompanyLogo', action: action,
+      });
+    }
     // Filter
     const filteredRequest = CompanyValidatorRest.getInstance().validateCompanyLogoGetReq(req.query);
-    // Fetch Tenant Object by Tenant ID
-    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
-    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`,
-      MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Get the Logo
-    const companyLogo = await CompanyStorage.getCompanyLogo(tenant, filteredRequest.ID);
+    const companyLogo = await CompanyStorage.getCompanyLogo(req.tenant, filteredRequest.ID);
     let logo = companyLogo?.logo;
     if (logo) {
       // Header
@@ -73,7 +77,7 @@ export default class CompanyService {
         encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
         logo = logo.substring(logo.indexOf(',') + 1);
       }
-      res.setHeader('content-type', header);
+      res.setHeader('Content-Type', header);
       res.send(Buffer.from(logo, encoding));
     } else {
       res.status(StatusCodes.NOT_FOUND);
@@ -146,12 +150,14 @@ export default class CompanyService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Company;
-    // If the company is assigned to a billing sub-account, check if the billing is active
+    // Connected Account
     if (filteredRequest.accountData) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
         Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
-      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.accountData.accountID);
-      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleCreateCompany', req.user);
+      if (filteredRequest.accountData.accountID) {
+        const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.accountData.accountID);
+        UtilsService.assertObjectExists(action, billingAccount, `Billing Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleCreateCompany', req.user);
+      }
     }
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);
@@ -181,19 +187,18 @@ export default class CompanyService {
     if (Utils.objectHasProperty(filteredRequest, 'logo')) {
       company.logo = filteredRequest.logo;
     }
-    company.lastChangedBy = { 'id': req.user.id };
-    company.lastChangedOn = new Date();
-    // If the company is assigned to a billing sub-account, check if the billing is active
+    // Connected Account
     if (filteredRequest.accountData) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-        Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
-      const billingSubAccount = await BillingStorage.getSubAccountByID(req.tenant, filteredRequest.accountData.accountID);
-      UtilsService.assertObjectExists(action, billingSubAccount, `Billing Sub-Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateCompany', req.user);
-      company.accountData = {
-        accountID: billingSubAccount.id,
-        platformFeeStrategy: filteredRequest.accountData.platformFeeStrategy,
-      };
+        Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
+      if (filteredRequest.accountData.accountID) {
+        const billingAccount = await BillingStorage.getAccountByID(req.tenant, filteredRequest.accountData.accountID);
+        UtilsService.assertObjectExists(action, billingAccount, `Billing Account ID '${filteredRequest.accountData.accountID}' does not exist`, MODULE_NAME, 'handleUpdateCompany', req.user);
+      }
+      company.accountData = filteredRequest.accountData;
     }
+    company.lastChangedBy = { 'id': req.user.id };
+    company.lastChangedOn = new Date();
     // Update Company
     await CompanyStorage.saveCompany(req.tenant, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
     await Logging.logInfo({

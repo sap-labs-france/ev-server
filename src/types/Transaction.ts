@@ -23,6 +23,17 @@ export type InactivityStatusLevel =
  'danger'
 ;
 
+export enum TransactionStatus {
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+}
+
+export enum TransactionStatisticsType {
+  REFUND = 'refund',
+  HISTORY = 'history',
+  ONGOING = 'ongoing',
+}
+
 export enum InactivityStatus {
   INFO = 'I',
   WARNING = 'W',
@@ -180,4 +191,17 @@ export interface TransactionStop {
   inactivityStatus?: InactivityStatus;
   transactionData?: OCPP15TransactionData|OCPPMeterValue[];
   signedData?: string;
+}
+
+export interface CollectedFundReport {
+  key: {
+    accountID: string,
+    currency: string,
+  }
+  collectedFunds: number,
+  collectedFlatFees: number,
+  collectedFees: number,
+  totalConsumptionWh: number,
+  totalDurationSecs: number,
+  transactionIDs: number[],
 }

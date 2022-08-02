@@ -182,7 +182,7 @@ export default class ImportHelper {
     await UserStorage.saveUserAccountVerification(tenant, user.id, { verificationToken });
     // Build account verif email with reset password embeded
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(tenant.subdomain) +
-      '/verify-email?VerificationToken=' + verificationToken + '&Email=' + user.email + '&ResetToken=' + resetHash;
+      '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' + user.email + '&ResetToken=' + resetHash;
     // Send activate account link
     void NotificationHandler.sendVerificationEmailUserImport(
       tenant,

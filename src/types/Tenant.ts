@@ -9,6 +9,7 @@ export default interface Tenant extends CreatedUpdatedProps {
   address: Address;
   logo: string;
   components: TenantComponent;
+  redirectDomain?: string;
 }
 
 export interface TenantComponent {

@@ -1,6 +1,6 @@
 import ChargingStation from '../../src/types/ChargingStation';
 import { Factory } from 'rosie';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 const chargingStationThreePhased = Factory.define('chargingStation')
   .attr('chargePointVendor', () => 'Schneider Electric')

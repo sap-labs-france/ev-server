@@ -100,6 +100,8 @@ describe('Security', () => {
     const res = await testData.superCentralService.updateEntity(
       testData.centralService.tenantApi, initialTenant);
     expect(res.status).to.equal(StatusCodes.OK);
+    // Close DB connection
+    await global.database.stop();
   });
 
   describe('Success cases (utall)', () => {
