@@ -41,7 +41,6 @@ describe('Charging Station Template', () => {
       });
 
       it('Should find the created template by id', async () => {
-        expect(testData.newChargingStationTemplate.id).to.not.be.null;
         // Retrieve it from the backend
         const response = await testData.superAdminCentralService.chargingStationTemplateApi.readById(testData.newChargingStationTemplate.id);
         // Check if ok
