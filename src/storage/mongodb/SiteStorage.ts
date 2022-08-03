@@ -1,3 +1,4 @@
+import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams, Image } from '../../types/GlobalType';
 
 import AssetStorage from './AssetStorage';
@@ -11,7 +12,6 @@ import { ObjectId } from 'mongodb';
 import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
 import { SiteUser } from '../../types/User';
-import Tenant from '../../types/Tenant';
 import TransactionStorage from './TransactionStorage';
 import Utils from '../../utils/Utils';
 
@@ -271,11 +271,18 @@ export default class SiteStorage {
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
-    if (siteToSave.accountData) {
-      siteMDB.accountData = {
-        accountID: DatabaseUtils.convertToObjectID(siteToSave.accountData.accountID),
-        platformFeeStrategy: siteToSave.accountData.platformFeeStrategy,
-      };
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
+      if (siteToSave.accountData?.accountID) {
+        siteMDB.accountData = {
+          accountID: DatabaseUtils.convertToObjectID(siteToSave.accountData.accountID),
+          platformFeeStrategy: {
+            flatFeePerSession: siteToSave.accountData.platformFeeStrategy?.flatFeePerSession || 0,
+            percentage: siteToSave.accountData.platformFeeStrategy?.percentage || 0,
+          }
+        };
+      } else {
+        siteMDB.accountData = null;
+      }
     }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
@@ -460,6 +467,22 @@ export default class SiteStorage {
             ]
           }
         }
+      });
+    }
+    // Connected account
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
+      // Account data
+      DatabaseUtils.pushAccountLookupInAggregation({
+        tenantID: tenant.id, aggregation,
+        asField: 'accountData.account', localField: 'accountData.accountID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+      // Business Owner
+      DatabaseUtils.pushUserLookupInAggregation({
+        tenantID: tenant.id, aggregation: aggregation,
+        asField: 'accountData.account.businessOwner',
+        localField: 'accountData.account.businessOwnerID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
     }
     // Convert Object ID to string
