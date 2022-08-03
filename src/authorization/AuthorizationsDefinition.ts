@@ -270,8 +270,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates',
-          'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession', 'accountData.platformFeeStrategy.percentage',
-          'accountData.account.businessOwner'
+          'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession',
+          'accountData.platformFeeStrategy.percentage', 'accountData.account.companyName',
+          'accountData.account.businessOwner.id', 'accountData.account.businessOwner.email',
+          'accountData.account.businessOwner.firstName', 'accountData.account.businessOwner.name'
         ]
       },
       {
@@ -517,12 +519,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.BILLING_TRANSFER,
-        action: [Action.LIST, Action.READ, Action.BILLING_FINALIZE_TRANSFER, Action.BILLING_SEND_TRANSFER],
+        action: [Action.LIST, Action.READ, Action.BILLING_FINALIZE_TRANSFER, Action.BILLING_SEND_TRANSFER, Action.DOWNLOAD],
         attributes: [
           'id', 'status', 'createdOn', 'sessionCounter', 'collectedFunds', 'collectedFlatFees', 'collectedFees', 'totalConsumptionWh', 'totalDurationSecs',
           'transferAmount', 'accountID', 'transferExternalID',
           'account.companyName', 'account.businessOwnerID', 'account.accountExternalID', 'businessOwner.name', 'businessOwner.firstName',
-          'platformFeeData.feeAmount', 'platformFeeData.feeTaxAmount', 'currency', 'invoice.documentNumber', 'invoice.totalAmount'
+          'platformFeeData.feeAmount', 'platformFeeData.feeTaxAmount', 'currency', 'invoice.documentNumber','invoice.invoiceID','invoice.userID', 'invoice.totalAmount'
         ]
       },
       { resource: Entity.TAX, action: [Action.LIST] },
@@ -849,6 +851,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.INVOICE, action: Action.DOWNLOAD,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        }
+      },
+      {
+        resource: Entity.BILLING_TRANSFER, action: Action.DOWNLOAD,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
