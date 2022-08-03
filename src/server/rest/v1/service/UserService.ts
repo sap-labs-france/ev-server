@@ -365,7 +365,7 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         userIDs: [filteredRequest.UserID],
-        ...authorizations.filters // ici liste vide si le check and get foire
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
