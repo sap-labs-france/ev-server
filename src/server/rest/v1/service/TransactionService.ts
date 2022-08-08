@@ -85,18 +85,6 @@ export default class TransactionService {
       // Check dynamic auth
       const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, transactionId,
         Action.REFUND_TRANSACTION, action, null, { withUser: true }, true);
-      if (transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== RefundStatus.CANCELLED) {
-        await Logging.logError({
-          ...LoggingHelper.getTransactionProperties(transaction),
-          tenantID: req.tenant.id,
-          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-          module: MODULE_NAME, method: 'handleRefundTransactions',
-          message: `Transaction '${transaction.id}' is already refunded`,
-          action,
-          detailedMessages: { transaction }
-        });
-        continue;
-      }
       transactionsToRefund.push(transaction);
     }
     const refundConnector = await RefundFactory.getRefundImpl(req.tenant);

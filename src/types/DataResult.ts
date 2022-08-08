@@ -84,6 +84,10 @@ export interface TagDataResult extends DataResult<Tag> {
 export interface TransactionDataResult extends DataResult<Transaction> {
   stats: TransactionStats;
   canListUsers?: boolean;
+  canListSites?: boolean;
+  canListSiteAreas?: boolean;
+  canListChargingStations?: boolean;
+  canListTags?: boolean;
 }
 
 export interface TransactionInErrorDataResult extends DataResult<TransactionInError> {

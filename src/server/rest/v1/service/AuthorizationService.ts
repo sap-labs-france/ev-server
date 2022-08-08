@@ -14,6 +14,7 @@ import { HttpSiteAssignUsersRequest, HttpSiteGetRequest, HttpSiteUsersRequest } 
 import { HttpTagGetRequest, HttpTagsGetRequest } from '../../../../types/requests/HttpTagRequest';
 import { HttpTransactionConsumptionsGetRequest, HttpTransactionGetRequest } from '../../../../types/requests/HttpTransactionRequest';
 import { HttpUserGetRequest, HttpUserSitesAssignRequest, HttpUserSitesGetRequest, HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
+import RefundReport, { RefundStatus } from '../../../../types/Refund';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
 
@@ -32,7 +33,6 @@ import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/Http
 import { Log } from '../../../../types/Log';
 import { OCPICapability } from '../../../../types/ocpi/OCPIEvse';
 import PricingDefinition from '../../../../types/Pricing';
-import RefundReport from '../../../../types/Refund';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import { ServerAction } from '../../../../types/Server';
 import { Setting } from '../../../../types/Setting';
@@ -1158,6 +1158,10 @@ export default class AuthorizationService {
     // Add Meta Data
     transactions.metadata = authorizationFilter.metadata;
     transactions.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.LIST, authorizationFilter);
+    transactions.canListSites = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter);
+    transactions.canListSiteAreas = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.LIST, authorizationFilter);
+    transactions.canListChargingStations = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION, Action.LIST, authorizationFilter);
+    transactions.canListTags = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.LIST, authorizationFilter);
     // Add Authorizations
     for (const transaction of transactions.result) {
       await AuthorizationService.addTransactionAuthorizations(tenant, userToken, transaction, authorizationFilter);
@@ -1169,20 +1173,33 @@ export default class AuthorizationService {
     const dynamicAuthorizationFilter: DynamicAuthorizationsFilter = { CompanyID: transaction.companyID, SiteID: transaction.siteID, UserID: transaction.userID };
     transaction.canRead = true; // Always true as it should be filtered upfront
     transaction.canDelete = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.DELETE, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+      tenant, userToken, Entity.TRANSACTION, Action.DELETE,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.UPDATE, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
-    transaction.canRefundTransaction = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.REFUND_TRANSACTION, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+      tenant, userToken, Entity.TRANSACTION, Action.UPDATE,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canSynchronizeRefundedTransaction = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter,
-      { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+      tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canPushTransactionCDR = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.PUSH_TRANSACTION_CDR, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+      tenant, userToken, Entity.TRANSACTION, Action.PUSH_TRANSACTION_CDR,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canGetAdvenirConsumption = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.GET_ADVENIR_CONSUMPTION, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+      tenant, userToken, Entity.TRANSACTION, Action.GET_ADVENIR_CONSUMPTION,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canRemoteStopTransaction = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.REMOTE_STOP_TRANSACTION, authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+      tenant, userToken, Entity.TRANSACTION, Action.REMOTE_STOP_TRANSACTION,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canExportOcpiCdr = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.EXPORT_OCPI_CDR,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    // Additional auth check for refund
+    transaction.canRefundTransaction = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.REFUND_TRANSACTION,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction)
+      && transaction.refundData
+      && !!transaction.refundData.refundId
+      && transaction.refundData.status !== RefundStatus.CANCELLED;
 
     // Check and remove sensible data
     const sensibleUserData = { UserData: true, TagData: true, CarCatalogData: true, CarData: true, BillingData: true };
