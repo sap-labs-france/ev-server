@@ -1166,8 +1166,7 @@ export default class OCPPUtils {
   public static isEnergyActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue): boolean {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER &&
-        // Let's take it only if Location is Outlet (or not set)
-        meterValue.attribute.location !== OCPPLocation.INLET &&
+        meterValue.attribute.location === OCPPLocation.OUTLET &&
         (meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC ||
          meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END ||
          meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK));
