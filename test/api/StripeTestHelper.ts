@@ -474,7 +474,8 @@ export default class StripeTestHelper {
       // Check the new billing settings
       const newSettings: BillingSettings = response?.data?.internalData as BillingSettings;
       assert(newSettings.billing.isTransactionBillingActivated === false, 'Transaction billing should be switched OFF');
-      assert(!newSettings.billing.taxID, 'taxID should not be set anymore');
+      assert(!newSettings.billing.customerTaxID, 'Customer TaxID should not be set anymore');
+      assert(!newSettings.billing?.billingAccountTaxID, 'Billing Account TaxID should not be set anymore');
       assert(!newSettings.stripe.url, 'URL should not be set anymore');
       assert(!newSettings.stripe.publicKey, 'publicKey should not be set anymore');
       assert(!newSettings.stripe.secretKey, 'secretKey should not be set anymore');

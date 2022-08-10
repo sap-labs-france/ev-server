@@ -447,9 +447,13 @@ export default class SettingStorage {
         isTransactionBillingActivated: !!content.billing?.isTransactionBillingActivated,
         immediateBillingAllowed: !!content.billing?.immediateBillingAllowed,
         periodicBillingAllowed: !!content.billing?.periodicBillingAllowed,
-        taxID: content.billing?.taxID,
+        customerTaxID: content.billing?.customerTaxID,
         usersLastSynchronizedOn: content.billing?.usersLastSynchronizedOn,
       };
+      // Insert billingAccountTaxID only if the billing platform is enabled
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
+        billing.billingAccountTaxID = content.billing?.billingAccountTaxID;
+      }
       const billingSettings: BillingSettings = {
         id,
         identifier: TenantComponents.BILLING,

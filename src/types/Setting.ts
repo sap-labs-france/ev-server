@@ -248,7 +248,7 @@ export interface BillingSetting {
   immediateBillingAllowed: boolean;
   periodicBillingAllowed: boolean;
   customerTaxID: string;
-  billingAccountTaxID: string;
+  billingAccountTaxID?: string;
   usersLastSynchronizedOn?: Date;
 }
 
