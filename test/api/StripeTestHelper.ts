@@ -54,7 +54,7 @@ export class BillingTestConfigHelper {
       isTransactionBillingActivated: config.get('billing.isTransactionBillingActivated'),
       immediateBillingAllowed: immediateBillingAllowed, // config.get('billing.immediateBillingAllowed'),
       periodicBillingAllowed: !immediateBillingAllowed, // config.get('billing.periodicBillingAllowed'),
-      taxID: config.get('billing.taxID')
+      customerTaxID: config.get('billing.taxID')
     };
     const stripeProperties = {
       url: config.get('stripe.url'),
