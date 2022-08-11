@@ -1576,11 +1576,12 @@ export default class UtilsService {
   private static async performRecaptchaAPICall(tenant: Tenant, centralSystemRestConfig: CentralSystemRestServiceConfiguration,captcha: string, remoteAddress: string)
       : Promise<AxiosResponse<any, any>> {
     const recaptchaURL = UtilsService.buildRecaptchaURL(centralSystemRestConfig.captchaSecretKey, captcha, remoteAddress);
-    let response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
+    const axiosInstance = AxiosFactory.getAxiosInstance(tenant);
+    let response = await axiosInstance.get(recaptchaURL);
     // Call not successful, attempt with alternative URL
     if (!response.data.success && centralSystemRestConfig.alternativeCaptchaSecretKey) {
       const alternativeRecaptchaURL = UtilsService.buildRecaptchaURL(centralSystemRestConfig.alternativeCaptchaSecretKey, captcha, remoteAddress);
-      response = await AxiosFactory.getAxiosInstance(tenant).get(alternativeRecaptchaURL);
+      response = await axiosInstance.get(alternativeRecaptchaURL);
     }
     return response;
   }
