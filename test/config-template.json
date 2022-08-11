@@ -49,7 +49,7 @@
     "isTransactionBillingActivated": true,
     "immediateBillingAllowed": true,
     "periodicBillingAllowed": true,
-    "customerTaxID": ""
+    "taxID": ""
   },
   "stripe": {
     "url": "",

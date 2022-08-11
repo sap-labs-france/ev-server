@@ -267,7 +267,7 @@ const config = convict({
       format: Boolean,
       default: false
     },
-    customerTaxID: {
+    taxID: {
       doc: 'taxes to apply by default',
       format: String,
       default: ''

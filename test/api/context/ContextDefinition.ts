@@ -192,7 +192,7 @@ export default class ContextDefinition {
             isTransactionBillingActivated: true,
             immediateBillingAllowed: true,
             periodicBillingAllowed: true,
-            customerTaxID: ''
+            taxID: ''
           },
           stripe: {
             url: '',
@@ -312,7 +312,7 @@ export default class ContextDefinition {
             isTransactionBillingActivated: true,
             immediateBillingAllowed: true,
             periodicBillingAllowed: true,
-            customerTaxID: ''
+            taxID: ''
           },
           stripe: {
             url: '',
@@ -413,7 +413,7 @@ export default class ContextDefinition {
             isTransactionBillingActivated: true,
             immediateBillingAllowed: true,
             periodicBillingAllowed: true,
-            customerTaxID: ''
+            taxID: ''
           },
           stripe: {
             url: '',

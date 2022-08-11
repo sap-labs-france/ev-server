@@ -101,49 +101,49 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async checkActivationPrerequisites(): Promise<void> {
-    await this.checkCustomerTaxPrerequisites();
-    await this.checkBillingAccountTaxPrerequisites();
+    await this.checkTaxPrerequisites();
+    await this.checkPlatformFeeTaxPrerequisites();
   }
 
-  public async checkCustomerTaxPrerequisites(): Promise<void> {
+  public async checkTaxPrerequisites(): Promise<void> {
     // Check whether the taxID is set and still active
-    const customerTaxID = this.settings.billing?.customerTaxID;
-    if (customerTaxID) {
-      const billingTax: BillingTax = await this.getTaxRate(customerTaxID);
+    const taxID = this.settings.billing?.taxID;
+    if (taxID) {
+      const billingTax: BillingTax = await this.getTaxRate(taxID);
       if (!billingTax) {
         throw new BackendError({
-          module: MODULE_NAME, method: 'checkCustomerTaxPrerequisites',
+          module: MODULE_NAME, method: 'checkTaxPrerequisites',
           action: ServerAction.BILLING_TAXES,
-          message: `Billing prerequisites are not consistent - Customer TaxID is not found or inactive - Customer TaxID: '${customerTaxID}'`
+          message: `Billing prerequisites are not consistent - TaxID is not found or inactive - TaxID: '${taxID}'`
         });
       }
     } else {
       throw new BackendError({
-        module: MODULE_NAME, method: 'checkCustomerTaxPrerequisites',
+        module: MODULE_NAME, method: 'checkTaxPrerequisites',
         action: ServerAction.BILLING_TAXES,
-        message: 'Billing prerequisites are not consistent - Customer TaxID is mandatory'
+        message: 'Billing prerequisites are not consistent - TaxID is mandatory'
       });
     }
   }
 
-  public async checkBillingAccountTaxPrerequisites(): Promise<void> {
+  public async checkPlatformFeeTaxPrerequisites(): Promise<void> {
     // Check whether the taxID is set and still active
     if (Utils.isTenantComponentActive(this.tenant, TenantComponents.BILLING_PLATFORM)) {
-      const billingAccountTaxID = this.settings.billing?.billingAccountTaxID;
-      if (billingAccountTaxID) {
-        const billingTax: BillingTax = await this.getTaxRate(billingAccountTaxID);
+      const platformFeeTaxID = this.settings.billing?.platformFeeTaxID;
+      if (platformFeeTaxID) {
+        const billingTax: BillingTax = await this.getTaxRate(platformFeeTaxID);
         if (!billingTax) {
           throw new BackendError({
-            module: MODULE_NAME, method: 'checkBillingAccountTaxPrerequisites',
+            module: MODULE_NAME, method: 'checkPlatformFeeTaxPrerequisites',
             action: ServerAction.BILLING_TAXES,
-            message: `Billing prerequisites are not consistent - Billing Account TaxID is not found or inactive - Billing Account TaxID: '${billingAccountTaxID}'`
+            message: `Billing prerequisites are not consistent - Platform Fee TaxID is not found or inactive - Platform Fee TaxID: '${platformFeeTaxID}'`
           });
         }
       } else {
         throw new BackendError({
-          module: MODULE_NAME, method: 'checkBillingAccountTaxPrerequisites',
+          module: MODULE_NAME, method: 'checkPlatformFeeTaxPrerequisites',
           action: ServerAction.BILLING_TAXES,
-          message: 'Billing prerequisites are not consistent - Billing Account TaxID is mandatory'
+          message: 'Billing prerequisites are not consistent - Platform Fee TaxID is mandatory'
         });
       }
     }
@@ -174,7 +174,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       isTransactionBillingActivated: false,
       immediateBillingAllowed: false,
       periodicBillingAllowed: false,
-      customerTaxID: null
+      taxID: null
     };
     newBillingsSettings.stripe = {
       url: null,
@@ -381,8 +381,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private getCustomerTaxRateIds(): Array<string> {
-    if (this.settings.billing.customerTaxID) {
-      return [this.settings.billing.customerTaxID] ;
+    if (this.settings.billing.taxID) {
+      return [this.settings.billing.taxID] ;
     }
     return []; // No tax rates so far!
   }
@@ -1570,8 +1570,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Check all settings that are necessary to bill a transaction
     try {
-      await this.checkCustomerTaxPrerequisites(); // Checks that the taxID is still valid
-      await this.checkBillingAccountTaxPrerequisites();
+      await this.checkTaxPrerequisites(); // Checks that the taxID is still valid
+      await this.checkPlatformFeeTaxPrerequisites();
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,

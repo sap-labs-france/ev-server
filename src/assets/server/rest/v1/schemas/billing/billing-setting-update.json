@@ -29,11 +29,11 @@
           "type": "boolean",
           "sanitize": "mongo"
         },
-        "customerTaxID": {
+        "taxID": {
           "type": "string",
           "sanitize": "mongo"
         },
-        "billingAccountTaxID": {
+        "platformFeeTaxID": {
           "type": "string",
           "sanitize": "mongo"
         }

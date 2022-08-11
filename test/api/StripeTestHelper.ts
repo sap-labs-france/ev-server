@@ -54,7 +54,7 @@ export class BillingTestConfigHelper {
       isTransactionBillingActivated: config.get('billing.isTransactionBillingActivated'),
       immediateBillingAllowed: immediateBillingAllowed, // config.get('billing.immediateBillingAllowed'),
       periodicBillingAllowed: !immediateBillingAllowed, // config.get('billing.periodicBillingAllowed'),
-      customerTaxID: config.get('billing.customerTaxID')
+      taxID: config.get('billing.taxID')
     };
     const stripeProperties = {
       url: config.get('stripe.url'),
@@ -474,8 +474,8 @@ export default class StripeTestHelper {
       // Check the new billing settings
       const newSettings: BillingSettings = response?.data?.internalData as BillingSettings;
       assert(newSettings.billing.isTransactionBillingActivated === false, 'Transaction billing should be switched OFF');
-      assert(!newSettings.billing.customerTaxID, 'Customer TaxID should not be set anymore');
-      assert(!newSettings.billing?.billingAccountTaxID, 'Billing Account TaxID should not be set anymore');
+      assert(!newSettings.billing.taxID, 'Customer TaxID should not be set anymore');
+      assert(!newSettings.billing?.platformFeeTaxID, 'Billing Account TaxID should not be set anymore');
       assert(!newSettings.stripe.url, 'URL should not be set anymore');
       assert(!newSettings.stripe.publicKey, 'publicKey should not be set anymore');
       assert(!newSettings.stripe.secretKey, 'secretKey should not be set anymore');
