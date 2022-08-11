@@ -114,14 +114,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
         throw new BackendError({
           module: MODULE_NAME, method: 'checkTaxPrerequisites',
           action: ServerAction.BILLING_TAXES,
-          message: `Billing prerequisites are not consistent - TaxID is not found or inactive - TaxID: '${taxID}'`
+          message: `Billing prerequisites are not consistent - taxID is not found or inactive - taxID: '${taxID}'`
         });
       }
     } else {
       throw new BackendError({
         module: MODULE_NAME, method: 'checkTaxPrerequisites',
         action: ServerAction.BILLING_TAXES,
-        message: 'Billing prerequisites are not consistent - TaxID is mandatory'
+        message: 'Billing prerequisites are not consistent - taxID is mandatory'
       });
     }
   }
@@ -380,7 +380,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return stripeInvoiceItem;
   }
 
-  private getCustomerTaxRateIds(): Array<string> {
+  private getTaxRateIds(): Array<string> {
     if (this.settings.billing.taxID) {
       return [this.settings.billing.taxID] ;
     }
@@ -1164,7 +1164,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // -------------------------------------------------------------------------------
     // TODO - so far we use the same tax rates for all invoice items!
     // -------------------------------------------------------------------------------
-    const taxes = this.getCustomerTaxRateIds();
+    const taxes = this.getTaxRateIds();
     // -------------------------------------------------------------------------------
     // Enrich the consumption data with information required for billing it
     // -------------------------------------------------------------------------------
