@@ -1,0 +1,11 @@
+<mj-section>
+	<mj-column>
+		<mj-image width="100px" href="https://open-e-mobility.fr/" src="https://imgur.com/Rloddiu.png"></mj-image>
+	</mj-column>
+</mj-section>
+
+<mj-section>
+	<mj-column width="70%">
+		<mj-image href="https://open-e-mobility.fr/" src="https://imgur.com/OAuCtez.png"></mj-image>
+	</mj-column>
+</mj-section>

@@ -1,4 +1,5 @@
 import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import { BUTTON, CONFIG, FOOTER, HEADER, TEXT1, TITLE } from './mjmlComponents';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
@@ -16,6 +17,7 @@ import Utils from '../../utils/Utils';
 import ejs from 'ejs';
 import fs from 'fs';
 import global from '../../types/GlobalType';
+import mjmlBuilder from './mjmlBuilder';
 import rfc2047 from 'rfc2047';
 
 const MODULE_NAME = 'EMailNotificationTask';
@@ -318,8 +320,36 @@ export default class EMailNotificationTask implements NotificationTask {
 
 
       if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
-        // POC from NADER!
+        // create the template
+        const template = new mjmlBuilder()
+          .addConfig(CONFIG)
+          .addHeader(HEADER)
+          .addToBody(TITLE)
+          .addToBody(TEXT1)
+          .addToBody(BUTTON)
+          .addFooter(FOOTER)
+          .buildTemplate();
 
+        // resolve
+        template.resolve({
+          user: { name: 'Nader Ouerdiane' },
+          email: {
+            buttonText: 'Verify your Account',
+            title: 'Account Created',
+            hidden: { hidden: true },
+          },
+          payment: { token: 'aze', amount: 4 },
+        });
+        const html = template.getHtml();
+
+        emailContent = {
+          to: user.email,
+          subject: 'Create Account',
+          text: html,
+          html: html
+        };
+
+        await this.sendEmail(emailContent, data, tenant, user, severity, useSmtpClientBackup);
       }
 
       // Fetch the template

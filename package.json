@@ -125,6 +125,7 @@
     "jsonwebtoken": "^8.5.1",
     "locale": "^0.1.0",
     "lodash": "^4.17.21",
+    "mjml": "^4.13.0",
     "moment": "^2.29.4",
     "moment-duration-format": "^2.3.2",
     "moment-timezone": "^0.5.34",

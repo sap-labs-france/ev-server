@@ -1,0 +1,5 @@
+<mj-section>
+	<mj-column>
+		<mj-text font-weight="500" font-size="20px">{{email.title}}</mj-text>
+	</mj-column>
+</mj-section>
