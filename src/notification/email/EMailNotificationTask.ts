@@ -350,6 +350,7 @@ export default class EMailNotificationTask implements NotificationTask {
         };
 
         await this.sendEmail(emailContent, data, tenant, user, severity, useSmtpClientBackup);
+        return;
       }
 
       // Fetch the template
