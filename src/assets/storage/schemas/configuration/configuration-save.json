@@ -177,6 +177,9 @@
         "captchaSecretKey": {
           "type": "string"
         },
+        "alternativeCaptchaSecretKey": {
+          "type": "string"
+        },
         "captchaScore": {
           "type": "number"
         },
