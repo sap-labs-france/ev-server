@@ -1,6 +1,8 @@
+import I18nManager from '../../../utils/I18nManager';
+/* eslint-disable @typescript-eslint/member-ordering */
+import { getResolverData } from './utils';
 import mjml2html from 'mjml';
 import mjmlContext from '../mjmlContext/mjmlContext';
-import { getResolverData } from './utils';
 
 export default class mjmlTemplate {
   private template: string;
@@ -24,7 +26,7 @@ export default class mjmlTemplate {
   private getSelectors(): string[] {
     const regex = new RegExp(/\{\{(.*)\}\}/, 'g');
     const matches = this.template.matchAll(regex);
-    let selectors = [];
+    const selectors = [];
     for (const match of matches) {
       selectors.push(match[1]);
     }
@@ -35,20 +37,21 @@ export default class mjmlTemplate {
     return selector.split('.');
   }
 
-  private getValue(keys: string[], context: any) {
+  private getValue(keys: string[], context: any): string {
     let value = context;
     for (const key of keys) {
       value = value[key];
     }
-
     return value;
   }
 
-  public resolve(context: any): void {
+  public resolve(i18nManager: I18nManager, context?: Record<string, unknown>): void {
     const selectors = this.getSelectors();
     for (const selector of selectors) {
-      const keys = this.splitSelector(selector);
-      const value = this.getValue(keys, context);
+      const translatedSelector = i18nManager.translate(selector, {});
+      const value = i18nManager.translate(translatedSelector, context);
+      // const keys = this.splitSelector(translatedSelector);
+      // const value = this.getValue(keys, context);
       this.replace(selector, value);
     }
   }
