@@ -17,6 +17,7 @@ const MODULE_NAME = 'RemotePushNotificationTask';
 export default class RemotePushNotificationTask implements NotificationTask {
   private firebaseConfig = Configuration.getFirebaseConfig();
   private defaultApp: admin.app.App;
+  private alternativeApp: admin.app.App;
   private tenantFirebaseApps: Map<string, admin.app.App> = new Map();
   private initialized = false;
 
@@ -31,6 +32,16 @@ export default class RemotePushNotificationTask implements NotificationTask {
             privateKey: this.firebaseConfig.privateKey
           })
         });
+        // Init alternative conf
+        if (this.firebaseConfig.alternativeConfiguration) {
+          this.alternativeApp = admin.initializeApp({
+            credential: admin.credential.cert({
+              projectId: this.firebaseConfig.alternativeConfiguration.projectID,
+              clientEmail: this.firebaseConfig.alternativeConfiguration.clientEmail,
+              privateKey: this.firebaseConfig.alternativeConfiguration.privateKey
+            })
+          }, 'alternativeApp');
+        }
         // Init tenant conf
         if (!Utils.isEmptyArray(this.firebaseConfig.tenants)) {
           for (const tenantConfig of this.firebaseConfig.tenants) {
@@ -453,17 +464,46 @@ export default class RemotePushNotificationTask implements NotificationTask {
       }
       // Create message
       message = this.createMessage(tenant, notificationType, title, body, data, severity);
-      // Get the right firebase app
-      const app = this.getFirebaseAppFromTenant(tenant);
-      try {
-        // Send message
-        const response = await admin.messaging(app).sendToDevice(
-          user.mobileToken,
-          message,
-          { priority: 'high', timeToLive: 60 * 60 * 24 }
-        );
-        // Error
-        if (response.failureCount > 0) {
+      // Get the right firebase apps
+      const apps = this.getFirebaseAppsFromTenant(tenant);
+      for (const app of apps) {
+        try {
+          // Send message
+          const response = await admin.messaging(app).sendToDevice(
+            user.mobileToken,
+            message,
+            { priority: 'high', timeToLive: 60 * 60 * 24 }
+          );
+          // Error
+          if (response.failureCount > 0) {
+            void Logging.logError({
+              tenantID: tenant.id,
+              siteID: data?.siteID,
+              siteAreaID: data?.siteAreaID,
+              companyID: data?.companyID,
+              chargingStationID: data?.chargeBoxID,
+              action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+              module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+              message: `Error when sending Notification: '${notificationType}' - Error code: '${response.results[0]?.error?.code}'`,
+              actionOnUser: user.id,
+              detailedMessages: { message, response }
+            });
+          // Success
+          } else {
+            void Logging.logDebug({
+              tenantID: tenant.id,
+              siteID: data?.siteID,
+              siteAreaID: data?.siteAreaID,
+              companyID: data?.companyID,
+              chargingStationID: data?.chargeBoxID,
+              action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+              module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+              message: `Notification Sent: '${notificationType}' - '${title}'`,
+              actionOnUser: user.id,
+              detailedMessages: { message, response }
+            });
+          }
+        } catch (error) {
           void Logging.logError({
             tenantID: tenant.id,
             siteID: data?.siteID,
@@ -472,38 +512,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
             chargingStationID: data?.chargeBoxID,
             action: ServerAction.REMOTE_PUSH_NOTIFICATION,
             module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-            message: `Error when sending Notification: '${notificationType}' - Error code: '${response.results[0]?.error?.code}'`,
+            message: `Error when sending Notification: '${notificationType}' - '${error.message as string}'`,
             actionOnUser: user.id,
-            detailedMessages: { message, response }
-          });
-        // Success
-        } else {
-          void Logging.logDebug({
-            tenantID: tenant.id,
-            siteID: data?.siteID,
-            siteAreaID: data?.siteAreaID,
-            companyID: data?.companyID,
-            chargingStationID: data?.chargeBoxID,
-            action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-            module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-            message: `Notification Sent: '${notificationType}' - '${title}'`,
-            actionOnUser: user.id,
-            detailedMessages: { message, response }
+            detailedMessages: { error: error.stack, message }
           });
         }
-      } catch (error) {
-        void Logging.logError({
-          tenantID: tenant.id,
-          siteID: data?.siteID,
-          siteAreaID: data?.siteAreaID,
-          companyID: data?.companyID,
-          chargingStationID: data?.chargeBoxID,
-          action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-          module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-          message: `Error when sending Notification: '${notificationType}' - '${error.message as string}'`,
-          actionOnUser: user.id,
-          detailedMessages: { error: error.stack, message }
-        });
       }
     } finally {
       await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'sendRemotePushNotificationToUser', startTime, notificationType, message, user.id);
@@ -533,11 +546,15 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return message;
   }
 
-  private getFirebaseAppFromTenant(tenant: Tenant): admin.app.App {
-    const app = this.tenantFirebaseApps.get(tenant.id);
-    if (app) {
-      return app;
+  private getFirebaseAppsFromTenant(tenant: Tenant): Array<admin.app.App> {
+    const apps = [this.defaultApp];
+    const tenantApp = this.tenantFirebaseApps.get(tenant.id);
+    if (tenantApp) {
+      return [tenantApp];
     }
-    return this.defaultApp;
+    if (this.alternativeApp) {
+      apps.push(this.alternativeApp);
+    }
+    return apps;
   }
 }
