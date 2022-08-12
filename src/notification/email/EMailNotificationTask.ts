@@ -1,4 +1,5 @@
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+/* eslint-disable max-len */
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BaseNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
 import { BUTTON, CONFIG, FOOTER, HEADER, TEXT1, TEXT2, TITLE } from './mjmlComponents';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
@@ -54,10 +55,16 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
+      return this.sendSmartEmail('new-registered-user', data, user, tenant, severity);
+    }
     return this.prepareAndSendEmail('new-registered-user', data, user, tenant, severity);
   }
 
   public async sendRequestPassword(data: RequestPasswordNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
+      return this.sendSmartEmail('request-password', data, user, tenant, severity);
+    }
     return this.prepareAndSendEmail('request-password', data, user, tenant, severity);
   }
 
@@ -299,6 +306,57 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
+  private async sendSmartEmail(prefix: string, context: BaseNotification, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
+    let startTime: number;
+    let emailContent = {} as EmailNotificationMessage;
+    try {
+      startTime = Logging.traceNotificationStart();
+      if (!user?.email) {
+        throw new BackendError({
+          action: ServerAction.EMAIL_NOTIFICATION,
+          module: MODULE_NAME, method: 'prepareAndSendEmail',
+          message: 'User is mandatory'
+        });
+      }
+      // Create the template
+      const template = new mjmlBuilder()
+        .addConfig(await ComponentsManager.getComponent(CONFIG))
+        .addHeader(await ComponentsManager.getComponent(HEADER))
+        .addToBody(await ComponentsManager.getComponent(TITLE))
+        .addToBody(await ComponentsManager.getComponent(TEXT1))
+        .addToBody(await ComponentsManager.getComponent(BUTTON))
+        .addToBody(await ComponentsManager.getComponent(TEXT2))
+        .addFooter(await ComponentsManager.getComponent(FOOTER))
+        .buildTemplate();
+      // Resolve
+      const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
+      template.resolve(i18nInstance, context);
+      const html = template.getHtml();
+      emailContent = {
+        to: user.email,
+        subject: i18nInstance.translate(`email.${prefix}.title`, context),
+        text: html,
+        html: html
+      };
+      await this.sendEmail(emailContent, context, tenant, user, severity, useSmtpClientBackup);
+    } catch (error) {
+      await Logging.logError({
+        tenantID: tenant.id,
+        siteID: context?.siteID,
+        siteAreaID: context?.siteAreaID,
+        companyID: context?.companyID,
+        chargingStationID: context?.chargeBoxID,
+        action: ServerAction.EMAIL_NOTIFICATION,
+        module: MODULE_NAME, method: 'prepareAndSendEmail',
+        message: 'Error in preparing email for user',
+        actionOnUser: user,
+        detailedMessages: { error: error.stack }
+      });
+    } finally {
+      await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'prepareAndSendEmail', startTime, templateName, emailContent, user.id);
+    }
+  }
+
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
     let startTime: number;
     let emailContent = {} as EmailNotificationMessage;
@@ -319,38 +377,6 @@ export default class EMailNotificationTask implements NotificationTask {
           message: `No email is provided for User for '${templateName}'`
         });
       }
-
-      // Nader's Code
-      if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
-        // create the template
-
-        const template = new mjmlBuilder()
-          .addConfig(await ComponentsManager.getComponent(CONFIG))
-          .addHeader(await ComponentsManager.getComponent(HEADER))
-          .addToBody(await ComponentsManager.getComponent(TITLE))
-          .addToBody(await ComponentsManager.getComponent(TEXT1))
-          .addToBody(await ComponentsManager.getComponent(BUTTON))
-          .addToBody(await ComponentsManager.getComponent(TEXT2))
-          .addFooter(await ComponentsManager.getComponent(FOOTER))
-          .buildTemplate();
-
-        // resolve
-        const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
-
-        template.resolve(i18nInstance,data as Record<string,unknown>);
-        const html = template.getHtml();
-
-        emailContent = {
-          to: user.email,
-          subject: 'Create Account',
-          text: html,
-          html: html
-        };
-
-        await this.sendEmail(emailContent, data, tenant, user, severity, useSmtpClientBackup);
-        return;
-      }
-
       // Fetch the template
       const emailTemplate = await TemplateManager.getInstanceForLocale(user.locale).getTemplate(templateName);
       if (!emailTemplate) {

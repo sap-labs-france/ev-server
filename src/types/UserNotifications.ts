@@ -96,7 +96,7 @@ export interface EmailNotificationMessage {
   html: string;
 }
 
-interface BaseNotification {
+export interface BaseNotification {
   tenantLogoURL?: string;
 }
 
