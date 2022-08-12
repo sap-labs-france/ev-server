@@ -1,12 +1,14 @@
 import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
-import { BUTTON, CONFIG, FOOTER, HEADER, TEXT1, TITLE } from './mjmlComponents';
+import { BUTTON, CONFIG, FOOTER, HEADER, TEXT1, TEXT2, TITLE } from './mjmlComponents';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
 import BackendError from '../../exception/BackendError';
+import ComponentsManager from './ComponentsManager';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import EmailConfiguration from '../../types/configuration/EmailConfiguration';
+import I18nManager from '../../utils/I18nManager';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
 import { ServerAction } from '../../types/Server';
@@ -318,28 +320,24 @@ export default class EMailNotificationTask implements NotificationTask {
         });
       }
 
-
+      // Nader's Code
       if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
         // create the template
+
         const template = new mjmlBuilder()
-          .addConfig(CONFIG)
-          .addHeader(HEADER)
-          .addToBody(TITLE)
-          .addToBody(TEXT1)
-          .addToBody(BUTTON)
-          .addFooter(FOOTER)
+          .addConfig(await ComponentsManager.getComponent(CONFIG))
+          .addHeader(await ComponentsManager.getComponent(HEADER))
+          .addToBody(await ComponentsManager.getComponent(TITLE))
+          .addToBody(await ComponentsManager.getComponent(TEXT1))
+          .addToBody(await ComponentsManager.getComponent(BUTTON))
+          .addToBody(await ComponentsManager.getComponent(TEXT2))
+          .addFooter(await ComponentsManager.getComponent(FOOTER))
           .buildTemplate();
 
         // resolve
-        template.resolve({
-          user: { name: 'Nader Ouerdiane' },
-          email: {
-            buttonText: 'Verify your Account',
-            title: 'Account Created',
-            hidden: { hidden: true },
-          },
-          payment: { token: 'aze', amount: 4 },
-        });
+        const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
+
+        template.resolve(i18nInstance,data as Record<string,unknown>);
         const html = template.getHtml();
 
         emailContent = {

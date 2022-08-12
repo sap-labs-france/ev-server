@@ -319,12 +319,13 @@ export default class AuthService {
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthPasswordResetReq(req.body);
     // Check hash
+    await AuthService.checkAndSendResetPasswordConfirmationEmail(req.tenant, filteredRequest, action, req, res, next);
+    return;
     if (filteredRequest.hash) {
       // Send the new password
       await AuthService.resetUserPassword(req.tenant, filteredRequest, action, req, res, next);
     } else {
       // Send Confirmation Email for requesting a new password
-      await AuthService.checkAndSendResetPasswordConfirmationEmail(req.tenant, filteredRequest, action, req, res, next);
     }
   }
 

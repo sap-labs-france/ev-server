@@ -32,6 +32,11 @@
     ],
     "footer": {
     }
+  },
+  "email": {
+    "user": {
+        "username" : "Hello ! {{user.username}}"
+    }
   }
 }
 

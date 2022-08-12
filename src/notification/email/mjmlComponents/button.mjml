@@ -1,8 +1,7 @@
-
 <mj-section>
 	<mj-column>
 		<mj-button font-size="16px" href="#">
-			{{email.buttonText}}	
+			{{email.buttonText}}
 		</mj-button>
 	</mj-column>
 </mj-section>

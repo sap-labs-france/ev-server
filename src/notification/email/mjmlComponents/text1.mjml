@@ -1,9 +1,8 @@
 <mj-section padding-top="20px">
 	<mj-column>
 		<mj-text>
-			<p>Hi {{user.name}},</p>
-			<p>Your account has been created successfully.</p>
-			<p> Click on the link below to activate it.</p>
+			<p>{{email.user.username}},</p>
+			<p>{{email.text}}</p>
 		</mj-text>
 	</mj-column>
 </mj-section>
