@@ -31,6 +31,20 @@
     },
     "SiteID": {
       "$ref": "common#/definitions/ids"
+    },
+    "DataScope": {
+      "type": "string",
+      "enum": [
+        "year",
+        "month",
+        "date",
+        "hour",
+        "dayOfMonth",
+        "dayOfWeek",
+        "dayOfYear",
+        "sum"
+      ],
+      "sanitize": "mongo"
     }
   }
 }
