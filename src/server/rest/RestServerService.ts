@@ -7,8 +7,8 @@ import ChargingStationService from './v1/service/ChargingStationService';
 import CompanyService from './v1/service/CompanyService';
 import ConnectionService from './v1/service/ConnectionService';
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
 import LogService from './v1/service/LogService';
+import Logging from '../../utils/Logging';
 import NotificationService from './v1/service/NotificationService';
 import OCPIEndpointService from './v1/service/OCPIEndpointService';
 import OICPEndpointService from './v1/service/OICPEndpointService';
@@ -148,6 +148,7 @@ class RequestMapper {
           [ServerAction.BILLING_TAXES]: BillingService.handleGetBillingTaxes.bind(this),
           [ServerAction.BILLING_INVOICES]: BillingService.handleGetInvoices.bind(this),
           [ServerAction.BILLING_DOWNLOAD_INVOICE]: BillingService.handleDownloadInvoice.bind(this),
+          [ServerAction.BILLING_DOWNLOAD_TRANSFER]: BillingService.handleDownloadTransfer.bind(this),
           [ServerAction.BILLING_PAYMENT_METHODS]: BillingService.handleBillingGetPaymentMethods.bind(this),
           [ServerAction.OCPI_ENDPOINTS]: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
           [ServerAction.OCPI_ENDPOINT]: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),

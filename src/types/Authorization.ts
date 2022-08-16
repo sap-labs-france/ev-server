@@ -319,6 +319,7 @@ export interface BillingAccountAuthorizationActions extends AuthorizationActions
 
 export interface BillingTransferAuthorizationActions extends AuthorizationActions {
   canTransfer?: boolean;
+  canDownload?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

@@ -177,6 +177,9 @@
         "captchaSecretKey": {
           "type": "string"
         },
+        "alternativeCaptchaSecretKey": {
+          "type": "string"
+        },
         "captchaScore": {
           "type": "number"
         },
@@ -419,6 +422,53 @@
               "configuration"
             ]
           }
+        },
+        "alternativeConfiguration": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "projectID": {
+              "type": "string"
+            },
+            "privateKeyID": {
+              "type": "string"
+            },
+            "privateKey": {
+              "type": "string"
+            },
+            "clientEmail": {
+              "type": "string"
+            },
+            "clientID": {
+              "type": "string"
+            },
+            "authURI": {
+              "type": "string"
+            },
+            "tokenURI": {
+              "type": "string"
+            },
+            "authProviderX509CertURL": {
+              "type": "string"
+            },
+            "clientX509CertURL": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "projectID",
+            "privateKeyID",
+            "privateKey",
+            "clientEmail",
+            "clientID",
+            "authURI",
+            "tokenURI",
+            "authProviderX509CertURL",
+            "clientX509CertURL"
+          ]
         }
       },
       "required": [
