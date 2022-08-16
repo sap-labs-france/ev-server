@@ -1,3 +1,3 @@
-import mjmlBuilder from './mjmlBuilder';
+import MjmlBuilder from './MjmlBuilder';
 
-export default mjmlBuilder;
+export default MjmlBuilder;

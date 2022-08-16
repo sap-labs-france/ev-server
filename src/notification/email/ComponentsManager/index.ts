@@ -1,3 +1,3 @@
-import ComponentsManager from './ComponentsManager';
+import EmailComponentsManager from './EmailComponentsManager';
 
-export default ComponentsManager;
+export default EmailComponentsManager;

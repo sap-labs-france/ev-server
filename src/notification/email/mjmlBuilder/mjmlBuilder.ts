@@ -1,6 +1,6 @@
-import mjmlTemplate from '../mjmlTemplate/mjmlTemplate';
+import mjmlTemplate from '../MjmlTemplate/MjmlTemplate';
 
-export default class mjmlBuilder {
+export default class MjmlBuilder {
   private header: string;
   private body: string[];
   private footer: string;

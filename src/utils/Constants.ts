@@ -468,4 +468,14 @@ export default class Constants {
 
   public static readonly AFIREV_MINIMAL_DURATION_THRESHOLD = 120; // Minimal duration - 2 minutes
   public static readonly AFIREV_MINIMAL_CONSUMPTION_THRESHOLD = 500; // Minimal consumption - 0.5 kW.h
+
+  public static readonly FOOTER = 'footer.mjml';
+  public static readonly HEADER = 'header.mjml';
+  public static readonly CONFIG = 'config.mjml';
+
+  public static readonly BUTTON = 'button.mjml';
+  public static readonly TITLE = 'title.mjml';
+  public static readonly TEXT1 = 'text1.mjml';
+  public static readonly TEXT2 = 'text2.mjml';
+
 }

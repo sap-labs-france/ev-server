@@ -1,6 +1,5 @@
 /* eslint-disable max-len */
 import { AccountVerificationNotification, AdminAccountVerificationNotification, BaseNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
-import { BUTTON, CONFIG, FOOTER, HEADER, TEXT1, TEXT2, TITLE } from './mjmlComponents';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
@@ -20,7 +19,7 @@ import Utils from '../../utils/Utils';
 import ejs from 'ejs';
 import fs from 'fs';
 import global from '../../types/GlobalType';
-import mjmlBuilder from './mjmlBuilder';
+import mjmlBuilder from './MjmlBuilder';
 import rfc2047 from 'rfc2047';
 
 const MODULE_NAME = 'EMailNotificationTask';
@@ -306,7 +305,7 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async sendSmartEmail(prefix: string, context: BaseNotification, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
+  private async sendSmartEmail(prefix: string, context: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
     let startTime: number;
     let emailContent = {} as EmailNotificationMessage;
     try {
@@ -320,21 +319,21 @@ export default class EMailNotificationTask implements NotificationTask {
       }
       // Create the template
       const template = new mjmlBuilder()
-        .addConfig(await ComponentsManager.getComponent(CONFIG))
-        .addHeader(await ComponentsManager.getComponent(HEADER))
-        .addToBody(await ComponentsManager.getComponent(TITLE))
-        .addToBody(await ComponentsManager.getComponent(TEXT1))
-        .addToBody(await ComponentsManager.getComponent(BUTTON))
-        .addToBody(await ComponentsManager.getComponent(TEXT2))
-        .addFooter(await ComponentsManager.getComponent(FOOTER))
+        .addConfig(await ComponentsManager.getComponent(Constants.CONFIG))
+        .addHeader(await ComponentsManager.getComponent(Constants.HEADER))
+        .addToBody(await ComponentsManager.getComponent(Constants.TITLE))
+        .addToBody(await ComponentsManager.getComponent(Constants.TEXT1))
+        .addToBody(await ComponentsManager.getComponent(Constants.BUTTON))
+        .addToBody(await ComponentsManager.getComponent(Constants.TEXT2))
+        .addFooter(await ComponentsManager.getComponent(Constants.FOOTER))
         .buildTemplate();
       // Resolve
       const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
-      template.resolve(i18nInstance, context);
+      template.resolve(i18nInstance, context,prefix);
       const html = template.getHtml();
       emailContent = {
         to: user.email,
-        subject: i18nInstance.translate(`email.${prefix}.title`, context),
+        subject: i18nInstance.translate(`email.${prefix}.title`, context as Record<string,unknown>),
         text: html,
         html: html
       };
@@ -353,7 +352,7 @@ export default class EMailNotificationTask implements NotificationTask {
         detailedMessages: { error: error.stack }
       });
     } finally {
-      await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'prepareAndSendEmail', startTime, templateName, emailContent, user.id);
+      await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'prepareAndSendEmail', startTime, prefix, emailContent, user.id);
     }
   }
 

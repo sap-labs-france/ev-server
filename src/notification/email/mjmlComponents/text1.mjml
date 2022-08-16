@@ -1,8 +1,9 @@
 <mj-section padding-top="20px">
 	<mj-column>
 		<mj-text>
-			<p>{{email.user.username}},</p>
-			<p>{{email.text}}</p>
+      <p>{{user.mobile}}</p>
+			<p>{{i18n:common.username}},</p>
+			<p>{{i18n:text}}</p>
 		</mj-text>
 	</mj-column>
 </mj-section>

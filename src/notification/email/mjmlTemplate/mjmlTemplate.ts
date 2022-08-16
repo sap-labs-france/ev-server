@@ -2,9 +2,8 @@ import I18nManager from '../../../utils/I18nManager';
 /* eslint-disable @typescript-eslint/member-ordering */
 import { flatten } from './utils';
 import mjml2html from 'mjml';
-import mjmlContext from '../mjmlContext/mjmlContext';
 
-export default class mjmlTemplate {
+export default class MjmlTemplate {
   private template: string;
 
   public constructor(template: string) {
@@ -23,7 +22,7 @@ export default class mjmlTemplate {
     this.template = this.template.replace('{{' + selector + '}}', value);
   }
 
-  private getSelectors(): string[] {
+  private getContextSelectors(): string[] {
     const regex = new RegExp(/\{\{(.*)\}\}/, 'g');
     const matches = this.template.matchAll(regex);
     const selectors = [];
@@ -31,6 +30,24 @@ export default class mjmlTemplate {
       selectors.push(match[1]);
     }
     return selectors;
+  }
+
+  private geti18nSelectors(): string[] {
+    const regex = new RegExp(/\{\{(email..*)\}\}/, 'g');
+    const matches = this.template.matchAll(regex);
+    const selectors = [];
+    for (const match of matches) {
+      selectors.push(match[1]);
+    }
+    return selectors;
+  }
+
+  private preparei18nSelectors(prefix:string): void {
+    const i18nRegexCommon = new RegExp(/\{\{i18n:common.(.*)\}\}/, 'g');
+    this.template = this.template.replace(i18nRegexCommon, '{{email.$1}}');
+
+    const i18nRegex = new RegExp(/\{\{i18n:(.*)\}\}/, 'g');
+    this.template = this.template.replace(i18nRegex, '{{email.' + prefix + '.$1}}');
   }
 
   private splitSelector(selector: string): string[] {
@@ -45,24 +62,22 @@ export default class mjmlTemplate {
     return value;
   }
 
-  public resolve(i18nManager: I18nManager, context?: Record<string, unknown>): void {
-    // flatten
+  public resolve(i18nManager: I18nManager, context: any, prefix: string): void {
     const data = {};
     flatten(context,data);
 
-    // replace i18n selectors
-    const selectors = this.getSelectors();
-    for (const selector of selectors) {
+    this.preparei18nSelectors(prefix);
+
+    const i18nSelectors = this.geti18nSelectors();
+    for (const selector of i18nSelectors) {
       const value = i18nManager.translate(selector,data);
       this.replace(selector, value);
     }
 
-    // replace context selectors
-    const translatedSelectors = this.getSelectors();
-    for (const selector of translatedSelectors) {
+    const contextSelectors = this.getContextSelectors();
+    for (const selector of contextSelectors) {
       const keys = this.splitSelector(selector);
       const value = this.getValue(keys, context);
-      // const value = i18nManager.translate(selector, context);
       this.replace(selector,value);
     }
     console.log(this.template);
