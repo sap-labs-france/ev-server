@@ -1,5 +1,4 @@
 import I18nManager from '../../../utils/I18nManager';
-/* eslint-disable @typescript-eslint/member-ordering */
 import { flatten } from './utils';
 import mjml2html from 'mjml';
 
@@ -16,6 +15,31 @@ export default class MjmlTemplate {
 
   public getHtml(): string {
     return mjml2html(this.template).html;
+  }
+
+  public resolve(i18nManager: I18nManager, context: any, prefix: string): void {
+    const data = {};
+    flatten(context,data);
+
+    this.preparei18nSelectors(prefix);
+
+    const i18nSelectors = this.geti18nSelectors();
+    for (const selector of i18nSelectors) {
+      let value = i18nManager.translate(selector,data);
+      if (Array.isArray(value)) {
+        value = value.join('</br>');
+      }
+      this.replace(selector, value);
+    }
+
+    const contextSelectors = this.getContextSelectors();
+    for (const selector of contextSelectors) {
+      const keys = this.splitSelector(selector);
+      const value = this.getValue(keys, context);
+      this.replace(selector,value);
+    }
+
+    console.log(this.template);
   }
 
   private replace(selector: string, value: string): void {
@@ -60,30 +84,5 @@ export default class MjmlTemplate {
       value = value[key];
     }
     return value;
-  }
-
-  public resolve(i18nManager: I18nManager, context: any, prefix: string): void {
-    const data = {};
-    flatten(context,data);
-
-    this.preparei18nSelectors(prefix);
-
-    const i18nSelectors = this.geti18nSelectors();
-    for (const selector of i18nSelectors) {
-      let value = i18nManager.translate(selector,data);
-      if (Array.isArray(value)) {
-        value = value.join('</br>');
-      }
-      this.replace(selector, value);
-    }
-
-    const contextSelectors = this.getContextSelectors();
-    for (const selector of contextSelectors) {
-      const keys = this.splitSelector(selector);
-      const value = this.getValue(keys, context);
-      this.replace(selector,value);
-    }
-
-    console.log(this.template);
   }
 }

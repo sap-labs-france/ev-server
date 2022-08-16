@@ -1,4 +1,4 @@
-import mjmlTemplate from '../MjmlTemplate/MjmlTemplate';
+import mjmlTemplate from '../mjml-template/MjmlTemplate';
 
 export default class MjmlBuilder {
   private header: string;

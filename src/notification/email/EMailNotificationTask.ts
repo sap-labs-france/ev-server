@@ -4,7 +4,7 @@ import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
 import BackendError from '../../exception/BackendError';
-import ComponentsManager from './ComponentsManager';
+import ComponentsManager from './email-component-manager/EmailComponentManager';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import EmailConfiguration from '../../types/configuration/EmailConfiguration';
@@ -19,7 +19,7 @@ import Utils from '../../utils/Utils';
 import ejs from 'ejs';
 import fs from 'fs';
 import global from '../../types/GlobalType';
-import mjmlBuilder from './MjmlBuilder';
+import mjmlBuilder from './mjml-builder/MjmlBuilder';
 import rfc2047 from 'rfc2047';
 
 const MODULE_NAME = 'EMailNotificationTask';
