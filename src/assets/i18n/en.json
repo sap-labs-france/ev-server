@@ -194,7 +194,7 @@
     "userID": "User ID"
   },
   "email": {
-    "username" : ["Hello ! {{user.firstName}}","Hello again!"],
+    "username" : "Hello ! {{user.firstName}}",
     "new-registered-user": {
       "title":"New Registered User",
       "buttonText":"E-Mobility",
@@ -203,7 +203,7 @@
     "request-password": {
       "title":"Reset Password",
       "buttonText":"E-Mobility",
-      "text":"You have just requested to reset your password.\nClick on the link below to generate and receive a new one."
+      "text":["You have just requested to reset your password." , "Click on the link below to generate and receive a new one."]
     }
   }
 }

@@ -70,7 +70,10 @@ export default class MjmlTemplate {
 
     const i18nSelectors = this.geti18nSelectors();
     for (const selector of i18nSelectors) {
-      const value = i18nManager.translate(selector,data);
+      let value = i18nManager.translate(selector,data);
+      if (Array.isArray(value)) {
+        value = value.join('</br>');
+      }
       this.replace(selector, value);
     }
 
@@ -80,6 +83,7 @@ export default class MjmlTemplate {
       const value = this.getValue(keys, context);
       this.replace(selector,value);
     }
+
     console.log(this.template);
   }
 }
