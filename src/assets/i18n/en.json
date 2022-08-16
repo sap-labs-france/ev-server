@@ -1,6 +1,6 @@
 {
   "billing": {
-    "generatedUser": "Generated user for '{{email}}'",
+    "generatedUser": "enerated user for '{{email}}'",
     "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
     "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
     "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
