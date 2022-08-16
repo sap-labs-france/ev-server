@@ -1,3 +1,5 @@
+import EmailComponentManager, { EmailComponent } from '../email-component-manager/EmailComponentManager';
+
 import mjmlTemplate from '../mjml-template/MjmlTemplate';
 
 export default class MjmlBuilder {
@@ -9,8 +11,16 @@ export default class MjmlBuilder {
   public constructor() {
     this.header = '';
     this.footer = '';
-    this.body = [];
     this.config = '';
+    this.body = [];
+  }
+
+  public async initialize(): Promise<MjmlBuilder> {
+    const builder = new MjmlBuilder();
+    this.addConfig(await EmailComponentManager.getComponent(EmailComponent.CONFIG));
+    this.addHeader(await EmailComponentManager.getComponent(EmailComponent.HEADER));
+    this.addFooter(await EmailComponentManager.getComponent(EmailComponent.FOOTER));
+    return builder;
   }
 
   public addHeader(header: string): this {

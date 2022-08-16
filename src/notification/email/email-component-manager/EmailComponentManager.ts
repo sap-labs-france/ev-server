@@ -1,13 +1,22 @@
 import { promises as fs } from 'fs';
 import global from '../../../types/GlobalType';
 
-type Component = string;
+export enum EmailComponent {
+  FOOTER = 'footer.mjml',
+  HEADER = 'header.mjml',
+  CONFIG = 'config.mjml',
+
+  BUTTON = 'button.mjml',
+  TITLE = 'title.mjml',
+  TEXT1 = 'text1.mjml',
+  TEXT2 = 'text2.mjml',
+}
 
 export default class EmailComponentManager {
-  private static components = new Map<string, Component>();
+  private static components = new Map<string, string>();
 
   // Get the component from the cache or load it
-  public static async getComponent(componentName: Component): Promise<Component> {
+  public static async getComponent(componentName: EmailComponent): Promise<string> {
     let cachedComponent = EmailComponentManager.components.get(componentName);
     if (!cachedComponent) {
       cachedComponent = await EmailComponentManager.loadComponent(componentName);
@@ -17,7 +26,7 @@ export default class EmailComponentManager {
     return cachedComponent;
   }
 
-  public static async loadComponent(componentName: string): Promise<Component> {
+  public static async loadComponent(componentName: EmailComponent): Promise<string> {
     try {
       const fileName = `${global.appRoot}/notification/email/mjml-components/` + componentName;
       const content = await fs.readFile(fileName, 'utf8');

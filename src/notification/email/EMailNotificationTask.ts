@@ -1,10 +1,10 @@
 /* eslint-disable max-len */
 import { AccountVerificationNotification, AdminAccountVerificationNotification, BaseNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import EmailComponentManager, { EmailComponent } from './email-component-manager/EmailComponentManager';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
 import BackendError from '../../exception/BackendError';
-import ComponentsManager from './email-component-manager/EmailComponentManager';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import EmailConfiguration from '../../types/configuration/EmailConfiguration';
@@ -319,13 +319,10 @@ export default class EMailNotificationTask implements NotificationTask {
       }
       // Create the template
       const template = new mjmlBuilder()
-        .addConfig(await ComponentsManager.getComponent(Constants.CONFIG))
-        .addHeader(await ComponentsManager.getComponent(Constants.HEADER))
-        .addToBody(await ComponentsManager.getComponent(Constants.TITLE))
-        .addToBody(await ComponentsManager.getComponent(Constants.TEXT1))
-        .addToBody(await ComponentsManager.getComponent(Constants.BUTTON))
-        .addToBody(await ComponentsManager.getComponent(Constants.TEXT2))
-        .addFooter(await ComponentsManager.getComponent(Constants.FOOTER))
+        .addToBody(await EmailComponentManager.getComponent(EmailComponent.TITLE))
+        .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT1))
+        .addToBody(await EmailComponentManager.getComponent(EmailComponent.BUTTON))
+        .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT2))
         .buildTemplate();
 
       console.log(template.getTemplate());
