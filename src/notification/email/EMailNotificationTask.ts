@@ -327,6 +327,8 @@ export default class EMailNotificationTask implements NotificationTask {
         .addToBody(await ComponentsManager.getComponent(Constants.TEXT2))
         .addFooter(await ComponentsManager.getComponent(Constants.FOOTER))
         .buildTemplate();
+
+      console.log(template.getTemplate());
       // Resolve
       const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
       template.resolve(i18nInstance, context,prefix);
