@@ -41,8 +41,9 @@ export default class BillingRouter {
     // -----------------------------------
     this.buildRouteBillingGetTaxes();
     // -----------------------------------
-    // ROUTES for SUB-ACCOUNTS
+    // ROUTES for Connected Accounts
     // -----------------------------------
+    this.buildRouteBillingTransferDownload();
     this.buildRouteBillingCreateAccount();
     this.buildRouteBillingGetAccounts();
     this.buildRouteBillingGetAccount();
@@ -141,6 +142,13 @@ export default class BillingRouter {
       // GET {{base_url}}/v1/api/invoices/606193168f22ac7f02223c8c/download
       req.query.ID = req.params.invoiceID;
       void RouterUtils.handleRestServerAction(BillingService.handleDownloadInvoice.bind(this), ServerAction.BILLING_DOWNLOAD_INVOICE, req, res, next);
+    });
+  }
+
+  private buildRouteBillingTransferDownload(): void {
+    this.router.get(`/${RESTServerRoute.REST_BILLING_DOWNLOAD_TRANSFER}`, (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.transferID;
+      void RouterUtils.handleRestServerAction(BillingService.handleDownloadTransfer.bind(this), ServerAction.BILLING_DOWNLOAD_TRANSFER, req, res, next);
     });
   }
 

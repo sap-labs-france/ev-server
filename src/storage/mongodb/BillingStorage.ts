@@ -215,6 +215,7 @@ export default class BillingStorage {
       accountExternalID: billingAccount.accountExternalID,
       taxID: billingAccount.taxID,
       activationLink: billingAccount.activationLink, // Should not be persisted - added here only for troubleshooting purposes
+      companyName: billingAccount.companyName
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(billingAccountMDB, billingAccount);
@@ -479,7 +480,7 @@ export default class BillingStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Add Sub-account
+    // Add connected account information
     DatabaseUtils.pushAccountLookupInAggregation({
       tenantID: tenant.id, aggregation: aggregation, asField: 'account', localField: 'accountID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false

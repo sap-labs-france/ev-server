@@ -3,7 +3,7 @@ import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, Refund
 import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
 import { ObjectId } from 'mongodb';
 import { Voltage } from '../../../src/types/ChargingStation';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export interface TenantDefinition {
   id: string;

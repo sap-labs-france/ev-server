@@ -5,7 +5,7 @@ import TransactionCommonTests from './TransactionCommonTests';
 import chai from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiDatetime);

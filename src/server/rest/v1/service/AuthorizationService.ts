@@ -800,10 +800,9 @@ export default class AuthorizationService {
       // Unlock connector
       connector.canUnlockConnector = !chargingStation.inactive
         && chargingStation.canUnlockConnector
-        && [
-          ChargePointStatus.FINISHING,
-          ChargePointStatus.FAULTED,
-          ChargePointStatus.SUSPENDED_EVSE,
+        && ![
+          ChargePointStatus.AVAILABLE,
+          ChargePointStatus.UNAVAILABLE,
         ].includes(connector.status);
       // Remove sensible data
       await AuthorizationService.canPerformAuthorizationAction(
@@ -939,8 +938,9 @@ export default class AuthorizationService {
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async addTransferAuthorizations(tenant: Tenant, userToken: UserToken, billingTransfer: BillingTransfer, authorizationFilter: AuthorizationFilter): Promise<void> {
     billingTransfer.canRead = true; // Always true as it should be filtered upfront
-    // billingTransfer.canDownload = await AuthorizationService.canPerformAuthorizationAction(
-    //   tenant, userToken, Entity.TRANSFER, Action.DOWNLOAD, authorizationFilter, billingTransfer.businessOwnerID ? { UserID: billingTransfer.businessOwnerID } : {}, billingTransfer);
+    billingTransfer.canDownload = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.BILLING_TRANSFER, Action.DOWNLOAD, authorizationFilter,
+      billingTransfer.invoice ? { UserID: billingTransfer.invoice.userID } : {}, billingTransfer);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(billingTransfer);
   }
@@ -964,6 +964,9 @@ export default class AuthorizationService {
     billingAccounts.metadata = authorizationFilter.metadata;
     billingAccounts.canListAccounts = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.BILLING_ACCOUNT, Action.LIST, authorizationFilter);
+    for (const billingAcount of billingAccounts.result) {
+      await AuthorizationService.addTransferAuthorizations(tenant, userToken, billingAcount, authorizationFilter);
+    }
   }
 
   public static async checkAndGetPaymentMethodsAuthorizations(tenant: Tenant, userToken: UserToken,

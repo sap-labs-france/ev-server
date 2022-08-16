@@ -386,6 +386,45 @@ export default class BillingService {
     res.end(buffer, 'binary');
   }
 
+  public static async handleDownloadTransfer(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+      Action.DOWNLOAD, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleDownloadTransfer');
+    // Filter
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransferGetReq(req.query);
+    // Get the Invoice
+    const billingTransfer = await BillingStorage.getTransfer(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, billingTransfer, `Transfer ID '${filteredRequest.ID}' does not exist`,
+      MODULE_NAME, 'handleDownloadTransfer', req.user);
+    // Check and get authorizations
+    await UtilsService.checkAndGetTransferAuthorization(req.tenant, req.user, filteredRequest.ID, Action.DOWNLOAD, action, null, {}, true);
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleDownloadTransfer',
+        action: action,
+        user: req.user
+      });
+    }
+    const buffer = await billingImpl.downloadTransferDocument(billingTransfer);
+    if (!billingTransfer.invoice.invoiceID || !buffer) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Transfer document not found',
+        module: MODULE_NAME, method: 'handleDownloadTransfer',
+        action: action,
+        user: req.user
+      });
+    }
+    const fileName = 'invoice_' + billingTransfer.invoice.invoiceID + '.pdf';
+    res.attachment(fileName);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.end(buffer, 'binary');
+  }
+
   public static async handleGetBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
@@ -565,7 +604,8 @@ export default class BillingService {
       accountExternalID: null,
       taxID: filteredRequest.taxID,
       createdBy: { id: req.user.id },
-      createdOn: new Date()
+      createdOn: new Date(),
+      companyName: filteredRequest.companyName
     };
     // Save the account
     billingAccount.id = await BillingStorage.saveAccount(req.tenant, billingAccount);

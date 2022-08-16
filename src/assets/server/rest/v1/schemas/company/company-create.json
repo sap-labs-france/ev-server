@@ -21,11 +21,7 @@
         "platformFeeStrategy": {
           "$ref": "billing-account#/definitions/platformFeeStrategy"
         }
-      },
-      "required": [
-        "accountID",
-        "platformFeeStrategy"
-      ]
+      }
     }
   },
   "required": [
