@@ -466,7 +466,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
       message = this.createMessage(tenant, notificationType, title, body, data, severity);
       // Get the right firebase apps
       const apps = this.getFirebaseAppsFromTenant(tenant);
+      // Send notification only once in case of multiple configurations
+      let notificationSent = false;
       for (const app of apps) {
+        if (notificationSent) {
+          break;
+        }
         try {
           // Send message
           const response = await admin.messaging(app).sendToDevice(
@@ -490,6 +495,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
             });
           // Success
           } else {
+            // Stop sending notification
+            notificationSent = true;
             void Logging.logDebug({
               tenantID: tenant.id,
               siteID: data?.siteID,
