@@ -16,7 +16,7 @@ const MODULE_NAME = 'RemotePushNotificationTask';
 
 export default class RemotePushNotificationTask implements NotificationTask {
   private firebaseConfig = Configuration.getFirebaseConfig();
-  private defaultApp: admin.app.App;
+  private defaultFirebaseApp: admin.app.App;
   private tenantFirebaseApps: Map<string, admin.app.App> = new Map();
   private initialized = false;
 
@@ -24,7 +24,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     if (this.firebaseConfig?.type?.length > 0) {
       try {
         // Init default conf
-        this.defaultApp = admin.initializeApp({
+        this.defaultFirebaseApp = admin.initializeApp({
           credential: admin.credential.cert({
             projectId: this.firebaseConfig.projectID,
             clientEmail: this.firebaseConfig.clientEmail,
@@ -500,7 +500,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
           chargingStationID: data?.chargeBoxID,
           action: ServerAction.REMOTE_PUSH_NOTIFICATION,
           module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-          message: `Error when sending Notification: '${notificationType}' - '${error.message as string}'`,
+          message: `Firebase error on '${app.options.credential['projectId']}': '${notificationType}' - '${error.message as string}'`,
           actionOnUser: user.id,
           detailedMessages: { error: error.stack, message }
         });
@@ -538,6 +538,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
     if (app) {
       return app;
     }
-    return this.defaultApp;
+    return this.defaultFirebaseApp;
   }
 }
