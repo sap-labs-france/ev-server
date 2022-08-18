@@ -89,3 +89,9 @@ Thumbs.db
 # MTA
 *.mta
 mta_archives/
+
+# Localy
+package-lock.json
+package.json
+test/config-template.json
+test/config.js
