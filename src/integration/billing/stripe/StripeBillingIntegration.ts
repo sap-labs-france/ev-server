@@ -102,7 +102,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async checkActivationPrerequisites(): Promise<void> {
     await this.checkTaxPrerequisites();
-    await this.checkPlatformFeeTaxPrerequisites();
   }
 
   public async checkTaxPrerequisites(): Promise<void> {
@@ -123,29 +122,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TAXES,
         message: 'Billing prerequisites are not consistent - taxID is mandatory'
       });
-    }
-  }
-
-  public async checkPlatformFeeTaxPrerequisites(): Promise<void> {
-    // Check whether the taxID is set and still active
-    if (Utils.isTenantComponentActive(this.tenant, TenantComponents.BILLING_PLATFORM)) {
-      const platformFeeTaxID = this.settings.billing?.platformFeeTaxID;
-      if (platformFeeTaxID) {
-        const billingTax: BillingTax = await this.getTaxRate(platformFeeTaxID);
-        if (!billingTax) {
-          throw new BackendError({
-            module: MODULE_NAME, method: 'checkPlatformFeeTaxPrerequisites',
-            action: ServerAction.BILLING_TAXES,
-            message: `Billing prerequisites are not consistent - Platform Fee TaxID is not found or inactive - Platform Fee TaxID: '${platformFeeTaxID}'`
-          });
-        }
-      } else {
-        throw new BackendError({
-          module: MODULE_NAME, method: 'checkPlatformFeeTaxPrerequisites',
-          action: ServerAction.BILLING_TAXES,
-          message: 'Billing prerequisites are not consistent - Platform Fee TaxID is mandatory'
-        });
-      }
     }
   }
 
@@ -1571,7 +1547,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check all settings that are necessary to bill a transaction
     try {
       await this.checkTaxPrerequisites(); // Checks that the taxID is still valid
-      await this.checkPlatformFeeTaxPrerequisites();
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
