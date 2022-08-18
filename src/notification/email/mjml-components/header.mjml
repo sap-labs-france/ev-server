@@ -1,6 +1,6 @@
 <mj-section>
 	<mj-column>
-		<mj-image width="100px" href="https://open-e-mobility.fr/" src="https://imgur.com/Rloddiu.png"></mj-image>
+		<mj-image width="100px" href="https://open-e-mobility.fr/" src="{{tenantLogoURL}}"></mj-image>
 	</mj-column>
 </mj-section>
 

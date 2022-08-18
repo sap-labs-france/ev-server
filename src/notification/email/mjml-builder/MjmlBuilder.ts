@@ -15,12 +15,12 @@ export default class MjmlBuilder {
     this.body = [];
   }
 
-  public async initialize(): Promise<MjmlBuilder> {
-    const builder = new MjmlBuilder();
-    this.addConfig(await EmailComponentManager.getComponent(EmailComponent.CONFIG));
-    this.addHeader(await EmailComponentManager.getComponent(EmailComponent.HEADER));
-    this.addFooter(await EmailComponentManager.getComponent(EmailComponent.FOOTER));
-    return builder;
+  public static async initialize(): Promise<MjmlBuilder> {
+    const instance = new MjmlBuilder();
+    instance.addConfig(await EmailComponentManager.getComponent(EmailComponent.CONFIG));
+    instance.addHeader(await EmailComponentManager.getComponent(EmailComponent.HEADER));
+    instance.addFooter(await EmailComponentManager.getComponent(EmailComponent.FOOTER));
+    return instance;
   }
 
   public addHeader(header: string): this {

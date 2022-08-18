@@ -202,8 +202,14 @@
     },
     "request-password": {
       "title":"Reset Password",
-      "buttonText":"E-Mobility",
-      "text":["You have just requested to reset your password." , "Click on the link below to generate and receive a new one."]
+      "buttonText":"Reset Password",
+      "text":["You have just requested to reset your password." , "Click on the link below to generate and receive a new one."],
+      "footerTitle": "You didn't request a password reset?",
+      "footerText":"If you haven't requested a password reset. Login to your account and verify your information as soon as possible. If you notice any unusual activity contact us immediately."
+    },
+    "xxx" : {
+      "text":["Hi (user.firstName?user.firstName:user.name) %>,","","Your electric vehicle, which is connected to <strong>'<%- chargeBoxID %>'</strong>, connector {{connectorId}}, reached its optimal charge."]
+
     }
   }
 }

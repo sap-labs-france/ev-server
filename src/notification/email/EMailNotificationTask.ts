@@ -318,7 +318,7 @@ export default class EMailNotificationTask implements NotificationTask {
         });
       }
       // Create the template
-      const template = new mjmlBuilder()
+      const template = (await mjmlBuilder.initialize())
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.TITLE))
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT1))
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.BUTTON))

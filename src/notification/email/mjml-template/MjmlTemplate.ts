@@ -1,5 +1,5 @@
 import I18nManager from '../../../utils/I18nManager';
-import { flatten } from './utils';
+import Utils from '../../../utils/Utils';
 import mjml2html from 'mjml';
 
 export default class MjmlTemplate {
@@ -19,7 +19,7 @@ export default class MjmlTemplate {
 
   public resolve(i18nManager: I18nManager, context: any, prefix: string): void {
     const data = {};
-    flatten(context,data);
+    Utils.flatten(context,data);
 
     this.preparei18nSelectors(prefix);
 
