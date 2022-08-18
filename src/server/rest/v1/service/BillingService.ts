@@ -449,7 +449,7 @@ export default class BillingService {
     const { usersLastSynchronizedOn } = billingSettings.billing;
     const previousTransactionBillingState = !!billingSettings.billing.isTransactionBillingActivated;
     // Billing properties to override
-    const { immediateBillingAllowed, periodicBillingAllowed, taxID } = newBillingProperties.billing;
+    const { immediateBillingAllowed, periodicBillingAllowed, taxID, platformFeeTaxID } = newBillingProperties.billing;
     const newTransactionBillingState = !!newBillingProperties.billing.isTransactionBillingActivated;
     if (!newTransactionBillingState && previousTransactionBillingState) {
       // Attempt to switch it OFF
@@ -484,6 +484,7 @@ export default class BillingService {
       immediateBillingAllowed,
       periodicBillingAllowed,
       taxID,
+      platformFeeTaxID,
     };
     // Make sure to preserve critical connection properties
     let readOnlyProperties = {};

@@ -4,6 +4,7 @@ import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
+import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
 import AsyncTaskBuilder from '../../../async-task/AsyncTaskBuilder';
@@ -27,7 +28,6 @@ import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Stripe from 'stripe';
-import Tenant from '../../../types/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
