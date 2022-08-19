@@ -603,7 +603,6 @@ export default class BillingService {
       businessOwnerID: user.id,
       status: BillingAccountStatus.IDLE,
       accountExternalID: null,
-      taxID: filteredRequest.taxID,
       createdBy: { id: req.user.id },
       createdOn: new Date(),
       companyName: filteredRequest.companyName
