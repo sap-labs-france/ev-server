@@ -87,7 +87,7 @@
     "test:transaction": "npm run test:jest -- test/**/TransactionTest.ts",
     "test:template": "npm run test:jest -- test/**/UnitTestTemplate.ts",
     "test:user": "npm run test:jest -- test/**/UserTest.ts",
-    "test:jest": "npm version && cross-env TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit"
+    "test:jest": "npm version && cross-env cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit"
   },
   "dependencies": {
     "ajv": "^8.11.0",
@@ -106,7 +106,7 @@
     "countries-list": "^2.6.1",
     "csvtojson": "^2.0.10",
     "curvereduce": "^0.0.4",
-    "decimal.js": "^10.3.1",
+    "decimal.js": "^10.4.0",
     "ejs": "^3.1.8",
     "emailjs": "3.8.0",
     "express": "^4.18.1",
