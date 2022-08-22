@@ -518,6 +518,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       canUseVariablePower: true,
       name: `${transaction.chargeBoxID}~${transaction.connectorId}`,
     };
+    this.handleTimestampDeparture(car, transaction);
     return car;
   }
 
@@ -561,7 +562,35 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         customCar.maxCurrent = customCar.maxCurrentPerPhase * 3;
       }
     }
+    this.handleStateOfCharge(customCar, transaction);
     return customCar;
+  }
+
+  private handleStateOfCharge(customCar: OptimizerCar, transaction: Transaction): void {
+    // Check if technical state of charge is available
+    if (!Utils.isNullOrUndefined(transaction.stateOfCharge) && transaction.stateOfCharge > 0) {
+      customCar.chargedCapacity = (transaction.stateOfCharge / 100) * customCar.maxCapacity;
+    // Check if manual state of charge is available
+    } else if (!Utils.isNullOrUndefined(transaction.carStateOfCharge) && transaction.carStateOfCharge > 0) {
+      customCar.chargedCapacity = (customCar.chargedCapacity ?? 0) + (transaction.carStateOfCharge / 100) * customCar.maxCapacity;
+    // Handle if no state of charge is available
+    } else {
+      customCar.chargedCapacity = (customCar.chargedCapacity ?? 0) + 0.3 * customCar.maxCapacity;
+    }
+  }
+
+  private handleTimestampDeparture(optimizerCar: OptimizerCar, transaction: Transaction): void {
+    // Set departure time based on user input
+    if (!Utils.isNullOrUndefined(transaction.departureTime)) {
+      optimizerCar.timestampDeparture = moment(transaction.departureTime).diff(moment(), 'seconds');
+    } else {
+      // If not available set current time plus 8 hours
+      optimizerCar.timestampDeparture = moment(transaction.timestamp).add(8, 'hours').diff(moment(), 'seconds');
+    }
+    // Check if timestamp departure is in the past
+    if (optimizerCar.timestampDeparture <= 0) {
+      optimizerCar.timestampDeparture = 28800;
+    }
   }
 
   private overrideCarWithRuntimeData(chargingStation: ChargingStation, transaction: Transaction, car: OptimizerCar, currentChargingProfiles: ChargingProfile[]) {

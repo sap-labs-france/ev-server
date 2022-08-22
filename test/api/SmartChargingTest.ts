@@ -22,10 +22,12 @@ import SiteContext from './context/SiteContext';
 import SmartChargingFactory from '../../src/integration/smart-charging/SmartChargingFactory';
 import SmartChargingIntegration from '../../src/integration/smart-charging/SmartChargingIntegration';
 import TenantContext from './context/TenantContext';
+import TransactionStorage from '../../src/storage/mongodb/TransactionStorage';
 import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
+import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -393,7 +395,9 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
-        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
             'limit': 43.1
@@ -407,8 +411,6 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
             'limit': 43.1
           }
         ]);
-        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
-        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
       });
 
       it(
@@ -421,7 +423,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector1Charging);
           const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
           TestData.validateChargingProfile(chargingProfiles[0], transaction);
-          expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+          expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
           TestData.validateChargingProfile(chargingProfiles[1], transaction1);
           expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
@@ -438,7 +440,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
             }
           ]);
           TestData.validateChargingProfile(chargingProfiles[2], transaction2);
-          expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
+          expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
         }
       );
 
@@ -806,7 +808,9 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
-        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
             'limit': Utils.roundTo(10000 / 230 - 32, 1)
@@ -820,8 +824,6 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
             'limit': Utils.roundTo(10000 / 230 - 32, 1)
           }
         ]);
-        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
-        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
       });
 
       it(
@@ -906,7 +908,9 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         async () => {
           const chargingProfiles = await smartChargingIntegrationWithoutStickyLimit.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
           TestData.validateChargingProfile(chargingProfiles[0], transaction);
-          expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
+          TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+          expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
               'limit': Utils.roundTo(10000 / 230 - 32, 1)
@@ -920,8 +924,6 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
               'limit': Utils.roundTo(10000 / 230 - 32, 1)
             }
           ]);
-          TestData.validateChargingProfile(chargingProfiles[1], transaction1);
-          expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
         }
       );
 
@@ -1089,21 +1091,6 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
-            'limit': 86
-          },
-          {
-            'startPeriod': 900,
-            'limit': 86
-          },
-          {
-            'startPeriod': 1800,
-            'limit': 86
-          },
-        ]);
-        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
-        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
-          {
-            'startPeriod': 0,
             'limit': 327
           },
           {
@@ -1114,6 +1101,21 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
             'startPeriod': 1800,
             'limit': 327
           }
+        ]);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': 86
+          },
+          {
+            'startPeriod': 900,
+            'limit': 86
+          },
+          {
+            'startPeriod': 1800,
+            'limit': 86
+          },
         ]);
       });
 
@@ -1203,21 +1205,6 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
-              'limit': 86
-            },
-            {
-              'startPeriod': 900,
-              'limit': 86
-            },
-            {
-              'startPeriod': 1800,
-              'limit': 86
-            },
-          ]);
-          TestData.validateChargingProfile(chargingProfiles[1], transaction1);
-          expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
-            {
-              'startPeriod': 0,
               'limit': 327
             },
             {
@@ -1228,6 +1215,21 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
               'startPeriod': 1800,
               'limit': 327
             }
+          ]);
+          TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+          expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+            {
+              'startPeriod': 0,
+              'limit': 86
+            },
+            {
+              'startPeriod': 900,
+              'limit': 86
+            },
+            {
+              'startPeriod': 1800,
+              'limit': 86
+            },
           ]);
         }
       );
@@ -1664,5 +1666,119 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         },
       ]);
     });
+  });
+
+  describe('Test for Priorities', () => {
+    beforeAll(async () => {
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+      testData.siteAreaContext1 = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+    });
+
+    afterAll(async () => {
+      await testData.chargingStationContext.stopTransaction(transaction.id, testData.userContext.tags[0].id, 180, new Date());
+      await testData.chargingStationContext.stopTransaction(transaction1.id, testData.userContext.tags[0].id, 180, new Date());
+
+
+      chargingStationConnector1Available.timestamp = new Date().toISOString();
+      chargingStationConnector2Available.timestamp = new Date().toISOString();
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Available);
+      await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Available);
+
+      // Reset modifications on siteArea
+      testData.siteAreaContext.getSiteArea().maximumPower = 200000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+      testData.siteAreaContext1.getSiteArea().maximumPower = 200000;
+      await testData.userService.siteAreaApi.update(testData.siteAreaContext1.getSiteArea());
+    });
+
+
+    it(
+      'Check if session with earlier departure time is prioritized',
+      async () => {
+        testData.siteAreaContext.getSiteArea().maximumPower = 22080;
+        testData.siteAreaContext.getSiteArea().smartCharging = true;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+        let transactionStartResponse = await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+        let transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
+        transaction = transactionResponse.data;
+
+        transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, new Date);
+        transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
+        transaction1 = transactionResponse.data;
+        chargingStationConnector1Charging.timestamp = new Date().toISOString();
+        chargingStationConnector2Charging.timestamp = new Date().toISOString();
+
+        transaction.departureTime = moment(transaction.timestamp).add(8, 'hours').toDate();
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction);
+        transaction1.departureTime = moment(transaction.timestamp).add(4, 'hours').toDate();
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction1);
+
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
+
+        let chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        TestData.validateChargingProfile(chargingProfiles[0], transaction);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+
+        // Switch the priorities
+        transaction.departureTime = moment(transaction.timestamp).add(4, 'hours').toDate();
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction);
+        transaction1.departureTime = moment(transaction.timestamp).add(8, 'hours').toDate();
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction1);
+
+        chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        TestData.validateChargingProfile(chargingProfiles[0], transaction);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+      }
+    );
+
+    it(
+      'Check if session with less SOC is prioritized',
+      async () => {
+        testData.siteAreaContext.getSiteArea().maximumPower = 22080;
+        testData.siteAreaContext.getSiteArea().smartCharging = true;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+        let transactionStartResponse = await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+        let transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
+        transaction = transactionResponse.data;
+
+        transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, new Date);
+        transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
+        transaction1 = transactionResponse.data;
+        chargingStationConnector1Charging.timestamp = new Date().toISOString();
+        chargingStationConnector2Charging.timestamp = new Date().toISOString();
+
+        transaction.carStateOfCharge = 20;
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction);
+        transaction1.stateOfCharge = 40;
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction1);
+
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
+
+        let chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        TestData.validateChargingProfile(chargingProfiles[0], transaction);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+
+        transaction.carStateOfCharge = 40;
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction);
+        transaction1.stateOfCharge = 20;
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction1);
+
+        chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        TestData.validateChargingProfile(chargingProfiles[0], transaction);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+      }
+    );
   });
 });
