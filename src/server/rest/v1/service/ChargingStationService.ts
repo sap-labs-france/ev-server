@@ -1266,7 +1266,8 @@ export default class ChargingStationService {
         lastSelectedCar: true,
         lastCarStateOfCharge: filteredRequest.carStateOfCharge,
         lastCarOdometer: filteredRequest.carOdometer,
-        lastDepartureTime: filteredRequest.departureTime
+        lastDepartureTime: filteredRequest.departureTime,
+        lastTargetStateOfCharge: filteredRequest.targetStateOfCharge,
       });
     }
     // Execute it
