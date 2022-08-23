@@ -1,0 +1,81 @@
+<mjml><mj-head>
+	<mj-title>New Registered User</mj-title>
+	<mj-font name="Roboto" href="https://fonts.googleapis.com/css?family=Roboto:300,500"></mj-font>
+	<mj-attributes>
+		<mj-all font-family="Roboto, Helvetica, sans-serif"></mj-all>
+		<mj-text font-weight="300" font-size="18px" color="#616161" line-height="20px"></mj-text>
+		<mj-section padding="0px"></mj-section>
+	</mj-attributes>
+</mj-head>
+<mj-body><mj-section>
+	<mj-column>
+		<mj-image width="100px" href="http://utsmartcharging.localhost:45000" src="null"></mj-image>
+	</mj-column>
+</mj-section>
+
+<mj-section>
+	<mj-column width="70%">
+		<mj-image href="https://open-e-mobility.fr/" src="https://imgur.com/OAuCtez.png"></mj-image>
+	</mj-column>
+</mj-section>
+<mj-section>
+	<mj-column>
+		<mj-text font-weight="500" font-size="20px">New Registered User</mj-text>
+	</mj-column>
+</mj-section>
+,<mj-section padding-top="20px">
+	<mj-column>
+		<mj-text>
+			<p>Hello ! Admin,</p>
+			<p>You have registered to SAP. Welcome abroad!</p>
+		</mj-text>
+	</mj-column>
+</mj-section>
+,<mj-section>
+	<mj-column>
+		<mj-button font-size="16px" href="http://utsmartcharging.localhost:45000/auth/verify-email?VerificationToken=34800542563bb959484fbf76a629ce047e7bb226dbd6a3194a75ace8fa5c5e94&Email=stone_huels90@gmail.com&ResetToken=4f389595-3783-468b-b837-1d75cf64339d">
+			E-Mobility
+		</mj-button>
+	</mj-column>
+</mj-section>
+<mj-section padding-top="20px">
+	<mj-column >
+		<mj-divider border-width="1px" border-color="#E0E0E0"></mj-divider>
+	</mj-column>
+</mj-section>
+
+<mj-section padding-top="20px">
+	<mj-column>
+		<mj-text font-size="12px">
+			<p>This message has been sent by an automated email service. Please do not reply. You may unsubs​cri​be by changing your notification settings.</p>
+		</mj-text>
+	</mj-column>
+</mj-section>
+
+<mj-section>
+	<mj-column width="65%">
+		<mj-image align="left" width="50px" href="undefined" src="http://utsmartcharging.localhost:45000/assets/img/info.png"></mj-image>
+	</mj-column>
+	<mj-column width="35%">
+		<mj-table>
+			<tr style="list-style: none;line-height:1">
+				<td> <a href="https://twitter.com/RecastAI">
+						<img width="25" src="https://cdn.recast.ai/newsletter/twitter.png" />
+					</a> </td>
+				<td> <a href="https://www.facebook.com/recastAI">
+						<img width="25" src="https://cdn.recast.ai/newsletter/facebook.png" />
+					</a> </td>
+				<td> <a href="https://medium.com/@RecastAI">
+						<img width="25" src="https://cdn.recast.ai/newsletter/medium.png" />
+					</a> </td>
+				<td> <a href="https://www.youtube.com/channel/UCA0UZlR8crpgwFiVaSTbVWw">
+						<img width="25" src="https://cdn.recast.ai/newsletter/youtube.png" />
+					</a> </td>
+				<td> <a href="https://plus.google.com/u/0/+RecastAi">
+						<img width="25" src="https://cdn.recast.ai/newsletter/google%2B.png" />
+					</a> </td>
+			</tr>
+		</mj-table>
+	</mj-column>
+</mj-section>
+</mj-body></mjml>

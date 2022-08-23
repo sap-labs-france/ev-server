@@ -54,28 +54,27 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
-      return this.sendSmartEmail('new-registered-user', data, user, tenant, severity);
-    }
+    data.buttonUrl = data.evseDashboardVerifyEmailURL;
     return this.prepareAndSendEmail('new-registered-user', data, user, tenant, severity);
   }
 
   public async sendRequestPassword(data: RequestPasswordNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
-      return this.sendSmartEmail('request-password', data, user, tenant, severity);
-    }
+    data.buttonUrl = data.evseDashboardResetPassURL;
     return this.prepareAndSendEmail('request-password', data, user, tenant, severity);
   }
 
   public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardChargingStationURL;
     return this.prepareAndSendEmail('optimal-charge-reached', data, user, tenant, severity);
   }
 
   public async sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardChargingStationURL;
     return this.prepareAndSendEmail('end-of-charge', data, user, tenant, severity);
   }
 
   public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardChargingStationURL;
     return this.prepareAndSendEmail('end-of-session', data, user, tenant, severity);
   }
 
@@ -317,18 +316,16 @@ export default class EMailNotificationTask implements NotificationTask {
           message: 'User is mandatory'
         });
       }
-      // Create the template
+      context.appUrl = context.appUrl && 'https://open-e-mobility.io/';
+      const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
       const template = (await mjmlBuilder.initialize())
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.TITLE))
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT1))
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.BUTTON))
-        .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT2))
         .buildTemplate();
-
-      console.log(template.getTemplate());
-      // Resolve
-      const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
       template.resolve(i18nInstance, context,prefix);
+      console.log(template.getTemplate());
+      fs.writeFileSync('./file.txt',template.getTemplate(),'utf-8');
       const html = template.getHtml();
       emailContent = {
         to: user.email,
@@ -356,6 +353,10 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
+    if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
+      return await this.sendSmartEmail(templateName, data, user, tenant, severity);
+    }
+
     let startTime: number;
     let emailContent = {} as EmailNotificationMessage;
     try {

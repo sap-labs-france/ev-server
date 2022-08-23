@@ -20,6 +20,7 @@ export default class MjmlTemplate {
   public resolve(i18nManager: I18nManager, context: any, prefix: string): void {
     const data = {};
     Utils.flatten(context,data);
+    console.log(data);
 
     this.preparei18nSelectors(prefix);
 
@@ -36,10 +37,9 @@ export default class MjmlTemplate {
     for (const selector of contextSelectors) {
       const keys = this.splitSelector(selector);
       const value = this.getValue(keys, context);
+      console.log(selector, value);
       this.replace(selector,value);
     }
-
-    console.log(this.template);
   }
 
   private replace(selector: string, value: string): void {
@@ -47,7 +47,7 @@ export default class MjmlTemplate {
   }
 
   private getContextSelectors(): string[] {
-    const regex = new RegExp(/\{\{(.*)\}\}/, 'g');
+    const regex = new RegExp(/\{\{([a-zA-Z0-9_.-]*)\}\}/, 'g');
     const matches = this.template.matchAll(regex);
     const selectors = [];
     for (const match of matches) {

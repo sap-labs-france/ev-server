@@ -4,9 +4,17 @@
 	</mj-column>
 </mj-section>
 
+<mj-section padding-top="20px">
+	<mj-column>
+		<mj-text font-size="12px">
+			<p>{{i18n:common.footerText}}</p>
+		</mj-text>
+	</mj-column>
+</mj-section>
+
 <mj-section>
 	<mj-column width="65%">
-		<mj-image align="left" width="50px" href="https://open-e-mobility.fr/" src="https://imgur.com/Rloddiu.png"></mj-image>
+		<mj-image align="left" width="50px" href="{{appUrl}}" src="{{evseDashboardURL}}/assets/img/info.png"></mj-image>
 	</mj-column>
 	<mj-column width="35%">
 		<mj-table>
