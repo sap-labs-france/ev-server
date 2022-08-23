@@ -1129,7 +1129,7 @@ export default class TransactionService {
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.tenant,
       {
-        status: filteredRequest.Status ,
+        status: filteredRequest.Status as TransactionStatus,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
