@@ -1,4 +1,4 @@
-import { ChangeStreamDocument, Collection, CreateIndexesOptions, Db, GridFSBucket, IndexSpecification, MongoClient, ReadPreferenceMode } from 'mongodb';
+import { ChangeStreamDocument, Collection, CollectionOptions, CreateIndexesOptions, Db, GridFSBucket, IndexSpecification, MongoClient, ReadPreference, ReadPreferenceMode } from 'mongodb';
 import global, { DatabaseDocumentChange } from '../../types/GlobalType';
 import mongoUriBuilder, { MongoUriConfig } from 'mongo-uri-builder';
 
@@ -431,16 +431,17 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
+    // We force read preference to target the primary node
+    const collectionOptions: CollectionOptions = { readPreference: ReadPreference.PRIMARY };
     try {
       // Get all the collections
-      const currentCollections = await this.database.listCollections().toArray();
       const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
+      const currentCollections = await this.database.listCollections({ name: tenantCollectionName }, collectionOptions).toArray();
       const foundCollection = currentCollections.find((collection) => collection.name === tenantCollectionName);
-      let handledCollection = null;
       // Create
       if (!foundCollection) {
         try {
-          handledCollection = await this.database.createCollection(tenantCollectionName);
+          await this.database.createCollection(tenantCollectionName);
         } catch (error) {
           const message = `Error in creating collection '${tenantID}.${tenantCollectionName}': ${error.message as string}`;
           Logging.logConsoleError(message);
@@ -451,13 +452,11 @@ export default class MongoDBStorage {
             message, detailedMessages: { error: error.stack, tenantCollectionName, name, indexes }
           });
         }
-      } else {
-        handledCollection = this.database.collection(tenantCollectionName);
       }
       // Indexes?
       if (indexes) {
         // Get current indexes
-        let databaseIndexes = await handledCollection.listIndexes().toArray();
+        let databaseIndexes = await this.database.collection(tenantCollectionName, collectionOptions).listIndexes().toArray();
         // Drop indexes
         for (const databaseIndex of databaseIndexes) {
           if (databaseIndex.key._id) {
@@ -487,7 +486,7 @@ export default class MongoDBStorage {
               });
             }
             try {
-              await handledCollection.dropIndex(databaseIndex.key);
+              await this.database.collection(tenantCollectionName, collectionOptions).dropIndex(databaseIndex.key);
             } catch (error) {
               const message = `Error in dropping index '${databaseIndex.name as string}' in '${tenantCollectionName}': ${error.message as string}`;
               Logging.logConsoleError(message);
@@ -501,7 +500,7 @@ export default class MongoDBStorage {
           }
         }
         // Get updated indexes
-        databaseIndexes = await handledCollection.listIndexes().toArray();
+        databaseIndexes = await this.database.collection(tenantCollectionName, collectionOptions).listIndexes().toArray();
         // Create indexes
         for (const index of indexes) {
           const foundDatabaseIndex = databaseIndexes.find((databaseIndex) => this.buildIndexName(index.fields) === databaseIndex.name);
@@ -518,7 +517,7 @@ export default class MongoDBStorage {
               });
             }
             try {
-              await handledCollection.createIndex(index.fields, index.options);
+              await this.database.collection(tenantCollectionName, collectionOptions).createIndex(index.fields, index.options);
             } catch (error) {
               const message = `Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message as string}`;
               Logging.logConsoleError(message);
