@@ -310,6 +310,9 @@
         },
         "debug": {
           "type": "boolean"
+        },
+        "readPreference": {
+          "type": "string"
         }
       },
       "required": [
