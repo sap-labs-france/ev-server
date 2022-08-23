@@ -436,10 +436,11 @@ export default class MongoDBStorage {
       const currentCollections = await this.database.listCollections().toArray();
       const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
       const foundCollection = currentCollections.find((collection) => collection.name === tenantCollectionName);
+      let handledCollection = null;
       // Create
       if (!foundCollection) {
         try {
-          await this.database.createCollection(tenantCollectionName);
+          handledCollection = await this.database.createCollection(tenantCollectionName);
         } catch (error) {
           const message = `Error in creating collection '${tenantID}.${tenantCollectionName}': ${error.message as string}`;
           Logging.logConsoleError(message);
@@ -450,11 +451,13 @@ export default class MongoDBStorage {
             message, detailedMessages: { error: error.stack, tenantCollectionName, name, indexes }
           });
         }
+      } else {
+        handledCollection = this.database.collection(tenantCollectionName);
       }
       // Indexes?
       if (indexes) {
         // Get current indexes
-        let databaseIndexes = await this.database.collection(tenantCollectionName).listIndexes().toArray();
+        let databaseIndexes = await handledCollection.listIndexes().toArray();
         // Drop indexes
         for (const databaseIndex of databaseIndexes) {
           if (databaseIndex.key._id) {
@@ -484,7 +487,7 @@ export default class MongoDBStorage {
               });
             }
             try {
-              await this.database.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+              await handledCollection.dropIndex(databaseIndex.key);
             } catch (error) {
               const message = `Error in dropping index '${databaseIndex.name as string}' in '${tenantCollectionName}': ${error.message as string}`;
               Logging.logConsoleError(message);
@@ -498,7 +501,7 @@ export default class MongoDBStorage {
           }
         }
         // Get updated indexes
-        databaseIndexes = await this.database.collection(tenantCollectionName).listIndexes().toArray();
+        databaseIndexes = await handledCollection.listIndexes().toArray();
         // Create indexes
         for (const index of indexes) {
           const foundDatabaseIndex = databaseIndexes.find((databaseIndex) => this.buildIndexName(index.fields) === databaseIndex.name);
@@ -515,7 +518,7 @@ export default class MongoDBStorage {
               });
             }
             try {
-              await this.database.collection(tenantCollectionName).createIndex(index.fields, index.options);
+              await handledCollection.createIndex(index.fields, index.options);
             } catch (error) {
               const message = `Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message as string}`;
               Logging.logConsoleError(message);
