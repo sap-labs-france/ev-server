@@ -71,6 +71,9 @@ export default class Configuration {
           tenantConfig.configuration.privateKey = tenantConfig.configuration.privateKey.replace(/\\n/g, '\n');
         }
       }
+      if (firebaseConfiguration.alternativeConfiguration) {
+        firebaseConfiguration.alternativeConfiguration.privateKey = firebaseConfiguration.alternativeConfiguration.privateKey.replace(/\\n/g, '\n');
+      }
       return firebaseConfiguration;
     }
   }
