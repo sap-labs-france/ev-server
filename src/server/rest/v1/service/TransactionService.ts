@@ -383,8 +383,6 @@ export default class TransactionService {
   }
 
   public static async handleTransactionStart(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Cache request to avoid modifications from validator
-    const cachedReq = Utils.cloneObject(req);
     // Filter
     const remoteStartRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStartReq(req.body);
     // Get data
@@ -394,11 +392,11 @@ export default class TransactionService {
     if (chargingStation.issuer) {
       // OCPP Remote Start
       await ChargingStationService.handleOcppAction(
-        ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, cachedReq, res, next);
+        ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, req, res, next);
     } else {
       // OCPI Remote Start
       await ChargingStationService.handleOcpiAction(
-        ServerAction.OCPI_EMSP_START_SESSION, cachedReq, res, next);
+        ServerAction.OCPI_EMSP_START_SESSION, req, res, next);
     }
   }
 
