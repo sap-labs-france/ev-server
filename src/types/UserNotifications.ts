@@ -100,6 +100,7 @@ export interface BaseNotification {
   tenantLogoURL?: string;
   buttonUrl?:string;
   appUrl?:string;
+  userFirstName?:string;
 }
 
 export interface EndOfChargeNotification extends BaseNotification {

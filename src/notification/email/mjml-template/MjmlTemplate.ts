@@ -18,15 +18,10 @@ export default class MjmlTemplate {
   }
 
   public resolve(i18nManager: I18nManager, context: any, prefix: string): void {
-    const data = {};
-    Utils.flatten(context,data);
-    console.log(data);
-
     this.preparei18nSelectors(prefix);
-
     const i18nSelectors = this.geti18nSelectors();
     for (const selector of i18nSelectors) {
-      let value = i18nManager.translate(selector,data);
+      let value = i18nManager.translate(selector,context);
       if (Array.isArray(value)) {
         value = value.join('</br>');
       }
@@ -37,7 +32,6 @@ export default class MjmlTemplate {
     for (const selector of contextSelectors) {
       const keys = this.splitSelector(selector);
       const value = this.getValue(keys, context);
-      console.log(selector, value);
       this.replace(selector,value);
     }
   }

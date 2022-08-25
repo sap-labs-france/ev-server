@@ -52,18 +52,6 @@ export default class Utils {
     }
   }
 
-  public static flatten(context,data, tag = null): any {
-    return Object.keys(context).forEach((key) => {
-      const tagT = !tag ? key : tag + '.' + key;
-      if (typeof context[key] === 'object' && context[key] !== null) {
-        this.flatten(context[key],data, tagT);
-      } else {
-        data[tagT] = context[key];
-      }
-    });
-  }
-
-
   public static convertBufferArrayToString(data: ArrayBuffer): string {
     if (!data) {
       return null;

@@ -316,16 +316,20 @@ export default class EMailNotificationTask implements NotificationTask {
           message: 'User is mandatory'
         });
       }
-      context.appUrl = context.appUrl && 'https://open-e-mobility.io/';
+      context.appUrl = context.appUrl || 'https://open-e-mobility.io/';
+      context.userFirstName = context.user.firstName || context.user.name;
+      context.tenantLogoURL = tenant.logo;
       const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
       const template = (await mjmlBuilder.initialize())
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.TITLE))
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT1))
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.BUTTON))
         .buildTemplate();
+      console.log(context);
       template.resolve(i18nInstance, context,prefix);
-      console.log(template.getTemplate());
-      fs.writeFileSync('./file.txt',template.getTemplate(),'utf-8');
+      if (Utils.isDevelopmentEnv()) {
+        fs.writeFileSync('./file.txt',template.getTemplate(),'utf-8');
+      }
       const html = template.getHtml();
       emailContent = {
         to: user.email,

@@ -194,7 +194,7 @@
     "userID": "User ID"
   },
   "email": {
-    "username" : "Hello ! {{user.firstName}}",
+    "username" : "Hello ! {{userFirstName}}",
     "footerText":"This message has been sent by an automated email service. Please do not reply. You may unsubs​cri​be by changing your notification settings.",
     "new-registered-user": {
       "title":"New Registered User",
