@@ -160,6 +160,7 @@ export interface HttpChargingStationTransactionStartRequest extends HttpCharging
   carStateOfCharge?: number,
   carOdometer?: number,
   departureTime?: Date,
+  targetStateOfCharge?: number,
   args: {
     connectorId: number,
     tagID?: string,
