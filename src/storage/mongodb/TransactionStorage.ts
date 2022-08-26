@@ -60,6 +60,7 @@ export default class TransactionStorage {
       carStateOfCharge: Utils.convertToInt(transactionToSave.carStateOfCharge),
       carOdometer: Utils.convertToInt(transactionToSave.carOdometer),
       departureTime: Utils.convertToDate(transactionToSave.departureTime),
+      targetStateOfCharge: Utils.convertToInt(transactionToSave.targetStateOfCharge),
       userID: DatabaseUtils.convertToObjectID(transactionToSave.userID),
       chargeBoxID: transactionToSave.chargeBoxID,
       meterStart: Utils.convertToInt(transactionToSave.meterStart),
