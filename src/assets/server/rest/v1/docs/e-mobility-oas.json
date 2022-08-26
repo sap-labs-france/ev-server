@@ -4325,6 +4325,10 @@
                     "type": "string",
                     "format": "date-time"
                   },
+                  "targetStateOfCharge": {
+                    "type": "integer",
+                    "example": ""
+                  },
                   "args": {
                     "type": "object",
                     "properties": {

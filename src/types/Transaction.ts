@@ -85,6 +85,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   carStateOfCharge?: number;
   carOdometer?: number;
   departureTime?: Date;
+  targetStateOfCharge?: number;
   phasesUsed?: CSPhasesUsed;
   companyID?: string;
   company?: Company;
