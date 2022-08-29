@@ -1416,10 +1416,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop', 'stop.tagID','stop.tag.visualID', 'stop.reason',
           'billingData.stop.invoiceNumber',
-          'tagID', 'tag.visualID', 'tag.description',
-          'site.name', 'siteArea.name', 'company.name',
-          'carID',
-          'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'site.name', 'siteArea.name', 'company.name'
         ]
       },
       {
@@ -1474,7 +1471,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name'
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
+          'site.name', 'siteArea.name', 'company.name'
         ]
       },
       {
@@ -1999,7 +1997,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.TRANSACTION, action: [Action.EXPORT, Action.UPDATE, Action.REMOTE_STOP_TRANSACTION],
+        resource: Entity.TRANSACTION, action: [Action.EXPORT, Action.UPDATE],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
