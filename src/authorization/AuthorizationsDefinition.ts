@@ -523,7 +523,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name'
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name',
+          'user.name', 'user.firstName', 'user.email'
         ]
       },
       {
@@ -555,9 +556,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
-          'site.name', 'siteArea.name', 'company.name',
-          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'tag.description', 'stop.tagID', 'stop.tag.visualID'
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop', 'stop.reason', 'stop.tagID', 'stop.tag.visualID',
+          'user.name', 'user.firstName', 'user.email',
+          'site.name', 'siteArea.name',
+          'company.name',
+          'billingData.stop.invoiceNumber', 'ocpi', 'ocpiWithCdr',
+          'tagID', 'tag.visualID', 'tag.description',
         ]
       },
       {
@@ -2552,7 +2556,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name'
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name',
+          'user.name', 'user.firstName', 'user.email'
         ]
       },
       {
@@ -2586,6 +2591,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
           'site.name', 'siteArea.name', 'company.name',
+          'user.name', 'user.firstName', 'user.email',
           'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'tag.description', 'stop.tagID', 'stop.tag.visualID'
         ]
       },
@@ -3026,7 +3032,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name'
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name',
+          'user.name', 'user.firstName', 'user.email'
         ]
       },
       {
@@ -3060,6 +3067,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
           'site.name', 'siteArea.name', 'company.name',
+          'user.name', 'user.firstName', 'user.email',
           'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'tag.description', 'stop.tagID', 'stop.tag.visualID'
         ]
       },

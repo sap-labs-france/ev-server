@@ -1195,8 +1195,8 @@ export default class AuthorizationService {
       authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canListLogs = await this.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGING, Action.LIST,
       authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
-      transaction.canListLogs = await this.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGING, Action.LIST,
-        authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canListLogs = await this.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGING, Action.LIST,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     transaction.canReadChargingStation = await this.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION, Action.READ,
       authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     // Additional auth check for refund
@@ -1238,8 +1238,16 @@ export default class AuthorizationService {
       transactions: TransactionInErrorDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
     transactions.metadata = authorizationFilter.metadata;
-    transactions.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
-    // Add Authorizations
+     // Add Meta Data
+     transactions.metadata = authorizationFilter.metadata;
+     transactions.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+     transactions.canListSites = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter);
+     transactions.canListSiteAreas = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.LIST, authorizationFilter);
+     transactions.canListChargingStations = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION, Action.LIST, authorizationFilter);
+     transactions.canListTags = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.LIST, authorizationFilter);
+     transactions.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.EXPORT, authorizationFilter);
+     transactions.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.DELETE, authorizationFilter);
+   // Add Authorizations
     for (const transaction of transactions.result) {
       await AuthorizationService.addTransactionInErrorAuthorizations(tenant, userToken, transaction, authorizationFilter);
     }
@@ -1250,6 +1258,8 @@ export default class AuthorizationService {
     // Set entity dynamic auth filters that will be used by auth framework
     const dynamicAuthorizationFilter: DynamicAuthorizationsFilter = { CompanyID: transaction.companyID, SiteID: transaction.siteID, UserID: transaction.userID };
     transaction.canRead = true; // Always true as it should be filtered upfront
+    transaction.canListLogs = await this.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGING, Action.LIST,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
     // Check and remove sensible data
     const sensibleUserData = { UserData: true, TagData: true, CarCatalogData: true, CarData: true, BillingData: true };
     // Transaction sensible data

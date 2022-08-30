@@ -94,6 +94,12 @@ export interface TransactionDataResult extends DataResult<Transaction> {
 
 export interface TransactionInErrorDataResult extends DataResult<TransactionInError> {
   canListUsers?: boolean;
+  canListSites?: boolean;
+  canListSiteAreas?: boolean;
+  canListChargingStations?: boolean;
+  canListTags?: boolean;
+  canExport?: boolean;
+  canDelete?: boolean;
 }
 
 export interface BillingInvoiceDataResult extends DataResult<BillingInvoice> {
