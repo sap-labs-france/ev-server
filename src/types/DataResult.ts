@@ -88,6 +88,8 @@ export interface TransactionDataResult extends DataResult<Transaction> {
   canListSiteAreas?: boolean;
   canListChargingStations?: boolean;
   canListTags?: boolean;
+  canExport?: boolean;
+  canDelete?: boolean;
 }
 
 export interface TransactionInErrorDataResult extends DataResult<TransactionInError> {

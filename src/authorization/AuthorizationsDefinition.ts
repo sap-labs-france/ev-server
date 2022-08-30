@@ -594,7 +594,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: []
           }
         },
         attributes: [
@@ -1415,6 +1415,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'ocpi', 'ocpiWithCdr',
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop', 'stop.tagID','stop.tag.visualID', 'stop.reason',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
           'billingData.stop.invoiceNumber',
           'site.name', 'siteArea.name', 'company.name'
         ]
@@ -1472,7 +1474,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
           'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
-          'site.name', 'siteArea.name', 'company.name'
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'site.name', 'siteArea.name', 'company.name',
+          'car.licensePlate',
         ]
       },
       {
@@ -1490,6 +1494,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.stop.invoiceNumber',
           'tagID', 'stop.tagID', 'stop.reason',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
+
         ]
       },
       {
@@ -1504,9 +1511,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop', 'stop.tagID', 'stop.tag.visualID', 'stop.reason',
           'site.name', 'siteArea.name', 'company.name',
-          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'tag.description', 'stop.tagID', 'stop.tag.visualID'
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
+          'billingData.stop.invoiceNumber', 'ocpi', 'ocpiWithCdr',
         ]
       },
       {
@@ -1538,19 +1547,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID' ]
       },
       {
-        resource: Entity.TRANSACTION, action: Action.EXPORT_OCPI_CDR,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['AssignedSites']
-          }
-        },
-        attributes: [
-          'id', 'ocpiData'
-        ]
-      },
-      {
         resource: Entity.TRANSACTION, action: Action.GET_ADVENIR_CONSUMPTION,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -1570,16 +1566,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: {
             asserts: [],
             filters: ['OwnUser']
-          }
-        }
-      },
-      {
-        resource: Entity.TRANSACTION, action: Action.PUSH_TRANSACTION_CDR,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['OwnUser', 'LocalIssuer']
           }
         }
       },
@@ -1984,35 +1970,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID' ]
       },
       {
-        resource: Entity.TRANSACTION, action: Action.EXPORT_OCPI_CDR,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['AssignedSites']
-          }
-        },
-        attributes: [
-          'id', 'ocpiData'
-        ]
-      },
-      {
         resource: Entity.TRANSACTION, action: [Action.EXPORT, Action.UPDATE],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
             filters: ['AssignedSites']
-          }
-        }
-      },
-      {
-        resource: Entity.TRANSACTION, action: Action.PUSH_TRANSACTION_CDR,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['AssignedSites', 'LocalIssuer']
           }
         }
       },
@@ -2660,7 +2623,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: []
           }
         },
         attributes: [
@@ -3129,19 +3092,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID' ]
       },
       {
-        resource: Entity.TRANSACTION, action: Action.EXPORT_OCPI_CDR,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['AssignedSites']
-          }
-        },
-        attributes: [
-          'id', 'ocpiData'
-        ]
-      },
-      {
         resource: Entity.TRANSACTION, action: Action.GET_ADVENIR_CONSUMPTION,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -3161,16 +3111,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: {
             asserts: [],
             filters: ['SitesOwner']
-          }
-        }
-      },
-      {
-        resource: Entity.TRANSACTION, action: Action.PUSH_TRANSACTION_CDR,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['SitesOwner', 'LocalIssuer']
           }
         }
       },
