@@ -381,6 +381,46 @@ export default class TenantService {
     next();
   }
 
+  public static async handleUpdateTenantCoordinations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const filteredRequest = TenantValidatorRest.getInstance().validateTenantUpdateCoordinationsReq(req.body);
+    // Check auth
+    if (!await Authorizations.canUpdateTenant(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.TENANT,
+        module: MODULE_NAME, method: 'handleUpdateTenantCoordinations',
+        value: filteredRequest.id
+      });
+    }
+    // Get
+    const tenant = await TenantStorage.getTenant(filteredRequest.id);
+    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.id}' does not exist`,
+      MODULE_NAME, 'handleUpdateTenantCoordinations', req.user);
+    tenant.name = filteredRequest.name;
+    tenant.address = filteredRequest.address;
+    tenant.components = filteredRequest.components;
+    tenant.email = filteredRequest.email;
+    if (Utils.objectHasProperty(filteredRequest, 'logo')) {
+      tenant.logo = filteredRequest.logo;
+    }
+    // Update timestamp
+    tenant.lastChangedBy = { 'id': req.user.id };
+    tenant.lastChangedOn = new Date();
+    // Update Tenant
+    await TenantStorage.saveTenant(tenant, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
+    // Log
+    await Logging.logInfo({
+      tenantID: req.tenant.id, user: req.user,
+      module: MODULE_NAME, method: 'handleUpdateTenantCoordinations',
+      message: `Tenant '${filteredRequest.name}' coordinations has been updated successfully`,
+      action: action,
+      detailedMessages: { tenant }
+    });
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   private static async updateSettingsWithComponents(tenant: Tenant, req: Request): Promise<void> {
     // Create settings
     for (const componentName in tenant.components) {
