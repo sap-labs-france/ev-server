@@ -130,7 +130,6 @@ export default class MongoDBStorage {
     ]);
     // MeterValues
     await this.handleIndexesInCollection(tenantID, 'metervalues', [
-      { fields: { timestamp: 1 } },
       { fields: { transactionId: 1 } }
     ]);
     // Status Notifications

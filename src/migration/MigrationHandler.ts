@@ -140,20 +140,29 @@ export default class MigrationHandler {
 
   private static createMigrationTasks(): MigrationTask[] {
     const currentMigrationTasks: MigrationTask[] = [];
-    currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
-    currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
-    currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
-    currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
-    currentMigrationTasks.push(new AddUserIDToCarsTask());
-    currentMigrationTasks.push(new RepairInvoiceInconsistencies());
-    currentMigrationTasks.push(new RepairTransactionBillingData());
-    currentMigrationTasks.push(new SimplePricingMigrationTask());
-    currentMigrationTasks.push(new RepairTransactionPricedAtZero());
-    currentMigrationTasks.push(new UpdateEmailsToLowercaseTask());
-    currentMigrationTasks.push(new UserCleanUpTask());
-    currentMigrationTasks.push(new AlignEntitiesWithOrganizationIDsTask());
-    currentMigrationTasks.push(new RemoveLogoFromTenantTask());
-    currentMigrationTasks.push(new OCPIEndpointCleanUpTask());
+    //---------------------------------------------------------------------------------------
+    // ACHTUNG - Keeping old tasks is useless and dangerous.
+    // Why? Because a migration task should run only once!
+    //
+    // If we consider the tenant "redirect" feature, we may face the situation
+    // where a task is performed twice. This is may lead to unpredictable results.
+    //
+    // Best Practices: Comment out old tasks as soon as possible!
+    //---------------------------------------------------------------------------------------
+    // currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
+    // currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
+    // currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
+    // currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
+    // currentMigrationTasks.push(new AddUserIDToCarsTask());
+    // currentMigrationTasks.push(new RepairInvoiceInconsistencies());
+    // currentMigrationTasks.push(new RepairTransactionBillingData());
+    // currentMigrationTasks.push(new SimplePricingMigrationTask());
+    // currentMigrationTasks.push(new RepairTransactionPricedAtZero());
+    // currentMigrationTasks.push(new UpdateEmailsToLowercaseTask());
+    // currentMigrationTasks.push(new UserCleanUpTask());
+    // currentMigrationTasks.push(new AlignEntitiesWithOrganizationIDsTask());
+    // currentMigrationTasks.push(new RemoveLogoFromTenantTask());
+    // currentMigrationTasks.push(new OCPIEndpointCleanUpTask());
     return currentMigrationTasks;
   }
 }
