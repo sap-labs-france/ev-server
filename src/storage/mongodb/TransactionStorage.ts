@@ -521,14 +521,6 @@ export default class TransactionStorage {
     if (params.transactionsToStop) {
       TransactionStorage.pushChargingStationInTransactionAggregation(
         tenant, params, projectFields, aggregation);
-      aggregation.push(
-        {
-          '$addFields': {
-            'transactionIdEq': { '$eq': ['$connector.currentTransactionID', '$_id'] }
-          }
-        },
-        { '$match': { 'transactionIdEq': false } }
-      );
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -1527,8 +1519,10 @@ export default class TransactionStorage {
       asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
+    // Do we need the connector status
+    const withStatus = !!projectFields?.includes('status');
     // Add Connector and Status
-    if ((projectFields && projectFields.includes('status')) || params.transactionsToStop) {
+    if (withStatus || params.transactionsToStop) {
       aggregation.push({
         $addFields: {
           connector: {
@@ -1550,10 +1544,29 @@ export default class TransactionStorage {
           }
         }
       });
-      if (projectFields && projectFields.includes('status')) {
+      if (withStatus) {
+        // ok - let's add the connector status
         aggregation.push({
           $addFields: { status: '$connector.status' }
         });
+      }
+      if ( params.transactionsToStop ) {
+        aggregation.push(
+          {
+            // Make sure we have connectors (to avoid conflicts with a OcppBootNotification where connectors temporarily are cleared)
+            '$match': { 'connector': { $exists: true, $ne: null } }
+          },
+          {
+            // let's check whether the current transaction matches the one referenced by the connector
+            '$addFields': {
+              'transactionIsStillInProgress': { '$eq': ['$connector.currentTransactionID', '$_id'] }
+            }
+          },
+          {
+            // Select only the transactions which are not in progress anymore
+            '$match': { 'transactionIsStillInProgress': false }
+          }
+        );
       }
     }
     params.withChargingStation = false;
