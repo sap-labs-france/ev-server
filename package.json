@@ -127,7 +127,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "moment-duration-format": "^2.3.2",
-    "moment-timezone": "^0.5.34",
+    "moment-timezone": "^0.5.35",
     "mongo-sanitize": "^1.1.0",
     "mongo-uri-builder": "^4.0.0",
     "mongodb": "^4.8.1",
