@@ -10,6 +10,7 @@ import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import { Voltage } from '../../../types/ChargingStation';
+import fs from 'fs';
 
 const MODULE_NAME = 'EVDatabaseCarIntegration';
 
@@ -39,54 +40,96 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
       const chargeStandardTables: CarCatalogConverter[] = [];
       const chargeAlternativeTables: CarCatalogConverter[] = [];
       const chargeOptionTables: CarCatalogConverter[] = [];
-      for (const chargeStandard of Object.keys(data.Charge_Standard_Table)) {
-        const chargeStandardTable: CarCatalogConverter = {
-          type: chargeStandard,
-          evsePhaseVolt: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
-          evsePhaseAmp: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseAmp,
-          evsePhase: data.Charge_Standard_Table[chargeStandard].EVSE_Phase,
-          evsePhaseVoltCalculated: data.Charge_Standard_Table[chargeStandard].EVSE_Phase === 3 ? Voltage.VOLTAGE_400 : data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
-          chargePhaseVolt: data.Charge_Standard_Table[chargeStandard].Charge_PhaseVolt,
-          chargePhaseAmp: data.Charge_Standard_Table[chargeStandard].Charge_PhaseAmp,
-          chargePhase: data.Charge_Standard_Table[chargeStandard].Charge_Phase,
-          chargePower: data.Charge_Standard_Table[chargeStandard].Charge_Power,
-          chargeTime: data.Charge_Standard_Table[chargeStandard].Charge_Time,
-          chargeSpeed: data.Charge_Standard_Table[chargeStandard].Charge_Speed,
-        };
-        chargeStandardTables.push(chargeStandardTable);
+      let chargeStandardTableUniversal;
+      if (data.Charge_Standard_Table_UK) {
+        chargeStandardTableUniversal = data.Charge_Standard_Table_UK;
+      } else if (data.Charge_Standard_Table_NL) {
+        chargeStandardTableUniversal = data.Charge_Standard_Table_NL;
+      } else if (data.Charge_Standard_Table_DE) {
+        chargeStandardTableUniversal = data.Charge_Standard_Table_DE;
       }
-      if (data.Charge_Alternative_Table) {
-        for (const chargeAlternative of Object.keys(data.Charge_Alternative_Table)) {
-          const chargeAlternativeTable: CarCatalogConverter = {
-            type: chargeAlternative,
-            evsePhaseVolt: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseVolt,
-            evsePhaseAmp: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseAmp,
-            evsePhase: data.Charge_Standard_Table[chargeAlternative].EVSE_Phase,
-            chargePhaseVolt: data.Charge_Standard_Table[chargeAlternative].Charge_PhaseVolt,
-            chargePhaseAmp: data.Charge_Standard_Table[chargeAlternative].Charge_PhaseAmp,
-            chargePhase: data.Charge_Standard_Table[chargeAlternative].Charge_Phase,
-            chargePower: data.Charge_Standard_Table[chargeAlternative].Charge_Power,
-            chargeTime: data.Charge_Standard_Table[chargeAlternative].Charge_Time,
-            chargeSpeed: data.Charge_Standard_Table[chargeAlternative].Charge_Speed,
+      if (chargeStandardTableUniversal) {
+        for (const chargeStandard of Object.keys(chargeStandardTableUniversal)) {
+          const chargeStandardTable: CarCatalogConverter = {
+            type: chargeStandard,
+            evsePhaseVolt: chargeStandardTableUniversal[chargeStandard].EVSE_PhaseVolt,
+            evsePhaseAmp: chargeStandardTableUniversal[chargeStandard].EVSE_PhaseAmp,
+            evsePhase: chargeStandardTableUniversal[chargeStandard].EVSE_Phase,
+            evsePhaseVoltCalculated: chargeStandardTableUniversal[chargeStandard].EVSE_Phase === 3 ? Voltage.VOLTAGE_400 : chargeStandardTableUniversal[chargeStandard].EVSE_PhaseVolt,
+            chargePhaseVolt: chargeStandardTableUniversal[chargeStandard].Charge_PhaseVolt,
+            chargePhaseAmp: chargeStandardTableUniversal[chargeStandard].Charge_PhaseAmp,
+            chargePhase: chargeStandardTableUniversal[chargeStandard].Charge_Phase,
+            chargePower: chargeStandardTableUniversal[chargeStandard].Charge_Power,
+            chargeTime: chargeStandardTableUniversal[chargeStandard].Charge_Time,
+            chargeSpeed: chargeStandardTableUniversal[chargeStandard].Charge_Speed,
           };
-          chargeAlternativeTables.push(chargeAlternativeTable);
+          chargeStandardTables.push(chargeStandardTable);
         }
-      }
-      if (data.Charge_Option_Table) {
-        for (const chargeOption of Object.keys(data.Charge_Option_Table)) {
-          const chargeAlternativeTable: CarCatalogConverter = {
-            type: chargeOption,
-            evsePhaseVolt: data.Charge_Standard_Table[chargeOption].EVSE_PhaseVolt,
-            evsePhaseAmp: data.Charge_Standard_Table[chargeOption].EVSE_PhaseAmp,
-            evsePhase: data.Charge_Standard_Table[chargeOption].EVSE_Phase,
-            chargePhaseVolt: data.Charge_Standard_Table[chargeOption].Charge_PhaseVolt,
-            chargePhaseAmp: data.Charge_Standard_Table[chargeOption].Charge_PhaseAmp,
-            chargePhase: data.Charge_Standard_Table[chargeOption].Charge_Phase,
-            chargePower: data.Charge_Standard_Table[chargeOption].Charge_Power,
-            chargeTime: data.Charge_Standard_Table[chargeOption].Charge_Time,
-            chargeSpeed: data.Charge_Standard_Table[chargeOption].Charge_Speed,
-          };
-          chargeOptionTables.push(chargeAlternativeTable);
+        if (data.Charge_Alternative_Table) {
+          for (const chargeAlternative of Object.keys(data.Charge_Alternative_Table)) {
+            const chargeAlternativeTable: CarCatalogConverter = {
+              type: chargeAlternative,
+              evsePhaseVolt:chargeStandardTableUniversal[chargeAlternative].EVSE_PhaseVolt,
+              evsePhaseAmp: chargeStandardTableUniversal[chargeAlternative].EVSE_PhaseAmp,
+              evsePhase: chargeStandardTableUniversal[chargeAlternative].EVSE_Phase,
+              chargePhaseVolt: chargeStandardTableUniversal[chargeAlternative].Charge_PhaseVolt,
+              chargePhaseAmp: chargeStandardTableUniversal[chargeAlternative].Charge_PhaseAmp,
+              chargePhase: chargeStandardTableUniversal[chargeAlternative].Charge_Phase,
+              chargePower: chargeStandardTableUniversal[chargeAlternative].Charge_Power,
+              chargeTime: chargeStandardTableUniversal[chargeAlternative].Charge_Time,
+              chargeSpeed: chargeStandardTableUniversal[chargeAlternative].Charge_Speed,
+            };
+            chargeAlternativeTables.push(chargeAlternativeTable);
+          }
+        }
+        if (data.Charge_Option_Table_DE) {
+          for (const chargeOption of Object.keys(data.Charge_Option_Table_DE)) {
+            const chargeAlternativeTable: CarCatalogConverter = {
+              type: chargeOption,
+              evsePhaseVolt: chargeStandardTableUniversal[chargeOption].EVSE_PhaseVolt,
+              evsePhaseAmp: chargeStandardTableUniversal[chargeOption].EVSE_PhaseAmp,
+              evsePhase: chargeStandardTableUniversal[chargeOption].EVSE_Phase,
+              chargePhaseVolt: chargeStandardTableUniversal[chargeOption].Charge_PhaseVolt,
+              chargePhaseAmp: chargeStandardTableUniversal[chargeOption].Charge_PhaseAmp,
+              chargePhase: chargeStandardTableUniversal[chargeOption].Charge_Phase,
+              chargePower: chargeStandardTableUniversal[chargeOption].Charge_Power,
+              chargeTime: chargeStandardTableUniversal[chargeOption].Charge_Time,
+              chargeSpeed: chargeStandardTableUniversal[chargeOption].Charge_Speed,
+            };
+            chargeOptionTables.push(chargeAlternativeTable);
+          }
+        } else if (data.Charge_Option_Table_UK) {
+          for (const chargeOption of Object.keys(data.Charge_Option_Table_UK)) {
+            const chargeAlternativeTable: CarCatalogConverter = {
+              type: chargeOption,
+              evsePhaseVolt: chargeStandardTableUniversal[chargeOption].EVSE_PhaseVolt,
+              evsePhaseAmp: chargeStandardTableUniversal[chargeOption].EVSE_PhaseAmp,
+              evsePhase: chargeStandardTableUniversal[chargeOption].EVSE_Phase,
+              chargePhaseVolt: chargeStandardTableUniversal[chargeOption].Charge_PhaseVolt,
+              chargePhaseAmp: chargeStandardTableUniversal[chargeOption].Charge_PhaseAmp,
+              chargePhase: chargeStandardTableUniversal[chargeOption].Charge_Phase,
+              chargePower: chargeStandardTableUniversal[chargeOption].Charge_Power,
+              chargeTime: chargeStandardTableUniversal[chargeOption].Charge_Time,
+              chargeSpeed: chargeStandardTableUniversal[chargeOption].Charge_Speed,
+            };
+            chargeOptionTables.push(chargeAlternativeTable);
+          }
+        } else if (data.Charge_Option_Table_NL) {
+          for (const chargeOption of Object.keys(data.Charge_Option_Table_NL)) {
+            const chargeAlternativeTable: CarCatalogConverter = {
+              type: chargeOption,
+              evsePhaseVolt: chargeStandardTableUniversal[chargeOption].EVSE_PhaseVolt,
+              evsePhaseAmp: chargeStandardTableUniversal[chargeOption].EVSE_PhaseAmp,
+              evsePhase: chargeStandardTableUniversal[chargeOption].EVSE_Phase,
+              chargePhaseVolt: chargeStandardTableUniversal[chargeOption].Charge_PhaseVolt,
+              chargePhaseAmp: chargeStandardTableUniversal[chargeOption].Charge_PhaseAmp,
+              chargePhase: chargeStandardTableUniversal[chargeOption].Charge_Phase,
+              chargePower: chargeStandardTableUniversal[chargeOption].Charge_Power,
+              chargeTime: chargeStandardTableUniversal[chargeOption].Charge_Time,
+              chargeSpeed: chargeStandardTableUniversal[chargeOption].Charge_Speed,
+            };
+            chargeOptionTables.push(chargeAlternativeTable);
+          }
         }
       }
       const carCatalog: CarCatalog = {
