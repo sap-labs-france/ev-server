@@ -450,6 +450,10 @@ export default class SettingStorage {
         taxID: content.billing?.taxID,
         usersLastSynchronizedOn: content.billing?.usersLastSynchronizedOn,
       };
+      // Insert platformFeeTaxID only if the billing platform is enabled
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
+        billing.platformFeeTaxID = content.billing?.platformFeeTaxID;
+      }
       const billingSettings: BillingSettings = {
         id,
         identifier: TenantComponents.BILLING,

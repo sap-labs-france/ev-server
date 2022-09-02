@@ -908,6 +908,7 @@ export default class AuthorizationService {
           ChargePointStatus.AVAILABLE,
           ChargePointStatus.PREPARING,
           ChargePointStatus.RESERVED,
+          ChargePointStatus.FINISHING
         ].includes(connector.status)
         && !connector.currentTransactionID; // either no transaction OR transaction is ongoing by an external user
       // Unlock connector

@@ -53,6 +53,7 @@ export interface StartTransactionUserData {
   lastCarStateOfCharge: number;
   lastCarOdometer: number;
   lastDepartureTime: Date;
+  lastTargetStateOfCharge: number;
 }
 
 export interface SiteUser extends SiteUserAuthorizationActions {
