@@ -580,13 +580,17 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     } else {
       customCar.startCapacity = (this.setting.defaultInitialStateOfCharge ?? 25) / 100 * customCar.maxCapacity;
     }
+    // Adjust battery size, when coming close to 100% state of charge (otherwise car would be suspended, also when not fully charged in real life)
+    if ((customCar.chargedCapacity + customCar.startCapacity) > (0.9 * customCar.maxCapacity)) {
+      customCar.maxCapacity *= 1.1;
+    }
   }
 
   private handleTargetStateOfCharge(customCar: OptimizerCar, transaction: Transaction): void {
-    // Check if technical state of charge is available
+    // Check if manual target state of charge is available
     if (!Utils.isNullOrUndefined(transaction.targetStateOfCharge) && transaction.targetStateOfCharge > 0) {
       customCar.minLoadingState = (transaction.targetStateOfCharge / 100) * customCar.maxCapacity;
-    // Check if manual state of charge is available
+    // Handle if no state of charge is available
     } else {
       customCar.minLoadingState = (this.setting.defaultTargetStateOfCharge ?? 50) / 100 * customCar.maxCapacity;
     }
@@ -597,15 +601,19 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     if (!Utils.isNullOrUndefined(transaction.departureTime)) {
       optimizerCar.timestampDeparture = moment(transaction.departureTime).diff(moment(), 'seconds');
     } else if (currentType === CurrentType.DC) {
-      // Set static departure time
+      // Set static departure time for DC sessions
       optimizerCar.timestampDeparture = moment(transaction.timestamp).add(1, 'hours').diff(moment(), 'seconds');
     } else {
-      // If not available set current time plus 8 hours
+      // If not available set current time plus default hours
       optimizerCar.timestampDeparture = moment(transaction.timestamp).add(this.setting.defaultSessionTimeHours ?? 8, 'hours').diff(moment(), 'seconds');
     }
     // Check if timestamp departure is in the past
     if (optimizerCar.timestampDeparture <= 0) {
       optimizerCar.timestampDeparture = 28800;
+    }
+    // Check if timestamp departure is  too far in the future
+    if (optimizerCar.timestampDeparture >= 72000) {
+      optimizerCar.timestampDeparture = 72000;
     }
   }
 
