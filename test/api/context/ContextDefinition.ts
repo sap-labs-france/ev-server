@@ -182,6 +182,10 @@ export default class ContextDefinition {
             stickyLimitation: true,
             limitBufferDC: 20,
             limitBufferAC: 10,
+            usePrioritizationParameters: true,
+            defaultSessionTimeHours: 8,
+            defaultInitialStateOfCharge: 10,
+            defaultTargetStateOfCharge: 50,
           }
         }
       },
@@ -360,6 +364,10 @@ export default class ContextDefinition {
             stickyLimitation: true,
             limitBufferDC: 20,
             limitBufferAC: 10,
+            usePrioritizationParameters: true,
+            defaultSessionTimeHours: 8,
+            defaultInitialStateOfCharge: 10,
+            defaultTargetStateOfCharge: 50,
           }
         }
       },

@@ -320,6 +320,26 @@ const config = convict({
       doc: 'Limit buffer ac',
       format: Number,
       default: ''
+    },
+    usePrioritizationParameters: {
+      doc: 'Use prioritization parameters',
+      format: Boolean,
+      default: ''
+    },
+    defaultSessionTimeHours: {
+      doc: 'Default session time',
+      format: Number,
+      default: ''
+    },
+    defaultInitialStateOfCharge: {
+      doc: 'Default initial state of charge',
+      format: Number,
+      default: ''
+    },
+    defaultTargetStateOfCharge: {
+      doc: 'Default target state of charge',
+      format: Number,
+      default: ''
     }
   },
   assetConnectors: {

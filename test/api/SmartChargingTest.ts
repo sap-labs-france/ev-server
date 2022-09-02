@@ -36,6 +36,7 @@ chai.use(responseHelper);
 let smartChargingIntegration: SmartChargingIntegration<SmartChargingSetting>;
 let smartChargingIntegrationWithDifferentBufferValues: SmartChargingIntegration<SmartChargingSetting>;
 let smartChargingIntegrationWithoutStickyLimit: SmartChargingIntegration<SmartChargingSetting>;
+let smartChargingIntegrationWithoutPriorities: SmartChargingIntegration<SmartChargingSetting>;
 
 class TestData {
   public tenantContext: TenantContext;
@@ -68,9 +69,13 @@ class TestData {
     sapSmartChargingSettings.stickyLimitation = false;
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
     smartChargingIntegrationWithoutStickyLimit = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant());
+    sapSmartChargingSettings.usePrioritizationParameters = false;
+    await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
+    smartChargingIntegrationWithoutPriorities = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant());
     expect(smartChargingIntegration).to.not.be.null;
     expect(smartChargingIntegrationWithDifferentBufferValues).to.not.be.null;
     expect(smartChargingIntegrationWithoutStickyLimit).to.not.be.null;
+    expect(smartChargingIntegrationWithoutPriorities).to.not.be.null;
   }
 
   public static getSmartChargingSettings(): SapSmartChargingSetting {
@@ -80,7 +85,11 @@ class TestData {
       password: config.get('smartCharging.password'),
       stickyLimitation: config.get('smartCharging.stickyLimitation'),
       limitBufferAC: config.get('smartCharging.limitBufferAC'),
-      limitBufferDC: config.get('smartCharging.limitBufferDC')
+      limitBufferDC: config.get('smartCharging.limitBufferDC'),
+      usePrioritizationParameters: config.get('smartCharging.usePrioritizationParameters'),
+      defaultSessionTimeHours:config.get('smartCharging.defaultSessionTimeHours'),
+      defaultInitialStateOfCharge: config.get('smartCharging.defaultInitialStateOfCharge'),
+      defaultTargetStateOfCharge: config.get('smartCharging.defaultTargetStateOfCharge'),
     } as SapSmartChargingSetting;
   }
 
@@ -1001,12 +1010,10 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           {
             'startPeriod': 900,
             'limit': 654
-          },
-          {
-            'startPeriod': 1800,
-            'limit': 654
           }
         ]);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod[2].limit).to.be.greaterThan(250);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod[2].limit).to.be.lessThanOrEqual(654);
       });
 
       it(
@@ -1323,7 +1330,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
       await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector1Charging);
       await testData.chargingStationContext2.setConnectorStatus(chargingStationConnector1Charging);
-      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+      const chargingProfiles = await smartChargingIntegrationWithoutPriorities.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
       expect(chargingProfiles.length).to.be.eq(3);
       TestData.validateChargingProfile(chargingProfiles[0], transaction);
       expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
@@ -1349,7 +1356,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
     it('Check for three cars charging on different site areas if not enough power is available on root site area', async () => {
       testData.siteAreaContext.getSiteArea().maximumPower = 100000;
       await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
-      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+      const chargingProfiles = await smartChargingIntegrationWithoutPriorities.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
       expect(chargingProfiles.length).to.be.eq(3);
       TestData.validateChargingProfile(chargingProfiles[0], transaction);
       expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
@@ -1375,7 +1382,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
     it('Check for three cars charging on different site areas if not enough power is available on sub site area', async () => {
       testData.siteAreaContext1.getSiteArea().maximumPower = 30000;
       await testData.userService.siteAreaApi.update(testData.siteAreaContext1.getSiteArea());
-      const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+      const chargingProfiles = await smartChargingIntegrationWithoutPriorities.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
       expect(chargingProfiles.length).to.be.eq(3);
       TestData.validateChargingProfile(chargingProfiles[0], transaction);
       expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
@@ -1771,6 +1778,49 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         transaction.carStateOfCharge = 40;
         await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction);
         transaction1.stateOfCharge = 20;
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction1);
+
+        chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        TestData.validateChargingProfile(chargingProfiles[0], transaction);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+      }
+    );
+
+    it(
+      'Check if session with higher target SOC is prioritized',
+      async () => {
+        testData.siteAreaContext.getSiteArea().maximumPower = 22080;
+        testData.siteAreaContext.getSiteArea().smartCharging = true;
+        await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
+        let transactionStartResponse = await testData.chargingStationContext.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+        let transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
+        transaction = transactionResponse.data;
+
+        transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, new Date);
+        transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
+        transaction1 = transactionResponse.data;
+        chargingStationConnector1Charging.timestamp = new Date().toISOString();
+        chargingStationConnector2Charging.timestamp = new Date().toISOString();
+
+        transaction.targetStateOfCharge = 40;
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction);
+        transaction1.targetStateOfCharge = 20;
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction1);
+
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector1Charging);
+        await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
+
+        let chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        TestData.validateChargingProfile(chargingProfiles[0], transaction);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
+        TestData.validateChargingProfile(chargingProfiles[1], transaction1);
+        expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+
+        transaction.targetStateOfCharge = 20;
+        await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction);
+        transaction1.targetStateOfCharge = 40;
         await TransactionStorage.saveTransaction(testData.tenantContext.getTenant(), transaction1);
 
         chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());

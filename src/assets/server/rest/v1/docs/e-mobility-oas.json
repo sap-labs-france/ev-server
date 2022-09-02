@@ -16260,6 +16260,18 @@
                   },
                   "limitBufferAC": {
                     "type": "number"
+                  },
+                  "usePrioritizationParameters": {
+                    "type": "boolean"
+                  },
+                  "defaultSessionTimeHours": {
+                    "type": "number"
+                  },
+                  "defaultInitialStateOfCharge": {
+                    "type": "number"
+                  },
+                  "defaultTargetStateOfCharge": {
+                    "type": "number"
                   }
                 }
               },

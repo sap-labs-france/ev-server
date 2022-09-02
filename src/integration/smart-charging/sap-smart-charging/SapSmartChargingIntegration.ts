@@ -503,12 +503,11 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       canLoadPhase3: 1,
       id: fuseID,
       timestampArrival: 0, // Timestamp arrival is set to 0 in order to get profiles for the next 24h. The arrival time has no real influence to the algorithm of the optimizer
-      // TimestampDeparture is not useful for the time being, because if hard coded it lets the request fail after 17:15, can be taken in again, when the user is able to enter a departure time (with a check if it is after the current time)
-      // timestampDeparture: 62100, // Mock timestamp departure (17:15) - recommendation from Oliver
       carType: 'BEV',
       maxCapacity: 100 * 1000 / voltage, // Battery capacity in Amp.h (fixed to 100kW.h)
       minLoadingState: (100 * 1000 / voltage) * 0.5, // Battery level at the end of the charge in Amp.h set at 50% (fixed to 50kW.h)
-      startCapacity: transaction.currentTotalConsumptionWh / voltage, // Total consumption in Amp.h
+      startCapacity: 0,
+      chargedCapacity: transaction.currentTotalConsumptionWh / voltage, // Total consumption in Amp.h
       minCurrent: StaticLimitAmps.MIN_LIMIT_PER_PHASE * 3,
       minCurrentPerPhase: StaticLimitAmps.MIN_LIMIT_PER_PHASE,
       maxCurrent: maxConnectorAmpsPerPhase * 3, // Charge capability in Amps
@@ -518,23 +517,23 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       canUseVariablePower: true,
       name: `${transaction.chargeBoxID}~${transaction.connectorId}`,
     };
-    this.handleTimestampDeparture(car, transaction);
     return car;
   }
 
   private buildCar(fuseID: { value: number }, chargingStation: ChargingStation, transaction: Transaction, currentChargingProfiles: ChargingProfile[]): OptimizerCar {
     const voltage = Utils.getChargingStationVoltage(chargingStation);
     const customCar = this.buildSafeCar(fuseID.value, chargingStation, transaction);
+    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
     // Handle provided Car
     if (!Utils.isNullOrUndefined(transaction.car)) {
       // Setting limit from car only for 3 phased stations (AmpPerPhase-capability variates on single phased charging)
-      if (Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC &&
+      if (currentType === CurrentType.AC &&
         Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId) === 3) {
         if (transaction.car?.converter?.amperagePerPhase > 0) {
           customCar.maxCurrentPerPhase = transaction.car.converter.amperagePerPhase; // Charge capability in Amps per phase
           customCar.maxCurrent = transaction.car.converter.amperagePerPhase * 3; // Charge capability in Amps
         }
-      } else if (Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.DC) {
+      } else if (currentType === CurrentType.DC) {
         if (transaction?.carCatalog?.fastChargePowerMax > 0) {
           const maxDCCurrent = Utils.convertWattToAmp(
             chargingStation, null, transaction.connectorId, transaction.carCatalog.fastChargePowerMax * 1000); // Charge capability in Amps
@@ -550,7 +549,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     // Override
     this.overrideCarWithRuntimeData(chargingStation, transaction, customCar, currentChargingProfiles);
     // Check if CS is DC and calculate real consumption at the grid
-    if (Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.DC) {
+    if (currentType === CurrentType.DC) {
       const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
       if (chargePoint?.efficiency > 0) {
@@ -562,30 +561,47 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         customCar.maxCurrent = customCar.maxCurrentPerPhase * 3;
       }
     }
-    this.handleStateOfCharge(customCar, transaction);
+    if (this.setting.usePrioritizationParameters) {
+      this.handleCurrentStateOfCharge(customCar, transaction);
+      this.handleTargetStateOfCharge(customCar, transaction);
+      this.handleTimestampDeparture(customCar, transaction, currentType);
+    }
     return customCar;
   }
 
-  private handleStateOfCharge(customCar: OptimizerCar, transaction: Transaction): void {
+  private handleCurrentStateOfCharge(customCar: OptimizerCar, transaction: Transaction): void {
     // Check if technical state of charge is available
     if (!Utils.isNullOrUndefined(transaction.stateOfCharge) && transaction.stateOfCharge > 0) {
-      customCar.chargedCapacity = (transaction.stateOfCharge / 100) * customCar.maxCapacity;
+      customCar.startCapacity = (transaction.stateOfCharge / 100) * customCar.maxCapacity;
     // Check if manual state of charge is available
     } else if (!Utils.isNullOrUndefined(transaction.carStateOfCharge) && transaction.carStateOfCharge > 0) {
-      customCar.chargedCapacity = (customCar.chargedCapacity ?? 0) + (transaction.carStateOfCharge / 100) * customCar.maxCapacity;
+      customCar.startCapacity = (transaction.carStateOfCharge / 100) * customCar.maxCapacity;
     // Handle if no state of charge is available
     } else {
-      customCar.chargedCapacity = (customCar.chargedCapacity ?? 0) + 0.3 * customCar.maxCapacity;
+      customCar.startCapacity = (this.setting.defaultInitialStateOfCharge ?? 25) / 100 * customCar.maxCapacity;
     }
   }
 
-  private handleTimestampDeparture(optimizerCar: OptimizerCar, transaction: Transaction): void {
+  private handleTargetStateOfCharge(customCar: OptimizerCar, transaction: Transaction): void {
+    // Check if technical state of charge is available
+    if (!Utils.isNullOrUndefined(transaction.targetStateOfCharge) && transaction.targetStateOfCharge > 0) {
+      customCar.minLoadingState = (transaction.targetStateOfCharge / 100) * customCar.maxCapacity;
+    // Check if manual state of charge is available
+    } else {
+      customCar.minLoadingState = (this.setting.defaultTargetStateOfCharge ?? 50) / 100 * customCar.maxCapacity;
+    }
+  }
+
+  private handleTimestampDeparture(optimizerCar: OptimizerCar, transaction: Transaction, currentType: CurrentType): void {
     // Set departure time based on user input
     if (!Utils.isNullOrUndefined(transaction.departureTime)) {
       optimizerCar.timestampDeparture = moment(transaction.departureTime).diff(moment(), 'seconds');
+    } else if (currentType === CurrentType.DC) {
+      // Set static departure time
+      optimizerCar.timestampDeparture = moment(transaction.timestamp).add(1, 'hours').diff(moment(), 'seconds');
     } else {
       // If not available set current time plus 8 hours
-      optimizerCar.timestampDeparture = moment(transaction.timestamp).add(8, 'hours').diff(moment(), 'seconds');
+      optimizerCar.timestampDeparture = moment(transaction.timestamp).add(this.setting.defaultSessionTimeHours ?? 8, 'hours').diff(moment(), 'seconds');
     }
     // Check if timestamp departure is in the past
     if (optimizerCar.timestampDeparture <= 0) {
