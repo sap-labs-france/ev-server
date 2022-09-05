@@ -90,6 +90,9 @@ export interface TransactionDataResult extends DataResult<Transaction> {
   canListTags?: boolean;
   canExport?: boolean;
   canDelete?: boolean;
+  canSyncRefund?: boolean;
+  canRefund?: boolean;
+  canReadSetting?: boolean;
 }
 
 export interface TransactionInErrorDataResult extends DataResult<TransactionInError> {

@@ -521,10 +521,25 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name',
-          'user.name', 'user.firstName', 'user.email'
+          'car.licensePlate',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'chargeBoxID',
+          'company.name', 
+          'companyID',
+          'connectorId', 
+          'currentCumulatedPrice', 'currentInactivityStatus', 'currentInstantWatts', 'currentStateOfCharge', 'currentTotalConsumptionWh',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs',
+          'id',
+          'issuer', 'meterStart', 'price', 'priceUnit', 'roundedPrice',
+          'site.name',
+          'siteArea.name',
+          'siteAreaID',
+          'siteID',
+          'stateOfCharge', 'status',
+          'tag.description', 'tag.visualID',
+          'tagID',
+          'timestamp', 'timezone',
+          'user.email', 'user.firstName', 'user.name'
         ]
       },
       {
@@ -537,11 +552,27 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-          'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
-          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.stop.invoiceNumber',
-          'tagID', 'stop.tagID', 'stop.reason',
+          'billingData.stop.invoiceNumber',
+          'car.licensePlate',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'chargeBoxID',
+          'company.name',
+          'companyID',
+          'connectorId',
+          'id',
+          'issuer', 'meterStart',
+          'refundData.refundedAt', 'refundData.reportId', 'refundData.status',
+          'site.name',
+          'siteArea.name',
+          'siteAreaID',
+          'siteID',
+          'stateOfCharge',
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.price', 'stop.priceUnit', 'stop.reason',
+          'stop.roundedPrice', 'stop.stateOfCharge', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs',
+          'tagID',
+          'timestamp', 'timezone',
+          'user.email', 'user.firstName', 'user.name'
         ]
       },
       {
@@ -554,14 +585,27 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop', 'stop.reason', 'stop.tagID', 'stop.tag.visualID',
-          'user.name', 'user.firstName', 'user.email',
-          'site.name', 'siteArea.name',
+          'billingData.stop.invoiceNumber',
+          'car.licensePlate',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'chargeBoxID',
           'company.name',
-          'billingData.stop.invoiceNumber', 'ocpi', 'ocpiWithCdr',
-          'tagID', 'tag.visualID', 'tag.description',
+          'companyID',
+          'connectorId',
+          'id',
+          'issuer', 'meterStart', 'ocpi', 'ocpiWithCdr',
+          'site.name',
+          'siteArea.name',
+          'siteAreaID',
+          'siteID',
+          'stateOfCharge',
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit',
+          'stop.reason', 'stop.roundedPrice', 'stop.stateOfCharge', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp',
+          'stop.totalConsumptionWh', 'stop.totalDurationSecs', 'stop.totalInactivitySecs',
+          'tag.description', 'tag.visualID',
+          'tagID',
+          'timestamp', 'timezone',
+          'user.email', 'user.firstName', 'user.name'
         ]
       },
       {
@@ -619,7 +663,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.TRANSACTION, action:  Action.IN_ERROR,
+        resource: Entity.TRANSACTION, action: Action.IN_ERROR,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -628,11 +672,21 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
-          'meterStart', 'siteAreaID', 'siteID', 'companyID', 'errorCode', 'uniqueId', 'stop.totalConsumptionWh',
-          'stop.totalDurationSecs', 'stop.stateOfCharge','userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
-          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID',
-          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'carID',
+          'chargeBoxID',
+          'companyID',
+          'connectorId',
+          'errorCode',
+          'id',
+          'issuer', 'meterStart', 'siteAreaID', 'siteID', 'stateOfCharge',
+          'stop.stateOfCharge', 'stop.tagID', 'stop.totalConsumptionWh', 'stop.totalDurationSecs', 'stop.user.email',
+          'stop.user.firstName', 'stop.user.id', 'stop.user.name', 'stop.userID',
+          'tagID',
+          'timestamp', 'timezone',
+          'uniqueId',
+          'user.email', 'user.firstName', 'user.id', 'user.name', 'userID'
         ]
       },
       { resource: Entity.TRANSACTION,
@@ -1484,26 +1538,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.TRANSACTION, action: Action.GET_TO_REFUND_TRANSACTION,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['OwnUser']
-          }
-        },
-        attributes: [
-          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-          'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
-          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.stop.invoiceNumber',
-          'tagID', 'stop.tagID', 'stop.reason',
-          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-          'car.licensePlate',
-
-        ]
-      },
-      {
         resource: Entity.TRANSACTION, action: Action.GET_COMPLETED_TRANSACTION,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -1908,24 +1942,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name'
-        ]
-      },
-      {
-        resource: Entity.TRANSACTION, action: Action.GET_TO_REFUND_TRANSACTION,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['AssignedSites']
-          }
-        },
-        attributes: [
-          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-          'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
-          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.stop.invoiceNumber',
-          'tagID', 'stop.tagID', 'stop.reason',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name',
         ]
       },
       {
@@ -2557,24 +2574,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
           'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name',
+          'user.name', 'user.firstName', 'user.email',
+          'car.licensePlate',
           'user.name', 'user.firstName', 'user.email'
-        ]
-      },
-      {
-        resource: Entity.TRANSACTION, action: Action.GET_TO_REFUND_TRANSACTION,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['SiteAdminUsers']
-          }
-        },
-        attributes: [
-          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-          'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
-          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.stop.invoiceNumber',
-          'tagID', 'stop.tagID', 'stop.reason',
         ]
       },
       {
@@ -2592,6 +2594,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
           'site.name', 'siteArea.name', 'company.name',
           'user.name', 'user.firstName', 'user.email',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
           'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'tag.description', 'stop.tagID', 'stop.tag.visualID'
         ]
       },
@@ -3033,7 +3037,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
           'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name',
-          'user.name', 'user.firstName', 'user.email'
+          'user.name', 'user.firstName', 'user.email',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
         ]
       },
       {
@@ -3042,7 +3048,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: ['SitesOwner']
           }
         },
         attributes: [
@@ -3051,6 +3057,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.stop.invoiceNumber',
           'tagID', 'stop.tagID', 'stop.reason',
+          'user.name', 'user.firstName', 'user.email',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
         ]
       },
       {
@@ -3068,6 +3077,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
           'site.name', 'siteArea.name', 'company.name',
           'user.name', 'user.firstName', 'user.email',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
           'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'tag.description', 'stop.tagID', 'stop.tag.visualID'
         ]
       },

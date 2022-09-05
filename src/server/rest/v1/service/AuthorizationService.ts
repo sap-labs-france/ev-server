@@ -1168,6 +1168,10 @@ export default class AuthorizationService {
     transactions.canListTags = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.LIST, authorizationFilter);
     transactions.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.EXPORT, authorizationFilter);
     transactions.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.DELETE, authorizationFilter);
+    transactions.canSyncRefund = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter);
+    transactions.canRefund = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.REFUND_TRANSACTION, authorizationFilter);
+    transactions.canReadSetting = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SETTING, Action.READ, authorizationFilter);
+
     // Add Authorizations
     for (const transaction of transactions.result) {
       await AuthorizationService.addTransactionAuthorizations(tenant, userToken, transaction, authorizationFilter);
@@ -1203,9 +1207,7 @@ export default class AuthorizationService {
     transaction.canRefundTransaction = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.TRANSACTION, Action.REFUND_TRANSACTION,
       authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction)
-      && transaction.refundData
-      && !!transaction.refundData.refundId
-      && transaction.refundData.status !== RefundStatus.CANCELLED;
+      && !(transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== RefundStatus.CANCELLED);
     // Additional check for PushTransactionCDR
     transaction.canPushTransactionCDR = transaction.ocpi
       && !transaction.ocpiWithCdr
@@ -1218,15 +1220,13 @@ export default class AuthorizationService {
       && await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.TRANSACTION, Action.EXPORT_OCPI_CDR,
         authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
-
-
-    // Check and remove sensible data
+    // Set sensible data
     const sensibleUserData = { UserData: true, TagData: true, CarCatalogData: true, CarData: true, BillingData: true };
     // Transaction sensible data
     await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter,
       { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction);
-    // Transaction stop sensible data
+    // Transaction.stop sensible data
     await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter,
       { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction.stop);
