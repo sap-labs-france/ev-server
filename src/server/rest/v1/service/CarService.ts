@@ -9,6 +9,7 @@ import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import { Car } from '../../../../types/Car';
+import CarFactory from '../../../../integration/car/CarFactory';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CarValidatorRest from '../validator/CarValidatorRest';
 import Constants from '../../../../utils/Constants';
@@ -73,6 +74,8 @@ export default class CarService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
     }
+    const carDatabaseImpl = CarFactory.getCarImpl();
+    await carDatabaseImpl.synchronizeCarCatalogs();
     // Filter
     const filteredRequest = CarValidatorRest.getInstance().validateCarCatalogGetReq(req.query);
     // Check and get Car Catalog

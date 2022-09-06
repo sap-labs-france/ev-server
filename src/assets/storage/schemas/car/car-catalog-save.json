@@ -16,13 +16,58 @@
       "type": "string"
     },
     "availabilityStatus": {
-      "type": "string"
+      "type": "number"
+    },
+    "priceGrantUmweltbonusDE": {
+      "type": "number"
+    },
+    "priceFromNLFiscal": {
+      "type": "number"
+    },
+    "priceGrantSEPPNL": {
+      "type": "number"
+    },
+    "priceFromUKP11D": {
+      "type": "number"
+    },
+    "drivetrainPropulsionEstimate": {
+      "type": "boolean"
+    },
+    "efficiencyWLTPTEH": {
+      "type": "number"
+    },
+    "drivetrainPowerEstimate": {
+      "type": "boolean"
+    },
+    "drivetrainTorqueEstimate": {
+      "type": "boolean"
+    },
+    "performanceAccelerationEstimate": {
+      "type": "boolean"
+    },
+    "performanceTopspeedEstimate": {
+      "type": "boolean"
     },
     "availabilityDateFrom": {
       "type": "string"
     },
     "availabilityDateTo": {
       "type": "string"
+    },
+    "rangeWLTPTEH": {
+      "type": "number"
+    },
+    "efficiencyEconomyWLTP": {
+      "type": "number"
+    },
+    "efficiencyConsumptionWLTP": {
+      "type": "number"
+    },
+    "efficiencyEconomyWLTPV": {
+      "type": "number"
+    },
+    "efficiencyConsumptionWLTPV": {
+      "type": "number"
     },
     "priceFromDE": {
       "type": "number"
@@ -31,6 +76,180 @@
       "type": "boolean"
     },
     "priceFromNL": {
+      "type": "number"
+    },
+    "efficiencyEconomyWLTPTEH": {
+      "type": "number"
+    },
+    "efficiencyConsumptionWLTPTEH": {
+      "type": "number"
+    },
+    "efficiencyWLTPTEHFuelEq": {
+      "type": "number"
+    },
+    "efficiencyWLTPTEHV": {
+      "type": "number"
+    },
+    "efficiencyEconomyWLTPTEHV": {
+      "type": "number"
+    },
+    "efficiencyConsumptionWLTPTEHV": {
+      "type": "number"
+    },
+    "efficiencyWLTPTEHFuelEqV": {
+      "type": "number"
+    },
+    "efficiencyWLTPTEHCO2": {
+      "type": "number"
+    },
+    "efficiencyEconomyNEDC": {
+      "type": "number"
+    },
+    "efficiencyConsumptionNEDC": {
+      "type": "number"
+    },
+    "efficiencyEconomyNEDCV": {
+      "type": "number"
+    },
+    "efficiencyConsumptionNEDCV": {
+      "type": "number"
+    },
+    "efficiencyEconomyReal": {
+      "type": "number"
+    },
+    "efficiencyConsumptionReal": {
+      "type": "number"
+    },
+    "efficiencyEconomyRealWHwy": {
+      "type": "number"
+    },
+    "efficiencyEconomyRealWCmb": {
+      "type": "number"
+    },
+    "efficiencyEconomyRealWCty": {
+      "type": "number"
+    },
+    "efficiencyEconomyRealBHwy": {
+      "type": "number"
+    },
+    "efficiencyEconomyRealBCmb": {
+      "type": "number"
+    },
+    "efficiencyEconomyRealBCty": {
+      "type": "number"
+    },
+    "efficiencyConsumptionRealWCmb": {
+      "type": "number"
+    },
+    "efficiencyConsumptionReal_WCty": {
+      "type": "number"
+    },
+    "efficiencyConsumptionRealBHwy": {
+      "type": "number"
+    },
+    "efficiencyConsumptionRealBCmb": {
+      "type": "number"
+    },
+    "efficiencyConsumptionRealWHwy": {
+      "type": "number"
+    },
+    "chargePlug2Location": {
+      "type": "string"
+    },
+    "chargePlug2OptionalDE": {
+      "type": "boolean"
+    },
+    "chargePlug2OptionalNL": {
+      "type": "boolean"
+    },
+    "chargePlug2OptionalUK": {
+      "type": "boolean"
+    },
+    "efficiencyConsumptionRealBCty": {
+      "type": "number"
+    },
+    "chargeStandardPowerDE": {
+      "type": "number"
+    },
+    "chargeStandardPhaseDE": {
+      "type": "number"
+    },
+    "chargeStandardPhaseAmpDE": {
+      "type": "number"
+    },
+    "chargeStandardChargeSpeedDE": {
+      "type": "number"
+    },
+    "chargeStandardChargeTimeDE": {
+      "type": "number"
+    },
+    "chargeStandardPowerNL": {
+      "type": "number"
+    },
+    "chargeStandardChargeTimeNL": {
+      "type": "number"
+    },
+    "chargeStandardChargeSpeedNL": {
+      "type": "number"
+    },
+    "chargeStandardPowerUK": {
+      "type": "number"
+    },
+    "chargeStandardPhaseUK": {
+      "type": "number"
+    },
+    "chargeStandardPhaseAmpUK": {
+      "type": "number"
+    },
+    "chargeStandarChargeTimeUK": {
+      "type": "number"
+    },
+    "chargeStandardChargeSpeedUK": {
+      "type": "number"
+    },
+    "chargeOptionPowerDE": {
+      "type": "number"
+    },
+    "chargeOptionPhaseDE": {
+      "type": "number"
+    },
+    "chargeOptionPhaseAmpDE": {
+      "type": "number"
+    },
+    "chargeOptionChargeTimeDE": {
+      "type": "number"
+    },
+    "chargeOptionChargeSpeedDE": {
+      "type": "number"
+    },
+    "chargeOptionPowerNL": {
+      "type": "number"
+    },
+    "chargeOptionPhaseAmpNL": {
+      "type": "number"
+    },
+    "chargeOptionPhaseNL": {
+      "type": "number"
+    },
+    "chargeOptionChargeTimeNL": {
+      "type": "number"
+    },
+    "chargeOptionChargeSpeedNL": {
+      "type": "number"
+    },
+    "chargeOptionPowerUK": {
+      "type": "number"
+    },
+    "chargeOptionPhaseUK": {
+      "type": "number"
+    },
+    "chargeOptionPhaseAmpUK": {
+      "type": "number"
+    },
+    "chargeOptionChargeTimeUK": {
+      "type": "number"
+    },
+    "chargeOptionChargeSpeedUK": {
       "type": "number"
     },
     "priceFromNLEstimate": {
@@ -207,9 +426,6 @@
     "chargeAlternativeChargeSpeed": {
       "type": "number"
     },
-    "chargeAlternativeTables": {
-      "$ref": "#/definitions/chargeTables"
-    },
     "chargeOptionPower": {
       "type": "number"
     },
@@ -255,6 +471,9 @@
     "fastChargeEstimate": {
       "type": "boolean"
     },
+    "fastChargeTables": {
+      "$ref": "#/definitions/fastChargeTables"
+    },
     "batteryCapacityUseable": {
       "type": "number"
     },
@@ -264,8 +483,53 @@
     "batteryCapacityEstimate": {
       "type": "string"
     },
+    "batteryTMS": {
+      "type": "string"
+    },
+    "batteryChemistry": {
+      "type": "string"
+    },
+    "batteryManufacturer": {
+      "type": "string"
+    },
+    "batteryCells": {
+      "type": "string"
+    },
+    "batteryModules": {
+      "type": "number"
+    },
+    "batteryWeight": {
+      "type": "number"
+    },
+    "BatteryWarrantyPeriod": {
+      "type": "number"
+    },
+    "batteryWarrantyMileage": {
+      "type": "number"
+    },
+    "dimsWidthMirrors": {
+      "type": "number"
+    },
     "dimsLength": {
       "type": "number"
+    },
+    "dimsTowWeightVerticalLoad": {
+      "type": "number"
+    },
+    "dimsWeightEstimate": {
+      "type": "boolean"
+    },
+    "dimsLWHEstimate": {
+      "type": "boolean"
+    },
+    "dimsWheelbaseEstimate": {
+      "type": "boolean"
+    },
+    "dimsTowWeightEstimate": {
+      "type": "boolean"
+    },
+    "dimsTowHitch": {
+      "type": "boolean"
     },
     "dimsWidth": {
       "type": "number"
@@ -276,6 +540,9 @@
     "dimsWheelbase": {
       "type": "number"
     },
+    "dimsBootspaceFrunk": {
+      "type": "number"
+    },
     "dimsWeight": {
       "type": "number"
     },
@@ -283,6 +550,12 @@
       "type": "number"
     },
     "dimsBootspaceMax": {
+      "type": "number"
+    },
+    "dimsWeightMaxPayload": {
+      "type": "number"
+    },
+    "dimsWeightGVWR": {
       "type": "number"
     },
     "dimsTowWeightUnbraked": {
@@ -299,6 +572,54 @@
     },
     "miscSegment": {
       "type": "string"
+    },
+    "miscVehiclePlatform": {
+      "type": "string"
+    },
+    "miscVehiclePlatformDedicated": {
+      "type": "boolean"
+    },
+    "miscOEMLinkoutURLDE": {
+      "type": "string"
+    },
+    "miscOEMLinkoutURLNL": {
+      "type": "string"
+    },
+    "miscOEMLinkoutURLUK": {
+      "type": "string"
+    },
+    "BIKNLYear": {
+      "type": "string"
+    },
+    "BIKNLRate": {
+      "type": "string"
+    },
+    "BIKNLCap": {
+      "type": "number"
+    },
+    "BIKNLNetLow": {
+      "type": "number"
+    },
+    "BIKNLNetHigh": {
+      "type": "number"
+    },
+    "BIKUKYear": {
+      "type": "string"
+    },
+    "BIKUKRate": {
+      "type": "number"
+    },
+    "BIKUKAmount": {
+      "type": "number"
+    },
+    "BIKUKNetLow": {
+      "type": "number"
+    },
+    "BIKUKNetMid": {
+      "type": "number"
+    },
+    "BIKUKNetHigh": {
+      "type": "number"
     },
     "miscSeats": {
       "type": "number"
@@ -386,6 +707,9 @@
           "evsePhase": {
             "type": "number"
           },
+          "evsePower": {
+            "type": "number"
+          },
           "evsePhaseVoltCalculated": {
             "type": "number"
           },
@@ -406,6 +730,35 @@
           },
           "chargeSpeed": {
             "type": "number"
+          }
+        }
+      }
+    },
+    "fastChargeTables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "fastChargePowerMax": {
+            "type": "number"
+          },
+          "fastChargePowerAvg": {
+            "type": "number"
+          },
+          "fastChargeChargeTime": {
+            "type": "number"
+          },
+          "fastChargeChargeSpeed": {
+            "type": "number"
+          },
+          "fastChargeLimited": {
+            "type": "boolean"
+          },
+          "fastChargeAvgLimited": {
+            "type": "boolean"
           }
         }
       }
