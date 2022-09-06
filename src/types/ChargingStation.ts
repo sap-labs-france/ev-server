@@ -1,5 +1,5 @@
+import { AuthorizationActions, ChargingStationAuthorizationActions, ConnectorAuthorizationActions } from './Authorization';
 import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
-import { ChargingStationAuthorizationActions, ConnectorAuthorizationActions } from './Authorization';
 
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
@@ -223,41 +223,43 @@ export enum Voltage {
   VOLTAGE_110 = 110,
 }
 
-export interface ChargingStationTemplate {
-  id?: string;
-  qa?: boolean;
-  hash?: string;
-  hashTechnical?: string;
-  hashCapabilities?: string;
-  hashOcppStandard?: string;
-  hashOcppVendor?: string;
-  chargePointVendor: string;
-  extraFilters: {
-    chargeBoxSerialNumber?: string;
-  };
-  technical: {
-    masterSlave: boolean;
-    maximumPower: number;
-    voltage?: Voltage;
-    powerLimitUnit: ChargingRateUnitType;
-    chargePoints?: ChargePoint[];
-    connectors: ChargingStationTemplateConnector[];
-  };
-  capabilities: {
-    supportedFirmwareVersions: string[];
-    supportedOcppVersions: string[];
-    capabilities: ChargingStationCapabilities;
-  }[];
-  ocppStandardParameters: {
-    supportedFirmwareVersions: string[];
-    supportedOcppVersions: string[];
-    parameters: Record<string, string>;
-  }[];
-  ocppVendorParameters: {
-    supportedFirmwareVersions: string[];
-    supportedOcppVersions: string[];
-    parameters: Record<string, string>;
-  }[];
+export interface ChargingStationTemplate extends CreatedUpdatedProps, AuthorizationActions {
+  id: string;
+  template: {
+    hash?: string;
+    hashTechnical?: string;
+    hashCapabilities?: string;
+    hashOcppStandard?: string;
+    hashOcppVendor?: string;
+    chargePointVendor: string;
+    extraFilters: {
+      chargePointModel: string;
+      chargeBoxSerialNumber?: string;
+    };
+    technical: {
+      masterSlave?: boolean;
+      maximumPower: number;
+      voltage: Voltage;
+      powerLimitUnit: ChargingRateUnitType;
+      chargePoints: ChargePoint[];
+      connectors: ChargingStationTemplateConnector[];
+    };
+    capabilities: {
+      supportedFirmwareVersions: string[];
+      supportedOcppVersions: string[];
+      capabilities: ChargingStationCapabilities;
+    }[];
+    ocppStandardParameters: {
+      supportedFirmwareVersions: string[];
+      supportedOcppVersions: string[];
+      parameters: Record<string, string>;
+    }[];
+    ocppVendorParameters: {
+      supportedFirmwareVersions: string[];
+      supportedOcppVersions: string[];
+      parameters: Record<string, string>;
+    }[];
+  }
 }
 
 export interface ChargingStationTemplateConnector {

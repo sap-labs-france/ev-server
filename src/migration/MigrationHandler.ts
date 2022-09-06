@@ -1,5 +1,6 @@
 import AddCompanyIDToChargingStationsTask from './tasks/AddCompanyIDToChargingStationsTask';
 import AddCompanyIDToTransactionsTask from './tasks/AddCompanyIDToTransactionsTask';
+import AddLevelTemplateToChargingStationTemplateTask from './tasks/AddLevelTemplateToChargingStationTemplateTask';
 import AddUserIDToCarsTask from './tasks/AddUserIDToCarsTask';
 import AlignEntitiesWithOrganizationIDsTask from './tasks/AlignEntitiesWithOrganizationIDsTask';
 import Constants from '../utils/Constants';
@@ -140,7 +141,7 @@ export default class MigrationHandler {
 
   private static createMigrationTasks(): MigrationTask[] {
     const currentMigrationTasks: MigrationTask[] = [];
-    //---------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------
     // ACHTUNG - Keeping old tasks is useless and dangerous.
     // Why? Because a migration task should run only once!
     //
@@ -148,7 +149,7 @@ export default class MigrationHandler {
     // where a task is performed twice. This is may lead to unpredictable results.
     //
     // Best Practices: Comment out old tasks as soon as possible!
-    //---------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------
     // currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
     // currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
     // currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
@@ -163,6 +164,7 @@ export default class MigrationHandler {
     // currentMigrationTasks.push(new AlignEntitiesWithOrganizationIDsTask());
     // currentMigrationTasks.push(new RemoveLogoFromTenantTask());
     // currentMigrationTasks.push(new OCPIEndpointCleanUpTask());
+    // currentMigrationTasks.push(new AddLevelTemplateToChargingStationTemplateTask());
     return currentMigrationTasks;
   }
 }

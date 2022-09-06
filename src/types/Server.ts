@@ -60,6 +60,12 @@ export enum ServerAction {
   REGISTRATION_TOKEN_REVOKE = 'RegistrationTokenRevoke',
   REGISTRATION_TOKEN_UPDATE = 'RegistrationTokenUpdate',
 
+  CHARGING_STATION_TEMPLATE = 'ChargingStationTemplate',
+  CHARGING_STATION_TEMPLATES = 'ChargingStationTemplates',
+  CHARGING_STATION_TEMPLATE_DELETE = 'ChargingStationTemplateDelete',
+  CHARGING_STATION_TEMPLATE_UPDATE = 'ChargingStationTemplateUpdate',
+  CHARGING_STATION_TEMPLATE_CREATE = 'ChargingStationTemplateCreate',
+
   BOOT_NOTIFICATIONS = 'BootNotifications',
   STATUS_NOTIFICATIONS = 'StatusNotifications',
 
@@ -500,6 +506,9 @@ export enum RESTServerRoute {
   REST_END_USER_LICENSE_AGREEMENT_HTML = 'eula/html',
   REST_MAIL_CHECK = 'mail/check',
   REST_MAIL_RESEND = 'mail/resend',
+
+  REST_CHARGING_STATION_TEMPLATES = 'charging-station-templates',
+  REST_CHARGING_STATION_TEMPLATE = 'charging-station-templates/:id',
 
   REST_CHARGING_STATIONS = 'charging-stations',
   REST_CHARGING_STATION = 'charging-stations/:id',

@@ -1,6 +1,23 @@
 {
-  "$id": "chargingstation-template",
-  "definitions": {
+  "$id": "chargingstation-template-save",
+  "title": "Validate the Charging Station's template",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "createdBy": {
+      "$ref": "common#/definitions/createdBy"
+    },
+    "createdOn": {
+      "$ref": "common#/definitions/createdOn"
+    },
+    "lastChangedBy": {
+      "$ref": "common#/definitions/lastChangedBy"
+    },
+    "lastChangedOn": {
+      "$ref": "common#/definitions/lastChangedOn"
+    },
     "template": {
       "type": "object",
       "properties": {
@@ -19,6 +36,21 @@
           },
           "additionalProperties": false
         },
+        "hash": {
+          "type": "string"
+        },
+        "hashTechnical": {
+          "type": "string"
+        },
+        "hashCapabilities": {
+          "type": "string"
+        },
+        "hashOcppStandard": {
+          "type": "string"
+        },
+        "hashOcppVendor": {
+          "type": "string"
+        },
         "technical": {
           "type": "object",
           "properties": {
@@ -29,7 +61,11 @@
               "type": "integer"
             },
             "voltage": {
-              "type": "integer"
+              "type": "integer",
+              "enum": [
+                110,
+                230
+              ]
             },
             "powerLimitUnit": {
               "type": "string"
@@ -447,8 +483,16 @@
       "required": [
         "chargePointVendor",
         "technical",
-        "capabilities"
+        "capabilities",
+        "hash",
+        "hashTechnical",
+        "hashCapabilities",
+        "hashOcppStandard",
+        "hashOcppVendor"
       ]
     }
-  }
+  },
+  "required": [
+    "id"
+  ]
 }
