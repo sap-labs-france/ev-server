@@ -74,8 +74,6 @@ export default class CarService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
     }
-    const carDatabaseImpl = CarFactory.getCarImpl();
-    await carDatabaseImpl.synchronizeCarCatalogs();
     // Filter
     const filteredRequest = CarValidatorRest.getInstance().validateCarCatalogGetReq(req.query);
     // Check and get Car Catalog

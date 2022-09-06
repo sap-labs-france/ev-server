@@ -38,60 +38,32 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
     for (const data of response.data) {
       console.log(data.Vehicle_ID);
       const chargeStandardTables: CarCatalogConverter[] = [];
-      const chargeAlternativeTables: CarCatalogConverter[] = [];
       const chargeOptionTables: CarCatalogConverter[] = [];
       const fastChargeTables: CarCatalogFastCharge[] = [];
       const chargeStandardTableUniversal = { ...data.Charge_Standard_Table_UK, ...data.Charge_Standard_Table_NL, ...data.Charge_Standard_Table_DE };
       const chargeOptionTableUniversal = { ...data.Charge_Option_Table_UK, ...data.Charge_Option_Table_NL, ...data.Charge_Option_Table_DE };
       if (chargeStandardTableUniversal) {
         for (const chargeStandard of Object.keys(chargeStandardTableUniversal)) {
-          const chargeStandardTable: CarCatalogConverter = {
-            type: chargeStandard,
-            evsePhaseVolt: chargeStandardTableUniversal[chargeStandard].EVSE_PhaseVolt,
-            evsePhaseAmp: chargeStandardTableUniversal[chargeStandard].EVSE_PhaseAmp,
-            evsePhase: chargeStandardTableUniversal[chargeStandard].EVSE_Phase,
-            evsePower: chargeStandardTableUniversal[chargeStandard].EVSE_Power,
-            evsePhaseVoltCalculated: chargeStandardTableUniversal[chargeStandard].EVSE_Phase === 3 ? Voltage.VOLTAGE_400 : chargeStandardTableUniversal[chargeStandard].EVSE_PhaseVolt,
-            chargePhaseVolt: chargeStandardTableUniversal[chargeStandard].Charge_PhaseVolt,
-            chargePhaseAmp: chargeStandardTableUniversal[chargeStandard].Charge_PhaseAmp,
-            chargePhase: chargeStandardTableUniversal[chargeStandard].Charge_Phase,
-            chargePower: chargeStandardTableUniversal[chargeStandard].Charge_Power,
-            chargeTime: chargeStandardTableUniversal[chargeStandard].Charge_Time,
-            chargeSpeed: chargeStandardTableUniversal[chargeStandard].Charge_Speed,
+          chargeStandardTables.push(this.fillCarCatalogConverter(chargeStandardTableUniversal, chargeStandard));
+        }
+        if (chargeOptionTableUniversal) {
+          for (const chargeOption of Object.keys(chargeOptionTableUniversal)) {
+            chargeOptionTables.push(this.fillCarCatalogConverter(chargeOptionTableUniversal, chargeOption));
+          }
+        }
+      }
+      if (data.Fastcharge_Table) {
+        for (const fastCharge of Object.keys(data.Fastcharge_Table)) {
+          const fastChargeTable: CarCatalogFastCharge = {
+            type: fastCharge,
+            fastChargePowerMax: data.Fastcharge_Table[fastCharge].Fastcharge_Power_Max,
+            fastChargePowerAvg: data.Fastcharge_Table[fastCharge].Fastcharge_Power_Avg,
+            fastChargeChargeTime: data.Fastcharge_Table[fastCharge].Fastcharge_ChargeTime,
+            fastChargeChargeSpeed: data.Fastcharge_Table[fastCharge].Fastcharge_ChargeSpeed,
+            fastChargeLimited: data.Fastcharge_Table[fastCharge].Fastcharge_Limited,
+            fastChargeAvgLimited: data.Fastcharge_Table[fastCharge].Fastcharge_Avg_Limited,
           };
-          chargeStandardTables.push(chargeStandardTable);
-        }
-        if (data.chargeOptionTableUniversal) {
-          for (const chargeOption of Object.keys(data.chargeOptionTableUniversal)) {
-            const chargeAlternativeTable: CarCatalogConverter = {
-              type: chargeOption,
-              evsePhaseVolt: chargeStandardTableUniversal[chargeOption].EVSE_PhaseVolt,
-              evsePhaseAmp: chargeStandardTableUniversal[chargeOption].EVSE_PhaseAmp,
-              evsePhase: chargeStandardTableUniversal[chargeOption].EVSE_Phase,
-              evsePower: chargeStandardTableUniversal[chargeOption].EVSE_Power,
-              chargePhaseVolt: chargeStandardTableUniversal[chargeOption].Charge_PhaseVolt,
-              chargePhaseAmp: chargeStandardTableUniversal[chargeOption].Charge_PhaseAmp,
-              chargePhase: chargeStandardTableUniversal[chargeOption].Charge_Phase,
-              chargePower: chargeStandardTableUniversal[chargeOption].Charge_Power,
-              chargeTime: chargeStandardTableUniversal[chargeOption].Charge_Time,
-              chargeSpeed: chargeStandardTableUniversal[chargeOption].Charge_Speed,
-            };
-            chargeOptionTables.push(chargeAlternativeTable);
-          }
-        }
-        if (data.Fastcharge_Table) {
-          for (const fastCharge of Object.keys(data.Fastcharge_Table)) {
-            const fastChargeTable: CarCatalogFastCharge = {
-              type: fastCharge,
-              fastChargePowerMax: data.Fastcharge_Table[fastCharge].Fastcharge_Power_Max,
-              fastChargePowerAvg: data.Fastcharge_Table[fastCharge].Fastcharge_Power_Avg,
-              fastChargeChargeTime: data.Fastcharge_Table[fastCharge].Fastcharge_ChargeTime,
-              fastChargeChargeSpeed: data.Fastcharge_Table[fastCharge].Fastcharge_ChargeSpeed,
-              fastChargeLimited: data.Fastcharge_Table[fastCharge].Fastcharge_Limited,
-              fastChargeAvgLimited: data.Fastcharge_Table[fastCharge].Fastcharge_Avg_Limited,
-            };
-            fastChargeTables.push(fastChargeTable);
-          }
+          fastChargeTables.push(fastChargeTable);
         }
       }
 
@@ -100,7 +72,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         vehicleMake: data.Vehicle_Make,
         vehicleModel: data.Vehicle_Model,
         vehicleModelVersion: data.Vehicle_Model_Version,
-        availabilityStatus: data.Availability_Status_DE ?? data.Availability_Status_NL ??  data.Availability_Status_UK,
+        availabilityStatus: data.Availability_Status_DE ?? data.Availability_Status_NL ?? data.Availability_Status_UK,
         availabilityDateFrom: data.Availability_Date_From_DE ?? data.Availability_Date_From_NL ?? data.Availability_Date_UK,
         availabilityDateTo: data.Availability_Date_To_DE ?? data.Availability_Date_To_NL ?? data.Availability_Date_To_UK,
         priceFromDE: data.Price_From_DE,
@@ -108,7 +80,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         priceGrantUmweltbonusDE: data.Price_Grant_Umweltbonus_DE,
         priceFromNL: data.Price_From_NL,
         priceFromNLFiscal: data.Price_From_NL_Fiscal,
-        priceGrantSEPPNL : data.Price_Grant_SEPP_NL,
+        priceGrantSEPPNL: data.Price_Grant_SEPP_NL,
         priceFromNLEstimate: data.Price_From_NL_Estimate,
         priceFromUK: data.Price_From_UK,
         priceFromUKP11D: data.Price_From_UK_P11D,
@@ -365,5 +337,21 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
 
   private convertToThumbImage(image: string): string {
     return [image.slice(0, image.length - 7), '-thumb', image.slice(image.length - 7)].join('');
+  }
+
+  private fillCarCatalogConverter(chargeTable: any, chargeType: string): CarCatalogConverter {
+    return {
+      type: chargeType,
+      evsePhaseVolt: chargeTable[chargeType].EVSE_PhaseVolt,
+      evsePhaseAmp: chargeTable[chargeType].EVSE_PhaseAmp,
+      evsePhase: chargeTable[chargeType].EVSE_Phase  === 3 ? Voltage.VOLTAGE_400 : chargeTable[chargeType].EVSE_PhaseVolt,
+      evsePower: chargeTable[chargeType].EVSE_Power,
+      chargePhaseVolt: chargeTable[chargeType].Charge_PhaseVolt,
+      chargePhaseAmp: chargeTable[chargeType].Charge_PhaseAmp,
+      chargePhase: chargeTable[chargeType].Charge_Phase,
+      chargePower: chargeTable[chargeType].Charge_Power,
+      chargeTime: chargeTable[chargeType].Charge_Time,
+      chargeSpeed: chargeTable[chargeType].Charge_Speed,
+    } as CarCatalogConverter;
   }
 }
