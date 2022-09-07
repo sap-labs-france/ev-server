@@ -29,6 +29,12 @@
       "customType": "date",
       "sanitize": "mongo"
     },
+    "targetStateOfCharge": {
+      "type": "integer",
+      "sanitize": "mongo",
+      "minimum": 1,
+      "maximum": 100
+    },
     "args": {
       "type": "object",
       "properties": {

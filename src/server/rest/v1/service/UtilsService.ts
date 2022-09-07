@@ -15,6 +15,7 @@ import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
+import { AxiosResponse } from 'axios';
 import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
@@ -26,7 +27,6 @@ import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpBillingTransferGetRequest } from '../../../../types/requests/HttpBillingRequest';
 import { Log } from '../../../../types/Log';
 import LogStorage from '../../../../storage/mongodb/LogStorage';
 import Logging from '../../../../utils/Logging';
@@ -84,8 +84,7 @@ export default class UtilsService {
 
   public static async checkReCaptcha(tenant: Tenant, action: ServerAction, method: string,
       centralSystemRestConfig: CentralSystemRestServiceConfiguration, captcha: string, remoteAddress: string): Promise<void> {
-    const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${centralSystemRestConfig.captchaSecretKey}&response=${captcha}&remoteip=${remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenant).get(recaptchaURL);
+    const response = await UtilsService.performRecaptchaAPICall(tenant, centralSystemRestConfig, captcha, remoteAddress);
     if (!response.data.success) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1561,5 +1560,22 @@ export default class UtilsService {
       });
     }
     return tag;
+  }
+
+  private static async performRecaptchaAPICall(tenant: Tenant, centralSystemRestConfig: CentralSystemRestServiceConfiguration,captcha: string, remoteAddress: string)
+      : Promise<AxiosResponse<any, any>> {
+    const recaptchaURL = UtilsService.buildRecaptchaURL(centralSystemRestConfig.captchaSecretKey, captcha, remoteAddress);
+    const axiosInstance = AxiosFactory.getAxiosInstance(tenant);
+    let response = await axiosInstance.get(recaptchaURL);
+    // Call not successful, attempt with alternative URL
+    if (!response.data.success && centralSystemRestConfig.alternativeCaptchaSecretKey) {
+      const alternativeRecaptchaURL = UtilsService.buildRecaptchaURL(centralSystemRestConfig.alternativeCaptchaSecretKey, captcha, remoteAddress);
+      response = await axiosInstance.get(alternativeRecaptchaURL);
+    }
+    return response;
+  }
+
+  private static buildRecaptchaURL(captchaSecretKey: string, captcha: string, remoteAddress: string) {
+    return `https://www.google.com/recaptcha/api/siteverify?secret=${captchaSecretKey}&response=${captcha}&remoteip=${remoteAddress}`;
   }
 }

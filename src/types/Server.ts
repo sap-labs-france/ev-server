@@ -445,6 +445,7 @@ export enum ServerAction {
   BILLING_INVOICE = 'BillingInvoice',
   BILLING_PERFORM_OPERATIONS = 'BillingPeriodicOperations',
   BILLING_DOWNLOAD_INVOICE = 'BillingDownloadInvoice',
+  BILLING_DOWNLOAD_TRANSFER = 'BillingDownloadTransfer',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
@@ -709,6 +710,7 @@ export enum RESTServerRoute {
   REST_BILLING_TRANSFER = 'billing/transfers/:id',
   REST_BILLING_TRANSFER_FINALIZE = 'billing/transfers/:id/finalize',
   REST_BILLING_TRANSFER_SEND = 'billing/transfers/:id/send',
+  REST_BILLING_DOWNLOAD_TRANSFER = 'tranfers/:transferID/download',
 
   // PRICING URLs for CRUD operations
   REST_PRICING_DEFINITIONS = 'pricing-definitions',

@@ -4,6 +4,7 @@ import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
+import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
 import AsyncTaskBuilder from '../../../async-task/AsyncTaskBuilder';
@@ -27,7 +28,6 @@ import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Stripe from 'stripe';
-import Tenant from '../../../types/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
@@ -376,6 +376,19 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Convert
       return Buffer.from(response.data);
     }
+  }
+
+  public async downloadTransferDocument(transfer: BillingTransfer): Promise<Buffer> {
+    await this.checkConnection();
+    // Get fresh data because persisted url expires after 30 days
+    const stripeTransferInvoice = await this.getStripeInvoice(transfer.invoice.invoiceID);
+    const downloadUrl = stripeTransferInvoice.invoice_pdf;
+    // Get document
+    const response = await this.axiosInstance.get(downloadUrl, {
+      responseType: 'arraybuffer'
+    });
+    // Convert
+    return Buffer.from(response.data);
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -1762,7 +1775,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     // Add items to the invoice
-    await this.addItemsToPlatformFeeInvoice(stripeInvoice, billingTransfer, user, billingAccount);
+    await this.addItemsToPlatformFeeInvoice(stripeInvoice, billingTransfer, user, billingAccount, this.settings.billing?.platformFeeTaxID);
     // Mark the invoice as paid
     const stripePaidInvoice = await this.markStripeInvoiceAsPaid(stripeInvoice);
     // Preserve some information
@@ -1796,7 +1809,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private async addItemsToPlatformFeeInvoice(stripeInvoice: Stripe.Invoice, billingTransfer: BillingTransfer, user: User, billingAccount: BillingAccount): Promise<void> {
+  private async addItemsToPlatformFeeInvoice(stripeInvoice: Stripe.Invoice, billingTransfer: BillingTransfer, user: User, billingAccount: BillingAccount, taxID: string): Promise<void> {
     // Create invoice items
     try {
       // Convert to cents
@@ -1804,7 +1817,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Generate the invoice item
       const description = this.buildTransferFeeItemDescription(user, billingTransfer.sessionCounter);
       // A single tax rate per session
-      const tax_rates = (billingAccount.taxID) ? [billingAccount.taxID] : [] ;
+      const tax_rates = (taxID) ? [taxID] : [] ;
       // Prepare item parameters
       const parameters: Stripe.InvoiceItemCreateParams = {
         invoice: stripeInvoice.id,
