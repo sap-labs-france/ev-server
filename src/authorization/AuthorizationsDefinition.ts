@@ -103,7 +103,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   admin: {
     grants: [
       {
-        resource: Entity.TENANT, action: [Action.READ, Action.UPDATE],
+        resource: Entity.TENANT, action:Action.READ,
+        attributes: ['id', 'name', 'email', 'logo', 'address']
+      },
+      {
+        resource: Entity.TENANT, action: Action.UPDATE,
         attributes: ['id', 'name', 'email', 'logo', 'address']
       },
       {
