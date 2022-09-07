@@ -18,7 +18,7 @@ export default class TenantRouter {
     this.buildRouteCreateTenant();
     this.buildRouteUpdateTenant();
     this.buildRouteDeleteTenant();
-    this.buildRouteUpdateTenantCoordinations();
+    this.buildRouteUpdateTenantData();
     return this.router;
   }
 
@@ -48,10 +48,10 @@ export default class TenantRouter {
     });
   }
 
-  private buildRouteUpdateTenantCoordinations(): void {
-    this.router.put(`/${RESTServerRoute.REST_TENANT_COORDINATIONS}`, (req: Request, res: Response, next: NextFunction) => {
+  private buildRouteUpdateTenantData(): void {
+    this.router.put(`/${RESTServerRoute.REST_TENANT_DATA}`, (req: Request, res: Response, next: NextFunction) => {
       req.body.id = req.params.id;
-      void RouterUtils.handleRestServerAction(TenantService.handleUpdateTenantCoordinations.bind(this), ServerAction.TENANT_UPDATE_COORDINATIONS, req, res, next);
+      void RouterUtils.handleRestServerAction(TenantService.handleUpdateTenantData.bind(this), ServerAction.TENANT_UPDATE_DATA, req, res, next);
     });
   }
 

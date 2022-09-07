@@ -381,22 +381,22 @@ export default class TenantService {
     next();
   }
 
-  public static async handleUpdateTenantCoordinations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = TenantValidatorRest.getInstance().validateTenantUpdateCoordinationsReq(req.body);
+  public static async handleUpdateTenantData(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const filteredRequest = TenantValidatorRest.getInstance().validateTenantUpdateDataReq(req.body);
     // Check auth
     if (!await Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TENANT,
-        module: MODULE_NAME, method: 'handleUpdateTenantCoordinations',
+        module: MODULE_NAME, method: 'handleUpdateTenantData',
         value: filteredRequest.id
       });
     }
     // Get
     const tenant = await TenantStorage.getTenant(filteredRequest.id);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUpdateTenantCoordinations', req.user);
+      MODULE_NAME, 'handleUpdateTenantData', req.user);
     tenant.name = filteredRequest.name;
     tenant.address = filteredRequest.address;
     tenant.components = filteredRequest.components;
@@ -412,8 +412,8 @@ export default class TenantService {
     // Log
     await Logging.logInfo({
       tenantID: req.tenant.id, user: req.user,
-      module: MODULE_NAME, method: 'handleUpdateTenantCoordinations',
-      message: `Tenant '${filteredRequest.name}' coordinations has been updated successfully`,
+      module: MODULE_NAME, method: 'handleUpdateTenantData',
+      message: `Tenant '${filteredRequest.name}' data has been updated successfully`,
       action: action,
       detailedMessages: { tenant }
     });

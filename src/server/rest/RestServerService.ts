@@ -167,7 +167,7 @@ class RequestMapper {
         // Register REST actions
         this.registerJsonActionsPaths({
           [ServerAction.TENANT_UPDATE]: TenantService.handleUpdateTenant.bind(this),
-          [ServerAction.TENANT_UPDATE_COORDINATIONS]: TenantService.handleUpdateTenantCoordinations.bind(this),
+          [ServerAction.TENANT_UPDATE_DATA]: TenantService.handleUpdateTenantData.bind(this),
           [ServerAction.SITE_UPDATE]: SiteService.handleUpdateSite.bind(this),
           [ServerAction.SITE_AREA_UPDATE]: SiteAreaService.handleUpdateSiteArea.bind(this),
           [ServerAction.COMPANY_UPDATE]: CompanyService.handleUpdateCompany.bind(this),

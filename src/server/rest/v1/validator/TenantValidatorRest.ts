@@ -12,7 +12,7 @@ export default class TenantValidatorRest extends SchemaValidator {
   private static instance: TenantValidatorRest|null = null;
   private tenantCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create.json`, 'utf8'));
   private tenantUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update.json`, 'utf8'));
-  private tenantUpdateCoordinations: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-coordinations-update.json`, 'utf8'));
+  private tenantUpdateData: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-data-update.json`, 'utf8'));
   private tenantLogoGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-logo-get.json`, 'utf8'));
   private tenantGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get.json`, 'utf8'));
   private tenantDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete.json`, 'utf8'));
@@ -41,8 +41,8 @@ export default class TenantValidatorRest extends SchemaValidator {
     return tenant;
   }
 
-  public validateTenantUpdateCoordinationsReq(data: Record<string, unknown>): Tenant {
-    const tenant: Tenant = this.validate(this.tenantUpdateCoordinations, data);
+  public validateTenantUpdateDataReq(data: Record<string, unknown>): Tenant {
+    const tenant: Tenant = this.validate(this.tenantUpdateData, data);
     this.validateComponentDependencies(tenant);
     return tenant;
   }

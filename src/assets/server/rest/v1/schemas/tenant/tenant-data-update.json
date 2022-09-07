@@ -1,6 +1,6 @@
 {
-  "$id": "tenant-update-coordinations",
-  "title": "Update one Tenant coordinations",
+  "$id": "tenant-update-data",
+  "title": "Update one Tenant data",
   "type": "object",
   "properties": {
     "id": {
