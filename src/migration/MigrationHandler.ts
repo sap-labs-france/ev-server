@@ -164,7 +164,7 @@ export default class MigrationHandler {
     // currentMigrationTasks.push(new AlignEntitiesWithOrganizationIDsTask());
     // currentMigrationTasks.push(new RemoveLogoFromTenantTask());
     // currentMigrationTasks.push(new OCPIEndpointCleanUpTask());
-    // currentMigrationTasks.push(new AddLevelTemplateToChargingStationTemplateTask());
+    currentMigrationTasks.push(new AddLevelTemplateToChargingStationTemplateTask());
     return currentMigrationTasks;
   }
 }
