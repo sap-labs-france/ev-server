@@ -9,7 +9,6 @@ import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import { Car } from '../../../../types/Car';
-import CarFactory from '../../../../integration/car/CarFactory';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CarValidatorRest from '../validator/CarValidatorRest';
 import Constants from '../../../../utils/Constants';

@@ -36,7 +36,6 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
     const carCatalogs: CarCatalog[] = [];
     // Build result
     for (const data of response.data) {
-      console.log(data.Vehicle_ID);
       const chargeStandardTables: CarCatalogConverter[] = [];
       const chargeOptionTables: CarCatalogConverter[] = [];
       const fastChargeTables: CarCatalogFastCharge[] = [];
