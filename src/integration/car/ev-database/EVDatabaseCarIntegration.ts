@@ -40,18 +40,23 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
       const chargeStandardTables: CarCatalogConverter[] = [];
       const chargeOptionTables: CarCatalogConverter[] = [];
       const fastChargeTables: CarCatalogFastCharge[] = [];
+      // Building the chargeStandardTable using the 3 provided chargeStandardTable countries
       const chargeStandardTableUniversal = { ...data.Charge_Standard_Table_UK, ...data.Charge_Standard_Table_NL, ...data.Charge_Standard_Table_DE };
+      // Building the chargeOptionTables using the 3 provided chargeOptionTable countries
       const chargeOptionTableUniversal = { ...data.Charge_Option_Table_UK, ...data.Charge_Option_Table_NL, ...data.Charge_Option_Table_DE };
+      // Formating the chargeStandardTables to save in the DB
       if (chargeStandardTableUniversal) {
         for (const chargeStandard of Object.keys(chargeStandardTableUniversal)) {
           chargeStandardTables.push(this.fillCarCatalogConverter(chargeStandardTableUniversal, chargeStandard));
         }
+        // Formating the chargeOptionTables to save in the DB
         if (chargeOptionTableUniversal) {
           for (const chargeOption of Object.keys(chargeOptionTableUniversal)) {
             chargeOptionTables.push(this.fillCarCatalogConverter(chargeOptionTableUniversal, chargeOption));
           }
         }
       }
+      // Formating the FastChargeTable to save in the DB
       if (data.Fastcharge_Table) {
         for (const fastCharge of Object.keys(data.Fastcharge_Table)) {
           const fastChargeTable: CarCatalogFastCharge = {
@@ -67,6 +72,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         }
       }
 
+      // Create and fill th carCatalog object to be saved in the DB
       const carCatalog: CarCatalog = {
         id: data.Vehicle_ID,
         vehicleMake: data.Vehicle_Make,
@@ -344,7 +350,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
       type: chargeType,
       evsePhaseVolt: chargeTable[chargeType].EVSE_PhaseVolt,
       evsePhaseAmp: chargeTable[chargeType].EVSE_PhaseAmp,
-      evsePhase: chargeTable[chargeType].EVSE_Phase  === 3 ? Voltage.VOLTAGE_400 : chargeTable[chargeType].EVSE_PhaseVolt,
+      evsePhase: chargeTable[chargeType].EVSE_Phase === 3 ? Voltage.VOLTAGE_400 : chargeTable[chargeType].EVSE_PhaseVolt,
       evsePower: chargeTable[chargeType].EVSE_Power,
       chargePhaseVolt: chargeTable[chargeType].Charge_PhaseVolt,
       chargePhaseAmp: chargeTable[chargeType].Charge_PhaseAmp,
