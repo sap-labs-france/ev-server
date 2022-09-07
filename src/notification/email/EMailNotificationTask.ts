@@ -325,7 +325,6 @@ export default class EMailNotificationTask implements NotificationTask {
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT1))
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.BUTTON))
         .buildTemplate();
-      console.log(context);
       template.resolve(i18nInstance, context,prefix);
       if (Utils.isDevelopmentEnv()) {
         fs.writeFileSync('./file.txt',template.getTemplate(),'utf-8');

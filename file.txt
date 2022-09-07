@@ -1,5 +1,5 @@
 <mjml><mj-head>
-	<mj-title>New Registered User</mj-title>
+	<mj-title>[missing "en.email.end-of-session.title" translation]</mj-title>
 	<mj-font name="Roboto" href="https://fonts.googleapis.com/css?family=Roboto:300,500"></mj-font>
 	<mj-attributes>
 		<mj-all font-family="Roboto, Helvetica, sans-serif"></mj-all>
@@ -20,21 +20,21 @@
 </mj-section>
 <mj-section>
 	<mj-column>
-		<mj-text font-weight="500" font-size="20px">New Registered User</mj-text>
+		<mj-text font-weight="500" font-size="20px">[missing "en.email.end-of-session.title" translation]</mj-text>
 	</mj-column>
 </mj-section>
 ,<mj-section padding-top="20px">
 	<mj-column>
 		<mj-text>
 			<p>Hello ! User,</p>
-			<p>You have registered to SAP. Welcome abroad!</p>
+			<p>[missing "en.email.end-of-session.text" translation]</p>
 		</mj-text>
 	</mj-column>
 </mj-section>
 ,<mj-section>
 	<mj-column>
-		<mj-button font-size="16px" href="some_url">
-			E-Mobility
+		<mj-button font-size="16px" href="undefined">
+			[missing "en.email.end-of-session.buttonText" translation]
 		</mj-button>
 	</mj-column>
 </mj-section>

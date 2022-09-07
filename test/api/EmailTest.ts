@@ -1,4 +1,4 @@
-import { NewRegisteredUserNotification, NotificationSeverity, RequestPasswordNotification } from '../../src/types/UserNotifications';
+import { ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OptimalChargeReachedNotification, RequestPasswordNotification } from '../../src/types/UserNotifications';
 
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -42,6 +42,15 @@ describe('Initialization', () => {
       user = tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       tenant = tenantContext.getTenant();
     });
+    it('new-registered-user', async () => {
+      data = {
+        tenant: tenant.subdomain,
+        user,
+        evseDashboardURL: 'some_url',
+        evseDashboardVerifyEmailURL: 'some_url',
+      } as NewRegisteredUserNotification;
+      await emailNotificationTask.sendNewRegisteredUser(data,user,tenant,severity);
+    });
 
     it('request-password', async () => {
       data = {
@@ -52,14 +61,82 @@ describe('Initialization', () => {
       await emailNotificationTask.sendRequestPassword(data,user,tenant,severity);
     });
 
-    it('new-registered-user', async () => {
+    it('Optimal Charge Reached', async () => {
       data = {
-        tenant: tenant.subdomain,
+        transactionId: 1,
+        siteID: 'site_id',
+        siteAreaID: 'site area id',
+        companyID: 'company id',
+        chargeBoxID: 'charge box id',
+        connectorId: 'connector id',
+        totalConsumption: 'total consumption',
+        stateOfCharge: 1,
+        evseDashboardChargingStationURL: 'charging station url',
         user,
         evseDashboardURL: 'some_url',
-        evseDashboardVerifyEmailURL: 'some_url',
-      } as NewRegisteredUserNotification;
-      await emailNotificationTask.sendNewRegisteredUser(data,user,tenant,severity);
+      } as OptimalChargeReachedNotification;
+      await emailNotificationTask.sendOptimalChargeReached(data,user,tenant,severity);
+    });
+
+    it('End of Charge', async () => {
+      data = {
+        transactionId: 1,
+        siteID: '',
+        siteAreaID: 'site area id',
+        companyID: 'company id',
+        chargeBoxID: 'charing box id',
+        connectorId: 'connector id',
+        totalConsumption: 'total consumption',
+        stateOfCharge: 1,
+        totalDuration: 'total duration',
+        evseDashboardChargingStationURL: 'charing station url',
+        user,
+        evseDashboardURL: 'some_url',
+      } as EndOfChargeNotification;
+      await emailNotificationTask.sendEndOfCharge(data,user,tenant,severity);
+    });
+
+    it('End of Session', async () => {
+      data = {
+        transactionId: 1,
+        siteID: 'site id',
+        siteAreaID: 'site area id',
+        companyID: 'company id',
+        chargeBoxID: 'charge box id',
+        connectorId: 'connector id',
+        totalConsumption: 'total consumption',
+        totalInactivity: 'total inactivity',
+        stateOfCharge: 1,
+        totalDuration: 'total duration',
+        tenant: tenant.subdomain,
+        user,
+        alternateUser: user,
+        evseDashboardURL: 'some_url',
+        evseDashboardChargingStationURL: 'charging station url',
+      } as EndOfSessionNotification;
+      await emailNotificationTask.sendEndOfSession(data,user,tenant,severity);
+    });
+
+    it('End Of Signed Session', async () => {
+      data = {
+        user,
+        alternateUser: user,
+        transactionId: 1,
+        chargeBoxID: 'charging box id',
+        connectorId: 'connector id',
+        tagId: 'tag id',
+        startDate: 'start date',
+        endDate: 'end date',
+        meterStart: 'meter start',
+        meterStop: 'meter stop',
+        totalConsumption: 'total consumption',
+        price: 1,
+        relativeCost: 1,
+        startSignedData: 'start signed data',
+        endSignedData: 'end signed data',
+        evseDashboardURL: 'some_url',
+      } as EndOfSignedSessionNotification;
+      await emailNotificationTask.sendEndOfSession(data,user,tenant,severity);
     });
   });
 });
