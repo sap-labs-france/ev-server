@@ -18,6 +18,7 @@ export default class MjmlTemplate {
   }
 
   public resolve(i18nManager: I18nManager, context: any, prefix: string): void {
+    this.buildComponents(i18nManager,context,prefix);
     this.preparei18nSelectors(prefix);
     const i18nSelectors = this.geti18nSelectors();
     for (const selector of i18nSelectors) {
@@ -34,6 +35,24 @@ export default class MjmlTemplate {
       const value = this.getValue(keys, context);
       this.replace(selector,value);
     }
+  }
+
+  private buildTable(i18nManager: I18nManager,context:any,prefix:string): void {
+    const regex = new RegExp(/_TABLEBUILD/, 'g');
+    const match = this.template.match(regex);
+    if (!match) {
+      return;
+    }
+    let table = '';
+    const tableColumns = i18nManager.translate('email.' + prefix + '.tableColumns');
+    for (const [index,tableValue] of context.tableValues.entries()) {
+      table = table + `<tr><th style="font-size:18px;font-weight:300">${tableColumns[index]}</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">${tableValue as string}</td></tr>`;
+    }
+    this.replace(match[0],table);
+  }
+
+  private buildComponents(i18nManager: I18nManager,context:any,prefix:string) {
+    this.buildTable(i18nManager,context,prefix);
   }
 
   private replace(selector: string, value: string): void {

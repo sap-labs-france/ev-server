@@ -67,10 +67,10 @@ describe('Initialization', () => {
         siteID: 'site_id',
         siteAreaID: 'site area id',
         companyID: 'company id',
-        chargeBoxID: 'charge box id',
-        connectorId: 'connector id',
+        chargeBoxID: 'Charging Station 19 SAP',
+        connectorId: 'A',
         totalConsumption: 'total consumption',
-        stateOfCharge: 1,
+        stateOfCharge: 89,
         evseDashboardChargingStationURL: 'charging station url',
         user,
         evseDashboardURL: 'some_url',
@@ -86,10 +86,10 @@ describe('Initialization', () => {
         companyID: 'company id',
         chargeBoxID: 'charing box id',
         connectorId: 'connector id',
-        totalConsumption: 'total consumption',
+        totalConsumption: '48.3',
         stateOfCharge: 1,
-        totalDuration: 'total duration',
-        evseDashboardChargingStationURL: 'charing station url',
+        totalDuration: '5h14',
+        evseDashboardChargingStationURL: 'some_url',
         user,
         evseDashboardURL: 'some_url',
       } as EndOfChargeNotification;
@@ -102,12 +102,12 @@ describe('Initialization', () => {
         siteID: 'site id',
         siteAreaID: 'site area id',
         companyID: 'company id',
-        chargeBoxID: 'charge box id',
-        connectorId: 'connector id',
-        totalConsumption: 'total consumption',
-        totalInactivity: 'total inactivity',
+        chargeBoxID: 'SAP Moujins 19 A',
+        connectorId: 'A',
+        totalConsumption: '52,3',
+        totalInactivity: '0h13',
         stateOfCharge: 1,
-        totalDuration: 'total duration',
+        totalDuration: '5h41',
         tenant: tenant.subdomain,
         user,
         alternateUser: user,
@@ -117,27 +117,27 @@ describe('Initialization', () => {
       await emailNotificationTask.sendEndOfSession(data,user,tenant,severity);
     });
 
-    it('End Of Signed Session', async () => {
-      data = {
-        user,
-        alternateUser: user,
-        transactionId: 1,
-        chargeBoxID: 'charging box id',
-        connectorId: 'connector id',
-        tagId: 'tag id',
-        startDate: 'start date',
-        endDate: 'end date',
-        meterStart: 'meter start',
-        meterStop: 'meter stop',
-        totalConsumption: 'total consumption',
-        price: 1,
-        relativeCost: 1,
-        startSignedData: 'start signed data',
-        endSignedData: 'end signed data',
-        evseDashboardURL: 'some_url',
-      } as EndOfSignedSessionNotification;
-      await emailNotificationTask.sendEndOfSession(data,user,tenant,severity);
-    });
+    // it('End Of Signed Session', async () => {
+    //   data = {
+    //     user,
+    //     alternateUser: user,
+    //     transactionId: 1,
+    //     chargeBoxID: 'charging box id',
+    //     connectorId: 'connector id',
+    //     tagId: 'tag id',
+    //     startDate: 'start date',
+    //     endDate: 'end date',
+    //     meterStart: 'meter start',
+    //     meterStop: 'meter stop',
+    //     totalConsumption: 'total consumption',
+    //     price: 1,
+    //     relativeCost: 1,
+    //     startSignedData: 'start signed data',
+    //     endSignedData: 'end signed data',
+    //     evseDashboardURL: 'some_url',
+    //   } as EndOfSignedSessionNotification;
+    //   await emailNotificationTask.sendEndOfSession(data,user,tenant,severity);
+    // });
   });
 });
 

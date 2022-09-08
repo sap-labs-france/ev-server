@@ -205,6 +205,24 @@
       "title":"Reset Password",
       "buttonText":"Reset Password",
       "text":["You have just requested to reset your password." , "Click on the link below to generate and receive a new one."]
+    },
+    "optimal-charge-reached": {
+      "title":"Optimal Charge Reached",
+      "buttonText":"View Session",
+      "text":["Your electric vehicle, which is connected to {{chargeBoxID}}, connector {{connectorId}}, reached its optimal charge."],
+      "tableColumns":["Battery Level"]
+    },
+    "end-of-session": {
+      "title":"Session Finished",
+      "buttonText":"View Session",
+      "text":["Your session on the charging station {{chargeBoxID}}, connector {{connectorId}} has just finished."],
+      "tableColumns":["Consumption","Total Duration","Total Inactivity","Battery Level"]
+    },
+    "end-of-charge": {
+      "title":"Charge Finished",
+      "buttonText":"View Session",
+      "text":["Your electric vehicle, which is connected to the charging station {{chargeBoxID}}, connector {{connectorId}}, has just finished charging."],
+      "tableColumns":["Consumption","Total Duration","Battery Level"]
     }
   }
 }

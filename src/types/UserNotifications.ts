@@ -101,6 +101,7 @@ export interface BaseNotification {
   buttonUrl?:string;
   appUrl?:string;
   userFirstName?:string;
+  tableValues?:string[];
 }
 
 export interface EndOfChargeNotification extends BaseNotification {

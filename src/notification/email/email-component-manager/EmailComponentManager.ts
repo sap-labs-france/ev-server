@@ -10,6 +10,8 @@ export enum EmailComponent {
   TITLE = 'title.mjml',
   TEXT1 = 'text1.mjml',
   TEXT2 = 'text2.mjml',
+
+  TABLE='table.mjml',
 }
 
 export default class EmailComponentManager {

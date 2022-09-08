@@ -65,17 +65,23 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    return this.prepareAndSendEmail('optimal-charge-reached', data, user, tenant, severity);
+    data.tableValues = [data.stateOfCharge + '%'];
+    const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
+    return this.prepareAndSendEmail('optimal-charge-reached', data, user, tenant, severity,false,optionalComponents);
   }
 
   public async sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    return this.prepareAndSendEmail('end-of-charge', data, user, tenant, severity);
+    data.tableValues = [data.totalConsumption + ' kW.h',data.totalDuration];
+    const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
+    return this.prepareAndSendEmail('end-of-charge', data, user, tenant, severity,false,optionalComponents);
   }
 
   public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    return this.prepareAndSendEmail('end-of-session', data, user, tenant, severity);
+    data.tableValues = [data.totalConsumption + ' kW.h',data.totalDuration,data.totalInactivity];
+    const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
+    return this.prepareAndSendEmail('end-of-session', data, user, tenant, severity,false,optionalComponents);
   }
 
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -304,7 +310,7 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async sendSmartEmail(prefix: string, context: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
+  private async sendSmartEmail(prefix: string, context: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false, optionalComponents?: string): Promise<void> {
     let startTime: number;
     let emailContent = {} as EmailNotificationMessage;
     try {
@@ -323,6 +329,7 @@ export default class EMailNotificationTask implements NotificationTask {
       const template = (await mjmlBuilder.initialize())
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.TITLE))
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT1))
+        .addToBody(optionalComponents)
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.BUTTON))
         .buildTemplate();
       template.resolve(i18nInstance, context,prefix);
@@ -355,9 +362,9 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
+  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false,optionalComponents?:string): Promise<void> {
     if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
-      return await this.sendSmartEmail(templateName, data, user, tenant, severity);
+      return await this.sendSmartEmail(templateName, data, user, tenant, severity,false,optionalComponents);
     }
 
     let startTime: number;

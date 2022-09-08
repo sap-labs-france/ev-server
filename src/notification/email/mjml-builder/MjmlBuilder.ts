@@ -17,9 +17,10 @@ export default class MjmlBuilder {
 
   public static async initialize(): Promise<MjmlBuilder> {
     const instance = new MjmlBuilder();
-    instance.addConfig(await EmailComponentManager.getComponent(EmailComponent.CONFIG));
-    instance.addHeader(await EmailComponentManager.getComponent(EmailComponent.HEADER));
-    instance.addFooter(await EmailComponentManager.getComponent(EmailComponent.FOOTER));
+    instance.addConfig(await EmailComponentManager.getComponent(EmailComponent.CONFIG))
+      .addHeader(await EmailComponentManager.getComponent(EmailComponent.HEADER))
+      .addFooter(await EmailComponentManager.getComponent(EmailComponent.FOOTER));
+
     return instance;
   }
 
@@ -29,7 +30,9 @@ export default class MjmlBuilder {
   }
 
   public addToBody(component: string): this {
-    this.body.push(component);
+    if (component) {
+      this.body.push(component);
+    }
     return this;
   }
 
