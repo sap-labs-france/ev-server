@@ -16,7 +16,6 @@ import AuthorizationService from './AuthorizationService';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import { HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
@@ -33,6 +32,7 @@ import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import { StatusCodes } from 'http-status-codes';
+import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
@@ -57,36 +57,38 @@ export default class UserService {
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
     // Handle Tag
+    // We retrieve Tag auth to get the projected fields here to fit with what's in auth definition
+    const tagAuthorization = await AuthorizationService.checkAndGetTagAuthorizations(req.tenant, req.user, {}, Action.READ);
+    let tag: Tag;
     // Get the default Tag
-    let tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, {
-      issuer: true
-    }, ['visualID', 'description', 'active', 'default']);
-    if (!tag) {
-      // Get the first active Tag
-      tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, {
+    if (tagAuthorization.authorized) {
+      tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, {
         issuer: true
-      }, ['visualID', 'description', 'active', 'default']);
+      }, tagAuthorization.projectFields);
+      if (!tag) {
+        // Get the first active Tag
+        tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, {
+          issuer: true
+        }, tagAuthorization.projectFields);
+      }
     }
     // Handle Car
+    // We retrieve Car auth to get the projected fields here to fit with what's in auth definition
+    const carAuthorization = await AuthorizationService.checkAndGetCarAuthorizations(req.tenant, req.user, {}, Action.READ);
     let car: Car;
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) && carAuthorization.authorized) {
       // Get the default Car
-      car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {},
-        ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image', 'carCatalog.batteryCapacityFull', 'carCatalog.fastChargePowerMax', 'converter.powerWatts', 'converter.numberOfPhases', 'default']
-      );
+      car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
       if (!car) {
         // Get the first available car
-        car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID,
-          ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image', 'carCatalog.batteryCapacityFull', 'carCatalog.fastChargePowerMax', 'converter.powerWatts', 'converter.numberOfPhases', 'default']
-        );
+        car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID, carAuthorization.projectFields);
       }
     }
     let withBillingChecks = true ;
     if (filteredRequest.ChargingStationID) {
       // TODO - The ChargingStationID is optional but only for backward compatibility reasons - make it mandatory as soon as possible
-      const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID,
-        { withSiteArea: true },
-        ['id', 'siteArea.id', 'siteArea.accessControl']);
+      const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ,
+        action, null, { withSiteArea: true });
       if (!chargingStation.siteArea.accessControl) {
         // The access control is switched off - so billing checks are useless
         withBillingChecks = false;

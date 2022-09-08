@@ -869,13 +869,13 @@ export default class UtilsService {
     return transfer;
   }
 
-  public static async checkAndGetTagAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,
+  public static async checkAndGetTagAuthorization(tenant: Tenant, userToken: UserToken, tagID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Tag> {
     return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTag.bind(this),
       authAction, action, entityData, additionalFilters, applyProjectFields);
   }
 
-  public static async checkAndGetTagByVisualIDAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,
+  public static async checkAndGetTagByVisualIDAuthorization(tenant: Tenant, userToken: UserToken, tagID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Tag> {
     return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTagByVisualID.bind(this),
       authAction, action, entityData, additionalFilters, applyProjectFields);
@@ -1521,7 +1521,7 @@ export default class UtilsService {
     return properties;
   }
 
-  private static async checkAndGetTagByXXXAuthorization(tenant: Tenant, userToken:UserToken, id: string,
+  private static async checkAndGetTagByXXXAuthorization(tenant: Tenant, userToken: UserToken, id: string,
       getTagByXXX: (tenant: Tenant, id: string, params: any, projectedFileds: string[]) => Promise<Tag>, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Tag> {
     // Check mandatory fields
