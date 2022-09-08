@@ -1736,33 +1736,33 @@ export default class Utils {
   public static removeSensibeDataFromEntity(extraFilters: Record<string, any>, entityData?: EntityData): void {
     // User data
     if (Utils.objectHasProperty(extraFilters, 'UserData') &&
-    !Utils.isNullOrUndefined(extraFilters['UserData']) && extraFilters['UserData']) {
+       !Utils.isNullOrUndefined(extraFilters['UserData']) && extraFilters['UserData']) {
       Utils.deleteUserPropertiesFromEntity(entityData);
     }
     // Tag data
     if (Utils.objectHasProperty(extraFilters, 'TagData') &&
-    !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
+       !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
       Utils.deleteTagPropertiesFromEntity(entityData);
     }
     // Car Catalog data
     if (Utils.objectHasProperty(extraFilters, 'CarCatalogData') &&
-     !Utils.isNullOrUndefined(extraFilters['CarCatalogData']) && extraFilters['CarCatalogData']) {
+       !Utils.isNullOrUndefined(extraFilters['CarCatalogData']) && extraFilters['CarCatalogData']) {
       Utils.deleteCarCatalogPropertiesFromEntity(entityData);
     }
     // Car data
     if (Utils.objectHasProperty(extraFilters, 'CarData') &&
-     !Utils.isNullOrUndefined(extraFilters['CarData']) && extraFilters['CarData']) {
+       !Utils.isNullOrUndefined(extraFilters['CarData']) && extraFilters['CarData']) {
       Utils.deleteCarPropertiesFromEntity(entityData);
     }
     // Billing data
     if (Utils.objectHasProperty(extraFilters, 'BillingData') &&
-     !Utils.isNullOrUndefined(extraFilters['BillingData']) && extraFilters['BillingData']) {
+       !Utils.isNullOrUndefined(extraFilters['BillingData']) && extraFilters['BillingData']) {
       Utils.deleteBillingPropertiesFromEntity(entityData);
     }
   }
 
   private static deleteUserPropertiesFromEntity(entityData?: EntityData): void {
-    Utils.deletePropertiesFromEntity(entityData, ['user','userID']);
+    Utils.deletePropertiesFromEntity(entityData, ['user', 'userID']);
   }
 
   private static deleteTagPropertiesFromEntity(entityData?: EntityData): void {

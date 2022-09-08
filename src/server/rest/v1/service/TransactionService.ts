@@ -487,7 +487,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions(req, filteredRequest, Action.GET_TO_REFUND_TRANSACTION);
+    const transactions = await TransactionService.getTransactions(req, filteredRequest, Action.GET_REFUNDABLE_TRANSACTION);
     res.json(transactions);
     next();
   }
@@ -546,7 +546,7 @@ export default class TransactionService {
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-refund-sessions.csv', filteredRequest,
-      TransactionService.getTransactions.bind(this, req, filteredRequest, Action.GET_TO_REFUND_TRANSACTION),
+      TransactionService.getTransactions.bind(this, req, filteredRequest, Action.GET_REFUNDABLE_TRANSACTION),
       TransactionService.convertToCSV.bind(this));
   }
 
@@ -745,7 +745,7 @@ export default class TransactionService {
   }
 
   private static async getTransactions(req: Request, filteredRequest: HttpTransactionsGetRequest,
-      authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
+    authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
 
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(
@@ -765,7 +765,7 @@ export default class TransactionService {
     const transactions = await TransactionStorage.getTransactions(req.tenant,
       {
         search: filteredRequest.Search ? filteredRequest.Search : null,
-        status: filteredRequest.Status ,
+        status: filteredRequest.Status,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
@@ -809,7 +809,7 @@ export default class TransactionService {
   }
 
   private static async transactionSoftStop(action: ServerAction, transaction: Transaction, chargingStation: ChargingStation,
-      connector: Connector, req: Request, res: Response, next: NextFunction): Promise<void> {
+    connector: Connector, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if already stopped
     if (transaction.stop) {
       // Clear Connector
@@ -861,7 +861,7 @@ export default class TransactionService {
   }
 
   private static async checkAndGetTransactionChargingStationConnector(action: ServerAction, tenant: Tenant, user: UserToken,
-      transactionID: number, authAction: Action): Promise<{ transaction: Transaction; chargingStation: ChargingStation; connector: Connector; }> {
+    transactionID: number, authAction: Action): Promise<{ transaction: Transaction; chargingStation: ChargingStation; connector: Connector; }> {
     // Check dynamic auth
     const transaction = await UtilsService.checkAndGetTransactionAuthorization(tenant, user, transactionID, authAction, action);
     const { chargingStation, connector } = await TransactionService.checkAndGetChargingStationConnector(action, tenant, user,
@@ -870,7 +870,7 @@ export default class TransactionService {
   }
 
   private static async checkAndGetChargingStationConnector(action: ServerAction, tenant: Tenant, user: UserToken,
-      chargingStationID: string, connectorID: number, authAction: Action): Promise<{ chargingStation: ChargingStation; connector: Connector; }> {
+    chargingStationID: string, connectorID: number, authAction: Action): Promise<{ chargingStation: ChargingStation; connector: Connector; }> {
     // Get the Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(tenant, user, chargingStationID, authAction, action, null, { withSiteArea: true });
     // Check connector

@@ -1275,7 +1275,7 @@ export default class AuthorizationService {
   }
 
   public static async addRefundReportsAuthorizations(tenant: Tenant, userToken: UserToken,
-      refundReports: RefundReport[], authorizationFilter: AuthorizationFilter): Promise<void> {
+    refundReports: RefundReport[], authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Authorizations
     for (const refundReport of refundReports) {
       await AuthorizationService.addRefundReportAuthorizations(tenant, userToken, refundReport, authorizationFilter);
@@ -1293,7 +1293,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetConsumptionsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
-      filteredRequest?: Partial<HttpByIDRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+    filteredRequest?: Partial<HttpByIDRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

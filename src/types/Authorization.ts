@@ -194,7 +194,7 @@ export enum Action {
   GET_CHARGING_STATION_TRANSACTIONS = 'GetChargingStationTransactions',
   GET_ACTIVE_TRANSACTION = 'GetActiveTransaction',
   GET_COMPLETED_TRANSACTION = 'GetCompletedTransaction',
-  GET_TO_REFUND_TRANSACTION = 'GetToRefundTransaction',
+  GET_REFUNDABLE_TRANSACTION = 'GetRefundableTransaction',
   GET_REFUND_REPORT = 'GetRefundReport',
   EXPORT_COMPLETED_TRANSACTION = 'ExportCompletedTransaction',
   EXPORT_OCPI_CDR = 'ExportOcpiCdr',

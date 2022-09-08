@@ -196,8 +196,8 @@ export default class UtilsService {
   }
 
   public static async checkAndGetTransactionAuthorization(tenant: Tenant, userToken: UserToken, transactionID: number, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Transaction> {
-  // Check mandatory fields
+    action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Transaction> {
+    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'checkAndGetTransactionAuthorization', userToken);
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetTransactionAuthorizations(tenant, userToken, { ID: transactionID }, authAction, entityData);
