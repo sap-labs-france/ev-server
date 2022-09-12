@@ -65,21 +65,18 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    data.tableValues = [data.stateOfCharge + '%'];
     const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
     return this.prepareAndSendEmail('optimal-charge-reached', data, user, tenant, severity,false,optionalComponents);
   }
 
   public async sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    data.tableValues = [data.totalConsumption + ' kW.h',data.totalDuration];
     const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
     return this.prepareAndSendEmail('end-of-charge', data, user, tenant, severity,false,optionalComponents);
   }
 
   public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    data.tableValues = [data.totalConsumption + ' kW.h',data.totalDuration,data.totalInactivity];
     const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
     return this.prepareAndSendEmail('end-of-session', data, user, tenant, severity,false,optionalComponents);
   }
@@ -165,7 +162,12 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    return this.prepareAndSendEmail('billing-new-invoice', data, user, tenant, severity);
+    data.buttonUrl = data.evseDashboardInvoiceURL;
+    const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
+    if (data.invoiceStatus === 'paid') {
+      return await this.prepareAndSendEmail('billing-new-invoice-paid', data, user, tenant, severity,false,optionalComponents);
+    }
+    return await this.prepareAndSendEmail('billing-new-invoice-unpaid', data, user, tenant, severity,false,optionalComponents);
   }
 
   public async sendCarCatalogSynchronizationFailed(data: CarCatalogSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {

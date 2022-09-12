@@ -1,4 +1,4 @@
-import { ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OptimalChargeReachedNotification, RequestPasswordNotification } from '../../src/types/UserNotifications';
+import { BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingNewInvoiceNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OfflineChargingStationNotification, OptimalChargeReachedNotification, RequestPasswordNotification } from '../../src/types/UserNotifications';
 
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -61,7 +61,7 @@ describe('Initialization', () => {
       await emailNotificationTask.sendRequestPassword(data,user,tenant,severity);
     });
 
-    it('Optimal Charge Reached', async () => {
+    it('optimal-charge-reached', async () => {
       data = {
         transactionId: 1,
         siteID: 'site_id',
@@ -78,13 +78,13 @@ describe('Initialization', () => {
       await emailNotificationTask.sendOptimalChargeReached(data,user,tenant,severity);
     });
 
-    it('End of Charge', async () => {
+    it('end-of-charge', async () => {
       data = {
         transactionId: 1,
         siteID: '',
         siteAreaID: 'site area id',
         companyID: 'company id',
-        chargeBoxID: 'charing box id',
+        chargeBoxID: 'charging box id',
         connectorId: 'connector id',
         totalConsumption: '48.3',
         stateOfCharge: 1,
@@ -96,7 +96,7 @@ describe('Initialization', () => {
       await emailNotificationTask.sendEndOfCharge(data,user,tenant,severity);
     });
 
-    it('End of Session', async () => {
+    it('end-of-session', async () => {
       data = {
         transactionId: 1,
         siteID: 'site id',
@@ -117,27 +117,74 @@ describe('Initialization', () => {
       await emailNotificationTask.sendEndOfSession(data,user,tenant,severity);
     });
 
-    // it('End Of Signed Session', async () => {
-    //   data = {
-    //     user,
-    //     alternateUser: user,
-    //     transactionId: 1,
-    //     chargeBoxID: 'charging box id',
-    //     connectorId: 'connector id',
-    //     tagId: 'tag id',
-    //     startDate: 'start date',
-    //     endDate: 'end date',
-    //     meterStart: 'meter start',
-    //     meterStop: 'meter stop',
-    //     totalConsumption: 'total consumption',
-    //     price: 1,
-    //     relativeCost: 1,
-    //     startSignedData: 'start signed data',
-    //     endSignedData: 'end signed data',
-    //     evseDashboardURL: 'some_url',
-    //   } as EndOfSignedSessionNotification;
-    //   await emailNotificationTask.sendEndOfSession(data,user,tenant,severity);
-    // });
+    it('billing-new-invoice', async () => {
+      data = {
+        evseDashboardURL: 'some_url',
+        evseDashboardInvoiceURL: 'some_url',
+        user,
+        invoiceDownloadUrl: 'some_url',
+        payInvoiceUrl: 'some_url',
+        invoiceNumber: '123123123',
+        invoiceAmount: '1200',
+        invoiceStatus: 'active',
+      } as BillingNewInvoiceNotification;
+      await emailNotificationTask.sendBillingNewInvoice(data,user,tenant,severity);
+    });
+
+    it('charging-station-registered', async () => {
+      data = {
+        chargeBoxID: 'Charge Box A1',
+        siteID: 'Site 134',
+        siteAreaID: 'A3',
+        companyID: 'SAP12',
+        evseDashboardURL: 'some_url',
+        evseDashboardChargingStationURL: 'some_url',
+      } as ChargingStationRegisteredNotification;
+      await emailNotificationTask.sendChargingStationRegistered(data,user,tenant,severity);
+    });
+
+    it('end-user-error-notification', async () => {
+      data = {
+        userID: 'some user id',
+        email: 'email',
+        name: 'name',
+        errorTitle: 'error title',
+        errorDescription: 'description',
+        phone: '123123123',
+        evseDashboardURL: 'some_url',
+      } as EndUserErrorNotification;
+      await emailNotificationTask.sendEndUserErrorNotification(data,user,tenant,severity);
+    });
+
+    it('offline-charging-station', async () => {
+      data = {
+        chargeBoxIDs: 'some box id',
+        evseDashboardURL: 'some_url',
+      } as OfflineChargingStationNotification;
+      await emailNotificationTask.sendOfflineChargingStations(data,user,tenant,severity);
+    });
+
+    it('charging-station-charging-error', async () => {
+      data = {
+        chargeBoxID: 'some box id',
+        siteID: 'site id',
+        siteAreaID: 'site area id',
+        companyID: 'company id',
+        connectorId: 'connector id',
+        error: 'this is the error',
+        evseDashboardURL: 'some_url',
+        evseDashboardChargingStationURL: 'some_url',
+      } as ChargingStationStatusErrorNotification;
+      await emailNotificationTask.sendChargingStationStatusError(data,user,tenant,severity);
+    });
+
+    it('billing-account-created', async () => {
+      data = {
+        evseDashboardURL: 'some_url',
+        user,
+      } as BillingAccountActivationNotification;
+      await emailNotificationTask.sendBillingAccountActivationNotification(data,user,tenant,severity);
+    });
   });
 });
 

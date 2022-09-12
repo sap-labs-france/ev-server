@@ -27,20 +27,20 @@
 	<mj-column>
 		<mj-text>
 			<p>Hello ! User,</p>
-			<p>Your session on the charging station SAP Moujins 19 A, connector A has just finished.</p>
+			<p>Your session on the charging station charging box id, connector connector id has just finished.</p>
 		</mj-text>
 	</mj-column>
 </mj-section>
 ,<mj-section>
   <mj-column width="70%">
     <mj-table>
-    <tr><th style="font-size:18px;font-weight:300">Consumption</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">52,3 kW.h</td></tr><tr><th style="font-size:18px;font-weight:300">Total Duration</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">5h41</td></tr><tr><th style="font-size:18px;font-weight:300">Total Inactivity</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">0h13</td></tr>
+    <tr><th style="font-size:18px;font-weight:300">Consumption</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">total consumption kW.h</td></tr><tr><th style="font-size:18px;font-weight:300">Total Duration</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">undefined</td></tr><tr><th style="font-size:18px;font-weight:300">State of Charge</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">undefined %</td></tr>
     </mj-table>
   </mj-column>
 </mj-section>
 ,<mj-section>
 	<mj-column>
-		<mj-button background-color="#8fd365" font-size="16px" href="charging station url">
+		<mj-button background-color="#8fd365" font-size="16px" href="undefined">
 			View Session
 		</mj-button>
 	</mj-column>

@@ -210,19 +210,46 @@
       "title":"Optimal Charge Reached",
       "buttonText":"View Session",
       "text":["Your electric vehicle, which is connected to {{chargeBoxID}}, connector {{connectorId}}, reached its optimal charge."],
-      "tableColumns":["Battery Level"]
+      "table": [
+        { "label": "Battery Level", "value": "{{stateOfCharge}} %" }
+      ]
     },
     "end-of-session": {
       "title":"Session Finished",
       "buttonText":"View Session",
       "text":["Your session on the charging station {{chargeBoxID}}, connector {{connectorId}} has just finished."],
-      "tableColumns":["Consumption","Total Duration","Total Inactivity","Battery Level"]
+      "table": [
+        { "label": "Consumption", "value": "{{totalConsumption}} kW.h" },
+        { "label": "Total Duration", "value": "{{totalDuration}}" },
+        { "label": "Total Inactivity", "value": "{{totalInactivity}}" },
+        { "label": "State of Charge", "value": "{{stateOfCharge}} %" }
+      ]
     },
     "end-of-charge": {
       "title":"Charge Finished",
       "buttonText":"View Session",
       "text":["Your electric vehicle, which is connected to the charging station {{chargeBoxID}}, connector {{connectorId}}, has just finished charging."],
-      "tableColumns":["Consumption","Total Duration","Battery Level"]
+      "table": [
+        { "label": "Consumption", "value": "{{totalConsumption}} kW.h" },
+        { "label": "Total Duration", "value": "{{totalDuration}}" },
+        { "label": "Battery Level", "value": "{{stateOfCharge}} %" }
+      ]
+    },
+    "billing-new-invoice-unpaid": {
+      "title":"new invoice",
+      "buttontext":"View Invoice",
+      "text":["dear {{firstname}}, your invoice {{invoicenumber}} has been paid and is now available. "],
+      "table": [
+        { "label": "Amount Paid", "value": "${{invoiceamount}}$" }
+      ]
+    },
+    "billing-new-invoice-paid": {
+      "title":"new invoice",
+      "buttontext":"Pay Invoice",
+      "text":["A new invoice is available {{invoiceNumber}} Please follow the link below to finalize the payment"],
+      "table": [
+        { "label": "Amount Due", "value": "${{invoiceamount}}" }
+      ]
     }
   }
 }

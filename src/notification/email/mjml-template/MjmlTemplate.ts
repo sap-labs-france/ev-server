@@ -44,9 +44,13 @@ export default class MjmlTemplate {
       return;
     }
     let table = '';
-    const tableColumns = i18nManager.translate('email.' + prefix + '.tableColumns');
-    for (const [index,tableValue] of context.tableValues.entries()) {
-      table = table + `<tr><th style="font-size:18px;font-weight:300">${tableColumns[index]}</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">${tableValue as string}</td></tr>`;
+    const tableCases = JSON.parse(JSON.stringify(i18nManager.translate('email.' + prefix + '.table')));
+    for (let i = 0; i < tableCases.length;i++) {
+      const tableCase = tableCases[i];
+      const valueRegex = new RegExp(/\{\{([a-zA-Z0-9_.-]*)\}\}/g);
+      const valueSelector = valueRegex.exec(tableCase.value as string);
+      const t = tableCase.value.replace(valueSelector[0],context[valueSelector[1]]);
+      table = table + `<tr><th style="font-size:18px;font-weight:300">${tableCase.label as string}</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">${t as string}</td></tr>`;
     }
     this.replace(match[0],table);
   }
