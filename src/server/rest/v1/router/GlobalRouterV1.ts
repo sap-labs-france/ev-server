@@ -4,6 +4,7 @@ import AuthService from '../service/AuthService';
 import BillingRouter from './api/BillingRouter';
 import CarRouter from './api/CarRouter';
 import ChargingStationRouter from './api/ChargingStationRouter';
+import ChargingStationTemplateRouter from './api/ChargingStationTemplateRouter';
 import CommonService from '../service/CommonService';
 import CompanyRouter from './api/CompanyRouter';
 import ConnectionRouter from './api/ConnectionRouter';
@@ -57,6 +58,7 @@ export default class GlobalRouterV1 {
         new BillingRouter().buildRoutes(),
         new CarRouter().buildRoutes(),
         new ChargingStationRouter().buildRoutes(),
+        new ChargingStationTemplateRouter().buildRoutes(),
         new CompanyRouter().buildRoutes(),
         new ConnectionRouter().buildRoutes(),
         new LoggingRouter().buildRoutes(),
