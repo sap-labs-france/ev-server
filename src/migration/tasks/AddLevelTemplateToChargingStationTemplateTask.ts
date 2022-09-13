@@ -15,6 +15,10 @@ export default class AddLevelTemplateToChargingStationTemplateTask extends Migra
       .toArray();
     if (!Utils.isEmptyArray(templates)) {
       for (const template of templates) {
+        if (template.template) {
+          // skip this one as it has already ran
+          continue
+        }
         // Put _id in id const and get template without id
         const { 
           ['_id']: id,
@@ -53,7 +57,7 @@ export default class AddLevelTemplateToChargingStationTemplateTask extends Migra
   }
 
   public getVersion(): string {
-    return '1.0';
+    return '5.0';
   }
 
   public getName(): string {
