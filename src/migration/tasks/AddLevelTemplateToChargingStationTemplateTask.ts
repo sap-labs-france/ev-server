@@ -16,7 +16,14 @@ export default class AddLevelTemplateToChargingStationTemplateTask extends Migra
     if (!Utils.isEmptyArray(templates)) {
       for (const template of templates) {
         // Put _id in id const and get template without id
-        const { ['_id']: id, ...noIdTemplate } = template;
+        const { 
+          ['_id']: id,
+          ['hash']: hash,
+          ['hashTechnical']: hashTechnical,
+          ['hashCapabilities']: hashCapabilities,
+          ['hashOcppStandard']: hashOcppStandard,
+          ['hashOcppVendor']: hashOcppVendor,
+          ...noIdTemplate } = template;
         // Delete template
         await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').findOneAndDelete(
           // Find and delete by current id
@@ -28,6 +35,11 @@ export default class AddLevelTemplateToChargingStationTemplateTask extends Migra
             _id: new ObjectId(),
             lastChangedOn: new Date(),
             template : noIdTemplate,
+            hash,
+            hashTechnical,
+            hashCapabilities,
+            hashOcppStandard,
+            hashOcppVendor,
           },
         );
       }

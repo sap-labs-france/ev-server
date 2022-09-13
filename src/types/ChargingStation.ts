@@ -225,12 +225,12 @@ export enum Voltage {
 
 export interface ChargingStationTemplate extends CreatedUpdatedProps, AuthorizationActions {
   id: string;
+  hash?: string;
+  hashTechnical?: string;
+  hashCapabilities?: string;
+  hashOcppStandard?: string;
+  hashOcppVendor?: string;
   template: {
-    hash?: string;
-    hashTechnical?: string;
-    hashCapabilities?: string;
-    hashOcppStandard?: string;
-    hashOcppVendor?: string;
     chargePointVendor: string;
     extraFilters: {
       chargePointModel: string;

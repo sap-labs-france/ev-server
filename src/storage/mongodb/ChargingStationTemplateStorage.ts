@@ -17,6 +17,11 @@ export default class ChargingStationTemplateStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     // Validate
     const chargingStationTemplateMDB = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplateSave(chargingStationTemplate);
+    chargingStationTemplateMDB.hash = Utils.hash(JSON.stringify(chargingStationTemplateMDB)),
+    chargingStationTemplateMDB.hashTechnical = Utils.hash(JSON.stringify(chargingStationTemplateMDB.template.technical)),
+    chargingStationTemplateMDB.hashCapabilities = Utils.hash(JSON.stringify(chargingStationTemplateMDB.template.capabilities)),
+    chargingStationTemplateMDB.hashOcppStandard = Utils.hash(JSON.stringify(chargingStationTemplateMDB.template.ocppStandardParameters)),
+    chargingStationTemplateMDB.hashOcppVendor = Utils.hash(JSON.stringify(chargingStationTemplateMDB.template.ocppVendorParameters)),
     DatabaseUtils.switchIDToMongoDBID(chargingStationTemplateMDB);
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(chargingStationTemplateMDB, chargingStationTemplate);

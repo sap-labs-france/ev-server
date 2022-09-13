@@ -25,11 +25,6 @@ export default class ChargingStationTemplateService {
       createdBy: { id: req.user.id },
       createdOn: new Date(),
       template : {
-        hash : Utils.hash(JSON.stringify(filteredRequest)),
-        hashTechnical : Utils.hash(JSON.stringify(filteredRequest.template.technical)),
-        hashCapabilities : Utils.hash(JSON.stringify(filteredRequest.template.capabilities)),
-        hashOcppStandard : Utils.hash(JSON.stringify(filteredRequest.template.ocppStandardParameters)),
-        hashOcppVendor : Utils.hash(JSON.stringify(filteredRequest.template.ocppVendorParameters)),
         chargePointVendor: filteredRequest.template.chargePointVendor,
         capabilities: filteredRequest.template.capabilities,
         ocppStandardParameters: filteredRequest.template.ocppStandardParameters,
@@ -121,11 +116,6 @@ export default class ChargingStationTemplateService {
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest, { withUser: true });
     const template = filteredRequest.template;
     chargingStationTemplate.template = {
-      hash: Utils.hash(JSON.stringify(filteredRequest)),
-      hashTechnical: Utils.hash(JSON.stringify(template.technical)),
-      hashCapabilities: Utils.hash(JSON.stringify(template.capabilities)),
-      hashOcppStandard: Utils.hash(JSON.stringify(template.ocppStandardParameters)),
-      hashOcppVendor: Utils.hash(JSON.stringify(template.ocppVendorParameters)),
       chargePointVendor: template.chargePointVendor,
       extraFilters: template.extraFilters,
       technical: template.technical,
