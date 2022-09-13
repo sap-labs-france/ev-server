@@ -20,7 +20,7 @@ export default class AddLevelTemplateToChargingStationTemplateTask extends Migra
           continue
         }
         // Put _id in id const and get template without id
-        const { 
+        const {
           ['_id']: id,
           ['hash']: hash,
           ['hashTechnical']: hashTechnical,
@@ -57,7 +57,7 @@ export default class AddLevelTemplateToChargingStationTemplateTask extends Migra
   }
 
   public getVersion(): string {
-    return '5.0';
+    return '1.0';
   }
 
   public getName(): string {
