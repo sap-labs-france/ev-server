@@ -65,20 +65,20 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
-    return this.prepareAndSendEmail('optimal-charge-reached', data, user, tenant, severity,false,optionalComponents);
+    const optionalComponents = [ await EmailComponentManager.getComponent(EmailComponent.TABLE) ];
+    return this.prepareAndSendEmail('optimal-charge-reached', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
-    return this.prepareAndSendEmail('end-of-charge', data, user, tenant, severity,false,optionalComponents);
+    const optionalComponents = [ await EmailComponentManager.getComponent(EmailComponent.TABLE) ];
+    return this.prepareAndSendEmail('end-of-charge', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
-    return this.prepareAndSendEmail('end-of-session', data, user, tenant, severity,false,optionalComponents);
+    const optionalComponents = [ await EmailComponentManager.getComponent(EmailComponent.TABLE) ];
+    return this.prepareAndSendEmail('end-of-session', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -185,13 +185,16 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
+    const optionalComponents = [ await EmailComponentManager.getComponent(EmailComponent.TABLE) ];
+    let templateName: string ;
     if (data.invoiceStatus === 'paid') {
       data.buttonUrl = data.invoiceDownloadUrl;
-      return await this.prepareAndSendEmail('billing-new-invoice-paid', data, user, tenant, severity,false,optionalComponents);
+      templateName = 'billing-new-invoice-paid';
+    } else {
+      data.buttonUrl = data.payInvoiceUrl;
+      templateName = 'billing-new-invoice-unpaid';
     }
-    data.buttonUrl = data.payInvoiceUrl;
-    return await this.prepareAndSendEmail('billing-new-invoice-unpaid', data, user, tenant, severity,false,optionalComponents);
+    return await this.prepareAndSendEmail(templateName, data, user, tenant, severity, optionalComponents);
   }
 
   public async sendCarCatalogSynchronizationFailed(data: CarCatalogSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -211,6 +214,7 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     data.buttonUrl = data.evseDashboardURL;
+    // TODO - cannot be properly translated
     data.accountStatus = data.userStatus === 'A' ? 'and Activated' : '';
     data.accountStatus2 = data.userStatus === 'I' ? 'An Administrator will check and activate your account' : '';
     return this.prepareAndSendEmail('account-verification-notification', data, user, tenant, severity);
@@ -345,7 +349,7 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async sendSmartEmail(prefix: string, context: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false, optionalComponents?: string): Promise<void> {
+  private async sendSmartEmail(prefix: string, context: any, user: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents: string[] = []): Promise<void> {
     let startTime: number;
     let emailContent = {} as EmailNotificationMessage;
     try {
@@ -361,6 +365,7 @@ export default class EMailNotificationTask implements NotificationTask {
       if (context.user) {
         context.userFirstName = context.user.firstName | context.user.name;
       } else {
+        // TODO - Pass the admin user in the context when necessary
         context.userFirstName = 'Admin';
       }
       context.tenantLogoURL = tenant.logo;
@@ -368,7 +373,7 @@ export default class EMailNotificationTask implements NotificationTask {
       const template = (await mjmlBuilder.initialize())
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.TITLE))
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT1))
-        .addToBody(optionalComponents)
+        .addToBody(optionalComponents.join())
         .addToBody(await EmailComponentManager.getComponent(EmailComponent.BUTTON))
         .buildTemplate();
       template.resolve(i18nInstance, context,prefix);
@@ -382,7 +387,10 @@ export default class EMailNotificationTask implements NotificationTask {
         text: html,
         html: html
       };
-      await this.sendEmail(emailContent, context, tenant, user, severity, useSmtpClientBackup);
+      // We may have a fallback - Not used anymore
+      const useSmtpClientFallback = false ;
+      // Send the email
+      await this.sendEmail(emailContent, context, tenant, user, severity, useSmtpClientFallback);
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
@@ -401,9 +409,9 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false,optionalComponents?:string): Promise<void> {
+  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents?: string[] ): Promise<void> {
     if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
-      return await this.sendSmartEmail(templateName, data, user, tenant, severity,false,optionalComponents);
+      return await this.sendSmartEmail(templateName, data, user, tenant, severity, optionalComponents);
     }
 
     let startTime: number;
@@ -517,8 +525,10 @@ export default class EMailNotificationTask implements NotificationTask {
         text: html,
         html: html
       };
+      // We may have a fallback - Not used anymore
+      const useSmtpClientFallback = false ;
       // Send the email
-      await this.sendEmail(emailContent, data, tenant, user, severity, useSmtpClientBackup);
+      await this.sendEmail(emailContent, data, tenant, user, severity, useSmtpClientFallback);
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
