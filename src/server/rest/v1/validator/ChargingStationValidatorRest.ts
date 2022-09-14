@@ -85,7 +85,7 @@ export default class ChargingStationValidatorRest extends SchemaValidator {
   }
 
   public validateChargingStationActionTransactionStartReq(data: Record<string, unknown>): HttpChargingStationTransactionStartRequest {
-    return this.validate(this.chargingStationActionTransactionStart, data);
+    return this.validate(this.chargingStationActionTransactionStart, data, true);
   }
 
   public validateChargingStationActionTransactionStopReq(data: Record<string, unknown>): HttpChargingStationTransactionStopRequest {

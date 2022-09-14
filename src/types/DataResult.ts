@@ -1,11 +1,11 @@
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from './Billing';
 import { Car, CarCatalog } from './Car';
+import ChargingStation, { ChargingStationTemplate } from './ChargingStation';
 import Transaction, { TransactionStats } from './Transaction';
 
 import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import { ChargingProfile } from './ChargingProfile';
-import ChargingStation from './ChargingStation';
 import { ChargingStationInError } from './InError';
 import Company from './Company';
 import { Log } from './Log';
@@ -33,6 +33,10 @@ export interface PricingDefinitionDataResult extends DataResult<PricingDefinitio
 }
 
 export interface RegistrationTokenDataResult extends DataResult<RegistrationToken> {
+  canCreate: boolean;
+}
+
+export interface ChargingStationTemplateDataResult extends DataResult<ChargingStationTemplate> {
   canCreate: boolean;
 }
 

@@ -17,7 +17,7 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
     // Process them
     for (const tenant of tenants.result) {
       // Check if redirect domain is provided
-      if (tenant.redirectDomain) {
+      if (tenant.redirectDomain || tenant.idleMode) {
         // Ignore this tenant
         continue;
       }

@@ -24,6 +24,7 @@ export default class SchemaValidator {
   private static tenantComponentSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant-components.json`, 'utf8'));
   private static chargingStationSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/chargingstation/chargingstation.json`, 'utf8'));
   private static chargingStationProfileSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/chargingstation/chargingstation-profile.json`, 'utf8'));
+  private static chargingStationTemplateSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/chargingstation/chargingstation-template.json`, 'utf8'));
   private static tagSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tag/tag.json`, 'utf8'));
   private static transactionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/transaction/transaction.json`, 'utf8'));
   private static userSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/user/user.json`, 'utf8'));
@@ -70,6 +71,7 @@ export default class SchemaValidator {
       SchemaValidator.tenantComponentSchema,
       SchemaValidator.chargingStationSchema,
       SchemaValidator.chargingStationProfileSchema,
+      SchemaValidator.chargingStationTemplateSchema,
       SchemaValidator.tagSchema,
       SchemaValidator.transactionSchema,
       SchemaValidator.userSchema,

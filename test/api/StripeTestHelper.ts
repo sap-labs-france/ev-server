@@ -218,14 +218,14 @@ export default class StripeTestHelper {
     }
   }
 
-  public async assignTaxRate(rate: number) : Promise<Stripe.TaxRate> {
+  public async fetchOrCreateTaxRate(rate: number) : Promise<Stripe.TaxRate> {
     return StripeTaxHelper.fetchOrCreateTaxRate(this.billingImpl, rate);
   }
 
   public async checkBusinessProcessBillToPay(paymentShouldFail: boolean, withTax?:boolean) : Promise<void> {
     let taxId: string = null;
     if (withTax) {
-      const taxRate: Stripe.TaxRate = await this.assignTaxRate(20); // VAT 20%
+      const taxRate: Stripe.TaxRate = await this.fetchOrCreateTaxRate(20); // VAT 20%
       taxId = taxRate.id;
     }
     // The user should have no DRAFT invoices
@@ -281,7 +281,7 @@ export default class StripeTestHelper {
     // Inputs / Expected Outputs
     const tax20percent = 20 /* VAT 20 % */;
     // PREREQUISITE - immediateBillingAllowed MUST BE ON!
-    const taxRate: Stripe.TaxRate = await this.assignTaxRate(tax20percent);
+    const taxRate: Stripe.TaxRate = await this.fetchOrCreateTaxRate(tax20percent);
     const taxId = taxRate.id;
     // The user should have no DRAFT invoices
     await this.checkForDraftInvoices(this.dynamicUser.id, 0);
@@ -475,6 +475,7 @@ export default class StripeTestHelper {
       const newSettings: BillingSettings = response?.data?.internalData as BillingSettings;
       assert(newSettings.billing.isTransactionBillingActivated === false, 'Transaction billing should be switched OFF');
       assert(!newSettings.billing.taxID, 'taxID should not be set anymore');
+      assert(!newSettings.billing?.platformFeeTaxID, 'Platform Fee TaxID should not be set anymore');
       assert(!newSettings.stripe.url, 'URL should not be set anymore');
       assert(!newSettings.stripe.publicKey, 'publicKey should not be set anymore');
       assert(!newSettings.stripe.secretKey, 'secretKey should not be set anymore');
