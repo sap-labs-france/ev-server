@@ -64,7 +64,7 @@ export default class ChargingStationStorage {
     const chargingStationTemplates: ChargingStationTemplate[] = [];
     // Reverse match the regexp in JSON template records against the charging station vendor string
     for (const chargingStationTemplateMDB of chargingStationTemplatesMDB) {
-      const regExp = new RegExp(chargingStationTemplateMDB.chargePointVendor);
+      const regExp = new RegExp(chargingStationTemplateMDB.template.chargePointVendor);
       if (regExp.test(chargePointVendor)) {
         chargingStationTemplates.push(chargingStationTemplateMDB);
       }
@@ -80,24 +80,6 @@ export default class ChargingStationStorage {
       { qa: { $not: { $eq: true } } }
     );
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteChargingStationTemplates', startTime, { qa: { $not: { $eq: true } } });
-  }
-
-  public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<void> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    // Validate
-    chargingStationTemplate = ChargingStationValidatorStorage.getInstance().validateChargingStationTemplate(chargingStationTemplate);
-    // Prepare DB structure
-    const chargingStationTemplateMDB = {
-      ...chargingStationTemplate,
-      _id: chargingStationTemplate.id
-    };
-    delete chargingStationTemplateMDB.id;
-    // Modify and return the modified document
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').findOneAndReplace(
-      { '_id': chargingStationTemplate.id },
-      chargingStationTemplateMDB,
-      { upsert: true });
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveChargingStationTemplate', startTime, chargingStationTemplate);
   }
 
   public static async getChargingStation(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,

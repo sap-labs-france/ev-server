@@ -85,7 +85,7 @@ export default class ChargingStationService {
     // Update
     await ChargingStationStorage.saveChargingStation(req.tenant, chargingStation);
     // Check and Apply Charging Station templates
-    void ChargingStationService.checkAndApplyChargingStationTemplate(
+    await ChargingStationService.checkAndApplyChargingStationTemplate(
       action, req.tenant, chargingStation, req.user, resetAndApplyTemplate);
     await Logging.logInfo({
       tenantID: req.tenant.id,
@@ -1266,7 +1266,8 @@ export default class ChargingStationService {
         lastSelectedCar: true,
         lastCarStateOfCharge: filteredRequest.carStateOfCharge,
         lastCarOdometer: filteredRequest.carOdometer,
-        lastDepartureTime: filteredRequest.departureTime
+        lastDepartureTime: filteredRequest.departureTime,
+        lastTargetStateOfCharge: filteredRequest.targetStateOfCharge,
       });
     }
     // Execute it
