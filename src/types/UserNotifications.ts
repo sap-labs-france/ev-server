@@ -102,6 +102,10 @@ export interface BaseNotification {
   appUrl?:string;
   userFirstName?:string;
   tableValues?:string[];
+  chargeBoxIDsNumber?:number;
+  accountStatus?:string;
+  accountStatus2?:string;
+  email?:string;
 }
 
 export interface EndOfChargeNotification extends BaseNotification {

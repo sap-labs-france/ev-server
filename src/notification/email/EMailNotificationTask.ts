@@ -82,115 +82,148 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    return this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity);
+    return Promise.resolve();
+    // data.buttonUrl = data.evseDashboardURL;
+    // return this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity);
   }
 
   public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardChargingStationURL;
     return this.prepareAndSendEmail('charging-station-status-error', data, user, tenant, severity);
   }
 
   public async sendChargingStationRegistered(data: ChargingStationRegisteredNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardChargingStationURL;
     return this.prepareAndSendEmail('charging-station-registered', data, user, tenant, severity);
   }
 
   public async sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardURL;
+    data.accountStatus = data.user.status === 'A' ? 'Actived' : 'Suspended';
     return this.prepareAndSendEmail('user-account-status-changed', data, user, tenant, severity);
   }
 
   public async sendUnknownUserBadged(data: UnknownUserBadgedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardURL;
     return this.prepareAndSendEmail('unknown-user-badged', data, user, tenant, severity);
   }
 
   public async sendSessionStarted(data: TransactionStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardChargingStationURL;
     return this.prepareAndSendEmail('session-started', data, user, tenant, severity);
   }
 
   public async sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardVerifyEmailURL;
     return this.prepareAndSendEmail('verification-email', data, user, tenant, severity);
   }
 
   public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardVerifyEmailURL;
     return this.prepareAndSendEmail('verification-email-user-import', data, user, tenant, severity);
   }
 
   public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardURL;
     return this.prepareAndSendEmail('ocpi-patch-status-error', data, user, tenant, severity);
   }
 
   public async sendOICPPatchChargingStationsStatusesError(data: OICPPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardURL;
     return this.prepareAndSendEmail('oicp-patch-status-error', data, user, tenant, severity);
   }
 
   public async sendOICPPatchChargingStationsError(data: OICPPatchChargingStationsErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardURL;
     return this.prepareAndSendEmail('oicp-patch-evses-error', data, user, tenant, severity);
   }
 
   public async sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardURL;
     return this.prepareAndSendEmail('user-account-inactivity', data, user, tenant, severity);
   }
 
   public async sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardChargingStationURL;
     return this.prepareAndSendEmail('session-not-started', data, user, tenant, severity);
   }
 
   public async sendSessionNotStarted(data: SessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardChargingStationURL;
     return this.prepareAndSendEmail('session-not-started-after-authorize', data, user, tenant, severity);
   }
 
   public async sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.chargeBoxIDsNumber = data.chargeBoxIDs.length;
+    data.appUrl = data.evseDashboardURL;
     return this.prepareAndSendEmail('offline-charging-station', data, user, tenant, severity);
   }
 
   public async sendBillingSynchronizationFailed(data: BillingUserSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardBillingURL;
     return this.prepareAndSendEmail('billing-user-synchronization-failed', data, user, tenant, severity);
   }
 
   public async sendBillingInvoiceSynchronizationFailed(data: BillingInvoiceSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardBillingURL;
     return this.prepareAndSendEmail('billing-invoice-synchronization-failed', data, user, tenant, severity);
   }
 
   public async sendBillingPeriodicOperationFailed(data: BillingInvoiceSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardBillingURL;
     return this.prepareAndSendEmail('billing-periodic-operation-failed', data, user, tenant, severity);
   }
 
   public async sendBillingAccountCreationLink(data: BillingAccountCreationLinkNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.appUrl = data.onboardingLink;
     return this.prepareAndSendEmail('billing-account-created', data, user, tenant, severity);
   }
 
   public async sendBillingAccountActivationNotification(data: BillingAccountActivationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardURL;
     return this.prepareAndSendEmail('billing-account-activated', data, user, tenant, severity);
   }
 
   public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    data.buttonUrl = data.evseDashboardInvoiceURL;
     const optionalComponents = await EmailComponentManager.getComponent(EmailComponent.TABLE);
     if (data.invoiceStatus === 'paid') {
+      data.buttonUrl = data.invoiceDownloadUrl;
       return await this.prepareAndSendEmail('billing-new-invoice-paid', data, user, tenant, severity,false,optionalComponents);
     }
+    data.buttonUrl = data.payInvoiceUrl;
     return await this.prepareAndSendEmail('billing-new-invoice-unpaid', data, user, tenant, severity,false,optionalComponents);
   }
 
   public async sendCarCatalogSynchronizationFailed(data: CarCatalogSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardURL;
     return this.prepareAndSendEmail('car-synchronization-failed', data, user, tenant, severity);
   }
 
   public async sendComputeAndApplyChargingProfilesFailed(data: ComputeAndApplyChargingProfilesFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardURL;
     return this.prepareAndSendEmail('compute-and-apply-charging-profiles-failed', data, user, tenant, severity);
   }
 
   public async sendEndUserErrorNotification(data: EndUserErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardURL;
     return this.prepareAndSendEmail('end-user-error-notification', data, user, tenant, severity);
   }
 
   public async sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardURL;
+    data.accountStatus = data.userStatus === 'A' ? 'and Activated' : '';
+    data.accountStatus2 = data.userStatus === 'I' ? 'An Administrator will check and activate your account' : '';
     return this.prepareAndSendEmail('account-verification-notification', data, user, tenant, severity);
   }
 
   public async sendAdminAccountVerificationNotification(data: AdminAccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseUserToVerifyURL;
+    data.email = data.user.email;
     return this.prepareAndSendEmail('admin-account-verification-notification', data, user, tenant, severity);
   }
 
   public async sendUserCreatePassword(data: UserCreatePassword, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    data.buttonUrl = data.evseDashboardCreatePasswordURL;
     return this.prepareAndSendEmail('user-create-password', data, user, tenant, severity);
   }
 
@@ -325,7 +358,11 @@ export default class EMailNotificationTask implements NotificationTask {
         });
       }
       context.appUrl = context.appUrl || 'https://open-e-mobility.io/';
-      context.userFirstName = context.user.firstName || context.user.name;
+      if (context.user) {
+        context.userFirstName = context.user.firstName | context.user.name;
+      } else {
+        context.userFirstName = 'Admin';
+      }
       context.tenantLogoURL = tenant.logo;
       const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
       const template = (await mjmlBuilder.initialize())

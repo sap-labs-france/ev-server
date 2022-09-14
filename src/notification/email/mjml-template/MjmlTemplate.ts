@@ -24,7 +24,7 @@ export default class MjmlTemplate {
     for (const selector of i18nSelectors) {
       let value = i18nManager.translate(selector,context);
       if (Array.isArray(value)) {
-        value = value.join('</br>');
+        value = value.join('<br>');
       }
       this.replace(selector, value);
     }

@@ -1,5 +1,5 @@
 <mjml><mj-head>
-	<mj-title>Session Finished</mj-title>
+	<mj-title>New Account Created</mj-title>
 	<mj-font name="Roboto" href="https://fonts.googleapis.com/css?family=Roboto:300,500"></mj-font>
 	<mj-attributes>
 		<mj-all font-family="Roboto, Helvetica, sans-serif"></mj-all>
@@ -20,28 +20,21 @@
 </mj-section>
 <mj-section>
 	<mj-column>
-		<mj-text font-weight="500" font-size="20px">Session Finished</mj-text>
+		<mj-text font-weight="500" font-size="20px">New Account Created</mj-text>
 	</mj-column>
 </mj-section>
 ,<mj-section padding-top="20px">
 	<mj-column>
 		<mj-text>
-			<p>Hello ! User,</p>
-			<p>Your session on the charging station charging box id, connector connector id has just finished.</p>
+			<p>Hello 0,</p>
+			<p>An account has just been created on your behalf in tenant name organisation.<br>Click on the link bellow to create your password.<br>You will have to log in at least once to this organisation to be able to charge your car.</p>
 		</mj-text>
 	</mj-column>
 </mj-section>
 ,<mj-section>
-  <mj-column width="70%">
-    <mj-table>
-    <tr><th style="font-size:18px;font-weight:300">Consumption</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">total consumption kW.h</td></tr><tr><th style="font-size:18px;font-weight:300">Total Duration</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">undefined</td></tr><tr><th style="font-size:18px;font-weight:300">State of Charge</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">undefined %</td></tr>
-    </mj-table>
-  </mj-column>
-</mj-section>
-,<mj-section>
 	<mj-column>
-		<mj-button background-color="#8fd365" font-size="16px" href="undefined">
-			View Session
+		<mj-button background-color="#8fd365" font-size="16px" href="some_url">
+			Create Your Password
 		</mj-button>
 	</mj-column>
 </mj-section>
