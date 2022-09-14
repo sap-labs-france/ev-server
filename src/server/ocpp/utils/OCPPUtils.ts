@@ -1614,7 +1614,7 @@ export default class OCPPUtils {
       let matchFirmware = false;
       let matchOcpp = false;
       // Search Firmware/Ocpp match
-      for (const ocppParameters of chargingStationTemplate[ocppProperty]) {
+      for (const ocppParameters of chargingStationTemplate.template[ocppProperty]) {
         // Check Firmware version
         if (ocppParameters.supportedFirmwareVersions) {
           for (const supportedFirmwareVersion of ocppParameters.supportedFirmwareVersions) {
