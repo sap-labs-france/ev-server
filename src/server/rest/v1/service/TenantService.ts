@@ -399,7 +399,6 @@ export default class TenantService {
       MODULE_NAME, 'handleUpdateTenantData', req.user);
     tenant.name = filteredRequest.name;
     tenant.address = filteredRequest.address;
-    tenant.components = filteredRequest.components;
     tenant.email = filteredRequest.email;
     if (Utils.objectHasProperty(filteredRequest, 'logo')) {
       tenant.logo = filteredRequest.logo;
