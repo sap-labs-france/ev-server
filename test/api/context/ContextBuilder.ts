@@ -365,7 +365,7 @@ export default class ContextBuilder {
               chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
               console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
-              console.log(`${buildTenant.id} (${buildTenant.name}) - Troubleshoot CS boot notif: '${chargingStationTemplate}'`);
+              console.log(`${buildTenant.id} (${buildTenant.name}) - Troubleshoot CS boot notif: '${JSON.stringify(chargingStationTemplate)}'`);
               const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
               await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
             }
