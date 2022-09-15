@@ -7,6 +7,7 @@ import CentralSystemRestServiceConfiguration from './types/configuration/Central
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
+import ContextBuilder from '../test/api/context/ContextBuilder';
 import I18nManager from './utils/I18nManager';
 import JsonOCPPServer from './server/ocpp/json/JsonOCPPServer';
 import LocalCarCatalogBootstrap from './bootstrap/LocalCarCatalogBootstrap';
@@ -167,6 +168,13 @@ export default class Bootstrap {
 
       // Update of manually uploaded data
       if (Bootstrap.migrationConfig?.active) {
+        // -------------------------------------------------------------------------
+        // Update Charging Station Templates
+        // -------------------------------------------------------------------------
+        startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
+        // Load and Save the Charging Station templates
+        await ContextBuilder.populateTemplates();
+        await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
         // -------------------------------------------------------------------------
         // Import Local Car Catalogs
         // -------------------------------------------------------------------------

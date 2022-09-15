@@ -69,9 +69,10 @@ export default class ContextBuilder {
   public async prepareContexts(): Promise<void> {
     // Connect to the DB
     await global.database.start();
+    // await this.populateTemplates()
     await this.destroyTestTenants();
     // Build each tenant context
-
+    // await this.populateTemplates();
     let tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST;
     if (process.env.TENANT_FILTER) {
       // Just an optimization allowing to only initialize a single tenant
@@ -250,7 +251,6 @@ export default class ContextBuilder {
     }
     userListToAssign = [adminUser]; // Default admin is always assigned to site
     userList = [adminUser]; // Default admin is always assigned to site
-    await this.populateTemplates();
     // Prepare users
     // Skip first entry as it is the default admin already consider above
     for (let index = 1; index < ContextDefinition.TENANT_USER_LIST.length; index++) {
@@ -429,13 +429,18 @@ export default class ContextBuilder {
     return newTenantContext;
   }
 
-  private async populateTemplates(): Promise<void> {
+  public static async populateTemplates(): Promise<void> {
     let created = 0;
+    // Check if there is existing templates
+    const existingTemplates = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').findOne({});
+    if (existingTemplates) {
+      return;
+    }
     try {
       let chargingStationTemplates: ChargingStationTemplate[] = [
         // Template Schneider~EV2S22P44|EVC1S22P4E4E
         {
-          id: Utils.generateUUID(),
+          id: null,
           template: {
             chargePointVendor: "Schneider Electric",
           extraFilters: {
@@ -565,7 +570,7 @@ export default class ContextBuilder {
         },
         // Template Schneider~EV2S7P44|EVC1S7P4E4E
         {
-          id: Utils.generateUUID(),
+          id: null,
           template: {
             chargePointVendor: "Schneider Electric",
             extraFilters: {
@@ -695,7 +700,7 @@ export default class ContextBuilder {
         },
         // Template Delta~10616
         {
-          id: Utils.generateUUID(),
+          id: null,
           template: {
             chargePointVendor: "DELTA",
             extraFilters: {
@@ -802,25 +807,15 @@ export default class ContextBuilder {
           }
         }
       ];
-      // chargingStationTemplates.forEach((template) => {
-      for(const template of chargingStationTemplates) {
-        // Build the hash code
-        template.hash = Utils.hash(JSON.stringify(template));
-        // Check if the existing car has changed
-        const existingTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(template.id);
-        // Ignore
-        if (existingTemplate?.hash === template.hash) {
-          continue;
-        }
-        await ChargingStationTemplateStorage.deleteChargingStationTemplate(Constants.DEFAULT_TENANT_OBJECT, template.id)
+      for (const template of chargingStationTemplates) {
         template.createdOn = new Date();
         await ChargingStationTemplateStorage.saveChargingStationTemplate(template);
+        created++;
       };
-      created++;
     } catch (error) {
-      console.log(`Error while importing the charging station templates : ${error.message as string}`);
+      console.log(`>>>> Error while importing the charging station templates : ${error.message as string}`);
     }
     // Log in the default tenant
-      console.log(`${created} charging station template(s) created in the default tenant`);
+    console.log(`>>>> ${created} charging station template(s) created in the default tenant`);
   }
 }
