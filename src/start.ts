@@ -1,13 +1,10 @@
 import CentralSystemConfiguration, { CentralSystemImplementation } from './types/configuration/CentralSystemConfiguration';
-import { ChargingStationTemplate, ConnectorType, CurrentType } from './types/ChargingStation';
 import { ServerAction, ServerType } from './types/Server';
 
 import AsyncTaskConfiguration from './types/configuration/AsyncTaskConfiguration';
 import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
-import { ChargingRateUnitType } from './types/ChargingProfile';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
-import ChargingStationTemplateStorage from './storage/mongodb/ChargingStationTemplateStorage';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
