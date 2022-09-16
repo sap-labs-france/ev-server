@@ -278,7 +278,6 @@ export default class TenantContext {
     expect(response).to.have.property('currentTime');
     let createdChargingStation = await this.getAdminCentralServerService().getEntityById(
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
-    console.log(`>>>> Troubleshoot CS Boot Notification: '${JSON.stringify(createdChargingStation)}'`);
     expect(createdChargingStation.maximumPower).to.eql(44160);
     expect(createdChargingStation.powerLimitUnit).to.eql('A');
     for (let i = 0; i < (connectorsDef ? connectorsDef.length : 2); i++) {
