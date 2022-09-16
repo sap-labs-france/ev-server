@@ -1,0 +1,14 @@
+{
+  "$id": "charging-station-template-delete",
+  "title": "Delete a charging station template",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

@@ -769,9 +769,9 @@ export default class OCPPUtils {
       // Keep it
       foundTemplate = chargingStationTemplate;
       // Browse filter for extra matching
-      for (const filter in chargingStationTemplate.extraFilters) {
+      for (const filter in chargingStationTemplate.template.extraFilters) {
         if (Utils.objectHasProperty(chargingStation, filter)) {
-          const filterValue: string = chargingStationTemplate.extraFilters[filter];
+          const filterValue: string = chargingStationTemplate.template.extraFilters[filter];
           if (!(new RegExp(filterValue).test(chargingStation[filter]))) {
             foundTemplate = null;
             break;
@@ -809,15 +809,14 @@ export default class OCPPUtils {
     const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
     if (chargingStationTemplate) {
       // Handle connector
-      if (Utils.objectHasProperty(chargingStationTemplate.technical, 'connectors') &&
-          !Utils.isEmptyArray(chargingStationTemplate.technical.connectors)) {
+      if (!Utils.isEmptyArray(chargingStationTemplate.template.technical?.connectors)) {
         let foundTemplateConnector: ChargingStationTemplateConnector;
         // Master/Slave: Always take the first
-        if (chargingStationTemplate.technical.masterSlave) {
-          foundTemplateConnector = chargingStationTemplate.technical.connectors[0];
+        if (chargingStationTemplate.template.technical.masterSlave) {
+          foundTemplateConnector = chargingStationTemplate.template.technical.connectors[0];
         // Find the connector in the template
         } else {
-          foundTemplateConnector = chargingStationTemplate.technical.connectors.find(
+          foundTemplateConnector = chargingStationTemplate.template.technical.connectors.find(
             (templateConnector) => templateConnector.connectorId === connector.connectorId);
         }
         // Not found but not master/salve
@@ -864,7 +863,7 @@ export default class OCPPUtils {
           delete connector.numberOfConnectedPhase;
         }
         // Master/Slave: Adjust the Charge Point
-        if (chargingStationTemplate.technical.masterSlave) {
+        if (chargingStationTemplate.template.technical.masterSlave) {
           OCPPUtils.adjustChargingStationChargePointForMasterSlave(chargingStation);
         }
         const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
@@ -1570,9 +1569,9 @@ export default class OCPPUtils {
         });
       }
       // Master/Slave: always override the charge point
-      if (chargingStationTemplate.technical.masterSlave) {
-        if (Utils.objectHasProperty(chargingStationTemplate.technical, 'chargePoints')) {
-          chargingStation.chargePoints = chargingStationTemplate.technical.chargePoints;
+      if (chargingStationTemplate.template.technical.masterSlave) {
+        if (Utils.objectHasProperty(chargingStationTemplate.template.technical, 'chargePoints')) {
+          chargingStation.chargePoints = chargingStationTemplate.template.technical.chargePoints;
         }
       }
     } else {
@@ -1611,11 +1610,11 @@ export default class OCPPUtils {
       ocppProperty: 'ocppStandardParameters'|'ocppVendorParameters'): Promise<boolean> {
     // Handle OCPP Standard Parameters
     chargingStation[ocppProperty] = [];
-    if (Utils.objectHasProperty(chargingStationTemplate, ocppProperty)) {
+    if (chargingStationTemplate.template?.[ocppProperty]) {
       let matchFirmware = false;
       let matchOcpp = false;
       // Search Firmware/Ocpp match
-      for (const ocppParameters of chargingStationTemplate[ocppProperty]) {
+      for (const ocppParameters of chargingStationTemplate.template[ocppProperty]) {
         // Check Firmware version
         if (ocppParameters.supportedFirmwareVersions) {
           for (const supportedFirmwareVersion of ocppParameters.supportedFirmwareVersions) {
@@ -1681,11 +1680,11 @@ export default class OCPPUtils {
     if (chargingStation.templateHashCapabilities !== chargingStationTemplate.hashCapabilities) {
       // Handle capabilities
       chargingStation.capabilities = {} as ChargingStationCapabilities;
-      if (Utils.objectHasProperty(chargingStationTemplate, 'capabilities')) {
+      if (chargingStationTemplate.template?.capabilities) {
         let matchFirmware = false;
         let matchOcpp = false;
         // Search Firmware/Ocpp match
-        for (const capabilities of chargingStationTemplate.capabilities) {
+        for (const capabilities of chargingStationTemplate.template.capabilities) {
           // Check Firmware version
           if (capabilities.supportedFirmwareVersions) {
             for (const supportedFirmwareVersion of capabilities.supportedFirmwareVersions) {
@@ -1702,8 +1701,7 @@ export default class OCPPUtils {
           }
           // Found?
           if (matchFirmware && matchOcpp) {
-            if (Utils.objectHasProperty(capabilities.capabilities, 'supportChargingProfiles') &&
-                !capabilities.capabilities?.supportChargingProfiles) {
+            if (capabilities.capabilities?.supportChargingProfiles === false) {
               chargingStation.excludeFromSmartCharging = !capabilities.capabilities.supportChargingProfiles;
             }
             chargingStation.capabilities = capabilities.capabilities;
@@ -1726,20 +1724,20 @@ export default class OCPPUtils {
 
   private static enrichChargingStationWithTemplateTechnicalParams(chargingStation: ChargingStation, chargingStationTemplate: ChargingStationTemplate): boolean {
     if (chargingStation.templateHashTechnical !== chargingStationTemplate.hashTechnical) {
-      if (Utils.objectHasProperty(chargingStationTemplate.technical, 'maximumPower')) {
-        chargingStation.maximumPower = chargingStationTemplate.technical.maximumPower;
+      if (chargingStationTemplate.template.technical?.maximumPower) {
+        chargingStation.maximumPower = chargingStationTemplate.template.technical.maximumPower;
       }
-      if (Utils.objectHasProperty(chargingStationTemplate.technical, 'masterSlave')) {
-        chargingStation.masterSlave = chargingStationTemplate.technical.masterSlave;
+      if (chargingStationTemplate.template.technical?.masterSlave) {
+        chargingStation.masterSlave = chargingStationTemplate.template.technical.masterSlave;
       }
-      if (Utils.objectHasProperty(chargingStationTemplate.technical, 'chargePoints')) {
-        chargingStation.chargePoints = chargingStationTemplate.technical.chargePoints;
+      if (chargingStationTemplate.template.technical?.chargePoints) {
+        chargingStation.chargePoints = chargingStationTemplate.template.technical.chargePoints;
       }
-      if (Utils.objectHasProperty(chargingStationTemplate.technical, 'powerLimitUnit')) {
-        chargingStation.powerLimitUnit = chargingStationTemplate.technical.powerLimitUnit;
+      if (chargingStationTemplate.template.technical?.powerLimitUnit) {
+        chargingStation.powerLimitUnit = chargingStationTemplate.template.technical.powerLimitUnit;
       }
-      if (Utils.objectHasProperty(chargingStationTemplate.technical, 'voltage')) {
-        chargingStation.voltage = chargingStationTemplate.technical.voltage;
+      if (chargingStationTemplate.template.technical?.voltage) {
+        chargingStation.voltage = chargingStationTemplate.template.technical.voltage;
       }
       // Set the hash
       chargingStation.templateHashTechnical = chargingStationTemplate.hashTechnical;

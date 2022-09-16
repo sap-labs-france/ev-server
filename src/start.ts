@@ -5,7 +5,6 @@ import AsyncTaskConfiguration from './types/configuration/AsyncTaskConfiguration
 import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
-import ChargingStationTemplateBootstrap from './bootstrap/ChargingStationTemplateBootstrap';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
@@ -169,14 +168,6 @@ export default class Bootstrap {
       // Update of manually uploaded data
       if (Bootstrap.migrationConfig?.active) {
         // -------------------------------------------------------------------------
-        // Update Charging Station Templates
-        // -------------------------------------------------------------------------
-        startTimeMillis = await this.logAndGetStartTimeMillis('Charging Station templates is being updated...');
-        // Load and Save the Charging Station templates
-        await ChargingStationTemplateBootstrap.uploadChargingStationTemplatesFromFile();
-        await this.logDuration(startTimeMillis, 'Charging Station templates have been updated successfully');
-
-        // -------------------------------------------------------------------------
         // Import Local Car Catalogs
         // -------------------------------------------------------------------------
         startTimeMillis = await this.logAndGetStartTimeMillis('Local car catalogs are being imported...');
@@ -191,7 +182,7 @@ export default class Bootstrap {
       } else {
         global.serverType = ServerType.CENTRAL_SERVER;
       }
-      await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuly`, ServerAction.BOOTSTRAP_STARTUP);
+      await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuLly`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       Logging.logConsoleError(error);
       global.database && await Logging.logError({
