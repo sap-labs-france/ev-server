@@ -14,6 +14,7 @@ import NotificationTask from '../NotificationTask';
 import { ServerAction } from '../../types/Server';
 import TemplateManager from '../../utils/TemplateManager';
 import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import ejs from 'ejs';
@@ -187,12 +188,16 @@ export default class EMailNotificationTask implements NotificationTask {
   public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     const optionalComponents = [ await EmailComponentManager.getComponent(EmailComponent.TABLE) ];
     let templateName: string ;
-    if (data.invoiceStatus === 'paid') {
-      data.buttonUrl = data.invoiceDownloadUrl;
-      templateName = 'billing-new-invoice-paid';
+    if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
+      if (data.invoiceStatus === 'paid') {
+        data.buttonUrl = data.invoiceDownloadUrl;
+        templateName = 'billing-new-invoice-paid';
+      } else {
+        data.buttonUrl = data.payInvoiceUrl;
+        templateName = 'billing-new-invoice-unpaid';
+      }
     } else {
-      data.buttonUrl = data.payInvoiceUrl;
-      templateName = 'billing-new-invoice-unpaid';
+      templateName = 'billing-new-invoice';
     }
     return await this.prepareAndSendEmail(templateName, data, user, tenant, severity, optionalComponents);
   }
@@ -349,73 +354,42 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async sendSmartEmail(prefix: string, context: any, user: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents: string[] = []): Promise<void> {
-    let startTime: number;
-    let emailContent = {} as EmailNotificationMessage;
-    try {
-      startTime = Logging.traceNotificationStart();
-      if (!user?.email) {
-        throw new BackendError({
-          action: ServerAction.EMAIL_NOTIFICATION,
-          module: MODULE_NAME, method: 'prepareAndSendEmail',
-          message: 'User is mandatory'
-        });
-      }
-      context.appUrl = context.appUrl || 'https://open-e-mobility.io/';
-      if (context.user) {
-        context.userFirstName = context.user.firstName | context.user.name;
-      } else {
-        // TODO - Pass the admin user in the context when necessary
-        context.userFirstName = 'Admin';
-      }
-      context.tenantLogoURL = tenant.logo;
-      const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
-      const template = (await mjmlBuilder.initialize())
-        .addToBody(await EmailComponentManager.getComponent(EmailComponent.TITLE))
-        .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT1))
-        .addToBody(optionalComponents.join())
-        .addToBody(await EmailComponentManager.getComponent(EmailComponent.BUTTON))
-        .buildTemplate();
-      template.resolve(i18nInstance, context,prefix);
-      // if (Utils.isDevelopmentEnv()) {
-      //   fs.writeFileSync('./troubleshoot-email-framework.txt',template.getTemplate(),'utf-8');
-      // }
-      const html = template.getHtml();
-      emailContent = {
-        to: user.email,
-        subject: i18nInstance.translate(`email.${prefix}.title`, context as Record<string,unknown>),
-        text: html,
-        html: html
-      };
-      // We may have a fallback - Not used anymore
-      const useSmtpClientFallback = false ;
-      // Send the email
-      await this.sendEmail(emailContent, context, tenant, user, severity, useSmtpClientFallback);
-    } catch (error) {
-      await Logging.logError({
-        tenantID: tenant.id,
-        siteID: context?.siteID,
-        siteAreaID: context?.siteAreaID,
-        companyID: context?.companyID,
-        chargingStationID: context?.chargeBoxID,
-        action: ServerAction.EMAIL_NOTIFICATION,
-        module: MODULE_NAME, method: 'prepareAndSendEmail',
-        message: 'Error in preparing email for user',
-        actionOnUser: user,
-        detailedMessages: { error: error.stack }
-      });
-    } finally {
-      await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'prepareAndSendEmail', startTime, prefix, emailContent, user.id);
+  private async sendSmartEmail(prefix: string, context: any, user: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents: string[] = []): Promise<EmailNotificationMessage> {
+    context.appUrl = context.appUrl || 'https://open-e-mobility.io/';
+    if (context.user) {
+      context.userFirstName = context.user.firstName || context.user.name;
+    } else {
+      // TODO - Pass the admin user in the context when necessary
+      context.userFirstName = 'Admin';
     }
+    const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
+    const template = (await mjmlBuilder.initialize())
+      .addToBody(await EmailComponentManager.getComponent(EmailComponent.TITLE))
+      .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT1))
+      .addToBody(optionalComponents.join())
+      .addToBody(await EmailComponentManager.getComponent(EmailComponent.BUTTON))
+      .buildTemplate();
+    template.resolve(i18nInstance, context,prefix);
+    // if (Utils.isDevelopmentEnv()) {
+    //   fs.writeFileSync('./troubleshoot-email-framework.txt',template.getTemplate(),'utf-8');
+    // }
+    const html = template.getHtml();
+    const emailContent: EmailNotificationMessage = {
+      to: user.email,
+      subject: i18nInstance.translate(`email.${prefix}.title`, context as Record<string,unknown>),
+      text: html,
+      html: html
+    };
+    // We may have a fallback - Not used anymore
+    const useSmtpClientFallback = false ;
+    // Send the email
+    await this.sendEmail(emailContent, context, tenant, user, severity, useSmtpClientFallback);
+    return emailContent;
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents?: string[] ): Promise<void> {
-    if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
-      return await this.sendSmartEmail(templateName, data, user, tenant, severity, optionalComponents);
-    }
-
     let startTime: number;
-    let emailContent = {} as EmailNotificationMessage;
+    let emailContent: EmailNotificationMessage;
     try {
       startTime = Logging.traceNotificationStart();
       if (!user) {
@@ -433,6 +407,47 @@ export default class EMailNotificationTask implements NotificationTask {
           message: `No email is provided for User for '${templateName}'`
         });
       }
+      // Tenant LOGO
+      data.tenantLogoURL = await this.getTenantLogo(tenant);
+      // Send the email
+      if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
+        emailContent = await this.sendSmartEmail(templateName, data, user, tenant, severity, optionalComponents);
+      } else {
+        emailContent = await this.sendStupidEmail(templateName, data, user, tenant, severity);
+      }
+    } catch (error) {
+      console.log(">>>> " , error);
+      await Logging.logError({
+        tenantID: tenant.id,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
+        action: ServerAction.EMAIL_NOTIFICATION,
+        module: MODULE_NAME, method: 'prepareAndSendEmail',
+        message: 'Error in preparing email for user',
+        actionOnUser: user,
+        detailedMessages: { error: error.stack }
+      });
+    } finally {
+      await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'prepareAndSendEmail', startTime, templateName, emailContent, user.id);
+    }
+    // TODO - return the content for testing purposes
+    //return emailContent;
+  }
+
+
+  private async getTenantLogo(tenant: Tenant): Promise<string> {
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
+      return Constants.TENANT_DEFAULT_LOGO_CONTENT;
+    } else if ( !tenant.logo ) {
+      // Get the Tenant logo
+      tenant.logo = (await TenantStorage.getTenantLogo(tenant))?.logo;
+    }
+    return tenant.logo || Constants.TENANT_DEFAULT_LOGO_CONTENT;
+  }
+
+  private async sendStupidEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<EmailNotificationMessage> {
       // Fetch the template
       const emailTemplate = await TemplateManager.getInstanceForLocale(user.locale).getTemplate(templateName);
       if (!emailTemplate) {
@@ -519,7 +534,7 @@ export default class EMailNotificationTask implements NotificationTask {
         htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
       }
       const html = htmlTemp;
-      emailContent = {
+      const emailContent: EmailNotificationMessage = {
         to: user.email,
         subject: subject,
         text: html,
@@ -529,23 +544,8 @@ export default class EMailNotificationTask implements NotificationTask {
       const useSmtpClientFallback = false ;
       // Send the email
       await this.sendEmail(emailContent, data, tenant, user, severity, useSmtpClientFallback);
-    } catch (error) {
-      await Logging.logError({
-        tenantID: tenant.id,
-        siteID: data?.siteID,
-        siteAreaID: data?.siteAreaID,
-        companyID: data?.companyID,
-        chargingStationID: data?.chargeBoxID,
-        action: ServerAction.EMAIL_NOTIFICATION,
-        module: MODULE_NAME, method: 'prepareAndSendEmail',
-        message: 'Error in preparing email for user',
-        actionOnUser: user,
-        detailedMessages: { error: error.stack }
-      });
-    } finally {
-      await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'prepareAndSendEmail', startTime, templateName, emailContent, user.id);
+      return emailContent;
     }
-  }
 
   private getSMTPClient(useSmtpClientBackup: boolean): SMTPClient {
     if (useSmtpClientBackup) {

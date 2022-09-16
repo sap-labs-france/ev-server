@@ -1,4 +1,5 @@
 import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../src/types/UserNotifications';
+import User, { UserStatus } from '../../src/types/User';
 
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -6,7 +7,6 @@ import EMailNotificationTask from '../../src/notification/email/EMailNotificatio
 import I18nManager from '../../src/utils/I18nManager';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import Tenant from '../../src/types/Tenant';
-import User from '../../src/types/User';
 import chai from 'chai';
 import chaiSubset from 'chai-subset';
 import config from '../config';
@@ -36,14 +36,13 @@ describe('Initialization', () => {
     let tenant : Tenant;
     const severity = 'INFO' as NotificationSeverity;
 
-    let data: any;
     beforeAll(async () => {
       const tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       user = tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       tenant = tenantContext.getTenant();
     });
     it('new-registered-user', async () => {
-      data = {
+      const data = {
         tenant: tenant.subdomain,
         user,
         evseDashboardURL: 'some_url',
@@ -53,7 +52,7 @@ describe('Initialization', () => {
     });
 
     it('request-password', async () => {
-      data = {
+      const data = {
         user,
         evseDashboardResetPassURL:'some_url',
         evseDashboardURL:'some_url2'
@@ -62,7 +61,7 @@ describe('Initialization', () => {
     });
 
     it('optimal-charge-reached', async () => {
-      data = {
+      const data = {
         transactionId: 1,
         siteID: 'site_id',
         siteAreaID: 'site area id',
@@ -79,7 +78,7 @@ describe('Initialization', () => {
     });
 
     it('end-of-charge', async () => {
-      data = {
+      const data = {
         transactionId: 1,
         siteID: '',
         siteAreaID: 'site area id',
@@ -97,7 +96,7 @@ describe('Initialization', () => {
     });
 
     it('end-of-session', async () => {
-      data = {
+      const data = {
         transactionId: 1,
         siteID: 'site id',
         siteAreaID: 'site area id',
@@ -118,7 +117,7 @@ describe('Initialization', () => {
     });
 
     it('billing-new-invoice-paid', async () => {
-      data = {
+      const data = {
         evseDashboardURL: 'some_url',
         evseDashboardInvoiceURL: 'some_url',
         user,
@@ -132,7 +131,7 @@ describe('Initialization', () => {
     });
 
     it('billing-new-invoice-unpaid', async () => {
-      data = {
+      const data = {
         evseDashboardURL: 'some_url',
         evseDashboardInvoiceURL: 'some_url',
         user,
@@ -146,7 +145,7 @@ describe('Initialization', () => {
     });
 
     it('charging-station-registered', async () => {
-      data = {
+      const data = {
         chargeBoxID: 'Charge Box A1',
         siteID: 'Site 134',
         siteAreaID: 'A3',
@@ -158,7 +157,7 @@ describe('Initialization', () => {
     });
 
     it('end-user-error-notification', async () => {
-      data = {
+      const data = {
         userID: 'some user id',
         email: 'email',
         name: 'name',
@@ -171,7 +170,7 @@ describe('Initialization', () => {
     });
 
     it('offline-charging-station', async () => {
-      data = {
+      const data = {
         chargeBoxIDs: 'some box id',
         evseDashboardURL: 'some_url',
       } as OfflineChargingStationNotification;
@@ -179,7 +178,7 @@ describe('Initialization', () => {
     });
 
     it('charging-station-status-error', async () => {
-      data = {
+      const data = {
         chargeBoxID: 'some box id',
         siteID: 'site id',
         siteAreaID: 'site area id',
@@ -193,10 +192,11 @@ describe('Initialization', () => {
     });
 
     it('billing-account-created', async () => {
-      data = {
+      const data: BillingAccountCreationLinkNotification = {
         evseDashboardURL: 'some_url',
         user,
-      } as BillingAccountCreationLinkNotification;
+        onboardingLink:  'some_url',
+      };
       await emailNotificationTask.sendBillingAccountCreationLink(data,user,tenant,severity);
     });
 
@@ -223,27 +223,27 @@ describe('Initialization', () => {
     // });
 
     it('user-account-status-changed', async () => {
-      data = {
+      const data: UserAccountStatusChangedNotification = {
         user,
         evseDashboardURL: 'some_url',
-      } as UserAccountStatusChangedNotification;
+      };
       await emailNotificationTask.sendUserAccountStatusChanged(data,user,tenant,severity);
     });
 
     it('unknown-user-badged', async () => {
-      data = {
+      const data: UnknownUserBadgedNotification = {
         chargeBoxID: 'charge box id',
         siteID: 'site id',
         siteAreaID: 'site area id',
         companyID: 'company id',
         badgeID: 'badge id',
         evseDashboardURL: 'some_url',
-      } as UnknownUserBadgedNotification;
+      };
       await emailNotificationTask.sendUnknownUserBadged(data,user,tenant,severity);
     });
 
     it('session-started', async () => {
-      data = {
+      const data: TransactionStartedNotification = {
         user,
         transactionId: 14,
         siteID: 'site id',
@@ -253,64 +253,63 @@ describe('Initialization', () => {
         connectorId: 'connector id',
         evseDashboardURL: 'some_url',
         evseDashboardChargingStationURL: 'some_url',
-      } as TransactionStartedNotification;
+      };
       await emailNotificationTask.sendSessionStarted(data,user,tenant,severity);
     });
 
     it('verification-email', async () => {
-      data = {
+      const data: VerificationEmailNotification = {
         user,
         tenantName: 'tenant name',
         evseDashboardURL: 'some_url',
         evseDashboardVerifyEmailURL: 'some_url',
-      } as VerificationEmailNotification;
+      };
       await emailNotificationTask.sendVerificationEmail(data,user,tenant,severity);
     });
 
     it('verification-email-user-import', async () => {
-      data = {
+      const data: VerificationEmailNotification = {
         user,
         tenantName: 'tenant name',
         evseDashboardURL: 'some_url',
         evseDashboardVerifyEmailURL: 'some_url',
-      } as VerificationEmailNotification;
+      };
       await emailNotificationTask.sendVerificationEmailUserImport(data,user,tenant,severity);
     });
 
     it('ocpi-patch-status-error', async () => {
-      data = {
+      const data: OCPIPatchChargingStationsStatusesErrorNotification = {
         evseDashboardURL: 'some_url',
         location: 'location'
-      } as OCPIPatchChargingStationsStatusesErrorNotification;
+      };
       await emailNotificationTask.sendOCPIPatchChargingStationsStatusesError(data,user,tenant,severity);
     });
 
     it('oicp-patch-status-error', async () => {
-      data = {
+      const data: OICPPatchChargingStationsStatusesErrorNotification = {
         evseDashboardURL: 'some_url',
-        location: 'location',
-      } as OICPPatchChargingStationsStatusesErrorNotification;
+      };
       await emailNotificationTask.sendOICPPatchChargingStationsStatusesError(data,user,tenant,severity);
     });
 
     it('oicp-patch-evses-error', async () => {
-      data = {
+      const data: OICPPatchChargingStationsErrorNotification = {
         evseDashboardURL: 'some_url',
-      } as OICPPatchChargingStationsErrorNotification;
+      };
       await emailNotificationTask.sendOICPPatchChargingStationsError(data,user,tenant,severity);
     });
 
     it('user-account-inactivity', async () => {
-      data = {
+      const data: UserAccountInactivityNotification = {
         user,
         lastLogin: 'last login',
         evseDashboardURL: 'some_url',
-      } as UserAccountInactivityNotification;
+      };
       await emailNotificationTask.sendUserAccountInactivity(data,user,tenant,severity);
     });
 
     it('session-not-started', async () => {
-      data = {
+      const data = {
         user,
         chargeBoxID :'charge box id',
         siteID: 'site id',
@@ -325,7 +324,7 @@ describe('Initialization', () => {
     });
 
     it('session-not-started-after-authorize', async () => {
-      data = {
+      const data = {
         chargeBoxID: 'charge box id',
         siteID: 'site id',
         siteAreaID: 'site area id',
@@ -338,50 +337,50 @@ describe('Initialization', () => {
     });
 
     it('billing-user-synchronization-failed', async () => {
-      data = {
+      const data: BillingUserSynchronizationFailedNotification = {
         nbrUsersInError: 123,
         evseDashboardURL: 'some_url',
         evseDashboardBillingURL: 'some_url',
-      } as BillingUserSynchronizationFailedNotification;
-      await emailNotificationTask.sendBillingInvoiceSynchronizationFailed(data,user,tenant,severity);
+      };
+      await emailNotificationTask.sendBillingSynchronizationFailed(data,user,tenant,severity);
     });
 
     it('billing-invoice-synchronization-failed', async () => {
-      data = {
+      const data: BillingInvoiceSynchronizationFailedNotification = {
         nbrInvoicesInError: 123,
         evseDashboardURL: 'some_url',
         evseDashboardBillingURL: 'some_url',
-      } as BillingInvoiceSynchronizationFailedNotification;
+      } ;
       await emailNotificationTask.sendBillingInvoiceSynchronizationFailed(data,user,tenant,severity);
     });
 
     it('billing-periodic-operation-failed', async () => {
-      data = {
+      const data: BillingPeriodicOperationFailedNotification = {
         nbrInvoicesInError: 123,
         evseDashboardURL: 'some_url',
         evseDashboardBillingURL: 'some_url',
-      } as BillingPeriodicOperationFailedNotification;
+      };
       await emailNotificationTask.sendBillingPeriodicOperationFailed(data,user,tenant,severity);
     });
 
     it('billing-account-activated', async () => {
-      data = {
+      const data: BillingAccountActivationNotification = {
         evseDashboardURL: 'some_url',
         user,
-      } as BillingAccountActivationNotification;
+      };
       await emailNotificationTask.sendBillingAccountActivationNotification(data,user,tenant,severity);
     });
 
     it('car-synchronization-failed', async () => {
-      data = {
+      const data : CarCatalogSynchronizationFailedNotification = {
         nbrCarsInError: 10,
         evseDashboardURL: 'some_url',
-      } as CarCatalogSynchronizationFailedNotification;
+      };
       await emailNotificationTask.sendCarCatalogSynchronizationFailed(data,user,tenant,severity);
     });
 
     it('compute-and-apply-charging-profiles-failed', async () => {
-      data = {
+      const data: ComputeAndApplyChargingProfilesFailedNotification = {
         siteAreaName: 'site area name',
         chargeBoxID: 'charge box id',
         siteID: 'site id',
@@ -393,30 +392,30 @@ describe('Initialization', () => {
     });
 
     it('account-verification-notification', async () => {
-      data = {
+      const data: AccountVerificationNotification = {
         user,
-        userStatus: 'A',
+        userStatus: UserStatus.ACTIVE,
         evseDashboardURL: 'some_url',
-      } as AccountVerificationNotification;
+      };
       await emailNotificationTask.sendAccountVerificationNotification(data,user,tenant,severity);
     });
 
     it('admin-account-verification-notification', async () => {
-      data = {
+      const data: AdminAccountVerificationNotification = {
         user,
         evseDashboardURL: 'some_url',
         evseUserToVerifyURL: 'some_url',
-      } as AdminAccountVerificationNotification;
+      };
       await emailNotificationTask.sendAdminAccountVerificationNotification(data,user,tenant,severity);
     });
 
     it('user-create-password', async () => {
-      data = {
+      const data: UserCreatePassword = {
         user,
         tenantName: 'tenant name',
         evseDashboardURL: 'some_url',
         evseDashboardCreatePasswordURL: 'some_url',
-      } as UserCreatePassword;
+      };
       await emailNotificationTask.sendUserCreatePassword(data,user,tenant,severity);
     });
   });
