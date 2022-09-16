@@ -126,10 +126,10 @@ export default class CpoOCPIClient extends OCPIClient {
       const tokens = response.data.data as OCPIToken[];
       // Get all Tags at once from the DB
       const tagIDs = tokens.map((token) => token.uid);
-      const tags = await TagStorage.getTags(this.tenant,
-        { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT);
       if (!Utils.isEmptyArray(tokens)) {
-        // Check and get eMSP users from Tokens
+        const tags = await TagStorage.getTags(this.tenant,
+          { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT);
+          // Check and get eMSP users from Tokens
         await this.checkAndCreateEMSPUsersFromTokens(tokens, emspUsersMap);
         // Update the tags
         await Promise.map(tokens, async (token) => {
