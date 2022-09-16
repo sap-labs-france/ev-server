@@ -21,7 +21,7 @@ export default class ChargingStationTemplateService {
     await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     const newChargingStationTemplate: ChargingStationTemplate = {
-      id: '',
+      id: null,
       createdBy: { id: req.user.id },
       createdOn: new Date(),
       template : {
