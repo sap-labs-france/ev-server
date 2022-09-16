@@ -366,12 +366,19 @@
         "The charging station was excluded from this smart charging run automatically."
       ]
     },
-    "account-verification-notification": {
+    "account-verification-notification-active": {
       "title":"Account Verified",
       "buttonText":"E-Mobility",
       "text":[
-        "Your account has been verified {{accountStatus}} with success!",
-        "{{accountStatus2}}"
+        "Your account has been verified and activated with success!"
+      ]
+    },
+    "account-verification-notification-inactive": {
+      "title":"Account Verified",
+      "buttonText":"E-Mobility",
+      "text":[
+        "Your account has been verified with success!",
+        "An administrator will check and activate your account."
       ]
     },
     "admin-account-verification-notification": {

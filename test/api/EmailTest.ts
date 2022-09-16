@@ -391,10 +391,19 @@ describe('Initialization', () => {
       await emailNotificationTask.sendComputeAndApplyChargingProfilesFailed(data,user,tenant,severity);
     });
 
-    it('account-verification-notification', async () => {
+    it('account-verification-notification-active', async () => {
       const data: AccountVerificationNotification = {
         user,
         userStatus: UserStatus.ACTIVE,
+        evseDashboardURL: 'some_url',
+      };
+      await emailNotificationTask.sendAccountVerificationNotification(data,user,tenant,severity);
+    });
+
+    it('account-verification-notification-inactive', async () => {
+      const data: AccountVerificationNotification = {
+        user,
+        userStatus: UserStatus.INACTIVE,
         evseDashboardURL: 'some_url',
       };
       await emailNotificationTask.sendAccountVerificationNotification(data,user,tenant,severity);

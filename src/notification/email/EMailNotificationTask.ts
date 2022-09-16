@@ -219,10 +219,17 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     data.buttonUrl = data.evseDashboardURL;
-    // TODO - cannot be properly translated
-    data.accountStatus = data.userStatus === 'A' ? 'and Activated' : '';
-    data.accountStatus2 = data.userStatus === 'I' ? 'An Administrator will check and activate your account' : '';
-    return this.prepareAndSendEmail('account-verification-notification', data, user, tenant, severity);
+    let templateName: string ;
+    if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
+      if (data.userStatus === 'A') {
+        templateName = 'account-verification-notification-active';
+      } else {
+        templateName = 'account-verification-notification-inactive';
+      }
+    } else {
+      templateName = 'account-verification-notification';
+    }
+    return this.prepareAndSendEmail(templateName, data, user, tenant, severity);
   }
 
   public async sendAdminAccountVerificationNotification(data: AdminAccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -387,7 +394,7 @@ export default class EMailNotificationTask implements NotificationTask {
     return emailContent;
   }
 
-  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents?: string[] ): Promise<void> {
+  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents?: string[]): Promise<void> {
     let startTime: number;
     let emailContent: EmailNotificationMessage;
     try {
@@ -416,7 +423,7 @@ export default class EMailNotificationTask implements NotificationTask {
         emailContent = await this.sendStupidEmail(templateName, data, user, tenant, severity);
       }
     } catch (error) {
-      console.log(">>>> " , error);
+      console.log('>>>> ' , error);
       await Logging.logError({
         tenantID: tenant.id,
         siteID: data?.siteID,
@@ -433,14 +440,14 @@ export default class EMailNotificationTask implements NotificationTask {
       await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'prepareAndSendEmail', startTime, templateName, emailContent, user.id);
     }
     // TODO - return the content for testing purposes
-    //return emailContent;
+    // return emailContent;
   }
 
 
   private async getTenantLogo(tenant: Tenant): Promise<string> {
     if (tenant.id === Constants.DEFAULT_TENANT_ID) {
       return Constants.TENANT_DEFAULT_LOGO_CONTENT;
-    } else if ( !tenant.logo ) {
+    } else if (!tenant.logo) {
       // Get the Tenant logo
       tenant.logo = (await TenantStorage.getTenantLogo(tenant))?.logo;
     }
@@ -448,104 +455,104 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   private async sendStupidEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<EmailNotificationMessage> {
-      // Fetch the template
-      const emailTemplate = await TemplateManager.getInstanceForLocale(user.locale).getTemplate(templateName);
-      if (!emailTemplate) {
-        throw new BackendError({
-          action: ServerAction.EMAIL_NOTIFICATION,
-          module: MODULE_NAME, method: 'prepareAndSendEmail',
-          message: `No Email template found for '${templateName}'`
-        });
-      }
-      // Render the subject
-      emailTemplate.subject = ejs.render(emailTemplate.subject, data);
-      // Render the tenant name
-      if (tenant.id === Constants.DEFAULT_TENANT_ID) {
-        emailTemplate.tenant = Constants.DEFAULT_TENANT_ID;
-      } else {
-        emailTemplate.tenant = tenant.name;
-      }
-      // Render Base URL
-      emailTemplate.baseURL = ejs.render(emailTemplate.baseURL, data);
-      emailTemplate.body.template = templateName;
-      if (emailTemplate.body.header) {
-        // Render the title
-        emailTemplate.body.header.title = ejs.render(emailTemplate.body.header.title, data);
-        // Render the left Logo
-        emailTemplate.body.header.image.left.url = ejs.render(emailTemplate.body.header.image.left.url, data);
-        // Render the right Logo
-        emailTemplate.body.header.image.right.url = ejs.render(emailTemplate.body.header.image.right.url, data);
-      }
-      if (emailTemplate.body.beforeActionLines) {
-        // Render Lines Before Action
-        emailTemplate.body.beforeActionLines =
+    // Fetch the template
+    const emailTemplate = await TemplateManager.getInstanceForLocale(user.locale).getTemplate(templateName);
+    if (!emailTemplate) {
+      throw new BackendError({
+        action: ServerAction.EMAIL_NOTIFICATION,
+        module: MODULE_NAME, method: 'prepareAndSendEmail',
+        message: `No Email template found for '${templateName}'`
+      });
+    }
+    // Render the subject
+    emailTemplate.subject = ejs.render(emailTemplate.subject, data);
+    // Render the tenant name
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
+      emailTemplate.tenant = Constants.DEFAULT_TENANT_ID;
+    } else {
+      emailTemplate.tenant = tenant.name;
+    }
+    // Render Base URL
+    emailTemplate.baseURL = ejs.render(emailTemplate.baseURL, data);
+    emailTemplate.body.template = templateName;
+    if (emailTemplate.body.header) {
+      // Render the title
+      emailTemplate.body.header.title = ejs.render(emailTemplate.body.header.title, data);
+      // Render the left Logo
+      emailTemplate.body.header.image.left.url = ejs.render(emailTemplate.body.header.image.left.url, data);
+      // Render the right Logo
+      emailTemplate.body.header.image.right.url = ejs.render(emailTemplate.body.header.image.right.url, data);
+    }
+    if (emailTemplate.body.beforeActionLines) {
+      // Render Lines Before Action
+      emailTemplate.body.beforeActionLines =
           emailTemplate.body.beforeActionLines.map((beforeActionLine) => ejs.render(beforeActionLine, data));
-        // Remove extra empty lines
-        Utils.removeExtraEmptyLines(emailTemplate.body.beforeActionLines);
-      }
-      // Render Stats
-      if (emailTemplate.body.stats) {
-        emailTemplate.body.stats =
+      // Remove extra empty lines
+      Utils.removeExtraEmptyLines(emailTemplate.body.beforeActionLines);
+    }
+    // Render Stats
+    if (emailTemplate.body.stats) {
+      emailTemplate.body.stats =
           emailTemplate.body.stats.map((stat) => {
             stat.label = ejs.render(stat.label, data);
             stat.value = ejs.render(stat.value, data);
             return stat;
           });
-      }
-      // Render Action
-      if (emailTemplate.body.actions) {
-        for (const action of emailTemplate.body.actions) {
-          action.title = ejs.render(action.title, data);
-          action.url = ejs.render(action.url, data);
-        }
-      }
-      // Render after Action
-      if (emailTemplate.body.afterActionLines) {
-        emailTemplate.body.afterActionLines =
-          emailTemplate.body.afterActionLines.map((afterActionLine) => ejs.render(afterActionLine, data));
-        // Remove extra empty lines
-        Utils.removeExtraEmptyLines(emailTemplate.body.afterActionLines);
-      }
-      if (emailTemplate.body.startSignedData && emailTemplate.body.endSignedData) {
-        emailTemplate.body.startSignedData = ejs.render(emailTemplate.body.startSignedData, data);
-        emailTemplate.body.endSignedData = ejs.render(emailTemplate.body.endSignedData, data);
-        emailTemplate.body.startSignedData = emailTemplate.body.startSignedData
-          .replace(/</g, '&amp;lt;')
-          .replace(/>/g, '&amp;gt;')
-          .replace(/encoding="base64"/g, '<br> encoding="base64"')
-          .replace(/\\/g, '');
-        emailTemplate.body.endSignedData = emailTemplate.body.endSignedData
-          .replace(/</g, '&amp;lt;')
-          .replace(/>/g, '&amp;gt;')
-          .replace(/encoding="base64"/g, '<br> encoding="base64"')
-          .replace(/\\/g, '');
-      }
-      if (emailTemplate.body.transactionId) {
-        emailTemplate.body.transactionId = ejs.render(emailTemplate.body.transactionId, data);
-      }
-      // Render the final HTML -----------------------------------------------
-      const subject = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/subject.template`, 'utf8'), emailTemplate);
-      let htmlTemp: string;
-      if (templateName === 'end-of-signed-session') {
-        htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-signed-transaction.template`, 'utf8'), emailTemplate);
-      } else if (templateName === 'billing-new-invoice') {
-        htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-invoice.template`, 'utf8'), emailTemplate);
-      } else {
-        htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
-      }
-      const html = htmlTemp;
-      const emailContent: EmailNotificationMessage = {
-        to: user.email,
-        subject: subject,
-        text: html,
-        html: html
-      };
-      // We may have a fallback - Not used anymore
-      const useSmtpClientFallback = false ;
-      // Send the email
-      await this.sendEmail(emailContent, data, tenant, user, severity, useSmtpClientFallback);
-      return emailContent;
     }
+    // Render Action
+    if (emailTemplate.body.actions) {
+      for (const action of emailTemplate.body.actions) {
+        action.title = ejs.render(action.title, data);
+        action.url = ejs.render(action.url, data);
+      }
+    }
+    // Render after Action
+    if (emailTemplate.body.afterActionLines) {
+      emailTemplate.body.afterActionLines =
+          emailTemplate.body.afterActionLines.map((afterActionLine) => ejs.render(afterActionLine, data));
+      // Remove extra empty lines
+      Utils.removeExtraEmptyLines(emailTemplate.body.afterActionLines);
+    }
+    if (emailTemplate.body.startSignedData && emailTemplate.body.endSignedData) {
+      emailTemplate.body.startSignedData = ejs.render(emailTemplate.body.startSignedData, data);
+      emailTemplate.body.endSignedData = ejs.render(emailTemplate.body.endSignedData, data);
+      emailTemplate.body.startSignedData = emailTemplate.body.startSignedData
+        .replace(/</g, '&amp;lt;')
+        .replace(/>/g, '&amp;gt;')
+        .replace(/encoding="base64"/g, '<br> encoding="base64"')
+        .replace(/\\/g, '');
+      emailTemplate.body.endSignedData = emailTemplate.body.endSignedData
+        .replace(/</g, '&amp;lt;')
+        .replace(/>/g, '&amp;gt;')
+        .replace(/encoding="base64"/g, '<br> encoding="base64"')
+        .replace(/\\/g, '');
+    }
+    if (emailTemplate.body.transactionId) {
+      emailTemplate.body.transactionId = ejs.render(emailTemplate.body.transactionId, data);
+    }
+    // Render the final HTML -----------------------------------------------
+    const subject = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/subject.template`, 'utf8'), emailTemplate);
+    let htmlTemp: string;
+    if (templateName === 'end-of-signed-session') {
+      htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-signed-transaction.template`, 'utf8'), emailTemplate);
+    } else if (templateName === 'billing-new-invoice') {
+      htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-invoice.template`, 'utf8'), emailTemplate);
+    } else {
+      htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
+    }
+    const html = htmlTemp;
+    const emailContent: EmailNotificationMessage = {
+      to: user.email,
+      subject: subject,
+      text: html,
+      html: html
+    };
+      // We may have a fallback - Not used anymore
+    const useSmtpClientFallback = false ;
+    // Send the email
+    await this.sendEmail(emailContent, data, tenant, user, severity, useSmtpClientFallback);
+    return emailContent;
+  }
 
   private getSMTPClient(useSmtpClientBackup: boolean): SMTPClient {
     if (useSmtpClientBackup) {
