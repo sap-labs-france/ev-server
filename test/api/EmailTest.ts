@@ -1,5 +1,6 @@
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../src/types/UserNotifications';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../src/types/UserNotifications';
 import User, { UserStatus } from '../../src/types/User';
+import chai, { assert } from 'chai';
 
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
@@ -7,7 +8,6 @@ import EMailNotificationTask from '../../src/notification/email/EMailNotificatio
 import I18nManager from '../../src/utils/I18nManager';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import Tenant from '../../src/types/Tenant';
-import chai from 'chai';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
@@ -15,6 +15,15 @@ import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
+
+function checkForMissing(html:string): string | null {
+  const regex = new RegExp(/\[missing .* translation\]/g);
+  const value = regex.exec(html);
+  if (value) {
+    return value[0];
+  }
+  return null;
+}
 
 describe('Initialization', () => {
   jest.setTimeout(9990000);
@@ -48,7 +57,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardVerifyEmailURL: 'some_url',
       } as NewRegisteredUserNotification;
-      await emailNotificationTask.sendNewRegisteredUser(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendNewRegisteredUser(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('request-password', async () => {
@@ -57,7 +69,10 @@ describe('Initialization', () => {
         evseDashboardResetPassURL:'some_url',
         evseDashboardURL:'some_url2'
       } as RequestPasswordNotification;
-      await emailNotificationTask.sendRequestPassword(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendRequestPassword(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('optimal-charge-reached', async () => {
@@ -74,7 +89,10 @@ describe('Initialization', () => {
         user,
         evseDashboardURL: 'some_url',
       } as OptimalChargeReachedNotification;
-      await emailNotificationTask.sendOptimalChargeReached(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendOptimalChargeReached(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('end-of-charge', async () => {
@@ -92,7 +110,10 @@ describe('Initialization', () => {
         user,
         evseDashboardURL: 'some_url',
       } as EndOfChargeNotification;
-      await emailNotificationTask.sendEndOfCharge(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendEndOfCharge(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('end-of-session', async () => {
@@ -113,7 +134,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardChargingStationURL: 'charging station url',
       } as EndOfSessionNotification;
-      await emailNotificationTask.sendEndOfSession(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendEndOfSession(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('billing-new-invoice-paid', async () => {
@@ -127,7 +151,10 @@ describe('Initialization', () => {
         invoiceAmount: '1200',
         invoiceStatus: 'paid',
       } as BillingNewInvoiceNotification;
-      await emailNotificationTask.sendBillingNewInvoice(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendBillingNewInvoice(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('billing-new-invoice-unpaid', async () => {
@@ -141,7 +168,10 @@ describe('Initialization', () => {
         invoiceAmount: '1200',
         invoiceStatus: 'unpaid',
       } as BillingNewInvoiceNotification;
-      await emailNotificationTask.sendBillingNewInvoice(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendBillingNewInvoice(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('charging-station-registered', async () => {
@@ -153,7 +183,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardChargingStationURL: 'some_url',
       } as ChargingStationRegisteredNotification;
-      await emailNotificationTask.sendChargingStationRegistered(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendChargingStationRegistered(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('end-user-error-notification', async () => {
@@ -166,7 +199,10 @@ describe('Initialization', () => {
         phone: '123123123',
         evseDashboardURL: 'some_url',
       } as EndUserErrorNotification;
-      await emailNotificationTask.sendEndUserErrorNotification(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendEndUserErrorNotification(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('offline-charging-station', async () => {
@@ -174,7 +210,10 @@ describe('Initialization', () => {
         chargeBoxIDs: 'some box id',
         evseDashboardURL: 'some_url',
       } as OfflineChargingStationNotification;
-      await emailNotificationTask.sendOfflineChargingStations(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendOfflineChargingStations(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('charging-station-status-error', async () => {
@@ -188,7 +227,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardChargingStationURL: 'some_url',
       } as ChargingStationStatusErrorNotification;
-      await emailNotificationTask.sendChargingStationStatusError(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendChargingStationStatusError(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('billing-account-created', async () => {
@@ -197,37 +239,21 @@ describe('Initialization', () => {
         user,
         onboardingLink:  'some_url',
       };
-      await emailNotificationTask.sendBillingAccountCreationLink(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendBillingAccountCreationLink(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
-
-    // it('end-of-signed-session', async () => {
-    //   data = {
-    //     user,
-    //     alternateUser: user,
-    //     transactionId: 10,
-    //     chargeBoxID: 'charge box id',
-    //     connectorId: 'connector id',
-    //     tagId: 'tag id',
-    //     startDate: 'start date',
-    //     endDate: 'end date',
-    //     meterStart: 'meter date',
-    //     meterStop: 'meter stop',
-    //     totalConsumption: 'total consumption',
-    //     price:10,
-    //     relativeCost: 10,
-    //     startSignedData: 'start signed date',
-    //     endSignedData: 'end signed date',
-    //     evseDashboardURL: 'some_url',
-    //   } as EndOfSignedSessionNotification;
-    //   await emailNotificationTask.sendEndOfSignedSession(data,user,tenant,severity);
-    // });
 
     it('user-account-status-changed', async () => {
       const data: UserAccountStatusChangedNotification = {
         user,
         evseDashboardURL: 'some_url',
       };
-      await emailNotificationTask.sendUserAccountStatusChanged(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendUserAccountStatusChanged(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('unknown-user-badged', async () => {
@@ -239,7 +265,10 @@ describe('Initialization', () => {
         badgeID: 'badge id',
         evseDashboardURL: 'some_url',
       };
-      await emailNotificationTask.sendUnknownUserBadged(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendUnknownUserBadged(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('session-started', async () => {
@@ -254,7 +283,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardChargingStationURL: 'some_url',
       };
-      await emailNotificationTask.sendSessionStarted(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendSessionStarted(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('verification-email', async () => {
@@ -264,7 +296,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardVerifyEmailURL: 'some_url',
       };
-      await emailNotificationTask.sendVerificationEmail(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendVerificationEmail(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('verification-email-user-import', async () => {
@@ -274,7 +309,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardVerifyEmailURL: 'some_url',
       };
-      await emailNotificationTask.sendVerificationEmailUserImport(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendVerificationEmailUserImport(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('ocpi-patch-status-error', async () => {
@@ -282,21 +320,30 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         location: 'location'
       };
-      await emailNotificationTask.sendOCPIPatchChargingStationsStatusesError(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendOCPIPatchChargingStationsStatusesError(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('oicp-patch-status-error', async () => {
       const data: OICPPatchChargingStationsStatusesErrorNotification = {
         evseDashboardURL: 'some_url',
       };
-      await emailNotificationTask.sendOICPPatchChargingStationsStatusesError(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendOICPPatchChargingStationsStatusesError(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('oicp-patch-evses-error', async () => {
       const data: OICPPatchChargingStationsErrorNotification = {
         evseDashboardURL: 'some_url',
       };
-      await emailNotificationTask.sendOICPPatchChargingStationsError(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendOICPPatchChargingStationsError(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('user-account-inactivity', async () => {
@@ -305,7 +352,10 @@ describe('Initialization', () => {
         lastLogin: 'last login',
         evseDashboardURL: 'some_url',
       };
-      await emailNotificationTask.sendUserAccountInactivity(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendUserAccountInactivity(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('session-not-started', async () => {
@@ -320,7 +370,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardChargingStationURL: 'some_url',
       } as PreparingSessionNotStartedNotification;
-      await emailNotificationTask.sendPreparingSessionNotStarted(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendPreparingSessionNotStarted(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('session-not-started-after-authorize', async () => {
@@ -333,7 +386,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardChargingStationURL: 'some_url',
       } as SessionNotStartedNotification;
-      await emailNotificationTask.sendSessionNotStarted(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendSessionNotStarted(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('billing-user-synchronization-failed', async () => {
@@ -342,7 +398,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardBillingURL: 'some_url',
       };
-      await emailNotificationTask.sendBillingSynchronizationFailed(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendBillingSynchronizationFailed(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('billing-invoice-synchronization-failed', async () => {
@@ -351,7 +410,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardBillingURL: 'some_url',
       } ;
-      await emailNotificationTask.sendBillingInvoiceSynchronizationFailed(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendBillingInvoiceSynchronizationFailed(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('billing-periodic-operation-failed', async () => {
@@ -360,7 +422,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardBillingURL: 'some_url',
       };
-      await emailNotificationTask.sendBillingPeriodicOperationFailed(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendBillingPeriodicOperationFailed(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('billing-account-activated', async () => {
@@ -368,7 +433,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         user,
       };
-      await emailNotificationTask.sendBillingAccountActivationNotification(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendBillingAccountActivationNotification(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('car-synchronization-failed', async () => {
@@ -376,7 +444,10 @@ describe('Initialization', () => {
         nbrCarsInError: 10,
         evseDashboardURL: 'some_url',
       };
-      await emailNotificationTask.sendCarCatalogSynchronizationFailed(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendCarCatalogSynchronizationFailed(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('compute-and-apply-charging-profiles-failed', async () => {
@@ -388,7 +459,10 @@ describe('Initialization', () => {
         companyID: 'company id',
         evseDashboardURL: 'some_url',
       } as ComputeAndApplyChargingProfilesFailedNotification;
-      await emailNotificationTask.sendComputeAndApplyChargingProfilesFailed(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendComputeAndApplyChargingProfilesFailed(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('account-verification-notification-active', async () => {
@@ -397,7 +471,10 @@ describe('Initialization', () => {
         userStatus: UserStatus.ACTIVE,
         evseDashboardURL: 'some_url',
       };
-      await emailNotificationTask.sendAccountVerificationNotification(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendAccountVerificationNotification(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('account-verification-notification-inactive', async () => {
@@ -406,7 +483,10 @@ describe('Initialization', () => {
         userStatus: UserStatus.INACTIVE,
         evseDashboardURL: 'some_url',
       };
-      await emailNotificationTask.sendAccountVerificationNotification(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendAccountVerificationNotification(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('admin-account-verification-notification', async () => {
@@ -415,7 +495,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseUserToVerifyURL: 'some_url',
       };
-      await emailNotificationTask.sendAdminAccountVerificationNotification(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendAdminAccountVerificationNotification(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
 
     it('user-create-password', async () => {
@@ -425,7 +508,10 @@ describe('Initialization', () => {
         evseDashboardURL: 'some_url',
         evseDashboardCreatePasswordURL: 'some_url',
       };
-      await emailNotificationTask.sendUserCreatePassword(data,user,tenant,severity);
+      const notificationResult = await emailNotificationTask.sendUserCreatePassword(data,user,tenant,severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing,null, isMissing);
+      assert.equal(notificationResult.error,null, notificationResult.error as string);
     });
   });
 });

@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BaseNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
 import EmailComponentManager, { EmailComponent } from './email-component-manager/EmailComponentManager';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
@@ -54,138 +54,137 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardVerifyEmailURL;
-    return this.prepareAndSendEmail('new-registered-user', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('new-registered-user', data, user, tenant, severity);
   }
 
-  public async sendRequestPassword(data: RequestPasswordNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendRequestPassword(data: RequestPasswordNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardResetPassURL;
-    return this.prepareAndSendEmail('request-password', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('request-password', data, user, tenant, severity);
   }
 
-  public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
     const optionalComponents = [ await EmailComponentManager.getComponent(EmailComponent.TABLE) ];
-    return this.prepareAndSendEmail('optimal-charge-reached', data, user, tenant, severity, optionalComponents);
+    return await this.prepareAndSendEmail('optimal-charge-reached', data, user, tenant, severity, optionalComponents);
   }
 
-  public async sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
     const optionalComponents = [ await EmailComponentManager.getComponent(EmailComponent.TABLE) ];
-    return this.prepareAndSendEmail('end-of-charge', data, user, tenant, severity, optionalComponents);
+    return await this.prepareAndSendEmail('end-of-charge', data, user, tenant, severity, optionalComponents);
   }
 
-  public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
     const optionalComponents = [ await EmailComponentManager.getComponent(EmailComponent.TABLE) ];
-    return this.prepareAndSendEmail('end-of-session', data, user, tenant, severity, optionalComponents);
+    return await this.prepareAndSendEmail('end-of-session', data, user, tenant, severity, optionalComponents);
   }
 
-  public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    return Promise.resolve();
-    // data.buttonUrl = data.evseDashboardURL;
-    // return this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity);
+  public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
+    data.buttonUrl = data.evseDashboardURL;
+    return await this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity);
   }
 
-  public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    return this.prepareAndSendEmail('charging-station-status-error', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('charging-station-status-error', data, user, tenant, severity);
   }
 
-  public async sendChargingStationRegistered(data: ChargingStationRegisteredNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendChargingStationRegistered(data: ChargingStationRegisteredNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    return this.prepareAndSendEmail('charging-station-registered', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('charging-station-registered', data, user, tenant, severity);
   }
 
-  public async sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
     data.accountStatus = data.user.status === 'A' ? 'Actived' : 'Suspended';
-    return this.prepareAndSendEmail('user-account-status-changed', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('user-account-status-changed', data, user, tenant, severity);
   }
 
-  public async sendUnknownUserBadged(data: UnknownUserBadgedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendUnknownUserBadged(data: UnknownUserBadgedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
-    return this.prepareAndSendEmail('unknown-user-badged', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('unknown-user-badged', data, user, tenant, severity);
   }
 
-  public async sendSessionStarted(data: TransactionStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendSessionStarted(data: TransactionStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    return this.prepareAndSendEmail('session-started', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('session-started', data, user, tenant, severity);
   }
 
-  public async sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardVerifyEmailURL;
-    return this.prepareAndSendEmail('verification-email', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('verification-email', data, user, tenant, severity);
   }
 
-  public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardVerifyEmailURL;
-    return this.prepareAndSendEmail('verification-email-user-import', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('verification-email-user-import', data, user, tenant, severity);
   }
 
-  public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
-    return this.prepareAndSendEmail('ocpi-patch-status-error', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('ocpi-patch-status-error', data, user, tenant, severity);
   }
 
-  public async sendOICPPatchChargingStationsStatusesError(data: OICPPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendOICPPatchChargingStationsStatusesError(data: OICPPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
-    return this.prepareAndSendEmail('oicp-patch-status-error', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('oicp-patch-status-error', data, user, tenant, severity);
   }
 
-  public async sendOICPPatchChargingStationsError(data: OICPPatchChargingStationsErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendOICPPatchChargingStationsError(data: OICPPatchChargingStationsErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
-    return this.prepareAndSendEmail('oicp-patch-evses-error', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('oicp-patch-evses-error', data, user, tenant, severity);
   }
 
-  public async sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
-    return this.prepareAndSendEmail('user-account-inactivity', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('user-account-inactivity', data, user, tenant, severity);
   }
 
-  public async sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    return this.prepareAndSendEmail('session-not-started', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('session-not-started', data, user, tenant, severity);
   }
 
-  public async sendSessionNotStarted(data: SessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendSessionNotStarted(data: SessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    return this.prepareAndSendEmail('session-not-started-after-authorize', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('session-not-started-after-authorize', data, user, tenant, severity);
   }
 
-  public async sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.chargeBoxIDsNumber = data.chargeBoxIDs.length;
     data.appUrl = data.evseDashboardURL;
-    return this.prepareAndSendEmail('offline-charging-station', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('offline-charging-station', data, user, tenant, severity);
   }
 
-  public async sendBillingSynchronizationFailed(data: BillingUserSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendBillingSynchronizationFailed(data: BillingUserSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardBillingURL;
-    return this.prepareAndSendEmail('billing-user-synchronization-failed', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('billing-user-synchronization-failed', data, user, tenant, severity);
   }
 
-  public async sendBillingInvoiceSynchronizationFailed(data: BillingInvoiceSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendBillingInvoiceSynchronizationFailed(data: BillingInvoiceSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardBillingURL;
-    return this.prepareAndSendEmail('billing-invoice-synchronization-failed', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('billing-invoice-synchronization-failed', data, user, tenant, severity);
   }
 
-  public async sendBillingPeriodicOperationFailed(data: BillingInvoiceSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendBillingPeriodicOperationFailed(data: BillingInvoiceSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardBillingURL;
-    return this.prepareAndSendEmail('billing-periodic-operation-failed', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('billing-periodic-operation-failed', data, user, tenant, severity);
   }
 
-  public async sendBillingAccountCreationLink(data: BillingAccountCreationLinkNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendBillingAccountCreationLink(data: BillingAccountCreationLinkNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.appUrl = data.onboardingLink;
-    return this.prepareAndSendEmail('billing-account-created', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('billing-account-created', data, user, tenant, severity);
   }
 
-  public async sendBillingAccountActivationNotification(data: BillingAccountActivationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendBillingAccountActivationNotification(data: BillingAccountActivationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
-    return this.prepareAndSendEmail('billing-account-activated', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('billing-account-activated', data, user, tenant, severity);
   }
 
-  public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     const optionalComponents = [ await EmailComponentManager.getComponent(EmailComponent.TABLE) ];
     let templateName: string ;
     if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
@@ -202,22 +201,22 @@ export default class EMailNotificationTask implements NotificationTask {
     return await this.prepareAndSendEmail(templateName, data, user, tenant, severity, optionalComponents);
   }
 
-  public async sendCarCatalogSynchronizationFailed(data: CarCatalogSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendCarCatalogSynchronizationFailed(data: CarCatalogSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
-    return this.prepareAndSendEmail('car-synchronization-failed', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('car-synchronization-failed', data, user, tenant, severity);
   }
 
-  public async sendComputeAndApplyChargingProfilesFailed(data: ComputeAndApplyChargingProfilesFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendComputeAndApplyChargingProfilesFailed(data: ComputeAndApplyChargingProfilesFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
-    return this.prepareAndSendEmail('compute-and-apply-charging-profiles-failed', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('compute-and-apply-charging-profiles-failed', data, user, tenant, severity);
   }
 
-  public async sendEndUserErrorNotification(data: EndUserErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendEndUserErrorNotification(data: EndUserErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
-    return this.prepareAndSendEmail('end-user-error-notification', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('end-user-error-notification', data, user, tenant, severity);
   }
 
-  public async sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
     let templateName: string ;
     if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
@@ -229,18 +228,18 @@ export default class EMailNotificationTask implements NotificationTask {
     } else {
       templateName = 'account-verification-notification';
     }
-    return this.prepareAndSendEmail(templateName, data, user, tenant, severity);
+    return await this.prepareAndSendEmail(templateName, data, user, tenant, severity);
   }
 
-  public async sendAdminAccountVerificationNotification(data: AdminAccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendAdminAccountVerificationNotification(data: AdminAccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseUserToVerifyURL;
     data.email = data.user.email;
-    return this.prepareAndSendEmail('admin-account-verification-notification', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('admin-account-verification-notification', data, user, tenant, severity);
   }
 
-  public async sendUserCreatePassword(data: UserCreatePassword, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendUserCreatePassword(data: UserCreatePassword, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardCreatePasswordURL;
-    return this.prepareAndSendEmail('user-create-password', data, user, tenant, severity);
+    return await this.prepareAndSendEmail('user-create-password', data, user, tenant, severity);
   }
 
   private async sendEmail(email: EmailNotificationMessage, data: any, tenant: Tenant, user: User, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
@@ -250,7 +249,7 @@ export default class EMailNotificationTask implements NotificationTask {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: data?.siteID,
-        siteAreaID: data?.siteAreaID,
+        siteAreaID: data?.siteAreaIDvoid,
         companyID: data?.companyID,
         chargingStationID: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
@@ -394,7 +393,7 @@ export default class EMailNotificationTask implements NotificationTask {
     return emailContent;
   }
 
-  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents?: string[]): Promise<void> {
+  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents?: string[]): Promise<NotificationResult> {
     let startTime: number;
     let emailContent: EmailNotificationMessage;
     try {
@@ -422,8 +421,10 @@ export default class EMailNotificationTask implements NotificationTask {
       } else {
         emailContent = await this.sendStupidEmail(templateName, data, user, tenant, severity);
       }
+      return {
+        html: emailContent.html,
+      };
     } catch (error) {
-      console.log('>>>> ' , error);
       await Logging.logError({
         tenantID: tenant.id,
         siteID: data?.siteID,
@@ -436,11 +437,12 @@ export default class EMailNotificationTask implements NotificationTask {
         actionOnUser: user,
         detailedMessages: { error: error.stack }
       });
+      return {
+        error,
+      };
     } finally {
       await Logging.traceNotificationEnd(tenant, MODULE_NAME, 'prepareAndSendEmail', startTime, templateName, emailContent, user.id);
     }
-    // TODO - return the content for testing purposes
-    // return emailContent;
   }
 
 

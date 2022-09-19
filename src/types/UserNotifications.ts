@@ -86,6 +86,17 @@ export enum NotificationSeverity {
   ERROR = '#ee0000'
 }
 
+export interface NotificationResult {
+  // to?: string;
+  // cc?: string;
+  // bccNeeded?: boolean;
+  // bcc?: string;
+  // subject?: string;
+  // text: string;
+  html?: string;
+  error?: any;
+}
+
 export interface EmailNotificationMessage {
   to: string;
   cc?: string;
