@@ -1,0 +1,14 @@
+{
+  "$id": "charging-station-template-get",
+  "title": "Get a charging station template",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "common#/definitions/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}

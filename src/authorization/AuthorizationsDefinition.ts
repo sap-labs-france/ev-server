@@ -25,6 +25,40 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
       },
+      { resource: Entity.CHARGING_STATION_TEMPLATE, action: [Action.LIST],
+        attributes: [
+          'id', 'createdOn', 'createdBy.name', 'createdBy.firstName', 'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName',
+          'template.chargePointVendor', 'template.extraFilters.chargePointModel', 'template.extraFilters.chargeBoxSerialNumber'
+        ]
+      },
+      {
+        resource: Entity.CHARGING_STATION_TEMPLATE, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
+        attributes: [
+          'id', 'createdOn', 'createdBy.name', 'createdBy.firstName', 'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName',
+          'template.chargePointVendor', 'template.extraFilters.chargePointModel', 'template.extraFilters.chargeBoxSerialNumber',
+          'template.technical.masterSlave', 'template.technical.maximumPower', 'template.technical.voltage', 'template.technical.powerLimitUnit', 'template.technical.excludeFromPowerLimitation',
+          'template.technical.chargePoints.chargePointID', 'template.technical.chargePoints.currentType', 'template.technical.chargePoints.amperage', 'template.technical.chargePoints.numberOfConnectedPhase', 'template.technical.chargePoints.cannotChargeInParallel',
+          'template.technical.chargePoints.sharePowerToAllConnectors', 'template.technical.chargePoints.excludeFromPowerLimitation', 'template.technical.chargePoints.ocppParamForPowerLimitation',
+          'template.technical.chargePoints.power', 'template.technical.chargePoints.efficiency', 'template.technical.chargePoints.connectorIDs',
+          'template.technical.connectors.connectorId', 'template.technical.connectors.type', 'template.technical.connectors.power', 'template.technical.connectors.amperage', 'template.technical.connectors.numberOfConnectedPhase', 'template.technical.connectors.chargePointID',
+          'template.capabilities.supportedFirmwareVersions', 'template.capabilities.supportedOcppVersions', 'template.capabilities.capabilities.supportStaticLimitation', 'template.capabilities.capabilities.supportChargingProfiles',
+          'template.capabilities.capabilities.supportRemoteStartStopTransaction', 'template.capabilities.capabilities.supportUnlockConnector', 'template.capabilities.capabilities.supportReservation',
+          'template.capabilities.capabilities.supportCreditCard', 'template.capabilities.capabilities.supportRFIDCard',
+          'template.ocppStandardParameters.supportedFirmwareVersions', 'template.ocppStandardParameters.supportedOcppVersions',
+          'template.ocppStandardParameters.parameters.AllowOfflineTxForUnknownId', 'template.ocppStandardParameters.parameters.AuthorizationCacheEnabled', 'template.ocppStandardParameters.parameters.AuthorizeRemoteTxRequests', 'template.ocppStandardParameters.parameters.BlinkRepeat',
+          'template.ocppStandardParameters.parameters.ClockAlignedDataInterval', 'template.ocppStandardParameters.parameters.ConnectionTimeOut', 'template.ocppStandardParameters.parameters.GetConfigurationMaxKeys', 'template.ocppStandardParameters.parameters.HeartbeatInterval',
+          'template.ocppStandardParameters.parameters.LightIntensity', 'template.ocppStandardParameters.parameters.LocalAuthorizeOffline', 'template.ocppStandardParameters.parameters.LocalPreAuthorize', 'template.ocppStandardParameters.parameters.MaxEnergyOnInvalidId',
+          'template.ocppStandardParameters.parameters.MeterValuesAlignedData', 'template.ocppStandardParameters.parameters.MeterValuesAlignedDataMaxLength', 'template.ocppStandardParameters.parameters.MeterValuesSampledData', 'template.ocppStandardParameters.parameters.MeterValuesSampledDataMaxLength',
+          'template.ocppStandardParameters.parameters.MeterValueSampleInterval', 'template.ocppStandardParameters.parameters.MinimumStatusDuration', 'template.ocppStandardParameters.parameters.NumberOfConnectors', 'template.ocppStandardParameters.parameters.ResetRetries',
+          'template.ocppStandardParameters.parameters.ConnectorPhaseRotation', 'template.ocppStandardParameters.parameters.ConnectorPhaseRotationMaxLength', 'template.ocppStandardParameters.parameters.StopTransactionOnEVSideDisconnect', 'template.ocppStandardParameters.parameters.StopTransactionOnInvalidId',
+          'template.ocppStandardParameters.parameters.StopTxnAlignedData', 'template.ocppStandardParameters.parameters.StopTxnAlignedDataMaxLength', 'template.ocppStandardParameters.parameters.StopTxnSampledData', 'template.ocppStandardParameters.parameters.StopTxnSampledDataMaxLength',
+          'template.ocppStandardParameters.parameters.SupportedFeatureProfiles', 'template.ocppStandardParameters.parameters.SupportedFeatureProfilesMaxLength', 'template.ocppStandardParameters.parameters.TransactionMessageAttempts', 'template.ocppStandardParameters.parameters.TransactionMessageRetryInterval',
+          'template.ocppStandardParameters.parameters.UnlockConnectorOnEVSideDisconnect', 'template.ocppStandardParameters.parameters.WebSocketPingInterval', 'template.ocppStandardParameters.parameters.LocalAuthListEnabled', 'template.ocppStandardParameters.parameters.LocalAuthListMaxLength',
+          'template.ocppStandardParameters.parameters.SendLocalListMaxLength', 'template.ocppStandardParameters.parameters.ReserveConnectorZeroSupported', 'template.ocppStandardParameters.parameters.ChargeProfileMaxStackLevel', 'template.ocppStandardParameters.parameters.ChargingScheduleAllowedChargingRateUnit',
+          'template.ocppStandardParameters.parameters.ChargingScheduleMaxPeriods', 'template.ocppStandardParameters.parameters.ConnectorSwitch3to1PhaseSupported', 'template.ocppStandardParameters.parameters.MaxChargingProfilesInstalled',
+          'template.ocppVendorParameters.supportedFirmwareVersions', 'template.ocppVendorParameters.supportedOcppVersions', 'template.ocppVendorParameters.parameters',
+        ]
+      },
       {
         resource: Entity.USER, action: Action.DELETE,
         condition: {
@@ -102,6 +136,14 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   admin: {
     grants: [
+      {
+        resource: Entity.TENANT, action:Action.READ,
+        attributes: ['id', 'name', 'email', 'logo', 'address']
+      },
+      {
+        resource: Entity.TENANT, action: Action.UPDATE,
+        attributes: ['id', 'name', 'email', 'logo', 'address']
+      },
       {
         resource: Entity.USER,
         action: [
@@ -270,8 +312,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates',
-          'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession', 'accountData.platformFeeStrategy.percentage',
-          'accountData.account.businessOwner'
+          'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession',
+          'accountData.platformFeeStrategy.percentage', 'accountData.account.companyName',
+          'accountData.account.businessOwner.id', 'accountData.account.businessOwner.email',
+          'accountData.account.businessOwner.firstName', 'accountData.account.businessOwner.name'
         ]
       },
       {
@@ -517,12 +561,12 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.BILLING_TRANSFER,
-        action: [Action.LIST, Action.READ, Action.BILLING_FINALIZE_TRANSFER, Action.BILLING_SEND_TRANSFER],
+        action: [Action.LIST, Action.READ, Action.BILLING_FINALIZE_TRANSFER, Action.BILLING_SEND_TRANSFER, Action.DOWNLOAD],
         attributes: [
           'id', 'status', 'createdOn', 'sessionCounter', 'collectedFunds', 'collectedFlatFees', 'collectedFees', 'totalConsumptionWh', 'totalDurationSecs',
           'transferAmount', 'accountID', 'transferExternalID',
           'account.companyName', 'account.businessOwnerID', 'account.accountExternalID', 'businessOwner.name', 'businessOwner.firstName',
-          'platformFeeData.feeAmount', 'platformFeeData.feeTaxAmount', 'currency', 'invoice.documentNumber', 'invoice.totalAmount'
+          'platformFeeData.feeAmount', 'platformFeeData.feeTaxAmount', 'currency', 'invoice.documentNumber','invoice.invoiceID','invoice.userID', 'invoice.totalAmount'
         ]
       },
       { resource: Entity.TAX, action: [Action.LIST] },
@@ -849,6 +893,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.INVOICE, action: Action.DOWNLOAD,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        }
+      },
+      {
+        resource: Entity.BILLING_TRANSFER, action: Action.DOWNLOAD,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {

@@ -10,6 +10,7 @@ export default interface Tenant extends CreatedUpdatedProps {
   logo: string;
   components: TenantComponent;
   redirectDomain?: string;
+  idleMode?: boolean // Prevents batch and async tasks executions when moving the tenant to a different cloud infrastructure provider
 }
 
 export interface TenantComponent {

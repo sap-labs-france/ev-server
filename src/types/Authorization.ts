@@ -67,6 +67,7 @@ export enum Entity {
   SITE_AREA = 'SiteArea',
   COMPANY = 'Company',
   CHARGING_STATION = 'ChargingStation',
+  CHARGING_STATION_TEMPLATE = 'ChargingStationTemplate',
   CONNECTOR = 'Connector',
   TENANT = 'Tenant',
   TRANSACTION = 'Transaction',
@@ -292,6 +293,7 @@ export interface BillingAccountAuthorizationActions extends AuthorizationActions
 
 export interface BillingTransferAuthorizationActions extends AuthorizationActions {
   canTransfer?: boolean;
+  canDownload?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

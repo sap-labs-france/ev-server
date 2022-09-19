@@ -60,6 +60,12 @@ export enum ServerAction {
   REGISTRATION_TOKEN_REVOKE = 'RegistrationTokenRevoke',
   REGISTRATION_TOKEN_UPDATE = 'RegistrationTokenUpdate',
 
+  CHARGING_STATION_TEMPLATE = 'ChargingStationTemplate',
+  CHARGING_STATION_TEMPLATES = 'ChargingStationTemplates',
+  CHARGING_STATION_TEMPLATE_DELETE = 'ChargingStationTemplateDelete',
+  CHARGING_STATION_TEMPLATE_UPDATE = 'ChargingStationTemplateUpdate',
+  CHARGING_STATION_TEMPLATE_CREATE = 'ChargingStationTemplateCreate',
+
   BOOT_NOTIFICATIONS = 'BootNotifications',
   STATUS_NOTIFICATIONS = 'StatusNotifications',
 
@@ -359,6 +365,7 @@ export enum ServerAction {
   TENANTS = 'Tenants',
   TENANT = 'Tenant',
   TENANT_UPDATE = 'TenantUpdate',
+  TENANT_UPDATE_DATA = 'TenantUpdateData',
   TENANT_DELETE = 'TenantDelete',
   TENANT_LOGO = 'TenantLogo',
 
@@ -445,6 +452,7 @@ export enum ServerAction {
   BILLING_INVOICE = 'BillingInvoice',
   BILLING_PERFORM_OPERATIONS = 'BillingPeriodicOperations',
   BILLING_DOWNLOAD_INVOICE = 'BillingDownloadInvoice',
+  BILLING_DOWNLOAD_TRANSFER = 'BillingDownloadTransfer',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
@@ -499,6 +507,9 @@ export enum RESTServerRoute {
   REST_END_USER_LICENSE_AGREEMENT_HTML = 'eula/html',
   REST_MAIL_CHECK = 'mail/check',
   REST_MAIL_RESEND = 'mail/resend',
+
+  REST_CHARGING_STATION_TEMPLATES = 'charging-station-templates',
+  REST_CHARGING_STATION_TEMPLATE = 'charging-station-templates/:id',
 
   REST_CHARGING_STATIONS = 'charging-stations',
   REST_CHARGING_STATION = 'charging-stations/:id',
@@ -598,6 +609,7 @@ export enum RESTServerRoute {
 
   REST_TENANTS = 'tenants',
   REST_TENANT = 'tenants/:id',
+  REST_TENANT_DATA = 'tenants/:id/data',
   REST_TENANT_LOGO = 'tenants/logo',
 
   REST_COMPANIES = 'companies',
@@ -709,6 +721,7 @@ export enum RESTServerRoute {
   REST_BILLING_TRANSFER = 'billing/transfers/:id',
   REST_BILLING_TRANSFER_FINALIZE = 'billing/transfers/:id/finalize',
   REST_BILLING_TRANSFER_SEND = 'billing/transfers/:id/send',
+  REST_BILLING_DOWNLOAD_TRANSFER = 'tranfers/:transferID/download',
 
   // PRICING URLs for CRUD operations
   REST_PRICING_DEFINITIONS = 'pricing-definitions',
