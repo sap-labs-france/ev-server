@@ -249,7 +249,7 @@ export default class EMailNotificationTask implements NotificationTask {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: data?.siteID,
-        siteAreaID: data?.siteAreaIDvoid,
+        siteAreaID: data?.siteAreaID,
         companyID: data?.companyID,
         chargingStationID: data?.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
