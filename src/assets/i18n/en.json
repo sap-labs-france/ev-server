@@ -194,208 +194,309 @@
     "userID": "User ID"
   },
   "email": {
-    "username" : "Hello {{userFirstName}}",
-    "footerText":"This message has been sent by an automated email service. Please do not reply. You may unsubs​cri​be by changing your notification settings.",
+    "username": "Hello {{recipientName}}",
+    "footerText": "This message has been sent by an automated email service to {{recipientEmail}}. Please do not reply. You may unsubscribe by changing your notification settings.",
     "new-registered-user": {
-      "title":"New Registered User",
-      "buttonText":"E-Mobility",
-      "text":"You have registered to SAP. Welcome abroad!"
+      "title": "New Account Created",
+      "buttonText": "Activate your account",
+      "text": [
+        "Your account has been created successfully.",
+        "Click on the link below to activate it."
+      ]
     },
     "request-password": {
-      "title":"Reset Password",
-      "buttonText":"Reset Password",
-      "text":["You have just requested to reset your password." , "Click on the link below to generate and receive a new one."]
+      "title": "Reset Password",
+      "buttonText": "Reset Password",
+      "text": [
+        "You have just requested to reset your password.",
+        "Click on the link below to generate and receive a new one."
+      ]
     },
     "optimal-charge-reached": {
-      "title":"Optimal Charge Reached",
-      "buttonText":"View Session",
-      "text":["Your electric vehicle, which is connected to {{chargeBoxID}}, connector {{connectorId}}, reached its optimal charge."],
+      "title": "Optimal Charge Reached",
+      "buttonText": "View Session",
+      "text": [
+        "Your electric vehicle, which is connected to {{chargeBoxID}}, connector {{connectorId}}, reached its optimal charge."
+      ],
       "table": [
-        { "label": "Battery Level", "value": "{{stateOfCharge}} %" }
+        {
+          "label": "Battery Level",
+          "value": "{{stateOfCharge}} %"
+        }
       ]
     },
     "end-of-session": {
-      "title":"Session Finished",
-      "buttonText":"View Session",
-      "text":["Your session on the charging station {{chargeBoxID}}, connector {{connectorId}} has just finished."],
+      "title": "Session Finished",
+      "buttonText": "View Session",
+      "text": [
+        "Your session on the charging station {{chargeBoxID}}, connector {{connectorId}} has just finished."
+      ],
       "table": [
-        { "label": "Consumption", "value": "{{totalConsumption}} kW.h" },
-        { "label": "Total Duration", "value": "{{totalDuration}}" },
-        { "label": "Total Inactivity", "value": "{{totalInactivity}}" },
-        { "label": "State of Charge", "value": "{{stateOfCharge}} %" }
+        {
+          "label": "Consumption",
+          "value": "{{totalConsumption}} kW.h"
+        },
+        {
+          "label": "Total Duration",
+          "value": "{{totalDuration}}"
+        },
+        {
+          "label": "Total Inactivity",
+          "value": "{{totalInactivity}}"
+        },
+        {
+          "label": "State of Charge",
+          "value": "{{stateOfCharge}} %"
+        }
       ]
     },
     "end-of-charge": {
-      "title":"Charge Finished",
-      "buttonText":"View Session",
-      "text":["Your electric vehicle, which is connected to the charging station {{chargeBoxID}}, connector {{connectorId}}, has just finished charging."],
+      "title": "Charge Finished",
+      "buttonText": "View Session",
+      "text": [
+        "Your electric vehicle, which is connected to the charging station {{chargeBoxID}}, connector {{connectorId}}, has just finished charging."
+      ],
       "table": [
-        { "label": "Consumption", "value": "{{totalConsumption}} kW.h" },
-        { "label": "Total Duration", "value": "{{totalDuration}}" },
-        { "label": "Battery Level", "value": "{{stateOfCharge}} %" }
+        {
+          "label": "Consumption",
+          "value": "{{totalConsumption}} kW.h"
+        },
+        {
+          "label": "Total Duration",
+          "value": "{{totalDuration}}"
+        },
+        {
+          "label": "Battery Level",
+          "value": "{{stateOfCharge}} %"
+        }
       ]
     },
     "billing-new-invoice-paid": {
-      "title":"Billing - Paid Invoice",
-      "buttonText":"View Invoice",
-      "text":["your invoice {{invoiceNumber}} has been paid and is now available."],
+      "title": "Billing - Paid Invoice",
+      "buttonText": "Download Invoice",
+      "text": [
+        "Your invoice {{invoiceNumber}} has been paid and the corresponding document can now be downloaded."
+      ],
       "table": [
-        { "label": "Amount Paid", "value": "{{invoiceAmount}}" }
+        {
+          "label": "Amount Paid",
+          "value": "{{invoiceAmount}}"
+        }
       ]
     },
     "billing-new-invoice-unpaid": {
-      "title":"Billing - New Invoice",
-      "buttonText":"Pay Invoice",
-      "text":["A new invoice is available {{invoiceNumber}}. Please follow the link below to finalize the payment"],
+      "title": "Billing - New Invoice",
+      "buttonText": "Pay Invoice",
+      "text": [
+        "The invoice {{invoiceNumber}} has been generated and the corresponding document can now be downloaded.",
+        "Please follow the link below to finalize the payment"
+      ],
       "table": [
-        { "label": "Amount Due", "value": "{{invoiceAmount}}" }
+        {
+          "label": "Amount Due",
+          "value": "{{invoiceAmount}}"
+        }
       ]
     },
     "charging-station-registered": {
-      "title":"Charging Station Connected",
-      "buttonText":"View {{chargeBoxID}}",
-      "text":["The charging station {{chargeBoxID}}, just got connected to the central server."]
+      "title": "Charging Station Connected",
+      "buttonText": "View {{chargeBoxID}}",
+      "text": [
+        "The charging station {{chargeBoxID}} just got connected to the central server."
+      ]
     },
     "end-user-error-notification": {
-      "title":"{{errorTitle}}",
-      "buttonText":"Navigate to Dashboard",
-      "text":["The user {{name}} reported the following error: {{errorDescription}}",
-      "E-mail: {{email}}",
-      "Phone: {{phone}}"]
+      "title": "A user reported an error",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
+        "The user {{name}} reported the following error:",
+        "Error: {{errorTitle}}",
+        "Description: {{errorDescription}}",
+        "",
+        "Email: {{email}}",
+        "Phone: {{phone}}"
+      ]
     },
     "offline-charging-station": {
-      "title":"Offline Charging Stations",
-      "buttonText":"Navigate to Dashboard",
-      "text":["The following number charging stations are offline in your organization: {{chargeBoxIDsNumber}}"]
+      "title": "Offline Charging Stations",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
+        "The following number charging stations are offline in your organization: {{chargeBoxIDsNumber}}"
+      ]
     },
     "charging-station-status-error": {
-      "title":"Charging Station Error",
-      "buttonText":"View Error",
-      "text":["Error occurred on {{chargeBoxID}}, connector {{connectorId}} : {{error}}"]
+      "title": "Charging Station Error",
+      "buttonText": "View Error",
+      "text": [
+        "Error occurred on {{chargeBoxID}}, connector {{connectorId}} : {{error}}"
+      ]
     },
     "billing-account-created": {
-      "title":"Billing Account Created",
-      "buttonText":"Connect",
-      "text":["Click the link below to complete the onboarding of your billing account"]
+      "title": "Billing Account Onboarding",
+      "buttonText": "Proceed",
+      "text": [
+        "A billing account has been created on your behalf by an administrator.",
+        "Click the link below to complete the onboarding process"
+      ]
     },
     "user-account-status-changed": {
-      "title":"Unknown User Badged",
-      "buttonText":"E-Mobility",
-      "text":["Your Account has been {{accountStatus}} by an Administrator"]
+      "title": "User Account Status Changed",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
+        "Your account has been {{accountStatus}} by an administrator"
+      ]
     },
-    "unknown-user-badged" : {
-      "title":"{{chargeBoxID}} - Unknown User Badged",
-      "buttonText":"E-Mobility",
-      "text":["An unknown user has just badged on {{chargeBoxID}} with the RFID Card {{badgeID}}."]
+    "unknown-user-badged": {
+      "title": "Unknown User Badged",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
+        "An unknown user has just badged on {{chargeBoxID}} with the RFID Card {{badgeID}}."
+      ]
     },
-    "session-started":{
-      "title":"Session Started",
-      "buttonText":"View Session",
-      "text":["Your electric vehicle is successfully connected to the charging station {{chargeBoxID}} connector {{connectorId}}."]
+    "session-started": {
+      "title": "Session Started",
+      "buttonText": "View Session",
+      "text": [
+        "Your vehicle has been connected to the charging station {{chargeBoxID}} on connector {{connectorId}}."
+      ]
     },
     "verification-email": {
-      "title":"Account Activation",
-      "buttonText":"Activate Your Account",
-      "text":["You have initiated a request to activate your account.", "Click on the link below to complete the activation."]
+      "title": "User Account Activation",
+      "buttonText": "Activate your Account",
+      "text": [
+        "You have initiated a request to activate your account.",
+        "Click on the link below to complete the activation."
+      ]
     },
     "verification-email-user-import": {
-      "title":"New Account Created",
-      "buttonText":"Activate Your Account",
-      "text":["An account has just been created on your behalf,", "Click on the link below to complete the activation."]
+      "title": "New Account Created",
+      "buttonText": "Activate your Account",
+      "text": [
+        "An account has just been created on your behalf,",
+        "Click on the link below to complete the activation."
+      ]
     },
-    "ocpi-patch-status-error":{
-      "title":"Patching of Charging Station Statuses Failed",
-      "buttonText":"E-Mobility",
-      "text":["The transfer of the charging station's statuses has failed on location {{location}},", "check the logs."]
+    "ocpi-patch-status-error": {
+      "title": "Patching of Charging Station Statuses Failed",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
+        "The OCPI transfer of the charging station's statuses has failed on location {{location}},",
+        "Check the logs."
+      ]
     },
-    "oicp-patch-status-error":{
-      "title":"OICP Patching of Charging Station Statuses Failed",
-      "buttonText":"E-Mobility",
-      "text":["The transfer of the OICP charging station's statuses has failed on location {{location}},", "check the logs."]
+    "oicp-patch-status-error": {
+      "title": "OICP Patching of Charging Station Statuses Failed",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
+        "The OICP transfer of the charging station's statuses has failed on location {{location}},",
+        "Check the logs."
+      ]
     },
     "oicp-patch-evses-error": {
-      "title":"Patching of Charging Station Statuses Failed",
-      "buttonText":"E-Mobility",
-      "text":["The transfer of the charging station's evses has failed,", "check the logs."]
+      "title": "Patching of Charging Station Statuses Failed",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
+        "The OICP transfer of the charging station's EVSEs has failed,",
+        "Check the logs."
+      ]
     },
     "user-account-inactivity": {
-      "title":"Patching of Charging Station Statuses Failed",
-      "buttonText":"E-Mobility",
-      "text":["The transfer of the charging station's evses has failed,", "check the logs."]
+      "title": "User Account Inactivity",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
+        "You haven't logged in to the e-Mobility application since {{lastLogin}}.",
+        "Be aware that in order to comply with the general data protection regulation, your account might be deleted by an administrator.",
+        "Please log in and accept the latest end-user license agreement to prevent your account deletion."
+      ]
     },
-    "session-not-started":{
-      "title":"Session Not Started",
-      "buttonText":"View {{chargeBoxID}}",
-      "text":["You haven't started the session on charging station {{chargeBoxID}}, connector {{connectorId}}."]
+    "session-not-started": {
+      "title": "No Session Started",
+      "buttonText": "View {{chargeBoxID}}",
+      "text": [
+        "You haven't started the session on charging station {{chargeBoxID}}, connector {{connectorId}}."
+      ]
     },
-    "session-not-started-after-authorize":{
-      "title":"Session Not Started",
-      "buttonText":"View {{chargeBoxID}}",
-      "text":["You badged on the charging station {{chargeBoxID}} but no session has been started."]
+    "session-not-started-after-authorize": {
+      "title": "No Session Started",
+      "buttonText": "View {{chargeBoxID}}",
+      "text": [
+        "You badged on the charging station {{chargeBoxID}} but no session has been started."
+      ]
     },
     "billing-user-synchronization-failed": {
-      "title":"Billing - User Synchronization Failed",
-      "buttonText":"View Settings",
-      "text":["Unable to synchronize {{nbrUsersInError}} user(s) with billing service provider."]
+      "title": "Billing - User Synchronization Failed",
+      "buttonText": "View Settings",
+      "text": [
+        "Unable to synchronize {{nbrUsersInError}} user(s) with the billing service provider."
+      ]
     },
     "billing-invoice-synchronization-failed": {
-      "title":"Billing - Invoice Synchronization Failed",
-      "buttonText":"View Settings",
-      "text":["Unable to synchronize {{nbrInvoicesInError}} invoice(s) with billing service provider."]
+      "title": "Billing - Invoice Synchronization Failed",
+      "buttonText": "View Settings",
+      "text": [
+        "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider."
+      ]
     },
     "billing-periodic-operation-failed": {
-      "title":"Billing - Periodic Operation Failed",
-      "buttonText":"View Settings",
-      "text":["Unable to process {{nbrInvoicesInError}} invoice(s)."]
+      "title": "Billing - Periodic Operation Failed",
+      "buttonText": "View Settings",
+      "text": [
+        "Unable to process {{nbrInvoicesInError}} invoice(s)."
+      ]
     },
-    "billing-account-activated":{
-      "title":"billing account activated",
-      "buttonText":"E-Mobility",
-      "text":["your billing account has been activated."]
+    "billing-account-activated": {
+      "title": "Billing Account Activated",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
+        "Congratulation!",
+        "The onboarding process has been successfully completed and your billing account has been activated."
+      ]
     },
     "car-synchronization-failed": {
-      "title":"Car Synchronization Failed",
-      "buttonText":"E-Mobility",
-      "text":["Unable to synchronize {{nbrCarsInError}} car(s) with the electric vehicles data provider."]
+      "title": "Car Synchronization Failed",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
+        "Unable to synchronize {{nbrCarsInError}} car(s) with the electric vehicles data provider."
+      ]
     },
     "compute-and-apply-charging-profiles-failed": {
-      "title":"Charging Profiles Failed",
-      "buttonText":"E-Mobility",
-      "text":[
+      "title": "Charging Profiles Failed",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
         "Applying the charging profiles for {{chargeBoxID}} failed.",
         "The charging station was excluded from this smart charging run automatically."
       ]
     },
     "account-verification-notification-active": {
-      "title":"Account Verified",
-      "buttonText":"E-Mobility",
-      "text":[
+      "title": "Account Verified",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
         "Your account has been verified and activated with success!"
       ]
     },
     "account-verification-notification-inactive": {
-      "title":"Account Verified",
-      "buttonText":"E-Mobility",
-      "text":[
+      "title": "Account Verified",
+      "buttonText": "Navigate to Open E-Mobility",
+      "text": [
         "Your account has been verified with success!",
         "An administrator will check and activate your account."
       ]
     },
     "admin-account-verification-notification": {
-      "title":"User Account Verification",
-      "buttonText":"Verify Account",
-      "text":[
+      "title": "User Account Verification",
+      "buttonText": "Verify Account",
+      "text": [
         "A new user with email {{email}} has just created an account.",
-        "Please follow the link below to review and activate it."
+        "Please follow the link below to activate it."
       ]
     },
     "user-create-password": {
-      "title":"New Account Created",
-      "buttonText":"Create Your Password",
-      "text":[
-        "An account has just been created on your behalf in {{tenantName}} organisation.",
-        "Click on the link bellow to create your password.",
-        "You will have to log in at least once to this organisation to be able to charge your car."
+      "title": "User Account Created",
+      "buttonText": "Set your Password",
+      "text": [
+        "An account has just been created on your behalf in '{{tenantName}}' organization.",
+        "Click on the link bellow to set your password.",
+        "You will have to log in at least once to be able to charge your car."
       ]
     }
   }

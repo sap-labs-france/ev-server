@@ -1,11 +1,6 @@
 <mj-section>
 	<mj-column>
 		<mj-image width="100px" href="{{evseDashboardURL}}" src="{{tenantLogoURL}}"></mj-image>
-	</mj-column>
-</mj-section>
-
-<mj-section>
-	<mj-column width="70%">
-		<mj-image href="https://open-e-mobility.fr/" src="https://imgur.com/OAuCtez.png"></mj-image>
+		<mj-divider border-width="1px" border-color="#E0E0E0"></mj-divider>
 	</mj-column>
 </mj-section>

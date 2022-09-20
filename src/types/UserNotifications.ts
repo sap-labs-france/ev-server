@@ -30,27 +30,27 @@ export default interface UserNotifications {
 }
 
 export type UserNotificationKeys =
- 'sendSessionStarted' |
- 'sendOptimalChargeReached' |
- 'sendEndOfCharge' |
- 'sendEndOfSession' |
- 'sendUserAccountStatusChanged' |
- 'sendUnknownUserBadged' |
- 'sendChargingStationStatusError' |
- 'sendChargingStationRegistered' |
- 'sendOcpiPatchStatusError' |
- 'sendOicpPatchStatusError' |
- 'sendUserAccountInactivity' |
- 'sendPreparingSessionNotStarted' |
- 'sendOfflineChargingStations' |
- 'sendBillingSynchronizationFailed' |
- 'sendBillingNewInvoice' |
- 'sendSessionNotStarted' |
- 'sendCarCatalogSynchronizationFailed' |
- 'sendEndUserErrorNotification' |
- 'sendAccountVerificationNotification' |
- 'sendAdminAccountVerificationNotification'
-;
+  'sendSessionStarted' |
+  'sendOptimalChargeReached' |
+  'sendEndOfCharge' |
+  'sendEndOfSession' |
+  'sendUserAccountStatusChanged' |
+  'sendUnknownUserBadged' |
+  'sendChargingStationStatusError' |
+  'sendChargingStationRegistered' |
+  'sendOcpiPatchStatusError' |
+  'sendOicpPatchStatusError' |
+  'sendUserAccountInactivity' |
+  'sendPreparingSessionNotStarted' |
+  'sendOfflineChargingStations' |
+  'sendBillingSynchronizationFailed' |
+  'sendBillingNewInvoice' |
+  'sendSessionNotStarted' |
+  'sendCarCatalogSynchronizationFailed' |
+  'sendEndUserErrorNotification' |
+  'sendAccountVerificationNotification' |
+  'sendAdminAccountVerificationNotification'
+  ;
 
 export enum UserNotificationType {
   SESSION_STARTED = 'SessionStarted',
@@ -109,14 +109,15 @@ export interface EmailNotificationMessage {
 
 export interface BaseNotification {
   tenantLogoURL?: string;
-  buttonUrl?:string;
-  appUrl?:string;
-  userFirstName?:string;
-  tableValues?:string[];
-  chargeBoxIDsNumber?:number;
-  accountStatus?:string;
-  accountStatus2?:string;
-  email?:string;
+  buttonUrl?: string;
+  appUrl?: string;
+  tableValues?: string[];
+  chargeBoxIDsNumber?: number;
+  accountStatus?: string;
+  accountStatus2?: string;
+  email?: string;
+  recipientName?: string;
+  recipientEmail?: string;
 }
 
 export interface EndOfChargeNotification extends BaseNotification {
@@ -340,7 +341,7 @@ export interface ComputeAndApplyChargingProfilesFailedNotification extends BaseN
   evseDashboardURL: string;
 }
 export interface NotificationSource {
-  channel: 'email'|'remote-push-notification';
+  channel: 'email' | 'remote-push-notification';
   notificationTask: NotificationTask;
   enabled: boolean;
 }

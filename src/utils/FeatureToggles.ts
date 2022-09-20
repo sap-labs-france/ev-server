@@ -10,7 +10,7 @@ export default class FeatureToggles {
   // Comment out the features that you want to switch OFF
   private static activeFeatures: Feature[] = [
     Feature.BILLING_PREVENT_CUSTOMER_DELETION,
-    // Feature.NEW_EMAIL_TEMPLATES,
+    Feature.NEW_EMAIL_TEMPLATES,
     // Feature.BILLING_SHOW_PRICING_DETAIL,
   ];
 
