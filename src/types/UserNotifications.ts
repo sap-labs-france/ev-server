@@ -110,12 +110,7 @@ export interface EmailNotificationMessage {
 export interface BaseNotification {
   tenantLogoURL?: string;
   buttonUrl?: string;
-  appUrl?: string;
   tableValues?: string[];
-  chargeBoxIDsNumber?: number;
-  accountStatus?: string;
-  accountStatus2?: string;
-  email?: string;
   recipientName?: string;
   recipientEmail?: string;
 }
@@ -194,6 +189,7 @@ export interface RequestPasswordNotification extends BaseNotification {
 export interface UserAccountStatusChangedNotification extends BaseNotification {
   user: User;
   evseDashboardURL: string;
+  accountStatus?: string;
 }
 
 export interface NewRegisteredUserNotification extends BaseNotification {
@@ -285,6 +281,7 @@ export interface PreparingSessionNotStartedNotification extends BaseNotification
 export interface OfflineChargingStationNotification extends BaseNotification {
   chargeBoxIDs: string;
   evseDashboardURL: string;
+  chargeBoxIDsNumber?: number;
 }
 
 export interface BillingUserSynchronizationFailedNotification extends BaseNotification {
@@ -395,6 +392,7 @@ export interface AdminAccountVerificationNotification extends BaseNotification {
   user: User;
   evseDashboardURL: string;
   evseUserToVerifyURL: string;
+  email?: string;
 }
 
 export interface UserCreatePassword extends BaseNotification {

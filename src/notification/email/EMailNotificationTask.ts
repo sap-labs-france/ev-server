@@ -361,7 +361,6 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   private async sendSmartEmail(prefix: string, context: any, recipient: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents: string[] = []): Promise<EmailNotificationMessage> {
-    context.appUrl = context.appUrl || 'https://open-e-mobility.io/';
     // Do not confuse the recipient (the one receiving the mail) and the user (within the context) which may be the subject of the mail
     context.recipientName = recipient.firstName || recipient.name ;
     context.recipientEmail = recipient.email ;
