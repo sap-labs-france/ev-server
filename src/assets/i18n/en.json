@@ -197,7 +197,7 @@
     "username": "Hello {{recipientName}}",
     "footerText": "This message has been sent by an automated email service to {{recipientEmail}}. Please do not reply. You may unsubscribe by changing your notification settings.",
     "new-registered-user": {
-      "title": "New Account Created",
+      "title": "User Account Created",
       "buttonText": "Activate your account",
       "text": [
         "Your account has been created successfully.",
@@ -369,7 +369,7 @@
       ]
     },
     "verification-email-user-import": {
-      "title": "New Account Created",
+      "title": "User Account Created",
       "buttonText": "Activate your Account",
       "text": [
         "An account has just been created on your behalf,",
