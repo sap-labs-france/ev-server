@@ -1,7 +1,7 @@
 <mj-section padding-top="20px">
 	<mj-column>
 		<mj-text>
-			<p>{{i18n:common.username}},</p>
+			<p>{{i18n:common.greetings}},</p>
 			<p>{{i18n:text}}</p>
 		</mj-text>
 	</mj-column>
