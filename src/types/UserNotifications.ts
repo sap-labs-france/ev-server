@@ -279,9 +279,12 @@ export interface PreparingSessionNotStartedNotification extends BaseNotification
 }
 
 export interface OfflineChargingStationNotification extends BaseNotification {
-  chargeBoxIDs: string;
   evseDashboardURL: string;
-  chargeBoxIDsNumber?: number;
+  chargingStationIDs: string[];
+  tenFirstChargingStationIDs?: string;
+  nbChargingStationIDs?: number;
+  // TODO - to be removed - old stuff - we cannot send mails with a list showing thousands of offline charging stations
+  chargeBoxIDs?: string;
 }
 
 export interface BillingUserSynchronizationFailedNotification extends BaseNotification {

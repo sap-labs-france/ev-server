@@ -154,7 +154,12 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    data.chargeBoxIDsNumber = data.chargeBoxIDs.length;
+    // TODO - old stuff - to be removed asap
+    data.chargeBoxIDs = data.chargingStationIDs.join(", ");
+    // Populate the context to have a human-readable message
+    data.nbChargingStationIDs = data.chargingStationIDs?.length || 0;
+    // Show only the ten first charging stations
+    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(", ") + "...";
     data.buttonUrl = data.evseDashboardURL;
     return await this.prepareAndSendEmail('offline-charging-station', data, user, tenant, severity);
   }

@@ -306,7 +306,7 @@
       ]
     },
     "end-user-error-notification": {
-      "title": "A user reported an error",
+      "title": "A User Reported an Error",
       "buttonText": "Navigate to Open E-Mobility",
       "text": [
         "The user {{name}} reported the following error:",
@@ -321,7 +321,9 @@
       "title": "Offline Charging Stations",
       "buttonText": "Navigate to Open E-Mobility",
       "text": [
-        "The following number charging stations are offline in your organization: {{chargeBoxIDsNumber}}"
+        "Your organization has {{nbChargingStationIDs}} charging station(s) being offline.",
+        "",
+        "Charging Stations: {{tenFirstChargingStationIDs}}"
       ]
     },
     "charging-station-status-error": {

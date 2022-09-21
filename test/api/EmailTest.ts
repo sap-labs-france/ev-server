@@ -8,6 +8,7 @@ import EMailNotificationTask from '../../src/notification/email/EMailNotificatio
 import I18nManager from '../../src/utils/I18nManager';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import Tenant from '../../src/types/Tenant';
+import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
@@ -19,7 +20,7 @@ chai.use(responseHelper);
 const WEBSITE_URL = 'https://open-e-mobility.io/';
 
 function checkForMissing(html: string): string | null {
-  const regex = new RegExp(/\[missing .* translation\]/g);
+  const regex = new RegExp(/\[missing .* value\]/g);
   const value = regex.exec(html);
   if (value) {
     return value[0];
@@ -51,11 +52,12 @@ describe('Initialization', () => {
     beforeAll(async () => {
       const tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       // Set the recipient
-      recipient = tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      recipient = Utils.cloneObject(tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN));
       recipient.firstName = 'Kaito ( 怪盗)';
       recipient.name = '( 怪盗) Kaito';
       // Set the user mentioned in the body of the mail
-      user = tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+      user = Utils.cloneObject(tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER));
+      user.phone = "+33 6 12 34 56 78";
       tenant = tenantContext.getTenant();
     });
     it('new-registered-user', async () => {
@@ -155,8 +157,8 @@ describe('Initialization', () => {
         user,
         invoiceDownloadUrl: WEBSITE_URL,
         payInvoiceUrl: WEBSITE_URL,
-        invoiceNumber: '123123123',
-        invoiceAmount: '1200',
+        invoiceNumber: 'I-2002-001',
+        invoiceAmount: '$12.50',
         invoiceStatus: 'paid',
       } as BillingNewInvoiceNotification;
       const notificationResult = await emailNotificationTask.sendBillingNewInvoice(data, recipient, tenant, severity);
@@ -172,8 +174,8 @@ describe('Initialization', () => {
         user,
         invoiceDownloadUrl: WEBSITE_URL,
         payInvoiceUrl: 'https://open-e-mobility.io/',
-        invoiceNumber: '123123123',
-        invoiceAmount: '1200',
+        invoiceNumber: 'I-2002-001',
+        invoiceAmount: '$12.50',
         invoiceStatus: 'unpaid',
       } as BillingNewInvoiceNotification;
       const notificationResult = await emailNotificationTask.sendBillingNewInvoice(data, recipient, tenant, severity);
@@ -215,7 +217,7 @@ describe('Initialization', () => {
 
     it('offline-charging-station', async () => {
       const data: OfflineChargingStationNotification = {
-        chargeBoxIDs: 'some box id',
+        chargingStationIDs: [ 'CS1', 'CS2', 'CS3', 'CS4', 'CS5', 'CS6', 'CS7', 'CS8', 'CS9', 'CS10', 'CS11', 'CS12' ],
         evseDashboardURL: WEBSITE_URL,
       };
       const notificationResult = await emailNotificationTask.sendOfflineChargingStations(data, recipient, tenant, severity);

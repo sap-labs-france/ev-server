@@ -116,6 +116,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
   public async sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    // TODO - old stuff - to be removed asap
+    data.chargeBoxIDs = data.chargingStationIDs.join(", ");
+    // Populate the context to have a human-readable message
+    data.nbChargingStationIDs = data.chargingStationIDs?.length || 0;
+    // Show only the ten first charging stations
+    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(", ") + "...";
     // Get Message Text
     const title = i18nManager.translate('notifications.offlineChargingStation.title');
     const body = i18nManager.translate('notifications.offlineChargingStation.body',
