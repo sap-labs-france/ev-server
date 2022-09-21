@@ -88,6 +88,7 @@
     "test:template": "npm run test:jest -- test/api/ChargingStationTemplateTest.ts",
     "test:ut-template": "npm run test:jest -- test/api/UnitTestTemplate.ts",
     "test:user": "npm run test:jest -- test/api/UserTest.ts",
+    "test:email": "cross-env NODE_ENV=development jest --config='test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- test/**/EmailTest.ts",
     "test:jest": "npm version && cross-env cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit"
   },
   "dependencies": {
@@ -126,6 +127,7 @@
     "jsonwebtoken": "^8.5.1",
     "locale": "^0.1.0",
     "lodash": "^4.17.21",
+    "mjml": "^4.13.0",
     "moment": "^2.29.4",
     "moment-duration-format": "^2.3.2",
     "moment-timezone": "^0.5.34",

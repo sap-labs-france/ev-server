@@ -1,0 +1,7 @@
+<mj-section>
+  <mj-column width="70%">
+    <mj-table>
+    {{_TABLEBUILD}}
+    </mj-table>
+  </mj-column>
+</mj-section>

@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "The transfer of the charging station's statuses has failed on location <strong>'<%- location %>'</strong>.",
+      "The transfer of the charging station statuses has failed on location <strong>'<%- location %>'</strong>.",
       "",
       "Check the logs.",
       ""
