@@ -72,15 +72,15 @@
     },
     "ocpiPatchChargingStationsStatusesError": {
       "title": "Roaming Send Statuses",
-      "body": "The transfer to the roaming platform of the charging station's statuses has failed on location '{{location}}' in organization '{{tenantName}}', check the logs"
+      "body": "The transfer to the roaming platform of the charging station statuses has failed on location '{{location}}' in organization '{{tenantName}}', check the logs"
     },
     "oicpPatchChargingStationsStatusesError": {
       "title": "Hubject Send Statuses",
-      "body": "The transfer to the Hubject roaming platform of the charging station's statuses has failed in organization '{{tenantName}}', check the logs"
+      "body": "The transfer to the Hubject roaming platform of the charging station statuses has failed in organization '{{tenantName}}', check the logs"
     },
     "oicpPatchChargingStationsError": {
       "title": "Hubject Send Charging Stations",
-      "body": "The transfer to the Hubject roaming platform of the charging station's data has failed in organization '{{tenantName}}', check the logs"
+      "body": "The transfer to the Hubject roaming platform of the charging station data has failed in organization '{{tenantName}}', check the logs"
     },
     "optimalChargeReached": {
       "title": "Optimal Charge Reached",
@@ -201,6 +201,7 @@
       "buttonText": "Activate your account",
       "text": [
         "Your account has been created successfully.",
+        "",
         "Click on the link below to activate it."
       ]
     },
@@ -209,6 +210,7 @@
       "buttonText": "Reset Password",
       "text": [
         "You have just requested to reset your password.",
+        "",
         "Click on the link below to generate and receive a new one."
       ]
     },
@@ -289,6 +291,7 @@
       "buttonText": "Pay Invoice",
       "text": [
         "The invoice {{invoiceNumber}} has been generated and the corresponding document can now be downloaded.",
+        "",
         "Please follow the link below to finalize the payment"
       ],
       "table": [
@@ -310,6 +313,7 @@
       "buttonText": "Navigate to Open E-Mobility",
       "text": [
         "The user {{name}} reported the following error:",
+        "",
         "Error: {{errorTitle}}",
         "Description: {{errorDescription}}",
         "",
@@ -338,6 +342,7 @@
       "buttonText": "Proceed",
       "text": [
         "A billing account has been created on your behalf by an administrator.",
+        "",
         "Click the link below to complete the onboarding process"
       ]
     },
@@ -367,6 +372,7 @@
       "buttonText": "Activate your Account",
       "text": [
         "You have initiated a request to activate your account.",
+        "",
         "Click on the link below to complete the activation."
       ]
     },
@@ -375,6 +381,7 @@
       "buttonText": "Activate your Account",
       "text": [
         "An account has just been created on your behalf,",
+        "",
         "Click on the link below to complete the activation."
       ]
     },
@@ -382,7 +389,8 @@
       "title": "Patching of Charging Station Statuses Failed",
       "buttonText": "Navigate to Open E-Mobility",
       "text": [
-        "The OCPI transfer of the charging station's statuses has failed on location {{location}},",
+        "The OCPI transfer of the charging station statuses has failed on location {{location}}.",
+        "",
         "Check the logs."
       ]
     },
@@ -390,7 +398,8 @@
       "title": "Hubject - Send Statuses",
       "buttonText": "Navigate to Open E-Mobility",
       "text": [
-        "The transfer to the Hubject roaming platform of the charging station's statuses has failed in organization '{{tenantName}}'",
+        "The transfer to the Hubject roaming platform of the charging station statuses has failed in organization '{{tenantName}}'.",
+        "",
         "Check the logs."
       ]
     },
@@ -398,7 +407,8 @@
       "title": "Hubject - Send Charging Stations",
       "buttonText": "Navigate to Open E-Mobility",
       "text": [
-        "The transfer to the Hubject roaming platform of the charging station's data has failed in organization '{{tenantName}}'",
+        "The transfer to the Hubject roaming platform of the charging station data has failed in organization '{{tenantName}}'.",
+        "",
         "Check the logs."
       ]
     },
@@ -408,6 +418,7 @@
       "text": [
         "You haven't logged in to the e-Mobility application since {{lastLogin}}.",
         "Be aware that in order to comply with the general data protection regulation, your account might be deleted by an administrator.",
+        "",
         "Please log in and accept the latest end-user license agreement to prevent your account deletion."
       ]
     },
@@ -451,6 +462,7 @@
       "buttonText": "Navigate to Open E-Mobility",
       "text": [
         "Congratulation!",
+        "",
         "The onboarding process has been successfully completed and your billing account has been activated."
       ]
     },
@@ -481,6 +493,7 @@
       "buttonText": "Navigate to Open E-Mobility",
       "text": [
         "Your account has been verified with success!",
+        "",
         "An administrator will check and activate your account."
       ]
     },
@@ -489,6 +502,7 @@
       "buttonText": "Verify Account",
       "text": [
         "A new user with email {{email}} has just created an account.",
+        "",
         "Please follow the link below to activate it."
       ]
     },
