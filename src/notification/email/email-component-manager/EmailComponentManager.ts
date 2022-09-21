@@ -28,13 +28,8 @@ export default class EmailComponentManager {
   }
 
   public static async loadComponent(componentName: EmailComponent): Promise<string> {
-    try {
-      const fileName = `${global.appRoot}/notification/email/mjml-components/${componentName}`;
-      const content = await fs.readFile(fileName, 'utf8');
-      return content;
-    } catch (error) {
-      // Do not log that one - an exception is thrown by the caller when null is returned
-    }
-    return null;
+    const fileName = `${global.appRoot}/assets/email/mjml-components/${componentName}`;
+    const content = await fs.readFile(fileName, 'utf8');
+    return content;
   }
 }
