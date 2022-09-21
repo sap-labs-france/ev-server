@@ -76,11 +76,11 @@
     },
     "oicpPatchChargingStationsStatusesError": {
       "title": "Hubject Send Statuses",
-      "body": "The transfer to the Hubject roaming platform of the charging station's statuses has failed in organization '{{tenantName}}', check the logs"
+      "body": "The transfer to the Hubject roaming platform of the charging station statuses has failed in organization '{{tenantName}}', check the logs"
     },
     "oicpPatchChargingStationsError": {
       "title": "Hubject Send Charging Stations",
-      "body": "The transfer to the Hubject roaming platform of the charging station's data has failed in organization '{{tenantName}}', check the logs"
+      "body": "The transfer to the Hubject roaming platform of the charging station data has failed in organization '{{tenantName}}', check the logs"
     },
     "optimalChargeReached": {
       "title": "Carga Ideal alcançada",

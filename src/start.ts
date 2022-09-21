@@ -182,7 +182,7 @@ export default class Bootstrap {
       } else {
         global.serverType = ServerType.CENTRAL_SERVER;
       }
-      await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfuLly`, ServerAction.BOOTSTRAP_STARTUP);
+      await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfully`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       Logging.logConsoleError(error);
       global.database && await Logging.logError({

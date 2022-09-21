@@ -1,0 +1,8 @@
+<mj-section padding-top="20px">
+	<mj-column >
+		<mj-divider border-width="1px" border-color="#E0E0E0"></mj-divider>
+		<mj-text font-size="12px">
+			<p>{{i18n:common.footerText}}</p>
+		</mj-text>
+	</mj-column>
+</mj-section>
