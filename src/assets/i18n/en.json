@@ -387,18 +387,18 @@
       ]
     },
     "oicp-patch-status-error": {
-      "title": "OICP Patching of Charging Station Statuses Failed",
+      "title": "Hubject - Send Statuses",
       "buttonText": "Navigate to Open E-Mobility",
       "text": [
-        "The OICP transfer of the charging station's statuses has failed on location {{location}},",
+        "The transfer to the Hubject roaming platform of the charging station's statuses has failed in organization '{{tenantName}}'",
         "Check the logs."
       ]
     },
     "oicp-patch-evses-error": {
-      "title": "Patching of Charging Station Statuses Failed",
+      "title": "Hubject - Send Charging Stations",
       "buttonText": "Navigate to Open E-Mobility",
       "text": [
-        "The OICP transfer of the charging station's EVSEs has failed,",
+        "The transfer to the Hubject roaming platform of the charging station's data has failed in organization '{{tenantName}}'",
         "Check the logs."
       ]
     },
@@ -497,8 +497,9 @@
       "buttonText": "Set your Password",
       "text": [
         "An account has just been created on your behalf in '{{tenantName}}' organization.",
-        "Click on the link bellow to set your password.",
-        "You will have to log in at least once to be able to charge your car."
+        "You will have to log in at least once to be able to charge your car.",
+        "",
+        "Click on the link bellow to set your password."
       ]
     }
   }
