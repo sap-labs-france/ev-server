@@ -20,7 +20,6 @@ export default class MjmlBuilder {
     instance.addConfig(await EmailComponentManager.getComponent(EmailComponent.CONFIG))
       .addHeader(await EmailComponentManager.getComponent(EmailComponent.HEADER))
       .addFooter(await EmailComponentManager.getComponent(EmailComponent.FOOTER));
-
     return instance;
   }
 

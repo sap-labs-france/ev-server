@@ -140,7 +140,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         siteAreaID: chargingProfile.chargingStation?.siteAreaID,
         companyID: chargingProfile.chargingStation?.companyID,
         siteAreaName: siteAreaName,
-        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain);
+        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
       });
     return false;
   }

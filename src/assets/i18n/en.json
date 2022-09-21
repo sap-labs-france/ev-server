@@ -194,7 +194,7 @@
     "userID": "User ID"
   },
   "email": {
-    "username": "Hello {{recipientName}}",
+    "greetings": "Hello {{recipientName}}",
     "footerText": "This message has been sent by an automated email service to {{recipientEmail}}. Please do not reply. You may unsubscribe by changing your notification settings.",
     "new-registered-user": {
       "title": "User Account Created",
@@ -350,7 +350,7 @@
       "title": "User Account Status Changed",
       "buttonText": "Navigate to Open E-Mobility",
       "text": [
-        "Your account has been {{accountStatus}} by an administrator"
+        "Your account has been {{accountStatus}} by an administrator."
       ]
     },
     "unknown-user-badged": {

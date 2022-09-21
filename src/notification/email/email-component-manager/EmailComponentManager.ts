@@ -23,7 +23,6 @@ export default class EmailComponentManager {
       cachedComponent = await EmailComponentManager.loadComponent(componentName);
       EmailComponentManager.components.set(componentName, cachedComponent);
     }
-
     return cachedComponent;
   }
 

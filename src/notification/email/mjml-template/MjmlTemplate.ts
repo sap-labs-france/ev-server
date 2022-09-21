@@ -1,5 +1,4 @@
 import I18nManager from '../../../utils/I18nManager';
-import Utils from '../../../utils/Utils';
 import mjml2html from 'mjml';
 
 export default class MjmlTemplate {
@@ -18,11 +17,11 @@ export default class MjmlTemplate {
   }
 
   public resolve(i18nManager: I18nManager, context: any, prefix: string): void {
-    this.buildComponents(i18nManager,context,prefix);
-    this.preparei18nSelectors(prefix);
-    const i18nSelectors = this.geti18nSelectors();
+    this.buildComponents(i18nManager, context, prefix);
+    this.prepareI18nSelectors(prefix);
+    const i18nSelectors = this.getI18nSelectors();
     for (const selector of i18nSelectors) {
-      let value = i18nManager.translate(selector,context);
+      let value = i18nManager.translate(selector, context);
       if (Array.isArray(value)) {
         value = value.join('<br>');
       }
@@ -33,11 +32,11 @@ export default class MjmlTemplate {
     for (const selector of contextSelectors) {
       const keys = this.splitSelector(selector);
       const value = this.getValue(keys, context);
-      this.replace(selector,value);
+      this.replace(selector, value);
     }
   }
 
-  private buildTable(i18nManager: I18nManager,context:any,prefix:string): void {
+  private buildTable(i18nManager: I18nManager, context: any, prefix: string): void {
     const regex = new RegExp(/_TABLEBUILD/, 'g');
     const match = this.template.match(regex);
     if (!match) {
@@ -45,18 +44,18 @@ export default class MjmlTemplate {
     }
     let table = '';
     const tableCases = JSON.parse(JSON.stringify(i18nManager.translate('email.' + prefix + '.table')));
-    for (let i = 0; i < tableCases.length;i++) {
+    for (let i = 0; i < tableCases.length; i++) {
       const tableCase = tableCases[i];
       const valueRegex = new RegExp(/\{\{([a-zA-Z0-9_.-]*)\}\}/g);
       const valueSelector = valueRegex.exec(tableCase.value as string);
-      const t = tableCase.value.replace(valueSelector[0],context[valueSelector[1]]);
+      const t = tableCase.value.replace(valueSelector[0], context[valueSelector[1]]);
       table = table + `<tr><th style="font-size:18px;font-weight:300">${tableCase.label as string}</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">${t as string}</td></tr>`;
     }
-    this.replace(match[0],table);
+    this.replace(match[0], table);
   }
 
-  private buildComponents(i18nManager: I18nManager,context:any,prefix:string) {
-    this.buildTable(i18nManager,context,prefix);
+  private buildComponents(i18nManager: I18nManager, context: any, prefix: string) {
+    this.buildTable(i18nManager, context, prefix);
   }
 
   private replace(selector: string, value: string): void {
@@ -73,7 +72,7 @@ export default class MjmlTemplate {
     return selectors;
   }
 
-  private geti18nSelectors(): string[] {
+  private getI18nSelectors(): string[] {
     const regex = new RegExp(/\{\{(email..*)\}\}/, 'g');
     const matches = this.template.matchAll(regex);
     const selectors = [];
@@ -83,7 +82,7 @@ export default class MjmlTemplate {
     return selectors;
   }
 
-  private preparei18nSelectors(prefix:string): void {
+  private prepareI18nSelectors(prefix: string): void {
     const i18nRegexCommon = new RegExp(/\{\{i18n:common.(.*)\}\}/, 'g');
     this.template = this.template.replace(i18nRegexCommon, '{{email.$1}}');
 
