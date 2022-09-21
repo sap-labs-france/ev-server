@@ -2,6 +2,7 @@ import CentralServerService from './client/CentralServerService';
 import { ChargingStationTemplate } from '../../src/types/ChargingStation';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import LogStorage from '../../src/storage/mongodb/LogStorage';
 import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
 import { expect } from 'chai';
@@ -14,6 +15,23 @@ class TestData {
 }
 
 const testData: TestData = new TestData();
+
+function dumpLastErrors(): void {
+  const params = { levels: ['E'] };
+  const dbParams = { limit: 2, skip: 0, sort: { timestamp: -1 } }; // the 2 last errors
+  LogStorage.getLogs(this.tenantContext.getTenant(), params, dbParams, null).then((loggedErrors) => {
+
+    if (loggedErrors?.result.length > 0) {
+      for (const loggedError of loggedErrors.result) {
+        console.error(
+          '-----------------------------------------------\n' +
+          'Logged Error: \n' +
+          '-----------------------------------------------\n' +
+          JSON.stringify(loggedError));
+      }
+    }
+  });
+}
 
 describe('Charging Station Template', () => {
   jest.setTimeout(60000);
@@ -32,6 +50,9 @@ describe('Charging Station Template', () => {
       it('Should be able to create a new template', async () => {
         const templateToCreate = Factory.chargingStationTemplate.build();
         const response = await testData.superAdminCentralService.createEntity(testData.superAdminCentralService.chargingStationTemplateApi, templateToCreate, false);
+        if (response?.status !== StatusCodes.OK) {
+          dumpLastErrors();
+        }
         expect(response.status).to.equal(StatusCodes.OK);
         expect(response.data).not.null;
         expect(response.data.status).to.eql('Success');
@@ -44,6 +65,9 @@ describe('Charging Station Template', () => {
         // Retrieve it from the backend
         const response = await testData.superAdminCentralService.chargingStationTemplateApi.readById(testData.newChargingStationTemplate.id);
         // Check if ok
+        if (response?.status !== StatusCodes.OK) {
+          dumpLastErrors();
+        }
         expect(response.status).to.equal(StatusCodes.OK);
         expect(response.data.id).is.eql(testData.newChargingStationTemplate.id);
       });
