@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BaseNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
 import EmailComponentManager, { EmailComponent } from './email-component-manager/EmailComponentManager';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
@@ -10,6 +10,7 @@ import Constants from '../../utils/Constants';
 import EmailConfiguration from '../../types/configuration/EmailConfiguration';
 import I18nManager from '../../utils/I18nManager';
 import Logging from '../../utils/Logging';
+import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationTask from '../NotificationTask';
 import { ServerAction } from '../../types/Server';
 import TemplateManager from '../../utils/TemplateManager';
@@ -368,15 +369,6 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   private async sendSmartEmail(prefix: string, context: any, recipient: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents: string[] = []): Promise<EmailNotificationMessage> {
-    // Do not confuse the recipient (the one receiving the mail) and the user (within the context) which may be the subject of the mail
-    context.recipientName = recipient.firstName || recipient.name;
-    context.recipientEmail = recipient.email;
-    // Tenant name
-    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
-      context.tenantName = Constants.DEFAULT_TENANT_ID;
-    } else {
-      context.tenantName = tenant.name;
-    }
     // Select the i18n source according to the recipient locale
     const i18nInstance = I18nManager.getInstanceForLocale(recipient.locale);
     // Aggregate the templates
@@ -405,7 +397,7 @@ export default class EMailNotificationTask implements NotificationTask {
     return emailContent;
   }
 
-  private async prepareAndSendEmail(templateName: string, data: any, recipient: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents?: string[]): Promise<NotificationResult> {
+  private async prepareAndSendEmail(templateName: string, sourceData: any, recipient: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents?: string[]): Promise<NotificationResult> {
     let startTime: number;
     let emailContent: EmailNotificationMessage;
     try {
@@ -425,13 +417,15 @@ export default class EMailNotificationTask implements NotificationTask {
           message: `No email is provided for User for '${templateName}'`
         });
       }
-      // Tenant LOGO
-      data.tenantLogoURL = await this.getTenantLogo(tenant);
+      //----------------------------------------------------------------------------------------------------------
+      //  ACHTUNG - to not alter the original sourceData object (the caller nay need to reuse the initial values)
+      //----------------------------------------------------------------------------------------------------------
+      const context = await this.populateNotificationContext(tenant, recipient, sourceData);
       // Send the email
       if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
-        emailContent = await this.sendSmartEmail(templateName, data, recipient, tenant, severity, optionalComponents);
+        emailContent = await this.sendSmartEmail(templateName, context, recipient, tenant, severity, optionalComponents);
       } else {
-        emailContent = await this.sendLegacyEmail(templateName, data, recipient, tenant, severity);
+        emailContent = await this.sendLegacyEmail(templateName, context, recipient, tenant, severity);
       }
       return {
         html: emailContent.html,
@@ -439,10 +433,7 @@ export default class EMailNotificationTask implements NotificationTask {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
-        siteID: data?.siteID,
-        siteAreaID: data?.siteAreaID,
-        companyID: data?.companyID,
-        chargingStationID: data?.chargeBoxID,
+        ...LoggingHelper.getSourceDataProperties(sourceData),
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'prepareAndSendEmail',
         message: 'Error in preparing email for user',
@@ -457,11 +448,23 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
+  private async populateNotificationContext(tenant: Tenant, recipient: User, sourceData: any): Promise<any> {
+    return {
+      ...sourceData,
+      // Tenant
+      tenantName: (tenant.id === Constants.DEFAULT_TENANT_ID) ? Constants.DEFAULT_TENANT_ID : tenant.name,
+      // Recipient
+      recipientName: recipient.firstName || recipient.name,
+      recipientEmail: recipient.email,
+      // Tenant LOGO
+      tenantLogoURL: await this.getTenantLogo(tenant)
+    };
+  }
+
   private async getTenantLogo(tenant: Tenant): Promise<string> {
     if (tenant.id === Constants.DEFAULT_TENANT_ID) {
       return Constants.TENANT_DEFAULT_LOGO_CONTENT;
     } else if (!tenant.logo) {
-      // Get the Tenant logo
       tenant.logo = (await TenantStorage.getTenantLogo(tenant))?.logo;
     }
     return tenant.logo || Constants.TENANT_DEFAULT_LOGO_CONTENT;
