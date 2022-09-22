@@ -1381,6 +1381,7 @@ export default class OCPPService {
             transaction.carStateOfCharge = user.startTransactionData.lastCarStateOfCharge;
             transaction.carOdometer = user.startTransactionData.lastCarOdometer;
             transaction.departureTime = user.startTransactionData.lastDepartureTime;
+            transaction.targetStateOfCharge = user.startTransactionData.lastTargetStateOfCharge;
           } else {
             // Get default car if any
             const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {},
@@ -1405,7 +1406,8 @@ export default class OCPPService {
             lastSelectedCar: false,
             lastCarStateOfCharge: null,
             lastCarOdometer: null,
-            lastDepartureTime: null
+            lastDepartureTime: null,
+            lastTargetStateOfCharge: null
           });
           // Handle SoC
           soc = await this.getCurrentSoc(tenant, transaction, chargingStation);

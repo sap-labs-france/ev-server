@@ -172,7 +172,7 @@ export default class PricingStorage {
             $switch: {
               branches: [
                 { case: { $eq: [ 'Company', '$entityType' ] }, then: '$company.name' },
-                { case: { $eq: [ 'Site', '$entityType' ] }, then: '$company.name' },
+                { case: { $eq: [ 'Site', '$entityType' ] }, then: '$site.name' },
                 { case: { $eq: [ 'SiteArea', '$entityType' ] }, then: '$siteArea.name' },
               ],
               default: '$entityID'
