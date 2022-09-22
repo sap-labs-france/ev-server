@@ -5,6 +5,7 @@ import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
 import BackendError from '../../exception/BackendError';
+import BrandingConstants from '../../utils/BrandingConstants';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import EmailConfiguration from '../../types/configuration/EmailConfiguration';
@@ -314,7 +315,7 @@ export default class EMailNotificationTask implements NotificationTask {
           from: rfc2047.decode(messageSent.header.from.toString()),
           to: rfc2047.decode(messageSent.header.to.toString()),
           subject: rfc2047.decode(messageSent.header.subject),
-          content: email.html
+          // content: email.html
         }
       });
     } catch (error) {
@@ -335,7 +336,7 @@ export default class EMailNotificationTask implements NotificationTask {
             subject: rfc2047.decode(messageToSend.header.subject),
             smtpError: error.smtp,
             error: error.stack,
-            content: email.html
+            // content: email.html
           }
         });
         // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
@@ -457,17 +458,20 @@ export default class EMailNotificationTask implements NotificationTask {
       recipientName: recipient.firstName || recipient.name,
       recipientEmail: recipient.email,
       // Tenant LOGO
-      tenantLogoURL: await this.getTenantLogo(tenant)
+      tenantLogoURL: await this.getTenantLogo(tenant),
+      // Branding
+      openEMobilityPoweredByLogo: BrandingConstants.OPEN_EMOBILITY_POWERED_BY,
+      openEmobilityWebSiteURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL
     };
   }
 
   private async getTenantLogo(tenant: Tenant): Promise<string> {
     if (tenant.id === Constants.DEFAULT_TENANT_ID) {
-      return Constants.TENANT_DEFAULT_LOGO_CONTENT;
+      return BrandingConstants.TENANT_DEFAULT_LOGO_CONTENT;
     } else if (!tenant.logo) {
       tenant.logo = (await TenantStorage.getTenantLogo(tenant))?.logo;
     }
-    return tenant.logo || Constants.TENANT_DEFAULT_LOGO_CONTENT;
+    return tenant.logo || BrandingConstants.TENANT_DEFAULT_LOGO_CONTENT;
   }
 
   private async sendLegacyEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<EmailNotificationMessage> {
