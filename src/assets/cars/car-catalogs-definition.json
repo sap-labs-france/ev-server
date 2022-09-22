@@ -13,23 +13,7 @@
     "chargeStandardPhaseAmp": 16,
     "chargeStandardChargeTime": 0,
     "chargeStandardChargeSpeed": 0,
-    "chargeStandardTables": [
-      {
-        "type": "230V16A1X",
-        "evsePhaseVolt": 72,
-        "evsePhaseAmp": 16,
-        "evsePhase": 4,
-        "evsePhaseVoltCalculated": 72,
-        "chargePhaseVolt": 230,
-        "chargePhaseAmp": 16,
-        "chargePhase": 1,
-        "chargePower": 4,
-        "chargeTime": 106,
-        "chargeSpeed": 7
-      }
-    ],
     "chargeAlternativeTables": [],
-    "chargeOptionTables": [],
     "batteryCapacityFull": 8.6,
     "imageURLs": [
       "100000-goupil-g5-benne-1.jpg",
@@ -49,23 +33,7 @@
     "chargeStandardPower": 13,
     "chargeStandardPhase": 1,
     "chargeStandardPhaseAmp": 16,
-    "chargeStandardTables": [
-      {
-        "type": "230V16A1X",
-        "evsePhaseVolt": 230,
-        "evsePhaseAmp": 16,
-        "evsePhase": 4,
-        "evsePhaseVoltCalculated": 230,
-        "chargePhaseVolt": 230,
-        "chargePhaseAmp": 16,
-        "chargePhase": 1,
-        "chargePower": 4,
-        "chargeTime": 106,
-        "chargeSpeed": 7
-      }
-    ],
     "chargeAlternativeTables": [],
-    "chargeOptionTables": [],
     "batteryCapacityFull": 6.1,
     "imageURLs": [
       "100001-renault-twizy-1.jpg",
@@ -88,23 +56,7 @@
     "chargeStandardPower": 13,
     "chargeStandardPhase": 1,
     "chargeStandardPhaseAmp": 16,
-    "chargeStandardTables": [
-      {
-        "type": "230V16A1X",
-        "evsePhaseVolt": 72,
-        "evsePhaseAmp": 16,
-        "evsePhase": 4,
-        "evsePhaseVoltCalculated": 72,
-        "chargePhaseVolt": 230,
-        "chargePhaseAmp": 16,
-        "chargePhase": 1,
-        "chargePower": 4,
-        "chargeTime": 106,
-        "chargeSpeed": 7
-      }
-    ],
     "chargeAlternativeTables": [],
-    "chargeOptionTables": [],
     "batteryCapacityFull": 8.6,
     "imageURLs": [
       "100002-tata-nexon-1.jpg",
