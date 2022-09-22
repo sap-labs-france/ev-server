@@ -1,7 +1,7 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { BillingAccount, BillingInvoice, BillingTransfer } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
-import ChargingStation, { ChargePoint, Command } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationTemplate, Command } from '../../../../types/ChargingStation';
 import { EntityData, URLInfo } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -22,6 +22,7 @@ import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CentralSystemRestServiceConfiguration from '../../../../types/configuration/CentralSystemRestServiceConfiguration';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
 import Company from '../../../../types/Company';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
@@ -155,6 +156,26 @@ export default class UtilsService {
       });
     }
     return chargingStation;
+  }
+
+  public static async checkAndGetChargingStationTemplateAuthorization(tenant: Tenant, userToken: UserToken, chargingStationTemplateID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStationTemplate> {
+  // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
+      tenant, userToken, { ID: chargingStationTemplateID }, authAction, entityData);
+    // Get one template
+    const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(chargingStationTemplateID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, chargingStationTemplate, `ChargingStationTemplate ID '${chargingStationTemplateID}' does not exist`,
+      MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
+    return chargingStationTemplate;
   }
 
   public static async checkAndGetChargingProfileAuthorization(tenant: Tenant, userToken: UserToken, chargingProfileID: string, authAction: Action,

@@ -8,6 +8,7 @@ import BaseApi from './utils/BaseApi';
 import BillingApi from './BillingApi';
 import CarApi from './CarApi';
 import ChargingStationApi from './ChargingStationApi';
+import ChargingStationTemplateApi from './ChargingStationTemplateApi';
 import CompanyApi from './CompanyApi';
 import ContextDefinition from '../context/ContextDefinition';
 import { HTTPError } from '../../../src/types/HTTPError';
@@ -49,6 +50,7 @@ export default class CentralServerService {
   public userApi: UserApi;
   public tagApi: TagApi;
   public chargingStationApi: ChargingStationApi;
+  public chargingStationTemplateApi: ChargingStationTemplateApi;
   public registrationApi: RegistrationTokenApi;
   public transactionApi: TransactionApi;
   public settingApi: SettingApi;
@@ -94,8 +96,12 @@ export default class CentralServerService {
     } else {
       this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, tenantSubdomain);
     }
+    // Super Admin
     this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedSuperAdmin.email, this._authenticatedSuperAdmin.password, '');
-    // Create the Company
+    this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
+    this.chargingStationTemplateApi = new ChargingStationTemplateApi(this.authenticatedSuperAdminApi);
+    this.carApiSuperTenant = new CarApi(this.authenticatedSuperAdminApi);
+    // Admin
     this.companyApi = new CompanyApi(this.authenticatedApi);
     this.siteApi = new SiteApi(this.authenticatedApi);
     this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
@@ -108,7 +114,6 @@ export default class CentralServerService {
     this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
     this.oicpEndpointApi = new OICPEndpointApi(this.authenticatedApi);
     this.authenticationApi = new AuthenticationApi(this._baseApi);
-    this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
     this.registrationApi = new RegistrationTokenApi(this.authenticatedApi);
@@ -117,7 +122,6 @@ export default class CentralServerService {
     this.assetApi = new AssetApi(this.authenticatedApi);
     this.carApi = new CarApi(this.authenticatedApi);
     this.smartChargingApi = new SmartChargingApi(this.authenticatedApi);
-    this.carApiSuperTenant = new CarApi(this.authenticatedSuperAdminApi);
   }
 
   public static get defaultInstance(): CentralServerService {
