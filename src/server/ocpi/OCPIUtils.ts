@@ -434,6 +434,7 @@ export default class OCPIUtils {
       case ChargePointStatus.PREPARING:
       case ChargePointStatus.AVAILABLE:
         return OCPIEvseStatus.AVAILABLE;
+      case ChargePointStatus.UNAVAILABLE:
       case ChargePointStatus.OCCUPIED:
       case ChargePointStatus.SUSPENDED_EV:
       case ChargePointStatus.SUSPENDED_EVSE:
@@ -441,7 +442,6 @@ export default class OCPIUtils {
       case ChargePointStatus.CHARGING:
         return OCPIEvseStatus.CHARGING;
       case ChargePointStatus.FAULTED:
-      case ChargePointStatus.UNAVAILABLE:
         return OCPIEvseStatus.INOPERATIVE;
       case ChargePointStatus.RESERVED:
         return OCPIEvseStatus.RESERVED;
