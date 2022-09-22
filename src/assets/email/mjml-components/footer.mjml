@@ -1,10 +1,9 @@
-<mj-section padding-top="20px">
-	<mj-column >
-		<mj-divider border-width="1px" border-color="#E0E0E0"></mj-divider>
+<mj-section padding-top="20px" padding-bottom="20px">
+	<mj-column>
+    <mj-divider border-width="1px" border-color="#E0E0E0"></mj-divider>
 		<mj-text font-size="12px">
 			<p>{{i18n:common.footerText}}</p>
 		</mj-text>
-		<mj-divider border-width="1px" border-color="#E0E0E0"></mj-divider>
 		<mj-image width="250px" href="{{openEmobilityWebSiteURL}}" src="{{openEMobilityPoweredByLogo}}"></mj-image>
 	</mj-column>
 </mj-section>
