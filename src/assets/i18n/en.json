@@ -424,14 +424,14 @@
     },
     "session-not-started": {
       "title": "No Session Started",
-      "buttonText": "View {{chargeBoxID}}",
+      "buttonText": "View Charging Station",
       "text": [
         "You haven't started the session on charging station {{chargeBoxID}}, connector {{connectorId}}."
       ]
     },
     "session-not-started-after-authorize": {
       "title": "No Session Started",
-      "buttonText": "View {{chargeBoxID}}",
+      "buttonText": "View Charging Station",
       "text": [
         "You badged on the charging station {{chargeBoxID}} but no session has been started."
       ]
