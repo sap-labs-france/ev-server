@@ -20,7 +20,7 @@ chai.use(chaiSubset);
 chai.use(responseHelper);
 
 function checkForMissing(html: string): string | null {
-  const regex = new RegExp(/\[missing .* value\]/g);
+  const regex = new RegExp(/\[missing .* value\]|\[missing .* translation\]/g);
   const value = regex.exec(html);
   if (value) {
     return value[0];
@@ -57,7 +57,7 @@ describe('Initialization', () => {
       recipient.name = '(怪盗) Kaito';
       // Set the user mentioned in the body of the mail
       user = Utils.cloneObject(tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER));
-      user.phone = "+33 6 12 34 56 78";
+      user.phone = '+33 6 12 34 56 78';
       tenant = tenantContext.getTenant();
     });
     it('new-registered-user', async () => {
@@ -114,7 +114,7 @@ describe('Initialization', () => {
         chargeBoxID: 'charging box id',
         connectorId: 'connector id',
         totalConsumption: '48.3',
-        stateOfCharge: 1,
+        // stateOfCharge: 1,
         totalDuration: '5h14',
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         user,
