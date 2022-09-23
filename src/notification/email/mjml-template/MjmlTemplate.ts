@@ -48,6 +48,7 @@ export default class MjmlTemplate {
       const tableCase = tableCases[i];
       const valueRegex = new RegExp(/\{\{([a-zA-Z0-9_.-]*)\}\}/g);
       const valueSelector = valueRegex.exec(tableCase.value as string);
+      // skip if value is undefined in context
       if (!context[valueSelector[1]]) {
         continue;
       }
