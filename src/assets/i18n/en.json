@@ -303,7 +303,7 @@
     },
     "charging-station-registered": {
       "title": "Charging Station Connected",
-      "buttonText": "View {{chargeBoxID}}",
+      "buttonText": "View Charging Station",
       "text": [
         "The charging station {{chargeBoxID}} just got connected to the central server."
       ]
