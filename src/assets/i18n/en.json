@@ -310,7 +310,7 @@
     },
     "end-user-error-notification": {
       "title": "A User Reported an Error",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "The user {{name}} reported the following error:",
         "",
@@ -323,7 +323,7 @@
     },
     "offline-charging-station": {
       "title": "Offline Charging Stations",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "Your organization has {{nbChargingStationIDs}} charging station(s) being offline.",
         "",
@@ -348,14 +348,14 @@
     },
     "user-account-status-changed": {
       "title": "User Account Status Changed",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "Your account has been {{accountStatus}} by an administrator."
       ]
     },
     "unknown-user-badged": {
       "title": "Unknown User Badged",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "An unknown user has just badged on {{chargeBoxID}} with the RFID Card {{badgeID}}."
       ]
@@ -387,7 +387,7 @@
     },
     "ocpi-patch-status-error": {
       "title": "Patching of Charging Station Statuses Failed",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "The OCPI transfer of the charging station statuses has failed on location {{location}}.",
         "",
@@ -396,7 +396,7 @@
     },
     "oicp-patch-status-error": {
       "title": "Hubject - Send Statuses",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "The transfer to the Hubject roaming platform of the charging station statuses has failed in organization '{{tenantName}}'.",
         "",
@@ -405,7 +405,7 @@
     },
     "oicp-patch-evses-error": {
       "title": "Hubject - Send Charging Stations",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "The transfer to the Hubject roaming platform of the charging station data has failed in organization '{{tenantName}}'.",
         "",
@@ -414,7 +414,7 @@
     },
     "user-account-inactivity": {
       "title": "User Account Inactivity",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "You haven't logged in to the e-Mobility application since {{lastLogin}}.",
         "Be aware that in order to comply with the general data protection regulation, your account might be deleted by an administrator.",
@@ -459,7 +459,7 @@
     },
     "billing-account-activated": {
       "title": "Billing Account Activated",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "Congratulation!",
         "",
@@ -468,14 +468,14 @@
     },
     "car-synchronization-failed": {
       "title": "Car Synchronization Failed",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "Unable to synchronize {{nbrCarsInError}} car(s) with the electric vehicles data provider."
       ]
     },
     "compute-and-apply-charging-profiles-failed": {
       "title": "Charging Profiles Failed",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "Applying the charging profiles for {{chargeBoxID}} failed.",
         "The charging station was excluded from this smart charging run automatically."
@@ -483,14 +483,14 @@
     },
     "account-verification-notification-active": {
       "title": "Account Verified",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "Your account has been verified and activated with success!"
       ]
     },
     "account-verification-notification-inactive": {
       "title": "Account Verified",
-      "buttonText": "Navigate to Open E-Mobility",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "Your account has been verified with success!",
         "",
