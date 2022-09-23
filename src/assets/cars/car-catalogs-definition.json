@@ -13,7 +13,6 @@
     "chargeStandardPhaseAmp": 16,
     "chargeStandardChargeTime": 0,
     "chargeStandardChargeSpeed": 0,
-    "chargeAlternativeTables": [],
     "batteryCapacityFull": 8.6,
     "imageURLs": [
       "100000-goupil-g5-benne-1.jpg",
@@ -33,7 +32,6 @@
     "chargeStandardPower": 13,
     "chargeStandardPhase": 1,
     "chargeStandardPhaseAmp": 16,
-    "chargeAlternativeTables": [],
     "batteryCapacityFull": 6.1,
     "imageURLs": [
       "100001-renault-twizy-1.jpg",
@@ -56,7 +54,6 @@
     "chargeStandardPower": 13,
     "chargeStandardPhase": 1,
     "chargeStandardPhaseAmp": 16,
-    "chargeAlternativeTables": [],
     "batteryCapacityFull": 8.6,
     "imageURLs": [
       "100002-tata-nexon-1.jpg",
