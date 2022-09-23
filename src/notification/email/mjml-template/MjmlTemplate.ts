@@ -48,8 +48,10 @@ export default class MjmlTemplate {
       const tableCase = tableCases[i];
       const valueRegex = new RegExp(/\{\{([a-zA-Z0-9_.-]*)\}\}/g);
       const valueSelector = valueRegex.exec(tableCase.value as string);
-      const t = tableCase.value.replace(valueSelector[0], context[valueSelector[1]]);
-      table = table + `<tr><th style="font-size:18px;font-weight:300">${tableCase.label as string}</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">${t as string}</td></tr>`;
+      if (!context[valueSelector[1]]) {
+        continue;
+      }
+      table = table + `<tr><th style="font-size:18px;font-weight:300">${tableCase.label as string}</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">${tableCase.value as string}</td></tr>`;
     }
     this.replace(match[0], table);
   }
