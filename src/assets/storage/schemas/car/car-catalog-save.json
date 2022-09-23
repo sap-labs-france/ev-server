@@ -33,37 +33,16 @@
     "chargePlug2OptionalUK": {
       "type": "boolean"
     },
-    "chargeStandardPowerDE": {
-      "type": "number"
-    },
-    "chargeStandardPhaseDE": {
-      "type": "number"
-    },
-    "chargeStandardPhaseAmpDE": {
-      "type": "number"
-    },
     "chargeStandardChargeSpeedDE": {
       "type": "number"
     },
     "chargeStandardChargeTimeDE": {
       "type": "number"
     },
-    "chargeStandardPowerNL": {
-      "type": "number"
-    },
     "chargeStandardChargeTimeNL": {
       "type": "number"
     },
     "chargeStandardChargeSpeedNL": {
-      "type": "number"
-    },
-    "chargeStandardPowerUK": {
-      "type": "number"
-    },
-    "chargeStandardPhaseUK": {
-      "type": "number"
-    },
-    "chargeStandardPhaseAmpUK": {
       "type": "number"
     },
     "chargeStandarChargeTimeUK": {
@@ -124,15 +103,6 @@
       "type": "number"
     },
     "chargeStandardChargeSpeed": {
-      "type": "number"
-    },
-    "chargeAlternativePower": {
-      "type": "number"
-    },
-    "chargeAlternativePhase": {
-      "type": "number"
-    },
-    "chargeAlternativePhaseAmp": {
       "type": "number"
     },
     "fastChargePlug": {

@@ -23,17 +23,10 @@ export interface CarCatalog extends CreatedUpdatedProps, AuthorizationActions {
   chargePlug2OptionalDE?: boolean;
   chargePlug2OptionalNL?: boolean;
   chargePlug2OptionalUK?: boolean;
-  chargeStandardPowerDE?: number;
-  chargeStandardPhaseDE?: number;
-  chargeStandardPhaseAmpDE?: number;
   chargeStandardChargeSpeedDE?: number;
   chargeStandardChargeTimeDE?: number;
-  chargeStandardPowerNL?: number;
   chargeStandardChargeTimeNL?: number;
   chargeStandardChargeSpeedNL?: number;
-  chargeStandardPowerUK?: number;
-  chargeStandardPhaseUK?: number;
-  chargeStandardPhaseAmpUK?: number;
   chargeStandarChargeTimeUK?: number;
   chargeStandardChargeSpeedUK?: number;
   chargePlug?: string;
@@ -43,9 +36,6 @@ export interface CarCatalog extends CreatedUpdatedProps, AuthorizationActions {
   chargeStandardPhaseAmp: number;
   chargeStandardChargeTime: number;
   chargeStandardChargeSpeed: number;
-  chargeAlternativePower: number;
-  chargeAlternativePhase: number;
-  chargeAlternativePhaseAmp: number;
   fastChargePlug?: string;
   fastChargePowerMax?: number;
   batteryCapacityUseable: number;

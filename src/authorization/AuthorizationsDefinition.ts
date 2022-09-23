@@ -115,8 +115,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
           'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
-          'fastChargePowerMax', 'drivetrainPowerHP'
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargePlug', 'fastChargePlug',
+          'fastChargePowerMax', 'drivetrainPowerHP', 'chargeStandardPhase'
         ]
       },
       { resource: Entity.CAR_CATALOG, action: Action.SYNCHRONIZE },
@@ -127,8 +127,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
-          'chargeAlternativePhase', 'image', 'chargeAlternativePhaseAmp'
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'hash', 'image'
         ]
       },
     ]
@@ -669,8 +668,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
           'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
-          'fastChargePowerMax', 'drivetrainPowerHP'
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargePlug', 'fastChargePlug',
+          'fastChargePowerMax', 'drivetrainPowerHP', 'chargeStandardPhase'
         ]
       },
       {
@@ -680,8 +679,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
-          'chargeAlternativePhase', 'image', 'chargeAlternativePhaseAmp'
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'hash', 'image'
         ]
       },
       { resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE] },
@@ -691,7 +689,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
           'user.id', 'user.name', 'user.firstName', 'userID', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID'
         ]
       },
@@ -763,7 +760,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
           'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargePlug', 'fastChargePlug',
           'fastChargePowerMax', 'drivetrainPowerHP'
         ]
       },
@@ -774,8 +771,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
-          'chargeAlternativePhase', 'image', 'chargeAlternativePhaseAmp'
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'hash', 'image', 'chargeStandardPhase'
         ]
       },
       {
@@ -816,8 +812,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
-          'user.id', 'user.name', 'user.firstName', 'userID', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID'
+          'user.id', 'user.name', 'user.firstName', 'userID', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID', 'chargeStandardPhase'
         ],
       },
       {
@@ -1266,7 +1261,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
           'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargePlug', 'fastChargePlug', 'chargeStandardPhase',
           'fastChargePowerMax', 'drivetrainPowerHP'
         ]
       },
@@ -1277,8 +1272,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
-          'chargeAlternativePhase', 'image', 'chargeAlternativePhaseAmp'
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'hash', 'image', 'chargeStandardPhase'
         ]
       }, {
         resource: Entity.CAR, action: Action.READ,
@@ -1286,7 +1280,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase'
         ]
       },
       {
@@ -1673,8 +1666,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn', 'user.id', 'user.name', 'user.firstName',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
-          'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID'
+          'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID', 'chargeStandardPhase'
         ],
       },
       {
