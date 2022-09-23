@@ -70,7 +70,7 @@ export default class NotificationService {
       name: Utils.buildUserFullName(user, false, false),
       errorTitle: filteredRequest.subject,
       errorDescription: filteredRequest.description,
-      evseDashboardURL: Utils.buildEvseURL(),
+      evseDashboardURL: Utils.buildEvseURL(req.tenant?.subdomain),
     };
     // Notify
     void NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification);
