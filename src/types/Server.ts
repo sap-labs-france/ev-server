@@ -15,7 +15,7 @@ export enum ServerAction {
   DEPRECATED_REST_ENDPOINT = 'DeprecatedRestEndpoint',
   LOGIN = 'Login',
   LOGOUT = 'Logout',
-  PASSWORD_RESET = 'Reset',
+  PASSWORD_RESET = 'PasswordReset',
   PING = 'Ping',
   CHECK_CONNECTION = 'CheckConnection',
 

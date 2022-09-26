@@ -37,19 +37,37 @@ export default class MjmlTemplate {
   }
 
   private buildTable(i18nManager: I18nManager, context: any, prefix: string): void {
-    const regex = new RegExp(/_TABLEBUILD/, 'g');
+    const regex = new RegExp(/_TABLE_CONTENT_/, 'g');
     const match = this.template.match(regex);
     if (!match) {
       return;
     }
+    // -----------------------------------------
+    // Typical TABLE example
+    // -----------------------------------------
+    // "table": [
+    //   {
+    //     "label": "Consumption",
+    //     "value": "{{totalConsumption}} kW.h"
+    //   },
+    //   {
+    //     "label": "State of Charge",
+    //     "value": "{{stateOfCharge}} %"
+    //   }
+    // ]
+    // -----------------------------------------
     let table = '';
     const tableCases = JSON.parse(JSON.stringify(i18nManager.translate('email.' + prefix + '.table')));
     for (let i = 0; i < tableCases.length; i++) {
       const tableCase = tableCases[i];
+      // Search for place holders - e.g.: {{stateOfCharge}}
       const valueRegex = new RegExp(/\{\{([a-zA-Z0-9_.-]*)\}\}/g);
       const valueSelector = valueRegex.exec(tableCase.value as string);
-      const t = tableCase.value.replace(valueSelector[0], context[valueSelector[1]]);
-      table = table + `<tr><th style="font-size:18px;font-weight:300">${tableCase.label as string}</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">${t as string}</td></tr>`;
+      if (!context[valueSelector[1]]) {
+        // skip if value is undefined in context - i.e.: context.stateValue is not set!
+        continue;
+      }
+      table = table + `<tr><th style="font-size:18px;font-weight:300">${tableCase.label as string}</th><td style="font-size:18px;font-weight:400;width:50%;text-align:center">${tableCase.value as string}</td></tr>`;
     }
     this.replace(match[0], table);
   }
