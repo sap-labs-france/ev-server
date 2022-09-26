@@ -9,6 +9,7 @@ import { Log } from './Log';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import { PerformanceRecordGroup } from './Performance';
 import PricingDefinition from './Pricing';
+import RefundReport from './Refund';
 import RegistrationToken from './RegistrationToken';
 import { ServerType } from './Server';
 import { Setting } from './Setting';
@@ -19,6 +20,7 @@ import Tag from './Tag';
 import User from './User';
 import bluebird from 'bluebird';
 import path from 'path';
+import Transaction, { TransactionStop } from './Transaction';
 
 declare global {
   interface Global {}
@@ -85,7 +87,7 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|BillingTax|Setting|BillingAccount|BillingTransfer|ChargingProfile|Connector|ChargingStationTemplate;
+export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting|BillingAccount|ChargingProfile|Connector|Transaction|TransactionStop|BillingTransfer|BillingTax|RefundReport|ChargingStationTemplate;
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;

@@ -501,11 +501,255 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
       },
-      { resource: Entity.TRANSACTION, action: [Action.LIST, Action.EXPORT, Action.IN_ERROR] },
+      {
+        resource: Entity.TRANSACTION, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'billingData.stop.invoiceNumber',
+          'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalogID', 'carID',
+          'chargeBoxID', 'company.name', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus', 'currentInstantWatts',
+          'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'id', 'issuer',
+          'meterStart', 'ocpi', 'ocpiWithCdr', 'price', 'priceUnit', 'roundedPrice', 'site.name', 'siteArea.name', 'siteAreaID', 'siteID', 'stateOfCharge',
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.reason',
+          'stop.roundedPrice', 'stop.stateOfCharge', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.email', 'stop.user.firstName', 'stop.user.id', 'stop.user.name',
+          'stop.userID', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone',
+          'user.email', 'user.firstName', 'user.id', 'user.name', 'userID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_CHARGING_STATION_TRANSACTIONS,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_ACTIVE_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'chargeBoxID',
+          'company.name', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus', 'currentInstantWatts',
+          'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'id',
+          'issuer', 'meterStart', 'price', 'priceUnit', 'roundedPrice', 'site.name', 'siteArea.name', 'siteAreaID', 'siteID',
+          'stateOfCharge', 'status', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone',
+          'user.email', 'user.firstName', 'user.name'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_REFUNDABLE_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'billingData.stop.invoiceNumber', 'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'chargeBoxID', 'company.name', 'companyID', 'connectorId', 'id', 'issuer', 'meterStart',
+          'refundData.refundedAt', 'refundData.reportId', 'refundData.status', 'site.name', 'siteArea.name', 'siteAreaID', 'siteID',
+          'stateOfCharge', 'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.price', 'stop.priceUnit', 'stop.reason',
+          'stop.roundedPrice', 'stop.stateOfCharge', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.totalDurationSecs',
+          'stop.totalInactivitySecs', 'tagID', 'timestamp', 'timezone', 'user.email', 'user.firstName', 'user.name'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_COMPLETED_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'billingData.stop.invoiceNumber', 'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'chargeBoxID', 'company.name', 'companyID', 'connectorId', 'id', 'issuer', 'meterStart', 'ocpi', 'ocpiWithCdr',
+          'site.name', 'siteArea.name', 'siteAreaID', 'siteID', 'stateOfCharge',
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.reason',
+          'stop.roundedPrice', 'stop.stateOfCharge', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone',
+          'user.email', 'user.firstName', 'user.name'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_REFUND_REPORT,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.EXPORT_COMPLETED_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'billingData.stop.invoiceNumber', 'chargeBoxID', 'company.name', 'companyID', 'connectorId', 'id', 'issuer',
+          'meterStart', 'ocpi', 'ocpiWithCdr', 'site.name', 'siteArea.name', 'siteAreaID', 'siteID', 'stateOfCharge',
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.price', 'stop.priceUnit', 'stop.reason', 'stop.roundedPrice',
+          'stop.stateOfCharge', 'stop.tag.description', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.EXPORT_OCPI_CDR,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'ocpiData'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_ADVENIR_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'chargeBox.issuer', 'chargeBox.id', 'chargeBox.issuer', 'chargeBox.public', 'chargeBox.connectors', 'connectorId',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.IN_ERROR,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'carID', 'chargeBoxID', 'companyID', 'connectorId', 'errorCode', 'id', 'issuer', 'meterStart', 'siteAreaID', 'siteID',
+          'stateOfCharge', 'stop.stateOfCharge', 'stop.tagID', 'stop.totalConsumptionWh', 'stop.totalDurationSecs', 'stop.user.email',
+          'stop.user.firstName', 'stop.user.id', 'stop.user.name', 'stop.userID', 'tagID', 'timestamp', 'timezone', 'uniqueId',
+          'user.email', 'user.firstName', 'user.id', 'user.name', 'userID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: [
+          Action.EXPORT, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, Action.UPDATE, Action.DELETE, 
+          Action.REFUND_TRANSACTION, Action.REMOTE_STOP_TRANSACTION
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.PUSH_TRANSACTION_CDR,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
+      },
       {
         resource: Entity.TRANSACTION,
-        action: [
-          Action.READ, Action.UPDATE, Action.DELETE, Action.REFUND_TRANSACTION
+        action: [Action.VIEW_USER_DATA],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'stateOfCharge', 'limitWatts', 'limitAmps',
+          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
+          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
+          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3',
+        ]
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'stateOfCharge', 'limitWatts', 'limitAmps',
+          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
+          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
+          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3',
+        ]
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.GET_ADVENIR_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh'
         ]
       },
       { resource: Entity.REPORT, action: [Action.READ] },
@@ -1080,6 +1324,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
+        resource: Entity.CHARGING_STATION, action: Action.PUSH_TRANSACTION_CDR,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
+      },
+      {
         resource: Entity.CHARGING_STATION,
         action: [Action.VIEW_USER_DATA],
         condition: {
@@ -1190,24 +1444,211 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn'
         ]
       },
-      { resource: Entity.TRANSACTION, action: [Action.LIST, Action.EXPORT] },
       {
-        resource: Entity.TRANSACTION, action: [Action.READ, Action.UPDATE],
+        resource: Entity.TRANSACTION, action: Action.LIST,
         condition: {
-          Fn: 'OR',
-          args: [
-            {
-              Fn: 'EQUALS',
-              args: { 'user': '$.owner' }
-            },
-            {
-              Fn: 'LIST_CONTAINS',
-              args: {
-                'tagIDs': '$.tagID'
-              }
-            }
-          ]
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'ocpi', 'ocpiWithCdr',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop', 'stop.tagID','stop.tag.visualID', 'stop.reason',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
+          'billingData.stop.invoiceNumber',
+          'site.name', 'siteArea.name', 'company.name'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'tag.visualID', 'tag.description', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'roundedPrice', 'price', 'priceUnit',
+          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'signedData', 'stop.reason',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData',
+          'stop.tagID', 'stop.tag.visualID', 'stop.tag.description', 'billingData.stop.status', 'billingData.stop.invoiceID', 'billingData.stop.invoiceItem',
+          'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
+          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'car.licensePlate',
+          'pricingModel'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_CHARGING_STATION_TRANSACTIONS,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_ACTIVE_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'site.name', 'siteArea.name', 'company.name',
+          'car.licensePlate',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_COMPLETED_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop', 'stop.tagID', 'stop.tag.visualID', 'stop.reason',
+          'site.name', 'siteArea.name', 'company.name',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
+          'billingData.stop.invoiceNumber', 'ocpi', 'ocpiWithCdr',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_REFUND_REPORT,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.EXPORT_COMPLETED_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID' ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_ADVENIR_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'chargeBox.issuer', 'chargeBox.id', 'chargeBox.issuer', 'chargeBox.public', 'chargeBox.connectors', 'connectorId',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: [Action.EXPORT, Action.UPDATE, Action.REMOTE_STOP_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
         }
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.VIEW_USER_DATA,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'stateOfCharge', 'limitWatts', 'limitAmps',
+          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
+          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
+          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3',
+        ]
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'stateOfCharge', 'limitWatts', 'limitAmps',
+          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
+          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
+          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3',
+        ]
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.GET_ADVENIR_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh'
+        ]
       },
       { resource: Entity.CONNECTION, action: Action.LIST },
       { resource: Entity.CONNECTION, action: [Action.CREATE] },
@@ -1402,8 +1843,192 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.CHARGING_STATION, action: [Action.GET_CONNECTOR_QR_CODE] },
-      { resource: Entity.TRANSACTION, action: Action.LIST },
-      { resource: Entity.TRANSACTION, action: Action.READ },
+      {
+        resource: Entity.CHARGING_STATION, action: Action.PUSH_TRANSACTION_CDR,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'ocpi', 'ocpiWithCdr',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop', 'stop.tagID','stop.tag.visualID', 'stop.reason',
+          'billingData.stop.invoiceNumber',
+          'tagID', 'tag.visualID', 'tag.description',
+          'site.name', 'siteArea.name', 'company.name',
+          'carID',
+          'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'tag.visualID', 'tag.description', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'roundedPrice', 'price', 'priceUnit',
+          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'signedData', 'stop.reason',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData',
+          'stop.tagID', 'stop.tag.visualID', 'stop.tag.description', 'billingData.stop.status', 'billingData.stop.invoiceID', 'billingData.stop.invoiceItem',
+          'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
+          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'car.licensePlate',
+          'pricingModel'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_CHARGING_STATION_TRANSACTIONS,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_ACTIVE_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_COMPLETED_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
+          'site.name', 'siteArea.name', 'company.name',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'tag.description', 'stop.tagID', 'stop.tag.visualID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_REFUND_REPORT,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.EXPORT_COMPLETED_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID' ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: [Action.EXPORT, Action.UPDATE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        }
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.VIEW_USER_DATA,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'stateOfCharge', 'limitWatts', 'limitAmps',
+          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
+          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
+          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3',
+        ]
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'stateOfCharge', 'limitWatts', 'limitAmps',
+          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
+          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
+          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3',
+        ]
+      },
     ]
   },
   siteAdmin: {
@@ -1763,6 +2388,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
+        resource: Entity.CHARGING_STATION, action: Action.PUSH_TRANSACTION_CDR,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
+      },
+      {
         resource: Entity.CHARGING_STATION, action: [Action.VIEW_USER_DATA],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -1849,11 +2484,234 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.TRANSACTION, action: [Action.READ, Action.UPDATE],
+        resource: Entity.TRANSACTION, action: Action.LIST,
         condition: {
-          Fn: 'LIST_CONTAINS',
-          args: { 'sitesAdmin': '$.site' }
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminUsers']
+          }
         },
+        attributes: [
+          'billingData.stop.invoiceNumber',
+          'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalogID', 'carID',
+          'chargeBoxID', 'company.name', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus', 'currentInstantWatts',
+          'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'id', 'issuer',
+          'meterStart', 'ocpi', 'ocpiWithCdr', 'price', 'priceUnit', 'roundedPrice', 'site.name', 'siteArea.name', 'siteAreaID', 'siteID', 'stateOfCharge',
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.reason',
+          'stop.roundedPrice', 'stop.stateOfCharge', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.email', 'stop.user.firstName', 'stop.user.id', 'stop.user.name',
+          'stop.userID', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone',
+          'user.email', 'user.firstName', 'user.id', 'user.name', 'userID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminUsers']
+          }
+        },
+        attributes: [
+          'billingData.stop.invoiceID', 'billingData.stop.invoiceItem', 'billingData.stop.invoiceNumber', 'billingData.stop.invoiceStatus', 
+          'billingData.stop.status', 'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 
+          'carCatalogID', 'carID', 'chargeBoxID', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus', 'currentInstantWatts', 
+          'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'id', 'issuer', 'meterStart', 
+          'price', 'priceUnit', 'pricingModel', 'roundedPrice', 'signedData', 'siteAreaID', 'siteID', 'stateOfCharge', 
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.pricingSource', 'stop.reason', 
+          'stop.roundedPrice', 'stop.signedData', 'stop.stateOfCharge', 'stop.tag.description', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 
+          'stop.totalConsumptionWh', 'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.email', 'stop.user.firstName', 'stop.user.id', 
+          'stop.user.name', 'stop.userID', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone', 
+          'user.email', 'user.firstName', 'user.id', 'user.name', 'userID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_CHARGING_STATION_TRANSACTIONS,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminUsers']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_ACTIVE_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminUsers']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name',
+          'user.name', 'user.firstName', 'user.email',
+          'car.licensePlate',
+          'user.name', 'user.firstName', 'user.email'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_COMPLETED_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SiteAdminUsers']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
+          'site.name', 'siteArea.name', 'company.name',
+          'user.name', 'user.firstName', 'user.email',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'tag.description', 'stop.tagID', 'stop.tag.visualID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_REFUND_REPORT,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SiteAdminUsers']
+          }
+        },
+        attributes: [
+          'id', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.EXPORT_COMPLETED_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID' ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.EXPORT_OCPI_CDR,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'id', 'ocpiData'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_ADVENIR_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminUsers']
+          }
+        },
+        attributes: [
+          'id', 'chargeBox.issuer', 'chargeBox.id', 'chargeBox.issuer', 'chargeBox.public', 'chargeBox.connectors', 'connectorId',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: [Action.UPDATE, Action.EXPORT, Action.REMOTE_STOP_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminUsers']
+          }
+        }
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.PUSH_TRANSACTION_CDR,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminUsers', 'LocalIssuer']
+          }
+        }
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.VIEW_USER_DATA,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminUsers']
+          }
+        },
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'stateOfCharge', 'limitWatts', 'limitAmps',
+          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
+          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
+          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3',
+        ]
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'stateOfCharge', 'limitWatts', 'limitAmps',
+          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
+          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
+          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3',
+        ]
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.GET_ADVENIR_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh'
+        ]
       },
       { resource: Entity.REPORT, action: [Action.READ] },
       {
@@ -2087,11 +2945,231 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION],
+        resource: Entity.TRANSACTION, action: Action.LIST,
         condition: {
-          Fn: 'LIST_CONTAINS',
-          args: { 'sitesOwner': '$.site' }
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'billingData.stop.invoiceNumber', 
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalogID', 'carID', 
+          'chargeBoxID', 'company.name', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus', 
+          'currentInstantWatts', 'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs', 
+          'currentTotalInactivitySecs', 'id', 'issuer', 'meterStart', 'ocpi', 'ocpiWithCdr', 'price', 'priceUnit', 'roundedPrice', 
+          'site.name', 'siteArea.name', 'siteAreaID', 'siteID', 'stateOfCharge', 
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.reason', 
+          'stop.roundedPrice', 'stop.stateOfCharge', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh', 
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'billingData.stop.invoiceID', 'billingData.stop.invoiceItem', 'billingData.stop.invoiceNumber', 'billingData.stop.invoiceStatus', 
+          'billingData.stop.status', 'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 
+          'carCatalogID', 'carID', 'chargeBoxID', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus', 'currentInstantWatts', 
+          'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'id', 'issuer', 'meterStart', 
+          'price', 'priceUnit', 'pricingModel', 'roundedPrice', 'signedData', 'siteAreaID', 'siteID', 'stateOfCharge', 
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.pricingSource', 'stop.reason', 
+          'stop.roundedPrice', 'stop.signedData', 'stop.stateOfCharge', 'stop.tag.description', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 
+          'stop.totalConsumptionWh', 'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.email', 'stop.user.firstName', 'stop.user.id', 
+          'stop.user.name', 'stop.userID', 
+          'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone', 
+          'user.email', 'user.firstName', 'user.id', 'user.name', 'userID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_CHARGING_STATION_TRANSACTIONS,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_ACTIVE_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name',
+          'user.name', 'user.firstName', 'user.email',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_REFUNDABLE_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.stop.invoiceNumber',
+          'tagID', 'stop.tagID', 'stop.reason',
+          'user.name', 'user.firstName', 'user.email',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_COMPLETED_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
+          'site.name', 'siteArea.name', 'company.name',
+          'user.name', 'user.firstName', 'user.email',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'car.licensePlate',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'tag.description', 'stop.tagID', 'stop.tag.visualID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_REFUND_REPORT,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.EXPORT_COMPLETED_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID' ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.GET_ADVENIR_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'chargeBox.issuer', 'chargeBox.id', 'chargeBox.issuer', 'chargeBox.public', 'chargeBox.connectors', 'connectorId',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: [Action.UPDATE, Action.EXPORT, Action.REFUND_TRANSACTION, Action.REMOTE_STOP_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
         }
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.VIEW_USER_DATA,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        },
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'stateOfCharge', 'limitWatts', 'limitAmps',
+          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
+          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
+          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3',
+        ]
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'stateOfCharge', 'limitWatts', 'limitAmps',
+          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
+          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
+          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3',
+        ]
+      },
+      {
+        resource: Entity.CONSUMPTION, action: Action.GET_ADVENIR_CONSUMPTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: []
+          }
+        },
+        attributes: [
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh'
+        ]
       },
       { resource: Entity.REPORT, action: [Action.READ] },
       {

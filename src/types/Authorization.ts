@@ -54,6 +54,18 @@ export interface AuthorizationFilter {
   metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
+export interface DynamicAuthorizationsFilter {
+  UserID: string;
+  SiteID: string;
+  CompanyID: string;
+}
+
+export enum DynamicFilter {
+  USER_ID = 'UserID',
+  SITE_ID = 'SiteID',
+  COMPANY_ID = 'CompanyID',
+}
+
 export interface Grant {
   resource: Entity;
   action: Action | Action[];
@@ -96,7 +108,8 @@ export enum Entity {
   NOTIFICATION = 'Notification',
   TAG = 'Tag',
   PAYMENT_METHOD = 'PaymentMethod',
-  SOURCE = 'Source'
+  SOURCE = 'Source',
+  CONSUMPTION = 'Consumption',
 }
 
 export enum Action {
@@ -176,6 +189,16 @@ export enum Action {
   UPDATE_CHARGING_PROFILE = 'UpdateChargingProfile',
   GET_CONNECTOR_QR_CODE = 'GetConnectorQRCode',
   VIEW_USER_DATA = 'ViewUserData',
+  SYNCHRONIZE_REFUNDED_TRANSACTION = 'SynchronizeRefundedTransaction',
+  PUSH_TRANSACTION_CDR = 'PushTransactionCDR',
+  GET_ADVENIR_CONSUMPTION = 'GetAdvenirConsumption',
+  GET_CHARGING_STATION_TRANSACTIONS = 'GetChargingStationTransactions',
+  GET_ACTIVE_TRANSACTION = 'GetActiveTransaction',
+  GET_COMPLETED_TRANSACTION = 'GetCompletedTransaction',
+  GET_REFUNDABLE_TRANSACTION = 'GetRefundableTransaction',
+  GET_REFUND_REPORT = 'GetRefundReport',
+  EXPORT_COMPLETED_TRANSACTION = 'ExportCompletedTransaction',
+  EXPORT_OCPI_CDR = 'ExportOcpiCdr',
 }
 
 export interface AuthorizationContext {
@@ -275,6 +298,7 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canGetOCPPParams?:boolean;
   canUpdateChargingProfile?:boolean;
   canGetConnectorQRCode?:boolean;
+  canPushTransactionCDR?: boolean;
 }
 
 export interface ConnectorAuthorizationActions extends AuthorizationActions {
@@ -294,6 +318,18 @@ export interface BillingAccountAuthorizationActions extends AuthorizationActions
 export interface BillingTransferAuthorizationActions extends AuthorizationActions {
   canTransfer?: boolean;
   canDownload?: boolean;
+}
+
+export interface TransactionAuthorizationActions extends AuthorizationActions {
+  canSynchronizeRefundedTransaction?: boolean;
+  canRefundTransaction?: boolean;
+  canPushTransactionCDR?: boolean;
+  canGetAdvenirConsumption?: boolean;
+  canRemoteStopTransaction?: boolean;
+  canGetChargingStationTransactions?: boolean;
+  canExportOcpiCdr?: boolean;
+  canListLogs?: boolean;
+  canReadChargingStation?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {
