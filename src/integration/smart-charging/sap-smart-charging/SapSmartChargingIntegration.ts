@@ -571,14 +571,14 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
 
   private handleCurrentStateOfCharge(customCar: OptimizerCar, transaction: Transaction): void {
     // Check if technical state of charge is available
-    if (!Utils.isNullOrUndefined(transaction.stateOfCharge) && transaction.stateOfCharge > 0) {
+    if (transaction.stateOfCharge > 0) {
       customCar.startCapacity = (transaction.stateOfCharge / 100) * customCar.maxCapacity;
     // Check if manual state of charge is available
-    } else if (!Utils.isNullOrUndefined(transaction.carStateOfCharge) && transaction.carStateOfCharge > 0) {
+    } else if (transaction.carStateOfCharge > 0) {
       customCar.startCapacity = (transaction.carStateOfCharge / 100) * customCar.maxCapacity;
     // Handle if no state of charge is available
     } else {
-      customCar.startCapacity = (this.setting.defaultInitialStateOfCharge ?? 25) / 100 * customCar.maxCapacity;
+      customCar.startCapacity = ((this.setting.defaultInitialStateOfCharge ?? 25) / 100) * customCar.maxCapacity;
     }
     // Adjust battery size, when coming close to 100% state of charge (otherwise car would be suspended, also when not fully charged in real life)
     if ((customCar.chargedCapacity + customCar.startCapacity) > (0.9 * customCar.maxCapacity)) {
@@ -588,11 +588,11 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
 
   private handleTargetStateOfCharge(customCar: OptimizerCar, transaction: Transaction): void {
     // Check if manual target state of charge is available
-    if (!Utils.isNullOrUndefined(transaction.targetStateOfCharge) && transaction.targetStateOfCharge > 0) {
+    if (transaction.targetStateOfCharge > 0) {
       customCar.minLoadingState = (transaction.targetStateOfCharge / 100) * customCar.maxCapacity;
     // Handle if no state of charge is available
     } else {
-      customCar.minLoadingState = (this.setting.defaultTargetStateOfCharge ?? 50) / 100 * customCar.maxCapacity;
+      customCar.minLoadingState = ((this.setting.defaultTargetStateOfCharge ?? 50) / 100) * customCar.maxCapacity;
     }
   }
 
