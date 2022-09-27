@@ -322,7 +322,7 @@ export default class TransactionStorage {
 
   public static async getTransactions(tenant: Tenant,
       params: {
-        transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[]; status?: TransactionStatus;
+        transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string[]; userIDs?: string[]; siteAdminIDs?: string[]; status?: TransactionStatus;
         chargingStationIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date; withChargingStation?: boolean;
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
@@ -343,9 +343,11 @@ export default class TransactionStorage {
     const ownerMatch = { $or: [] };
     const filters: FilterParams = {};
     // User / Site Admin
-    if (params.ownerID) {
+    if (!Utils.isEmptyArray(params.ownerID)) {
       ownerMatch.$or.push({
-        userID: DatabaseUtils.convertToObjectID(params.ownerID)
+        userID: {
+          $in: params.ownerID.map((userID) => DatabaseUtils.convertToObjectID(userID))
+        }
       });
     }
     if (params.siteAdminIDs) {
