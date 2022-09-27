@@ -240,7 +240,7 @@ describe('Transaction', () => {
         });
 
         it('Cannot delete multi transactions with a basic user', async () => {
-          await testData.transactionCommonTests.testMultiDeleteTransactions(false);
+          await testData.transactionCommonTests.testMultiDeleteExistingTransactions(false);
         });
       });
       describe('Using function "delete"', () => {
@@ -374,7 +374,7 @@ describe('Transaction', () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
         it('Can delete only existent transactions', async () => {
-          await testData.transactionCommonTests.testMultiDeleteTransactions();
+          await testData.transactionCommonTests.testMultiDeleteExistingTransactions();
         });
         it('Can delete multi valid transactions', async () => {
           await testData.transactionCommonTests.testMultiDeleteValidTransactions();

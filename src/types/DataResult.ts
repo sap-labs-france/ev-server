@@ -1,12 +1,12 @@
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from './Billing';
 import { Car, CarCatalog } from './Car';
+import { ChargingStationInError, TransactionInError } from './InError';
 import Transaction, { TransactionStats } from './Transaction';
 
 import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import { ChargingProfile } from './ChargingProfile';
-import ChargingStation from './ChargingStation';
-import { ChargingStationInError } from './InError';
+import ChargingStation, { ChargingStationTemplate } from './ChargingStation';
 import Company from './Company';
 import { Log } from './Log';
 import PricingDefinition from './Pricing';
@@ -33,6 +33,10 @@ export interface PricingDefinitionDataResult extends DataResult<PricingDefinitio
 }
 
 export interface RegistrationTokenDataResult extends DataResult<RegistrationToken> {
+  canCreate: boolean;
+}
+
+export interface ChargingStationTemplateDataResult extends DataResult<ChargingStationTemplate> {
   canCreate: boolean;
 }
 
@@ -83,6 +87,26 @@ export interface TagDataResult extends DataResult<Tag> {
 
 export interface TransactionDataResult extends DataResult<Transaction> {
   stats: TransactionStats;
+  canListUsers?: boolean;
+  canListSites?: boolean;
+  canListSiteAreas?: boolean;
+  canListChargingStations?: boolean;
+  canListTags?: boolean;
+  canExport?: boolean;
+  canDelete?: boolean;
+  canSyncRefund?: boolean;
+  canRefund?: boolean;
+  canReadSetting?: boolean;
+}
+
+export interface TransactionInErrorDataResult extends DataResult<TransactionInError> {
+  canListUsers?: boolean;
+  canListSites?: boolean;
+  canListSiteAreas?: boolean;
+  canListChargingStations?: boolean;
+  canListTags?: boolean;
+  canExport?: boolean;
+  canDelete?: boolean;
 }
 
 export interface BillingInvoiceDataResult extends DataResult<BillingInvoice> {

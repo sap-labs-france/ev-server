@@ -1,5 +1,5 @@
 import { BillingStatus, TransactionBillingData } from '../../types/Billing';
-import { DataResult, TransactionDataResult } from '../../types/DataResult';
+import { DataResult, TransactionDataResult, TransactionInErrorDataResult } from '../../types/DataResult';
 import RefundReport, { RefundStatus, TransactionRefundData } from '../../types/Refund';
 import Transaction, { CollectedFundReport, TransactionOcpiData, TransactionOicpData, TransactionStatisticsType, TransactionStats, TransactionStatus } from '../../types/Transaction';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
@@ -771,7 +771,7 @@ export default class TransactionStorage {
   }
 
   public static async getRefundReports(tenant: Tenant,
-      params: { ownerID?: string; siteAdminIDs?: string[] },
+      params: { siteIDs?: string[]; userIDs?: string[]; siteAreaIDs?: string[]; },
       dbParams: DbParams, projectFields?: string[]): Promise<{ count: number; result: RefundReport[] }> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -784,17 +784,27 @@ export default class TransactionStorage {
     // Create Aggregation
     const aggregation = [];
     const ownerMatch = { $or: [] };
-    const filters = {};
+    const filters: any = { stop: { $exists: true } };
+    // Build filters
     filters['refundData.reportId'] = { '$ne': null };
-    if (params.ownerID) {
+    if (params.userIDs) {
       ownerMatch.$or.push({
-        userID: DatabaseUtils.convertToObjectID(params.ownerID)
+        userID: {
+          $in: params.userIDs.map((user) => DatabaseUtils.convertToObjectID(user))
+        }
       });
     }
-    if (params.siteAdminIDs) {
+    if (params.siteIDs) {
       ownerMatch.$or.push({
         siteID: {
-          $in: params.siteAdminIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+          $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+        }
+      });
+    }
+    if (params.siteAreaIDs) {
+      ownerMatch.$or.push({
+        siteAreaID: {
+          $in: params.siteAreaIDs.map((area) => DatabaseUtils.convertToObjectID(area))
         }
       });
     }
@@ -900,8 +910,8 @@ export default class TransactionStorage {
       params: {
         search?: string; issuer?: boolean; userIDs?: string[]; chargingStationIDs?: string[];
         siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
-        withChargingStations?: boolean; errorType?: TransactionInErrorType[]; connectorIDs?: number[];
-      }, dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
+        withChargingStations?: boolean; errorType?: string[]; connectorIDs?: number[];
+      }, dbParams: DbParams, projectFields?: string[]): Promise<TransactionInErrorDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -1056,13 +1066,16 @@ export default class TransactionStorage {
   }
 
   public static async getTransaction(tenant: Tenant, id: number = Constants.UNKNOWN_NUMBER_ID,
-      params: { withTag?: boolean; withCar?: boolean; withUser?: boolean, withChargingStation?: boolean } = {}, projectFields?: string[]): Promise<Transaction> {
+      params: { withTag?: boolean; withCar?: boolean; withUser?: boolean, withChargingStation?: boolean, siteIDs?: string[]; userIDs?: string[] } = {},
+      projectFields?: string[]): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenant, {
       transactionIDs: [id],
       withTag: params.withTag,
       withCar: params.withCar,
       withChargingStation: params.withChargingStation,
       withUser: params.withUser,
+      userIDs: params.userIDs,
+      siteIDs: params.siteIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }

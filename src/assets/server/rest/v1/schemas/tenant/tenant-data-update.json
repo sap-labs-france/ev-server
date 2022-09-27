@@ -1,0 +1,27 @@
+{
+  "$id": "tenant-update-data",
+  "title": "Update one Tenant data",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "tenant#/definitions/id"
+    },
+    "name": {
+      "$ref": "tenant#/definitions/name"
+    },
+    "email": {
+      "$ref": "user#/definitions/email"
+    },
+    "logo": {
+      "$ref": "common#/definitions/logo"
+    },
+    "address": {
+      "$ref": "common#/definitions/address"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "email"
+  ]
+}
