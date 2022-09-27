@@ -2568,7 +2568,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SiteAdminUsers']
+            filters: ['SitesAdminUsers']
           }
         },
         attributes: [
@@ -2588,7 +2588,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SiteAdminUsers']
+            filters: ['SitesAdminUsers']
           }
         },
         attributes: [
