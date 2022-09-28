@@ -447,7 +447,7 @@
       "title": "Session non démarrée",
       "buttonText": "Voir la borne",
       "text": [
-        "Vous avez badgé sur le connecteur {{connectorId}} de la borne {{chargeBoxID}} mais aucune session n'a démarré."
+        "Vous avez badgé sur la borne {{chargeBoxID}} mais aucune session n'a démarré."
       ]
     },
     "billing-user-synchronization-failed": {
