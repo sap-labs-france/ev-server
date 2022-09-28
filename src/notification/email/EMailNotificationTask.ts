@@ -388,7 +388,6 @@ export default class EMailNotificationTask implements NotificationTask {
     const emailContent: EmailNotificationMessage = {
       to: recipient.email,
       subject: `e-Mobility - ${tenant.name} - ${title}`,
-      text: html,
       html: html
     };
     // We may have a fallback - Not used anymore
@@ -564,7 +563,6 @@ export default class EMailNotificationTask implements NotificationTask {
     const emailContent: EmailNotificationMessage = {
       to: user.email,
       subject: subject,
-      text: html,
       html: html
     };
     // We may have a fallback - Not used anymore

@@ -103,7 +103,6 @@ export interface EmailNotificationMessage {
   bccNeeded?: boolean;
   bcc?: string;
   subject: string;
-  text: string;
   html: string;
 }
 
