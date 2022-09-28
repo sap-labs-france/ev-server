@@ -44,6 +44,7 @@ import Transaction from '../../../../types/Transaction';
 import { TransactionInError } from '../../../../types/InError';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
+import _ from 'lodash';
 
 const MODULE_NAME = 'AuthorizationService';
 
@@ -286,8 +287,8 @@ export default class AuthorizationService {
       tenant, userToken, Entity.USER_SITE, Action.LIST, authorizationFilter, { UserID: user.id }, user);
     user.canListTags = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.TAG, Action.LIST, authorizationFilter, { UserID: user.id }, user);
-    user.canListTransactions = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.TRANSACTION, Action.LIST, authorizationFilter, { UserID: user.id }, user);
+    user.canListCompletedTransactions = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.GET_COMPLETED_TRANSACTION, authorizationFilter, { UserID: user.id }, user);
     user.canSynchronizeBillingUser = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USER, Action.SYNCHRONIZE_BILLING_USER, authorizationFilter, { UserID: user.id }, user);
     // Optimize data over the net

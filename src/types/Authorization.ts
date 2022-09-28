@@ -240,7 +240,7 @@ export interface UserAuthorizationActions extends AuthorizationActions {
   canUnassignUsersFromSite?: boolean;
   canListUserSites?: boolean;
   canListTags?: boolean;
-  canListTransactions?: boolean;
+  canListCompletedTransactions?: boolean;
   canSynchronizeBillingUser?: boolean;
 }
 
