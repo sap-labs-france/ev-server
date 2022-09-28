@@ -103,7 +103,9 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
-    data.accountStatus = data.user.status === 'A' ? 'activated' : 'suspended';
+    const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
+    const newStatus = data.user.status === 'A' ? 'activated' : 'suspended';
+    data.accountStatus = i18nInstance.translate(`notifications.userAccountStatusChanged.${newStatus}`);
     return await this.prepareAndSendEmail('user-account-status-changed', data, user, tenant, severity);
   }
 
@@ -295,20 +297,20 @@ export default class EMailNotificationTask implements NotificationTask {
         { data: email.html, alternative: true }
       ]
     });
-    if (Utils.isDevelopmentEnv()) {
-      // Do not send mail in Dev mode
-      await Logging.logDebug({
-        tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
-        action: ServerAction.EMAIL_NOTIFICATION,
-        module: MODULE_NAME, method: 'sendEmail',
-        actionOnUser: user,
-        message: `Email Sent: '${email.subject}'`,
-        detailedMessages: {
-          content: email.html // Only log the email content when running automated tests
-        }
-      });
-      return ;
-    }
+    // if (Utils.isDevelopmentEnv()) {
+    //   // Do not send mail in Dev mode
+    //   await Logging.logDebug({
+    //     tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
+    //     action: ServerAction.EMAIL_NOTIFICATION,
+    //     module: MODULE_NAME, method: 'sendEmail',
+    //     actionOnUser: user,
+    //     message: `Email Sent: '${email.subject}'`,
+    //     detailedMessages: {
+    //       content: email.html // Only log the email content when running automated tests
+    //     }
+    //   });
+    //   return ;
+    // }
     try {
       // Get the SMTP client
       const smtpClient = this.getSMTPClient(useSmtpClientBackup);
