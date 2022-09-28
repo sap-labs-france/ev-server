@@ -8,6 +8,7 @@ import Transaction, { AdvenirConsumptionData, AdvenirEvseData, AdvenirPayload, A
 import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import { BillingStatus } from '../../../../types/Billing';
@@ -37,8 +38,6 @@ import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/Synch
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import TransactionValidatorRest from '../validator/TransactionValidatorRest';
-import User from '../../../../types/User';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -51,15 +50,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
-      'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.visualID', 'tag.description', 'stop.tag.visualID',
-      'site.name', 'siteArea.name', 'company.name'
-    ]);
+    const transactions = await TransactionService.getTransactions(req, filteredRequest);
     res.json(transactions);
     next();
   }
@@ -68,15 +59,9 @@ export default class TransactionService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
       Action.REFUND_TRANSACTION, Entity.TRANSACTION, MODULE_NAME, 'handleSynchronizeRefundedTransactions');
+    // Check dynamic auth
+    await AuthorizationService.checkAndGetTransactionsAuthorizations(req.tenant, req.user, Action.SYNCHRONIZE_REFUNDED_TRANSACTION);
     try {
-      if (!Authorizations.isAdmin(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: req.user,
-          action: Action.UPDATE, entity: Entity.TRANSACTION,
-          module: MODULE_NAME, method: 'handleSynchronizeRefundedTransactions'
-        });
-      }
       const task = new SynchronizeRefundTransactionsTask();
       await task.processTenant(req.tenant, null);
       const response: any = {
@@ -95,59 +80,13 @@ export default class TransactionService {
       Action.REFUND_TRANSACTION, Entity.TRANSACTION, MODULE_NAME, 'handleRefundTransactions');
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsByIDsGetReq(req.body);
-    if (!filteredRequest.transactionsIDs) {
-      // Not Found!
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Transaction IDs must be provided',
-        module: MODULE_NAME, method: 'handleRefundTransactions',
-        user: req.user,
-        action
-      });
-    }
     const transactionsToRefund: Transaction[] = [];
     for (const transactionId of filteredRequest.transactionsIDs) {
-      const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId, { withUser: true });
-      if (!transaction) {
-        await Logging.logError({
-          tenantID: req.tenant.id,
-          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-          module: MODULE_NAME, method: 'handleRefundTransactions',
-          message: `Transaction '${transaction.id}' does not exist`,
-          action,
-          detailedMessages: { transaction }
-        });
-        continue;
-      }
-      if (transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== RefundStatus.CANCELLED) {
-        await Logging.logError({
-          ...LoggingHelper.getTransactionProperties(transaction),
-          tenantID: req.tenant.id,
-          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-          module: MODULE_NAME, method: 'handleRefundTransactions',
-          message: `Transaction '${transaction.id}' is already refunded`,
-          action,
-          detailedMessages: { transaction }
-        });
-        continue;
-      }
-      // Check auth
-      if (!await Authorizations.canRefundTransaction(req.user, transaction)) {
-        throw new AppAuthError({
-          ...LoggingHelper.getTransactionProperties(transaction),
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: req.user,
-          action: Action.REFUND_TRANSACTION, entity: Entity.TRANSACTION,
-          module: MODULE_NAME, method: 'handleRefundTransactions',
-          value: transaction.id.toString()
-        });
-      }
+      // Check dynamic auth
+      const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, transactionId,
+        Action.REFUND_TRANSACTION, action, null, { withUser: true }, true);
       transactionsToRefund.push(transaction);
     }
-    // Get Transaction User
-    const user: User = await UserStorage.getUser(req.tenant, req.user.id);
-    UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
-      MODULE_NAME, 'handleRefundTransactions', req.user);
     const refundConnector = await RefundFactory.getRefundImpl(req.tenant);
     if (!refundConnector) {
       throw new AppError({
@@ -169,7 +108,7 @@ export default class TransactionService {
       });
     }
     // Refund
-    const refundedTransactions = await refundConnector.refund(user.id, transactionsToRefund);
+    const refundedTransactions = await refundConnector.refund(req.user.id, transactionsToRefund);
     const response: any = {
       ...Constants.REST_RESPONSE_SUCCESS,
       inSuccess: refundedTransactions.length
@@ -189,7 +128,7 @@ export default class TransactionService {
         !Utils.isComponentActiveFromToken(req.user, TenantComponents.OICP)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
-        entity: Entity.TRANSACTION, action: Action.UPDATE,
+        entity: Entity.TRANSACTION, action: Action.PUSH_TRANSACTION_CDR,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
         inactiveComponent: `${TenantComponents.OCPI}, ${TenantComponents.OICP}` as TenantComponents,
         user: req.user
@@ -197,37 +136,12 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionCdrPushReq(req.body);
-    // Check Mandatory fields
-    UtilsService.assertIdIsProvided(action, filteredRequest.transactionId, MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.transactionId, { withUser: true, withTag: true });
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionId}' does not exist`,
-      MODULE_NAME, 'handlePushTransactionCdr', req.user);
-    // Check auth
-    if (!await Authorizations.canUpdateTransaction(req.user, transaction)) {
-      throw new AppAuthError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        value: filteredRequest.transactionId.toString()
-      });
-    }
+    const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, filteredRequest.transactionId,
+      Action.PUSH_TRANSACTION_CDR, action, null, { withUser: true, withTag: true });
     // Check Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID, { withSiteArea: true });
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
-      MODULE_NAME, 'handlePushTransactionCdr', req.user);
-    // Check Charging Station
-    if (!chargingStation.issuer) {
-      throw new AppError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Charging Station belongs to an external organization`,
-        module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        user: req.user, action
-      });
-    }
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+      req.tenant, req.user, transaction.chargeBoxID, Action.PUSH_TRANSACTION_CDR, action, null, { withSiteArea: true });
     if (!chargingStation.public) {
       throw new AppError({
         ...LoggingHelper.getTransactionProperties(transaction),
@@ -242,16 +156,6 @@ export default class TransactionService {
         ...LoggingHelper.getTransactionProperties(transaction),
         errorCode: HTTPError.GENERAL_ERROR,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Charging Station access control is inactive on Site Area '${chargingStation.siteArea.name}'`,
-        module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        user: req.user, action
-      });
-    }
-    // Check Transaction
-    if (!transaction.issuer) {
-      throw new AppError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        errorCode: HTTPError.TRANSACTION_NOT_FROM_TENANT,
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to an external organization`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
         user: req.user, action
       });
@@ -343,20 +247,6 @@ export default class TransactionService {
   public static async handleDeleteTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionID = TransactionValidatorRest.getInstance().validateTransactionDeleteReq(req.query).ID;
-    // Check auth
-    if (!await Authorizations.canDeleteTransaction(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleDeleteTransaction',
-        value: transactionID.toString()
-      });
-    }
-    // Get
-    const transaction = await TransactionStorage.getTransaction(req.tenant, transactionID);
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${transactionID}' does not exist`,
-      MODULE_NAME, 'handleDeleteTransaction', req.user);
     // Delete
     const result = await TransactionService.deleteTransactions(action, req.tenant, req.user, [transactionID]);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
@@ -366,16 +256,6 @@ export default class TransactionService {
   public static async handleDeleteTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionsIDs = TransactionValidatorRest.getInstance().validateTransactionsByIDsGetReq(req.body).transactionsIDs;
-    // Check auth
-    if (!await Authorizations.canDeleteTransaction(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleDeleteTransactions',
-        value: transactionsIDs.toString()
-      });
-    }
     // Delete
     const result = await TransactionService.deleteTransactions(action, req.tenant, req.user, transactionsIDs);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
@@ -385,9 +265,9 @@ export default class TransactionService {
   public static async handleTransactionStart(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const remoteStartRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStartReq(req.body);
-    // Get data
+    // Check dynamic auth
     const { chargingStation } = await TransactionService.checkAndGetChargingStationConnector(
-      action, req.tenant, req.user, remoteStartRequest.chargingStationID, remoteStartRequest.args.connectorId);
+      action, req.tenant, req.user, remoteStartRequest.chargingStationID, remoteStartRequest.args.connectorId, Action.REMOTE_START_TRANSACTION);
     // Handle the routing
     if (chargingStation.issuer) {
       // OCPP Remote Start
@@ -403,10 +283,9 @@ export default class TransactionService {
   public static async handleTransactionStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionID = TransactionValidatorRest.getInstance().validateTransactionStopReq(req.body).ID;
-    UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'handleTransactionStop', req.user);
     // Get data
     const { transaction, chargingStation, connector } =
-      await TransactionService.checkAndGetTransactionChargingStationConnector(action, req.tenant, req.user, transactionID);
+      await TransactionService.checkAndGetTransactionChargingStationConnector(action, req.tenant, req.user, transactionID, Action.REMOTE_STOP_TRANSACTION);
     req.body.chargingStationID = transaction.chargeBoxID;
     req.body.args = { transactionId: transaction.id };
     // Handle the routing
@@ -434,10 +313,9 @@ export default class TransactionService {
   public static async handleTransactionSoftStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionID = TransactionValidatorRest.getInstance().validateTransactionStopReq(req.body).ID;
-    UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get data
     const { transaction, chargingStation, connector } =
-      await TransactionService.checkAndGetTransactionChargingStationConnector(action, req.tenant, req.user, transactionID);
+      await TransactionService.checkAndGetTransactionChargingStationConnector(action, req.tenant, req.user, transactionID, Action.REMOTE_STOP_TRANSACTION);
     // Soft Stop
     await TransactionService.transactionSoftStop(action, transaction, chargingStation, connector, req, res, next);
   }
@@ -445,67 +323,9 @@ export default class TransactionService {
   public static async handleGetTransactionConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionConsumptionsGetReq(req.query);
-    // Transaction Id is mandatory
-    UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
-      'handleGetConsumptionFromTransaction', req.user);
-    let projectFields = [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.reason',
-      'userID', 'priceUnit'
-    ];
-    // Check Cars
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (await Authorizations.canListCars(req.user)) {
-        projectFields = [
-          ...projectFields,
-          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel',
-          'carCatalog.vehicleModelVersion',
-        ];
-      }
-      if (await Authorizations.canUpdateCar(req.user)) {
-        projectFields = [
-          ...projectFields,
-          'car.licensePlate',
-        ];
-      }
-    }
-    if ((await Authorizations.canListUsers(req.user)).authorized) {
-      projectFields = [
-        ...projectFields,
-        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID', 'tag.visualID',
-        'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID', 'stop.tag.visualID'
-      ];
-    }
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.TransactionId,
-      { withTag: filteredRequest.WithTag, withCar: filteredRequest.WithCar, withUser: filteredRequest.WithUser }, projectFields);
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.TransactionId}' does not exist`,
-      MODULE_NAME, 'handleGetConsumptionFromTransaction', req.user);
-    // Check Transaction
-    if (!await Authorizations.canReadTransaction(req.user, transaction)) {
-      throw new AppAuthError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleGetConsumptionFromTransaction',
-        value: transaction.id.toString()
-      });
-    }
-    // Check User
-    if (!(await Authorizations.canReadUser(req.user, { UserID: transaction.userID })).authorized) {
-      // Remove User
-      delete transaction.user;
-      delete transaction.userID;
-      delete transaction.tagID;
-      if (transaction.stop) {
-        delete transaction.stop.user;
-        delete transaction.stop.userID;
-        delete transaction.stop.tagID;
-      }
-    }
+    // Check dynamic auth
+    const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, filteredRequest.TransactionId, Action.READ,
+      action, null, { withTag: filteredRequest.WithTag, withCar: filteredRequest.WithCar, withUser: filteredRequest.WithUser }, true);
     // Check Dates
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime &&
       moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
@@ -517,28 +337,27 @@ export default class TransactionService {
         user: req.user, action
       });
     }
-    // Get the consumption
+    // Check consumption dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetConsumptionsAuthorizations(req.tenant, req.user, Action.LIST, null, true);
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
       const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(
-        req.tenant, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT, [
-          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
-          'stateOfCharge', 'limitWatts', 'limitAmps',
-          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
-          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
-          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3'
-        ]
+        req.tenant,
+        {
+          transactionId: transaction.id
+        },
+        Constants.DB_PARAMS_MAX_LIMIT,
+        authorizations.projectFields
       );
       consumptions = consumptionsMDB.result;
     } else {
       consumptions = (await ConsumptionStorage.getOptimizedTransactionConsumptions(
-        req.tenant, { transactionId: transaction.id }, [
-          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
-          'stateOfCharge', 'limitWatts', 'limitAmps',
-          'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
-          'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
-          'instantAmpsDC', 'instantAmps', 'instantAmpsL1', 'instantAmpsL2', 'instantAmpsL3'
-        ])).result;
+        req.tenant,
+        {
+          transactionId: transaction.id
+        },
+        authorizations.projectFields
+      )).result;
     }
     // Assign
     transaction.values = consumptions;
@@ -552,28 +371,9 @@ export default class TransactionService {
       Action.READ, Entity.TRANSACTION, MODULE_NAME, 'handleGetTransactionConsumptionForAdvenir');
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionConsumptionsAdvenirGetReq(req.query);
-    // Transaction Id is mandatory
-    UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
-      'handleGetConsumptionFromTransaction', req.user);
-    const projectFields = [
-      'id', 'chargeBox.issuer', 'chargeBox.id', 'chargeBox.issuer', 'chargeBox.public', 'chargeBox.connectors', 'connectorId',
-    ];
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.TransactionId,
-      { withChargingStation: true }, projectFields);
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.TransactionId}' does not exist`,
-      MODULE_NAME, 'handleGetTransactionConsumptionForAdvenir', req.user);
-    // Check Transaction
-    if (!await Authorizations.canReadTransaction(req.user, transaction)) {
-      throw new AppAuthError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleGetTransactionConsumptionForAdvenir',
-        value: transaction.id.toString()
-      });
-    }
+    // Get dynamic auth
+    const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, filteredRequest.TransactionId, Action.GET_ADVENIR_CONSUMPTION,
+      action, null, { withChargingStation: true }, true);
     try {
       const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.CPO) as CpoOCPIClient;
       if (!ocpiClient) {
@@ -586,11 +386,13 @@ export default class TransactionService {
       }
       // Build EvseID
       const evseID = RoamingUtils.buildEvseID(ocpiClient.getLocalCountryCode(action), ocpiClient.getLocalPartyID(action), transaction.chargeBox, transaction.connectorId);
+      // Check consumption dynamic auth
+      const authorizations = await AuthorizationService.checkAndGetConsumptionsAuthorizations(req.tenant, req.user, Action.GET_ADVENIR_CONSUMPTION, null, true);
       // Get Consumption
       const consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(req.tenant,
         { transactionId: transaction.id },
         // ACHTUNG - endedAt must be part of the projection to properly sort the collection result
-        ['startedAt', 'endedAt', 'cumulatedConsumptionWh']
+        authorizations.projectFields
       );
       // Convert consumptions to the ADVENIR format
       const advenirValues: AdvenirConsumptionData[] = consumptions.result.map(
@@ -626,64 +428,9 @@ export default class TransactionService {
   public static async handleGetTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTransaction', req.user);
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID,
-      { withTag: filteredRequest.WithTag, withCar: filteredRequest.WithCar, withUser: filteredRequest.WithUser },
-      [
-        'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'tag.visualID', 'tag.description', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'roundedPrice', 'price', 'priceUnit',
-        'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
-        'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-        'currentCumulatedPrice', 'currentInactivityStatus', 'signedData', 'stop.reason',
-        'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
-        'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData',
-        'stop.tagID', 'stop.tag.visualID', 'stop.tag.description', 'billingData.stop.status', 'billingData.stop.invoiceID', 'billingData.stop.invoiceItem',
-        'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
-        'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-        'pricingModel'
-      ]
-    );
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetTransaction', req.user);
-    // Check Transaction
-    if (!await Authorizations.canReadTransaction(req.user, transaction)) {
-      throw new AppAuthError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleGetTransaction',
-        value: filteredRequest.ID.toString()
-      });
-    }
-    // Check and Get User
-    let user: User;
-    try {
-      user = await UtilsService.checkAndGetUserAuthorization(
-        req.tenant, req.user, transaction.userID, Action.READ, action, null, null, true);
-    } catch (error) {
-      // Ignore
-    }
-    // Check User
-    if (!user) {
-      // Remove User
-      delete transaction.user;
-      delete transaction.userID;
-      delete transaction.tag;
-      delete transaction.tagID;
-      delete transaction.carCatalogID;
-      delete transaction.carCatalog;
-      delete transaction.carID;
-      delete transaction.car;
-      delete transaction.billingData;
-
-      if (transaction.stop) {
-        delete transaction.stop.user;
-        delete transaction.stop.userID;
-        delete transaction.stop.tagID;
-      }
-    }
+    // Check dynamic auth
+    const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ,
+      action, null, { withTag: filteredRequest.WithTag, withCar: filteredRequest.WithCar, withUser: filteredRequest.WithUser }, true);
     res.json(transaction);
     next();
   }
@@ -692,13 +439,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
-      'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
-    ]);
+    const transactions = await TransactionService.getTransactions(req, filteredRequest, Action.GET_CHARGING_STATION_TRANSACTIONS);
     res.json(transactions);
     next();
   }
@@ -720,11 +461,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID', 'tag.visualID', 'tag.description', 'site.name', 'siteArea.name', 'company.name'
-    ]);
+    const transactions = await TransactionService.getTransactions(req, filteredRequest, Action.GET_ACTIVE_TRANSACTION);
     res.json(transactions);
     next();
   }
@@ -735,13 +472,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
-      'site.name', 'siteArea.name', 'company.name',
-      'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'tag.description', 'stop.tagID', 'stop.tag.visualID'
-    ]);
+    const transactions = await TransactionService.getTransactions(req, filteredRequest, Action.GET_COMPLETED_TRANSACTION);
     res.json(transactions);
     next();
   }
@@ -756,13 +487,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Get Transactions
-    const transactions = await TransactionService.getTransactions(req, action, {}, filteredRequest, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.stop.invoiceNumber',
-      'tagID', 'stop.tagID', 'stop.reason',
-    ]);
+    const transactions = await TransactionService.getTransactions(req, filteredRequest, Action.GET_REFUNDABLE_TRANSACTION);
     res.json(transactions);
     next();
   }
@@ -771,43 +496,31 @@ export default class TransactionService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
       Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetRefundReports');
-    // Check Transaction
-    if (!await Authorizations.canListTransactions(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleGetRefundReports'
-      });
-    }
-    // Check Users
-    let userProject: string[] = [];
-    if ((await Authorizations.canListUsers(req.user)).authorized) {
-      userProject = ['userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'];
-    }
-    const filter: any = { stop: { $exists: true } };
-    // Filter
+
+    // Filter request
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
-    if (Authorizations.isBasic(req.user)) {
-      filter.ownerID = req.user.id;
-    }
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
-      if (filteredRequest.SiteAreaID) {
-        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
-      }
-      if (filteredRequest.SiteID) {
-        filter.siteID = await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID.split('|'));
-      }
-      filter.siteAdminIDs = await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user);
-    }
+    // Check dyna;ic auth
+    const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(req.tenant, req.user, Action.GET_REFUND_REPORT, filteredRequest);
+
+
     // Get Reports
-    const reports = await TransactionStorage.getRefundReports(req.tenant, filter, {
-      limit: filteredRequest.Limit,
-      skip: filteredRequest.Skip,
-      sort: filteredRequest.SortFields,
-      onlyRecordCount: filteredRequest.OnlyRecordCount
-    },
-    ['id', ...userProject]);
+    const reports = await TransactionStorage.getRefundReports(
+      req.tenant,
+      {
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
+        ...authorizations.filters
+      },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
+      authorizations.projectFields);
+    // Add Auth flags
+    await AuthorizationService.addRefundReportsAuthorizations(
+      req.tenant, req.user, reports.result, authorizations);
     res.json(reports);
     next();
   }
@@ -821,7 +534,7 @@ export default class TransactionService {
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-sessions.csv', filteredRequest,
-      TransactionService.getCompletedTransactionsToExport.bind(this),
+      TransactionService.getTransactions.bind(this, req, filteredRequest, Action.EXPORT_COMPLETED_TRANSACTION),
       TransactionService.convertToCSV.bind(this));
   }
 
@@ -833,29 +546,15 @@ export default class TransactionService {
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Export
     await UtilsService.exportToCSV(req, res, 'exported-refund-sessions.csv', filteredRequest,
-      TransactionService.getRefundedTransactionsToExport.bind(this),
+      TransactionService.getTransactions.bind(this, req, filteredRequest, Action.GET_REFUNDABLE_TRANSACTION),
       TransactionService.convertToCSV.bind(this));
   }
 
   public static async handleExportTransactionOcpiCdr(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!await Authorizations.canListTransactions(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST,
-        entity: Entity.TRANSACTION,
-        module: MODULE_NAME,
-        method: 'handleExportTransactionOcpiCdr'
-      });
-    }
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionCdrExportReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, {}, ['id', 'ocpiData']);
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
+    const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, filteredRequest.ID, Action.EXPORT_OCPI_CDR, action);
     if (!transaction?.ocpiData) {
       throw new AppError({
         ...LoggingHelper.getTransactionProperties(transaction),
@@ -871,46 +570,15 @@ export default class TransactionService {
   }
 
   public static async handleGetTransactionsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+
     // Check auth
-    if (!await Authorizations.canListTransactionsInError(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.IN_ERROR, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleGetTransactionsInError'
-      });
-    }
-    let projectFields = [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
-      'meterStart', 'siteAreaID', 'siteID', 'companyID', 'errorCode', 'uniqueId', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.stateOfCharge'
-    ];
-    // Check Users
-    if ((await Authorizations.canListUsers(req.user)).authorized) {
-      if (projectFields) {
-        projectFields = [
-          ...projectFields,
-          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
-          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID'
-        ];
-      }
-    }
-    // Check Cars
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (await Authorizations.canListCars(req.user)) {
-        projectFields = [
-          ...projectFields,
-          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-        ];
-      }
-    }
-    const filter: any = {};
+    const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(req.tenant, req.user, Action.IN_ERROR);
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsInErrorGetReq(req.query);
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.tenant,
       {
-        ...filter, search: filteredRequest.Search,
+        search: filteredRequest.Search,
         issuer: true,
         errorType: filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : UtilsService.getTransactionInErrorTypes(req.user),
         endDateTime: filteredRequest.EndDateTime,
@@ -920,19 +588,27 @@ export default class TransactionService {
         siteIDs: await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
+        ...authorizations.filters
       },
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields)
       },
-      projectFields
+      authorizations.projectFields
     );
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      transactions.projectFields = authorizations.projectFields;
+    }
+    // Add Auth flags
+    await AuthorizationService.addTransactionsInErrorAuthorizations(req.tenant, req.user, transactions, authorizations);
+
     res.json(transactions);
     next();
   }
 
-  public static convertToCSV(req: Request, transactions: Transaction[], writeHeader = true): string {
+  private static convertToCSV(req: Request, transactions: Transaction[], writeHeader = true): string {
     let headers = null;
     // Header
     if (writeHeader) {
@@ -1000,25 +676,17 @@ export default class TransactionService {
       inSuccess: 0,
       inError: 0
     };
-    // Check if transaction has been refunded
+    // Check dynamic auth for each transaction before initiating delete operations
+    for (const transactionID of transactionsIDs) {
+      await UtilsService.checkAndGetTransactionAuthorization(tenant, loggedUser, transactionID, Action.DELETE, action);
+    }
     const refundConnector = await RefundFactory.getRefundImpl(tenant);
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
+    // Check if transaction can be deleted
     for (const transactionID of transactionsIDs) {
-      // Get
-      const transaction = await TransactionStorage.getTransaction(tenant, transactionID);
-      // Not Found
-      if (!transaction) {
-        result.inError++;
-        await Logging.logError({
-          tenantID: loggedUser.tenantID,
-          user: loggedUser,
-          action, module: MODULE_NAME, method: 'handleDeleteTransactions',
-          message: `Transaction ID '${transactionID}' does not exist`,
-          detailedMessages: { transaction }
-        });
-        continue;
-      }
-      // Already Refunded
+      // Get transaction
+      const transaction = await UtilsService.checkAndGetTransactionAuthorization(tenant, loggedUser, transactionID, Action.DELETE, action);
+      // Transaction refunded
       if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
         result.inError++;
         await Logging.logError({
@@ -1026,12 +694,12 @@ export default class TransactionService {
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           action, module: MODULE_NAME, method: 'handleDeleteTransactions',
-          message: `Transaction ID '${transactionID}' has been refunded and cannot be deleted`,
+          message: `Transaction ID '${transaction.id}' has been refunded and cannot be deleted`,
           detailedMessages: { transaction }
         });
         continue;
       }
-      // Billed
+      // Transaction billed
       if (billingImpl && transaction.billingData?.stop?.status === BillingStatus.BILLED) {
         result.inError++;
         await Logging.logError({
@@ -1039,7 +707,7 @@ export default class TransactionService {
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           action, module: MODULE_NAME, method: 'handleDeleteTransactions',
-          message: `Transaction ID '${transactionID}' has been billed and cannot be deleted`,
+          message: `Transaction ID '${transaction.id}' has been billed and cannot be deleted`,
           detailedMessages: { transaction }
         });
         continue;
@@ -1047,7 +715,7 @@ export default class TransactionService {
       // Transaction in progress
       if (!transaction.stop) {
         if (!transaction.chargeBox) {
-          transactionsIDsToDelete.push(transactionID);
+          transactionsIDsToDelete.push(transaction.id);
         } else {
           // Check connector
           const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
@@ -1057,13 +725,13 @@ export default class TransactionService {
               transaction.chargeBox.id, transaction.chargeBox.connectors);
           }
           // To Delete
-          transactionsIDsToDelete.push(transactionID);
+          transactionsIDsToDelete.push(transaction.id);
         }
         continue;
       }
-      transactionsIDsToDelete.push(transactionID);
+      transactionsIDsToDelete.push(transaction.id);
     }
-    // Delete All Transactions
+    // Delete only valid transactions, and log the ones we skipped / failed to delete
     result.inSuccess = await TransactionStorage.deleteTransactions(tenant, transactionsIDsToDelete);
     await Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TRANSACTIONS_DELETE,
@@ -1076,47 +744,16 @@ export default class TransactionService {
     return result;
   }
 
-  private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean, withTag?: boolean } = {},
-      filteredRequest: HttpTransactionsGetRequest, projectFields): Promise<DataResult<Transaction>> {
-    // Check Transactions
-    if (!await Authorizations.canListTransactions(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'handleGetTransactionsToRefund'
-      });
+  private static async getTransactions(req: Request, filteredRequest: HttpTransactionsGetRequest,
+    authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
+
+    // Get authorization filters
+    const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(
+      req.tenant, req.user, authAction, filteredRequest, false);
+    if (!authorizations.authorized) {
+      return Constants.DB_EMPTY_DATA_RESULT;
     }
-    // Check Users
-    if ((await Authorizations.canListUsers(req.user)).authorized) {
-      if (projectFields) {
-        projectFields = [
-          ...projectFields,
-          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
-          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
-        ];
-      }
-    }
-    // Check Cars
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (await Authorizations.canListCars(req.user)) {
-        projectFields = [
-          ...projectFields,
-          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-        ];
-      }
-      if (await Authorizations.canUpdateCar(req.user)) {
-        projectFields = [
-          ...projectFields,
-          'car.licensePlate',
-        ];
-      }
-    }
-    // Check projection
-    const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
-    if (!Utils.isEmptyArray(httpProjectFields)) {
-      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
-    }
+
     // Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
       const tagIDs = await TagStorage.getTags(req.tenant, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['id']);
@@ -1127,61 +764,52 @@ export default class TransactionService {
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.tenant,
       {
-        status: filteredRequest.Status as TransactionStatus,
+        search: filteredRequest.Search ? filteredRequest.Search : null,
+        status: filteredRequest.Status,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         tagIDs: filteredRequest.TagID ? filteredRequest.TagID.split('|') : null,
-        ownerID: Authorizations.isBasic(req.user) ? req.user.id : null,
         withTag: filteredRequest.WithTag,
         withUser: filteredRequest.WithUser,
         withChargingStation: filteredRequest.WithChargingStation,
         withCar: filteredRequest.WithCar,
         withSite: filteredRequest.WithSite,
         withCompany: filteredRequest.WithCompany,
-        siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
         withSiteArea: filteredRequest.WithSiteArea,
-        siteIDs: filteredRequest.SiteID ? await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user, filteredRequest.SiteID.split('|')) : null,
-        siteAdminIDs: await Authorizations.getAuthorizedSiteAdminIDs(req.tenant, req.user),
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
         startDateTime: filteredRequest.StartDateTime ? filteredRequest.StartDateTime : null,
         endDateTime: filteredRequest.EndDateTime ? filteredRequest.EndDateTime : null,
         refundStatus: filteredRequest.RefundStatus ? filteredRequest.RefundStatus.split('|') as RefundStatus[] : null,
         minimalPrice: filteredRequest.MinimalPrice ? filteredRequest.MinimalPrice : null,
         statistics: filteredRequest.Statistics ? filteredRequest.Statistics : null,
-        search: filteredRequest.Search ? filteredRequest.Search : null,
         reportIDs: filteredRequest.ReportIDs ? filteredRequest.ReportIDs.split('|') : null,
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
         inactivityStatus: filteredRequest.InactivityStatus ? filteredRequest.InactivityStatus.split('|') : null,
+        ...authorizations.filters
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields), onlyRecordCount: filteredRequest.OnlyRecordCount },
-      projectFields
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
+        onlyRecordCount: filteredRequest.OnlyRecordCount,
+      },
+      authorizations.projectFields
     );
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      transactions.projectFields = authorizations.projectFields;
+    }
+    // Add Auth flags
+    await AuthorizationService.addTransactionsAuthorizations(
+      req.tenant, req.user, transactions, authorizations);
+
     return transactions;
   }
 
-  private static async getCompletedTransactionsToExport(req: Request, filteredRequest: HttpTransactionsGetRequest): Promise<DataResult<Transaction>> {
-    // Get Transactions
-    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, {}, filteredRequest, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
-      'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID'
-    ]);
-  }
-
-  private static async getRefundedTransactionsToExport(req: Request, filteredRequest: HttpTransactionsGetRequest): Promise<DataResult<Transaction>> {
-    // Get Transactions
-    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, {}, filteredRequest, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'refundData.reportId', 'refundData.refundedAt', 'refundData.status', 'site.name', 'siteArea.name', 'company.name',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs',
-      'billingData.stop.invoiceNumber', 'stop.reason', 'tagID', 'stop.tagID',
-    ]);
-  }
-
   private static async transactionSoftStop(action: ServerAction, transaction: Transaction, chargingStation: ChargingStation,
-      connector: Connector, req: Request, res: Response, next: NextFunction): Promise<void> {
+    connector: Connector, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if already stopped
     if (transaction.stop) {
       // Clear Connector
@@ -1233,32 +861,18 @@ export default class TransactionService {
   }
 
   private static async checkAndGetTransactionChargingStationConnector(action: ServerAction, tenant: Tenant, user: UserToken,
-      transactionID: number): Promise<{ transaction: Transaction; chargingStation: ChargingStation; connector: Connector; }> {
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(tenant, transactionID);
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionID} does not exist`,
-      MODULE_NAME, 'checkAndGetTransactionChargingStationConnector', user);
-    // Check auth
-    if (!await Authorizations.canUpdateTransaction(user, transaction)) {
-      throw new AppAuthError({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user, action: Action.UPDATE, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'checkAndGetTransactionChargingStationConnector',
-        value: transactionID.toString()
-      });
-    }
-    const { chargingStation, connector } =
-      await TransactionService.checkAndGetChargingStationConnector(action, tenant, user, transaction.chargeBoxID, transaction.connectorId);
+    transactionID: number, authAction: Action): Promise<{ transaction: Transaction; chargingStation: ChargingStation; connector: Connector; }> {
+    // Check dynamic auth
+    const transaction = await UtilsService.checkAndGetTransactionAuthorization(tenant, user, transactionID, authAction, action);
+    const { chargingStation, connector } = await TransactionService.checkAndGetChargingStationConnector(action, tenant, user,
+      transaction.chargeBoxID, transaction.connectorId, authAction);
     return { transaction, chargingStation, connector };
   }
 
   private static async checkAndGetChargingStationConnector(action: ServerAction, tenant: Tenant, user: UserToken,
-      chargingStationID: string, connectorID: number): Promise<{ chargingStation: ChargingStation; connector: Connector; }> {
+    chargingStationID: string, connectorID: number, authAction: Action): Promise<{ chargingStation: ChargingStation; connector: Connector; }> {
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingStationID, { withSiteArea: true });
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${chargingStationID}' does not exist`,
-      MODULE_NAME, 'checkAndGetChargingStationConnector', user);
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(tenant, user, chargingStationID, authAction, action, null, { withSiteArea: true });
     // Check connector
     const connector = Utils.getConnectorFromID(chargingStation, connectorID);
     if (!connector) {

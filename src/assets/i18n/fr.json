@@ -71,28 +71,28 @@
       "body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a été démarrée avec succès dans l'organisation '{{tenantName}}'"
     },
     "ocpiPatchChargingStationsStatusesError": {
-      "title": "Itinérance envoie des statuts",
-      "body": "La mise à jour des statuts vers le site d'itinérance des bornes a échoué sur le site '{{location}}' dans l'organisation '{{tenantName}}', vérifier les logs"
+      "title": "Itinérance - transmission de l'état des bornes",
+      "body": "La transmission de l'état des bornes vers la plateforme d'itinérance a échoué pour le site '{{location}}' de l'organisation '{{tenantName}}', vérifier les logs"
     },
     "oicpPatchChargingStationsStatusesError": {
-      "title": "Hubject envoie des statuts",
-      "body": "La mise à jour des statuts vers Hubject a échoué pour le site '{{location}}' dans l'organisation '{{tenantName}}', vérifier les logs"
+      "title": "Hubject - transmission de l'état des bornes",
+      "body": "La transmission de l'état des bornes vers la plateforme Hubject a échoué pour le site '{{location}}' de l'organisation '{{tenantName}}', vérifier les logs"
     },
     "oicpPatchChargingStationsError": {
-      "title": "Hubject envoie des bornes",
-      "body": "La mise à jour des bornes vers Hubject a échoué dans l'organisation '{{tenantName}}', vérifier les logs"
+      "title": "Hubject - transmission des informations relatives aux bornes",
+      "body": "La transmission des données des bornes de l'organisation '{{tenantName}}' vers la plateforme Hubject a échoué, vérifier les logs"
     },
     "optimalChargeReached": {
       "title": "Charge optimale atteinte",
-      "body": "Votre véhicule électrique, qui est connecté sur '{{chargeBoxID}}', connecteur '{{connectorId}}', a atteint sa charge optimale (85%) dans l'organisation '{{tenantName}}'"
+      "body": "Votre véhicule, connecté sur '{{chargeBoxID}}', connecteur '{{connectorId}}', a atteint la charge optimale de 85%'"
     },
     "endOfCharge": {
       "title": "Charge terminée",
-      "body": "Votre véhicule électrique, qui est connecté sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a terminé sa charge dans l'organisation '{{tenantName}}'"
+      "body": "Votre véhicule, connecté sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a terminé sa session de recharge'"
     },
     "endOfSession": {
-      "title": "Session terminée",
-      "body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}' est terminée dans l'organisation '{{tenantName}}'"
+      "title": "Session de recharge terminée",
+      "body": "Votre session de recharge sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}' est terminée'"
     },
     "chargingStationStatusError": {
       "title": "Borne en erreur",
@@ -100,7 +100,7 @@
     },
     "unknownUserBadged": {
       "title": "Utilisateur inconnu",
-      "body": "Un utilisateur inconnu vient juste de badger sur '{{chargeBoxID}}' avec le badge ID '{{badgeID}}' dans l'organisation '{{tenantName}}'"
+      "body": "Un utilisateur inconnu vient de badger sur '{{chargeBoxID}}' avec le badge ID '{{badgeID}}' dans l'organisation '{{tenantName}}'"
     },
     "chargingStationRegistered": {
       "title": "Connexion borne",

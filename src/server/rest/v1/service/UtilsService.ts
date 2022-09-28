@@ -1,7 +1,7 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { BillingAccount, BillingInvoice, BillingTransfer } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
-import ChargingStation, { ChargePoint, Command } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationTemplate, Command } from '../../../../types/ChargingStation';
 import { EntityData, URLInfo } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -22,6 +22,7 @@ import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CentralSystemRestServiceConfiguration from '../../../../types/configuration/CentralSystemRestServiceConfiguration';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
 import Company from '../../../../types/Company';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
@@ -45,7 +46,9 @@ import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import Transaction from '../../../../types/Transaction';
 import { TransactionInErrorType } from '../../../../types/InError';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -155,6 +158,26 @@ export default class UtilsService {
     return chargingStation;
   }
 
+  public static async checkAndGetChargingStationTemplateAuthorization(tenant: Tenant, userToken: UserToken, chargingStationTemplateID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStationTemplate> {
+  // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
+      tenant, userToken, { ID: chargingStationTemplateID }, authAction, entityData);
+    // Get one template
+    const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(chargingStationTemplateID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, chargingStationTemplate, `ChargingStationTemplate ID '${chargingStationTemplateID}' does not exist`,
+      MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
+    return chargingStationTemplate;
+  }
+
   public static async checkAndGetChargingProfileAuthorization(tenant: Tenant, userToken: UserToken, chargingProfileID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingProfile> {
     // Check mandatory fields
@@ -191,6 +214,44 @@ export default class UtilsService {
       });
     }
     return chargingProfile;
+  }
+
+  public static async checkAndGetTransactionAuthorization(tenant: Tenant, userToken: UserToken, transactionID: number, authAction: Action,
+    action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Transaction> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'checkAndGetTransactionAuthorization', userToken);
+    // Get dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetTransactionAuthorizations(tenant, userToken, { ID: transactionID }, authAction, entityData);
+    // Get ChargingStation
+    const transaction = await TransactionStorage.getTransaction(tenant, transactionID,
+      {
+        ...additionalFilters,
+        ...authorizations.filters
+      },
+      applyProjectFields ? authorizations.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${transactionID}' does not exist`,
+      MODULE_NAME, 'checkAndGetTransactionAuthorization', userToken);
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      transaction.projectFields = authorizations.projectFields;
+    }
+    // Assign Metadata
+    if (authorizations.metadata) {
+      transaction.metadata = authorizations.metadata;
+    }
+    // Add actions
+    await AuthorizationService.addTransactionAuthorizations(tenant, userToken, transaction, authorizations);
+    const authorized = AuthorizationService.canPerformAction(transaction, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'checkAndGetTransactionAuthorization',
+      });
+    }
+    return transaction;
   }
 
   public static async checkAndGetPricingDefinitionAuthorization(tenant: Tenant, userToken: UserToken, pricingDefinitionID: string, authAction: Action,

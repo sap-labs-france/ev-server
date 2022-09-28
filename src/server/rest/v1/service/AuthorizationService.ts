@@ -1,28 +1,34 @@
-import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingAccountsDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, SiteUserDataResult, TagDataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
+import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, DynamicAuthorizationsFilter, Entity } from '../../../../types/Authorization';
+import { AssetDataResult, BillingAccountsDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, ChargingStationTemplateDataResult, CompanyDataResult, DataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SiteAreaDataResult, SiteDataResult, SiteUserDataResult, TagDataResult, TransactionDataResult, TransactionInErrorDataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
+import ChargingStation, { ChargingStationTemplate } from '../../../../types/ChargingStation';
 import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
 import { HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingTransferGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 import { HttpCarCatalogGetRequest, HttpCarCatalogsGetRequest, HttpCarGetRequest, HttpCarsGetRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingProfileRequest, HttpChargingProfilesGetRequest, HttpChargingStationGetRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationTemplateGetRequest, HttpChargingStationTemplatesGetRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
 import { HttpCompaniesGetRequest, HttpCompanyGetRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpPricingDefinitionGetRequest, HttpPricingDefinitionsGetRequest } from '../../../../types/requests/HttpPricingRequest';
 import { HttpSiteAreaGetRequest, HttpSiteAreasGetRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteGetRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagGetRequest, HttpTagsGetRequest } from '../../../../types/requests/HttpTagRequest';
+import { HttpTransactionConsumptionsGetRequest, HttpTransactionGetRequest } from '../../../../types/requests/HttpTransactionRequest';
 import { HttpUserGetRequest, HttpUserSitesAssignRequest, HttpUserSitesGetRequest, HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
+import RefundReport, { RefundStatus } from '../../../../types/Refund';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
+import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Asset from '../../../../types/Asset';
 import Authorizations from '../../../../authorization/Authorizations';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
-import ChargingStation from '../../../../types/ChargingStation';
 import Company from '../../../../types/Company';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpLogGetRequest } from '../../../../types/requests/HttpLogRequest';
 import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
@@ -34,8 +40,8 @@ import { Setting } from '../../../../types/Setting';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import Tag from '../../../../types/Tag';
-import Tenant from '../../../../types/Tenant';
-import User from '../../../../types/User';
+import Transaction from '../../../../types/Transaction';
+import { TransactionInError } from '../../../../types/InError';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 
@@ -476,6 +482,48 @@ export default class AuthorizationService {
     registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(tenant.id, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
   }
 
+  public static async checkAndGetChargingStationTemplateAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpChargingStationTemplateGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.CHARGING_STATION_TEMPLATE, userToken, filteredRequest, filteredRequest.ID ? { chargingStationTemplateID: filteredRequest.ID } : {}, authAction, entityData);
+  }
+
+  public static async checkAndGetChargingStationTemplatesAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
+      filteredRequest: Partial<HttpChargingStationTemplatesGetRequest>): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false,
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, authAction, authorizationFilters, filteredRequest);
+    return authorizationFilters;
+  }
+
+  public static async addChargingStationTemplatesAuthorizations(tenant: Tenant, userToken: UserToken, chargingStationTemplates: ChargingStationTemplateDataResult,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+  // Add Meta Data
+    chargingStationTemplates.metadata = authorizationFilter.metadata;
+    // Add Authorizations
+    chargingStationTemplates.canCreate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, Action.CREATE, authorizationFilter);
+    for (const chargingStationTemplate of chargingStationTemplates.result) {
+      await AuthorizationService.addChargingStationTemplateAuthorizations(tenant, userToken, chargingStationTemplate, authorizationFilter);
+    }
+  }
+
+  public static async addChargingStationTemplateAuthorizations(tenant: Tenant, userToken: UserToken, chargingStationTemplate: ChargingStationTemplate,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    chargingStationTemplate.canRead = true; // Always true as it should be filtered upfront
+    chargingStationTemplate.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, Action.DELETE, authorizationFilter, { chargingStationTemplateID: chargingStationTemplate.id }, chargingStationTemplate);
+    chargingStationTemplate.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION_TEMPLATE, Action.UPDATE, authorizationFilter, { chargingStationTemplateID: chargingStationTemplate.id }, chargingStationTemplate);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(chargingStationTemplate);
+  }
+
   public static async checkAndGetCompaniesAuthorizations(tenant: Tenant, userToken: UserToken,
       filteredRequest: Partial<HttpCompaniesGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
@@ -795,6 +843,9 @@ export default class AuthorizationService {
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
     chargingStation.canMaintainPricingDefinitions = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.MAINTAIN_PRICING_DEFINITIONS, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+    chargingStation.canPushTransactionCDR = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.PUSH_TRANSACTION_CDR, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
     // Remote start stop capability using OCPI data (Roaming)
     let hasRemoteStartStopCapability = true;
@@ -1178,6 +1229,228 @@ export default class AuthorizationService {
     Utils.removeCanPropertiesWithFalseValue(carCatalog);
   }
 
+  public static async checkAndGetTransactionsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
+    filteredRequest?: Partial<HttpTransactionConsumptionsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+    const authorizations: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, authAction, authorizations, filteredRequest, null, failsWithException);
+    return authorizations;
+  }
+
+  public static async checkAndGetTransactionAuthorizations(tenant: Tenant, userToken: UserToken,
+    filteredRequest: Partial<HttpTransactionGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.TRANSACTION, userToken, filteredRequest, filteredRequest.ID ? { TransactionID: filteredRequest.ID } : {}, authAction, entityData);
+  }
+
+  public static async addTransactionsAuthorizations(tenant: Tenant, userToken: UserToken,
+    transactions: TransactionDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Meta Data
+    transactions.metadata = authorizationFilter.metadata;
+    transactions.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+    transactions.canListSites = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter);
+    transactions.canListSiteAreas = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.LIST, authorizationFilter);
+    transactions.canListChargingStations = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION, Action.LIST, authorizationFilter);
+    transactions.canListTags = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.LIST, authorizationFilter);
+    transactions.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.EXPORT, authorizationFilter);
+    transactions.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.DELETE, authorizationFilter);
+    transactions.canSyncRefund = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter);
+    transactions.canRefund = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.REFUND_TRANSACTION, authorizationFilter);
+    transactions.canReadSetting = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SETTING, Action.READ, authorizationFilter);
+
+    // Add Authorizations
+    for (const transaction of transactions.result) {
+      await AuthorizationService.addTransactionAuthorizations(tenant, userToken, transaction, authorizationFilter);
+    }
+  }
+
+  public static async addTransactionAuthorizations(tenant: Tenant, userToken: UserToken, transaction: Transaction, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Set entity dynamic auth filters that will be used by auth framework
+    const dynamicAuthorizationFilter: DynamicAuthorizationsFilter = { CompanyID: transaction.companyID, SiteID: transaction.siteID, UserID: transaction.userID };
+    transaction.canRead = true; // Always true as it should be filtered upfront
+    transaction.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.DELETE,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.UPDATE,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canSynchronizeRefundedTransaction = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canGetAdvenirConsumption = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.GET_ADVENIR_CONSUMPTION,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canRemoteStopTransaction = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.REMOTE_STOP_TRANSACTION,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canListLogs = await this.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGING, Action.LIST,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canListLogs = await this.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGING, Action.LIST,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    transaction.canReadChargingStation = await this.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION, Action.READ,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    // Additional auth check for refund
+    transaction.canRefundTransaction = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.REFUND_TRANSACTION,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction)
+      && !(transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== RefundStatus.CANCELLED);
+    // Additional check for PushTransactionCDR
+    transaction.canPushTransactionCDR = transaction.ocpi
+      && !transaction.ocpiWithCdr
+      && await AuthorizationService.canPerformAuthorizationAction(
+        tenant, userToken, Entity.TRANSACTION, Action.PUSH_TRANSACTION_CDR,
+        authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    // Additional check for ExportOcpiCdr
+    transaction.canExportOcpiCdr = transaction.ocpi
+      && transaction.ocpiWithCdr
+      && await AuthorizationService.canPerformAuthorizationAction(
+        tenant, userToken, Entity.TRANSACTION, Action.EXPORT_OCPI_CDR,
+        authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    // Set sensible data
+    const sensibleUserData = { UserData: true, TagData: true, CarCatalogData: true, CarData: true, BillingData: true };
+    // Transaction sensible data
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter,
+      { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction);
+    // Transaction.stop sensible data
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter,
+      { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction.stop);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(transaction);
+  }
+
+  public static async addTransactionsInErrorAuthorizations(tenant: Tenant, userToken: UserToken,
+    transactions: TransactionInErrorDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Meta Data
+    transactions.metadata = authorizationFilter.metadata;
+    // Add Meta Data
+    transactions.metadata = authorizationFilter.metadata;
+    transactions.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+    transactions.canListSites = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter);
+    transactions.canListSiteAreas = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.LIST, authorizationFilter);
+    transactions.canListChargingStations = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CHARGING_STATION, Action.LIST, authorizationFilter);
+    transactions.canListTags = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.LIST, authorizationFilter);
+    transactions.canExport = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.EXPORT, authorizationFilter);
+    transactions.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.DELETE, authorizationFilter);
+    // Add Authorizations
+    for (const transaction of transactions.result) {
+      await AuthorizationService.addTransactionInErrorAuthorizations(tenant, userToken, transaction, authorizationFilter);
+    }
+  }
+
+  public static async addTransactionInErrorAuthorizations(tenant: Tenant, userToken: UserToken, transaction: TransactionInError,
+    authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Set entity dynamic auth filters that will be used by auth framework
+    const dynamicAuthorizationFilter: DynamicAuthorizationsFilter = { CompanyID: transaction.companyID, SiteID: transaction.siteID, UserID: transaction.userID };
+    transaction.canRead = true; // Always true as it should be filtered upfront
+    transaction.canListLogs = await this.canPerformAuthorizationAction(tenant, userToken, Entity.LOGGING, Action.LIST,
+      authorizationFilter, { TransactionID: transaction.id, ...dynamicAuthorizationFilter }, transaction);
+    // Check and remove sensible data
+    const sensibleUserData = { UserData: true, TagData: true, CarCatalogData: true, CarData: true, BillingData: true };
+    // Transaction sensible data
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter,
+      { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction);
+    // Transaction stop sensible data
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter,
+      { TransactionID: transaction.id, ...dynamicAuthorizationFilter, ...sensibleUserData }, transaction.stop);
+    // Optimize data
+    Utils.removeCanPropertiesWithFalseValue(transaction);
+  }
+
+  public static async addRefundReportsAuthorizations(tenant: Tenant, userToken: UserToken,
+    refundReports: RefundReport[], authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Authorizations
+    for (const refundReport of refundReports) {
+      await AuthorizationService.addRefundReportAuthorizations(tenant, userToken, refundReport, authorizationFilter);
+    }
+  }
+
+  public static async addRefundReportAuthorizations(tenant: Tenant, userToken: UserToken, refundReport: RefundReport, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Check and remove sensible data
+    const sensibleUserData = { UserData: true, TagData: true };
+    // Refund report sensible data (Based on the Transaction)
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.VIEW_USER_DATA, authorizationFilter, { ...sensibleUserData }, refundReport);
+    // Optimize data over the net
+    Utils.removeCanPropertiesWithFalseValue(refundReport);
+  }
+
+  public static async checkAndGetConsumptionsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
+    filteredRequest?: Partial<HttpByIDRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+    const authorizations: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CONSUMPTION, authAction, authorizations, filteredRequest, null, failsWithException);
+    return authorizations;
+  }
+
+  private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,
+      filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
+    if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get assigned Site IDs assigned to user from DB
+        const siteIDs = await Authorizations.getAssignedSiteIDs(tenant, userToken);
+        if (!Utils.isEmptyArray(siteIDs)) {
+          // Force the filter
+          authorizationFilters.filters.siteIDs = siteIDs;
+          // Check if filter is provided
+          if (filteredRequest?.SiteID) {
+            const filteredSiteIDs = filteredRequest.SiteID.split('|');
+            // Override
+            authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
+              (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
+          }
+        }
+        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+          authorizationFilters.authorized = true;
+        }
+      } else {
+        authorizationFilters.authorized = true;
+      }
+    }
+  }
+
+  private static async checkAssignedSiteAdminsAndOwners(tenant: Tenant, userToken: UserToken,
+      filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
+    if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get Site IDs from Site Admin & Site Owner flag
+        const siteAdminSiteIDs = await Authorizations.getSiteAdminSiteIDs(tenant, userToken);
+        const siteOwnerSiteIDs = await Authorizations.getSiteOwnerSiteIDs(tenant, userToken);
+        const allSites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
+        if (!Utils.isEmptyArray(allSites)) {
+          // Force the filters
+          authorizationFilters.filters.siteIDs = allSites;
+          // Check if filter is provided
+          if (filteredRequest?.SiteID) {
+            const filteredSiteIDs: string[] = filteredRequest.SiteID.split('|');
+            // Override
+            authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
+              (filteredSiteID) => authorizationFilters.filters.siteIDs.includes(filteredSiteID));
+          }
+        }
+        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+          authorizationFilters.authorized = true;
+        }
+      } else {
+        authorizationFilters.authorized = true;
+      }
+    }
+  }
 
   private static filterProjectFields(authFields: string[], httpProjectField: string): string[] {
     let fields = authFields;
