@@ -400,7 +400,7 @@
       ]
     },
     "ocpi-patch-status-error": {
-      "title": "Echec de la transmission de l'état des borne",
+      "title": "Echec de la transmission de l'état des bornes",
       "buttonText": "Naviguer vers {{tenantName}}",
       "text": [
         "La transmission de l'état des bornes du site {{location}} vers la plateforme d'ititinérance OCPI a échoué.",
@@ -409,7 +409,7 @@
       ]
     },
     "oicp-patch-status-error": {
-      "title": "Hubject - Echec de la transmission de l'état des borne",
+      "title": "Hubject - Echec de la transmission de l'état des bornes",
       "buttonText": "Naviguer vers {{tenantName}}",
       "text": [
         "La transmission de l'état des bornes vers la plateforme d'ititinérance Hubject a échoué.",
