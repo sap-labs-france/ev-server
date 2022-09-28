@@ -307,71 +307,71 @@ export default class EMailNotificationTask implements NotificationTask {
           content: email.html // Only log the email content when running automated tests
         }
       });
-    } else {
-      try {
-        // Get the SMTP client
-        const smtpClient = this.getSMTPClient(useSmtpClientBackup);
-        // Send the message
-        const messageSent: Message = await smtpClient.sendAsync(messageToSend);
-        // Email sent successfully
-        await Logging.logDebug({
-          tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
-          siteID: data?.siteID,
-          siteAreaID: data?.siteAreaID,
-          companyID: data?.companyID,
-          chargingStationID: data?.chargeBoxID,
-          action: ServerAction.EMAIL_NOTIFICATION,
-          module: MODULE_NAME, method: 'sendEmail',
-          actionOnUser: user,
-          message: `Email Sent: '${rfc2047.decode(messageSent.header.subject)}'`,
-          detailedMessages: {
-            from: rfc2047.decode(messageSent.header.from.toString()),
-            to: rfc2047.decode(messageSent.header.to.toString()),
-            subject: rfc2047.decode(messageSent.header.subject),
-          }
-        });
-      } catch (error) {
-        await Logging.logError({
-          tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
-          siteID: data?.siteID,
-          siteAreaID: data?.siteAreaID,
-          companyID: data?.companyID,
-          chargingStationID: data?.chargeBoxID,
-          action: ServerAction.EMAIL_NOTIFICATION,
-          module: MODULE_NAME, method: 'sendEmail',
-          message: `Error Sending Email (${rfc2047.decode(messageToSend.header.from.toString())}): '${rfc2047.decode(messageToSend.header.subject)}'`,
-          actionOnUser: user,
-          detailedMessages: {
-            from: rfc2047.decode(messageToSend.header.from.toString()),
-            to: rfc2047.decode(messageToSend.header.to.toString()),
-            subject: rfc2047.decode(messageToSend.header.subject),
-            smtpError: error.smtp,
-            error: error.stack,
-          }
-        });
-        // Second try
-        let smtpFailed = true;
-        if (error instanceof SMTPError) {
-          const err: SMTPError = error;
-          switch (err.smtp) {
-            case 421:
-            case 432:
-            case 450:
-            case 451:
-            case 452:
-            case 454:
-            case 455:
-            case 510:
-            case 511:
-            case 550:
-              smtpFailed = false;
-              break;
-          }
+      return ;
+    }
+    try {
+      // Get the SMTP client
+      const smtpClient = this.getSMTPClient(useSmtpClientBackup);
+      // Send the message
+      const messageSent: Message = await smtpClient.sendAsync(messageToSend);
+      // Email sent successfully
+      await Logging.logDebug({
+        tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
+        action: ServerAction.EMAIL_NOTIFICATION,
+        module: MODULE_NAME, method: 'sendEmail',
+        actionOnUser: user,
+        message: `Email Sent: '${rfc2047.decode(messageSent.header.subject)}'`,
+        detailedMessages: {
+          from: rfc2047.decode(messageSent.header.from.toString()),
+          to: rfc2047.decode(messageSent.header.to.toString()),
+          subject: rfc2047.decode(messageSent.header.subject),
         }
-        // Use email backup?
-        if (smtpFailed && !useSmtpClientBackup) {
-          await this.sendEmail(email, data, tenant, user, severity, true);
+      });
+    } catch (error) {
+      await Logging.logError({
+        tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
+        action: ServerAction.EMAIL_NOTIFICATION,
+        module: MODULE_NAME, method: 'sendEmail',
+        message: `Error Sending Email (${rfc2047.decode(messageToSend.header.from.toString())}): '${rfc2047.decode(messageToSend.header.subject)}'`,
+        actionOnUser: user,
+        detailedMessages: {
+          from: rfc2047.decode(messageToSend.header.from.toString()),
+          to: rfc2047.decode(messageToSend.header.to.toString()),
+          subject: rfc2047.decode(messageToSend.header.subject),
+          smtpError: error.smtp,
+          error: error.stack,
         }
+      });
+      // Second try
+      let smtpFailed = true;
+      if (error instanceof SMTPError) {
+        const err: SMTPError = error;
+        switch (err.smtp) {
+          case 421:
+          case 432:
+          case 450:
+          case 451:
+          case 452:
+          case 454:
+          case 455:
+          case 510:
+          case 511:
+          case 550:
+            smtpFailed = false;
+            break;
+        }
+      }
+      // Use email backup?
+      if (smtpFailed && !useSmtpClientBackup) {
+        await this.sendEmail(email, data, tenant, user, severity, true);
       }
     }
   }

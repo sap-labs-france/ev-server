@@ -3,7 +3,6 @@ import User, { UserStatus } from '../../src/types/User';
 import chai, { assert } from 'chai';
 
 import BrandingConstants from '../../src/utils/BrandingConstants';
-import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import EMailNotificationTask from '../../src/notification/email/EMailNotificationTask';
@@ -47,6 +46,13 @@ describe('Initialization', () => {
     let recipient: User;
     let user: User;
     let tenant: Tenant;
+    const transactionId = 123456789;
+    const connectorId = 'A';
+    const companyID = ContextDefinition.TENANT_COMPANY_LIST[0].id;
+    const siteID = ContextDefinition.TENANT_SITE_LIST[0].id;
+    const siteAreaID = ContextDefinition.TENANT_SITEAREA_LIST[0].id;
+    const chargeBoxID = 'BORNE-1234';
+    const badgeID = 'AB123456';
     const severity = 'INFO' as NotificationSeverity;
 
     beforeAll(async () => {
@@ -89,15 +95,15 @@ describe('Initialization', () => {
 
     it('optimal-charge-reached', async () => {
       const data: OptimalChargeReachedNotification = {
-        transactionId: 1,
-        siteID: 'site_id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        chargeBoxID: 'Charging Station 19 SAP',
-        connectorId: 'A',
-        totalConsumption: 'total consumption',
+        transactionId,
+        companyID,
+        siteID,
+        siteAreaID,
+        chargeBoxID,
+        connectorId,
+        totalConsumption: '16.32',
         stateOfCharge: 89,
-        evseDashboardChargingStationURL: 'charging station url',
+        evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         user,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
@@ -110,11 +116,11 @@ describe('Initialization', () => {
     it('end-of-charge', async () => {
       const data: EndOfChargeNotification = {
         transactionId: 1,
-        siteID: 'site iD',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        chargeBoxID: 'charging box id',
-        connectorId: 'connector id',
+        siteID,
+        siteAreaID,
+        companyID,
+        chargeBoxID,
+        connectorId,
         totalConsumption: '48.3',
         stateOfCharge: 78,
         totalDuration: '5h14',
@@ -131,11 +137,11 @@ describe('Initialization', () => {
     it('end-of-session', async () => {
       const data: EndOfSessionNotification = {
         transactionId: 1,
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        chargeBoxID: 'SAP Moujins 19 A',
-        connectorId: 'A',
+        siteID,
+        siteAreaID,
+        companyID,
+        chargeBoxID,
+        connectorId,
         totalConsumption: '52,3',
         totalInactivity: '0h13',
         stateOfCharge: 1,
@@ -187,10 +193,10 @@ describe('Initialization', () => {
 
     it('charging-station-registered', async () => {
       const data: ChargingStationRegisteredNotification = {
-        chargeBoxID: 'Charge Box A1',
-        siteID: 'Site 134',
-        siteAreaID: 'A3',
-        companyID: 'SAP12',
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
@@ -216,6 +222,22 @@ describe('Initialization', () => {
       assert.equal(notificationResult.error, null, notificationResult.error as string);
     });
 
+    it('end-user-js-injection', async () => {
+      const data: EndUserErrorNotification = {
+        userID: user.id,
+        email: user.email,
+        name: user.firstName + ' ' + user.name,
+        errorTitle: 'Check Javascript Injection',
+        errorDescription: 'javascript:alert("this is an injection");',
+        phone: user.phone,
+        evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
+      };
+      const notificationResult = await emailNotificationTask.sendEndUserErrorNotification(data, recipient, tenant, severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing, null, isMissing);
+      assert.equal(notificationResult.error, null, notificationResult.error as string);
+    });
+
     it('offline-charging-station', async () => {
       const data: OfflineChargingStationNotification = {
         chargingStationIDs: [ 'CS1', 'CS2', 'CS3', 'CS4', 'CS5', 'CS6', 'CS7', 'CS8', 'CS9', 'CS10', 'CS11', 'CS12' ],
@@ -229,12 +251,12 @@ describe('Initialization', () => {
 
     it('charging-station-status-error', async () => {
       const data: ChargingStationStatusErrorNotification = {
-        chargeBoxID: 'some box id',
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        connectorId: 'connector id',
-        error: 'this is the error',
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
+        connectorId,
+        error: 'This is the text from the end user',
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
@@ -269,11 +291,11 @@ describe('Initialization', () => {
 
     it('unknown-user-badged', async () => {
       const data: UnknownUserBadgedNotification = {
-        chargeBoxID: 'charge box id',
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        badgeID: 'badge id',
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
+        badgeID,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
       const notificationResult = await emailNotificationTask.sendUnknownUserBadged(data, recipient, tenant, severity);
@@ -286,11 +308,11 @@ describe('Initialization', () => {
       const data: TransactionStartedNotification = {
         user,
         transactionId: 14,
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        chargeBoxID: 'charge box id',
-        connectorId: 'connector id',
+        siteID,
+        siteAreaID,
+        companyID,
+        chargeBoxID,
+        connectorId,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
@@ -370,12 +392,12 @@ describe('Initialization', () => {
     it('session-not-started', async () => {
       const data: PreparingSessionNotStartedNotification = {
         user,
-        chargeBoxID: 'charge box id',
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        connectorId: 'connector id',
-        startedOn: 'started on',
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
+        connectorId,
+        startedOn:  new Date().toDateString(),
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
@@ -387,10 +409,10 @@ describe('Initialization', () => {
 
     it('session-not-started-after-authorize', async () => {
       const data: SessionNotStartedNotification = {
-        chargeBoxID: 'charge box id',
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
         user,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
@@ -461,11 +483,11 @@ describe('Initialization', () => {
 
     it('compute-and-apply-charging-profiles-failed', async () => {
       const data: ComputeAndApplyChargingProfilesFailedNotification = {
-        siteAreaName: 'site area name',
-        chargeBoxID: 'charge box id',
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
+        siteAreaName: 'Parking North',
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
       const notificationResult = await emailNotificationTask.sendComputeAndApplyChargingProfilesFailed(data, recipient, tenant, severity);
