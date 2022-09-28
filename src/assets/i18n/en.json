@@ -84,11 +84,11 @@
     },
     "optimalChargeReached": {
       "title": "Optimal Charge Reached",
-      "body": "Your electric vehicle, which is connected to '{{chargeBoxID}}', connector '{{connectorId}}', reached its optimal charge (85%) in organization '{{tenantName}}'"
+      "body": "Your vehicle, which is connected to '{{chargeBoxID}}', connector '{{connectorId}}', reached its optimal charge (85%) in organization '{{tenantName}}'"
     },
     "endOfCharge": {
       "title": "Charge Finished",
-      "body": "Your electric vehicle, which is connected to the charging station '{{chargeBoxID}}', connector '{{connectorId}}', has just finished charging in organization '{{tenantName}}'"
+      "body": "Your vehicle, which is connected to the charging station '{{chargeBoxID}}', connector '{{connectorId}}', has just finished charging in organization '{{tenantName}}'"
     },
     "endOfSession": {
       "title": "Session Finished",
@@ -137,7 +137,7 @@
       "body": "Failed to process {{nbrInvoicesInError}} invoice(s). Organization '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
-      "title": "Charging Profiles failed",
+      "title": "Failed to apply Charging Profiles",
       "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
     },
     "billingNewInvoicePaid": {
@@ -211,16 +211,20 @@
       "text": [
         "You have just requested to reset your password.",
         "",
-        "Click on the link below to generate and receive a new one."
+        "Click on the link below to set the new one."
       ]
     },
     "optimal-charge-reached": {
       "title": "Optimal Charge Reached",
       "buttonText": "View Session",
       "text": [
-        "Your electric vehicle, which is connected to {{chargeBoxID}}, connector {{connectorId}}, reached its optimal charge."
+        "Your vehicle, which is connected to {{chargeBoxID}}, connector {{connectorId}}, reached its optimal charge."
       ],
       "table": [
+        {
+          "label": "Session",
+          "value": "{{transactionId}}"
+        },
         {
           "label": "Battery Level",
           "value": "{{stateOfCharge}} %"
@@ -234,6 +238,10 @@
         "Your session on the charging station {{chargeBoxID}}, connector {{connectorId}} has just finished."
       ],
       "table": [
+        {
+          "label": "Session",
+          "value": "{{transactionId}}"
+        },
         {
           "label": "Consumption",
           "value": "{{totalConsumption}} kW.h"
@@ -256,9 +264,13 @@
       "title": "Charge Finished",
       "buttonText": "View Session",
       "text": [
-        "Your electric vehicle, which is connected to the charging station {{chargeBoxID}}, connector {{connectorId}}, has just finished charging."
+        "Your vehicle, which is connected to the charging station {{chargeBoxID}}, connector {{connectorId}}, has just finished charging."
       ],
       "table": [
+        {
+          "label": "Session",
+          "value": "{{transactionId}}"
+        },
         {
           "label": "Consumption",
           "value": "{{totalConsumption}} kW.h"
@@ -334,7 +346,8 @@
       "title": "Charging Station Error",
       "buttonText": "View Error",
       "text": [
-        "Error occurred on {{chargeBoxID}}, connector {{connectorId}} : {{error}}"
+        "Error occurred on {{chargeBoxID}}, connector {{connectorId}}",
+        "Error: {{error}}"
       ]
     },
     "billing-account-created": {
@@ -350,7 +363,8 @@
       "title": "User Account Status Changed",
       "buttonText": "Navigate to {{tenantName}}",
       "text": [
-        "Your account has been {{accountStatus}} by an administrator."
+        "The status of your account has been modified by an administrator.",
+        "New status: {{accountStatus}}"
       ]
     },
     "unknown-user-badged": {
@@ -386,7 +400,7 @@
       ]
     },
     "ocpi-patch-status-error": {
-      "title": "Patching of Charging Station Statuses Failed",
+      "title": "Failed to transfer the Charging Station Statuses ",
       "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "The OCPI transfer of the charging station statuses has failed on location {{location}}.",
@@ -438,21 +452,21 @@
     },
     "billing-user-synchronization-failed": {
       "title": "Billing - User Synchronization Failed",
-      "buttonText": "View Settings",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "Unable to synchronize {{nbrUsersInError}} user(s) with the billing service provider."
       ]
     },
     "billing-invoice-synchronization-failed": {
       "title": "Billing - Invoice Synchronization Failed",
-      "buttonText": "View Settings",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider."
       ]
     },
     "billing-periodic-operation-failed": {
       "title": "Billing - Periodic Operation Failed",
-      "buttonText": "View Settings",
+      "buttonText": "Navigate to {{tenantName}}",
       "text": [
         "Unable to process {{nbrInvoicesInError}} invoice(s)."
       ]
@@ -474,10 +488,10 @@
       ]
     },
     "compute-and-apply-charging-profiles-failed": {
-      "title": "Charging Profiles Failed",
+      "title": "Failed to apply Charging Profiles",
       "buttonText": "Navigate to {{tenantName}}",
       "text": [
-        "Applying the charging profiles for {{chargeBoxID}} failed.",
+        "The attempt to apply charging profiles to the charging station {{chargeBoxID}} failed.",
         "The charging station was excluded from this smart charging run automatically."
       ]
     },
@@ -492,9 +506,9 @@
       "title": "Account Verified",
       "buttonText": "Navigate to {{tenantName}}",
       "text": [
-        "Your account has been verified with success!",
+        "Your email has been successfully verified.",
         "",
-        "An administrator will check and activate your account."
+        "An administrator will soon check and activate your account."
       ]
     },
     "admin-account-verification-notification": {
