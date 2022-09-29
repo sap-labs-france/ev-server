@@ -848,6 +848,9 @@ export default class AuthorizationService {
     chargingStation.canPushTransactionCDR = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.PUSH_TRANSACTION_CDR, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+    chargingStation.canListCompletedTransactions = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.TRANSACTION, Action.GET_COMPLETED_TRANSACTION, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
     // Remote start stop capability using OCPI data (Roaming)
     let hasRemoteStartStopCapability = true;
     if (!chargingStation.issuer) {

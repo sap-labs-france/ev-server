@@ -103,7 +103,9 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
-    data.accountStatus = data.user.status === 'A' ? 'activated' : 'suspended';
+    const i18nInstance = I18nManager.getInstanceForLocale(user.locale);
+    const newStatus = data.user.status === 'A' ? 'activated' : 'suspended';
+    data.accountStatus = i18nInstance.translate(`notifications.userAccountStatusChanged.${newStatus}`);
     return await this.prepareAndSendEmail('user-account-status-changed', data, user, tenant, severity);
   }
 
@@ -295,6 +297,20 @@ export default class EMailNotificationTask implements NotificationTask {
         { data: email.html, alternative: true }
       ]
     });
+    if (Utils.isDevelopmentEnv()) {
+      // Do not send mail in Dev mode
+      await Logging.logDebug({
+        tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
+        action: ServerAction.EMAIL_NOTIFICATION,
+        module: MODULE_NAME, method: 'sendEmail',
+        actionOnUser: user,
+        message: `Email Sent: '${email.subject}'`,
+        detailedMessages: {
+          content: email.html // Only log the email content when running automated tests
+        }
+      });
+      return ;
+    }
     try {
       // Get the SMTP client
       const smtpClient = this.getSMTPClient(useSmtpClientBackup);
@@ -315,35 +331,28 @@ export default class EMailNotificationTask implements NotificationTask {
           from: rfc2047.decode(messageSent.header.from.toString()),
           to: rfc2047.decode(messageSent.header.to.toString()),
           subject: rfc2047.decode(messageSent.header.subject),
-          // content: email.html
         }
       });
     } catch (error) {
-      try {
-        await Logging.logError({
-          tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
-          siteID: data?.siteID,
-          siteAreaID: data?.siteAreaID,
-          companyID: data?.companyID,
-          chargingStationID: data?.chargeBoxID,
-          action: ServerAction.EMAIL_NOTIFICATION,
-          module: MODULE_NAME, method: 'sendEmail',
-          message: `Error Sending Email (${rfc2047.decode(messageToSend.header.from.toString())}): '${rfc2047.decode(messageToSend.header.subject)}'`,
-          actionOnUser: user,
-          detailedMessages: {
-            from: rfc2047.decode(messageToSend.header.from.toString()),
-            to: rfc2047.decode(messageToSend.header.to.toString()),
-            subject: rfc2047.decode(messageToSend.header.subject),
-            smtpError: error.smtp,
-            error: error.stack,
-            // content: email.html
-          }
-        });
-        // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
-        // eslint-disable-next-line no-empty
-      } catch (err) {
-        // Ignore
-      }
+      await Logging.logError({
+        tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
+        siteID: data?.siteID,
+        siteAreaID: data?.siteAreaID,
+        companyID: data?.companyID,
+        chargingStationID: data?.chargeBoxID,
+        action: ServerAction.EMAIL_NOTIFICATION,
+        module: MODULE_NAME, method: 'sendEmail',
+        message: `Error Sending Email (${rfc2047.decode(messageToSend.header.from.toString())}): '${rfc2047.decode(messageToSend.header.subject)}'`,
+        actionOnUser: user,
+        detailedMessages: {
+          from: rfc2047.decode(messageToSend.header.from.toString()),
+          to: rfc2047.decode(messageToSend.header.to.toString()),
+          subject: rfc2047.decode(messageToSend.header.subject),
+          smtpError: error.smtp,
+          error: error.stack,
+        }
+      });
+      // Second try
       let smtpFailed = true;
       if (error instanceof SMTPError) {
         const err: SMTPError = error;
@@ -388,7 +397,6 @@ export default class EMailNotificationTask implements NotificationTask {
     const emailContent: EmailNotificationMessage = {
       to: recipient.email,
       subject: `e-Mobility - ${tenant.name} - ${title}`,
-      text: html,
       html: html
     };
     // We may have a fallback - Not used anymore
@@ -564,7 +572,6 @@ export default class EMailNotificationTask implements NotificationTask {
     const emailContent: EmailNotificationMessage = {
       to: user.email,
       subject: subject,
-      text: html,
       html: html
     };
     // We may have a fallback - Not used anymore
