@@ -1,6 +1,9 @@
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from './Billing';
 import { Car, CarCatalog } from './Car';
 import ChargingStation, { ChargingStationTemplate, Connector } from './ChargingStation';
+import Site, { UserSite } from './Site';
+import Transaction, { TransactionStop } from './Transaction';
+import User, { SiteUser } from './User';
 
 import { ChargingProfile } from './ChargingProfile';
 import Company from './Company';
@@ -13,14 +16,11 @@ import RefundReport from './Refund';
 import RegistrationToken from './RegistrationToken';
 import { ServerType } from './Server';
 import { Setting } from './Setting';
-import Site from './Site';
 import SiteArea from './SiteArea';
 import SoapOCPPServer from '../server/ocpp/soap/SoapOCPPServer';
 import Tag from './Tag';
-import User from './User';
 import bluebird from 'bluebird';
 import path from 'path';
-import Transaction, { TransactionStop } from './Transaction';
 
 declare global {
   interface Global {}
@@ -87,7 +87,7 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting|BillingAccount|ChargingProfile|Connector|Transaction|TransactionStop|BillingTransfer|BillingTax|RefundReport|ChargingStationTemplate;
+export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting|BillingAccount|ChargingProfile|Connector|Transaction|TransactionStop|BillingTransfer|BillingTax|RefundReport|UserSite|SiteUser|ChargingStationTemplate;
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;

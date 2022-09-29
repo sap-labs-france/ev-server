@@ -3,7 +3,7 @@ import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import Busboy, { FileInfo } from 'busboy';
 import { Car, CarType } from '../../../../types/Car';
-import { DataResult, UserDataResult } from '../../../../types/DataResult';
+import { DataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -13,11 +13,9 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
 import AuthorizationService from './AuthorizationService';
-import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import { HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
@@ -34,6 +32,7 @@ import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import { StatusCodes } from 'http-status-codes';
+import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
@@ -58,36 +57,38 @@ export default class UserService {
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
     // Handle Tag
+    // We retrieve Tag auth to get the projected fields here to fit with what's in auth definition
+    const tagAuthorization = await AuthorizationService.checkAndGetTagAuthorizations(req.tenant, req.user, {}, Action.READ);
+    let tag: Tag;
     // Get the default Tag
-    let tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, {
-      issuer: true
-    }, ['visualID', 'description', 'active', 'default']);
-    if (!tag) {
-      // Get the first active Tag
-      tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, {
+    if (tagAuthorization.authorized) {
+      tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, {
         issuer: true
-      }, ['visualID', 'description', 'active', 'default']);
+      }, tagAuthorization.projectFields);
+      if (!tag) {
+        // Get the first active Tag
+        tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, {
+          issuer: true
+        }, tagAuthorization.projectFields);
+      }
     }
     // Handle Car
+    // We retrieve Car auth to get the projected fields here to fit with what's in auth definition
+    const carAuthorization = await AuthorizationService.checkAndGetCarAuthorizations(req.tenant, req.user, {}, Action.READ);
     let car: Car;
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      // Get the default Car
-      car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {},
-        ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image', 'carCatalog.batteryCapacityFull', 'carCatalog.fastChargePowerMax', 'converter.powerWatts', 'converter.numberOfPhases', 'default', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']
-      );
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) && carAuthorization.authorized) {
+    // Get the default Car
+    car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
       if (!car) {
         // Get the first available car
-        car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID,
-          ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image', 'carCatalog.batteryCapacityFull', 'carCatalog.fastChargePowerMax', 'converter.powerWatts', 'converter.numberOfPhases', 'default', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID']
-        );
+        car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID, carAuthorization.projectFields);
       }
     }
     let withBillingChecks = true ;
     if (filteredRequest.ChargingStationID) {
       // TODO - The ChargingStationID is optional but only for backward compatibility reasons - make it mandatory as soon as possible
-      const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID,
-        { withSiteArea: true },
-        ['id', 'siteArea.id', 'siteArea.accessControl']);
+      const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ,
+        action, null, { withSiteArea: true });
       if (!chargingStation.siteArea.accessControl) {
         // The access control is switched off - so billing checks are useless
         withBillingChecks = false;
@@ -111,18 +112,28 @@ export default class UserService {
     // Filter request
     const filteredRequest = UserValidatorRest.getInstance().validateUserSitesAssignReq(req.body);
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.userID, Action.READ, action);
+    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, Action.ASSIGN_UNASSIGN_SITES, action);
     // Check and Get Sites
-    const sites = await UtilsService.checkUserSitesAuthorization(
-      req.tenant, req.user, user, filteredRequest.siteIDs, action);
+    const serverAction = action === ServerAction.ADD_SITES_TO_USER ? Action.ASSIGN_SITES_TO_USER : Action.UNASSIGN_SITES_FROM_USER;
+    const sites = await UtilsService.checkAndGetUserSitesAuthorization(req.tenant, req.user, user, filteredRequest.siteIDs, action);
     // Save
+    for (const site of sites) {
+      const authorized = AuthorizationService.canPerformAction(site, serverAction);
+      if (!authorized) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: req.user,
+          action: serverAction, entity: Entity.USER_SITE,
+          module: MODULE_NAME, method: 'handleAssignSitesToUser',
+          value: site.id
+        });
+      }
+    }
     if (action === ServerAction.ADD_SITES_TO_USER) {
       await UserStorage.addSitesToUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     } else {
       await UserStorage.removeSitesFromUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     }
-    // Log
     await Logging.logInfo({
       tenantID: req.tenant.id,
       user: req.user,
@@ -138,8 +149,7 @@ export default class UserService {
     // Filter
     const userID = UserValidatorRest.getInstance().validateUserDeleteReq(req.query).ID.toString();
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.DELETE, action, null, {}, false, false);
+    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, userID, Action.DELETE, action, null, {}, false);
     // Delete OCPI User
     if (!user.issuer) {
       // Delete User
@@ -178,10 +188,9 @@ export default class UserService {
   public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let statusHasChanged = false;
     // Filter
-    const filteredRequest = UserValidatorRest.getInstance().validateUserUpdateReq({ ...req.params, ...req.body });
+    const filteredRequest = UserValidatorRest.getInstance().validateUserUpdateReq(req.body);
     // Check and Get User
-    let user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
+    let user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check email already exists
     if (filteredRequest.email) {
       const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
@@ -298,7 +307,7 @@ export default class UserService {
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, null, {
         withImage: true
-      }, true, false);
+      }, true);
     res.json(user);
     next();
   }
@@ -307,8 +316,7 @@ export default class UserService {
     // Filter
     const userID = UserValidatorRest.getInstance().validateUserGetReq(req.query).ID.toString();
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.READ, action, null, null, null, false);
+    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, userID, Action.READ, action);
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.tenant, user.id);
     let image = userImage?.image;
@@ -331,14 +339,7 @@ export default class UserService {
 
   public static async handleExportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!(await Authorizations.canExportUsers(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.EXPORT, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleExportUsers'
-      });
-    }
+    await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, Action.EXPORT);
     // Force params
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Filter
@@ -354,23 +355,15 @@ export default class UserService {
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUserSitesGetReq(req.query);
-    // Check User
-    try {
-      await UtilsService.checkAndGetUserAuthorization(
-        req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
-    } catch (error) {
-      UtilsService.sendEmptyDataResult(res, next);
-      return;
-    }
-    // Check dynamic auth for reading Sites
+    // Check dynamic auth for listing user sites
     const authorizations = await AuthorizationService.checkAndGetUserSitesAuthorizations(req.tenant,
-      req.user, filteredRequest);
+      req.user, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
     // Get Sites
-    const sites = await UserStorage.getUserSites(req.tenant,
+    const userSites = await UserStorage.getUserSites(req.tenant,
       {
         search: filteredRequest.Search,
         userIDs: [filteredRequest.UserID],
@@ -384,14 +377,9 @@ export default class UserService {
       },
       authorizations.projectFields
     );
-    // Filter
-    sites.result = sites.result.map((userSite) => ({
-      userID: userSite.userID,
-      siteAdmin: userSite.siteAdmin,
-      siteOwner: userSite.siteOwner,
-      site: userSite.site
-    }));
-    res.json(sites);
+    // Add Auth flags
+    await AuthorizationService.addUserSitesAuthorizations(req.tenant, req.user, userSites as UserSiteDataResult , authorizations);
+    res.json(userSites);
     next();
   }
 
@@ -407,15 +395,14 @@ export default class UserService {
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUsersInErrorGetReq(req.query);
     // Get authorization filters
-    const authorizations = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(
-      req.tenant, req.user, filteredRequest);
+    const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(req.tenant, req.user, filteredRequest);
     // Get users
     const users = await UserStorage.getUsersInError(req.tenant,
       {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : Object.values(UserInErrorType)),
-        ...authorizations.filters
+        ...authorizationUserInErrorFilters.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -423,27 +410,18 @@ export default class UserService {
         skip: filteredRequest.Skip,
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields)
       },
-      authorizations.projectFields
+      authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
     if (filteredRequest.WithAuth) {
-      await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizations);
+      await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUserInErrorFilters);
     }
     res.json(users);
     next();
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!(await Authorizations.canImportUsers(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.IMPORT, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleImportUser'
-      });
-    }
+    await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, Action.IMPORT);
     // Acquire the lock
     const importUsersLock = await LockingHelper.acquireImportUsersLock(req.tenant.id);
     if (!importUsersLock) {
@@ -760,17 +738,14 @@ export default class UserService {
 
   private static async getUsers(req: Request, filteredRequest: HttpUsersGetRequest): Promise<DataResult<User>> {
     // Get authorization filters
-    const authorizations = await AuthorizationService.checkAndGetUsersAuthorizations(
-      req.tenant, req.user, filteredRequest, false);
-    if (!authorizations.authorized) {
-      return Constants.DB_EMPTY_DATA_RESULT;
-    }
+    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest);
     // Optimization: Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
+      await AuthorizationService.checkAndGetTagsAuthorizations(req.tenant, req.user, filteredRequest);
       const tagIDs = await TagStorage.getTags(req.tenant, {
-        visualIDs: filteredRequest.VisualTagID.split('|')
-      },
-      Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
+        visualIDs: filteredRequest.VisualTagID.split('|'),
+        ...authorizationUsersFilters.filters
+      }, Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
       if (!Utils.isEmptyArray(tagIDs.result)) {
         const userIDs = _.uniq(tagIDs.result.map((tag) => tag.userID));
         filteredRequest.UserID = userIDs.join('|');
@@ -788,7 +763,7 @@ export default class UserService {
         technical: Utils.isBoolean(filteredRequest.Technical) ? filteredRequest.Technical : null,
         freeAccess: Utils.isBoolean(filteredRequest.FreeAccess) ? filteredRequest.FreeAccess : null,
         excludeSiteID: filteredRequest.ExcludeSiteID,
-        ...authorizations.filters
+        ...authorizationUsersFilters.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -796,15 +771,15 @@ export default class UserService {
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizations.projectFields
+      authorizationUsersFilters.projectFields
     );
     // Assign projected fields
-    if (authorizations.projectFields) {
-      users.projectFields = authorizations.projectFields;
+    if (authorizationUsersFilters.projectFields) {
+      users.projectFields = authorizationUsersFilters.projectFields;
     }
     // Add Auth flags
     if (filteredRequest.WithAuth) {
-      await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizations);
+      await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUsersFilters);
     }
     return users;
   }

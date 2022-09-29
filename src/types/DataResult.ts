@@ -1,20 +1,20 @@
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from './Billing';
 import { Car, CarCatalog } from './Car';
+import ChargingStation, { ChargingStationTemplate } from './ChargingStation';
 import { ChargingStationInError, TransactionInError } from './InError';
+import Site, { UserSite } from './Site';
 import Transaction, { TransactionStats } from './Transaction';
+import User, { SiteUser } from './User';
 
 import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import { ChargingProfile } from './ChargingProfile';
-import ChargingStation, { ChargingStationTemplate } from './ChargingStation';
 import Company from './Company';
 import { Log } from './Log';
 import PricingDefinition from './Pricing';
 import RegistrationToken from './RegistrationToken';
-import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
-import User from './User';
 
 export interface DeletedResult {
   acknowledged?: boolean;
@@ -51,6 +51,14 @@ export interface SiteDataResult extends DataResult<Site> {
   canListCompanies: boolean;
 }
 
+export interface UserSiteDataResult extends DataResult<UserSite> {
+  canUpdateUserSites: boolean;
+}
+
+export interface SiteUserDataResult extends DataResult<SiteUser> {
+  canUpdateSiteUsers: boolean;
+}
+
 export interface LogDataResult extends DataResult<Log> {
   canExport: boolean;
 }
@@ -73,6 +81,8 @@ export interface UserDataResult extends DataResult<User> {
   canCreate: boolean;
   canExport: boolean;
   canImport: boolean;
+  canListTags: boolean;
+  canListSites: boolean;
 }
 export interface TagDataResult extends DataResult<Tag> {
   canCreate: boolean;
