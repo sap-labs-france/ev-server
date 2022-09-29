@@ -1034,14 +1034,14 @@ export default class AuthorizationService {
 
   public static async addTransfersAuthorizations(tenant: Tenant, userToken: UserToken, billingAccounts: BillingTransfersDataResult,
     authorizationFilter: AuthorizationFilter): Promise<void> {
-// Add Meta Data
-  billingAccounts.metadata = authorizationFilter.metadata;
-  billingAccounts.canListAccounts = await AuthorizationService.canPerformAuthorizationAction(
-    tenant, userToken, Entity.BILLING_ACCOUNT, Action.LIST, authorizationFilter);
-  for (const billingAcount of billingAccounts.result) {
-    await AuthorizationService.addTransferAuthorizations(tenant, userToken, billingAcount, authorizationFilter);
+    // Add Meta Data
+    billingAccounts.metadata = authorizationFilter.metadata;
+    billingAccounts.canListAccounts = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.BILLING_ACCOUNT, Action.LIST, authorizationFilter);
+    for (const billingAcount of billingAccounts.result) {
+      await AuthorizationService.addTransferAuthorizations(tenant, userToken, billingAcount, authorizationFilter);
+    }
   }
-}
 
   public static async addTransferAuthorizations(tenant: Tenant, userToken: UserToken, billingTransfer: BillingTransfer, authorizationFilter: AuthorizationFilter): Promise<void> {
     billingTransfer.canRead = true; // Always true as it should be filtered upfront
