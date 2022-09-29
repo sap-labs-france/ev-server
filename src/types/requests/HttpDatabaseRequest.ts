@@ -1,6 +1,7 @@
 export interface HttpDatabaseProjectRequest {
   ProjectFields?: string;
 }
+
 export default interface HttpDatabaseRequest extends HttpDatabaseProjectRequest {
   Skip?: number;
   Limit?: number;
@@ -9,4 +10,3 @@ export default interface HttpDatabaseRequest extends HttpDatabaseProjectRequest 
   WithUser: boolean;
   WithAuth: boolean;
 }
-

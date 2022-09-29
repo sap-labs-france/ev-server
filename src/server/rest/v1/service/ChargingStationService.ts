@@ -209,7 +209,9 @@ export default class ChargingStationService {
       chargingProfiles.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addChargingProfilesAuthorizations(req.tenant, req.user, chargingProfiles, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addChargingProfilesAuthorizations(req.tenant, req.user, chargingProfiles, authorizations);
+    }
     // Build the result
     res.json(chargingProfiles);
     next();
@@ -530,8 +532,9 @@ export default class ChargingStationService {
       chargingStations.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addChargingStationsAuthorizations(
-      req.tenant, req.user, chargingStations, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addChargingStationsAuthorizations(req.tenant, req.user, chargingStations, authorizations);
+    }
     res.json(chargingStations);
   }
 
@@ -971,8 +974,7 @@ export default class ChargingStationService {
     }
     // Add Auth flags
     if (filteredRequest.WithAuth) {
-      await AuthorizationService.addChargingStationsAuthorizations(
-        req.tenant, req.user, chargingStations, authorizations);
+      await AuthorizationService.addChargingStationsAuthorizations(req.tenant, req.user, chargingStations, authorizations);
     }
     return chargingStations;
   }

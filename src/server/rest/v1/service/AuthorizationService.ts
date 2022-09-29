@@ -814,7 +814,7 @@ export default class AuthorizationService {
       }
     }
     // Add connector authorization
-    for (const connector of chargingStation.connectors) {
+    for (const connector of chargingStation.connectors || []) {
       // Start transaction (Auth check should be done first to apply filter)
       connector.canRemoteStopTransaction = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_STOP_TRANSACTION,
         authorizationFilter, { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector)
@@ -979,7 +979,17 @@ export default class AuthorizationService {
     Utils.removeCanPropertiesWithFalseValue(billingInvoice);
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async addTransfersAuthorizations(tenant: Tenant, userToken: UserToken, billingAccounts: BillingTransfersDataResult,
+    authorizationFilter: AuthorizationFilter): Promise<void> {
+// Add Meta Data
+  billingAccounts.metadata = authorizationFilter.metadata;
+  billingAccounts.canListAccounts = await AuthorizationService.canPerformAuthorizationAction(
+    tenant, userToken, Entity.BILLING_ACCOUNT, Action.LIST, authorizationFilter);
+  for (const billingAcount of billingAccounts.result) {
+    await AuthorizationService.addTransferAuthorizations(tenant, userToken, billingAcount, authorizationFilter);
+  }
+}
+
   public static async addTransferAuthorizations(tenant: Tenant, userToken: UserToken, billingTransfer: BillingTransfer, authorizationFilter: AuthorizationFilter): Promise<void> {
     billingTransfer.canRead = true; // Always true as it should be filtered upfront
     billingTransfer.canDownload = await AuthorizationService.canPerformAuthorizationAction(
@@ -1000,17 +1010,6 @@ export default class AuthorizationService {
   public static addAccountAuthorizations(tenant: Tenant, userToken: UserToken, billingAccount: BillingAccount): void {
     // Add Meta Data
     billingAccount.canRead = true;
-  }
-
-  public static async addTransfersAuthorizations(tenant: Tenant, userToken: UserToken, billingAccounts: BillingTransfersDataResult,
-      authorizationFilter: AuthorizationFilter): Promise<void> {
-  // Add Meta Data
-    billingAccounts.metadata = authorizationFilter.metadata;
-    billingAccounts.canListAccounts = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.BILLING_ACCOUNT, Action.LIST, authorizationFilter);
-    for (const billingAcount of billingAccounts.result) {
-      await AuthorizationService.addTransferAuthorizations(tenant, userToken, billingAcount, authorizationFilter);
-    }
   }
 
   public static async checkAndGetPaymentMethodsAuthorizations(tenant: Tenant, userToken: UserToken,
