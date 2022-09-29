@@ -970,9 +970,10 @@ export default class ChargingStationService {
       chargingStations.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addChargingStationsAuthorizations(
-      req.tenant, req.user, chargingStations, authorizations);
-
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addChargingStationsAuthorizations(
+        req.tenant, req.user, chargingStations, authorizations);
+    }
     return chargingStations;
   }
 
