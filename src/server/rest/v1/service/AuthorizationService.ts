@@ -158,7 +158,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUserSitesAuthorizations(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<HttpUserSitesGetRequest>): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpUserSitesGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -169,7 +169,7 @@ export default class AuthorizationService {
     authorizations.projectFields = AuthorizationService.filterProjectFields(authorizations.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
     await this.canPerformAuthorizationAction(tenant, userToken, Entity.USER_SITE, Action.LIST,
-      authorizations, filteredRequest, null, true);
+      authorizations, filteredRequest, null, failsWithException);
     return authorizations;
   }
 

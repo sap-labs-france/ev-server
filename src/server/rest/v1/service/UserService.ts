@@ -357,7 +357,7 @@ export default class UserService {
     const filteredRequest = UserValidatorRest.getInstance().validateUserSitesGetReq(req.query);
     // Check dynamic auth for listing user sites
     const authorizations = await AuthorizationService.checkAndGetUserSitesAuthorizations(req.tenant,
-      req.user, filteredRequest);
+      req.user, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
