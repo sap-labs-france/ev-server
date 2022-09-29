@@ -413,7 +413,9 @@ export default class UserService {
       authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUserInErrorFilters);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUserInErrorFilters);
+    }
     res.json(users);
     next();
   }
@@ -776,7 +778,9 @@ export default class UserService {
       users.projectFields = authorizationUsersFilters.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUsersFilters);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUsersFilters);
+    }
     return users;
   }
 

@@ -72,6 +72,10 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
+    "withAuth": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "skip": {
       "type": "number",
       "sanitize": "mongo"

@@ -93,7 +93,9 @@ export default class PricingService {
       pricingDefinitions.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addPricingDefinitionsAuthorizations(req.tenant, req.user, pricingDefinitions, authorizations);
+    }
     // Alter the canCreate flag according to the pricing definition context
     pricingDefinitions.canCreate = await PricingService.alterCanCreate(req, action, filteredRequest.EntityType, filteredRequest.EntityID, pricingDefinitions.canCreate);
     res.json(pricingDefinitions);
