@@ -16961,11 +16961,11 @@
       "WithAuth": {
         "in": "query",
         "name": "WithAuth",
-        "description": "Do not return auth information (canXXX)",
+        "description": "Show/Hide authorization information (canXXX)",
         "required": false,
         "schema": {
           "type": "boolean",
-          "default": false
+          "default": true
         }
       },
       "Search": {
