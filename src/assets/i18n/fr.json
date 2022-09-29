@@ -192,5 +192,343 @@
     "status": "Statut",
     "user": "Utilisateur",
     "userID": "Identifiant utilisateur"
+  },
+  "email": {
+    "greetings": "Bonjour {{recipientName}}",
+    "footerText": "Cet e-mail est destiné à {{recipientEmail}}. Il vous a été transmis via un service automatique. Merci de ne pas répondre. Vous pouvez vous déinscrire en modifiant vos paramètres de notification.",
+    "new-registered-user": {
+      "title": "Compte utilisateur créé",
+      "buttonText": "Activer votre compte",
+      "text": [
+        "Votre compte a été créé avec succès.",
+        "",
+        "Veuillez suivre le lien ci-dessous pour l'activer."
+      ]
+    },
+    "request-password": {
+      "title": "Demande de réinitialisation du mot de passe",
+      "buttonText": "Réinitialiser le mot de passe",
+      "text": [
+        "Vous venez de demander la réinitialisation de votre mot de passe",
+        "",
+        "Veuillez suivre le lien ci-dessous pour en définir un nouveau."
+      ]
+    },
+    "optimal-charge-reached": {
+      "title": "Charge optimale atteinte",
+      "buttonText": "Voir la session",
+      "text": [
+        "Votre véhicule, connecté sur le connecteur {{connectorId}} de la borne {{chargeBoxID}}, a atteint un niveau de charge optimale."
+      ],
+      "table": [
+        {
+          "label": "Session",
+          "value": "{{transactionId}}"
+        },
+        {
+          "label": "Niveau de la batterie",
+          "value": "{{stateOfCharge}} %"
+        }
+      ]
+    },
+    "end-of-session": {
+      "title": "Session terminée",
+      "buttonText": "Voir la session",
+      "text": [
+        "La session démarrée sur le connecteur {{connectorId}} de la borne {{chargeBoxID}} vient de se terminer."
+      ],
+      "table": [
+        {
+          "label": "Session",
+          "value": "{{transactionId}}"
+        },
+        {
+          "label": "Consommation",
+          "value": "{{totalConsumption}} kW.h"
+        },
+        {
+          "label": "Durée totale",
+          "value": "{{totalDuration}}"
+        },
+        {
+          "label": "Temps d'inactivité",
+          "value": "{{totalInactivity}}"
+        },
+        {
+          "label": "Niveau de la batterie",
+          "value": "{{stateOfCharge}} %"
+        }
+      ]
+    },
+    "end-of-charge": {
+      "title": "Charge terminée",
+      "buttonText": "Voir la session",
+      "text": [
+        "Votre véhicule connecté sur le connecteur {{connectorId}} de la borne {{chargeBoxID}} vient de finir de charger."
+      ],
+      "table": [
+        {
+          "label": "Session",
+          "value": "{{transactionId}}"
+        },
+        {
+          "label": "Consommation",
+          "value": "{{totalConsumption}} kW.h"
+        },
+        {
+          "label": "Durée totale",
+          "value": "{{totalDuration}}"
+        },
+        {
+          "label": "Niveau de la batterie",
+          "value": "{{stateOfCharge}} %"
+        }
+      ]
+    },
+    "billing-new-invoice-paid": {
+      "title": "Facturation - Facture payée",
+      "buttonText": "Télécharger la facture",
+      "text": [
+        "La facture numéro {{invoiceNumber}} a été payée et le document correspondant peut maintenant être téléchargé."
+      ],
+      "table": [
+        {
+          "label": "Montant payé",
+          "value": "{{invoiceAmount}}"
+        }
+      ]
+    },
+    "billing-new-invoice-unpaid": {
+      "title": "Facturation - Nouvelle facture émise",
+      "buttonText": "Payer la facture",
+      "text": [
+        "La facture numéro {{invoiceNumber}} a été émise et le document correspondant peut maintenant être téléchargé.",
+        "",
+        "Veuillez suivre le lien ci-dessous pour finaliser le paiement."
+      ],
+      "table": [
+        {
+          "label": "Montant dû",
+          "value": "{{invoiceAmount}}"
+        }
+      ]
+    },
+    "charging-station-registered": {
+      "title": "Borne connectée",
+      "buttonText": "Voir la borne",
+      "text": [
+        "La borne {{chargeBoxID}} vient de se connecter au serveur central."
+      ]
+    },
+    "end-user-error-notification": {
+      "title": "Erreur signalée par un utilisateur",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "L'utilisateur {{name}} a reporté l'erreur suivante :",
+        "",
+        "Erreur : {{errorTitle}}",
+        "Description : {{errorDescription}}",
+        "",
+        "E-mail : {{email}}",
+        "Téléphone : {{phone}}"
+      ]
+    },
+    "offline-charging-station": {
+      "title": "Bornes déconnectées",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "Votre organisation a {{nbChargingStationIDs}} borne(s) qui se trouvent dans un état déconnecté.",
+        "",
+        "Bornes: {{tenFirstChargingStationIDs}}"
+      ]
+    },
+    "charging-station-status-error": {
+      "title": "Borne en erreur",
+      "buttonText": "Voir l'erreur",
+      "text": [
+        "Un erreur est survenue sur la borne {{chargeBoxID}}, connecteur {{connectorId}}",
+        "Erreur: {{error}}"
+      ]
+    },
+    "billing-account-created": {
+      "title": "Embarquement d'un compte de facturation",
+      "buttonText": "Poursuivre",
+      "text": [
+        "Un compte de facturation a été créé en votre nom par un administrateur.",
+        "",
+        "Veuillez suivre le lien ci-dessous pour finaliser la procédure d'embarquement"
+      ]
+    },
+    "user-account-status-changed": {
+      "title": "Compte utilisateur - Statut modifié",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "Le statut de votre compte a été modifié par un administrateur.",
+        "Nouveau statut : {{accountStatus}}"
+      ]
+    },
+    "unknown-user-badged": {
+      "title": "Un utilisateur inconnu a tenté de badger",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "Un utilisateur a tenté de badger sur la borne {{chargeBoxID}} avec le badge {{badgeID}}."
+      ]
+    },
+    "session-started": {
+      "title": "Session démarrée",
+      "buttonText": "Voir la session",
+      "text": [
+        "Votre véhicule est connecté sur le connecteur {{connectorId}} de la borne {{chargeBoxID}}."
+      ]
+    },
+    "verification-email": {
+      "title": "Activation de votre compte utilisateur",
+      "buttonText": "Activer le compte",
+      "text": [
+        "Vous avez demandé l'activation de votre compte.",
+        "",
+        "Veuillez suivre le lien ci-dessous pour finaliser la procédure."
+      ]
+    },
+    "verification-email-user-import": {
+      "title": "Compte utilisateur créé",
+      "buttonText": "Activer le compte",
+      "text": [
+        "Un compte utilisateur a été créé en votre nom.",
+        "",
+        "Veuillez suivre le lien ci-dessous pour l'activer."
+      ]
+    },
+    "ocpi-patch-status-error": {
+      "title": "Echec de la transmission de l'état des bornes",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "La transmission de l'état des bornes du site {{location}} vers la plateforme d'ititinérance OCPI a échoué.",
+        "",
+        "Vérifiez les logs."
+      ]
+    },
+    "oicp-patch-status-error": {
+      "title": "Hubject - Echec de la transmission de l'état des bornes",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "La transmission de l'état des bornes vers la plateforme d'ititinérance Hubject a échoué.",
+        "",
+        "Vérifiez les logs."
+      ]
+    },
+    "oicp-patch-evses-error": {
+      "title": "Hubject - Echec de la transmission des bornes",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "La transmission de la liste des bornes vers la plateforme d'ititinérance Hubject a échoué.",
+        "",
+        "Vérifiez les logs."
+      ]
+    },
+    "user-account-inactivity": {
+      "title": "Compte utilisateur inactif",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "Vous ne vous êtes pas authentifié sur l'application e-Mobility depuis le {{lastLogin}}.",
+        "Veuillez noter que pour des raisons légales de protection des données, votre compte est susceptible d'être supprimé par un administrateur.",
+        "",
+        "Authentifiez-vous et acceptez les dernières conditions d'utilisation afin d'éviter la suppression de votre compte."
+      ]
+    },
+    "session-not-started": {
+      "title": "Session non démarrée",
+      "buttonText": "Voir la borne",
+      "text": [
+        "La session sur le connecteur {{connectorId}} de la borne {{chargeBoxID}} n'a pas démarré."
+      ]
+    },
+    "session-not-started-after-authorize": {
+      "title": "Session non démarrée",
+      "buttonText": "Voir la borne",
+      "text": [
+        "Vous avez badgé sur la borne {{chargeBoxID}} mais aucune session n'a démarré."
+      ]
+    },
+    "billing-user-synchronization-failed": {
+      "title": "Facturation - Echec de la synchronisation des utilisateurs",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "La synchronisation des utilisateurs avec le système de facturation a échoué pour {{nbrUsersInError}} utilisateur(s)."
+      ]
+    },
+    "billing-invoice-synchronization-failed": {
+      "title": "Facturation - Echec de la synchronisation des factures",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "La synchronisation des factures avec le système de facturation a échoué pour {{nbrInvoicesInError}} document(s)."
+      ]
+    },
+    "billing-periodic-operation-failed": {
+      "title": "Facturation - Echec de la procédure de facturation périodique",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "Le traitement de {{nbrInvoicesInError}} facture(s) à échoué."
+      ]
+    },
+    "billing-account-activated": {
+      "title": "Compte de facturation activé",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "Félicitations",
+        "",
+        "La procédure d'embarquement de votre compte de facturation est terminée. Votre compte est maintenant actif."
+      ]
+    },
+    "car-synchronization-failed": {
+      "title": "Echec de la synchronisation des données de véhicules",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "La procédure de synchronisation des données des véhicules a échoué pour {{nbrCarsInError}} d'entre eux."
+      ]
+    },
+    "compute-and-apply-charging-profiles-failed": {
+      "title": "Echec de l'application des profils de charge",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "La tentative d'application des profils de charge sur la borne {{chargeBoxID}} a échoué.",
+        "La borne a été automatiquement exclue de cette session de charge intelligente (Smart Charging)."
+      ]
+    },
+    "account-verification-notification-active": {
+      "title": "Compte utilistateur vérifié",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "Votre e-mail a été vérifié. Votre compte est maintenant actif."
+      ]
+    },
+    "account-verification-notification-inactive": {
+      "title": "Compte utilistateur vérifié",
+      "buttonText": "Naviguer vers {{tenantName}}",
+      "text": [
+        "Votre e-mail a été vérifié.",
+        "",
+        "Votre compte va être activer par un administrateur. Merci de patienter."
+      ]
+    },
+    "admin-account-verification-notification": {
+      "title": "Vérification d'un nouveau compte utilisateur",
+      "buttonText": "Vérifier le compte",
+      "text": [
+        "Un nouvel utilisateur vient de créer un compte avec l'e-mail {{email}}.",
+        "",
+        "Veuillez suivre le lien ci-dessous pour finaliser son activation."
+      ]
+    },
+    "user-create-password": {
+      "title": "Compte utilisateur créé",
+      "buttonText": "Dénifir le mot de passe",
+      "text": [
+        "Un compte utilisateur vient d'être créé en votre nom dans l'organisation '{{tenantName}}'.",
+        "Vous devez vous authentifier au moins une fois pour activer la possibilité de recharger votre véhicule.",
+        "",
+        "Veuillez suivre le lien ci-dessous pour définir votre mot de passe."
+      ]
+    }
   }
 }

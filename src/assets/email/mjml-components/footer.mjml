@@ -4,6 +4,6 @@
 		<mj-text font-size="12px">
 			<p>{{i18n:common.footerText}}</p>
 		</mj-text>
-    <mj-image width="250px" href="{{openEmobilityWebSiteURL}}" src="{{openEMobilityPoweredByLogo}}"></mj-image>
+    <mj-image width="250px" href="{{openEmobilityWebSiteURL}}" src="{{openEMobilityPoweredByLogo}} alt="Powered by Open E-Mobility"></mj-image>
 	</mj-column>
 </mj-section>

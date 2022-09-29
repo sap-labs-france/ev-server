@@ -4,7 +4,7 @@
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Patching of Charging Station Statuses Failed",
+      "title": "Failed to transfer the Charging Station Statuses ",
       "image": {
         "left": {
           "height": 60,

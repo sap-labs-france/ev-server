@@ -3,7 +3,6 @@ import User, { UserStatus } from '../../src/types/User';
 import chai, { assert } from 'chai';
 
 import BrandingConstants from '../../src/utils/BrandingConstants';
-import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import EMailNotificationTask from '../../src/notification/email/EMailNotificationTask';
@@ -47,6 +46,13 @@ describe('Initialization', () => {
     let recipient: User;
     let user: User;
     let tenant: Tenant;
+    const transactionId = 123456789;
+    const connectorId = 'A';
+    const companyID = ContextDefinition.TENANT_COMPANY_LIST[0].id;
+    const siteID = ContextDefinition.TENANT_SITE_LIST[0].id;
+    const siteAreaID = ContextDefinition.TENANT_SITEAREA_LIST[0].id;
+    const chargeBoxID = 'BORNE-1234';
+    const badgeID = 'AB123456';
     const severity = 'INFO' as NotificationSeverity;
 
     beforeAll(async () => {
@@ -55,18 +61,20 @@ describe('Initialization', () => {
       recipient = Utils.cloneObject(tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN));
       recipient.firstName = 'Kaito (怪盗)';
       recipient.name = '(怪盗) Kaito';
+      recipient.locale = "fr_FR";
       // Set the user mentioned in the body of the mail
       user = Utils.cloneObject(tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER));
       user.phone = '+33 6 12 34 56 78';
+      user.locale = "fr_FR";
       tenant = tenantContext.getTenant();
     });
     it('new-registered-user', async () => {
-      const data = {
+      const data: NewRegisteredUserNotification = {
         tenant: tenant.subdomain,
         user,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardVerifyEmailURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
-      } as NewRegisteredUserNotification;
+      };
       const notificationResult = await emailNotificationTask.sendNewRegisteredUser(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
@@ -74,11 +82,11 @@ describe('Initialization', () => {
     });
 
     it('request-password', async () => {
-      const data = {
+      const data: RequestPasswordNotification = {
         user,
         evseDashboardResetPassURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
-        evseDashboardURL: 'some_url2'
-      } as RequestPasswordNotification;
+        evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL
+      };
       const notificationResult = await emailNotificationTask.sendRequestPassword(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
@@ -86,19 +94,19 @@ describe('Initialization', () => {
     });
 
     it('optimal-charge-reached', async () => {
-      const data = {
-        transactionId: 1,
-        siteID: 'site_id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        chargeBoxID: 'Charging Station 19 SAP',
-        connectorId: 'A',
-        totalConsumption: 'total consumption',
+      const data: OptimalChargeReachedNotification = {
+        transactionId,
+        companyID,
+        siteID,
+        siteAreaID,
+        chargeBoxID,
+        connectorId,
+        totalConsumption: '16.32',
         stateOfCharge: 89,
-        evseDashboardChargingStationURL: 'charging station url',
+        evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         user,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
-      } as OptimalChargeReachedNotification;
+      };
       const notificationResult = await emailNotificationTask.sendOptimalChargeReached(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
@@ -106,20 +114,20 @@ describe('Initialization', () => {
     });
 
     it('end-of-charge', async () => {
-      const data = {
+      const data: EndOfChargeNotification = {
         transactionId: 1,
-        siteID: '',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        chargeBoxID: 'charging box id',
-        connectorId: 'connector id',
+        siteID,
+        siteAreaID,
+        companyID,
+        chargeBoxID,
+        connectorId,
         totalConsumption: '48.3',
-        // stateOfCharge: 1,
+        stateOfCharge: 78,
         totalDuration: '5h14',
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         user,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
-      } as EndOfChargeNotification;
+      };
       const notificationResult = await emailNotificationTask.sendEndOfCharge(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
@@ -127,23 +135,22 @@ describe('Initialization', () => {
     });
 
     it('end-of-session', async () => {
-      const data = {
+      const data: EndOfSessionNotification = {
         transactionId: 1,
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        chargeBoxID: 'SAP Moujins 19 A',
-        connectorId: 'A',
+        siteID,
+        siteAreaID,
+        companyID,
+        chargeBoxID,
+        connectorId,
         totalConsumption: '52,3',
         totalInactivity: '0h13',
         stateOfCharge: 1,
         totalDuration: '5h41',
-        tenant: tenant.subdomain,
         user,
         alternateUser: user,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: 'charging station url',
-      } as EndOfSessionNotification;
+      };
       const notificationResult = await emailNotificationTask.sendEndOfSession(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
@@ -151,7 +158,7 @@ describe('Initialization', () => {
     });
 
     it('billing-new-invoice-paid', async () => {
-      const data = {
+      const data: BillingNewInvoiceNotification = {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardInvoiceURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         user,
@@ -160,7 +167,7 @@ describe('Initialization', () => {
         invoiceNumber: 'I-2002-001',
         invoiceAmount: '$12.50',
         invoiceStatus: 'paid',
-      } as BillingNewInvoiceNotification;
+      };
       const notificationResult = await emailNotificationTask.sendBillingNewInvoice(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
@@ -168,7 +175,7 @@ describe('Initialization', () => {
     });
 
     it('billing-new-invoice-unpaid', async () => {
-      const data = {
+      const data: BillingNewInvoiceNotification = {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardInvoiceURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         user,
@@ -177,7 +184,7 @@ describe('Initialization', () => {
         invoiceNumber: 'I-2002-001',
         invoiceAmount: '$12.50',
         invoiceStatus: 'unpaid',
-      } as BillingNewInvoiceNotification;
+      };
       const notificationResult = await emailNotificationTask.sendBillingNewInvoice(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
@@ -185,14 +192,14 @@ describe('Initialization', () => {
     });
 
     it('charging-station-registered', async () => {
-      const data = {
-        chargeBoxID: 'Charge Box A1',
-        siteID: 'Site 134',
-        siteAreaID: 'A3',
-        companyID: 'SAP12',
+      const data: ChargingStationRegisteredNotification = {
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
-      } as ChargingStationRegisteredNotification;
+      };
       const notificationResult = await emailNotificationTask.sendChargingStationRegistered(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
@@ -215,6 +222,22 @@ describe('Initialization', () => {
       assert.equal(notificationResult.error, null, notificationResult.error as string);
     });
 
+    it('end-user-js-injection', async () => {
+      const data: EndUserErrorNotification = {
+        userID: user.id,
+        email: user.email,
+        name: user.firstName + ' ' + user.name,
+        errorTitle: 'Check Javascript Injection',
+        errorDescription: 'javascript:alert("this is an injection");',
+        phone: user.phone,
+        evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
+      };
+      const notificationResult = await emailNotificationTask.sendEndUserErrorNotification(data, recipient, tenant, severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing, null, isMissing);
+      assert.equal(notificationResult.error, null, notificationResult.error as string);
+    });
+
     it('offline-charging-station', async () => {
       const data: OfflineChargingStationNotification = {
         chargingStationIDs: [ 'CS1', 'CS2', 'CS3', 'CS4', 'CS5', 'CS6', 'CS7', 'CS8', 'CS9', 'CS10', 'CS11', 'CS12' ],
@@ -228,12 +251,12 @@ describe('Initialization', () => {
 
     it('charging-station-status-error', async () => {
       const data: ChargingStationStatusErrorNotification = {
-        chargeBoxID: 'some box id',
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        connectorId: 'connector id',
-        error: 'this is the error',
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
+        connectorId,
+        error: 'This is the text from the end user',
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
@@ -268,11 +291,11 @@ describe('Initialization', () => {
 
     it('unknown-user-badged', async () => {
       const data: UnknownUserBadgedNotification = {
-        chargeBoxID: 'charge box id',
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        badgeID: 'badge id',
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
+        badgeID,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
       const notificationResult = await emailNotificationTask.sendUnknownUserBadged(data, recipient, tenant, severity);
@@ -285,11 +308,11 @@ describe('Initialization', () => {
       const data: TransactionStartedNotification = {
         user,
         transactionId: 14,
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        chargeBoxID: 'charge box id',
-        connectorId: 'connector id',
+        siteID,
+        siteAreaID,
+        companyID,
+        chargeBoxID,
+        connectorId,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
@@ -367,17 +390,17 @@ describe('Initialization', () => {
     });
 
     it('session-not-started', async () => {
-      const data = {
+      const data: PreparingSessionNotStartedNotification = {
         user,
-        chargeBoxID: 'charge box id',
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
-        connectorId: 'connector id',
-        startedOn: 'started on',
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
+        connectorId,
+        startedOn:  new Date().toDateString(),
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
-      } as PreparingSessionNotStartedNotification;
+      };
       const notificationResult = await emailNotificationTask.sendPreparingSessionNotStarted(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
@@ -385,15 +408,15 @@ describe('Initialization', () => {
     });
 
     it('session-not-started-after-authorize', async () => {
-      const data = {
-        chargeBoxID: 'charge box id',
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
+      const data: SessionNotStartedNotification = {
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
         user,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
-      } as SessionNotStartedNotification;
+      };
       const notificationResult = await emailNotificationTask.sendSessionNotStarted(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
@@ -460,13 +483,13 @@ describe('Initialization', () => {
 
     it('compute-and-apply-charging-profiles-failed', async () => {
       const data: ComputeAndApplyChargingProfilesFailedNotification = {
-        siteAreaName: 'site area name',
-        chargeBoxID: 'charge box id',
-        siteID: 'site id',
-        siteAreaID: 'site area id',
-        companyID: 'company id',
+        siteAreaName: 'Parking North',
+        chargeBoxID,
+        siteID,
+        siteAreaID,
+        companyID,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
-      } as ComputeAndApplyChargingProfilesFailedNotification;
+      };
       const notificationResult = await emailNotificationTask.sendComputeAndApplyChargingProfilesFailed(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
