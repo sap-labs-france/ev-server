@@ -836,25 +836,26 @@ export default class TransactionService {
         });
       }
       // Stop Transaction
-      const success = await new OCPPService(Configuration.getChargingStationConfig()).softStopTransaction(
-        req.tenant, transaction, chargingStation, chargingStation.siteArea);
-      if (!success) {
+      try {
+        await new OCPPService(Configuration.getChargingStationConfig()).softStopTransaction(
+          req.tenant, transaction, chargingStation, chargingStation.siteArea);
+        await Logging.logInfo({
+          ...LoggingHelper.getTransactionProperties(transaction),
+          tenantID: req.tenant.id,
+          user: req.user, actionOnUser: transaction.userID,
+          module: MODULE_NAME, method: 'transactionSoftStop',
+          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
+          action, detailedMessages: { transaction }
+        });
+      } catch (error) {
         throw new AppError({
           ...LoggingHelper.getTransactionProperties(transaction),
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
+          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be soft stopped`,
           module: MODULE_NAME, method: 'transactionSoftStop',
           user: req.user, action
         });
       }
-      await Logging.logInfo({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        tenantID: req.tenant.id,
-        user: req.user, actionOnUser: transaction.userID,
-        module: MODULE_NAME, method: 'transactionSoftStop',
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
-        action, detailedMessages: { transaction }
-      });
     }
     res.json(Constants.REST_CHARGING_STATION_COMMAND_RESPONSE_SUCCESS);
     next();

@@ -800,7 +800,9 @@ export default class TagService {
       tags.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult, authorizations);
+    }
     return tags;
   }
 
