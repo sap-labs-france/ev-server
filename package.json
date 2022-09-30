@@ -205,6 +205,7 @@
     "@types/uuid": "^8.3.4",
     "@types/validator": "^13.7.7",
     "@types/ws": "^8.5.3",
+    "@typescript-eslint/eslint-plugin": "^5.38.1",
     "@typescript-eslint/parser": "^5.38.1",
     "autocannon": "^7.9.0",
     "chai": "^4.3.6",
