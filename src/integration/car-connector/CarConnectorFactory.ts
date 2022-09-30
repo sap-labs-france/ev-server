@@ -6,6 +6,7 @@ import MercedesCarConnectorIntegration from './mercedes-connector/MercedesCarCon
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import TronityCarConnectorIntegration from './tronity-connector/TronityCarConnectorIntegration';
 import Utils from '../../utils/Utils';
+import TargaTelematicsCarConnectorIntegration from './targa-telematics-connector/TargaTelematicsConnector';
 
 export default class CarConnectorFactory {
   public static async getCarConnectorImpl(tenant: Tenant, carConnectorId: string): Promise<CarConnectorIntegration<CarConnectorSettings>> {
@@ -23,6 +24,9 @@ export default class CarConnectorFactory {
               break;
             case CarConnectorConnectionType.TRONITY:
               carConnectorIntegrationImpl = new TronityCarConnectorIntegration(tenant, settings, foundConnection);
+              break;
+            case CarConnectorConnectionType.TARGA_TELEMATICS:
+              carConnectorIntegrationImpl = new TargaTelematicsCarConnectorIntegration(tenant, settings, foundConnection);
               break;
           }
           return carConnectorIntegrationImpl;

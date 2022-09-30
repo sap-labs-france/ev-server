@@ -16408,6 +16408,23 @@
                               "type": "string"
                             }
                           }
+                        },
+                        "targaTelematicsConnection": {
+                          "type": "object",
+                          "properties": {
+                            "authenticationUrl": {
+                              "type": "string"
+                            },
+                            "apiUrl": {
+                              "type": "string"
+                            },
+                            "clientId": {
+                              "type": "string"
+                            },
+                            "clientSecret": {
+                              "type": "string"
+                            }
+                          }
                         }
                       }
                     }
