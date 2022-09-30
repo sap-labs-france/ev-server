@@ -338,7 +338,7 @@ export default class TransactionService {
       });
     }
     // Check consumption dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetConsumptionsAuthorizations(req.tenant, req.user, Action.LIST, null, true);
+    const authorizations = await AuthorizationService.checkAndGetConsumptionsAuthorizations(req.tenant, req.user, Action.LIST);
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
       const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(
@@ -496,13 +496,10 @@ export default class TransactionService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
       Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetRefundReports');
-
     // Filter request
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Check dyna;ic auth
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(req.tenant, req.user, Action.GET_REFUND_REPORT, filteredRequest);
-
-
     // Get Reports
     const reports = await TransactionStorage.getRefundReports(
       req.tenant,
@@ -570,7 +567,6 @@ export default class TransactionService {
   }
 
   public static async handleGetTransactionsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-
     // Check auth
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(req.tenant, req.user, Action.IN_ERROR);
     // Filter
@@ -746,14 +742,12 @@ export default class TransactionService {
 
   private static async getTransactions(req: Request, filteredRequest: HttpTransactionsGetRequest,
     authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
-
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(
       req.tenant, req.user, authAction, filteredRequest, false);
     if (!authorizations.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
-
     // Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
       const tagIDs = await TagStorage.getTags(req.tenant, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['id']);
