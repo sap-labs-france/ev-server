@@ -1401,60 +1401,6 @@ export default class AuthorizationService {
     return authorizations;
   }
 
-  private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,
-      filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
-    if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        // Get assigned Site IDs assigned to user from DB
-        const siteIDs = await Authorizations.getAssignedSiteIDs(tenant, userToken);
-        if (!Utils.isEmptyArray(siteIDs)) {
-          // Force the filter
-          authorizationFilters.filters.siteIDs = siteIDs;
-          // Check if filter is provided
-          if (filteredRequest?.SiteID) {
-            const filteredSiteIDs = filteredRequest.SiteID.split('|');
-            // Override
-            authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
-              (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
-          }
-        }
-        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
-          authorizationFilters.authorized = true;
-        }
-      } else {
-        authorizationFilters.authorized = true;
-      }
-    }
-  }
-
-  private static async checkAssignedSiteAdminsAndOwners(tenant: Tenant, userToken: UserToken,
-      filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
-    if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        // Get Site IDs from Site Admin & Site Owner flag
-        const siteAdminSiteIDs = await Authorizations.getSiteAdminSiteIDs(tenant, userToken);
-        const siteOwnerSiteIDs = await Authorizations.getSiteOwnerSiteIDs(tenant, userToken);
-        const allSites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
-        if (!Utils.isEmptyArray(allSites)) {
-          // Force the filters
-          authorizationFilters.filters.siteIDs = allSites;
-          // Check if filter is provided
-          if (filteredRequest?.SiteID) {
-            const filteredSiteIDs: string[] = filteredRequest.SiteID.split('|');
-            // Override
-            authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
-              (filteredSiteID) => authorizationFilters.filters.siteIDs.includes(filteredSiteID));
-          }
-        }
-        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
-          authorizationFilters.authorized = true;
-        }
-      } else {
-        authorizationFilters.authorized = true;
-      }
-    }
-  }
-
   private static filterProjectFields(authFields: string[], httpProjectField: string): string[] {
     let fields = authFields;
     // Only allow projected fields
