@@ -40,7 +40,6 @@ export default class TargaTelematicsCarConnectorIntegration extends CarConnector
     const connectionToken = await this.connect();
     const request = `${this.connection.targaTelematicsConnection.apiUrl}/v1/digital-twin/vehicles/${car.vin}`;
     try {
-      // Get consumption
       const response = await this.axiosInstance.get(
         request,
         {
