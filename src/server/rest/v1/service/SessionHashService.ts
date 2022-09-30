@@ -102,12 +102,13 @@ export default class SessionHashService {
       // Check if Tenant URL has changed
       if (tenant.redirectDomain) {
         throw new AppError({
-          errorCode: StatusCodes.MOVED_PERMANENTLY,
-          message: ReasonPhrases.MOVED_PERMANENTLY,
+          errorCode: StatusCodes.MOVED_TEMPORARILY,
+          message: ReasonPhrases.MOVED_TEMPORARILY,
           module: MODULE_NAME, method: 'checkUserAndTenantValidity',
           user: req.user,
           detailedMessages: {
             redirectDomain:tenant.redirectDomain,
+            subdomain: tenant.subdomain,
             request: req.url,
             headers: res.getHeaders(),
           }

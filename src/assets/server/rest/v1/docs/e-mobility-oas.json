@@ -419,13 +419,7 @@
             "$ref": "#/components/parameters/SiteID"
           },
           {
-            "in": "query",
-            "name": "CompanyID",
-            "description": "Company ID",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/CompanyID"
           },
           {
             "$ref": "#/components/parameters/Issuer"
@@ -453,6 +447,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -3407,6 +3404,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -4324,6 +4324,10 @@
                   "departureTime": {
                     "type": "string",
                     "format": "date-time"
+                  },
+                  "targetStateOfCharge": {
+                    "type": "integer",
+                    "example": ""
                   },
                   "args": {
                     "type": "object",
@@ -5662,6 +5666,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -6035,6 +6042,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -6371,6 +6381,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -7123,6 +7136,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -7326,6 +7342,12 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -7482,6 +7504,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -7753,6 +7778,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -8598,6 +8626,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "responses": {
@@ -9168,6 +9199,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -9598,6 +9632,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -9951,6 +9988,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -10333,6 +10373,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -10616,6 +10659,9 @@
             "$ref": "#/components/parameters/SiteIDs"
           },
           {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
             "$ref": "#/components/parameters/WithSiteArea"
           },
           {
@@ -10640,6 +10686,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -10960,6 +11009,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -12709,6 +12761,24 @@
           },
           {
             "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -13894,6 +13964,12 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -14142,6 +14218,12 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -14302,6 +14384,12 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -16868,6 +16956,16 @@
         "required": false,
         "schema": {
           "type": "string"
+        }
+      },
+      "WithAuth": {
+        "in": "query",
+        "name": "WithAuth",
+        "description": "Show/Hide authorization information (canXXX)",
+        "required": false,
+        "schema": {
+          "type": "boolean",
+          "default": true
         }
       },
       "Search": {

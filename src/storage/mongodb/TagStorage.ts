@@ -37,7 +37,6 @@ export default class TagStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'findAvailableID', startTime, {});
   }
 
-
   public static async saveTag(tenant: Tenant, tag: Tag): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);

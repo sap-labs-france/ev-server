@@ -235,6 +235,8 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
         beforeAll(async () => {
           // Initialize the Billing module
           await billingTestHelper.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF */);
+          // Apply 5% tax rate on platform fee
+          await billingTestHelper.setBillingPlatformTaxRate( 5 /* 5% */);
         });
 
         it('should create an invoice, and get transfers generated', async () => {
@@ -278,6 +280,8 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
         beforeAll(async () => {
           // Initialize the Billing module
           await billingTestHelper.setBillingSystemValidCredentials(true, true /* immediateBillingAllowed ON */);
+          // Apply 5% tax rate on platform fee
+          await billingTestHelper.setBillingPlatformTaxRate( 5 /* 5% */);
         });
 
         it('should create an invoice, pay for it immediately and get a transfer generated or updated', async () => {
@@ -363,6 +367,8 @@ describeif(isBillingProperlyConfigured)('Billing Platform (utbillingplatform)', 
       beforeAll(async () => {
         // Set the basic user as the current user context
         billingTestHelper.setCurrentUserContextAsBasic();
+        // Apply 5% tax rate on platform fee
+        await billingTestHelper.setBillingPlatformTaxRate( 5 /* 5% */);
       });
 
       it('should not be able to list transfers', async () => {

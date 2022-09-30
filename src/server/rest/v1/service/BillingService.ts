@@ -219,8 +219,9 @@ export default class BillingService {
       invoices.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addInvoicesAuthorizations(
-      req.tenant, req.user, invoices as BillingInvoiceDataResult, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addInvoicesAuthorizations(req.tenant, req.user, invoices as BillingInvoiceDataResult, authorizations);
+    }
     res.json(invoices);
     next();
   }
@@ -306,7 +307,9 @@ export default class BillingService {
       count: paymentMethods.length,
       result: paymentMethods
     };
-    await AuthorizationService.addPaymentMethodsAuthorizations(req.tenant, req.user, dataResult, authorizations, filteredRequest);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addPaymentMethodsAuthorizations(req.tenant, req.user, dataResult, authorizations, filteredRequest);
+    }
     res.json(dataResult);
     next();
   }
@@ -386,6 +389,45 @@ export default class BillingService {
     res.end(buffer, 'binary');
   }
 
+  public static async handleDownloadTransfer(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
+      Action.DOWNLOAD, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleDownloadTransfer');
+    // Filter
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransferGetReq(req.query);
+    // Get the Invoice
+    const billingTransfer = await BillingStorage.getTransfer(req.tenant, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, billingTransfer, `Transfer ID '${filteredRequest.ID}' does not exist`,
+      MODULE_NAME, 'handleDownloadTransfer', req.user);
+    // Check and get authorizations
+    await UtilsService.checkAndGetTransferAuthorization(req.tenant, req.user, filteredRequest.ID, Action.DOWNLOAD, action, null, {}, true);
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleDownloadTransfer',
+        action: action,
+        user: req.user
+      });
+    }
+    const buffer = await billingImpl.downloadTransferDocument(billingTransfer);
+    if (!billingTransfer.invoice.invoiceID || !buffer) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Transfer document not found',
+        module: MODULE_NAME, method: 'handleDownloadTransfer',
+        action: action,
+        user: req.user
+      });
+    }
+    const fileName = 'invoice_' + billingTransfer.invoice.invoiceID + '.pdf';
+    res.attachment(fileName);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.end(buffer, 'binary');
+  }
+
   public static async handleGetBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
@@ -410,7 +452,7 @@ export default class BillingService {
     const { usersLastSynchronizedOn } = billingSettings.billing;
     const previousTransactionBillingState = !!billingSettings.billing.isTransactionBillingActivated;
     // Billing properties to override
-    const { immediateBillingAllowed, periodicBillingAllowed, taxID } = newBillingProperties.billing;
+    const { immediateBillingAllowed, periodicBillingAllowed, taxID, platformFeeTaxID } = newBillingProperties.billing;
     const newTransactionBillingState = !!newBillingProperties.billing.isTransactionBillingActivated;
     if (!newTransactionBillingState && previousTransactionBillingState) {
       // Attempt to switch it OFF
@@ -445,6 +487,7 @@ export default class BillingService {
       immediateBillingAllowed,
       periodicBillingAllowed,
       taxID,
+      platformFeeTaxID,
     };
     // Make sure to preserve critical connection properties
     let readOnlyProperties = {};
@@ -563,7 +606,6 @@ export default class BillingService {
       businessOwnerID: user.id,
       status: BillingAccountStatus.IDLE,
       accountExternalID: null,
-      taxID: filteredRequest.taxID,
       createdBy: { id: req.user.id },
       createdOn: new Date(),
       companyName: filteredRequest.companyName
@@ -687,7 +729,9 @@ export default class BillingService {
     },
     authorizations.projectFields
     );
-    await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
+    }
     res.json(billingAccounts);
     next();
   }
@@ -728,7 +772,9 @@ export default class BillingService {
     },
     authorizations.projectFields
     );
-    await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
+    }
     res.json(transfers);
     next();
   }

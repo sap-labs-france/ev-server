@@ -85,7 +85,7 @@ export default class ChargingStationService {
     // Update
     await ChargingStationStorage.saveChargingStation(req.tenant, chargingStation);
     // Check and Apply Charging Station templates
-    void ChargingStationService.checkAndApplyChargingStationTemplate(
+    await ChargingStationService.checkAndApplyChargingStationTemplate(
       action, req.tenant, chargingStation, req.user, resetAndApplyTemplate);
     await Logging.logInfo({
       tenantID: req.tenant.id,
@@ -209,7 +209,9 @@ export default class ChargingStationService {
       chargingProfiles.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addChargingProfilesAuthorizations(req.tenant, req.user, chargingProfiles, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addChargingProfilesAuthorizations(req.tenant, req.user, chargingProfiles, authorizations);
+    }
     // Build the result
     res.json(chargingProfiles);
     next();
@@ -411,11 +413,23 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationGetReq({ ...req.params, ...req.query });
     // Check dynamic auth
     let chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withSite: filteredRequest.WithSite, withSiteArea: filteredRequest.WithSiteArea }, true);
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
+        // TODO: Put back the filters below when the Mobile App would have migrated to new Authorization checks
+        // withSite: filteredRequest.WithSite,
+        // withSiteArea: filteredRequest.WithSiteArea
+        withSite: true,
+        withSiteArea: true,
+      }, true);
     // Return additional fields if user can update charging station
     if (chargingStation.canUpdate) {
       chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-        req.tenant, req.user, filteredRequest.ID, Action.UPDATE, action, null, { withSite: filteredRequest.WithSite, withSiteArea: filteredRequest.WithSiteArea }, true);
+        req.tenant, req.user, filteredRequest.ID, Action.UPDATE, action, null, {
+          // TODO: Put back the filters below when the Mobile App would have migrated to new Authorization checks
+          // withSite: filteredRequest.WithSite,
+          // withSiteArea: filteredRequest.WithSiteArea
+          withSite: true,
+          withSiteArea: true,
+        }, true);
     }
     res.json(chargingStation);
     next();
@@ -518,8 +532,9 @@ export default class ChargingStationService {
       chargingStations.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addChargingStationsAuthorizations(
-      req.tenant, req.user, chargingStations, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addChargingStationsAuthorizations(req.tenant, req.user, chargingStations, authorizations);
+    }
     res.json(chargingStations);
   }
 
@@ -958,9 +973,9 @@ export default class ChargingStationService {
       chargingStations.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addChargingStationsAuthorizations(
-      req.tenant, req.user, chargingStations, authorizations);
-
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addChargingStationsAuthorizations(req.tenant, req.user, chargingStations, authorizations);
+    }
     return chargingStations;
   }
 
@@ -1254,7 +1269,8 @@ export default class ChargingStationService {
         lastSelectedCar: true,
         lastCarStateOfCharge: filteredRequest.carStateOfCharge,
         lastCarOdometer: filteredRequest.carOdometer,
-        lastDepartureTime: filteredRequest.departureTime
+        lastDepartureTime: filteredRequest.departureTime,
+        lastTargetStateOfCharge: filteredRequest.targetStateOfCharge,
       });
     }
     // Execute it

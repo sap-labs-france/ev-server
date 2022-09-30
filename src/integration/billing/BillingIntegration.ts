@@ -696,6 +696,8 @@ export default abstract class BillingIntegration {
 
   public abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
 
+  public abstract downloadTransferDocument(transfer: BillingTransfer): Promise<Buffer>;
+
   public abstract chargeInvoice(invoice: BillingInvoice): Promise<BillingInvoice>;
 
   public abstract consumeBillingEvent(req: Request): Promise<boolean>;

@@ -73,12 +73,13 @@ export default class CommonService {
       // Check the redirection
       if (tenant?.redirectDomain) {
         throw new AppError({
-          errorCode: StatusCodes.MOVED_PERMANENTLY,
-          message: ReasonPhrases.MOVED_PERMANENTLY,
+          errorCode: StatusCodes.MOVED_TEMPORARILY,
+          message: ReasonPhrases.MOVED_TEMPORARILY,
           module: MODULE_NAME, method: 'checkTenantValidity',
           user: req.user,
           detailedMessages: {
-            redirectDomain: tenant.redirectDomain
+            redirectDomain: tenant.redirectDomain,
+            subdomain: tenant.subdomain
           }
         });
       }

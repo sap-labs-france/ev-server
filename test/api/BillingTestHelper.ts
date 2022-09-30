@@ -532,6 +532,16 @@ export default class BillingTestHelper {
     await this.adminUserService.settingApi.update(componentSetting);
   }
 
+  public async setBillingPlatformTaxRate(taxRate: number) : Promise<void> {
+    assert(this.billingImpl, 'Billing implementation should not be null');
+    const stripeTaxRate = await StripeTaxHelper.fetchOrCreateTaxRate(this.billingImpl, taxRate);
+    const tenantBillingSettings = await this.adminUserService.settingApi.readByIdentifier({ 'Identifier': 'billing' });
+    expect(tenantBillingSettings.data).to.not.be.null;
+    const componentSetting: SettingDB = tenantBillingSettings.data;
+    componentSetting.content.billing.platformFeeTaxID = stripeTaxRate.id;
+    await this.adminUserService.settingApi.update(componentSetting);
+  }
+
   public async checkInvoiceData(invoiceID: string, expectedStatus: BillingInvoiceStatus, expectedSessionCounter: number, expectedAmount: number): Promise<void> {
     const response = await this.getCurrentUserService().billingApi.readInvoice(invoiceID);
     expect(response.status).to.equal(StatusCodes.OK);
@@ -933,12 +943,9 @@ export default class BillingTestHelper {
   }
 
   public async createBillingAccount(): Promise<string> {
-    // Assign a tax rate (5% exclusive) to apply to the platform fee
-    const taxRate = StripeTaxHelper.fetchOrCreateTaxRate(this.billingImpl, 5 /* 5% */);
     let response = await this.getCurrentUserService().billingApi.createBillingAccount({
       businessOwnerID: this.getCurrentUserContext().id,
       companyName: 'UT-Account-' + new Date().toISOString(),
-      taxID: (await taxRate).id
     });
     if (response.status !== StatusCodes.OK) {
       await this.dumpLastErrors();

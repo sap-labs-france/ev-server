@@ -1,0 +1,10 @@
+{
+  "$id": "charging-station-template-create",
+  "title": "Create a charging station template",
+  "type": "object",
+  "properties": {
+    "template": {
+      "$ref": "chargingstation-template#/definitions/template"
+    }
+  }
+}

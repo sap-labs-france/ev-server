@@ -546,12 +546,13 @@ export default class ConsumptionStorage {
         y:
           (consumptionMDB.instantWatts ?? 0) / 1000 +
           (consumptionMDB.instantWattsDC ?? 0) / 1000 +
+          (consumptionMDB.limitWatts ?? 0) / 1000 +
           (consumptionMDB.cumulatedAmount ?? 0) +
           (consumptionMDB.cumulatedConsumptionWh ?? 0) / 1000
       }
     ));
     // Simplify with Ramer Douglas Peucker algo
-    const simplifiedConsumptionsXY = Simplify(consumptionsXY, 5);
+    const simplifiedConsumptionsXY = Simplify(consumptionsXY, 1);
     // Create a Map to reference Y points
     const simplifiedConsumptionsMapXY = new Map<number, null>();
     for (const simplifiedConsumptionXY of simplifiedConsumptionsXY) {

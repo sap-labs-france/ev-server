@@ -1,0 +1,48 @@
+{
+  "$id": "chargingstation-template-save",
+  "title": "Validate the Charging Station's template",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "createdBy": {
+      "$ref": "common#/definitions/createdBy"
+    },
+    "createdOn": {
+      "$ref": "common#/definitions/createdOn"
+    },
+    "lastChangedBy": {
+      "$ref": "common#/definitions/lastChangedBy"
+    },
+    "lastChangedOn": {
+      "$ref": "common#/definitions/lastChangedOn"
+    },
+    "template": {
+      "$ref": "chargingstation-template#/definitions/template"
+    },
+    "hash": {
+      "type": "string"
+    },
+    "hashTechnical": {
+      "type": "string"
+    },
+    "hashCapabilities": {
+      "type": "string"
+    },
+    "hashOcppStandard": {
+      "type": "string"
+    },
+    "hashOcppVendor": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "hash",
+    "hashTechnical",
+    "hashCapabilities",
+    "hashOcppStandard",
+    "hashOcppVendor"
+  ]
+}

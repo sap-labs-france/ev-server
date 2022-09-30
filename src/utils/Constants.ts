@@ -48,7 +48,6 @@ export default class Constants {
   public static readonly SMART_CHARGING_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_CONNECTION_LOCK_SECS = 5;
-  public static readonly TENANT_DEFAULT_LOGO = '/assets/img/logo-low.gif';
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
 
   public static readonly DEFAULT_TENANT_ID = 'default';
