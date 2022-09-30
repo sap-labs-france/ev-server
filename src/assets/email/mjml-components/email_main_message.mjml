@@ -1,4 +1,4 @@
-<mj-section padding-top="20px">
+<mj-section background-color="white">
 	<mj-column>
 		<mj-text>
 			<p>{{i18n:common.greetings}},</p>

@@ -1,16 +1,14 @@
 import { promises as fs } from 'fs';
-import global from '../../../types/GlobalType';
+import global from '../../types/GlobalType';
 
 export enum EmailComponent {
-  FOOTER = 'footer.mjml',
-  HEADER = 'header.mjml',
-  CONFIG = 'config.mjml',
-
-  BUTTON = 'button.mjml',
-  TITLE = 'title.mjml',
-  TEXT1 = 'text1.mjml',
-
-  TABLE='table.mjml',
+  MJML_CONFIG = 'email_config.mjml',
+  MJML_FOOTER = 'email_footer.mjml',
+  MJML_HEADER = 'email_header.mjml',
+  MJML_TITLE = 'email_title.mjml',
+  MJML_MAIN_MESSAGE = 'email_main_message.mjml',
+  MJML_TABLE='email_table.mjml',
+  MJML_MAIN_ACTION = 'email_main_action.mjml',
 }
 
 export default class EmailComponentManager {
