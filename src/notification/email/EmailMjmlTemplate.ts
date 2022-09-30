@@ -1,4 +1,4 @@
-import I18nManager from '../../../utils/I18nManager';
+import I18nManager from '../../utils/I18nManager';
 import mjml2html from 'mjml';
 
 export default class MjmlTemplate {
@@ -16,7 +16,7 @@ export default class MjmlTemplate {
     return mjml2html(this.template).html;
   }
 
-  public resolve(i18nManager: I18nManager, context: any, prefix: string): void {
+  public resolve(i18nManager: I18nManager, context: Record<string, unknown>, prefix: string): void {
     this.buildComponents(i18nManager, context, prefix);
     this.prepareI18nSelectors(prefix);
     const i18nSelectors = this.getI18nSelectors();
@@ -36,7 +36,7 @@ export default class MjmlTemplate {
     }
   }
 
-  private buildTable(i18nManager: I18nManager, context: any, prefix: string): void {
+  private buildTable(i18nManager: I18nManager, context: Record<string, unknown>, prefix: string): void {
     const regex = new RegExp(/_TABLE_CONTENT_/, 'g');
     const match = this.template.match(regex);
     if (!match) {
@@ -72,7 +72,7 @@ export default class MjmlTemplate {
     this.replace(match[0], table);
   }
 
-  private buildComponents(i18nManager: I18nManager, context: any, prefix: string) {
+  private buildComponents(i18nManager: I18nManager, context: Record<string, unknown>, prefix: string) {
     this.buildTable(i18nManager, context, prefix);
   }
 

@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BaseNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
-import EmailComponentManager, { EmailComponent } from './email-component-manager/EmailComponentManager';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import EmailComponentManager, { EmailComponent } from './EmailComponentManager';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
@@ -22,7 +22,7 @@ import Utils from '../../utils/Utils';
 import ejs from 'ejs';
 import fs from 'fs';
 import global from '../../types/GlobalType';
-import mjmlBuilder from './mjml-builder/MjmlBuilder';
+import mjmlBuilder from './EmailMjmlBuilder';
 import rfc2047 from 'rfc2047';
 
 const MODULE_NAME = 'EMailNotificationTask';
@@ -68,19 +68,19 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.TABLE)];
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
     return await this.prepareAndSendEmail('optimal-charge-reached', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.TABLE)];
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
     return await this.prepareAndSendEmail('end-of-charge', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.TABLE)];
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
     return await this.prepareAndSendEmail('end-of-session', data, user, tenant, severity, optionalComponents);
   }
 
@@ -161,11 +161,11 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     // TODO - old stuff - to be removed asap
-    data.chargeBoxIDs = data.chargingStationIDs.join(", ");
+    data.chargeBoxIDs = data.chargingStationIDs.join(', ');
     // Populate the context to have a human-readable message
     data.nbChargingStationIDs = data.chargingStationIDs?.length || 0;
     // Show only the ten first charging stations
-    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(", ") + "...";
+    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(', ') + '...';
     data.buttonUrl = data.evseDashboardURL;
     return await this.prepareAndSendEmail('offline-charging-station', data, user, tenant, severity);
   }
@@ -196,7 +196,7 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.TABLE)];
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
     let templateName: string;
     if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
       if (data.invoiceStatus === 'paid') {
@@ -383,10 +383,10 @@ export default class EMailNotificationTask implements NotificationTask {
     const i18nInstance = I18nManager.getInstanceForLocale(recipient.locale);
     // Aggregate the templates
     const template = (await mjmlBuilder.initialize())
-      .addToBody(await EmailComponentManager.getComponent(EmailComponent.TITLE))
-      .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT1))
+      .addToBody(await EmailComponentManager.getComponent(EmailComponent.MJML_TITLE))
+      .addToBody(await EmailComponentManager.getComponent(EmailComponent.MJML_MAIN_MESSAGE))
       .addToBody(optionalComponents.join())
-      .addToBody(await EmailComponentManager.getComponent(EmailComponent.BUTTON))
+      .addToBody(await EmailComponentManager.getComponent(EmailComponent.MJML_MAIN_ACTION))
       .buildTemplate();
     template.resolve(i18nInstance, context, prefix);
     // if (Utils.isDevelopmentEnv()) {
@@ -426,9 +426,9 @@ export default class EMailNotificationTask implements NotificationTask {
           message: `No email is provided for User for '${templateName}'`
         });
       }
-      //----------------------------------------------------------------------------------------------------------
+      // ----------------------------------------------------------------------------------------------------------
       //  ACHTUNG - to not alter the original sourceData object (the caller nay need to reuse the initial values)
-      //----------------------------------------------------------------------------------------------------------
+      // ----------------------------------------------------------------------------------------------------------
       const context = await this.populateNotificationContext(tenant, recipient, sourceData);
       // Send the email
       if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {

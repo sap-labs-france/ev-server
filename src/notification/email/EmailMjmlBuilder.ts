@@ -1,6 +1,6 @@
-import EmailComponentManager, { EmailComponent } from '../email-component-manager/EmailComponentManager';
+import EmailComponentManager, { EmailComponent } from './EmailComponentManager';
 
-import mjmlTemplate from '../mjml-template/MjmlTemplate';
+import mjmlTemplate from './EmailMjmlTemplate';
 
 export default class MjmlBuilder {
   private header: string;
@@ -17,9 +17,9 @@ export default class MjmlBuilder {
 
   public static async initialize(): Promise<MjmlBuilder> {
     const instance = new MjmlBuilder();
-    instance.addConfig(await EmailComponentManager.getComponent(EmailComponent.CONFIG))
-      .addHeader(await EmailComponentManager.getComponent(EmailComponent.HEADER))
-      .addFooter(await EmailComponentManager.getComponent(EmailComponent.FOOTER));
+    instance.addConfig(await EmailComponentManager.getComponent(EmailComponent.MJML_CONFIG))
+      .addHeader(await EmailComponentManager.getComponent(EmailComponent.MJML_HEADER))
+      .addFooter(await EmailComponentManager.getComponent(EmailComponent.MJML_FOOTER));
     return instance;
   }
 
@@ -49,7 +49,7 @@ export default class MjmlBuilder {
     const template =
       '<mjml>' +
       this.config +
-      '<mj-body>' +
+      '<mj-body background-color="#308080">' +
       this.header +
       this.body.join() +
       this.footer +
