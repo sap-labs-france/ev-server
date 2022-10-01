@@ -1,6 +1,0 @@
-<mj-section>
-	<mj-column>
-		<mj-image width="100px" href="{{evseDashboardURL}}" src="{{tenantLogoURL}}" alt="{{tenantName}}"></mj-image>
-		<mj-divider border-width="1px" border-color="#E0E0E0"></mj-divider>
-	</mj-column>
-</mj-section>

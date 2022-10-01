@@ -219,8 +219,9 @@ export default class BillingService {
       invoices.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addInvoicesAuthorizations(
-      req.tenant, req.user, invoices as BillingInvoiceDataResult, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addInvoicesAuthorizations(req.tenant, req.user, invoices as BillingInvoiceDataResult, authorizations);
+    }
     res.json(invoices);
     next();
   }
@@ -306,7 +307,9 @@ export default class BillingService {
       count: paymentMethods.length,
       result: paymentMethods
     };
-    await AuthorizationService.addPaymentMethodsAuthorizations(req.tenant, req.user, dataResult, authorizations, filteredRequest);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addPaymentMethodsAuthorizations(req.tenant, req.user, dataResult, authorizations, filteredRequest);
+    }
     res.json(dataResult);
     next();
   }
@@ -726,7 +729,9 @@ export default class BillingService {
     },
     authorizations.projectFields
     );
-    await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
+    }
     res.json(billingAccounts);
     next();
   }
@@ -767,7 +772,9 @@ export default class BillingService {
     },
     authorizations.projectFields
     );
-    await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
+    }
     res.json(transfers);
     next();
   }

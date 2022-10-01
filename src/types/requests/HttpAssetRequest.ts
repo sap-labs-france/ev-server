@@ -19,6 +19,15 @@ export interface HttpAssetsGetRequest extends HttpDatabaseRequest {
   WithSiteArea?: boolean;
   WithNoSiteArea?: boolean;
   DynamicOnly?: boolean;
+}
+
+export interface HttpAssetsInErrorGetRequest extends HttpDatabaseRequest {
+  Issuer?: boolean;
+  Search: string;
+  SiteAreaID?: string;
+  SiteID?: string;
+  WithSite?: boolean;
+  WithSiteArea?: boolean;
   ErrorType?: string;
 }
 

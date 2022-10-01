@@ -1,9 +1,8 @@
-<mj-section padding-top="20px" padding-bottom="20px">
+<mj-section background-color="white" padding-top="20px" padding-bottom="20px">
 	<mj-column>
     <mj-divider border-width="1px" border-color="#E0E0E0" padding="0px" ></mj-divider>
 		<mj-text font-size="12px">
 			<p>{{i18n:common.footerText}}</p>
 		</mj-text>
-    <mj-image width="250px" href="{{openEmobilityWebSiteURL}}" src="{{openEMobilityPoweredByLogo}} alt="Powered by Open E-Mobility"></mj-image>
 	</mj-column>
 </mj-section>
