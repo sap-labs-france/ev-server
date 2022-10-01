@@ -364,6 +364,9 @@ export default class SiteService {
       if (Utils.objectHasProperty(filteredRequest, 'tariffID')) {
         site.tariffID = filteredRequest.tariffID;
       }
+      if (Utils.objectHasProperty(filteredRequest, 'ownerName')) {
+        site.ownerName = filteredRequest.ownerName;
+      }
     }
     if (Utils.objectHasProperty(filteredRequest, 'autoUserSiteAssignment')) {
       site.autoUserSiteAssignment = filteredRequest.autoUserSiteAssignment;

@@ -337,7 +337,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE, action: Action.READ,
         attributes: [
           'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID', 'ownerName',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates',
           'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession',
@@ -2272,7 +2272,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID', 'ownerName',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
