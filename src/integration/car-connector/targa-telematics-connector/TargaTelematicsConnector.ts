@@ -25,7 +25,7 @@ export default class TargaTelematicsCarConnectorIntegration extends CarConnector
   }
 
   public async connect(): Promise<string> {
-    if (!this. checkIfTokenExpired(this.connection.token)) {
+    if (!this.checkIfTokenExpired(this.connection.token)) {
       return Cypher.decrypt(this.tenant, this.connection.token.accessToken);
     }
     // Check if connection is initialized

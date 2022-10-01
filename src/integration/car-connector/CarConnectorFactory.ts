@@ -4,9 +4,9 @@ import Tenant, { TenantComponents } from '../../types/Tenant';
 import CarConnectorIntegration from './CarConnectorIntegration';
 import MercedesCarConnectorIntegration from './mercedes-connector/MercedesCarConnectorIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import TargaTelematicsCarConnectorIntegration from './targa-telematics-connector/TargaTelematicsConnector';
 import TronityCarConnectorIntegration from './tronity-connector/TronityCarConnectorIntegration';
 import Utils from '../../utils/Utils';
-import TargaTelematicsCarConnectorIntegration from './targa-telematics-connector/TargaTelematicsConnector';
 
 export default class CarConnectorFactory {
   public static async getCarConnectorImpl(tenant: Tenant, carConnectorId: string): Promise<CarConnectorIntegration<CarConnectorSettings>> {
