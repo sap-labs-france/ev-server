@@ -72,12 +72,12 @@ export default class TransactionCommonTests {
 
   public async testReadTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.readById('&é"\'(§è!çà)');
-    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
   }
 
   public async testReadTransactionWithoutId() {
     const response = await this.transactionUserService.transactionApi.readById(null);
-    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
   }
 
   public async testReadTransactionOfUser(allowed = true, transactionTag: string) {
@@ -1022,12 +1022,12 @@ export default class TransactionCommonTests {
 
   public async testDeleteTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.delete('&é"\'(§è!çà)');
-    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
   }
 
   public async testDeleteTransactionWithoutId() {
     const response = await this.transactionUserService.transactionApi.delete(null);
-    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
   }
 
   public async testDeleteStartedTransaction(allowed = true) {
