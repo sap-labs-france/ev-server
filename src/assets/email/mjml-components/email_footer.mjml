@@ -6,3 +6,8 @@
 		</mj-text>
 	</mj-column>
 </mj-section>
+<mj-section padding-top="40px">
+  <mj-column>
+  </mj-column>
+</mj-section>
+
