@@ -152,7 +152,7 @@ describe('Tenant', () => {
       // Exec
       const response = await CentralServerService.defaultInstance.getEntityById(
         CentralServerService.defaultInstance.tenantApi, { id: 'youAreInvalid' }, false);
-      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
     });
 
     it('Should not be possible to read an unknown tenant', async () => {
@@ -169,7 +169,7 @@ describe('Tenant', () => {
       // Call
       const response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
-      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
     });
 
     it('Should not be possible to create a tenant without a name', async () => {
@@ -179,7 +179,7 @@ describe('Tenant', () => {
       // Call
       const response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
-      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
     });
 
     it(
@@ -191,7 +191,7 @@ describe('Tenant', () => {
         // Call
         const response = await CentralServerService.defaultInstance.createEntity(
           CentralServerService.defaultInstance.tenantApi, tenant, false);
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
       }
     );
 
@@ -204,7 +204,7 @@ describe('Tenant', () => {
         // Call
         const response = await CentralServerService.defaultInstance.createEntity(
           CentralServerService.defaultInstance.tenantApi, tenant, false);
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
       }
     );
 
@@ -217,7 +217,7 @@ describe('Tenant', () => {
         // Call
         const response = await CentralServerService.defaultInstance.createEntity(
           CentralServerService.defaultInstance.tenantApi, tenant, false);
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
       }
     );
 
@@ -230,7 +230,7 @@ describe('Tenant', () => {
         // Call
         const response = await CentralServerService.defaultInstance.createEntity(
           CentralServerService.defaultInstance.tenantApi, tenant, false);
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
       }
     );
 
@@ -243,7 +243,7 @@ describe('Tenant', () => {
         // Call
         const response = await CentralServerService.defaultInstance.createEntity(
           CentralServerService.defaultInstance.tenantApi, tenant, false);
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
       }
     );
 
@@ -256,7 +256,7 @@ describe('Tenant', () => {
         // Call
         const response = await CentralServerService.defaultInstance.createEntity(
           CentralServerService.defaultInstance.tenantApi, tenant, false);
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
       }
     );
 
@@ -269,7 +269,7 @@ describe('Tenant', () => {
         // Call
         const response = await CentralServerService.defaultInstance.createEntity(
           CentralServerService.defaultInstance.tenantApi, tenant, false);
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
       }
     );
 

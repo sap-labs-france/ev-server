@@ -113,7 +113,7 @@ describe('Car', () => {
         'Should not be able to get a detailed car catalog without ID',
         async () => {
           const response = await testData.centralService.carApi.readCarCatalog(null);
-          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
         }
       );
 
@@ -138,7 +138,7 @@ describe('Car', () => {
             vin: null,
           }), false
         );
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
       });
 
       it(
@@ -151,7 +151,7 @@ describe('Car', () => {
               licensePlate: null,
             }), false
           );
-          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
         }
       );
 
@@ -163,7 +163,7 @@ describe('Car', () => {
             type: null,
           }), false
         );
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
       });
 
       it(
@@ -358,7 +358,7 @@ describe('Car', () => {
       'Should not be able to get a detailed car catalog without ID',
       async () => {
         const response = await testData.centralService.carApiSuperTenant.readCarCatalog(null);
-        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
       }
     );
 
