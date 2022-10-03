@@ -75,6 +75,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         miscIsofix: data.Misc_Isofix,
         miscIsofixSeats: data.Misc_Isofix_Seats,
         miscTurningCircle: data.Misc_TurningCircle,
+        rangeWLTP: data.Range_WLTP,
         imageURLs: data.Images ? (!Utils.isEmptyArray(data.Images) ? data.Images : [data.Images]) : [],
         images: [],
         videos: data.Videos,
