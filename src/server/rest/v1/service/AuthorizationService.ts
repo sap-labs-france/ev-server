@@ -1402,18 +1402,22 @@ export default class AuthorizationService {
   }
 
   private static filterProjectFields(authFields: string[], httpProjectField: string): string[] {
-    let fields = authFields;
-    // Only allow projected fields
-    const httpProjectFields = AuthorizationService.httpFilterProjectToArray(httpProjectField);
-    if (!Utils.isEmptyArray(httpProjectFields)) {
-      fields = authFields.filter(
-        (authField) => httpProjectFields.includes(authField));
-    }
+    // Init with authorization fields
+    let applicableProjectedFields = authFields;
     // Remove '*'
-    if (!Utils.isEmptyArray(fields)) {
-      fields = fields.filter((field) => field !== '*');
+    if (!Utils.isEmptyArray(applicableProjectedFields)) {
+      applicableProjectedFields = applicableProjectedFields.filter((field) => field !== '*');
     }
-    return fields;
+    // Build and clean http projected field to only contain authorized fields
+    let httpProjectFields = AuthorizationService.httpFilterProjectToArray(httpProjectField);
+    if(!Utils.isEmptyArray(applicableProjectedFields) && !Utils.isEmptyArray(httpProjectFields)) {
+      httpProjectFields = httpProjectFields.filter(
+        (httpProjectField) => applicableProjectedFields.includes(httpProjectField));
+    }
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+        return httpProjectFields;
+    }
+    return applicableProjectedFields;
   }
 
   private static async processDynamicFilters(tenant: Tenant, userToken: UserToken, authAction: Action, authEntity: Entity,
