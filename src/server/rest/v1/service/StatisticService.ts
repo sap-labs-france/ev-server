@@ -401,10 +401,10 @@ export default class StatisticService {
       filter.chargeBoxIDs = filteredRequest.ChargingStationID.split('|');
     }
     // DataScope
-    if (filteredRequest.DataScope) {
-      filter.dataScope = filteredRequest.DataScope;
-    } else {
+    if (filteredRequest.DataScope === StatsDataScope.TOTAL || !filteredRequest.DataScope) {
       filter.dataScope = StatsDataScope.MONTH;
+    } else {
+      filter.dataScope = filteredRequest.DataScope;
     }
     // User
     if (Authorizations.isBasic(loggedUser)) {

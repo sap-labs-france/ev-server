@@ -48,7 +48,8 @@ export enum StatsDataScope {
   DATE = 'date',
   DAY_OF_MONTH = 'dayOfMonth',
   DAY_OF_WEEK = 'dayOfWeek',
-  TOTAL = 'sum',
+  SUM = 'sum',
+  TOTAL = 'total',
   DAY_OF_YEAR = 'dayOfYear',
   HOUR = 'hour'
 }
