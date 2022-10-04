@@ -25,6 +25,10 @@
     },
     "ProjectFields": {
       "$ref": "common#/definitions/projectFields"
+    },
+    "WithAuth": {
+      "$ref": "common#/definitions/withAuth",
+      "default": true
     }
   },
   "required": [

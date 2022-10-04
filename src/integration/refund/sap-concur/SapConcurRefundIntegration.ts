@@ -83,7 +83,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
     shouldResetTimeout: true
   };
 
-  constructor(tenant: Tenant, setting: ConcurRefundSetting) {
+  public constructor(tenant: Tenant, setting: ConcurRefundSetting) {
     super(tenant, setting);
     // Get Axios
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant,

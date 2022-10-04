@@ -3,9 +3,9 @@ import { AnySchemaObject, DataValidateFunction, DataValidationCxt } from 'ajv/di
 
 import AppError from '../exception/AppError';
 import Constants from '../utils/Constants';
-import { HTTPError } from '../types/HTTPError';
 import { ObjectId } from 'mongodb';
 import Schema from '../types/validator/Schema';
+import { StatusCodes } from 'http-status-codes';
 import _ from 'lodash';
 import addFormats from 'ajv-formats';
 import chalk from 'chalk';
@@ -129,7 +129,7 @@ export default class SchemaValidator {
         }
       }
       throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
+        errorCode: StatusCodes.BAD_REQUEST,
         message: concatenatedErrors.join(', '),
         module: this.moduleName,
         method: 'validate',

@@ -530,26 +530,55 @@ export default class OCPPService {
     }
   }
 
-  public async softStopTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea): Promise<boolean> {
-    // Check
-    if (!tenant || !transaction || !chargingStation) {
-      return false;
+  public async softStopTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea): Promise<void> {
+    if (!tenant) {
+      throw new BackendError({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        module: MODULE_NAME, method: 'softStopTransaction',
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Tenant is mandatory`,
+        action: ServerAction.OCPP_STOP_TRANSACTION,
+        detailedMessages: { transaction, chargingStation, siteArea }
+      });
+    }
+    if (!chargingStation) {
+      throw new BackendError({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        module: MODULE_NAME, method: 'softStopTransaction',
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Charging Station is mandatory`,
+        action: ServerAction.OCPP_STOP_TRANSACTION,
+        detailedMessages: { transaction, siteArea }
+      });
+    }
+    if (!transaction) {
+      throw new BackendError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        module: MODULE_NAME, method: 'softStopTransaction',
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Transaction is mandatory`,
+        action: ServerAction.OCPP_STOP_TRANSACTION,
+        detailedMessages: { chargingStation, siteArea }
+      });
     }
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && !siteArea) {
-      return false;
+      throw new BackendError({
+        ...LoggingHelper.getTransactionProperties(transaction),
+        module: MODULE_NAME, method: 'softStopTransaction',
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Site Area is mandatory`,
+        action: ServerAction.OCPP_STOP_TRANSACTION,
+        detailedMessages: { transaction, chargingStation }
+      });
     }
     // Set
     chargingStation.siteArea = siteArea;
     // Stop Transaction
     const result = await this.handleStopTransaction(
       { // OCPP Header
-        chargeBoxIdentity: transaction.chargeBoxID,
+        tenant: tenant,
+        tenantID: tenant.id,
         chargingStation: chargingStation,
+        chargeBoxIdentity: chargingStation.id,
         companyID: transaction.companyID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
-        tenantID: tenant.id,
-        tenant: tenant,
       },
       { // OCPP Stop Transaction
         transactionId: transaction.id,
@@ -578,7 +607,6 @@ export default class OCPPService {
       // Save the transaction
       await TransactionStorage.saveTransaction(tenant, transaction);
     }
-    return true;
   }
 
   public async checkAuthorizeStopTransactionAndGetUsers(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction,

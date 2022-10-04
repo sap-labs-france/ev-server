@@ -5,6 +5,10 @@
   "properties": {
     "userID": {
       "$ref": "common#/definitions/id"
+    },
+    "WithAuth": {
+      "$ref": "common#/definitions/withAuth",
+      "default": true
     }
   },
   "required": [

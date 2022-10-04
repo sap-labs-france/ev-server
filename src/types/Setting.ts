@@ -344,25 +344,33 @@ export interface CarConnectorConnectionSetting {
   token?: CarConnectorConnectionToken;
   mercedesConnection?: CarConnectorMercedesConnectionType;
   tronityConnection?: CarConnectorTronityConnectionType;
+  targaTelematicsConnection?: CarConnectorTargaTelematicsConnectionType;
 }
 
 export enum CarConnectorConnectionType {
   NONE = '',
   MERCEDES = 'mercedes',
-  TRONITY = 'tronity'
+  TRONITY = 'tronity',
+  TARGA_TELEMATICS = 'targaTelematics'
 }
 
-export interface CarConnectorMercedesConnectionType {
+export interface OAuth2ConnectionType {
+  clientId: string;
+  clientSecret: string;
+}
+
+export interface CarConnectorMercedesConnectionType extends OAuth2ConnectionType {
   authenticationUrl: string;
   apiUrl: string;
-  clientId: string;
-  clientSecret: string;
 }
 
-export interface CarConnectorTronityConnectionType {
+export interface CarConnectorTronityConnectionType extends OAuth2ConnectionType {
   apiUrl: string;
-  clientId: string;
-  clientSecret: string;
+}
+
+export interface CarConnectorTargaTelematicsConnectionType extends OAuth2ConnectionType {
+  authenticationUrl: string;
+  apiUrl: string;
 }
 
 export interface CarConnectorConnectionToken {

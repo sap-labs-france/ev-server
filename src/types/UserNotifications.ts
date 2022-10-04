@@ -30,27 +30,27 @@ export default interface UserNotifications {
 }
 
 export type UserNotificationKeys =
- 'sendSessionStarted' |
- 'sendOptimalChargeReached' |
- 'sendEndOfCharge' |
- 'sendEndOfSession' |
- 'sendUserAccountStatusChanged' |
- 'sendUnknownUserBadged' |
- 'sendChargingStationStatusError' |
- 'sendChargingStationRegistered' |
- 'sendOcpiPatchStatusError' |
- 'sendOicpPatchStatusError' |
- 'sendUserAccountInactivity' |
- 'sendPreparingSessionNotStarted' |
- 'sendOfflineChargingStations' |
- 'sendBillingSynchronizationFailed' |
- 'sendBillingNewInvoice' |
- 'sendSessionNotStarted' |
- 'sendCarCatalogSynchronizationFailed' |
- 'sendEndUserErrorNotification' |
- 'sendAccountVerificationNotification' |
- 'sendAdminAccountVerificationNotification'
-;
+  'sendSessionStarted' |
+  'sendOptimalChargeReached' |
+  'sendEndOfCharge' |
+  'sendEndOfSession' |
+  'sendUserAccountStatusChanged' |
+  'sendUnknownUserBadged' |
+  'sendChargingStationStatusError' |
+  'sendChargingStationRegistered' |
+  'sendOcpiPatchStatusError' |
+  'sendOicpPatchStatusError' |
+  'sendUserAccountInactivity' |
+  'sendPreparingSessionNotStarted' |
+  'sendOfflineChargingStations' |
+  'sendBillingSynchronizationFailed' |
+  'sendBillingNewInvoice' |
+  'sendSessionNotStarted' |
+  'sendCarCatalogSynchronizationFailed' |
+  'sendEndUserErrorNotification' |
+  'sendAccountVerificationNotification' |
+  'sendAdminAccountVerificationNotification'
+  ;
 
 export enum UserNotificationType {
   SESSION_STARTED = 'SessionStarted',
@@ -86,18 +86,32 @@ export enum NotificationSeverity {
   ERROR = '#ee0000'
 }
 
+export interface NotificationResult {
+  // to?: string;
+  // cc?: string;
+  // bccNeeded?: boolean;
+  // bcc?: string;
+  // subject?: string;
+  // text: string;
+  html?: string;
+  error?: any;
+}
+
 export interface EmailNotificationMessage {
   to: string;
   cc?: string;
   bccNeeded?: boolean;
   bcc?: string;
   subject: string;
-  text: string;
   html: string;
 }
 
-interface BaseNotification {
+export interface BaseNotification {
   tenantLogoURL?: string;
+  buttonUrl?: string;
+  tableValues?: string[];
+  recipientName?: string;
+  recipientEmail?: string;
 }
 
 export interface EndOfChargeNotification extends BaseNotification {
@@ -174,6 +188,7 @@ export interface RequestPasswordNotification extends BaseNotification {
 export interface UserAccountStatusChangedNotification extends BaseNotification {
   user: User;
   evseDashboardURL: string;
+  accountStatus?: string;
 }
 
 export interface NewRegisteredUserNotification extends BaseNotification {
@@ -263,8 +278,12 @@ export interface PreparingSessionNotStartedNotification extends BaseNotification
 }
 
 export interface OfflineChargingStationNotification extends BaseNotification {
-  chargeBoxIDs: string;
   evseDashboardURL: string;
+  chargingStationIDs: string[];
+  tenFirstChargingStationIDs?: string;
+  nbChargingStationIDs?: number;
+  // TODO - to be removed - old stuff - we cannot send mails with a list showing thousands of offline charging stations
+  chargeBoxIDs?: string;
 }
 
 export interface BillingUserSynchronizationFailedNotification extends BaseNotification {
@@ -321,7 +340,7 @@ export interface ComputeAndApplyChargingProfilesFailedNotification extends BaseN
   evseDashboardURL: string;
 }
 export interface NotificationSource {
-  channel: 'email'|'remote-push-notification';
+  channel: 'email' | 'remote-push-notification';
   notificationTask: NotificationTask;
   enabled: boolean;
 }
@@ -375,6 +394,7 @@ export interface AdminAccountVerificationNotification extends BaseNotification {
   user: User;
   evseDashboardURL: string;
   evseUserToVerifyURL: string;
+  email?: string;
 }
 
 export interface UserCreatePassword extends BaseNotification {

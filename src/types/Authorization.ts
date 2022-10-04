@@ -54,6 +54,18 @@ export interface AuthorizationFilter {
   metadata?: Record<string, AuthorizationDefinitionFieldMetadata>;
 }
 
+export interface DynamicAuthorizationsFilter {
+  UserID: string;
+  SiteID: string;
+  CompanyID: string;
+}
+
+export enum DynamicFilter {
+  USER_ID = 'UserID',
+  SITE_ID = 'SiteID',
+  COMPANY_ID = 'CompanyID',
+}
+
 export interface Grant {
   resource: Entity;
   action: Action | Action[];
@@ -73,7 +85,8 @@ export enum Entity {
   TRANSACTION = 'Transaction',
   REPORT = 'Report',
   USER = 'User',
-  USERS_SITES = 'UsersSites',
+  USER_SITE = 'UserSite',
+  SITE_USER = 'SiteUser',
   LOGGING = 'Logging',
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',
@@ -96,7 +109,8 @@ export enum Entity {
   NOTIFICATION = 'Notification',
   TAG = 'Tag',
   PAYMENT_METHOD = 'PaymentMethod',
-  SOURCE = 'Source'
+  SOURCE = 'Source',
+  CONSUMPTION = 'Consumption',
 }
 
 export enum Action {
@@ -154,8 +168,12 @@ export enum Action {
   TRIGGER_JOB = 'TriggerJob',
   DOWNLOAD = 'Download',
   IMPORT = 'Import',
-  ASSIGN_USERS_TO_SITE = 'AssignUsers',
-  UNASSIGN_USERS_FROM_SITE = 'UnassignUsers',
+  ASSIGN_USERS_TO_SITE = 'AssignUsersToSite',
+  UNASSIGN_USERS_FROM_SITE = 'UnassignUsersFromSite',
+  ASSIGN_SITES_TO_USER = 'AssignSitesToUser',
+  UNASSIGN_SITES_FROM_USER = 'UnassignSitesFromUser',
+  ASSIGN_UNASSIGN_USERS = 'AssignUnassignUsers',
+  ASSIGN_UNASSIGN_SITES = 'AssignUnassignSites',
   ASSIGN_ASSETS_TO_SITE_AREA = 'AssignAssets',
   UNASSIGN_ASSETS_FROM_SITE_AREA = 'UnassignAssets',
   READ_ASSETS_FROM_SITE_AREA = 'ReadAssets',
@@ -176,6 +194,16 @@ export enum Action {
   UPDATE_CHARGING_PROFILE = 'UpdateChargingProfile',
   GET_CONNECTOR_QR_CODE = 'GetConnectorQRCode',
   VIEW_USER_DATA = 'ViewUserData',
+  SYNCHRONIZE_REFUNDED_TRANSACTION = 'SynchronizeRefundedTransaction',
+  PUSH_TRANSACTION_CDR = 'PushTransactionCDR',
+  GET_ADVENIR_CONSUMPTION = 'GetAdvenirConsumption',
+  GET_CHARGING_STATION_TRANSACTIONS = 'GetChargingStationTransactions',
+  GET_ACTIVE_TRANSACTION = 'GetActiveTransaction',
+  GET_COMPLETED_TRANSACTION = 'GetCompletedTransaction',
+  GET_REFUNDABLE_TRANSACTION = 'GetRefundableTransaction',
+  GET_REFUND_REPORT = 'GetRefundReport',
+  EXPORT_COMPLETED_TRANSACTION = 'ExportCompletedTransaction',
+  EXPORT_OCPI_CDR = 'ExportOcpiCdr',
 }
 
 export interface AuthorizationContext {
@@ -204,6 +232,26 @@ export interface AuthorizationActions {
   canListUsers?: boolean;
   projectFields?: string[];
   metadata?: Record<string, unknown>;
+}
+
+export interface UserAuthorizationActions extends AuthorizationActions {
+  canAssignUnassignSites?: boolean;
+  canAssignUsersToSite?: boolean;
+  canUnassignUsersFromSite?: boolean;
+  canListUserSites?: boolean;
+  canListTags?: boolean;
+  canListCompletedTransactions?: boolean;
+  canSynchronizeBillingUser?: boolean;
+}
+
+export interface UserSiteAuthorizationActions extends AuthorizationActions {
+  canAssignSitesToUser?: boolean;
+  canUnassignSitesFromUser?: boolean;
+}
+
+export interface SiteUserAuthorizationActions extends AuthorizationActions {
+  canAssignUsersToSite?: boolean;
+  canUnassignUsersFromSite?: boolean;
 }
 
 export interface TagAuthorizationActions extends AuthorizationActions {
@@ -235,12 +283,13 @@ export interface SiteAreaAuthorizationActions extends AuthorizationActions {
 }
 
 export interface SiteAuthorizationActions extends AuthorizationActions {
-  canAssignUsers?: boolean;
-  canUnassignUsers?: boolean;
-  canReadUsers?: boolean;
+  canAssignUnassignUsers?: boolean;
+  canListSiteUsers?: boolean;
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
   canMaintainPricingDefinitions?: boolean;
+  canAssignSitesToUser?: boolean;
+  canUnassignSitesFromUser?: boolean;
 }
 
 export type BillingTaxAuthorizationActions = AuthorizationActions;
@@ -275,6 +324,8 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canGetOCPPParams?:boolean;
   canUpdateChargingProfile?:boolean;
   canGetConnectorQRCode?:boolean;
+  canPushTransactionCDR?: boolean;
+  canListCompletedTransactions?: boolean;
 }
 
 export interface ConnectorAuthorizationActions extends AuthorizationActions {
@@ -296,6 +347,18 @@ export interface BillingTransferAuthorizationActions extends AuthorizationAction
   canDownload?: boolean;
 }
 
+export interface TransactionAuthorizationActions extends AuthorizationActions {
+  canSynchronizeRefundedTransaction?: boolean;
+  canRefundTransaction?: boolean;
+  canPushTransactionCDR?: boolean;
+  canGetAdvenirConsumption?: boolean;
+  canRemoteStopTransaction?: boolean;
+  canGetChargingStationTransactions?: boolean;
+  canExportOcpiCdr?: boolean;
+  canListLogs?: boolean;
+  canReadChargingStation?: boolean;
+}
+
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
@@ -305,6 +368,7 @@ export enum DynamicAuthorizationFilterName {
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
   EXCLUDE_ACTION = 'ExcludeAction',
+  SITES_ADMIN_OR_OWNER = 'SitesAdminOrOwner',
 }
 
 export enum DynamicAuthorizationAssertName {
@@ -323,6 +387,7 @@ export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
   EXCLUDE_ACTION = 'ExcludeAction',
+  SITES_ADMIN_OR_OWNER = 'SitesAdminOrOwner',
 }
 
 export interface DynamicAuthorizationDataSourceData { }
@@ -332,6 +397,10 @@ export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extend
 }
 
 export interface SitesAdminDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteIDs?: string[];
+}
+
+export interface SitesAdminOrOwnerDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
 

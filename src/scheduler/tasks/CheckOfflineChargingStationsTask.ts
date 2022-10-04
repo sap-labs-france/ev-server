@@ -67,11 +67,11 @@ export default class CheckOfflineChargingStationsTask extends TenantSchedulerTas
           }
           // Notify users with the rest of the Charging Stations
           if (chargingStations.result.length > 0) {
-            const chargingStationIDs = chargingStations.result.map((chargingStation) => chargingStation.id).join(', ');
+            const chargingStationIDs = chargingStations.result.map((chargingStation) => chargingStation.id);
             // Send notification
             void NotificationHandler.sendOfflineChargingStations(
               tenant, {
-                chargeBoxIDs: chargingStationIDs,
+                chargingStationIDs,
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
               }
             );

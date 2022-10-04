@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your electric vehicle, which is connected to <strong>'<%- chargeBoxID %>'</strong>, connector <strong>'<%- connectorId %>'</strong>, reached its optimal charge."
+      "Your vehicle, which is connected to <strong>'<%- chargeBoxID %>'</strong>, connector <strong>'<%- connectorId %>'</strong>, reached its optimal charge."
     ],
     "stats": [
       { "label": "Battery Level", "value": "<%- stateOfCharge %> %" }

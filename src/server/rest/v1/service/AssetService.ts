@@ -242,7 +242,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSET, MODULE_NAME, 'handleGetAssetsInError');
     // Filter
-    const filteredRequest = AssetValidatorRest.getInstance().validateAssetsGetReq(req.query);
+    const filteredRequest = AssetValidatorRest.getInstance().validateAssetsInErrorGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(
       req.tenant, req.user, Action.IN_ERROR, filteredRequest, false);
@@ -273,8 +273,9 @@ export default class AssetService {
       assets.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addAssetsAuthorizations(
-      req.tenant, req.user, assets as AssetDataResult, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addAssetsAuthorizations(req.tenant, req.user, assets as AssetDataResult, authorizations);
+    }
     res.json(assets);
     next();
   }
@@ -387,8 +388,9 @@ export default class AssetService {
       assets.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addAssetsAuthorizations(
-      req.tenant, req.user, assets as AssetDataResult, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addAssetsAuthorizations(req.tenant, req.user, assets as AssetDataResult, authorizations);
+    }
     res.json(assets);
     next();
   }

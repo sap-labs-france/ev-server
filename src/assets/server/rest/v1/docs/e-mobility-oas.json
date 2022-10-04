@@ -419,13 +419,7 @@
             "$ref": "#/components/parameters/SiteID"
           },
           {
-            "in": "query",
-            "name": "CompanyID",
-            "description": "Company ID",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/CompanyID"
           },
           {
             "$ref": "#/components/parameters/Issuer"
@@ -453,6 +447,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -3407,6 +3404,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -5666,6 +5666,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -6039,6 +6042,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -6375,6 +6381,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -7127,6 +7136,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -7330,6 +7342,12 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -7486,6 +7504,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -7757,6 +7778,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -8602,6 +8626,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "responses": {
@@ -9172,6 +9199,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -9602,6 +9632,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -9629,12 +9662,6 @@
                       "chargeStandardPower": 16.5,
                       "chargeStandardPhase": 3,
                       "chargeStandardPhaseAmp": 24,
-                      "chargeAlternativePower": 0,
-                      "chargeAlternativePhase": 0,
-                      "chargeAlternativePhaseAmp": 0,
-                      "chargeOptionPower": 0,
-                      "chargeOptionPhase": 0,
-                      "chargeOptionPhaseAmp": 0,
                       "fastChargePlug": "Supercharger",
                       "fastChargePowerMax": 100,
                       "batteryCapacityFull": 75,
@@ -9700,12 +9727,6 @@
                   "chargeStandardPhase": 3,
                   "chargeStandardChargeTime": 315,
                   "chargeStandardChargeSpeed": 73,
-                  "chargeAlternativePower": 0,
-                  "chargeAlternativePhase": 0,
-                  "chargeAlternativePhaseAmp": 0,
-                  "chargeOptionPower": 0,
-                  "chargeOptionPhase": 0,
-                  "chargeOptionPhaseAmp": 0,
                   "fastChargePlug": "Supercharger",
                   "fastChargePowerMax": 100,
                   "batteryCapacityUseable": 72.5,
@@ -9955,6 +9976,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -10110,12 +10134,6 @@
                     "chargeStandardPower": 11,
                     "chargeStandardPhase": 3,
                     "chargeStandardPhaseAmp": 16,
-                    "chargeAlternativePower": 0,
-                    "chargeAlternativePhase": 0,
-                    "chargeAlternativePhaseAmp": 0,
-                    "chargeOptionPower": 0,
-                    "chargeOptionPhase": 0,
-                    "chargeOptionPhaseAmp": 0,
                     "image": "###"
                   },
                   "user": {
@@ -10337,6 +10355,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -10620,6 +10641,9 @@
             "$ref": "#/components/parameters/SiteIDs"
           },
           {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
             "$ref": "#/components/parameters/WithSiteArea"
           },
           {
@@ -10644,6 +10668,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -10964,6 +10991,9 @@
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -12713,6 +12743,24 @@
           },
           {
             "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -13898,6 +13946,12 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -14146,6 +14200,12 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -14306,6 +14366,12 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          },
+          {
+            "$ref": "#/components/parameters/WithAuth"
           }
         ],
         "tags": [
@@ -16408,6 +16474,23 @@
                               "type": "string"
                             }
                           }
+                        },
+                        "targaTelematicsConnection": {
+                          "type": "object",
+                          "properties": {
+                            "authenticationUrl": {
+                              "type": "string"
+                            },
+                            "apiUrl": {
+                              "type": "string"
+                            },
+                            "clientId": {
+                              "type": "string"
+                            },
+                            "clientSecret": {
+                              "type": "string"
+                            }
+                          }
                         }
                       }
                     }
@@ -16872,6 +16955,16 @@
         "required": false,
         "schema": {
           "type": "string"
+        }
+      },
+      "WithAuth": {
+        "in": "query",
+        "name": "WithAuth",
+        "description": "Show/Hide authorization information (canXXX)",
+        "required": false,
+        "schema": {
+          "type": "boolean",
+          "default": true
         }
       },
       "Search": {
