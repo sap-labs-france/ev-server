@@ -56,11 +56,13 @@ export enum StatsDataScope {
 
 export type StatsAggregationKey = `$${StatsDataScope}`;
 
-export type ChargingStationStats = {[key in StatsDataScope]: number | string} & {
+type AnyDataScopeValue = {[key in StatsDataScope]?: number | string};
+
+export interface ChargingStationStats extends AnyDataScopeValue {
   chargeBox: string;
   total: number;
   unit: string;
-};
+}
 
 export interface UserStats {
   userID: string;
