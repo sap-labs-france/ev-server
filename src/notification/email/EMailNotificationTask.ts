@@ -1,7 +1,6 @@
 /* eslint-disable max-len */
 import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
 import EmailComponentManager, { EmailComponent } from './EmailComponentManager';
-import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
 import BackendError from '../../exception/BackendError';
@@ -14,14 +13,10 @@ import Logging from '../../utils/Logging';
 import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationTask from '../NotificationTask';
 import { ServerAction } from '../../types/Server';
-import TemplateManager from '../../utils/TemplateManager';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
-import ejs from 'ejs';
-import fs from 'fs';
-import global from '../../types/GlobalType';
 import mjmlBuilder from './EmailMjmlBuilder';
 import rfc2047 from 'rfc2047';
 
