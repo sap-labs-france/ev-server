@@ -20,6 +20,34 @@
     },
     "components": {
       "$ref": "tenant-components#/definitions/components"
+    },
+    "support": {
+      "$ref": "common#/definitions/tenantSupport"
+    },
+    "corporateName": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "website": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "rcs": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "capital": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "siret": {
+      "type": "number",
+      "sanitize": "mongo",
+      "pattern": "^[0-9]{14}$"
+    },
+    "legalStatus": {
+      "type": "string",
+      "sanitize": "mongo"
     }
   },
   "required": [

@@ -1,5 +1,6 @@
 import Address from './Address';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { TenantSupport } from './TenantSupport';
 
 export default interface Tenant extends CreatedUpdatedProps {
   id: string;
@@ -10,7 +11,14 @@ export default interface Tenant extends CreatedUpdatedProps {
   logo: string;
   components: TenantComponent;
   redirectDomain?: string;
-  idleMode?: boolean // Prevents batch and async tasks executions when moving the tenant to a different cloud infrastructure provider
+  idleMode?: boolean; // Prevents batch and async tasks executions when moving the tenant to a different cloud infrastructure provider
+  legalStatus: string;
+  corporateName: string;
+  website: string;
+  support: TenantSupport;
+  rcs: string;
+  capital: number;
+  siret: number;
 }
 
 export interface TenantComponent {

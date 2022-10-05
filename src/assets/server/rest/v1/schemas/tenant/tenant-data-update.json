@@ -10,13 +10,41 @@
       "$ref": "tenant#/definitions/name"
     },
     "email": {
-      "$ref": "user#/definitions/email"
+      "$ref": "common#/definitions/email"
     },
     "logo": {
       "$ref": "common#/definitions/logo"
     },
     "address": {
       "$ref": "common#/definitions/address"
+    },
+    "support": {
+      "$ref": "common#/definitions/tenantSupport"
+    },
+    "corporateName": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "website": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "rcs": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "capital": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "siret": {
+      "type": "number",
+      "sanitize": "mongo",
+      "pattern": "^[0-9]{14}$"
+    },
+    "legalStatus": {
+      "type": "string",
+      "sanitize": "mongo"
     }
   },
   "required": [
