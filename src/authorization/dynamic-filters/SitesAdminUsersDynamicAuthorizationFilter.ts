@@ -53,7 +53,7 @@ export default class SitesAdminUsersDynamicAuthorizationFilter extends DynamicAu
         }
       }
     }
-    // Check tags only when extra filter is provided otherwise skip
+    
     if (!Utils.isEmptyArray(tagIDs)) {
       // Force the filter
       authorizationFilters.filters.ownUserTags = tagIDs;
