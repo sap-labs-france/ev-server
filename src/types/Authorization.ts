@@ -417,6 +417,7 @@ export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAut
 export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
+
 export interface OwnUserDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   userID?: string;
   tagIDs?: string[];
