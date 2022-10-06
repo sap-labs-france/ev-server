@@ -19,7 +19,7 @@
       "$ref": "common#/definitions/address"
     },
     "support": {
-      "$ref": "common#/definitions/tenantSupport"
+      "$ref": "tenant#/definitions/tenantSupport"
     },
     "corporateName": {
       "type": "string",

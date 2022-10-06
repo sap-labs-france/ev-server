@@ -187,27 +187,6 @@
       "type": "object",
       "nullable": true,
       "sanitize": "mongo"
-    },
-    "tenantSupport": {
-      "type": "object",
-      "nullable": true,
-      "properties": {
-        "supportEmail": {
-          "type": "string",
-          "format": "email",
-          "sanitize": "mongo",
-          "nullable": true,
-          "transform": [
-            "toLowerCase"
-          ]
-        },
-        "supportPhone": {
-          "type": "string",
-          "sanitize": "mongo",
-          "pattern": "^|\\+?([0-9] ?){9,14}[0-9]$",
-          "nullable": true
-        }
-      }
     }
   }
 }
