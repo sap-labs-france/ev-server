@@ -32,12 +32,12 @@ export default class SitesAdminUsersDynamicAuthorizationDataSource
       }, Constants.DB_PARAMS_MAX_LIMIT,
       ['siteID']
     );
-     // Get the tag and user Ids
-     const tags = await TagStorage.getTags(this.tenant, 
-      { 
-        userIDs: [this.userToken.id] 
-      }, 
-      Constants.DB_PARAMS_DEFAULT_RECORD, 
+    // Get the tag and user Ids
+    const tags = await TagStorage.getTags(this.tenant,
+      {
+        userIDs: [this.userToken.id]
+      },
+      Constants.DB_PARAMS_DEFAULT_RECORD,
       ['id']);
     return { siteIDs: sites.result.map((userSite) => userSite.siteID),tagIDs: tags.result.map((tag) => tag.id), userID: this.userToken.id };
   }
