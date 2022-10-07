@@ -901,6 +901,10 @@ export default class AuthorizationService {
           ChargePointStatus.AVAILABLE,
           ChargePointStatus.UNAVAILABLE,
         ].includes(connector.status);
+      // Read associated transaction: note we force UserID & TagIDs filter
+      connector.canReadTransaction = await AuthorizationService.canPerformAuthorizationAction(
+        tenant, userToken, Entity.TRANSACTION, Action.READ, authorizationFilter,
+        { chargingStationID: chargingStation.id, UserID: connector.user?.id || '', TagIDs: connector.currentTagID || '', SiteID: chargingStation.siteID });
       // Remove sensible data
       await AuthorizationService.canPerformAuthorizationAction(
         tenant, userToken, Entity.CONNECTOR, Action.VIEW_USER_DATA, authorizationFilter,

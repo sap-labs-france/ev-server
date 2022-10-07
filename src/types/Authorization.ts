@@ -332,6 +332,7 @@ export interface ConnectorAuthorizationActions extends AuthorizationActions {
   canRemoteStopTransaction?:boolean;
   canRemoteStartTransaction?:boolean;
   canUnlockConnector?:boolean;
+  canReadTransaction?:boolean;
 }
 
 export interface ChargingProfileAuthorizationActions extends AuthorizationActions {
@@ -407,6 +408,7 @@ export interface SitesAdminOrOwnerDynamicAuthorizationDataSourceData extends Dyn
 export interface SitesAdminUsersDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
   userID?: string;
+  tagIDs?: string[];
 }
 export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
@@ -415,10 +417,8 @@ export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAut
 export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
-export interface SiteAdminUsersDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
-  userIDs?: string[];
-}
 
 export interface OwnUserDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   userID?: string;
+  tagIDs?: string[];
 }
