@@ -13,7 +13,7 @@ export default abstract class TenantAsyncTask extends AbstractAsyncTask {
 
   protected async executeAsyncTask(): Promise<void> {
     // Current task environement
-    const currentTaskEnv = process.env.TASK_ENV || 'FARGATE_SAP_PRD'; // Environement is not set in Fargate
+    const currentTaskEnv = process.env.TASK_ENV || 'FARGATE_ALL_PRD'; // Environement is not set in Fargate
     // Get the Tenants
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     // Process them
