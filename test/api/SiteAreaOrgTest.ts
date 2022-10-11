@@ -268,7 +268,7 @@ describe('Site Area', () => {
         async () => {
           // Try to call Consumptions without Site Area ID
           const response = await testData.centralUserService.siteAreaApi.readConsumption(null,null,null);
-          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
         }
       );
 
@@ -277,7 +277,7 @@ describe('Site Area', () => {
         async () => {
           // Try to call Consumptions without start and end date
           const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, null, null);
-          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
         }
       );
 
@@ -525,7 +525,7 @@ describe('Site Area', () => {
         async () => {
           // Try to call Consumptions without Site Area ID
           const response = await testData.centralUserService.siteAreaApi.readConsumption(null,null,null);
-          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
         }
       );
 
@@ -534,7 +534,7 @@ describe('Site Area', () => {
         async () => {
           // Try to call Consumptions without start and end date
           const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, null, null);
-          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
         }
       );
 

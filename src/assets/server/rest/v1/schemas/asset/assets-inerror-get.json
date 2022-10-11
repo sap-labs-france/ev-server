@@ -1,0 +1,51 @@
+{
+  "$id": "assets-inerror-get",
+  "title": "Get Assets Request",
+  "type": "object",
+  "properties": {
+    "ErrorType": {
+      "type": "string",
+      "sanitize": "mongo",
+      "pattern": "^((missing_site_area)(\\||missing_site_area)*)$"
+    },
+    "WithSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "SiteAreaID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "SiteID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "Issuer": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    },
+    "WithAuth": {
+      "$ref": "common#/definitions/withAuth",
+      "default": true
+    }
+  },
+  "required": [
+    "Limit"
+  ]
+}

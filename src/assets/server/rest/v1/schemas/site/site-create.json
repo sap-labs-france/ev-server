@@ -15,6 +15,9 @@
     "tariffID": {
       "$ref": "common#/definitions/tariff-id"
     },
+    "ownerName": {
+      "$ref": "common#/definitions/owner-name"
+    },
     "autoUserSiteAssignment": {
       "$ref": "site#/definitions/autoUserSiteAssignment"
     },

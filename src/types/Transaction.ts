@@ -13,6 +13,7 @@ import { ResolvedPricingModel } from './Pricing';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
+import { TransactionAuthorizationActions } from './Authorization';
 import { TransactionBillingData } from './Billing';
 import { TransactionRefundData } from './Refund';
 import User from './User';
@@ -76,7 +77,7 @@ export enum StartTransactionErrorCode {
   BILLING_INCONSISTENT_SETTINGS = 'billing_inconsistent_settings', // start transaction not possible - billing settings are inconsistent
 }
 
-export default interface Transaction extends AbstractCurrentConsumption {
+export default interface Transaction extends AbstractCurrentConsumption, TransactionAuthorizationActions {
   id?: number;
   carID?: string;
   car?: Car;

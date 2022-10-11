@@ -2,6 +2,7 @@ import { DynamicAuthorizationDataSourceName, SitesAdminUsersDynamicAuthorization
 
 import Constants from '../../utils/Constants';
 import DynamicAuthorizationDataSource from '../DynamicAuthorizationDataSource';
+import TagStorage from '../../storage/mongodb/TagStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 
 export default class SitesAdminUsersDynamicAuthorizationDataSource
@@ -18,10 +19,11 @@ export default class SitesAdminUsersDynamicAuthorizationDataSource
     // Set
     sitesAdminData.siteIDs = data.siteIDs;
     sitesAdminData.userID = data.userID;
+    sitesAdminData.tagIDs = data.tagIDs;
     this.setData(sitesAdminData);
   }
 
-  private async getSitesAdminUserSiteIDs(): Promise<{siteIDs: string[], userID: string}> {
+  private async getSitesAdminUserSiteIDs(): Promise<{siteIDs: string[], tagIDs: string[], userID: string}> {
     // Get the Site IDs of the Sites for which the user is Site Admin
     const sites = await UserStorage.getUserSites(this.tenant,
       {
@@ -30,6 +32,13 @@ export default class SitesAdminUsersDynamicAuthorizationDataSource
       }, Constants.DB_PARAMS_MAX_LIMIT,
       ['siteID']
     );
-    return { siteIDs: sites.result.map((userSite) => userSite.siteID), userID: this.userToken.id };
+    // Get the tag and user Ids
+    const tags = await TagStorage.getTags(this.tenant,
+      {
+        userIDs: [this.userToken.id]
+      },
+      Constants.DB_PARAMS_DEFAULT_RECORD,
+      ['id']);
+    return { siteIDs: sites.result.map((userSite) => userSite.siteID),tagIDs: tags.result.map((tag) => tag.id), userID: this.userToken.id };
   }
 }

@@ -233,7 +233,7 @@ describe('Authentication Service (utall)', () => {
       const newUser = UserFactory.buildRegisterUser();
       delete newUser.password;
       const response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
-      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.status).to.be.eql(StatusCodes.BAD_REQUEST);
       expect(response.data).to.not.have.property('token');
     });
 
@@ -242,7 +242,7 @@ describe('Authentication Service (utall)', () => {
       const newUser = UserFactory.buildRegisterUser();
       newUser.password = '';
       const response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
-      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.status).to.be.eql(StatusCodes.BAD_REQUEST);
       expect(response.data).to.not.have.property('token');
     });
 
@@ -251,7 +251,7 @@ describe('Authentication Service (utall)', () => {
       const newUser = UserFactory.buildRegisterUser();
       newUser.password = '1234';
       const response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
-      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.status).to.be.eql(StatusCodes.BAD_REQUEST);
       expect(response.data).to.not.have.property('token');
     });
 
@@ -269,7 +269,7 @@ describe('Authentication Service (utall)', () => {
       // Call
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, null, true, testData.adminTenant);
-      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.status).to.be.eql(StatusCodes.BAD_REQUEST);
       expect(response.data).to.not.have.property('token');
     });
 
@@ -277,7 +277,7 @@ describe('Authentication Service (utall)', () => {
       // Call
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, false, testData.adminTenant);
-      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.status).to.be.eql(StatusCodes.BAD_REQUEST);
       expect(response.data).to.not.have.property('token');
     });
 
@@ -285,7 +285,7 @@ describe('Authentication Service (utall)', () => {
       // Call
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, null, testData.adminTenant);
-      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.status).to.be.eql(StatusCodes.BAD_REQUEST);
       expect(response.data).to.not.have.property('token');
     });
 
@@ -293,7 +293,7 @@ describe('Authentication Service (utall)', () => {
       // Call
       const response = await CentralServerService.defaultInstance.authenticationApi.login(
         null, testData.adminPassword, true, testData.adminTenant);
-      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.status).to.be.eql(StatusCodes.BAD_REQUEST);
       expect(response.data).to.not.have.property('token');
     });
 

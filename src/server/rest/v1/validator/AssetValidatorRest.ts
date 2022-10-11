@@ -1,4 +1,4 @@
-import { HttpAssetCheckConnection, HttpAssetConsumptionGetRequest, HttpAssetDeleteRequest, HttpAssetGetRequest, HttpAssetImageGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
+import { HttpAssetCheckConnection, HttpAssetConsumptionGetRequest, HttpAssetDeleteRequest, HttpAssetGetRequest, HttpAssetImageGetRequest, HttpAssetsGetRequest, HttpAssetsInErrorGetRequest } from '../../../../types/requests/HttpAssetRequest';
 
 import Asset from '../../../../types/Asset';
 import Consumption from '../../../../types/Consumption';
@@ -12,6 +12,7 @@ export default class AssetValidatorRest extends SchemaValidator {
   private assetConsumptionCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-consumption-create.json`, 'utf8'));
   private assetGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-get.json`, 'utf8'));
   private assetsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/assets-get.json`, 'utf8'));
+  private assetsInErrorGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/assets-inerror-get.json`, 'utf8'));
   private assetsDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-delete.json`, 'utf8'));
   private assetCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-create.json`, 'utf8'));
   private assetUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/asset/asset-update.json`, 'utf8'));
@@ -44,6 +45,10 @@ export default class AssetValidatorRest extends SchemaValidator {
 
   public validateAssetsGetReq(data: Record<string, unknown>): HttpAssetsGetRequest {
     return this.validate(this.assetsGet, data);
+  }
+
+  public validateAssetsInErrorGetReq(data: Record<string, unknown>): HttpAssetsInErrorGetRequest {
+    return this.validate(this.assetsInErrorGet, data);
   }
 
   public validateAssetCreateReq(data: Record<string, unknown>): Asset {

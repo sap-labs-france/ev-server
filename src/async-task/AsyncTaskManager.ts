@@ -53,6 +53,7 @@ export default class AsyncTaskManager {
   }
 
   public static async handleAsyncTasks(): Promise<void> {
+    let failedToAcquireLock = false;
     await Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT_ID,
       action: ServerAction.ASYNC_TASK,
@@ -140,6 +141,8 @@ export default class AsyncTaskManager {
                 // Release lock
                 await LockingManager.release(asyncTaskLock);
               }
+            } else {
+              failedToAcquireLock = true;
             }
           }
         },
@@ -153,8 +156,11 @@ export default class AsyncTaskManager {
         `{{inSuccess}} asynchronous task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
         'No asynchronous task to process'
       );
-      // Retrigger the Async Framework
-      void AsyncTaskManager.handleAsyncTasks();
+      // Do not retry right away when lock failed to be acquired (infinite loop), wait for the Job
+      if (!failedToAcquireLock) {
+        // Retrigger the Async Framework
+        void AsyncTaskManager.handleAsyncTasks();
+      }
     } else {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,

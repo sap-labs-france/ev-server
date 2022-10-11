@@ -12,6 +12,8 @@ const MODULE_NAME = 'TenantSchedulerTask';
 
 export default abstract class TenantSchedulerTask extends SchedulerTask {
   public async processTask(config: TaskConfig): Promise<void> {
+    // Current task environement
+    const currentTaskEnv = process.env.TASK_ENV || 'FARGATE_ALL_PRD'; // Environement is not set in Fargate
     // Get the Tenants
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     // Process them
@@ -19,6 +21,11 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
       // Check if redirect domain is provided
       if (tenant.redirectDomain || tenant.idleMode) {
         // Ignore this tenant
+        continue;
+      }
+      // Check if tenant task needs to run on a specific environement
+      if (tenant.taskExecutionEnv && tenant.taskExecutionEnv !== currentTaskEnv) {
+        // Ignore execution on this environement
         continue;
       }
       const tenantCorrelationID = Utils.generateShortNonUniqueID();

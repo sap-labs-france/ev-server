@@ -61,8 +61,9 @@ export default class CarService {
       carCatalogs.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addCarCatalogsAuthorizationActions(req.tenant, req.user, carCatalogs as CarCatalogDataResult,
-      authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addCarCatalogsAuthorizationActions(req.tenant, req.user, carCatalogs as CarCatalogDataResult, authorizations);
+    }
     res.json(carCatalogs);
     next();
   }
@@ -369,8 +370,9 @@ export default class CarService {
       cars.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addCarsAuthorizations(
-      req.tenant, req.user, cars as CarDataResult, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addCarsAuthorizations(req.tenant, req.user, cars as CarDataResult, authorizations);
+    }
     res.json(cars);
     next();
   }

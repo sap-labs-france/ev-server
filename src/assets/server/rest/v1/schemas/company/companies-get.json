@@ -41,6 +41,10 @@
     },
     "OnlyRecordCount": {
       "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "WithAuth": {
+      "$ref": "common#/definitions/withAuth",
+      "default": true
     }
   },
   "required": [

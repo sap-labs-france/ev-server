@@ -32,20 +32,17 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
         for (const transaction of transactions.result) {
           try {
             // Soft stop transaction
-            if (await ocppService.softStopTransaction(tenant, transaction, transaction.chargeBox, transaction.siteArea)) {
-              result.inSuccess++;
-              await Logging.logInfo({
-                ...LoggingHelper.getTransactionProperties(transaction),
-                tenantID: tenant.id,
-                actionOnUser: transaction.userID,
-                module: MODULE_NAME, method: 'processTenant',
-                message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
-                action: ServerAction.TRANSACTION_SOFT_STOP,
-                detailedMessages: { transaction }
-              });
-            } else {
-              result.inError++;
-            }
+            await ocppService.softStopTransaction(tenant, transaction, transaction.chargeBox, transaction.siteArea);
+            result.inSuccess++;
+            await Logging.logInfo({
+              ...LoggingHelper.getTransactionProperties(transaction),
+              tenantID: tenant.id,
+              actionOnUser: transaction.userID,
+              module: MODULE_NAME, method: 'processTenant',
+              message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
+              action: ServerAction.TRANSACTION_SOFT_STOP,
+              detailedMessages: { transaction }
+            });
           } catch (error) {
             result.inError++;
             await Logging.logError({

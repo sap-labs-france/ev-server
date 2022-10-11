@@ -1,7 +1,6 @@
-import { CarCatalog, CarCatalogConverter } from '../../../types/Car';
-
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
+import { CarCatalog } from '../../../types/Car';
 import CarIntegration from '../CarIntegration';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -9,7 +8,6 @@ import Jimp from 'jimp';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
-import { Voltage } from '../../../types/ChargingStation';
 
 const MODULE_NAME = 'EVDatabaseCarIntegration';
 
@@ -36,171 +34,48 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
     const carCatalogs: CarCatalog[] = [];
     // Build result
     for (const data of response.data) {
-      const chargeStandardTables: CarCatalogConverter[] = [];
-      const chargeAlternativeTables: CarCatalogConverter[] = [];
-      const chargeOptionTables: CarCatalogConverter[] = [];
-      for (const chargeStandard of Object.keys(data.Charge_Standard_Table)) {
-        const chargeStandardTable: CarCatalogConverter = {
-          type: chargeStandard,
-          evsePhaseVolt: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
-          evsePhaseAmp: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseAmp,
-          evsePhase: data.Charge_Standard_Table[chargeStandard].EVSE_Phase,
-          evsePhaseVoltCalculated: data.Charge_Standard_Table[chargeStandard].EVSE_Phase === 3 ? Voltage.VOLTAGE_400 : data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
-          chargePhaseVolt: data.Charge_Standard_Table[chargeStandard].Charge_PhaseVolt,
-          chargePhaseAmp: data.Charge_Standard_Table[chargeStandard].Charge_PhaseAmp,
-          chargePhase: data.Charge_Standard_Table[chargeStandard].Charge_Phase,
-          chargePower: data.Charge_Standard_Table[chargeStandard].Charge_Power,
-          chargeTime: data.Charge_Standard_Table[chargeStandard].Charge_Time,
-          chargeSpeed: data.Charge_Standard_Table[chargeStandard].Charge_Speed,
-        };
-        chargeStandardTables.push(chargeStandardTable);
-      }
-      if (data.Charge_Alternative_Table) {
-        for (const chargeAlternative of Object.keys(data.Charge_Alternative_Table)) {
-          const chargeAlternativeTable: CarCatalogConverter = {
-            type: chargeAlternative,
-            evsePhaseVolt: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseVolt,
-            evsePhaseAmp: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseAmp,
-            evsePhase: data.Charge_Standard_Table[chargeAlternative].EVSE_Phase,
-            chargePhaseVolt: data.Charge_Standard_Table[chargeAlternative].Charge_PhaseVolt,
-            chargePhaseAmp: data.Charge_Standard_Table[chargeAlternative].Charge_PhaseAmp,
-            chargePhase: data.Charge_Standard_Table[chargeAlternative].Charge_Phase,
-            chargePower: data.Charge_Standard_Table[chargeAlternative].Charge_Power,
-            chargeTime: data.Charge_Standard_Table[chargeAlternative].Charge_Time,
-            chargeSpeed: data.Charge_Standard_Table[chargeAlternative].Charge_Speed,
-          };
-          chargeAlternativeTables.push(chargeAlternativeTable);
-        }
-      }
-      if (data.Charge_Option_Table) {
-        for (const chargeOption of Object.keys(data.Charge_Option_Table)) {
-          const chargeAlternativeTable: CarCatalogConverter = {
-            type: chargeOption,
-            evsePhaseVolt: data.Charge_Standard_Table[chargeOption].EVSE_PhaseVolt,
-            evsePhaseAmp: data.Charge_Standard_Table[chargeOption].EVSE_PhaseAmp,
-            evsePhase: data.Charge_Standard_Table[chargeOption].EVSE_Phase,
-            chargePhaseVolt: data.Charge_Standard_Table[chargeOption].Charge_PhaseVolt,
-            chargePhaseAmp: data.Charge_Standard_Table[chargeOption].Charge_PhaseAmp,
-            chargePhase: data.Charge_Standard_Table[chargeOption].Charge_Phase,
-            chargePower: data.Charge_Standard_Table[chargeOption].Charge_Power,
-            chargeTime: data.Charge_Standard_Table[chargeOption].Charge_Time,
-            chargeSpeed: data.Charge_Standard_Table[chargeOption].Charge_Speed,
-          };
-          chargeOptionTables.push(chargeAlternativeTable);
-        }
-      }
+      // Create and fill th carCatalog object to be saved in the DB
       const carCatalog: CarCatalog = {
         id: data.Vehicle_ID,
         vehicleMake: data.Vehicle_Make,
         vehicleModel: data.Vehicle_Model,
         vehicleModelVersion: data.Vehicle_Model_Version,
-        availabilityStatus: data.Availability_Status,
-        availabilityDateFrom: data.Availability_Date_From,
-        availabilityDateTo: data.Availability_Date_To,
         priceFromDE: data.Price_From_DE,
-        priceFromDEEstimate: data.Price_From_DE_Estimate,
-        priceFromNL: data.Price_From_NL,
-        priceFromNLEstimate: data.Price_From_NL_Estimate,
-        priceFromUK: data.Price_From_UK,
-        priceGrantPICGUK: data.Price_Grant_PICG_UK,
-        priceFromUKEstimate: data.Price_From_UK_Estimate,
-        drivetrainType: data.Drivetrain_Type,
-        drivetrainFuel: data.Drivetrain_Fuel,
         drivetrainPropulsion: data.Drivetrain_Propulsion,
-        drivetrainPower: data.Drivetrain_Power,
         drivetrainPowerHP: data.Drivetrain_Power_HP,
         drivetrainTorque: data.Drivetrain_Torque,
         performanceAcceleration: data.Performance_Acceleration,
         performanceTopspeed: data.Performance_Topspeed,
-        rangeWLTP: data.Range_WLTP,
-        rangeWLTPEstimate: data.Range_WLTP_Estimate,
-        rangeNEDC: data.Range_NEDC,
-        rangeNEDCEstimate: data.Range_NEDC_Estimate,
         rangeReal: data.Range_Real,
-        rangeRealMode: data.Range_Real_Mode,
-        rangeRealWHwy: data.Range_Real_WHwy,
-        rangeRealWCmb: data.Range_Real_WCmb,
-        rangeRealWCty: data.Range_Real_WCty,
-        rangeRealBHwy: data.Range_Real_BHwy,
-        rangeRealBCmb: data.Range_Real_BCmb,
-        rangeRealBCty: data.Range_Real_BCty,
-        efficiencyWLTP: data.Efficiency_WLTP,
-        efficiencyWLTPFuelEq: data.Efficiency_WLTP_FuelEq,
-        efficiencyWLTPV: data.Efficiency_WLTP_V,
-        efficiencyWLTPFuelEqV: data.Efficiency_WLTP_FuelEq_V,
-        efficiencyWLTPCO2: data.Efficiency_WLTP_CO2,
-        efficiencyNEDC: data.Efficiency_NEDC,
-        efficiencyNEDCFuelEq: data.Efficiency_NEDC_FuelEq,
-        efficiencyNEDCV: data.Efficiency_NEDC_V,
-        efficiencyNEDCFuelEqV: data.Efficiency_NEDC_FuelEq_V,
-        efficiencyNEDCCO2: data.Efficiency_NEDC_CO2,
         efficiencyReal: data.Efficiency_Real,
-        efficiencyRealFuelEqV: data.Efficiency_Real_FuelEq_V,
-        efficiencyRealCO2: data.Efficiency_Real_CO2,
-        efficiencyRealWHwy: data.Efficiency_Real_WHwy,
-        efficiencyRealWCmb: data.Efficiency_Real_WCmb,
-        efficiencyRealWCty: data.Efficiency_Real_WCty,
-        efficiencyRealBHwy: data.Efficiency_Real_BHwy,
-        efficiencyRealBCmb: data.Efficiency_Real_BCmb,
-        efficiencyRealBCty: data.Efficiency_Real_BCty,
         chargePlug: data.Charge_Plug,
-        chargePlugEstimate: data.Charge_Plug_Estimate,
         chargePlugLocation: data.Charge_Plug_Location,
-        chargeStandardPower: data.Charge_Standard_Power,
-        chargeStandardPhase: data.Charge_Standard_Phase,
-        chargeStandardPhaseAmp: data.Charge_Standard_PhaseAmp,
+        chargePlug2Location: data.Charge_Plug_2_Location,
+        chargePlug2OptionalDE: data.Charge_Plug_2_Optional_DE,
+        chargePlug2OptionalNL: data.Charge_Plug_2_Optional_NL,
+        chargePlug2OptionalUK: data.Charge_Plug_2_Optional_UK,
+        chargeStandardChargeSpeedDE: data.Charge_Standard_ChargeSpeed_DE,
+        chargeStandardChargeTimeDE: data.Charge_Standard_ChargeTime_DE,
+        chargeStandardPower: data.Charge_Standard_Power_DE ?? data.Charge_Standard_Power_NL ?? data.Charge_Standard_Power_UK,
+        chargeStandardPhase: data.Charge_Standard_Phase_DE ?? data.Charge_Standard_Phase_NL ?? data.Charge_Standard_Phase_UK,
+        chargeStandardPhaseAmp: data.Charge_Standard_PhaseAmp_DE ?? data.Charge_Standard_PhaseAmp_NL ?? data.Charge_Standard_PhaseAmp_UK,
         chargeStandardChargeTime: data.Charge_Standard_ChargeTime,
+        chargeStandardChargeTimeNL: data.Charge_Standard_ChargeTime_NL,
+        chargeStandardChargeSpeedNL: data.Charge_Standard_ChargeSpeed_NL,
+        chargeStandarChargeTimeUK: data.Charge_Standard_ChargeTime_UK,
         chargeStandardChargeSpeed: data.Charge_Standard_ChargeSpeed,
-        chargeStandardEstimate: data.Charge_Standard_Estimate,
-        chargeStandardTables: chargeStandardTables,
-        chargeAlternativePower: data.Charge_Alternative_Power,
-        chargeAlternativePhase: data.Charge_Alternative_Phase,
-        chargeAlternativePhaseAmp: data.Charge_Alternative_PhaseAmp,
-        chargeAlternativeChargeTime: data.Charge_Alternative_ChargeTime,
-        chargeAlternativeChargeSpeed: data.Charge_Alternative_ChargeSpeed,
-        chargeAlternativeTables: chargeAlternativeTables,
-        chargeOptionPower: data.Charge_Option_Power,
-        chargeOptionPhase: data.Charge_Option_Phase,
-        chargeOptionPhaseAmp: data.Charge_Option_PhaseAmp,
-        chargeOptionChargeTime: data.Charge_Option_ChargeTime,
-        chargeOptionChargeSpeed: data.Charge_Option_ChargeSpeed,
-        chargeOptionTables: chargeOptionTables,
+        chargeStandardChargeSpeedUK: data.Charge_Standard_ChargeSpeed_UK,
         fastChargePlug: data.Fastcharge_Plug,
-        fastChargePlugEstimate: data.Fastcharge_Plug_Estimate,
-        fastChargePlugLocation: data.Fastcharge_Plug_Location,
         fastChargePowerMax: data.Fastcharge_Power_Max,
-        fastChargePowerAvg: data.Fastcharge_Power_Avg,
-        fastChargeTime: data.Fastcharge_ChargeTime,
-        fastChargeSpeed: data.Fastcharge_ChargeSpeed,
-        fastChargeOptional: data.Fastcharge_Optional,
-        fastChargeEstimate: data.Fastcharge_Estimate,
         batteryCapacityUseable: data.Battery_Capacity_Useable,
         batteryCapacityFull: data.Battery_Capacity_Full,
-        batteryCapacityEstimate: data.Battery_Capacity_Estimate,
-        dimsLength: data.Dims_Length,
-        dimsWidth: data.Dims_Width,
-        dimsHeight: data.Dims_Height,
-        dimsWheelbase: data.Dims_Wheelbase,
-        dimsWeight: data.Dims_Weight,
-        dimsBootspace: data.Dims_Bootspace,
-        dimsBootspaceMax: data.Dims_Bootspace_Max,
-        dimsTowWeightUnbraked: data.Dims_TowWeight_Braked,
-        dimsRoofLoadMax: data.Dims_RoofLoad_Max,
         miscBody: data.Misc_Body,
         miscSegment: data.Misc_Segment,
         miscSeats: data.Misc_Seats,
-        miscRoofrails: data.Misc_Roofrails,
         miscIsofix: data.Misc_Isofix,
         miscIsofixSeats: data.Misc_Isofix_Seats,
         miscTurningCircle: data.Misc_TurningCircle,
-        euroNCAPRating: data.EuroNCAP_Rating,
-        euroNCAPYear: data.EuroNCAP_Year,
-        euroNCAPAdult: data.EuroNCAP_Adult,
-        euroNCAPChild: data.EuroNCAP_Child,
-        euroNCAPVRU: data.EuroNCAP_VRU,
-        euroNCAPSA: data.EuroNCAP_SA,
-        relatedVehicleIDSuccessor: data.Related_Vehicle_ID_Successor,
-        eVDBDetailURL: data.EVDB_Detail_URL,
+        rangeWLTP: data.Range_WLTP,
         imageURLs: data.Images ? (!Utils.isEmptyArray(data.Images) ? data.Images : [data.Images]) : [],
         images: [],
         videos: data.Videos,
@@ -232,7 +107,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
     return image;
   }
 
-  public async getCarCatalogImage(carCatalog: CarCatalog, imageURL:string): Promise<string> {
+  public async getCarCatalogImage(carCatalog: CarCatalog, imageURL: string): Promise<string> {
     try {
       const response = (await Jimp.read(imageURL)).resize(700, Jimp.AUTO).quality(60);
       const imageMIME = response.getMIME();
