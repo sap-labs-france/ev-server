@@ -19,6 +19,7 @@ export default interface Tenant extends CreatedUpdatedProps {
   rcs: string;
   capital: number;
   siret: number;
+  taskExecutionEnv?: string; // Environement on which tasks should be executed
 }
 
 export interface TenantComponent {
