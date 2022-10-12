@@ -23,7 +23,7 @@ export default abstract class TenantAsyncTask extends AbstractAsyncTask {
        (taskSettings.task.disableAllTasks || !Utils.isEmptyArray(taskSettings.task.disableTasksInEnv) && taskSettings.task.disableTasksInEnv.includes(currentTaskEnv))) {
       // Tasks are disabled for this environment
       isTaskExecutionDisabled = true;
-      await Logging.logDebug({
+      await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.ASYNC_TASK,
         module: MODULE_NAME, method: 'executeAsyncTask',
@@ -43,7 +43,7 @@ export default abstract class TenantAsyncTask extends AbstractAsyncTask {
         }
         // Check if tenant task needs to run on a specific env
         if (tenant.taskExecutionEnv && tenant.taskExecutionEnv !== currentTaskEnv) {
-          await Logging.logDebug({
+          await Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.ASYNC_TASK,
             module: MODULE_NAME, method: 'executeAsyncTask',

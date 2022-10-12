@@ -23,7 +23,7 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
       (taskSettings.task.disableAllTasks || !Utils.isEmptyArray(taskSettings.task.disableTasksInEnv) && taskSettings.task.disableTasksInEnv.includes(currentTaskEnv))) {
       // Tasks are disabled for this environment
       isTaskExecutionDisabled = true;
-      await Logging.logDebug({
+      await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'processTask',
@@ -43,7 +43,7 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
         }
         // Check if tenant task needs to run on a specific environment
         if (tenant.taskExecutionEnv && tenant.taskExecutionEnv !== currentTaskEnv) {
-          await Logging.logDebug({
+          await Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'processTask',
