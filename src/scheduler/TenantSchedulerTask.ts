@@ -47,7 +47,7 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'processTask',
-            message: `The Task '${this.getName()}~${this.getCorrelationID()}' is skipped for Tenant ${Utils.buildTenantName(tenant)}...`
+            message: `The Task '${this.getName()}~${this.getCorrelationID()}' is skipped for Tenant ${Utils.buildTenantName(tenant)}, on environement '${currentTaskEnv}'...`
           });
           // Ignore execution on this environment
           continue;
