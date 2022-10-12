@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSetting, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TaskSettings, TaskSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
@@ -333,7 +333,7 @@ export default class SettingStorage {
   }
 
   public static async getSettings(tenant: Tenant,
-      params: {identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date},
+      params: { identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -474,7 +474,7 @@ export default class SettingStorage {
             secretKey: content.stripe?.secretKey,
             publicKey: content.stripe?.publicKey,
           };
-          billingSettings.sensitiveData = [ 'stripe.secretKey' ];
+          billingSettings.sensitiveData = ['stripe.secretKey'];
           break;
       }
       return billingSettings;
@@ -495,9 +495,25 @@ export default class SettingStorage {
       category, createdBy, createdOn, lastChangedBy, lastChangedOn,
     };
     if (billingSettings.type === BillingSettingsType.STRIPE) {
-      setting.sensitiveData = [ 'content.stripe.secretKey' ];
+      setting.sensitiveData = ['content.stripe.secretKey'];
       setting.content.stripe = stripe;
     }
     return SettingStorage.saveSettings(tenant, setting);
   }
+
+  public static async getTaskSettings(tenant: Tenant): Promise<TaskSettings> {
+    let taskSettings: TaskSettings;
+    // Get task settings
+    const settings = await SettingStorage.getSettings(tenant, { identifier: TechnicalSettings.TASK }, Constants.DB_PARAMS_SINGLE_RECORD);
+    if (settings.count > 0) {
+      taskSettings = {
+        id: settings.result[0].id,
+        identifier: TechnicalSettings.TASK,
+        type: TaskSettingsType.TASK,
+        task: settings.result[0].content.task,
+      };
+    }
+    return taskSettings;
+  }
+
 }
