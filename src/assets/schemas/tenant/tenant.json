@@ -58,6 +58,37 @@
           "nullable": true
         }
       }
+    },
+    "businessDetails": {
+      "type": "object",
+      "nullable": true,
+      "properties": {
+        "corporateName": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "website": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "rcs": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "capital": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "siret": {
+          "type": "number",
+          "sanitize": "mongo",
+          "pattern": "^[0-9]{14}$"
+        },
+        "legalStatus": {
+          "type": "string",
+          "sanitize": "mongo"
+        }
+      }
     }
   }
 }
