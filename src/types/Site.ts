@@ -1,3 +1,5 @@
+import { SiteAuthorizationActions, UserSiteAuthorizationActions } from './Authorization';
+
 import Address from './Address';
 import { BillingAccountData } from './Billing';
 import Company from './Company';
@@ -6,7 +8,6 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { OCPILocation } from './ocpi/OCPILocation';
 import { OpeningTimes } from './OpeningTimes';
 import SiteArea from './SiteArea';
-import { SiteAuthorizationActions } from './Authorization';
 
 export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActions {
   id: string;
@@ -23,10 +24,11 @@ export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActi
   public?: boolean;
   openingTimes?: OpeningTimes;
   tariffID?: string;
+  ownerName?: string;
   accountData?: BillingAccountData;
 }
 
-export interface SiteUser {
+export interface UserSite extends UserSiteAuthorizationActions{
   site: Site;
   siteID?: string;
   userID: string;

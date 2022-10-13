@@ -346,7 +346,7 @@
       "title": "Borne en erreur",
       "buttonText": "Voir l'erreur",
       "text": [
-        "Un erreur est survenue sur la borne {{chargeBoxID}}, connecteur {{connectorId}}",
+        "Une erreur est survenue sur la borne {{chargeBoxID}}, connecteur {{connectorId}}.",
         "Erreur: {{error}}"
       ]
     },

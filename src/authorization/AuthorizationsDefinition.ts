@@ -115,9 +115,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
           'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
-          'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
-          'fastChargePowerMax', 'drivetrainPowerHP'
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargePlug', 'fastChargePlug',
+          'fastChargePowerMax', 'drivetrainPowerHP', 'chargeStandardPhase'
         ]
       },
       { resource: Entity.CAR_CATALOG, action: Action.SYNCHRONIZE },
@@ -128,8 +127,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
-          'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp'
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'hash', 'image'
         ]
       },
     ]
@@ -173,7 +171,20 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
           'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
-        ]
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: [],
+            metadata: {
+              status: {
+                visible: true,
+                mandatory: true,
+              }
+            },
+          }
+        }
       },
       { resource: Entity.USER, action: Action.SYNCHRONIZE_BILLING_USER },
       {
@@ -209,6 +220,21 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'technical', 'freeAccess',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
+        ]
+      },
+      {
+        resource: Entity.USER, action: [
+          Action.ASSIGN_UNASSIGN_SITES,
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
+        attributes: [
+          'id'
         ]
       },
       {
@@ -299,7 +325,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE, action: Action.LIST,
         attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
-          'address.department', 'address.region', 'address.country',
+          'address.department', 'address.region', 'address.country', 'tariffID',
           'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectorStats'
@@ -309,7 +335,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE, action: Action.READ,
         attributes: [
           'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID', 'ownerName',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates',
           'accountData.accountID', 'accountData.platformFeeStrategy.flatFeePerSession',
@@ -332,14 +358,22 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
-        resource: Entity.USERS_SITES, action: Action.LIST,
+        resource: Entity.SITE, action: [
+          Action.ASSIGN_UNASSIGN_USERS
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
         attributes: [
-          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
+          'id'
         ]
       },
       {
-        resource: Entity.USERS_SITES,
-        action: [Action.ASSIGN, Action.UNASSIGN, Action.READ],
+        resource: Entity.USER_SITE, action: [Action.ASSIGN_SITES_TO_USER, Action.UNASSIGN_SITES_FROM_USER, Action.READ, Action.UPDATE, Action.LIST],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -347,13 +381,29 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: []
           }
         },
+        attributes: [
+          'site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID'
+        ]
+      },
+      {
+        resource: Entity.SITE_USER, action: [Action.ASSIGN_USERS_TO_SITE, Action.UNASSIGN_USERS_FROM_SITE, Action.READ, Action.UPDATE, Action.LIST],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['LocalIssuer']
+          }
+        },
+        attributes: [
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteID', 'siteAdmin', 'siteOwner',
+        ]
       },
       {
         resource: Entity.SITE_AREA, action: Action.LIST,
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'chargingStations.id',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
-          'address.department', 'address.region', 'address.country',
+          'address.department', 'address.region', 'address.country', 'tariffID',
           'address.coordinates', 'site.id', 'site.name', 'site.public', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer', 'distanceMeters',
           'createdOn', 'createdBy.name', 'createdBy.firstName', 'lastChangedOn', 'lastChangedBy.name', 'lastChangedBy.firstName', 'connectorStats'
         ]
@@ -680,7 +730,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.TRANSACTION, action: [
-          Action.EXPORT, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, Action.UPDATE, Action.DELETE, 
+          Action.EXPORT, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, Action.UPDATE, Action.DELETE,
           Action.REFUND_TRANSACTION, Action.REMOTE_STOP_TRANSACTION
         ]
       },
@@ -914,9 +964,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
           'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
-          'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
-          'fastChargePowerMax', 'drivetrainPowerHP'
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargePlug', 'fastChargePlug',
+          'fastChargePowerMax', 'drivetrainPowerHP', 'chargeStandardPhase'
         ]
       },
       {
@@ -926,8 +975,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
-          'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp'
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'hash', 'image'
         ]
       },
       { resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE] },
@@ -937,8 +985,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
-          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase',
           'user.id', 'user.name', 'user.firstName', 'userID', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID'
         ]
       },
@@ -1010,8 +1056,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
           'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
-          'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargePlug', 'fastChargePlug',
           'fastChargePowerMax', 'drivetrainPowerHP'
         ]
       },
@@ -1022,8 +1067,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
-          'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp'
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'hash', 'image', 'chargeStandardPhase'
         ]
       },
       {
@@ -1064,9 +1108,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
-          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase',
-          'user.id', 'user.name', 'user.firstName', 'userID', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID'
+          'user.id', 'user.name', 'user.firstName', 'userID', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID', 'chargeStandardPhase'
         ],
       },
       {
@@ -1291,8 +1333,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id','issuer','public','siteAreaID','lastSeen','inactive','forceInactive','manualConfiguration','voltage','coordinates','chargingStationURL', 'forceInactive',
-          'tariffID', 'maximumPower', 'masterSlave',
-          'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
+          'maximumPower', 'masterSlave', 'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
           'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
           'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs',
           'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode', 'connectors.connectorId', 'connectors.currentTotalConsumptionWh',
@@ -1561,7 +1602,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: ['OwnUser']
           }
         },
         attributes: [
@@ -1712,8 +1753,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
           'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
-          'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargePlug', 'fastChargePlug', 'chargeStandardPhase',
           'fastChargePowerMax', 'drivetrainPowerHP'
         ]
       },
@@ -1724,8 +1764,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation',
           'drivetrainPowerHP', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
-          'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp'
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'hash', 'image', 'chargeStandardPhase'
         ]
       }, {
         resource: Entity.CAR, action: Action.READ,
@@ -1733,8 +1772,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
-          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase'
         ]
       },
       {
@@ -1831,8 +1868,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'issuer', 'public', 'siteAreaID', 'lastSeen', 'inactive', 'forceInactive', 'manualConfiguration', 'voltage', 'coordinates', 'chargingStationURL',
-          'forceInactive', 'tariffID', 'maximumPower', 'masterSlave',
-          'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
+          'forceInactive', 'maximumPower', 'masterSlave', 'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
           'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
           'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs',
           'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode', 'connectors.connectorId', 'connectors.currentTotalConsumptionWh',
@@ -2127,16 +2163,57 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.USERS_SITES, action: [Action.LIST, Action.UNASSIGN, Action.READ],
+        resource: Entity.USER_SITE, action: [Action.ASSIGN_SITES_TO_USER, Action.UNASSIGN_SITES_FROM_USER, Action.READ, Action.UPDATE, Action.LIST],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SitesAdmin', 'LocalIssuer']
+            filters: ['LocalIssuer']
           }
         },
         attributes: [
-          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
+          'site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID'
+        ]
+      },
+      {
+        resource: Entity.USER,
+        action: [Action.ASSIGN_UNASSIGN_SITES],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+        attributes: [
+          'id',
+        ]
+      },
+      {
+        resource: Entity.SITE_USER, action: [Action.ASSIGN_USERS_TO_SITE, Action.UNASSIGN_USERS_FROM_SITE, Action.READ, Action.UPDATE, Action.LIST],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+        attributes: [
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteID', 'siteAdmin', 'siteOwner',
+        ]
+      },
+      {
+        resource: Entity.SITE,
+        action: [Action.ASSIGN_UNASSIGN_USERS],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+        attributes: [
+          'id',
         ]
       },
       {
@@ -2148,6 +2225,22 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: ['SitesAdmin', 'LocalIssuer']
           }
         },
+      },
+      {
+        resource: Entity.SITE, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'tariffID',
+          'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'connectorStats'
+        ],
       },
       {
         resource: Entity.SITE, action: Action.READ,
@@ -2165,7 +2258,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn', 'tariffID', 'ownerName',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
         ],
@@ -2185,6 +2278,23 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             filters: ['SitesAdmin', 'LocalIssuer']
           }
         },
+      },
+      {
+        resource: Entity.SITE_AREA, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'chargingStations.id',
+          'address.address1', 'address.address2', 'address.postalCode', 'address.city',
+          'address.department', 'address.region', 'address.country', 'tariffID',
+          'address.coordinates', 'site.id', 'site.name', 'parentSiteAreaID', 'parentSiteArea.name', 'issuer',
+          'distanceMeters', 'createdOn', 'lastChangedOn', 'connectorStats'
+        ],
       },
       {
         resource: Entity.SITE_AREA, action: Action.READ,
@@ -2305,8 +2415,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn', 'user.id', 'user.name', 'user.firstName',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
-          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID'
+          'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID', 'chargeStandardPhase'
         ],
       },
       {
@@ -2515,15 +2624,15 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'billingData.stop.invoiceID', 'billingData.stop.invoiceItem', 'billingData.stop.invoiceNumber', 'billingData.stop.invoiceStatus', 
-          'billingData.stop.status', 'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 
-          'carCatalogID', 'carID', 'chargeBoxID', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus', 'currentInstantWatts', 
-          'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'id', 'issuer', 'meterStart', 
-          'price', 'priceUnit', 'pricingModel', 'roundedPrice', 'signedData', 'siteAreaID', 'siteID', 'stateOfCharge', 
-          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.pricingSource', 'stop.reason', 
-          'stop.roundedPrice', 'stop.signedData', 'stop.stateOfCharge', 'stop.tag.description', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 
-          'stop.totalConsumptionWh', 'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.email', 'stop.user.firstName', 'stop.user.id', 
-          'stop.user.name', 'stop.userID', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone', 
+          'billingData.stop.invoiceID', 'billingData.stop.invoiceItem', 'billingData.stop.invoiceNumber', 'billingData.stop.invoiceStatus',
+          'billingData.stop.status', 'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'carCatalogID', 'carID', 'chargeBoxID', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus', 'currentInstantWatts',
+          'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'id', 'issuer', 'meterStart',
+          'price', 'priceUnit', 'pricingModel', 'roundedPrice', 'signedData', 'siteAreaID', 'siteID', 'stateOfCharge',
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.pricingSource', 'stop.reason',
+          'stop.roundedPrice', 'stop.signedData', 'stop.stateOfCharge', 'stop.tag.description', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp',
+          'stop.totalConsumptionWh', 'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.email', 'stop.user.firstName', 'stop.user.id',
+          'stop.user.name', 'stop.userID', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone',
           'user.email', 'user.firstName', 'user.id', 'user.name', 'userID'
         ]
       },
@@ -2601,7 +2710,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: ['SitesAdminUsers']
           }
         },
         attributes: [
@@ -2945,7 +3054,33 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.TRANSACTION, action: Action.LIST,
+        resource: Entity.USER_SITE, action: [Action.READ, Action.LIST],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+        attributes: [
+          'site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID'
+        ]
+      },
+      {
+        resource: Entity.SITE_USER, action: [Action.READ, Action.LIST],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
+          }
+        },
+        attributes: [
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteID', 'siteAdmin', 'siteOwner',
+        ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -2954,14 +3089,14 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'billingData.stop.invoiceNumber', 
-          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalogID', 'carID', 
-          'chargeBoxID', 'company.name', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus', 
-          'currentInstantWatts', 'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs', 
-          'currentTotalInactivitySecs', 'id', 'issuer', 'meterStart', 'ocpi', 'ocpiWithCdr', 'price', 'priceUnit', 'roundedPrice', 
-          'site.name', 'siteArea.name', 'siteAreaID', 'siteID', 'stateOfCharge', 
-          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.reason', 
-          'stop.roundedPrice', 'stop.stateOfCharge', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh', 
+          'billingData.stop.invoiceNumber',
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalogID', 'carID',
+          'chargeBoxID', 'company.name', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus',
+          'currentInstantWatts', 'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs',
+          'currentTotalInactivitySecs', 'id', 'issuer', 'meterStart', 'ocpi', 'ocpiWithCdr', 'price', 'priceUnit', 'roundedPrice',
+          'site.name', 'siteArea.name', 'siteAreaID', 'siteID', 'stateOfCharge',
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.reason',
+          'stop.roundedPrice', 'stop.stateOfCharge', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone'
         ]
       },
@@ -2975,16 +3110,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'billingData.stop.invoiceID', 'billingData.stop.invoiceItem', 'billingData.stop.invoiceNumber', 'billingData.stop.invoiceStatus', 
-          'billingData.stop.status', 'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 
-          'carCatalogID', 'carID', 'chargeBoxID', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus', 'currentInstantWatts', 
-          'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'id', 'issuer', 'meterStart', 
-          'price', 'priceUnit', 'pricingModel', 'roundedPrice', 'signedData', 'siteAreaID', 'siteID', 'stateOfCharge', 
-          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.pricingSource', 'stop.reason', 
-          'stop.roundedPrice', 'stop.signedData', 'stop.stateOfCharge', 'stop.tag.description', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 
-          'stop.totalConsumptionWh', 'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.email', 'stop.user.firstName', 'stop.user.id', 
-          'stop.user.name', 'stop.userID', 
-          'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone', 
+          'billingData.stop.invoiceID', 'billingData.stop.invoiceItem', 'billingData.stop.invoiceNumber', 'billingData.stop.invoiceStatus',
+          'billingData.stop.status', 'car.licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'carCatalogID', 'carID', 'chargeBoxID', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus', 'currentInstantWatts',
+          'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'id', 'issuer', 'meterStart',
+          'price', 'priceUnit', 'pricingModel', 'roundedPrice', 'signedData', 'siteAreaID', 'siteID', 'stateOfCharge',
+          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.pricingSource', 'stop.reason',
+          'stop.roundedPrice', 'stop.signedData', 'stop.stateOfCharge', 'stop.tag.description', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp',
+          'stop.totalConsumptionWh', 'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.email', 'stop.user.firstName', 'stop.user.id',
+          'stop.user.name', 'stop.userID',
+          'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone',
           'user.email', 'user.firstName', 'user.id', 'user.name', 'userID'
         ]
       },

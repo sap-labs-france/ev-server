@@ -75,7 +75,9 @@ export default class ChargingStationTemplateService {
       chargingStationTemplates.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addChargingStationTemplatesAuthorizations(req.tenant, req.user, chargingStationTemplates as ChargingStationTemplateDataResult, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addChargingStationTemplatesAuthorizations(req.tenant, req.user, chargingStationTemplates as ChargingStationTemplateDataResult, authorizations);
+    }
     res.json(chargingStationTemplates);
     next();
   }

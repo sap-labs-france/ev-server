@@ -115,7 +115,9 @@ export default class LogService {
       logs.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addLogsAuthorizations(req.tenant, req.user, logs as LogDataResult, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addLogsAuthorizations(req.tenant, req.user, logs as LogDataResult, authorizations);
+    }
     return logs;
   }
 }

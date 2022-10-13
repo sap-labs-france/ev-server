@@ -32,10 +32,14 @@
     },
     "tariff-id": {
       "type": "string",
-      "minLength": 1,
       "maxLength": 36,
       "sanitize": "mongo",
       "nullable": true
+    },
+    "owner-name": {
+      "type": "string",
+      "maxLength": 100,
+      "sanitize": "mongo"
     },
     "authSubdomain": {
       "type": "string",
@@ -69,6 +73,10 @@
       "sanitize": "mongo"
     },
     "onlyRecordCount": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "withAuth": {
       "type": "boolean",
       "sanitize": "mongo"
     },

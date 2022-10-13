@@ -338,7 +338,7 @@ export default class TransactionService {
       });
     }
     // Check consumption dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetConsumptionsAuthorizations(req.tenant, req.user, Action.LIST, null, true);
+    const authorizations = await AuthorizationService.checkAndGetConsumptionsAuthorizations(req.tenant, req.user, Action.LIST);
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
       const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(
@@ -496,13 +496,10 @@ export default class TransactionService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
       Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetRefundReports');
-
     // Filter request
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Check dyna;ic auth
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(req.tenant, req.user, Action.GET_REFUND_REPORT, filteredRequest);
-
-
     // Get Reports
     const reports = await TransactionStorage.getRefundReports(
       req.tenant,
@@ -570,7 +567,6 @@ export default class TransactionService {
   }
 
   public static async handleGetTransactionsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-
     // Check auth
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(req.tenant, req.user, Action.IN_ERROR);
     // Filter
@@ -746,14 +742,12 @@ export default class TransactionService {
 
   private static async getTransactions(req: Request, filteredRequest: HttpTransactionsGetRequest,
     authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
-
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(
       req.tenant, req.user, authAction, filteredRequest, false);
     if (!authorizations.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
-
     // Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
       const tagIDs = await TagStorage.getTags(req.tenant, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['id']);
@@ -836,25 +830,26 @@ export default class TransactionService {
         });
       }
       // Stop Transaction
-      const success = await new OCPPService(Configuration.getChargingStationConfig()).softStopTransaction(
-        req.tenant, transaction, chargingStation, chargingStation.siteArea);
-      if (!success) {
+      try {
+        await new OCPPService(Configuration.getChargingStationConfig()).softStopTransaction(
+          req.tenant, transaction, chargingStation, chargingStation.siteArea);
+        await Logging.logInfo({
+          ...LoggingHelper.getTransactionProperties(transaction),
+          tenantID: req.tenant.id,
+          user: req.user, actionOnUser: transaction.userID,
+          module: MODULE_NAME, method: 'transactionSoftStop',
+          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
+          action, detailedMessages: { transaction }
+        });
+      } catch (error) {
         throw new AppError({
           ...LoggingHelper.getTransactionProperties(transaction),
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
+          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be soft stopped`,
           module: MODULE_NAME, method: 'transactionSoftStop',
           user: req.user, action
         });
       }
-      await Logging.logInfo({
-        ...LoggingHelper.getTransactionProperties(transaction),
-        tenantID: req.tenant.id,
-        user: req.user, actionOnUser: transaction.userID,
-        module: MODULE_NAME, method: 'transactionSoftStop',
-        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
-        action, detailedMessages: { transaction }
-      });
     }
     res.json(Constants.REST_CHARGING_STATION_COMMAND_RESPONSE_SUCCESS);
     next();

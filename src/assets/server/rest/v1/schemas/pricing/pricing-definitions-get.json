@@ -12,6 +12,10 @@
     "Search": {
       "$ref": "common#/definitions/search"
     },
+    "WithEntityInformation": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "SortFields": {
       "$ref": "common#/definitions/sortFields"
     },
@@ -27,9 +31,9 @@
     "ProjectFields": {
       "$ref": "common#/definitions/projectFields"
     },
-    "WithEntityInformation": {
-      "type": "boolean",
-      "sanitize": "mongo"
+    "WithAuth": {
+      "$ref": "common#/definitions/withAuth",
+      "default": true
     }
   }
 }

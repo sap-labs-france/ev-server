@@ -21,13 +21,13 @@ export default class SitesAdminDynamicAuthorizationDataSource
 
   private async getSitesAdminSiteIDs(): Promise<string[]> {
     // Get the Site IDs of the Sites for which the user is Site Admin
-    const sites = await UserStorage.getUserSites(this.tenant,
+    const userSites = await UserStorage.getUserSites(this.tenant,
       {
         userIDs: [this.userToken.id],
         siteAdmin: true
       }, Constants.DB_PARAMS_MAX_LIMIT,
       ['siteID']
     );
-    return sites.result.map((userSite) => userSite.siteID);
+    return userSites.result.map((userSite) => userSite.siteID);
   }
 }
