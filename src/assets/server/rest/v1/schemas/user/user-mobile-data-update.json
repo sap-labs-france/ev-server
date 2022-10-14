@@ -7,23 +7,26 @@
       "$ref": "user#/definitions/id"
     },
     "mobileToken": {
-      "$ref": "user#/definitions/mobileToken"
+      "$ref": "user#/definitions/mobileToken",
+      "default": ""
     },
     "mobileOS": {
       "$ref": "user#/definitions/mobileOS"
     },
     "mobileBundleID": {
-      "$ref": "user#/definitions/mobileBundleID"
+      "$ref": "user#/definitions/mobileBundleID",
+      "default": ""
     },
     "mobileAppName": {
-      "$ref": "user#/definitions/mobileAppName"
+      "$ref": "user#/definitions/mobileAppName",
+      "default": ""
     },
     "mobileVersion": {
-      "$ref": "user#/definitions/mobileVersion"
+      "$ref": "user#/definitions/mobileVersion",
+      "default": ""
     }
   },
   "required": [
-    "id",
-    "mobileToken"
+    "id"
   ]
 }
