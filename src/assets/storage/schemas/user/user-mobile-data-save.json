@@ -1,0 +1,31 @@
+{
+  "$id": "user-mobile-data-save",
+  "title": "Save User's Mobile Info",
+  "type": "object",
+  "properties": {
+    "mobileToken": {
+      "$ref": "user#/definitions/mobileToken"
+    },
+    "mobileOS": {
+      "$ref": "user#/definitions/mobileOS"
+    },
+    "mobileBundleID": {
+      "$ref": "user#/definitions/mobileBundleID"
+    },
+    "mobileAppName": {
+      "$ref": "user#/definitions/mobileAppName"
+    },
+    "mobileLastChangedOn": {
+      "type": "object",
+      "customType": "date",
+      "sanitize": "mongo"
+    },
+    "mobileVersion": {
+      "$ref": "user#/definitions/mobileVersion"
+    }
+  },
+  "required": [
+    "mobileToken",
+    "mobileLastChangedOn"
+  ]
+}
