@@ -70,7 +70,7 @@ export interface ImportedUser {
   email: string;
   importedBy?: string;
   importedOn?: Date;
-  status?: ImportStatus
+  status?: ImportStatus;
   errorDescription?: string;
   importedData?: {
     autoActivateUserAtImport: boolean;

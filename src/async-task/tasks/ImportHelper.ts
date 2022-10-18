@@ -120,7 +120,7 @@ export default class ImportHelper {
     // Save the new User
     newUser.id = await UserStorage.saveUser(tenant, newUser);
     await UserStorage.saveUserRole(tenant, newUser.id, UserRole.BASIC);
-    await UserStorage.saveUserStatus(tenant, newUser.id, UserStatus.PENDING);
+    await UserStorage.saveUserStatus(tenant, newUser.id, importedUser.importedData.autoActivateUserAtImport ? UserStatus.ACTIVE : UserStatus.PENDING);
     await this.sendNotifications(tenant, newUser);
     return newUser;
   }
