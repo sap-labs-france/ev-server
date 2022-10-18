@@ -1,4 +1,3 @@
-import AddLevelTemplateToChargingStationTemplateTask from './tasks/AddLevelTemplateToChargingStationTemplateTask';
 import Constants from '../utils/Constants';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
@@ -137,7 +136,6 @@ export default class MigrationHandler {
     //
     // Best Practices: Comment out old tasks as soon as possible!
     // ---------------------------------------------------------------------------------------
-    currentMigrationTasks.push(new AddLevelTemplateToChargingStationTemplateTask());
     currentMigrationTasks.push(new MigrateUserMobileDataTask());
     return currentMigrationTasks;
   }
