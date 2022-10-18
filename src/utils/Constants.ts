@@ -470,6 +470,6 @@ export default class Constants {
 
   /* App Info for STRIPE */
   public static readonly STRIPE_APP_NAME = 'Open e-Mobility';
-  public static readonly STRIPE_PARTNER_ID = 'TECH-00068';
+  public static readonly STRIPE_PARTNER_ID = 'TECH-000685';
   public static readonly STRIPE_API_VERSION = '2020-08-27';
 }
