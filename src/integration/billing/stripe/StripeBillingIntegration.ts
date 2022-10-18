@@ -69,11 +69,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
         const secretKey = await Cypher.decrypt(this.tenant, this.settings.stripe.secretKey);
         this.stripe = new Stripe(secretKey, {
           apiVersion: Constants.STRIPE_API_VERSION,
-        });
-        // Set application info to let STRIPE know that the account belongs to our solution
-        this.stripe.setAppInfo({
-          name: Constants.STRIPE_APP_NAME,
-          partner_id: Constants.STRIPE_PARTNER_ID,
+          // Set application info to let STRIPE know that the account belongs to our solution
+          appInfo: {
+            name: Constants.STRIPE_APP_NAME,
+            partner_id: Constants.STRIPE_PARTNER_ID
+          }
         });
       } catch (error) {
         throw new BackendError({
