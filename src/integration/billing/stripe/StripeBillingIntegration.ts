@@ -1718,10 +1718,18 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Create the account
     try {
       stripeAccount = await this.stripe.accounts.create({
-        // Express accounts have access to a simplified dashboard and support separate charges and transfers
-        // More info at: https://stripe.com/docs/connect/accounts
-        type: 'express'
+        // TBC - according to our STRIPE contact 'express' should be used as a subaccount type
+        type: 'standard',
       });
+      // stripeAccount = await this.stripe.accounts.create({
+      //   // Express accounts have access to a simplified dashboard and support separate charges and transfers
+      //   // More info at: https://stripe.com/docs/connect/accounts
+      //   type: 'express',
+      //   capabilities: {
+      //     card_payments: { requested: true },
+      //     transfers: { requested: true }
+      //   }
+      // });
     } catch (e) {
       throw new BackendError({
         message: 'Unexpected situation - unable to create account',
