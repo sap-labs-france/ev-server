@@ -1718,7 +1718,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Create the account
     try {
       stripeAccount = await this.stripe.accounts.create({
-        type: 'standard'
+        // Express accounts have access to a simplified dashboard and support separate charges and transfers
+        // More info at: https://stripe.com/docs/connect/accounts
+        type: 'express'
       });
     } catch (e) {
       throw new BackendError({
