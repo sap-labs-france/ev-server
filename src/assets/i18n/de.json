@@ -202,7 +202,7 @@
       "text": [
         "Ihr Benutzerkonto wurde erfolgreich erstellt.",
         "",
-        "Klicken Sie auf den unten stehenden Link, um es zu aktivieren."
+        "Folgen Sie dem unten stehenden Link, um es zu aktivieren."
       ]
     },
     "request-password": {
@@ -211,7 +211,7 @@
       "text": [
         "Sie haben beantragt Ihr Passwort zurückzusetzen.",
         "",
-        "Klicken Sie auf den unten stehenden Link, um ein neues Passwort zu vergeben."
+        "Folgen Sie dem unten stehenden Link, um ein neues Passwort zu vergeben."
       ]
     },
     "optimal-charge-reached": {
@@ -354,7 +354,7 @@
       "title": "Einrichtung Abrechnungskonto",
       "buttonText": "Fortfahren",
       "text": [
-        "Ein Abrechungskonto wurde für Sie von eimem Adimnistrator erstellt.",
+        "Ein Abrechungskonto wurde für Sie von einem Adimnistrator erstellt.",
         "",
         "Bitte folgen Sie dem unten stehenden Link, um die Einrichtung abzuschließen."
       ]
@@ -431,7 +431,7 @@
       "buttonText": "Zu {{tenantName}} navigieren",
       "text": [
         "Sie haben sich seit {{lastLogin}} nicht in e-mobility angemeldet.",
-        "Bitte beachten Sie, dass Ihr Benutzerkonto von einem Administrator gelöscht werden kann, um die allgemeinen Datenschutzverordnung einzuhalten.",
+        "Bitte beachten Sie, dass Ihr Benutzerkonto von einem Administrator gelöscht werden kann, um die allgemeine Datenschutzverordnung einzuhalten.",
         "",
         "Bitte melden Sie sich an und akzeptieren Sie die aktuelle Endbenutzer-Lizenzvereinbarung, um die Löschung Ihres Kontos zu verhindern."
       ]
@@ -468,7 +468,7 @@
       "title": "Abrechnung - Periodische Durchführung Fehlgeschlagen",
       "buttonText": "Zu {{tenantName}} navigieren",
       "text": [
-        "Es war nicht möglich {{nbrInvoicesInError}} Rechnungen zu sychronisieren."
+        "Es war nicht möglich {{nbrInvoicesInError}} Rechnungen zu verarbeiten."
       ]
     },
     "billing-account-activated": {
@@ -492,14 +492,14 @@
       "buttonText": "Zu {{tenantName}} navigieren",
       "text": [
         "Anwenden der Ladeprofile für {{chargeBoxID}} ist fehlgeschlagen.",
-        "Die Ladestation wurde automatisch von der aktuellen Smart Charging Iteration ausgeschlossen"
+        "Die Ladestation wurde automatisch von der aktuellen Smart Charging-Iteration ausgeschlossen"
       ]
     },
     "account-verification-notification-active": {
       "title": "Benutzerkonto verifiziert",
       "buttonText": "Zu {{tenantName}} navigieren",
       "text": [
-        "Ihr Benutzerkonto wurde veriziert und erfolgreich aktiviert"
+        "Ihr Benutzerkonto wurde verifiziert und erfolgreich aktiviert"
       ]
     },
     "account-verification-notification-inactive": {
@@ -512,8 +512,8 @@
       ]
     },
     "admin-account-verification-notification": {
-      "title": "Benutzerkonto verifizierung",
-      "buttonText": "Account verifizieren",
+      "title": "Benutzerkonto-Verifizierung",
+      "buttonText": "Benutzerkonto verifizieren",
       "text": [
         "Ein neuer Nutzer mit der E-Mail {{email}} hat einen Account erstellt.",
         "",
