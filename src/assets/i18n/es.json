@@ -3,12 +3,12 @@
     "generatedUser": "Usuario generado por '{{email}}'",
     "chargingAtSiteArea": "Sesión de carga: {{sessionID}} - Fecha de inicio: {{startDate}} a las {startTime} - Consumo de energía: {{totalConsumption}} kWh en {{siteAreaName}}",
     "chargingAtChargeBox": "Sesión de carga: {{sessionID}} - Fecha de inicio: {{startDate}} a las {{startTime}} - Consumo de energía: {{totalConsumption}} kWh en la estación de recarga {{chargeBoxID}}",
-    "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
-    "flatFee-shortItemDescription": "Flat Fee",
-    "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
-    "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
-    "parkingTime-shortItemDescription": "Parking Time: {{duration}}",
-    "transfer-feeItemDescription": "Fee charged for {{nbSessions}} session(s)"
+    "header-itemDescription": "Sesión de carga: {{sessionID}} - Fecha de inicio: {{startDate}} a las {{startTime}} en la estación de recarga {{chargeBoxID}}",
+    "flatFee-shortItemDescription": "Tarifas fijas",
+    "energy-shortItemDescription": "Consumo: {{quantity}} kWh",
+    "chargingTime-shortItemDescription": "Tiempo de carga: {{duration}}",
+    "parkingTime-shortItemDescription": "Tiempo de estacionamiento: {{duration}}",
+    "transfer-feeItemDescription": "Tarifa cobrada por {{nbSessions}} sesión(es)"
   },
   "chargers": {
     "chargeBoxSN": "Número de serie de la estación de carga",
