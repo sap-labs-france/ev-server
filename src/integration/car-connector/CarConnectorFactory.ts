@@ -4,6 +4,7 @@ import Tenant, { TenantComponents } from '../../types/Tenant';
 import CarConnectorIntegration from './CarConnectorIntegration';
 import MercedesCarConnectorIntegration from './mercedes-connector/MercedesCarConnectorIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import TargaTelematicsCarConnectorIntegration from './targa-telematics-connector/TargaTelematicsConnector';
 import TronityCarConnectorIntegration from './tronity-connector/TronityCarConnectorIntegration';
 import Utils from '../../utils/Utils';
 
@@ -23,6 +24,9 @@ export default class CarConnectorFactory {
               break;
             case CarConnectorConnectionType.TRONITY:
               carConnectorIntegrationImpl = new TronityCarConnectorIntegration(tenant, settings, foundConnection);
+              break;
+            case CarConnectorConnectionType.TARGA_TELEMATICS:
+              carConnectorIntegrationImpl = new TargaTelematicsCarConnectorIntegration(tenant, settings, foundConnection);
               break;
           }
           return carConnectorIntegrationImpl;

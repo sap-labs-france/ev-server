@@ -11,42 +11,69 @@ export default class SitesAdminUsersDynamicAuthorizationFilter extends DynamicAu
     // Retrieve site ids where user is site admin and logged user id
     const sitesAdminUsersDataSource = this.getDataSource(
       DynamicAuthorizationDataSourceName.SITES_ADMIN_USERS) as SitesAdminUsersDynamicAuthorizationDataSource;
-    const { siteIDs, userID } = sitesAdminUsersDataSource.getData();
+    const { siteIDs, tagIDs, userID } = sitesAdminUsersDataSource.getData();
+    // Flag
+    let authFilterUsed = false;
     // Perform site ids check only if organization component is active
     if (Utils.isTenantComponentActive(this.tenant, TenantComponents.ORGANIZATION)) {
       // Init user site IDs
-      let userSiteIds = [];
+      authorizationFilters.filters.siteAdminIDs = [];
       if (!Utils.isEmptyArray(siteIDs)) {
-        userSiteIds = siteIDs;
+        authorizationFilters.filters.siteAdminIDs = siteIDs;
         // Check if filter is provided
-        if (Utils.objectHasProperty(extraFilters, 'SiteID') &&
-          !Utils.isNullOrUndefined(extraFilters['SiteID'])) {
+        if (Utils.objectHasProperty(extraFilters, 'SiteID') && !Utils.isNullOrUndefined(extraFilters['SiteID'])) {
+          // Update flag
+          authFilterUsed = true;
           const filteredSiteIDs: string[] = extraFilters['SiteID'].split('|');
           // Override
-          userSiteIds = filteredSiteIDs.filter(
-            (siteID) => userSiteIds.includes(siteID));
+          authorizationFilters.filters.siteAdminIDs = filteredSiteIDs.filter(
+            (siteID) => authorizationFilters.filters.siteAdminIDs.includes(siteID));
+          // Check auth
+          if (!Utils.isEmptyArray(authorizationFilters.filters.siteAdminIDs)) {
+            authorizationFilters.authorized = true;
+          }
         }
-      }
-      if (!Utils.isEmptyArray(userSiteIds)) {
-        authorizationFilters.authorized = true;
       }
     }
     // Check user filter
-    if (!authorizationFilters.authorized) {
-      let siteAdminUserId = [userID];
-      if (userID) {
-        // Check if filter is provided
-        if (Utils.objectHasProperty(extraFilters, 'UserID') &&
-            !Utils.isNullOrUndefined(extraFilters['UserID'])) {
-          const filteredUserIDs: string[] = extraFilters['UserID'].split('|');
-          // Override
-          siteAdminUserId = filteredUserIDs.filter(
-            (user) => siteAdminUserId.includes(user));
+    authorizationFilters.filters.ownerID = [];
+    if (userID) {
+      authorizationFilters.filters.ownerID = [userID];
+      // Check if filter is provided
+      if (Utils.objectHasProperty(extraFilters, 'UserID') && !Utils.isNullOrUndefined(extraFilters['UserID'])) {
+        // Update flag
+        authFilterUsed = true;
+        const filteredUserIDs: string[] = extraFilters['UserID'].split('|');
+        // Override
+        authorizationFilters.filters.ownerID = filteredUserIDs.filter(
+          (user) => authorizationFilters.filters.ownerID.includes(user));
+        // Check auth
+        if (!Utils.isEmptyArray(authorizationFilters.filters.ownerID)) {
+          authorizationFilters.authorized = true;
         }
       }
-      if (!Utils.isEmptyArray(siteAdminUserId)) {
-        authorizationFilters.authorized = true;
+    }
+    
+    if (!Utils.isEmptyArray(tagIDs)) {
+      // Force the filter
+      authorizationFilters.filters.ownUserTags = tagIDs;
+      // Check if filter is provided
+      if (Utils.objectHasProperty(extraFilters, 'TagIDs') && !Utils.isNullOrUndefined(extraFilters['TagIDs'])) {
+        // Update flag
+        authFilterUsed = true;
+        const filteredUserTagIDs: string[] = extraFilters['TagIDs'].split('|');
+        // Override
+        authorizationFilters.filters.ownUserTags = filteredUserTagIDs.filter(
+          (tag) => authorizationFilters.filters.ownUserTags.includes(tag));
+        // Check auth
+        if (!Utils.isEmptyArray(authorizationFilters.filters.ownUserTags)) {
+          authorizationFilters.authorized = true;
+        }
       }
+    }
+    // No auth filter, we authorize
+    if (!authFilterUsed) {
+      authorizationFilters.authorized = true;
     }
     // Remove sensible data if not authorized and filter is provided
     if (!authorizationFilters.authorized) {

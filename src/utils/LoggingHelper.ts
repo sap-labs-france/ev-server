@@ -90,4 +90,13 @@ export default class LoggingHelper {
       userID: tag?.userID
     };
   }
+
+  public static getSourceDataProperties(sourceData: any): { siteID: string,  siteAreaID?: string, companyID: string, chargingStationID: string } {
+    return {
+      siteID: sourceData?.siteID,
+      siteAreaID: sourceData?.siteAreaID,
+      companyID: sourceData?.companyID,
+      chargingStationID: sourceData?.chargeBoxID,
+    };
+  }
 }

@@ -19,7 +19,7 @@ describe('Charging Station Template', () => {
   jest.setTimeout(60000);
 
   beforeAll(() => {
-    testData.superAdminCentralService = new CentralServerService('');
+    testData.superAdminCentralService = new CentralServerService();
   });
 
   afterAll(async () => {

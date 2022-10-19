@@ -96,14 +96,17 @@ export default class CentralServerService {
     } else {
       this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, tenantSubdomain);
     }
+    // Super Admin
     this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedSuperAdmin.email, this._authenticatedSuperAdmin.password, '');
-    // Create the Company
+    this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
+    this.chargingStationTemplateApi = new ChargingStationTemplateApi(this.authenticatedSuperAdminApi);
+    this.carApiSuperTenant = new CarApi(this.authenticatedSuperAdminApi);
+    // Admin
     this.companyApi = new CompanyApi(this.authenticatedApi);
     this.siteApi = new SiteApi(this.authenticatedApi);
     this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
     this.userApi = new UserApi(this.authenticatedApi);
     this.tagApi = new TagApi(this.authenticatedApi);
-    this.chargingStationTemplateApi = new ChargingStationTemplateApi(this.authenticatedApi);
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this._baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.settingApi = new SettingApi(this.authenticatedApi);
@@ -111,7 +114,6 @@ export default class CentralServerService {
     this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
     this.oicpEndpointApi = new OICPEndpointApi(this.authenticatedApi);
     this.authenticationApi = new AuthenticationApi(this._baseApi);
-    this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
     this.registrationApi = new RegistrationTokenApi(this.authenticatedApi);
@@ -120,7 +122,6 @@ export default class CentralServerService {
     this.assetApi = new AssetApi(this.authenticatedApi);
     this.carApi = new CarApi(this.authenticatedApi);
     this.smartChargingApi = new SmartChargingApi(this.authenticatedApi);
-    this.carApiSuperTenant = new CarApi(this.authenticatedSuperAdminApi);
   }
 
   public static get defaultInstance(): CentralServerService {

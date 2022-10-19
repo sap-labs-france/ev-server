@@ -241,8 +241,9 @@ export default class SiteAreaService {
       siteAreas.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addSiteAreasAuthorizations(req.tenant, req.user, siteAreas as SiteAreaDataResult,
-      authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addSiteAreasAuthorizations(req.tenant, req.user, siteAreas as SiteAreaDataResult, authorizations);
+    }
     res.json(siteAreas);
     next();
   }

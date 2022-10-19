@@ -65,7 +65,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     shouldResetTimeout: true
   };
 
-  constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
+  public constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
     super(tenant, settings, connection);
     // Get Axios
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant,

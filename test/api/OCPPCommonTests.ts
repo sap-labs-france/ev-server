@@ -428,7 +428,7 @@ export default class OCPPCommonTests {
         'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
       }
     });
-    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
   }
 
   public async testRemoteStartTransactionWithExternalUser(): Promise<void> {

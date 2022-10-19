@@ -33,5 +33,9 @@ RUN chmod +x /wait
 
 RUN npm install -g pm2
 
+# For Profiler
+RUN npm install -g clinic
+RUN npm install -g autocannon
+
 #CMD /wait && node -r source-map-support/register --stack-trace-limit=1024 dist/start.js
 CMD /wait && pm2-runtime dist/start.js

@@ -50,6 +50,7 @@ export default class UserRouter {
 
   private buildRouteUpdateUser(): void {
     this.router.put(`/${RESTServerRoute.REST_USER}`, (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
       void RouterUtils.handleRestServerAction(UserService.handleUpdateUser.bind(this), ServerAction.USER_UPDATE, req, res, next);
     });
   }

@@ -168,7 +168,9 @@ export default class RegistrationTokenService {
       registrationTokens.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addRegistrationTokensAuthorizations(req.tenant, req.user, registrationTokens as RegistrationTokenDataResult, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addRegistrationTokensAuthorizations(req.tenant, req.user, registrationTokens as RegistrationTokenDataResult, authorizations);
+    }
     res.json(registrationTokens);
     next();
   }
