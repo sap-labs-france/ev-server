@@ -1,4 +1,4 @@
-<mj-section background-color="white" padding-top="20px" padding-bottom="20px">
+<mj-section background-color="linear-gradient(#ffffff,#ffffff)" padding-top="20px" padding-bottom="20px">
 	<mj-column>
     <mj-divider border-width="1px" border-color="#E0E0E0" padding="0px" ></mj-divider>
 		<mj-text font-size="12px">
