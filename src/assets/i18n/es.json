@@ -360,10 +360,10 @@
       ]
     },
     "user-account-status-changed": {
-      "title": "Cuenta de usuario - estatus modicado",
+      "title": "Cuenta de usuario - estatus modificado",
       "buttonText": "Dirigirse a {{tenantName}}",
       "text": [
-        "El estatus de su cuenta ha sido modicado por un administrador.",
+        "El estatus de su cuenta ha sido modificado por un administrador.",
         "Nuevo estatus: {{accountStatus}}"
       ]
     },
