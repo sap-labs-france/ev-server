@@ -149,7 +149,7 @@
       "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}} est disponible, vérifiez vos emails pour finaliser le paiement"
     },
     "billingAccountCreationLink": {
-      "title": "Création compte de facturation",
+      "title": "Connection d'un compte de facturation",
       "body": "Vous avez été invité à créer un compte de facturation. Veuillez vérifier vos emails pour terminer le processus"
     },
     "billingAccountActivated": {

@@ -985,7 +985,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-          'user.id', 'user.name', 'user.firstName', 'userID', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID'
+          'user.id', 'user.name', 'user.firstName', 'userID', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID',
+          'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
         ]
       },
       {
@@ -1108,7 +1109,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-          'user.id', 'user.name', 'user.firstName', 'userID', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID', 'chargeStandardPhase'
+          'user.id', 'user.name', 'user.firstName', 'userID', 'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID', 'chargeStandardPhase',
+          'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
         ],
       },
       {
@@ -1772,6 +1774,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
+          'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
         ]
       },
       {
@@ -2415,7 +2418,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn', 'user.id', 'user.name', 'user.firstName',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-          'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID', 'chargeStandardPhase'
+          'carConnectorData.carConnectorID', 'carConnectorData.carConnectorMeterID', 'chargeStandardPhase',
+          'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
         ],
       },
       {

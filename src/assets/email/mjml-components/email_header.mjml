@@ -1,6 +1,6 @@
 <mj-section padding-top="40px">
   <mj-column>
 		<mj-image width="100px" href="{{evseDashboardURL}}" src="{{tenantLogoURL}}""></mj-image>
-		<mj-text color="white" font-size="12px">{{tenantName}}</mj-text>
+		<mj-text color="#ffffff" font-size="12px">{{tenantName}}</mj-text>
   </mj-column>
 </mj-section>
