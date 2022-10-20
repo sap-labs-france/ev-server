@@ -525,7 +525,7 @@
       "buttonText": "Establezca su password",
       "text": [
         "Una cuenta ha sido creada en su nombre en la organización '{{tenantName}}'.",
-        "Debe ingesar por lo menos una vez para cargar su vehículo.",
+        "Debe ingresar por lo menos una vez para cargar su vehículo.",
         "",
         "Haga clic en el enlace para establecer su password."
       ]
