@@ -31,6 +31,7 @@ import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpLogGetRequest } from '../../../../types/requests/HttpLogRequest';
 import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/HttpRegistrationToken';
+import { HttpSettingGetRequest } from '../../../../types/requests/HttpSettingRequest';
 import { Log } from '../../../../types/Log';
 import { OCPICapability } from '../../../../types/ocpi/OCPIEvse';
 import PricingDefinition from '../../../../types/Pricing';
@@ -1126,8 +1127,10 @@ export default class AuthorizationService {
     return authorizations;
   }
 
-  public static async checkAndGetSettingAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
-    return AuthorizationService.checkAndGetEntityAuthorizations(tenant, Entity.SETTING, userToken, {}, null, authAction, entityData);
+  public static async checkAndGetSettingAuthorizations(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpSettingGetRequest>,
+    authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.SETTING, userToken, filteredRequest, filteredRequest.ID ? { SettingID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async addSettingsAuthorizations(tenant: Tenant, userToken: UserToken, settings: DataResult<Setting>,

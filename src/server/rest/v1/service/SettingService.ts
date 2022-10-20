@@ -24,20 +24,8 @@ export default class SettingService {
   public static async handleDeleteSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingID = SettingValidatorRest.getInstance().validateSettingDeleteReq(req.query).ID;
-    // Check auth
-    if (!await Authorizations.canDeleteSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleDeleteSetting',
-        value: settingID
-      });
-    }
     // Get
-    const setting = await SettingStorage.getSetting(req.tenant, settingID);
-    UtilsService.assertObjectExists(action, setting, `Tenant ID '${settingID}' does not exist`,
-      MODULE_NAME, 'handleDeleteSetting', req.user);
+    const setting = await UtilsService.checkAndGetSettingAuthorization(req.tenant, req.user, settingID, Action.DELETE, action);
     // Delete
     await SettingStorage.deleteSetting(req.tenant, settingID);
     // Log
@@ -55,20 +43,8 @@ export default class SettingService {
   public static async handleGetSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingID = SettingValidatorRest.getInstance().validateSettingGetReq(req.query).ID;
-    // Check auth
-    if (!await Authorizations.canReadSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleGetSetting',
-        value: settingID
-      });
-    }
     // Get it
-    const setting = await SettingStorage.getSetting(req.tenant, settingID);
-    UtilsService.assertObjectExists(action, setting, `Setting ID '${settingID}' does not exist`,
-      MODULE_NAME, 'handleGetSetting', req.user);
+    const setting = await UtilsService.checkAndGetSettingAuthorization(req.tenant, req.user, settingID, Action.READ, action, {}, {}, true);
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
     Cypher.hashSensitiveDataInJSON(setting);
@@ -83,20 +59,8 @@ export default class SettingService {
   public static async handleGetSettingByIdentifier(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingID = SettingValidatorRest.getInstance().validateSettingGetByIdentifierReq(req.query).Identifier;
-    // Check auth
-    if (!await Authorizations.canReadSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleGetSettingByIdentifier',
-        value: settingID
-      });
-    }
     // Get it
-    const setting = await SettingStorage.getSettingByIdentifier(req.tenant, settingID);
-    UtilsService.assertObjectExists(action, setting, `Setting ID '${settingID}' does not exist`,
-      MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
+    const setting = await UtilsService.checkAndGetSettingAuthorization( req.tenant, req.user, settingID, Action.READ, action, {}, {}, true);
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
     Cypher.hashSensitiveDataInJSON(setting);
@@ -170,27 +134,15 @@ export default class SettingService {
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = SettingService.filterSetting(action, req);
-    // Check auth
-    if (!await Authorizations.canUpdateSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleUpdateSetting',
-        value: filteredRequest.id
-      });
-    }
     // Get Setting
-    const setting = await SettingStorage.getSetting(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, setting, `Setting ID '${filteredRequest.id }' does not exist`,
-      MODULE_NAME, 'handleUpdateSetting', req.user);
+    const setting = await UtilsService.checkAndGetSettingAuthorization( req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, {}, {}, true);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values
     if (filteredRequest.sensitiveData) {
       if (!Array.isArray(filteredRequest.sensitiveData)) {
         throw new AppError({
           errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-          message: `The property 'sensitiveData' for Setting with ID '${filteredRequest.id }' is not an array`,
+          message: `The property 'sensitiveData' for Setting with ID '${filteredRequest.id}' is not an array`,
           module: MODULE_NAME,
           method: 'handleUpdateSetting',
           user: req.user

@@ -1,5 +1,6 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { BillingAccount, BillingInvoice, BillingTransfer } from '../../../../types/Billing';
+import { BillingSettings, SettingDB } from '../../../../types/Setting';
 import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, ChargingStationTemplate, Command } from '../../../../types/ChargingStation';
 import { EntityData, URLInfo } from '../../../../types/GlobalType';
@@ -16,7 +17,6 @@ import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
 import { AxiosResponse } from 'axios';
-import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CentralSystemRestServiceConfiguration from '../../../../types/configuration/CentralSystemRestServiceConfiguration';
@@ -814,11 +814,47 @@ export default class UtilsService {
     return carCatalog;
   }
 
+  public static async checkAndGetSettingAuthorization(tenant: Tenant, userToken: UserToken, settingID: string, authAction: Action,
+    action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<SettingDB> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'checkAndGetSettingAuthorization', userToken);
+    // Get dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(
+      tenant, userToken, { ID: settingID }, authAction, entityData);
+    // Get Setting
+    const setting = await SettingStorage.getSetting(tenant, settingID,
+      applyProjectFields ? authorizations.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, setting, `Setting ID '${settingID}' does not exist`,
+      MODULE_NAME, 'checkAndGetSettingAuthorization', userToken);
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      setting.projectFields = authorizations.projectFields;
+    }
+    // Assign Metadata
+    if (authorizations.metadata) {
+      setting.metadata = authorizations.metadata;
+    }
+    // Add Actions
+    await AuthorizationService.addSettingAuthorizations(tenant, userToken, setting, authorizations);
+    const authorized = AuthorizationService.canPerformAction(setting, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'checkAndGetSettingAuthorization',
+        value: settingID
+      });
+    }
+    return setting;
+  }
+
   // This function is tailored for SETTING authorization, do not use it for "general" entities !
-  public static async checkAndGetBillingSettingAuthorization(tenant: Tenant, userToken: UserToken, billingSettingID: number, authAction: Action,
+  public static async checkAndGetBillingSettingAuthorization(tenant: Tenant, userToken: UserToken, billingSettingID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingSettings> {
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(tenant, userToken, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(tenant, userToken, { ID: billingSettingID}, authAction, entityData);
     // Get the entity from storage
     const billingSetting = await SettingStorage.getBillingSetting(
       tenant,
