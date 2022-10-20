@@ -1,4 +1,4 @@
-<mj-section background-color="linear-gradient(#ffffff,#ffffff)">
+<mj-section background-color="#ffffff">
 	<mj-column>
 		<mj-text>
 			<p>{{i18n:common.greetings}},</p>
