@@ -284,23 +284,10 @@
       ]
     },
     "meterValuesOCPP15": {
-      "type": "object",
-      "properties": {
-        "timestamp": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "value": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/meterValueOCPP15/properties/value"
-          }
-        }
-      },
-      "required": [
-        "timestamp",
-        "value"
-      ]
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/meterValueOCPP15/properties"
+      }
     }
   }
 }
