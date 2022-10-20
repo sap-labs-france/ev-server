@@ -1,4 +1,4 @@
-<mj-section background-color="linear-gradient(#ffffff,#ffffff)">
+<mj-section background-color="#ffffff">
   <mj-column width="70%">
     <mj-table>
     {{_TABLE_CONTENT_}}
