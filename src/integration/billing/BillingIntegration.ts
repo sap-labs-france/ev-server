@@ -723,7 +723,7 @@ export default abstract class BillingIntegration {
       inSuccess: 0,
       inError: 0
     };
-    if (taskConfig.forceOperation && Utils.isDevelopmentEnv()) {
+    if (taskConfig?.forceOperation && Utils.isDevelopmentEnv()) {
       Logging.logConsoleDebug('Funds dispatching is being forced for testing purposes reasons!');
     }
     const collectedFunds = await TransactionStorage.getCollectedFunds(this.tenant);

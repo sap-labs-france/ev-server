@@ -3,11 +3,9 @@ import { DispatchFundsTaskConfig } from '../../types/TaskConfig';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
-import NotificationHandler from '../../notification/NotificationHandler';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantSchedulerTask from '../TenantSchedulerTask';
-import Utils from '../../utils/Utils';
 
 export default class DispatchCollectedFundsTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, taskConfig: DispatchFundsTaskConfig): Promise<void> {
