@@ -1722,9 +1722,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
     let stripeAccount: Stripe.Account;
     // Create the account
     try {
-      stripeAccount = await this.stripe.accounts.create({
-        type: 'standard'
-      });
+      if (FeatureToggles.isFeatureActive(Feature.BILLING_PLATFORM_USE_EXPRESS_ACCOUNT)) {
+        stripeAccount = await this.stripe.accounts.create({
+          // Express accounts have access to a simplified dashboard and support separate charges and transfers
+          // More info at: https://stripe.com/docs/connect/accounts
+          type: 'express',
+          capabilities: {
+            // card_payments: { requested: true },
+            transfers: { requested: true }
+          }
+        });
+      } else {
+        // According to our STRIPE contact transfers are not supported when using sub-accounts of type 'standard''
+        stripeAccount = await this.stripe.accounts.create({
+          type: 'standard',
+        });
+      }
     } catch (e) {
       throw new BackendError({
         message: 'Unexpected situation - unable to create account',
