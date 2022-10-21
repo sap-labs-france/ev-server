@@ -6,7 +6,7 @@ import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types
 import { BillingTestConfigHelper, StripeTaxHelper } from './StripeTestHelper';
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorType } from '../../src/types/ChargingStation';
-import FeatureToggles, { Feature } from '../utils/FeatureToggles';
+import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import PricingDefinition, { DayOfWeek, PricingDimension, PricingDimensions, PricingEntity, PricingRestriction } from '../../src/types/Pricing';
 import chai, { expect } from 'chai';
 
