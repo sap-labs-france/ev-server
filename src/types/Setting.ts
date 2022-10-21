@@ -5,6 +5,7 @@ import { TenantComponents } from './Tenant';
 export enum TechnicalSettings {
   CRYPTO = 'crypto',
   USER = 'user',
+  TASK = 'task',
 }
 
 export enum IntegrationSettings {
@@ -55,7 +56,8 @@ export interface SettingDBContent {
   | SmartChargingContentType
   | CryptoSettingsType
   | UserSettingsType
-  | CarConnectorSettingsType;
+  | CarConnectorSettingsType
+  | TaskSettingsType;
   ocpi?: OcpiSetting;
   oicp?: OicpSetting;
   // pricing?: PricingSetting;  // TODO - reorg pricing similar to billing
@@ -70,6 +72,7 @@ export interface SettingDBContent {
   carConnector?: CarConnectorSetting;
   crypto?: CryptoSetting;
   user?: UserSetting;
+  task?: TaskSetting;
 }
 
 export enum PricingSettingsType {
@@ -422,4 +425,19 @@ export interface UserSettings extends Setting {
 
 export interface UserSetting {
   autoActivateAccountAfterValidation: boolean;
+}
+
+export enum TaskSettingsType {
+  TASK = 'task',
+}
+
+export interface TaskSettings extends Setting {
+  identifier: TechnicalSettings.TASK;
+  type: TaskSettingsType;
+  task?: TaskSetting;
+}
+
+export interface TaskSetting {
+  disableAllTasks?: boolean;
+  disableTasksInEnv?: string[];
 }

@@ -18,10 +18,8 @@ export default class ImportHelper {
   public async processImportedUser(tenant: Tenant, importedUser: ImportedUser, existingSites: Map<string, Site>): Promise<User> {
     // Get User
     let user = await UserStorage.getUserByEmail(tenant, importedUser.email);
-    // If one found lets update it else create new User
-    if (user) {
-      await this.updateUser(tenant, user, importedUser);
-    } else {
+    if (!user) {
+      // Create User
       user = await this.createUser(tenant, importedUser);
     }
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && importedUser.siteIDs) {
