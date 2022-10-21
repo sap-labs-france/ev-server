@@ -12,6 +12,7 @@ import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotSta
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
 import CloseTransactionsInProgressTask from './tasks/CloseTransactionsInProgressTask';
 import Constants from '../utils/Constants';
+import DispatchCollectedFundsTask from './tasks/DispatchCollectedFundsTask';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
 import MigrateSensitiveDataTask from './tasks/MigrateSensitiveDataTask';
@@ -142,6 +143,8 @@ export default class SchedulerManager {
         return new MigrateSensitiveDataTask();
       case 'CloseTransactionsInProgressTask':
         return new CloseTransactionsInProgressTask();
+      case 'DispatchCollectedFundsTask':
+        return new DispatchCollectedFundsTask();
       default:
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
