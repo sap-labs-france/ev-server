@@ -1,4 +1,4 @@
-<mj-section background-color="white">
+<mj-section background-color="#ffffff">
 	<mj-column>
 		<mj-text>
 			<p>{{i18n:common.greetings}},</p>
