@@ -1,13 +1,12 @@
-import { Action, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { IntegrationSettings, PricingSettingsType, SettingDB, TechnicalSettings } from '../../../../types/Setting';
 import { NextFunction, Request, Response } from 'express';
 
-import AppAuthError from '../../../../exception/AppAuthError';
+import { Action } from '../../../../types/Authorization';
 import AppError from '../../../../exception/AppError';
-import Authorizations from '../../../../authorization/Authorizations';
+import AuthorizationService from './AuthorizationService';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
+import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
@@ -46,12 +45,7 @@ export default class SettingService {
     // Get it
     const setting = await UtilsService.checkAndGetSettingAuthorization(req.tenant, req.user, settingID, Action.READ, action, {}, {}, true);
     // Process the sensitive data if any
-    // Hash sensitive data before being sent to the front end
-    Cypher.hashSensitiveDataInJSON(setting);
-    // If Crypto Settings, hash key
-    if (setting.identifier === 'crypto') {
-      setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
-    }
+    SettingService.hashSensitiveData(setting);
     res.json(setting);
     next();
   }
@@ -60,59 +54,54 @@ export default class SettingService {
     // Filter
     const settingID = SettingValidatorRest.getInstance().validateSettingGetByIdentifierReq(req.query).Identifier;
     // Get it
-    const setting = await UtilsService.checkAndGetSettingAuthorization( req.tenant, req.user, settingID, Action.READ, action, {}, {}, true);
+    const setting = await UtilsService.checkAndGetSettingAuthorization(req.tenant, req.user, settingID, Action.READ, action, {}, {}, true);
     // Process the sensitive data if any
-    // Hash sensitive data before being sent to the front end
-    Cypher.hashSensitiveDataInJSON(setting);
-    // If Crypto Settings, hash key
-    if (setting.identifier === 'crypto') {
-      setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
-    }
+    SettingService.hashSensitiveData(setting);
     res.json(setting);
     next();
   }
 
   public static async handleGetSettings(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!await Authorizations.canListSettings(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleGetSettings'
-      });
-    }
     // Filter
     const filteredRequest = SettingValidatorRest.getInstance().validateSettingsGetReq(req.query);
-    // Get the all settings identifier
+    // Get authorization filters
+    const authorizations = await AuthorizationService.checkAndGetSettingsAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest, false);
+    if (!authorizations.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+    }
+    // Get the settings
     const settings = await SettingStorage.getSettings(req.tenant,
-      { identifier: filteredRequest.Identifier },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
+      {
+        identifier: filteredRequest.Identifier,
+        ...authorizations.filters
+      },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields
+      },
+      authorizations.projectFields
+    );
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      settings.projectFields = authorizations.projectFields;
+    }
+    // Add Auth flags
+    await AuthorizationService.addSettingsAuthorizations(req.tenant, req.user, settings, authorizations, filteredRequest);
     // Process the sensitive data if any
     for (const setting of settings.result) {
-      // Hash sensitive data before being sent to the front end
-      Cypher.hashSensitiveDataInJSON(setting);
-      // If Crypto Settings, hash key
-      if (setting.identifier === 'crypto') {
-        setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
-      }
+      // Process the sensitive data if any
+      SettingService.hashSensitiveData(setting);
     }
     res.json(settings);
     next();
   }
 
   public static async handleCreateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!await Authorizations.canCreateSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleCreateSetting'
-      });
-    }
     // Filter
     const filteredRequest = SettingService.filterSetting(action, req);
+    // Check auth
+    await AuthorizationService.checkAndGetSettingAuthorizations(req.tenant,req.user, {}, Action.CREATE, filteredRequest);
     // Process the sensitive data if any
     await Cypher.encryptSensitiveDataInJSON(req.tenant, filteredRequest);
     // Update timestamp
@@ -133,9 +122,10 @@ export default class SettingService {
   }
 
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
     const filteredRequest = SettingService.filterSetting(action, req);
     // Get Setting
-    const setting = await UtilsService.checkAndGetSettingAuthorization( req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, {}, {}, true);
+    const setting = await UtilsService.checkAndGetSettingAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, {}, {}, true);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values
     if (filteredRequest.sensitiveData) {
@@ -298,6 +288,15 @@ export default class SettingService {
           detailedMessages: { setting: req.body },
           errorCode: HTTPError.GENERAL_ERROR
         });
+    }
+  }
+
+  private static hashSensitiveData(setting: SettingDB): void {
+    // Hash sensitive data before being sent to the front end
+    Cypher.hashSensitiveDataInJSON(setting);
+    // If Crypto Settings, hash key
+    if (setting.identifier === 'crypto') {
+      setting.content.crypto.key = Utils.hash(setting.content.crypto.key);
     }
   }
 }
