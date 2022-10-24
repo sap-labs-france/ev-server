@@ -383,7 +383,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  public async downloadTransferDocument(transfer: BillingTransfer): Promise<Buffer> {
+  public async downloadTransferInvoiceDocument(transfer: BillingTransfer): Promise<Buffer> {
     await this.checkConnection();
     // Get fresh data because persisted url expires after 30 days
     const stripeTransferInvoice = await this.getStripeInvoice(transfer.invoice.invoiceID);
