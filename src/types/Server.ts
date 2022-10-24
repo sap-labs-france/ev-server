@@ -722,7 +722,7 @@ export enum RESTServerRoute {
   REST_BILLING_TRANSFER = 'billing/transfers/:id',
   REST_BILLING_TRANSFER_FINALIZE = 'billing/transfers/:id/finalize',
   REST_BILLING_TRANSFER_SEND = 'billing/transfers/:id/send',
-  REST_BILLING_DOWNLOAD_TRANSFER = 'tranfers/:transferID/download',
+  REST_BILLING_TRANSFER_DOWNLOAD_INVOICE = 'billing/transfers/:id/invoice/download',
 
   // PRICING URLs for CRUD operations
   REST_PRICING_DEFINITIONS = 'pricing-definitions',
