@@ -207,7 +207,7 @@ describe('User', () => {
           const response = await testData.userService.userApi.updateMobileToken(
             testData.newUser.id,
             'new_mobile_token',
-            'mobile_os'
+            'ios'
           );
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data).to.be.deep.eq(Constants.REST_RESPONSE_SUCCESS);

@@ -25,10 +25,6 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
-    "ErrorType": {
-      "type": "string",
-      "sanitize": "mongo"
-    },
     "Issuer": {
       "type": "boolean",
       "sanitize": "mongo"
@@ -50,6 +46,10 @@
     },
     "ProjectFields": {
       "$ref": "common#/definitions/projectFields"
+    },
+    "WithAuth": {
+      "$ref": "common#/definitions/withAuth",
+      "default": true
     }
   },
   "required": [

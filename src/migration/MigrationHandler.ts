@@ -1,25 +1,11 @@
-import AddCompanyIDToChargingStationsTask from './tasks/AddCompanyIDToChargingStationsTask';
-import AddCompanyIDToTransactionsTask from './tasks/AddCompanyIDToTransactionsTask';
-import AddLevelTemplateToChargingStationTemplateTask from './tasks/AddLevelTemplateToChargingStationTemplateTask';
-import AddUserIDToCarsTask from './tasks/AddUserIDToCarsTask';
-import AlignEntitiesWithOrganizationIDsTask from './tasks/AlignEntitiesWithOrganizationIDsTask';
 import Constants from '../utils/Constants';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
+import MigrateUserMobileDataTask from './tasks/MigrateUserMobileDataTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import MigrationTask from './MigrationTask';
-import OCPIEndpointCleanUpTask from './tasks/OCPIEndpointCleanUpTask';
-import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDsTask';
-import RemoveLogoFromTenantTask from './tasks/RemoveLogoFromTenantTask';
-import RepairInvoiceInconsistencies from './tasks/RepairInvoiceInconsistencies';
-import RepairTransactionBillingData from './tasks/RepairTransactionBillingData';
-import RepairTransactionPricedAtZero from './tasks/RepairTransactionPricedAtZeroTask';
-import RestoreDataIntegrityInSiteUsersTask from './tasks/RestoreDataIntegrityInSiteUsersTask';
 import { ServerAction } from '../types/Server';
-import SimplePricingMigrationTask from './tasks/MigrateSimplePricing';
-import UpdateEmailsToLowercaseTask from './tasks/UpdateEmailsToLowercaseTask';
-import UserCleanUpTask from './tasks/UserCleanUpTask';
 import Utils from '../utils/Utils';
 import moment from 'moment';
 
@@ -150,21 +136,7 @@ export default class MigrationHandler {
     //
     // Best Practices: Comment out old tasks as soon as possible!
     // ---------------------------------------------------------------------------------------
-    // currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
-    // currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
-    // currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
-    // currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
-    // currentMigrationTasks.push(new AddUserIDToCarsTask());
-    // currentMigrationTasks.push(new RepairInvoiceInconsistencies());
-    // currentMigrationTasks.push(new RepairTransactionBillingData());
-    // currentMigrationTasks.push(new SimplePricingMigrationTask());
-    // currentMigrationTasks.push(new RepairTransactionPricedAtZero());
-    // currentMigrationTasks.push(new UpdateEmailsToLowercaseTask());
-    // currentMigrationTasks.push(new UserCleanUpTask());
-    // currentMigrationTasks.push(new AlignEntitiesWithOrganizationIDsTask());
-    // currentMigrationTasks.push(new RemoveLogoFromTenantTask());
-    // currentMigrationTasks.push(new OCPIEndpointCleanUpTask());
-    currentMigrationTasks.push(new AddLevelTemplateToChargingStationTemplateTask());
+    currentMigrationTasks.push(new MigrateUserMobileDataTask());
     return currentMigrationTasks;
   }
 }

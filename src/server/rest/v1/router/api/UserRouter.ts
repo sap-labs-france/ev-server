@@ -22,6 +22,7 @@ export default class UserRouter {
     this.buildRouteUserSiteAssign();
     this.buildRouteUserSiteUnassign();
     this.buildRouteUserUpdateMobileToken();
+    this.buildRouteUserUpdateMobileData();
     this.buildRouteUserGetImage();
     this.buildRouteUsersInError();
     this.buildRouteUserImport();
@@ -50,6 +51,7 @@ export default class UserRouter {
 
   private buildRouteUpdateUser(): void {
     this.router.put(`/${RESTServerRoute.REST_USER}`, (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
       void RouterUtils.handleRestServerAction(UserService.handleUpdateUser.bind(this), ServerAction.USER_UPDATE, req, res, next);
     });
   }
@@ -93,9 +95,16 @@ export default class UserRouter {
     });
   }
 
+  // Deprecated
   private buildRouteUserUpdateMobileToken(): void {
     this.router.put(`/${RESTServerRoute.REST_USER_UPDATE_MOBILE_TOKEN}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleRestServerAction(UserService.handleUpdateUserMobileToken.bind(this), ServerAction.USER_UPDATE_MOBILE_TOKEN, req, res, next);
+      void RouterUtils.handleRestServerAction(UserService.handleUpdateUserMobileData.bind(this), ServerAction.USER_UPDATE_MOBILE_DATA, req, res, next);
+    });
+  }
+
+  private buildRouteUserUpdateMobileData(): void {
+    this.router.put(`/${RESTServerRoute.REST_USER_UPDATE_MOBILE_DATA}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(UserService.handleUpdateUserMobileData.bind(this), ServerAction.USER_UPDATE_MOBILE_DATA, req, res, next);
     });
   }
 

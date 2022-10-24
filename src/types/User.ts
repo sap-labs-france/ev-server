@@ -1,11 +1,12 @@
+import { SiteUserAuthorizationActions, UserAuthorizationActions } from './Authorization';
+
 import Address from './Address';
-import { AuthorizationActions } from './Authorization';
 import { BillingUserData } from './Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { ImportStatus } from './GlobalType';
 import UserNotifications from './UserNotifications';
 
-export default interface User extends CreatedUpdatedProps, AuthorizationActions {
+export default interface User extends CreatedUpdatedProps, UserAuthorizationActions {
   id: string;
   issuer: boolean;
   name: string;
@@ -33,9 +34,7 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
   verificationToken?: string;
   verifiedAt?: Date;
   billingData?: BillingUserData;
-  mobileOs: string;
-  mobileToken: string;
-  mobileLastChangedOn: Date;
+  mobileData?: UserMobileData;
   startTransactionData?: StartTransactionUserData;
   authorizationID?: string;
   importedData?: {
@@ -43,6 +42,15 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
   };
   technical?: boolean;
   freeAccess?: boolean;
+}
+
+export interface UserMobileData {
+  mobileOS: 'ios' | 'android' | 'windows' | 'macos' | 'web';
+  mobileToken: string;
+  mobileBundleID: string;
+  mobileAppName: string;
+  mobileVersion: string;
+  mobileLastChangedOn?: Date;
 }
 
 export interface StartTransactionUserData {
@@ -55,7 +63,7 @@ export interface StartTransactionUserData {
   lastTargetStateOfCharge: number;
 }
 
-export interface UserSite {
+export interface SiteUser extends SiteUserAuthorizationActions {
   user: User;
   userID?: string;
   siteID: string;
@@ -70,7 +78,7 @@ export interface ImportedUser {
   email: string;
   importedBy?: string;
   importedOn?: Date;
-  status?: ImportStatus
+  status?: ImportStatus;
   errorDescription?: string;
   importedData?: {
     autoActivateUserAtImport: boolean;

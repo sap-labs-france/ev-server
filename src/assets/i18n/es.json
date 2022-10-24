@@ -3,12 +3,12 @@
     "generatedUser": "Usuario generado por '{{email}}'",
     "chargingAtSiteArea": "Sesión de carga: {{sessionID}} - Fecha de inicio: {{startDate}} a las {startTime} - Consumo de energía: {{totalConsumption}} kWh en {{siteAreaName}}",
     "chargingAtChargeBox": "Sesión de carga: {{sessionID}} - Fecha de inicio: {{startDate}} a las {{startTime}} - Consumo de energía: {{totalConsumption}} kWh en la estación de recarga {{chargeBoxID}}",
-    "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
-    "flatFee-shortItemDescription": "Flat Fee",
-    "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
-    "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
-    "parkingTime-shortItemDescription": "Parking Time: {{duration}}",
-    "transfer-feeItemDescription": "Fee charged for {{nbSessions}} session(s)"
+    "header-itemDescription": "Sesión de carga: {{sessionID}} - Fecha de inicio: {{startDate}} a las {{startTime}} en la estación de recarga {{chargeBoxID}}",
+    "flatFee-shortItemDescription": "Tarifas fijas",
+    "energy-shortItemDescription": "Consumo: {{quantity}} kWh",
+    "chargingTime-shortItemDescription": "Tiempo de carga: {{duration}}",
+    "parkingTime-shortItemDescription": "Tiempo de estacionamiento: {{duration}}",
+    "transfer-feeItemDescription": "Tarifa cobrada por {{nbSessions}} sesión(es)"
   },
   "chargers": {
     "chargeBoxSN": "Número de serie de la estación de carga",
@@ -146,15 +146,15 @@
     },
     "billingNewInvoiceOpen": {
       "title": "Nueva factura a pagar",
-      "body": "u factura ({{invoiceNumber}}) importe {{amount}} está disponible. Revise su correo para finalizar la operación"
+      "body": "Su factura ({{invoiceNumber}}) importe {{amount}} está disponible. Revise su correo para finalizar la operación"
     },
     "billingAccountCreationLink": {
-      "title": "Billing account onboarding",
-      "body": "You have been invited to create a billing account. Please check your email to complete the process"
+      "title": "Cargando cuenta de facturación",
+      "body": "Usted ha sido invitado a crear una cuenta de facturación. Por favor verifique su email para completar el proceso."
     },
     "billingAccountActivated": {
-      "title": "Billing account activated",
-      "body": "Your billing account has been activated"
+      "title": "Cuenta de facturación activada",
+      "body": "Su cuenta ha sido activada"
     },
     "endUserErrorNotification": {
       "title": "Un usuario ha reportado un error",
@@ -192,5 +192,343 @@
     "status": "Estatus",
     "user": "Usuario",
     "userID": "Usuario ID"
+  },
+  "email": {
+    "greetings": "Hola {{recipientName}}",
+    "footerText": "Este mensaje ha sido enviado por un servicio automatizado a {{recipientEmail}}. Por favor no responda. Puede darse de baja cambiando sus parámetros de notificación.",
+    "new-registered-user": {
+      "title": "Cuenta de usuario creada",
+      "buttonText": "Active su cuenta",
+      "text": [
+        "Su cuenta ha sido creada satisfactoriamente.",
+        "",
+        "Haga clic en el enlace para activarla."
+      ]
+    },
+    "request-password": {
+      "title": "Restablecer contraseña",
+      "buttonText": "Restablecer contraseña",
+      "text": [
+        "Usted ha solicitado restablecer la contraseña.",
+        "",
+        "Haga clic en el enlace para activar la nueva."
+      ]
+    },
+    "optimal-charge-reached": {
+      "title": "Optimal Charge Reached",
+      "buttonText": "Vista de la sesión",
+      "text": [
+        "Su vehículo eléctrico, que está conectado a {{chargeBoxID}} en el conector {{connectorId}} ha alcanzado su carga óptima."
+      ],
+      "table": [
+        {
+          "label": "Sesión",
+          "value": "{{transactionId}}"
+        },
+        {
+          "label": "Nivel de carga",
+          "value": "{{stateOfCharge}} %"
+        }
+      ]
+    },
+    "end-of-session": {
+      "title": "Sesión terminada",
+      "buttonText": "Vista de la sesión",
+      "text": [
+        "Su sesión en la terminal {{chargeBoxID}} en el conector {{connectorId}} ha finalizado."
+      ],
+      "table": [
+        {
+          "label": "Sesión",
+          "value": "{{transactionId}}"
+        },
+        {
+          "label": "Consumo",
+          "value": "{{totalConsumption}} kW.h"
+        },
+        {
+          "label": "Duración total",
+          "value": "{{totalDuration}}"
+        },
+        {
+          "label": "Inactividad total",
+          "value": "{{totalInactivity}}"
+        },
+        {
+          "label": "Estado de la carga",
+          "value": "{{stateOfCharge}} %"
+        }
+      ]
+    },
+    "end-of-charge": {
+      "title": "Carga finalizada",
+      "buttonText": "Vista de la sesión",
+      "text": [
+        "Su vehículo eléctrico, que está conectado a {{chargeBoxID}} en el conector {{connectorId}} ha finalizado la carga."
+      ],
+      "table": [
+        {
+          "label": "Sesión",
+          "value": "{{transactionId}}"
+        },
+        {
+          "label": "Consumo",
+          "value": "{{totalConsumption}} kW.h"
+        },
+        {
+          "label": "Duración total",
+          "value": "{{totalDuration}}"
+        },
+        {
+          "label": "Estado de la carga",
+          "value": "{{stateOfCharge}} %"
+        }
+      ]
+    },
+    "billing-new-invoice-paid": {
+      "title": "Nueva factura pagada",
+      "buttonText": "Descargar la factura",
+      "text": [
+        "Su factura {{invoiceNumber}} ha sido pagada y el documento correspondiente puede ser descargado."
+      ],
+      "table": [
+        {
+          "label": "Importe pagado",
+          "value": "{{invoiceAmount}}"
+        }
+      ]
+    },
+    "billing-new-invoice-unpaid": {
+      "title": "Nueva factura",
+      "buttonText": "Pagar la factura",
+      "text": [
+        "Su factura {{invoiceNumber}} ha sido generada y el documento correspondiente puede ser descargado.",
+        "",
+        "Haga clic en el enlace para finalizar el pago."
+      ],
+      "table": [
+        {
+          "label": "Importe por pagar",
+          "value": "{{invoiceAmount}}"
+        }
+      ]
+    },
+    "charging-station-registered": {
+      "title": "Estación de carga conectada",
+      "buttonText": "Vista de la estación de carga",
+      "text": [
+        "La estación de carga {{chargeBoxID}} acaba de conectarse al servidor central."
+      ]
+    },
+    "end-user-error-notification": {
+      "title": "Error señalado por un usuario",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "El usuario {{name}} ha reportado el siguiente error:",
+        "",
+        "Error: {{errorTitle}}",
+        "Descripción: {{errorDescription}}",
+        "",
+        "Email: {{email}}",
+        "Teléfono: {{phone}}"
+      ]
+    },
+    "offline-charging-station": {
+      "title": "Estación de carga fuera de línea",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "Su organización tiene {{nbChargingStationIDs}} estaciones fuera de línea.",
+        "",
+        "Estaciones: {{tenFirstChargingStationIDs}}"
+      ]
+    },
+    "charging-station-status-error": {
+      "title": "Error en la estación de carga",
+      "buttonText": "Ver el error",
+      "text": [
+        "El error ocurrió en el conector {{connectorId}} de la estación {{chargeBoxID}}",
+        "Error: {{error}}"
+      ]
+    },
+    "billing-account-created": {
+      "title": "Cargando cuenta de facturación",
+      "buttonText": "Proceda",
+      "text": [
+        "Su cuenta de Facturación ha sido creada a su nombre por el administrador.",
+        "",
+        "Haga clic en el enlace para completar el proceso de carga a su cuenta"
+      ]
+    },
+    "user-account-status-changed": {
+      "title": "Cuenta de usuario - estatus modificado",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "El estatus de su cuenta ha sido modificado por un administrador.",
+        "Nuevo estatus: {{accountStatus}}"
+      ]
+    },
+    "unknown-user-badged": {
+      "title": "Insignia desconocida detectada",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "Un usuario ha utilizado una insignia desconocida en la estación {{chargeBoxID}} con el RFID {{badgeID}}."
+      ]
+    },
+    "session-started": {
+      "title": "Sesión de carga iniciada",
+      "buttonText": "Vista de la sesión",
+      "text": [
+        "Su vehículo ha sido conectado a la estación de carga {{chargeBoxID}} en el conector {{connectorId}}."
+      ]
+    },
+    "verification-email": {
+      "title": "Activación de su cuenta de usuario",
+      "buttonText": "Activar cuenta de usuario",
+      "text": [
+        "Usted ha iniciado una solicitud para activar su cuenta.",
+        "",
+        "Haga clic en el enlace para activarla."
+      ]
+    },
+    "verification-email-user-import": {
+      "title": "Cuenta de usuario creada",
+      "buttonText": "Active su cuenta",
+      "text": [
+        "Una cuenta ha sido creada en su nombre,",
+        "",
+        "Haga clic en el enlace para activarla."
+      ]
+    },
+    "ocpi-patch-status-error": {
+      "title": "Fallo al transferir el estatus de las estaciones de carga",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "La transferencia del estatus de las estaciones de carga del sitio {{location}} ha fallado.",
+        "",
+        "Verificar los registros."
+      ]
+    },
+    "oicp-patch-status-error": {
+      "title": "Hubject - Fallo al transferir el estatus de las estaciones de carga",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "La transferencia del estatus de las estaciones de carga de la organización {{tenantName}} ha fallado.",
+        "",
+        "Verificar los registros."
+      ]
+    },
+    "oicp-patch-evses-error": {
+      "title": "Hubject - Fallo al transferir la lista de las estaciones de carga",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "La transferencia de la lista de las estaciones de carga de la organización {{tenantName}} ha fallado.",
+        "",
+        "Verificar los registros."
+      ]
+    },
+    "user-account-inactivity": {
+      "title": "Inactividad de su cuenta",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "No ha ingresado en la aplicación e-Mobility desde {{lastLogin}}.",
+        "Para cumplir con las leyes europeas sobre protección general de datos, un administrador puede desactivar su cuenta y posiblemente eliminarla.",
+        "",
+        "Ingrese y acepte los acuerdos de licencia de usuario final para prevenir la eliminación de su cuenta."
+      ]
+    },
+    "session-not-started": {
+      "title": "Sesión no iniciada",
+      "buttonText": "Vista de la estación de carga",
+      "text": [
+        "Usted ha solicitado una sesion de carga en el conector {{connectorId}} de la estación {{chargeBoxID}}, pero ninguna sesión ha arrancado."
+      ]
+    },
+    "session-not-started-after-authorize": {
+      "title": "Sesión no iniciada",
+      "buttonText": "Vista de la estación de carga",
+      "text": [
+        "Usted ha solicitado una sesion de carga en la estación {{chargeBoxID}}, pero ninguna sesión ha arrancado."
+      ]
+    },
+    "billing-user-synchronization-failed": {
+      "title": "Facturación - Fallo en la sincronización de los usuarios",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "La sincronización con el sistema de Facturación ha fallado para {{nbrUsersInError}} usuarios."
+      ]
+    },
+    "billing-invoice-synchronization-failed": {
+      "title": "Facturación - Fallo en la sincronización de las facturas",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "La sincronización con el sistema de Facturación ha fallado para {{nbrInvoicesInError}} facturas."
+      ]
+    },
+    "billing-periodic-operation-failed": {
+      "title": "Facturación - Fallo de las operaciones periódicas",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "Fallo del proceso de {{nbrInvoicesInError}} factura(s)."
+      ]
+    },
+    "billing-account-activated": {
+      "title": "Cuenta de facturación activada",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "Felicidades!",
+        "",
+        "El proceso de carga ha sido completado de manera exitosa y su cuenta de Facturación ha sido activada."
+      ]
+    },
+    "car-synchronization-failed": {
+      "title": "Fallo de la sincronización de los vehículos",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "La sincronización de los datos de {{nbrCarsInError}} vehículo(s) ha fallado."
+      ]
+    },
+    "compute-and-apply-charging-profiles-failed": {
+      "title": "Smart Charging - fallo al aplicar perfiles de carga",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "El intento de aplicar perfiles de carga a la estación de carga {{chargeBoxID}} ha fallado.",
+        "La estación de carga ha sido excluida para este proceso de smart charging."
+      ]
+    },
+    "account-verification-notification-active": {
+      "title": "Cuenta verificada",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "Su cuenta ha sido verificada y activada con éxito!"
+      ]
+    },
+    "account-verification-notification-inactive": {
+      "title": "Cuenta verificada",
+      "buttonText": "Dirigirse a {{tenantName}}",
+      "text": [
+        "Su correo electrónico ha sido verificado con éxito.",
+        "",
+        "Un administrador verificará y activará su cuenta."
+      ]
+    },
+    "admin-account-verification-notification": {
+      "title": "Verificación de una nueva cuenta de usuario",
+      "buttonText": "Verificar la cuenta",
+      "text": [
+        "Un usuario con el correo electrónico {{email}} ha creado una nueva cuenta.",
+        "",
+        "Haga clic en el enlace para verificarla."
+      ]
+    },
+    "user-create-password": {
+      "title": "Cuenta de usuario creada",
+      "buttonText": "Establezca su password",
+      "text": [
+        "Una cuenta ha sido creada en su nombre en la organización '{{tenantName}}'.",
+        "Debe ingresar por lo menos una vez para cargar su vehículo.",
+        "",
+        "Haga clic en el enlace para establecer su password."
+      ]
+    }
   }
 }

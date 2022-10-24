@@ -10,22 +10,49 @@ export default class OwnUserDynamicAuthorizationFilter extends DynamicAuthorizat
     // Get User ID
     const ownUserDataSource = this.getDataSource(
       DynamicAuthorizationDataSourceName.OWN_USER) as OwnUserDynamicAuthorizationDataSource;
-    const { userID } = ownUserDataSource.getData();
+    const { userID, tagIDs } = ownUserDataSource.getData();
+    // Flag
+    let authFilterUsed = false;
     // Clear
     authorizationFilters.filters.userIDs = [];
+    authorizationFilters.filters.ownUserTags = [];
     if (userID) {
       // Force the filter
       authorizationFilters.filters.userIDs = [userID];
       // Check if filter is provided
-      if (Utils.objectHasProperty(extraFilters, 'UserID') &&
-          !Utils.isNullOrUndefined(extraFilters['UserID'])) {
+      if (Utils.objectHasProperty(extraFilters, 'UserID') && !Utils.isNullOrUndefined(extraFilters['UserID'])) {
+        // Update flag
+        authFilterUsed = true;
         const filteredUserIDs: string[] = extraFilters['UserID'].split('|');
         // Override
         authorizationFilters.filters.userIDs = filteredUserIDs.filter(
           (user) => authorizationFilters.filters.userIDs.includes(user));
+        // Check auth
+        if (!Utils.isEmptyArray(authorizationFilters.filters.userIDs)) {
+          authorizationFilters.authorized = true;
+        }
       }
     }
-    if (!Utils.isEmptyArray(authorizationFilters.filters.userIDs)) {
+    
+    if (!Utils.isEmptyArray(tagIDs)) {
+      // Force the filter
+      authorizationFilters.filters.ownUserTags = tagIDs;
+      // Check if filter is provided
+      if (Utils.objectHasProperty(extraFilters, 'TagIDs') && !Utils.isNullOrUndefined(extraFilters['TagIDs'])) {
+        // Update flag
+        authFilterUsed = true;
+        const filteredUserTagIDs: string[] = extraFilters['TagIDs'].split('|');
+        // Override
+        authorizationFilters.filters.ownUserTags = filteredUserTagIDs.filter(
+          (tag) => authorizationFilters.filters.ownUserTags.includes(tag));
+        // Check auth
+        if (!Utils.isEmptyArray(authorizationFilters.filters.ownUserTags)) {
+          authorizationFilters.authorized = true;
+        }
+      }
+    }
+    // No auth filter, we authorize
+    if (!authFilterUsed) {
       authorizationFilters.authorized = true;
     }
     // Remove sensible data if not authorized and filter is provided

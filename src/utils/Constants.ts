@@ -48,7 +48,6 @@ export default class Constants {
   public static readonly SMART_CHARGING_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_CONNECTION_LOCK_SECS = 5;
-  public static readonly TENANT_DEFAULT_LOGO = '/assets/img/logo-low.gif';
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
 
   public static readonly DEFAULT_TENANT_ID = 'default';
@@ -468,4 +467,9 @@ export default class Constants {
 
   public static readonly AFIREV_MINIMAL_DURATION_THRESHOLD = 120; // Minimal duration - 2 minutes
   public static readonly AFIREV_MINIMAL_CONSUMPTION_THRESHOLD = 500; // Minimal consumption - 0.5 kW.h
+
+  /* App Info for STRIPE */
+  public static readonly STRIPE_APP_NAME = 'Open e-Mobility';
+  public static readonly STRIPE_PARTNER_ID = 'TECH-000685';
+  public static readonly STRIPE_API_VERSION = '2020-08-27';
 }

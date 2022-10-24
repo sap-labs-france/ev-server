@@ -23,6 +23,7 @@ export interface HttpSetupPaymentMethod {
 
 export interface HttpPaymentMethods {
   userID: string;
+  WithAuth: boolean;
 }
 
 export interface HttpDeletePaymentMethod {

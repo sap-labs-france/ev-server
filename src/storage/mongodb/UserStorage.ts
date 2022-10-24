@@ -1,5 +1,5 @@
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import User, { ImportedUser, StartTransactionUserData, UserRole, UserStatus } from '../../types/User';
+import User, { ImportedUser, StartTransactionUserData, UserMobileData, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { DatabaseCount, FilterParams, Image, ImportStatus } from '../../types/GlobalType';
 
@@ -14,9 +14,10 @@ import Eula from '../../types/Eula';
 import Logging from '../../utils/Logging';
 import Mustache from 'mustache';
 import { ObjectId } from 'mongodb';
-import { SiteUser } from '../../types/Site';
 import TagStorage from './TagStorage';
 import UserNotifications from '../../types/UserNotifications';
+import { UserSite } from '../../types/Site';
+import UserValidatorStorage from '../validator/UserValidatorStorage';
 import Utils from '../../utils/Utils';
 import fs from 'fs';
 import moment from 'moment';
@@ -149,10 +150,10 @@ export default class UserStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // At least one Site
     if (!Utils.isEmptyArray(siteIDs)) {
-      const siteUsersMDB = [];
+      const userSitesMDB = [];
       // Create the list
       for (const siteID of siteIDs) {
-        siteUsersMDB.push({
+        userSitesMDB.push({
           '_id': Utils.hash(`${siteID}~${userID}`),
           'userID': DatabaseUtils.convertToObjectID(userID),
           'siteID': DatabaseUtils.convertToObjectID(siteID),
@@ -160,7 +161,7 @@ export default class UserStorage {
         });
       }
       // Execute
-      await global.database.getCollection<any>(tenant.id, 'siteusers').insertMany(siteUsersMDB);
+      await global.database.getCollection<any>(tenant.id, 'siteusers').insertMany(userSitesMDB);
     }
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addSitesToUser', startTime, siteIDs);
   }
@@ -182,7 +183,7 @@ export default class UserStorage {
   public static async addSiteToUser(tenant: Tenant, userID: string, siteID: string): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    const siteUserMDB = {
+    const userSiteMDB = {
       '_id': Utils.hash(`${siteID}~${userID}`),
       'userID': DatabaseUtils.convertToObjectID(userID),
       'siteID': DatabaseUtils.convertToObjectID(siteID),
@@ -190,12 +191,12 @@ export default class UserStorage {
     };
     // Execute
     await global.database.getCollection<any>(tenant.id, 'siteusers').findOneAndUpdate(
-      { userID: siteUserMDB.userID, siteID: siteUserMDB.siteID },
-      { $set: siteUserMDB },
+      { userID: userSiteMDB.userID, siteID: userSiteMDB.siteID },
+      { $set: userSiteMDB },
       { upsert: true }
     );
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'addSiteToUser', startTime, siteID);
-    return siteUserMDB._id;
+    return userSiteMDB._id;
   }
 
   public static async saveUser(tenant: Tenant, userToSave: User, saveImage = false): Promise<string> {
@@ -385,14 +386,19 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserLastSelectedCarID', startTime, { startTransactionData });
   }
 
-  public static async saveUserMobileToken(tenant: Tenant, userID: string,
-      params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date }): Promise<void> {
+  public static async saveUserMobileData(tenant: Tenant, userID: string, params: UserMobileData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
+    // Validate
+    const mobileDataMDB = UserValidatorStorage.getInstance().validateUserMobileDataSave(params);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(userID) },
-      { $set: params });
+      {
+        $set: {
+          mobileData: mobileDataMDB
+        }
+      });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserMobileToken', startTime, params);
   }
 
@@ -911,8 +917,8 @@ export default class UserStorage {
   }
 
   public static async getUserSites(tenant: Tenant,
-      params: { search?: string; userIDs: string[]; siteAdmin?: boolean; siteOwner?: boolean },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
+      params: { search?: string; userIDs: string[]; siteIDs?: string[]; siteAdmin?: boolean; siteOwner?: boolean },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserSite>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -937,6 +943,16 @@ export default class UserStorage {
     }
     // Create Aggregation
     const aggregation: any[] = [];
+    // Filter on authorized sites
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      aggregation.push({
+        $match: {
+          siteID: {
+            $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+          }
+        }
+      });
+    }
     // Filter
     aggregation.push({
       $match: filters
@@ -960,14 +976,14 @@ export default class UserStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const sitesCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
+    const userSitesCountMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray() as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', startTime, sitesCountMDB);
+      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', startTime, userSitesCountMDB);
       return {
-        count: (!Utils.isEmptyArray(sitesCountMDB) ? sitesCountMDB[0].count : 0),
+        count: (!Utils.isEmptyArray(userSitesCountMDB) ? userSitesCountMDB[0].count : 0),
         result: []
       };
     }
@@ -996,13 +1012,13 @@ export default class UserStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
+    const userSitesMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as SiteUser[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', startTime, siteUsersMDB);
+      .toArray() as UserSite[];
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserSites', startTime, userSitesMDB);
     return {
-      count: DatabaseUtils.getCountFromDatabaseCount(sitesCountMDB[0]),
-      result: siteUsersMDB,
+      count: DatabaseUtils.getCountFromDatabaseCount(userSitesCountMDB[0]),
+      result: userSitesMDB,
       projectFields: projectFields
     };
   }

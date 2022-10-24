@@ -209,7 +209,9 @@ export default class ChargingStationService {
       chargingProfiles.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addChargingProfilesAuthorizations(req.tenant, req.user, chargingProfiles, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addChargingProfilesAuthorizations(req.tenant, req.user, chargingProfiles, authorizations);
+    }
     // Build the result
     res.json(chargingProfiles);
     next();
@@ -530,8 +532,9 @@ export default class ChargingStationService {
       chargingStations.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addChargingStationsAuthorizations(
-      req.tenant, req.user, chargingStations, authorizations);
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addChargingStationsAuthorizations(req.tenant, req.user, chargingStations, authorizations);
+    }
     res.json(chargingStations);
   }
 
@@ -539,7 +542,8 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationNotificationsGetReq(req.query);
     // Check dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(req.tenant, req.user, Action.GET_BOOT_NOTIFICATION);
+    const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(
+      req.tenant, req.user, Action.GET_BOOT_NOTIFICATION, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -606,7 +610,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationNotificationsGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(
-      req.tenant, req.user, Action.GET_BOOT_NOTIFICATION);
+      req.tenant, req.user, Action.GET_BOOT_NOTIFICATION, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -970,9 +974,9 @@ export default class ChargingStationService {
       chargingStations.projectFields = authorizations.projectFields;
     }
     // Add Auth flags
-    await AuthorizationService.addChargingStationsAuthorizations(
-      req.tenant, req.user, chargingStations, authorizations);
-
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addChargingStationsAuthorizations(req.tenant, req.user, chargingStations, authorizations);
+    }
     return chargingStations;
   }
 

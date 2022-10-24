@@ -1,0 +1,7 @@
+<mj-section background-color="#ffffff">
+	<mj-column>
+		<mj-button background-color="#308080" color="#ffffff" font-size="16px" href="{{buttonUrl}}">
+			{{i18n:buttonText}}
+		</mj-button>
+	</mj-column>
+</mj-section>
