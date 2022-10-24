@@ -1,4 +1,4 @@
-import StatisticFilter, { ChargingStationStats, StatsGroupBy, UserStats } from '../../types/Statistic';
+import StatisticFilter, { ChargingStationStats, StatsAggregationKey, StatsDataScope, StatsGroupBy, UserStats } from '../../types/Statistic';
 
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
@@ -61,14 +61,23 @@ export default class StatisticsStorage {
     aggregation.push({
       $match: filters
     });
+
+    const scope: StatsDataScope = params.dataScope;
+    const createGroupId = (unit = '') => {
+      if (scope === StatsDataScope.DATE) {
+        return { chargeBox: '$chargeBoxID', [StatsDataScope.DATE]: { '$dateToString': { date: '$timestamp', format: '%Y-%m-%d' } }, unit };
+      }
+      const key: StatsAggregationKey = `$${scope}`;
+      return { chargeBox: '$chargeBoxID', [scope]: { [key]: '$timestamp' }, unit };
+    };
+
     // Group
     switch (groupBy) {
       // By Consumption
       case StatsGroupBy.CONSUMPTION:
         aggregation.push({
           $group: {
-            // _id: { chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" }, unit: '' },
-            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '' },
+            _id: createGroupId(),
             total: { $sum: { $divide: ['$stop.totalConsumptionWh', 1000] } }
           }
         });
@@ -77,7 +86,7 @@ export default class StatisticsStorage {
       case StatsGroupBy.USAGE:
         aggregation.push({
           $group: {
-            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '' },
+            _id: createGroupId(),
             total: { $sum: { $divide: [{ $subtract: ['$stop.timestamp', '$timestamp'] }, 60 * 60 * 1000] } }
           }
         });
@@ -86,7 +95,7 @@ export default class StatisticsStorage {
       case StatsGroupBy.INACTIVITY:
         aggregation.push({
           $group: {
-            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '' },
+            _id: createGroupId(),
             total: { $sum: { $divide: [{ $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] }, 60 * 60] } }
           }
         });
@@ -95,7 +104,7 @@ export default class StatisticsStorage {
       case StatsGroupBy.TRANSACTIONS:
         aggregation.push({
           $group: {
-            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '' },
+            _id: createGroupId(),
             total: { $sum: 1 }
           }
         });
@@ -104,7 +113,7 @@ export default class StatisticsStorage {
       case StatsGroupBy.PRICING:
         aggregation.push({
           $group: {
-            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '$stop.priceUnit' },
+            _id: createGroupId('$stop.priceUnit'),
             total: { $sum: '$stop.price' }
           }
         });
@@ -113,12 +122,12 @@ export default class StatisticsStorage {
     // Replace root
     aggregation.push({
       $replaceRoot: {
-        newRoot: { month: '$_id.month', unit: '$_id.unit', chargeBox: '$_id.chargeBox', total: '$total' }
+        newRoot: { [scope]: `$_id.${scope}`, unit: '$_id.unit', chargeBox: '$_id.chargeBox', total: '$total' }
       }
     });
     // Sort
     aggregation.push({
-      $sort: { 'month': 1, 'unit': 1, 'chargeBox': 1 }
+      $sort: { [scope]: 1, 'unit': 1, 'chargeBox': 1 }
     });
     // Read DB
     const chargingStationStatsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')

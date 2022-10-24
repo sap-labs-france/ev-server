@@ -262,37 +262,29 @@ export default class UserService {
     next();
   }
 
-  public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateUserMobileData(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidatorRest.getInstance().validateUserMobileTokenUpdateReq({ ...req.params, ...req.body });
-    // Check Mandatory fields
-    if (!filteredRequest.mobileToken) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s mobile token ID must be provided',
-        module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
-        user: req.user,
-        action: action
-      });
-    }
+    const filteredRequest = UserValidatorRest.getInstance().validateUserMobileDataUpdateReq({ ...req.params, ...req.body });
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
-    // Update User (override TagIDs because it's not of the same type as in filteredRequest)
-    await UserStorage.saveUserMobileToken(req.tenant, user.id, {
+    // Update User
+    await UserStorage.saveUserMobileData(req.tenant, user.id, {
       mobileToken: filteredRequest.mobileToken,
-      mobileOs: filteredRequest.mobileOS,
+      mobileOS: filteredRequest.mobileOS,
+      mobileBundleID: filteredRequest.mobileBundleID,
+      mobileAppName: filteredRequest.mobileAppName,
+      mobileVersion: filteredRequest.mobileVersion,
       mobileLastChangedOn: new Date()
     });
     await Logging.logInfo({
       tenantID: req.tenant.id,
       user: user,
-      module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
-      message: 'User\'s mobile token has been updated successfully',
+      module: MODULE_NAME, method: 'handleUpdateUserMobileData',
+      message: 'User\'s mobile data has been updated successfully',
       action: action,
       detailedMessages: {
-        mobileToken: filteredRequest.mobileToken,
-        mobileOS: filteredRequest.mobileOS
+        mobileData: filteredRequest,
       }
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);

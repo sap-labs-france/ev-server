@@ -27,7 +27,10 @@ export interface HttpCreateTransactionInvoiceRequest {
 export interface HttpUserMobileTokenUpdateRequest {
   id: string;
   mobileToken: string;
-  mobileOS: string;
+  mobileOS: 'ios' | 'android' | 'windows' | 'macos' | 'web';
+  mobileBundleID: string;
+  mobileAppName: string;
+  mobileVersion: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
