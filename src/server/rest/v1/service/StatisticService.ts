@@ -42,7 +42,7 @@ export default class StatisticService {
       req.tenant, filter, StatsGroupBy.CONSUMPTION);
     // Convert
     const transactions = StatisticService.convertToGraphData(
-      transactionStats, StatsDataCategory.CHARGING_STATION);
+      transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
     res.json(transactions);
     next();
   }
@@ -71,7 +71,7 @@ export default class StatisticService {
       req.tenant, filter, StatsGroupBy.USAGE);
     // Convert
     const transactions = StatisticService.convertToGraphData(
-      transactionStats, StatsDataCategory.CHARGING_STATION);
+      transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
     res.json(transactions);
     next();
   }
@@ -100,7 +100,7 @@ export default class StatisticService {
       req.tenant, filter, StatsGroupBy.INACTIVITY);
     // Convert
     const transactions = StatisticService.convertToGraphData(
-      transactionStats, StatsDataCategory.CHARGING_STATION);
+      transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
     res.json(transactions);
     next();
   }
@@ -129,7 +129,7 @@ export default class StatisticService {
       req.tenant, filter, StatsGroupBy.TRANSACTIONS);
     // Convert
     const transactions = StatisticService.convertToGraphData(
-      transactionStats, StatsDataCategory.CHARGING_STATION);
+      transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
     res.json(transactions);
     next();
   }
@@ -158,7 +158,7 @@ export default class StatisticService {
       req.tenant, filter, StatsGroupBy.PRICING);
     // Convert
     const transactions = StatisticService.convertToGraphData(
-      transactionStats, StatsDataCategory.CHARGING_STATION);
+      transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
     res.json(transactions);
     next();
   }
@@ -400,6 +400,12 @@ export default class StatisticService {
     if (filteredRequest.ChargingStationID) {
       filter.chargeBoxIDs = filteredRequest.ChargingStationID.split('|');
     }
+    // DataScope
+    if (filteredRequest.DataScope === StatsDataScope.TOTAL || !filteredRequest.DataScope) {
+      filter.dataScope = StatsDataScope.MONTH;
+    } else {
+      filter.dataScope = filteredRequest.DataScope;
+    }
     // User
     if (Authorizations.isBasic(loggedUser)) {
       if (Authorizations.isSiteAdmin(loggedUser)) {
@@ -415,36 +421,37 @@ export default class StatisticService {
     return filter;
   }
 
-  static convertToGraphData(transactionStats: ChargingStationStats[] | UserStats[], dataCategory: string): any[] {
+  static convertToGraphData(transactionStats: ChargingStationStats[] | UserStats[], dataCategory: string, dataScope: StatsDataScope = StatsDataScope.MONTH): any[] {
     const transactions: Record<string, number>[] = [];
     // Create
     if (transactionStats && transactionStats.length > 0) {
       // Create
-      let month = -1;
+      let period = -1;
       let unit: string;
       let transaction;
       let userName: string;
       for (const transactionStat of transactionStats) {
+        const stat = transactionStat[dataScope];
         // Init
         if (transactionStat.unit && (unit !== transactionStat.unit)) {
           // Set
-          month = transactionStat.month;
+          period = stat;
           unit = transactionStat.unit;
           // Create new
           transaction = {};
-          transaction.month = transactionStat.month - 1;
+          transaction[dataScope] = typeof stat === 'number' ? stat - 1 : stat;
           transaction.unit = transactionStat.unit;
           // Add
           if (transaction) {
             transactions.push(transaction);
           }
         }
-        if (month !== transactionStat.month) {
+        if (period !== stat) {
           // Set
-          month = transactionStat.month;
+          period = stat;
           // Create new
           transaction = {};
-          transaction.month = transactionStat.month - 1;
+          transaction[dataScope] = typeof stat === 'number' ? stat - 1 : stat;
           if (transactionStat.unit) {
             unit = transactionStat.unit;
             transaction.unit = transactionStat.unit;
