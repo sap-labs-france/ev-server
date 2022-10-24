@@ -132,15 +132,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   public async sendRequestPassword(data: RequestPasswordNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
@@ -192,15 +188,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   public async sendCarCatalogSynchronizationFailed(data: CarCatalogSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   public async sendEndUserErrorNotification(data: EndUserErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
@@ -294,15 +286,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   public async sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification,
@@ -463,15 +451,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   public async sendAdminAccountVerificationNotification(): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   public async sendUserCreatePassword(): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType,
@@ -484,7 +468,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       if (!this.initialized) {
         return Promise.resolve();
       }
-      if (!user || !user.mobileToken || user.mobileToken.length === 0) {
+      if (!user?.mobileData?.mobileToken) {
         await Logging.logDebug({
           tenantID: tenant.id,
           siteID: data?.siteID,
@@ -513,7 +497,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         try {
           // Send message
           const response = await admin.messaging(app).sendToDevice(
-            user.mobileToken,
+            user.mobileData.mobileToken,
             message,
             { priority: 'high', timeToLive: 60 * 60 * 24 }
           );
