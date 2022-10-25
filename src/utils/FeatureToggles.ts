@@ -4,6 +4,7 @@ export enum Feature {
   BILLING_PREVENT_CUSTOMER_DELETION,
   BILLING_SHOW_PRICING_DETAIL,
   BILLING_PLATFORM_USE_EXPRESS_ACCOUNT,
+  BILLING_SYNC_USER_ASAP,
 }
 
 export default class FeatureToggles {
@@ -11,6 +12,7 @@ export default class FeatureToggles {
   private static activeFeatures: Feature[] = [
     Feature.BILLING_PREVENT_CUSTOMER_DELETION,
     Feature.BILLING_PLATFORM_USE_EXPRESS_ACCOUNT,
+    Feature.BILLING_SYNC_USER_ASAP
   ];
 
   // Check whether the feature is active or not!

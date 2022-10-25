@@ -4,6 +4,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import Busboy, { FileInfo } from 'busboy';
 import { Car, CarType } from '../../../../types/Car';
 import { DataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
+import FeatureToggles, { Feature } from '../../../../utils/FeatureToggles';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -78,7 +79,7 @@ export default class UserService {
     let car: Car;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) && carAuthorization.authorized) {
     // Get the default Car
-    car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
+      car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
       if (!car) {
         // Get the first available car
         car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID, carAuthorization.projectFields);
@@ -237,7 +238,9 @@ export default class UserService {
     // Update User Admin Data
     await UserService.updateUserAdminData(req.tenant, user, user.projectFields);
     // Update Billing
-    await UserService.updateUserBilling(ServerAction.USER_UPDATE, req.tenant, req.user, user);
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER_ASAP)) {
+      await UserService.updateUserBillingData(ServerAction.USER_UPDATE, req.tenant, req.user, user);
+    }
     // Log
     await Logging.logInfo({
       tenantID: req.tenant.id,
@@ -657,7 +660,9 @@ export default class UserService {
     // Assign Site to new User
     await UtilsService.assignCreatedUserToSites(req.tenant, newUser, authorizations);
     // Update Billing
-    await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER_ASAP)) {
+      await UserService.updateUserBillingData(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
+    }
     // Log
     await Logging.logInfo({
       tenantID: req.tenant.id,
@@ -916,16 +921,17 @@ export default class UserService {
     }
   }
 
-  private static async updateUserBilling(action: ServerAction, tenant: Tenant, loggedUser: UserToken, user: User) {
+  private static async updateUserBillingData(action: ServerAction, tenant: Tenant, loggedUser: UserToken, user: User) {
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
       const billingImpl = await BillingFactory.getBillingImpl(tenant);
       if (billingImpl) {
         try {
+          // For performance reasons, the creation of a customer in the billing system should be done in a LAZY mode
           await billingImpl.synchronizeUser(user);
         } catch (error) {
           await Logging.logError({
             tenantID: tenant.id, action,
-            module: MODULE_NAME, method: 'updateUserBilling',
+            module: MODULE_NAME, method: 'updateUserBillingData',
             user: loggedUser, actionOnUser: user,
             message: 'User cannot be updated in billing system',
             detailedMessages: { error: error.stack }
