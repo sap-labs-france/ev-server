@@ -54,7 +54,7 @@ export default class SettingService {
     // Filter
     const settingID = SettingValidatorRest.getInstance().validateSettingGetByIdentifierReq(req.query).Identifier;
     // Get it
-    const setting = await UtilsService.checkAndGetSettingAuthorization(req.tenant, req.user, settingID, Action.READ, action, {}, {}, true);
+    const setting = await UtilsService.checkAndGetSettingAuthorization(req.tenant, req.user, settingID, Action.READ, action, {}, { identifier: settingID }, true);
     // Process the sensitive data if any
     SettingService.hashSensitiveData(setting);
     res.json(setting);

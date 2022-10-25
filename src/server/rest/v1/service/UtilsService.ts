@@ -217,7 +217,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetTransactionAuthorization(tenant: Tenant, userToken: UserToken, transactionID: number, authAction: Action,
-    action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Transaction> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Transaction> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'checkAndGetTransactionAuthorization', userToken);
     // Get dynamic auth
@@ -815,17 +815,25 @@ export default class UtilsService {
   }
 
   public static async checkAndGetSettingAuthorization(tenant: Tenant, userToken: UserToken, settingID: string, authAction: Action,
-    action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<SettingDB> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<SettingDB> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'checkAndGetSettingAuthorization', userToken);
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(
       tenant, userToken, { ID: settingID }, authAction, entityData);
     // Get Setting
-    const setting = await SettingStorage.getSetting(tenant, settingID,
-      applyProjectFields ? authorizations.projectFields : null
-    );
-    UtilsService.assertObjectExists(action, setting, `Setting ID '${settingID}' does not exist`,
+    let setting;
+    if (additionalFilters?.identifier) {
+      setting = await SettingStorage.getSettingByIdentifier(tenant, settingID,
+        applyProjectFields ? authorizations.projectFields : null
+      );
+    } else {
+      setting = await SettingStorage.getSetting(tenant, settingID,
+        applyProjectFields ? authorizations.projectFields : null
+      );
+    }
+
+    UtilsService.assertObjectExists(action, setting, `Setting '${settingID}' does not exist`,
       MODULE_NAME, 'checkAndGetSettingAuthorization', userToken);
     // Assign projected fields
     if (authorizations.projectFields) {
@@ -854,7 +862,7 @@ export default class UtilsService {
   public static async checkAndGetBillingSettingAuthorization(tenant: Tenant, userToken: UserToken, billingSettingID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingSettings> {
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(tenant, userToken, { ID: billingSettingID}, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(tenant, userToken, { ID: billingSettingID }, authAction, entityData);
     // Get the entity from storage
     const billingSetting = await SettingStorage.getBillingSetting(
       tenant,
