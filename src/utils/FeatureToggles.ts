@@ -12,7 +12,7 @@ export default class FeatureToggles {
   private static activeFeatures: Feature[] = [
     Feature.BILLING_PREVENT_CUSTOMER_DELETION,
     Feature.BILLING_PLATFORM_USE_EXPRESS_ACCOUNT,
-    Feature.BILLING_SYNC_USER_ASAP
+    // Feature.BILLING_SYNC_USER_ASAP - We do not want it - too slow when importing users
   ];
 
   // Check whether the feature is active or not!
