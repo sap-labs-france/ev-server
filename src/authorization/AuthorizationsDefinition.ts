@@ -695,7 +695,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'ocpiData'
+          'id', 'ocpiData', 'ocpi', 'ocpiWithCdr'
         ]
       },
       {
@@ -2733,7 +2733,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'ocpiData'
+          'id', 'ocpiData', 'ocpi', 'ocpiWithCdr'
         ]
       },
       {
