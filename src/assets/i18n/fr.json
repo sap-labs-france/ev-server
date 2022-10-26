@@ -343,7 +343,7 @@
       ]
     },
     "charging-station-status-error": {
-      "title": "Borne en erreur",
+      "title": "Erreur sur {{chargeBoxID}}, connecteur {{connectorId}}",
       "buttonText": "Voir l'erreur",
       "text": [
         "Une erreur est survenue sur la borne {{chargeBoxID}}, connecteur {{connectorId}}.",
