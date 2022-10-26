@@ -496,19 +496,19 @@
       ]
     },
     "account-verification-notification-active": {
-      "title": "Compte utilistateur vérifié",
+      "title": "Compte utilisateur vérifié",
       "buttonText": "Naviguer vers {{tenantName}}",
       "text": [
         "Votre e-mail a été vérifié. Votre compte est maintenant actif."
       ]
     },
     "account-verification-notification-inactive": {
-      "title": "Compte utilistateur vérifié",
+      "title": "Compte utilisateur vérifié",
       "buttonText": "Naviguer vers {{tenantName}}",
       "text": [
         "Votre e-mail a été vérifié.",
         "",
-        "Votre compte va être activer par un administrateur. Merci de patienter."
+        "Votre compte va être activé par un administrateur. Merci de patienter."
       ]
     },
     "admin-account-verification-notification": {
