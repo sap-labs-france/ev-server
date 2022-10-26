@@ -343,10 +343,10 @@
       ]
     },
     "charging-station-status-error": {
-      "title": "Charging Station Error",
+      "title": "Error on {{chargeBoxID}}, connector {{connectorId}}",
       "buttonText": "View Error",
       "text": [
-        "Error occurred on {{chargeBoxID}}, connector {{connectorId}}",
+        "An error occurred on {{chargeBoxID}}, connector {{connectorId}}",
         "Error: {{error}}"
       ]
     },
