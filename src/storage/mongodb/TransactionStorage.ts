@@ -670,14 +670,14 @@ export default class TransactionStorage {
       $limit: dbParams.limit
     });
     // Add OCPI data
-    if (projectFields && projectFields.includes('ocpi')) {
+    if (!projectFields || projectFields && projectFields.includes('ocpi')) {
       aggregation.push({
         $addFields: {
           'ocpi': { $gt: ['$ocpiData', null] }
         }
       });
     }
-    if (projectFields && projectFields.includes('ocpiWithCdr')) {
+    if (!projectFields || projectFields && projectFields.includes('ocpiWithCdr')) {
       aggregation.push({
         $addFields: {
           'ocpiWithCdr': {
@@ -1565,7 +1565,7 @@ export default class TransactionStorage {
           $addFields: { status: '$connector.status' }
         });
       }
-      if ( params.transactionsToStop ) {
+      if (params.transactionsToStop) {
         aggregation.push(
           {
             // Make sure we have connectors (to avoid conflicts with a OcppBootNotification where connectors temporarily are cleared)
