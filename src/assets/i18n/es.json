@@ -343,7 +343,7 @@
       ]
     },
     "charging-station-status-error": {
-      "title": "Error en la estación de carga",
+      "title": "Error en la estación {{chargeBoxID}}, conector {{connectorId}} ",
       "buttonText": "Ver el error",
       "text": [
         "El error ocurrió en el conector {{connectorId}} de la estación {{chargeBoxID}}",

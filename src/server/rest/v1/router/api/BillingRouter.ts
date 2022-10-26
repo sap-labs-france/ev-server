@@ -146,9 +146,9 @@ export default class BillingRouter {
   }
 
   private buildRouteBillingTransferDownload(): void {
-    this.router.get(`/${RESTServerRoute.REST_BILLING_DOWNLOAD_TRANSFER}`, (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.transferID;
-      void RouterUtils.handleRestServerAction(BillingService.handleDownloadTransfer.bind(this), ServerAction.BILLING_DOWNLOAD_TRANSFER, req, res, next);
+    this.router.get(`/${RESTServerRoute.REST_BILLING_TRANSFER_DOWNLOAD_INVOICE}`, (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      void RouterUtils.handleRestServerAction(BillingService.handleTransferInvoiceDownload.bind(this), ServerAction.BILLING_DOWNLOAD_TRANSFER, req, res, next);
     });
   }
 
