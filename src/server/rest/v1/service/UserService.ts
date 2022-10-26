@@ -238,9 +238,7 @@ export default class UserService {
     // Update User Admin Data
     await UserService.updateUserAdminData(req.tenant, user, user.projectFields);
     // Update Billing
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER_ASAP)) {
-      await UserService.updateUserBillingData(ServerAction.USER_UPDATE, req.tenant, req.user, user);
-    }
+    await UserService.syncUserAndUpdateBillingData(ServerAction.USER_UPDATE, req.tenant, req.user, user);
     // Log
     await Logging.logInfo({
       tenantID: req.tenant.id,
@@ -660,9 +658,7 @@ export default class UserService {
     // Assign Site to new User
     await UtilsService.assignCreatedUserToSites(req.tenant, newUser, authorizations);
     // Update Billing
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER_ASAP)) {
-      await UserService.updateUserBillingData(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
-    }
+    await UserService.syncUserAndUpdateBillingData(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
     await Logging.logInfo({
       tenantID: req.tenant.id,
@@ -921,8 +917,14 @@ export default class UserService {
     }
   }
 
-  private static async updateUserBillingData(action: ServerAction, tenant: Tenant, loggedUser: UserToken, user: User) {
+  private static async syncUserAndUpdateBillingData(action: ServerAction, tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
+      if (!FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER_ASAP)) {
+        if (!user.billingData?.customerID) {
+          // Nothing to do - user will be synchronized in a LAZY mode when adding a payment method
+          return;
+        }
+      }
       const billingImpl = await BillingFactory.getBillingImpl(tenant);
       if (billingImpl) {
         try {
