@@ -283,7 +283,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return stripeInvoice;
   }
 
-  private async createStripeInvoice(customerID: string, userID: string, idempotencyKey: string): Promise<Stripe.Invoice> {
+  private async createStripeInvoice(customerID: string, userID: string, idempotencyKey: string, currency: string): Promise<Stripe.Invoice> {
     const creationParameters: Stripe.InvoiceCreateParams = {
       customer: customerID,
       // collection_method: 'send_invoice', //Default option is 'charge_automatically'
@@ -293,6 +293,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         userID
       },
+      currency
     };
     if (FeatureToggles.isFeatureActive(Feature.BILLING_INVOICES_EXCLUDE_PENDING_ITEMS)) {
       // New STRIPE API to exclude PENDING ITEMS from the new Invoice
@@ -300,7 +301,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Let's create the STRIPE invoice
     const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create(creationParameters, {
-      idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property has been renamed!!!
+      idempotencyKey: idempotencyKey?.toString(),
     });
     return stripeInvoice;
   }
@@ -1181,6 +1182,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     let refreshDataRequired = false;
     const userID: string = user.id;
     const customerID: string = user.billingData?.customerID;
+    const currency = billingInvoiceItem.currency.toLowerCase();
     // Check whether a DRAFT invoice can be used or not
     let stripeInvoice: Stripe.Invoice = null;
     if (!this.settings.billing?.immediateBillingAllowed) {
@@ -1190,7 +1192,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (FeatureToggles.isFeatureActive(Feature.BILLING_INVOICES_EXCLUDE_PENDING_ITEMS)) {
       if (!stripeInvoice) {
         // NEW STRIPE API - Invoice can mow be created before its items
-        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'));
+        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'), currency);
       }
       // Let's create an invoice item per dimension
       await this.createStripeInvoiceItems(customerID, billingInvoiceItem, stripeInvoice.id);
@@ -1200,7 +1202,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await this.createStripeInvoiceItems(customerID, billingInvoiceItem, stripeInvoice?.id);
       if (!stripeInvoice) {
         // Let's create a new DRAFT invoice (if none has been found)
-        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'));
+        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'), currency);
       } else {
         // Here an existing invoice is being reused
         refreshDataRequired = true;
@@ -1791,9 +1793,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Synchronize owner if needed
       user.billingData = (await this.synchronizeUser(user)).billingData;
     }
+    const currency = billingTransfer.currency.toLocaleLowerCase();
     // Create invoice
     const invoiceIdempotencyKey = this.buildIdemPotencyKey(billingTransfer.id, 'invoice', 'platformFee');
-    const stripeInvoice = await this.createStripePlatformFeeInvoice(billingTransfer.id, user.billingData.customerID, user.id, invoiceIdempotencyKey);
+    const stripeInvoice = await this.createStripePlatformFeeInvoice(billingTransfer.id, user.billingData.customerID, user.id, invoiceIdempotencyKey, currency);
     if (!stripeInvoice) {
       throw new BackendError({
         message: 'Unexpected situation - platform invoice is not set',
@@ -1810,7 +1813,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return invoice;
   }
 
-  private async createStripePlatformFeeInvoice(transferID: string, customerID: string, userID: string, idempotencyKey: string): Promise<Stripe.Invoice> {
+  private async createStripePlatformFeeInvoice(transferID: string, customerID: string, userID: string, idempotencyKey: string, currency: string): Promise<Stripe.Invoice> {
     try {
       // Let's create an empty STRIPE invoice
       const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create({
@@ -1822,6 +1825,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           transferID,
           tenantID: this.tenant.id,
         },
+        currency
       }, {
         idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property has been renamed!!!
       });
