@@ -1,4 +1,5 @@
 import { BillingSettings, BillingSettingsType } from '../../src/types/Setting';
+import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import StripeTestHelper, { BillingTestConfigHelper } from './StripeTestHelper';
 import chai, { expect } from 'chai';
 
@@ -331,6 +332,11 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             fakeUser
           );
           billingTestHelper.createdUsers.push(fakeUser);
+          if (!FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER_ASAP)) {
+            // LAZY Mode - STRIPE Customer is created on-demand!
+            // Let's trigger the creation of the customer
+            await billingTestHelper.billingImpl.synchronizeUser(fakeUser);
+          }
           // Let's check that the corresponding billing user exists as well (a Customer in the STRIPE DB)
           let billingUser = await billingTestHelper.billingImpl.getUser(fakeUser);
           expect(billingUser).to.be.not.null;
