@@ -578,7 +578,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Let's create a setupIntent for the stripe customer
       const setupIntent: Stripe.SetupIntent = await this.stripe.setupIntents.create({
         customer: customerID,
-        payment_method_types: ['card']
+        payment_method_types: ['card'] // 'card' by default but we can add other types here
       });
       await Logging.logInfo({
         tenantID: this.tenant.id,
