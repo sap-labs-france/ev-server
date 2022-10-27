@@ -360,6 +360,10 @@ export interface TransactionAuthorizationActions extends AuthorizationActions {
   canReadChargingStation?: boolean;
 }
 
+export interface SettingAuthorizationActions extends AuthorizationActions {
+  canSyncRefund?: boolean;
+}
+
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',

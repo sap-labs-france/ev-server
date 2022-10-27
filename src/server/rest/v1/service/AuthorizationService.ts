@@ -1150,6 +1150,8 @@ export default class AuthorizationService {
     setting.canRead = true; // Always true as it should be filtered upfront
     setting.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SETTING, Action.UPDATE, authorizationFilter);
     setting.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SETTING, Action.DELETE, authorizationFilter);
+    setting.canSyncRefund = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter);
+
     // Remove auth flags set to false
     Utils.removeCanPropertiesWithFalseValue(setting);
   }
