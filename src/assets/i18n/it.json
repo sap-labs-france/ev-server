@@ -331,7 +331,7 @@
       ]
     },
     "charging-station-status-error": {
-      "title": "Errore Stazione di Ricarica",
+      "title": "Errore su {{chargeBoxID}}, Presa {{connectorId}}",
       "buttonText": "Visualizzare l'errore",
       "text": [
         "Si é verificato un errore su {{chargeBoxID}}, presa {{connectorId}}",

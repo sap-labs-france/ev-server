@@ -696,7 +696,7 @@ export default abstract class BillingIntegration {
 
   public abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
 
-  public abstract downloadTransferDocument(transfer: BillingTransfer): Promise<Buffer>;
+  public abstract downloadTransferInvoiceDocument(transfer: BillingTransfer): Promise<Buffer>;
 
   public abstract chargeInvoice(invoice: BillingInvoice): Promise<BillingInvoice>;
 
@@ -723,7 +723,7 @@ export default abstract class BillingIntegration {
       inSuccess: 0,
       inError: 0
     };
-    if (taskConfig.forceOperation && Utils.isDevelopmentEnv()) {
+    if (taskConfig?.forceOperation && Utils.isDevelopmentEnv()) {
       Logging.logConsoleDebug('Funds dispatching is being forced for testing purposes reasons!');
     }
     const collectedFunds = await TransactionStorage.getCollectedFunds(this.tenant);

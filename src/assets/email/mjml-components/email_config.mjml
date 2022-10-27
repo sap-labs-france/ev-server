@@ -6,4 +6,8 @@
     <mj-all font-family="Roboto, Helvetica, sans-serif"></mj-all>
     <mj-text font-weight="300" color="#616161" line-height="20px"></mj-text>
   </mj-attributes>
+  <mj-raw>
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
+  </mj-raw>
 </mj-head>

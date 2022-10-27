@@ -4,7 +4,6 @@ import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop
 import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
-import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
 import AsyncTaskBuilder from '../../../async-task/AsyncTaskBuilder';
@@ -28,6 +27,7 @@ import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Stripe from 'stripe';
+import Tenant from '../../../types/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
@@ -68,7 +68,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
       try {
         const secretKey = await Cypher.decrypt(this.tenant, this.settings.stripe.secretKey);
         this.stripe = new Stripe(secretKey, {
-          apiVersion: '2020-08-27',
+          apiVersion: Constants.STRIPE_API_VERSION,
+          // Set application info to let STRIPE know that the account belongs to our solution
+          appInfo: {
+            name: Constants.STRIPE_APP_NAME,
+            partner_id: Constants.STRIPE_PARTNER_ID
+          }
         });
       } catch (error) {
         throw new BackendError({
@@ -378,7 +383,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  public async downloadTransferDocument(transfer: BillingTransfer): Promise<Buffer> {
+  public async downloadTransferInvoiceDocument(transfer: BillingTransfer): Promise<Buffer> {
     await this.checkConnection();
     // Get fresh data because persisted url expires after 30 days
     const stripeTransferInvoice = await this.getStripeInvoice(transfer.invoice.invoiceID);
@@ -1717,9 +1722,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
     let stripeAccount: Stripe.Account;
     // Create the account
     try {
-      stripeAccount = await this.stripe.accounts.create({
-        type: 'standard'
-      });
+      if (FeatureToggles.isFeatureActive(Feature.BILLING_PLATFORM_USE_EXPRESS_ACCOUNT)) {
+        stripeAccount = await this.stripe.accounts.create({
+          // Express accounts have access to a simplified dashboard and support separate charges and transfers
+          // More info at: https://stripe.com/docs/connect/accounts
+          type: 'express',
+          capabilities: {
+            // card_payments: { requested: true },
+            transfers: { requested: true }
+          }
+        });
+      } else {
+        // According to our STRIPE contact transfers are not supported when using sub-accounts of type 'standard''
+        stripeAccount = await this.stripe.accounts.create({
+          type: 'standard',
+        });
+      }
     } catch (e) {
       throw new BackendError({
         message: 'Unexpected situation - unable to create account',
