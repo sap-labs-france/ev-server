@@ -17,7 +17,7 @@ export default class UserValidatorRest extends SchemaValidator {
   private usersInErrorGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/users-inerror-get.json`, 'utf8'));
   private userSitesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-sites-get.json`, 'utf8'));
   private userUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-update.json`, 'utf8'));
-  private userMobileTokenUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-mobile-token-update.json`, 'utf8'));
+  private userMobileDataUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-mobile-data-update.json`, 'utf8'));
   private userDefaultTagCarGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-default-tag-car-get.json`, 'utf8'));
 
   private constructor() {
@@ -67,8 +67,8 @@ export default class UserValidatorRest extends SchemaValidator {
     return this.validate(this.userUpdate, data);
   }
 
-  public validateUserMobileTokenUpdateReq(data: Record<string, unknown>): HttpUserMobileTokenUpdateRequest {
-    return this.validate(this.userMobileTokenUpdate, data);
+  public validateUserMobileDataUpdateReq(data: Record<string, unknown>): HttpUserMobileTokenUpdateRequest {
+    return this.validate(this.userMobileDataUpdate, data);
   }
 
   public validateUserDefaultTagCarGetReq(data: Record<string, unknown>): HttpUserDefaultTagCarGetRequest {

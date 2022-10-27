@@ -343,7 +343,7 @@
       ]
     },
     "charging-station-status-error": {
-      "title": "Error en la estación de carga",
+      "title": "Error en la estación {{chargeBoxID}}, conector {{connectorId}} ",
       "buttonText": "Ver el error",
       "text": [
         "El error ocurrió en el conector {{connectorId}} de la estación {{chargeBoxID}}",
@@ -354,16 +354,16 @@
       "title": "Cargando cuenta de facturación",
       "buttonText": "Proceda",
       "text": [
-        "Su cuenta de faturación ha sido creada a su nombre por el administrador.",
+        "Su cuenta de Facturación ha sido creada a su nombre por el administrador.",
         "",
         "Haga clic en el enlace para completar el proceso de carga a su cuenta"
       ]
     },
     "user-account-status-changed": {
-      "title": "Cuenta de usuario - estatus modicado",
+      "title": "Cuenta de usuario - estatus modificado",
       "buttonText": "Dirigirse a {{tenantName}}",
       "text": [
-        "El estatus de su cuenta ha sido modicado por un administrador.",
+        "El estatus de su cuenta ha sido modificado por un administrador.",
         "Nuevo estatus: {{accountStatus}}"
       ]
     },
@@ -451,21 +451,21 @@
       ]
     },
     "billing-user-synchronization-failed": {
-      "title": "Faturación - Fallo en la sincronización de los usuarios",
+      "title": "Facturación - Fallo en la sincronización de los usuarios",
       "buttonText": "Dirigirse a {{tenantName}}",
       "text": [
-        "La sincronización con el sistema de faturación ha fallado para {{nbrUsersInError}} usuarios."
+        "La sincronización con el sistema de Facturación ha fallado para {{nbrUsersInError}} usuarios."
       ]
     },
     "billing-invoice-synchronization-failed": {
-      "title": "Faturación - Fallo en la sincronización de las facturas",
+      "title": "Facturación - Fallo en la sincronización de las facturas",
       "buttonText": "Dirigirse a {{tenantName}}",
       "text": [
-        "La sincronización con el sistema de faturación ha fallado para {{nbrInvoicesInError}} facturas."
+        "La sincronización con el sistema de Facturación ha fallado para {{nbrInvoicesInError}} facturas."
       ]
     },
     "billing-periodic-operation-failed": {
-      "title": "Faturación - Fallo de las operaciones periódicas",
+      "title": "Facturación - Fallo de las operaciones periódicas",
       "buttonText": "Dirigirse a {{tenantName}}",
       "text": [
         "Fallo del proceso de {{nbrInvoicesInError}} factura(s)."
@@ -477,7 +477,7 @@
       "text": [
         "Felicidades!",
         "",
-        "El proceso de carga ha sido completado de manera exitosa y su cuenta de faturación ha sido activada."
+        "El proceso de carga ha sido completado de manera exitosa y su cuenta de Facturación ha sido activada."
       ]
     },
     "car-synchronization-failed": {
@@ -525,7 +525,7 @@
       "buttonText": "Establezca su password",
       "text": [
         "Una cuenta ha sido creada en su nombre en la organización '{{tenantName}}'.",
-        "Debe ingesar por lo menos una vez para cargar su vehículo.",
+        "Debe ingresar por lo menos una vez para cargar su vehículo.",
         "",
         "Haga clic en el enlace para establecer su password."
       ]
