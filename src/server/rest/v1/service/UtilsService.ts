@@ -1341,6 +1341,18 @@ export default class UtilsService {
     }
   }
 
+  public static checkIfPricingDefinitionValid(pricingDefinition: Partial<PricingDefinition>, req: Request): void {
+    if (pricingDefinition.staticRestrictions?.validFrom && pricingDefinition.staticRestrictions?.validTo &&
+        pricingDefinition.staticRestrictions.validFrom.getTime() > pricingDefinition.staticRestrictions.validTo.getTime()) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The pricing definition validity start date cannot be after the end date',
+        module: MODULE_NAME, method: 'checkIfPricingDefinitionValid',
+        user: req.user.id
+      });
+    }
+  }
+
   public static checkIfTenantValid(tenant: Partial<Tenant>, req: Request): void {
     if (tenant.components.oicp?.active && tenant.components.ocpi?.active) {
       throw new AppError({
