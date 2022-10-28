@@ -343,7 +343,7 @@
       ]
     },
     "charging-station-status-error": {
-      "title": "Ladestation - Fehler",
+      "title": "Ladestation - Fehler an {{chargeBoxID}}, Ladepunkt {{connectorId}}",
       "buttonText": "Fehler anzeigen",
       "text": [
         "an {{chargeBoxID}}, Ladepunkt {{connectorId}} ist ein Fehler aufgetreten.",
