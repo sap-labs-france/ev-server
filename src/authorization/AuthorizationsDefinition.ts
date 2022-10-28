@@ -674,7 +674,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: []
           }
         },
         attributes: [
@@ -682,7 +682,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'meterStart', 'ocpi', 'ocpiWithCdr', 'site.name', 'siteArea.name', 'siteAreaID', 'siteID', 'stateOfCharge',
           'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.price', 'stop.priceUnit', 'stop.reason', 'stop.roundedPrice',
           'stop.stateOfCharge', 'stop.tag.description', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh',
-          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone'
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone',
+          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
         ]
       },
       {
@@ -695,7 +696,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'ocpiData'
+          'id', 'ocpiData', 'ocpi', 'ocpiWithCdr'
         ]
       },
       {
@@ -1611,7 +1612,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
-          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID' ]
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID',
+          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
+        ]
       },
       {
         resource: Entity.TRANSACTION, action: Action.GET_ADVENIR_CONSUMPTION,
@@ -2012,7 +2015,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
-          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID' ]
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID'
+        ]
       },
       {
         resource: Entity.TRANSACTION, action: [Action.EXPORT, Action.UPDATE],
@@ -2721,7 +2725,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
-          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID' ]
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID',
+          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
+        ]
       },
       {
         resource: Entity.TRANSACTION, action: Action.EXPORT_OCPI_CDR,
@@ -2733,7 +2739,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
         attributes: [
-          'id', 'ocpiData'
+          'id', 'ocpiData', 'ocpi', 'ocpiWithCdr'
         ]
       },
       {
@@ -3228,7 +3234,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'site.name', 'siteArea.name', 'company.name',
-          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID' ]
+          'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description', 'stop.tag.description', 'tag.visualID', 'stop.tag.visualID',
+          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
+        ]
       },
       {
         resource: Entity.TRANSACTION, action: Action.GET_ADVENIR_CONSUMPTION,
