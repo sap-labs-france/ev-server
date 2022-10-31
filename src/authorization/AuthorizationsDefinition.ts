@@ -731,9 +731,18 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.TRANSACTION, action: [
-          Action.EXPORT, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, Action.UPDATE, Action.DELETE,
-          Action.REFUND_TRANSACTION, Action.REMOTE_STOP_TRANSACTION
+          Action.EXPORT, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, Action.UPDATE, Action.DELETE, Action.REMOTE_STOP_TRANSACTION
         ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.REFUND_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        }
       },
       {
         resource: Entity.TRANSACTION, action: Action.PUSH_TRANSACTION_CDR,
@@ -2175,7 +2184,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['LocalIssuer']
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
           }
         },
         attributes: [
@@ -3090,7 +3099,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION],
+        resource: Entity.TRANSACTION, action: [Action.READ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
