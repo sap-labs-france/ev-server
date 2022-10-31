@@ -1151,7 +1151,7 @@ export default class AuthorizationService {
     setting.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SETTING, Action.UPDATE, authorizationFilter);
     setting.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SETTING, Action.DELETE, authorizationFilter);
     setting.canSyncRefund = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter);
-
+    setting.canCheckBillingConnection = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.BILLING, Action.CHECK_CONNECTION, authorizationFilter);
     // Remove auth flags set to false
     Utils.removeCanPropertiesWithFalseValue(setting);
   }
