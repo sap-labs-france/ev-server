@@ -661,8 +661,11 @@ export default class Logging {
     if (action === ServerAction.LOGIN && req.body.password) {
       req.body.password = '####';
     }
-    if (req.user && req.user.tenantID) {
+    if (req.user?.tenantID) {
       tenantID = req.user.tenantID;
+    } else if (req.tenant?.id !== Constants.DEFAULT_TENANT_ID) {
+      // AuthRouter endpoints may throw errors with no user token
+      tenantID = req.tenant.id;
     }
     if (exception instanceof AppError) {
       await Logging.logActionAppException(tenantID, action, exception);
