@@ -663,8 +663,8 @@ export default class Logging {
     }
     if (req.user?.tenantID) {
       tenantID = req.user.tenantID;
-    } else if (req.tenant?.id !== Constants.DEFAULT_TENANT_ID) {
-      // AuthRouter endpoints may throw errors with no user token
+    } else if (req.tenant?.id) {
+      // AuthRouter endpoints throw errors with no user token
       tenantID = req.tenant.id;
     }
     if (exception instanceof AppError) {
