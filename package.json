@@ -196,7 +196,7 @@
     "@types/node-cron": "^3.0.4",
     "@types/passport": "^1.0.11",
     "@types/passport-jwt": "^3.0.7",
-    "@types/pdfkit": "^0.12.7",
+    "@types/pdfkit": "^0.12.8",
     "@types/rfc2047": "^2.0.1",
     "@types/rosie": "0.0.40",
     "@types/tz-lookup": "^6.1.0",
