@@ -4,7 +4,6 @@ import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import Busboy, { FileInfo } from 'busboy';
 import { Car, CarType } from '../../../../types/Car';
 import { DataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
-import FeatureToggles, { Feature } from '../../../../utils/FeatureToggles';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
