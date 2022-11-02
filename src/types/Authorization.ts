@@ -326,6 +326,7 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canGetConnectorQRCode?:boolean;
   canPushTransactionCDR?: boolean;
   canListCompletedTransactions?: boolean;
+  canAuthorize?: boolean;
 }
 
 export interface ConnectorAuthorizationActions extends AuthorizationActions {

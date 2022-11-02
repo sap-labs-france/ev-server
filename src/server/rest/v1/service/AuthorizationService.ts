@@ -764,6 +764,9 @@ export default class AuthorizationService {
     chargingStation.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USER, Action.LIST, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+    chargingStation.canAuthorize = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.AUTHORIZE, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
     chargingStation.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.UPDATE, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
@@ -915,7 +918,7 @@ export default class AuthorizationService {
     // Remove sensible data
     await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.VIEW_USER_DATA, authorizationFilter,
-      { chargingStationID: chargingStation.id, UserID: userToken.user.id, SiteID: chargingStation.siteID, UserData: true, TagData: true }, chargingStation);
+      { chargingStationID: chargingStation.id, UserID: userToken.user?.id, SiteID: chargingStation.siteID, UserData: true, TagData: true }, chargingStation);
     // Remove properties
     Utils.removeCanPropertiesWithFalseValue(chargingStation);
   }
@@ -1037,7 +1040,7 @@ export default class AuthorizationService {
   }
 
   public static async addTransfersAuthorizations(tenant: Tenant, userToken: UserToken, billingAccounts: BillingTransfersDataResult,
-    authorizationFilter: AuthorizationFilter): Promise<void> {
+      authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
     billingAccounts.metadata = authorizationFilter.metadata;
     billingAccounts.canListAccounts = await AuthorizationService.canPerformAuthorizationAction(
@@ -1237,7 +1240,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetTransactionsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
-    filteredRequest?: Partial<HttpTransactionConsumptionsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      filteredRequest?: Partial<HttpTransactionConsumptionsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -1251,13 +1254,13 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetTransactionAuthorizations(tenant: Tenant, userToken: UserToken,
-    filteredRequest: Partial<HttpTransactionGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpTransactionGetRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
     return AuthorizationService.checkAndGetEntityAuthorizations(
       tenant, Entity.TRANSACTION, userToken, filteredRequest, filteredRequest.ID ? { TransactionID: filteredRequest.ID } : {}, authAction, entityData);
   }
 
   public static async addTransactionsAuthorizations(tenant: Tenant, userToken: UserToken,
-    transactions: TransactionDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+      transactions: TransactionDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
     transactions.metadata = authorizationFilter.metadata;
     transactions.canListUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
@@ -1334,7 +1337,7 @@ export default class AuthorizationService {
   }
 
   public static async addTransactionsInErrorAuthorizations(tenant: Tenant, userToken: UserToken,
-    transactions: TransactionInErrorDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+      transactions: TransactionInErrorDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
     transactions.metadata = authorizationFilter.metadata;
     // Add Meta Data
@@ -1353,7 +1356,7 @@ export default class AuthorizationService {
   }
 
   public static async addTransactionInErrorAuthorizations(tenant: Tenant, userToken: UserToken, transaction: TransactionInError,
-    authorizationFilter: AuthorizationFilter): Promise<void> {
+      authorizationFilter: AuthorizationFilter): Promise<void> {
     // Set entity dynamic auth filters that will be used by auth framework
     const dynamicAuthorizationFilter: DynamicAuthorizationsFilter = { CompanyID: transaction.companyID, SiteID: transaction.siteID, UserID: transaction.userID };
     transaction.canRead = true; // Always true as it should be filtered upfront
@@ -1374,7 +1377,7 @@ export default class AuthorizationService {
   }
 
   public static async addRefundReportsAuthorizations(tenant: Tenant, userToken: UserToken,
-    refundReports: RefundReport[], authorizationFilter: AuthorizationFilter): Promise<void> {
+      refundReports: RefundReport[], authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Authorizations
     for (const refundReport of refundReports) {
       await AuthorizationService.addRefundReportAuthorizations(tenant, userToken, refundReport, authorizationFilter);
@@ -1392,7 +1395,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetConsumptionsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
-    filteredRequest?: Partial<HttpByIDRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+      filteredRequest?: Partial<HttpByIDRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -1414,12 +1417,12 @@ export default class AuthorizationService {
     }
     // Build and clean http projected field to only contain authorized fields
     let httpProjectFields = AuthorizationService.httpFilterProjectToArray(httpProjectField);
-    if(!Utils.isEmptyArray(applicableProjectedFields) && !Utils.isEmptyArray(httpProjectFields)) {
+    if (!Utils.isEmptyArray(applicableProjectedFields) && !Utils.isEmptyArray(httpProjectFields)) {
       httpProjectFields = httpProjectFields.filter(
         (httpProjectField) => applicableProjectedFields.includes(httpProjectField));
     }
     if (!Utils.isEmptyArray(httpProjectFields)) {
-        return httpProjectFields;
+      return httpProjectFields;
     }
     return applicableProjectedFields;
   }
