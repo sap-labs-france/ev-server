@@ -919,12 +919,6 @@ export default class UserService {
 
   private static async syncUserAndUpdateBillingData(action: ServerAction, tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
-      if (!FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER_ASAP)) {
-        if (!user.billingData?.customerID) {
-          // Nothing to do - user will be synchronized in a LAZY mode when adding a payment method
-          return;
-        }
-      }
       const billingImpl = await BillingFactory.getBillingImpl(tenant);
       if (billingImpl) {
         try {
