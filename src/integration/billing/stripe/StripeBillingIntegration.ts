@@ -273,9 +273,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return stripeInvoice;
   }
 
-  private async createStripeInvoice(customerID: string, userID: string, idempotencyKey: string): Promise<Stripe.Invoice> {
-    // Let's create the STRIPE invoice
-    const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create({
+  private async createStripeInvoice(customerID: string, userID: string, idempotencyKey: string, currency: string): Promise<Stripe.Invoice> {
+    const creationParameters: Stripe.InvoiceCreateParams = {
       customer: customerID,
       // collection_method: 'send_invoice', //Default option is 'charge_automatically'
       // days_until_due: 30, // Optional when using default settings
@@ -284,9 +283,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         userID
       },
-    }, {
-      // idempotency_key: idempotencyKey?.toString(),
-      idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property has been renamed!!!
+      currency
+    };
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_INVOICES_EXCLUDE_PENDING_ITEMS)) {
+      // New STRIPE API to exclude PENDING ITEMS from the new Invoice
+      creationParameters.pending_invoice_items_behavior = 'exclude';
+    }
+    // Let's create the STRIPE invoice
+    const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create(creationParameters, {
+      idempotencyKey: idempotencyKey?.toString(),
     });
     return stripeInvoice;
   }
@@ -1167,25 +1172,31 @@ export default class StripeBillingIntegration extends BillingIntegration {
     let refreshDataRequired = false;
     const userID: string = user.id;
     const customerID: string = user.billingData?.customerID;
-    // Check whether a DRAFT invoice can be used
-    let stripeInvoice: Stripe.Invoice;
-    if (this.settings.billing?.immediateBillingAllowed) {
-      // immediateBillingAllowed is ON - we want an invoice per transaction
-      // Because of some STRIPE constraints the invoice creation must be postpone!
-      stripeInvoice = null;
-    } else {
-      // immediateBillingAllowed is OFF - let's add to the latest DRAFT invoice (if any)
+    const currency = billingInvoiceItem.currency.toLowerCase();
+    // Check whether a DRAFT invoice can be used or not
+    let stripeInvoice: Stripe.Invoice = null;
+    if (!this.settings.billing?.immediateBillingAllowed) {
+      // immediateBillingAllowed is OFF - let's retrieve to the latest DRAFT invoice (if any)
       stripeInvoice = await this.getLatestDraftInvoiceOfTheMonth(this.tenant.id, userID, customerID);
     }
-    // Let's create an invoice item per dimension
-    // When the stripeInvoice is null a pending item is created
-    await this.createStripeInvoiceItems(customerID, billingInvoiceItem, stripeInvoice?.id);
-    if (!stripeInvoice) {
-      // Let's create a new DRAFT invoice (if none has been found)
-      stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'));
-    } else {
-      // Here an existing invoice is being reused
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_INVOICES_EXCLUDE_PENDING_ITEMS)) {
+      if (!stripeInvoice) {
+        // NEW STRIPE API - Invoice can mow be created before its items
+        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'), currency);
+      }
+      // Let's create an invoice item per dimension
+      await this.createStripeInvoiceItems(customerID, billingInvoiceItem, stripeInvoice.id);
       refreshDataRequired = true;
+    } else {
+      // FORMER STRIPE API - Items must be created before the invoice (as PENDING items)
+      await this.createStripeInvoiceItems(customerID, billingInvoiceItem, stripeInvoice?.id);
+      if (!stripeInvoice) {
+        // Let's create a new DRAFT invoice (if none has been found)
+        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'), currency);
+      } else {
+        // Here an existing invoice is being reused
+        refreshDataRequired = true;
+      }
     }
     let operationResult: StripeChargeOperationResult;
     if (this.settings.billing?.immediateBillingAllowed) {
@@ -1772,9 +1783,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Synchronize owner if needed
       user.billingData = (await this.synchronizeUser(user)).billingData;
     }
+    const currency = billingTransfer.currency.toLocaleLowerCase();
     // Create invoice
     const invoiceIdempotencyKey = this.buildIdemPotencyKey(billingTransfer.id, 'invoice', 'platformFee');
-    const stripeInvoice = await this.createStripePlatformFeeInvoice(billingTransfer.id, user.billingData.customerID, user.id, invoiceIdempotencyKey);
+    const stripeInvoice = await this.createStripePlatformFeeInvoice(billingTransfer.id, user.billingData.customerID, user.id, invoiceIdempotencyKey, currency);
     if (!stripeInvoice) {
       throw new BackendError({
         message: 'Unexpected situation - platform invoice is not set',
@@ -1791,7 +1803,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return invoice;
   }
 
-  private async createStripePlatformFeeInvoice(transferID: string, customerID: string, userID: string, idempotencyKey: string): Promise<Stripe.Invoice> {
+  private async createStripePlatformFeeInvoice(transferID: string, customerID: string, userID: string, idempotencyKey: string, currency: string): Promise<Stripe.Invoice> {
     try {
       // Let's create an empty STRIPE invoice
       const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create({
@@ -1803,6 +1815,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           transferID,
           tenantID: this.tenant.id,
         },
+        currency
       }, {
         idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property has been renamed!!!
       });
