@@ -983,6 +983,12 @@ export default class Authorizations {
     switch (userRole) {
       case UserRole.ADMIN:
         roles.push('admin');
+        if (sitesAdminCount > 0) {
+          roles.push('siteAdmin');
+        }
+        if (sitesOwnerCount > 0) {
+          roles.push('siteOwner');
+        }
         break;
       case UserRole.SUPER_ADMIN:
         roles.push('superAdmin');
