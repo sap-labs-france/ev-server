@@ -1245,6 +1245,26 @@ export default class NotificationHandler {
     }
   }
 
+  public static async sendPayementLink(tenant: Tenant, notificationID: string, user: User,
+      sourceData: RequestPasswordNotification): Promise<void> {
+    // For each Sources
+    for (const notificationSource of NotificationHandler.notificationSources) {
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Save notification
+          await NotificationHandler.saveNotification(
+            tenant, notificationSource.channel, notificationID, ServerAction.REQUEST_PASSWORD, { user });
+          // Send
+          void notificationSource.notificationTask.sendRequestPassword(
+            sourceData, user, tenant, NotificationSeverity.INFO);
+        } catch (error) {
+          await Logging.logActionExceptionMessage(tenant.id, ServerAction.REQUEST_PASSWORD, error);
+        }
+      }
+    }
+  }
+
   private static async saveNotification(tenant: Tenant, channel: string, notificationID: string, sourceDescr: ServerAction,
       extraParams: { user?: User, chargingStation?: ChargingStation, notificationData?: any } = {}): Promise<void> {
     // Save it

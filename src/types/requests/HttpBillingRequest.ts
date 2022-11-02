@@ -75,3 +75,9 @@ export interface HttpBillingTransferFinalizeRequest extends HttpByIDRequest {
 export interface HttpBillingTransferSendRequest extends HttpByIDRequest {
   ID: string;
 }
+
+
+export interface HttpBillingScanAndPayRequest {
+  email: string;
+  locale: string;
+}

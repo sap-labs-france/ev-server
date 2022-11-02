@@ -718,13 +718,7 @@ export default abstract class BillingIntegration {
 
   public abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
 
-  public async isUserSynchronized(user: User): Promise<boolean> {
-    // Make sure to get fresh data
-    user = await UserStorage.getUser(this.tenant, user.id);
-    const customerID: string = user?.billingData?.customerID;
-    // returns true when the customerID is properly set!
-    return !!customerID;
-  }
+  public abstract capturePayment(user: User, amount: number, paymentMethodId: string): Promise<string>;
 
   public async dispatchCollectedFunds(taskConfig: DispatchFundsTaskConfig): Promise<ActionsResponse> {
     const actionsDone: ActionsResponse = {
