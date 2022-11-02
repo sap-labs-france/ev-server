@@ -735,16 +735,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.TRANSACTION, action: Action.REFUND_TRANSACTION,
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['SitesOwner']
-          }
-        }
-      },
-      {
         resource: Entity.TRANSACTION, action: Action.PUSH_TRANSACTION_CDR,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
