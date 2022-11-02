@@ -926,7 +926,7 @@ export default class UserService {
         } catch (error) {
           await Logging.logError({
             tenantID: tenant.id, action,
-            module: MODULE_NAME, method: 'updateUserBillingData',
+            module: MODULE_NAME, method: 'syncUserAndUpdateBillingData',
             user: loggedUser, actionOnUser: user,
             message: 'User cannot be updated in billing system',
             detailedMessages: { error: error.stack }

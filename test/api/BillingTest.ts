@@ -331,7 +331,6 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
             fakeUser
           );
           billingTestHelper.createdUsers.push(fakeUser);
-          await billingTestHelper.billingImpl.synchronizeUser(fakeUser);
           // Let's check that the corresponding billing user exists as well (a Customer in the STRIPE DB)
           let billingUser = await billingTestHelper.billingImpl.getUser(fakeUser);
           expect(billingUser).to.be.not.null;
