@@ -678,6 +678,25 @@ export default class UserService {
     next();
   }
 
+  public static async updateUserBilling(action: ServerAction, tenant: Tenant, loggedUser: UserToken, user: User) {
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
+      const billingImpl = await BillingFactory.getBillingImpl(tenant);
+      if (billingImpl) {
+        try {
+          await billingImpl.synchronizeUser(user);
+        } catch (error) {
+          await Logging.logError({
+            tenantID: tenant.id, action,
+            module: MODULE_NAME, method: 'updateUserBilling',
+            user: loggedUser, actionOnUser: user,
+            message: 'User cannot be updated in billing system',
+            detailedMessages: { error: error.stack }
+          });
+        }
+      }
+    }
+  }
+
   private static async insertUsers(tenant: Tenant, user: UserToken, action: ServerAction, usersToBeImported: ImportedUser[], result: ActionsResponse): Promise<void> {
     try {
       const nbrInsertedUsers = await UserStorage.saveImportedUsers(tenant, usersToBeImported);
@@ -919,25 +938,6 @@ export default class UserService {
             car.default = false;
             await CarStorage.saveCar(tenant, car);
           }
-        }
-      }
-    }
-  }
-
-  private static async updateUserBilling(action: ServerAction, tenant: Tenant, loggedUser: UserToken, user: User) {
-    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
-      const billingImpl = await BillingFactory.getBillingImpl(tenant);
-      if (billingImpl) {
-        try {
-          await billingImpl.synchronizeUser(user);
-        } catch (error) {
-          await Logging.logError({
-            tenantID: tenant.id, action,
-            module: MODULE_NAME, method: 'updateUserBilling',
-            user: loggedUser, actionOnUser: user,
-            message: 'User cannot be updated in billing system',
-            detailedMessages: { error: error.stack }
-          });
         }
       }
     }

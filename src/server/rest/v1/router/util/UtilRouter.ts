@@ -30,7 +30,14 @@ export default class UtilRouter {
     this.buildRouteGetTenantLogo();
     this.buildRouteBillingRefreshAccount();
     this.buildRouteBillingActivateAccount();
+    this.buildRouteBillingSettingScanAndPay();
     return this.router;
+  }
+
+  private buildRouteBillingSettingScanAndPay(): void {
+    this.router.get(`/${RESTServerRoute.REST_BILLING_SETTING_SCAN_AND_PAY}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(BillingService.handleGetBillingSettingScanAndPay.bind(this), ServerAction.SETTINGS_SCAN_AND_PAY, req, res, next);
+    });
   }
 
   private buildRoutePing(): void {

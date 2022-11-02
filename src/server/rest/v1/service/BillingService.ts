@@ -2,6 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { BillingAccount, BillingAccountStatus, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTransferStatus } from '../../../../types/Billing';
 import { BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult } from '../../../../types/DataResult';
 import { NextFunction, Request, Response } from 'express';
+import User, { UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
@@ -11,6 +12,7 @@ import BillingSecurity from './security/BillingSecurity';
 import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import BillingValidatorRest from '../validator/BillingValidatorRest';
+import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -21,13 +23,14 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import { TenantComponents } from '../../../../types/Tenant';
-import User from '../../../../types/User';
+import UserService from './UserService';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'BillingService';
 
+const centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 export default class BillingService {
 
   public static async handleClearBillingTestData(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -439,6 +442,78 @@ export default class BillingService {
     next();
   }
 
+  public static async handleGetBillingSettingScanAndPay(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Get the entity from storage
+    const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(
+      req.tenant
+    );
+    // Process sensitive data
+    UtilsService.hashSensitiveData(req.tenant.id, billingSettings);
+    res.json(billingSettings);
+    next();
+  }
+
+  public static async handleUserScanAndPay(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanAndPayReq(req.body);
+    // Override
+    let user: User;
+    user.status = UserStatus.PENDING;
+    if (!filteredRequest.locale) {
+      user.locale = Constants.DEFAULT_LOCALE;
+    }
+    // Get the billing impl
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleUserScanAndPay',
+        action: action,
+        user: req.user
+      });
+    }
+    // Check if the user exist
+    const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
+    if (foundUser) {
+      user = foundUser;
+    } else {
+      // Create
+      user = {
+        name: 'John DOE',
+        email: filteredRequest.email,
+        createdOn: new Date(),
+        issuer: true,
+      } as User;
+      // Create the User
+      user.id = await UserStorage.saveUser(req.tenant, user, true);
+    }
+    // Get the user with a custumer ID
+    user = await UserStorage.getUser(req.tenant, user.id);
+    // Get payement methods
+    const paymentMethods: BillingPaymentMethod[] = await billingImpl.getPaymentMethods(user);
+    // Get default payement method
+    const defaultPayementMethod = paymentMethods.find((paymentMethod) => paymentMethod.isDefault);
+    if (defaultPayementMethod) {
+      // Setup payment
+      const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, defaultPayementMethod.id);
+
+      if (operationResult) {
+        Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
+      }
+    }
+    // Log
+    await Logging.logInfo({
+      tenantID: req.tenant.id,
+      user: req.user, actionOnUser: req.user,
+      module: MODULE_NAME, method: 'handleUserScanAndPay',
+      message: `User with ID '${user.id}' has been created successfully`,
+      action: action
+    });
+    res.json(Object.assign({ id: user.id }, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
   public static async handleUpdateBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
@@ -568,7 +643,7 @@ export default class BillingService {
     // URL to the DASHBOARD Onboarding Page
     const onboardingURL = Utils.buildEvseBillingAccountOnboardingURL(req.tenant, billingAccount.id);
     // Notify the user
-    const notificationData : BillingAccountCreationLinkNotification = {
+    const notificationData: BillingAccountCreationLinkNotification = {
       onboardingLink: onboardingURL,
       evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain),
       user
@@ -727,7 +802,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    authorizations.projectFields
+      authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
@@ -770,7 +845,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    authorizations.projectFields
+      authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);

@@ -718,6 +718,8 @@ export default abstract class BillingIntegration {
 
   public abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
 
+  public abstract capturePayment(user: User, amount: number, paymentMethodId: string): Promise<string>;
+
   public async dispatchCollectedFunds(taskConfig: DispatchFundsTaskConfig): Promise<ActionsResponse> {
     const actionsDone: ActionsResponse = {
       inSuccess: 0,

@@ -1,0 +1,18 @@
+{
+  "$id": "billing-scan-pay",
+  "title": "Handle user scan and pay",
+  "type": "object",
+  "properties": {
+    "email": {
+      "$ref": "user#/definitions/email"
+    },
+    "locale": {
+      "type": "string",
+      "sanitize": "mongo",
+      "maxLength": 5
+    }
+  },
+  "required": [
+    "email"
+  ]
+}
