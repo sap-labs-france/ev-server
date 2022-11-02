@@ -188,16 +188,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingUser;
   }
 
-  public async isUserSynchronized(user: User): Promise<boolean> {
-    // Check Stripe
-    await this.checkConnection();
-    // Make sure to get fresh data
-    user = await UserStorage.getUser(this.tenant, user.id);
-    const customerID: string = user?.billingData?.customerID;
-    // returns true when the customerID is properly set!
-    return !!customerID;
-  }
-
   public async getUser(user: User): Promise<BillingUser> {
     // Check Stripe
     await this.checkConnection();
