@@ -787,6 +787,76 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
+  public async capturePayment(user: User, amount: number, paymentMethodId: string): Promise<string> {
+    // try {
+    //   // Let's create a setupIntent for the stripe customer
+    const setupIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.capture(paymentMethodId,{
+      amount_to_capture: amount
+    });
+    return null;
+    //   await Logging.logInfo({
+    //     tenantID: this.tenant.id,
+    //     action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+    //     module: MODULE_NAME, method: 'createSetupIntent',
+    //     actionOnUser: user,
+    //     message: `Setup intent has been created - customer '${customerID}'`
+    //   });
+    //   // Send some feedback
+    //   return {
+    //     succeeded: true,
+    //     internalData: setupIntent
+    //   };
+    // } catch (error) {
+    //   // catch stripe errors and send the information back to the client
+    //   await Logging.logError({
+    //     tenantID: this.tenant.id,
+    //     action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+    //     actionOnUser: user,
+    //     module: MODULE_NAME, method: 'createSetupIntent',
+    //     message: `Stripe operation failed - ${error?.message as string}`
+    //   });
+    //   return {
+    //     succeeded: false,
+    //     error
+    //   };
+    // }
+  }
+
+  private async createPaymentIntent(user: User, customerID: string): Promise<BillingOperationResult> {
+    try {
+      // Let's create a paymentIntent for the stripe customer
+      const paymentIntent: Stripe.SetupIntent = await this.stripe.paymentIntents.create({
+        customer: customerID
+      });
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        module: MODULE_NAME, method: 'createSetupIntent',
+        actionOnUser: user,
+        message: `Setup intent has been created - customer '${customerID}'`
+      });
+      // Send some feedback
+      return {
+        succeeded: true,
+        internalData: setupIntent
+      };
+    } catch (error) {
+      // catch stripe errors and send the information back to the client
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        actionOnUser: user,
+        module: MODULE_NAME, method: 'createSetupIntent',
+        message: `Stripe operation failed - ${error?.message as string}`
+      });
+      return {
+        succeeded: false,
+        error
+      };
+    }
+  }
+
+
   private async checkStripeCustomer(customerID: string): Promise<Stripe.Customer> {
     const customer = await this.getStripeCustomer(customerID);
     if (!customer) {
