@@ -570,7 +570,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'stop.roundedPrice', 'stop.stateOfCharge', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh',
           'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.email', 'stop.user.firstName', 'stop.user.id', 'stop.user.name',
           'stop.userID', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone',
-          'user.id', 'user.email', 'user.firstName', 'user.id', 'user.name', 'userID'
+          'user.id', 'user.email', 'user.firstName', 'user.name', 'userID'
         ]
       },
       {
