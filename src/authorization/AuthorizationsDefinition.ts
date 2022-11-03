@@ -3089,27 +3089,6 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
-        resource: Entity.TRANSACTION, action: [Action.READ],
-        condition: {
-          Fn: 'custom:dynamicAuthorizations',
-          args: {
-            asserts: [],
-            filters: ['AssignedSites']
-          }
-        },
-        attributes: [
-          'billingData.stop.invoiceNumber',
-          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalogID', 'carID',
-          'chargeBoxID', 'company.name', 'companyID', 'connectorId', 'currentCumulatedPrice', 'currentInactivityStatus',
-          'currentInstantWatts', 'currentStateOfCharge', 'currentTotalConsumptionWh', 'currentTotalDurationSecs',
-          'currentTotalInactivitySecs', 'id', 'issuer', 'meterStart', 'ocpi', 'ocpiWithCdr', 'price', 'priceUnit', 'roundedPrice',
-          'site.name', 'siteArea.name', 'siteAreaID', 'siteID', 'stateOfCharge',
-          'stop.extraInactivitySecs', 'stop.inactivityStatus', 'stop.meterStop', 'stop.price', 'stop.priceUnit', 'stop.reason',
-          'stop.roundedPrice', 'stop.stateOfCharge', 'stop.tag.visualID', 'stop.tagID', 'stop.timestamp', 'stop.totalConsumptionWh',
-          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone'
-        ]
-      },
-      {
         resource: Entity.TRANSACTION, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -3129,7 +3108,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'stop.totalConsumptionWh', 'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.user.email', 'stop.user.firstName', 'stop.user.id',
           'stop.user.name', 'stop.userID',
           'tag.description', 'tag.visualID', 'tagID', 'timestamp', 'timezone',
-          'userID', 'user.id', 'user.email', 'user.firstName', 'user.name'
+          'userID', 'user.id', 'user.email', 'user.firstName', 'user.name',
+          'company.name', 'ocpi', 'ocpiWithCdr',
+          'site.name', 'siteArea.name'
         ]
       },
       {
