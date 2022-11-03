@@ -727,7 +727,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'carID', 'chargeBoxID', 'companyID', 'connectorId', 'errorCode', 'id', 'issuer', 'meterStart', 'siteAreaID', 'siteID',
           'stateOfCharge', 'stop.stateOfCharge', 'stop.tagID', 'stop.totalConsumptionWh', 'stop.totalDurationSecs', 'stop.user.email',
           'stop.user.firstName', 'stop.user.id', 'stop.user.name', 'stop.userID', 'tagID', 'timestamp', 'timezone', 'uniqueId',
-          'userID', 'user.id', 'user.email', 'user.firstName', 'user.id', 'user.name'
+          'userID', 'user.id', 'user.email', 'user.firstName', 'user.name'
         ]
       },
       {
