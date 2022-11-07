@@ -275,9 +275,6 @@ export default class RestServerService {
             case ServerAction.ASSET_IMAGE:
               await AssetService.handleGetAssetImage(action, req, res, next);
               break;
-            case ServerAction.SETTINGS_SCAN_AND_PAY:
-              await BillingService.handleGetBillingSettingScanAndPay(action, req, res, next);
-              break;
             case ServerAction.COMPANY_LOGO:
               await CompanyService.handleGetCompanyLogo(action, req, res, next);
               break;

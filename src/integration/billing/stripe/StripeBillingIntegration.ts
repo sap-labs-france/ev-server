@@ -501,7 +501,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  public async setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
+  public async setupPaymentMethod(user: User, paymentMethodId: string, createPaymentIntent = false): Promise<BillingOperationResult> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
@@ -524,8 +524,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Let's do it!
     let billingOperationResult: BillingOperationResult;
     if (!paymentMethodId) {
+      if (createPaymentIntent) {
+        // Let's create a setupPayment for the stripe customer
+        billingOperationResult = await this.createPaymentIntent(user, customerID);
+      } else {
       // Let's create a setupIntent for the stripe customer
-      billingOperationResult = await this.createSetupIntent(user, customerID);
+        billingOperationResult = await this.createSetupIntent(user, customerID);
+      }
     } else {
       // Attach payment method to the stripe customer
       billingOperationResult = await this.attachPaymentMethod(user, customerID, paymentMethodId);
@@ -825,20 +830,25 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private async createPaymentIntent(user: User, customerID: string): Promise<BillingOperationResult> {
     try {
       // Let's create a paymentIntent for the stripe customer
-      const paymentIntent: Stripe.SetupIntent = await this.stripe.paymentIntents.create({
-        customer: customerID
+      const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.create({
+        customer:customerID,
+        amount: 100,
+        currency: 'EUR',
+        off_session: true,
+        capture_method: 'manual',
+        confirm: true
       });
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: 'createSetupIntent',
         actionOnUser: user,
-        message: `Setup intent has been created - customer '${customerID}'`
+        message: `Payment intent has been created - customer '${customerID}'`
       });
       // Send some feedback
       return {
         succeeded: true,
-        internalData: setupIntent
+        internalData: paymentIntent
       };
     } catch (error) {
       // catch stripe errors and send the information back to the client
@@ -846,7 +856,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
-        module: MODULE_NAME, method: 'createSetupIntent',
+        module: MODULE_NAME, method: 'createPaymentIntent',
         message: `Stripe operation failed - ${error?.message as string}`
       });
       return {
