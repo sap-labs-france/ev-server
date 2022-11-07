@@ -403,6 +403,8 @@ export enum ServerAction {
   SETTING_CREATE = 'SettingCreate',
   SETTING_BY_IDENTIFIER = 'SettingByIdentifier',
   SETTINGS_SCAN_AND_PAY = 'SettingsScanAndPay',
+  SCAN_AND_PAY_SETUP_PAYMENT_METHOD = 'ScanAndPaySetupPaymentMethod',
+  SCAN_AND_PAY_ATTACH_PAYMENT_METHOD = 'ScanAndPayAttachPaymentMethod',
   SETTINGS = 'Settings',
   SETTING = 'Setting',
   SETTING_UPDATE = 'SettingUpdate',
@@ -705,6 +707,9 @@ export enum RESTServerRoute {
 
   REST_BILLING_SETTING = 'billing-setting', // GET and PUT
   REST_BILLING_SETTING_SCAN_AND_PAY = 'billing-setting-scan-and-pay', // GET and PUT
+  REST_SCAN_AND_PAY_PAYMENT_METHOD_SETUP = 'users/:userID/payment-methods-scan-and-pay/setup',
+  REST_SCAN_AND_PAY_PAYMENT_METHOD_ATTACH = 'users/:userID/payment-methods-scan-and-pay/:paymentMethodID/attach',
+
   REST_BILLING_CHECK = 'billing/check',
   REST_BILLING_CLEAR_TEST_DATA = 'billing/clearTestData',
 

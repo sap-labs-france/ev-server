@@ -272,6 +272,31 @@ export default class BillingService {
     next();
   }
 
+  public static async handleScanAndPaySetupPaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingSetupUserPaymentMethodReq(req.body);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleBillingSetupPaymentMethod',
+        action: action,
+        user: req.user
+      });
+    }
+    // Check and get user for whom we wish to update the payment method
+    const user: User = await UserStorage.getUser(req.tenant, filteredRequest.userID);
+    // Invoke the billing implementation
+    const paymentMethodId: string = filteredRequest.paymentMethodId;
+    const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId, true);
+    if (operationResult) {
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
+    }
+    res.json(operationResult);
+    next();
+  }
+
   public static async handleBillingGetPaymentMethods(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingGetUserPaymentMethodsReq(req.query);

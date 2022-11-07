@@ -702,7 +702,7 @@ export default abstract class BillingIntegration {
 
   public abstract consumeBillingEvent(req: Request): Promise<boolean>;
 
-  public abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
+  public abstract setupPaymentMethod(user: User, paymentMethodId: string, createPaymentIntent?: boolean): Promise<BillingOperationResult>;
 
   public abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
 

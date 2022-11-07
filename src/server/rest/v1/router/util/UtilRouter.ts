@@ -32,12 +32,29 @@ export default class UtilRouter {
     this.buildRouteBillingRefreshAccount();
     this.buildRouteBillingActivateAccount();
     this.buildRouteBillingSettingScanAndPay();
+    this.buildRouteScanAndPayPaymentMethodSetup();
+    this.buildRouteScanAndPayPaymentMethodAttach();
     return this.router;
   }
 
   private buildRouteBillingSettingScanAndPay(): void {
     this.router.get(`/${RESTServerRoute.REST_BILLING_SETTING_SCAN_AND_PAY}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleRestServerAction(BillingService.handleGetBillingSettingScanAndPay.bind(this), ServerAction.SETTINGS_SCAN_AND_PAY, req, res, next);
+    });
+  }
+
+  private buildRouteScanAndPayPaymentMethodSetup(): void {
+    this.router.post(`/${RESTServerRoute.REST_SCAN_AND_PAY_PAYMENT_METHOD_SETUP}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(BillingService.handleScanAndPaySetupPaymentMethod.bind(this), ServerAction.SCAN_AND_PAY_SETUP_PAYMENT_METHOD, req, res, next);
+    });
+  }
+
+  private buildRouteScanAndPayPaymentMethodAttach(): void {
+    this.router.post(`/${RESTServerRoute.REST_SCAN_AND_PAY_PAYMENT_METHOD_ATTACH}`, (req: Request, res: Response, next: NextFunction) => {
+      // Creates a new payment method and attach it to the user as its default
+      req.body.userID = req.params.userID;
+      req.body.paymentMethodId = req.params.paymentMethodID;
+      void RouterUtils.handleRestServerAction(BillingService.handleScanAndPaySetupPaymentMethod.bind(this), ServerAction.SCAN_AND_PAY_ATTACH_PAYMENT_METHOD, req, res, next);
     });
   }
 
