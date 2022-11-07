@@ -1,7 +1,6 @@
 import User, { UserStatus } from '../types/User';
 
 import { Action } from '../types/Authorization';
-import AuthorizationService from './rest/v1/service/AuthorizationService';
 import Authorizations from '../authorization/Authorizations';
 import BackendError from '../exception/BackendError';
 import ChargingStation from '../types/ChargingStation';
@@ -13,6 +12,7 @@ import Tenant from '../types/Tenant';
 import Transaction from '../types/Transaction';
 import UserStorage from '../storage/mongodb/UserStorage';
 import Utils from '../utils/Utils';
+import UtilsService from './rest/v1/service/UtilsService';
 
 const MODULE_NAME = 'CommonUtilsService';
 
@@ -102,18 +102,8 @@ export class CommonUtilsService {
     if (user.issuer && authAction) {
       // Build the JWT Token
       const userToken = await Authorizations.buildUserToken(tenant, user, [tag]);
-      const authorization = await AuthorizationService.checkAndGetChargingStationsAuthorizations(tenant, userToken, authAction);
-      if (!authorization.authorized) {
-        throw new BackendError({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          action: action,
-          message: `User with Tag ID '${tag.id}' is not authorized to perform the action '${authAction}'`,
-          module: MODULE_NAME,
-          method: 'checkAndGetAuthorizedUser',
-          user: tag.user,
-          detailedMessages: { userToken, tag }
-        });
-      }
+      // Check charging station authorizations
+      await UtilsService.checkAndGetChargingStationAuthorization(tenant, userToken, chargingStation.id, authAction, action, null, { withSite: true, withSiteArea: true });
     }
     return user;
   }

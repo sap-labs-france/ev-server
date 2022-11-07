@@ -149,7 +149,7 @@
       "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}} est disponible, vérifiez vos emails pour finaliser le paiement"
     },
     "billingAccountCreationLink": {
-      "title": "Création compte de facturation",
+      "title": "Connection d'un compte de facturation",
       "body": "Vous avez été invité à créer un compte de facturation. Veuillez vérifier vos emails pour terminer le processus"
     },
     "billingAccountActivated": {
@@ -343,7 +343,7 @@
       ]
     },
     "charging-station-status-error": {
-      "title": "Borne en erreur",
+      "title": "Erreur sur {{chargeBoxID}}, connecteur {{connectorId}}",
       "buttonText": "Voir l'erreur",
       "text": [
         "Une erreur est survenue sur la borne {{chargeBoxID}}, connecteur {{connectorId}}.",
@@ -496,19 +496,19 @@
       ]
     },
     "account-verification-notification-active": {
-      "title": "Compte utilistateur vérifié",
+      "title": "Compte utilisateur vérifié",
       "buttonText": "Naviguer vers {{tenantName}}",
       "text": [
         "Votre e-mail a été vérifié. Votre compte est maintenant actif."
       ]
     },
     "account-verification-notification-inactive": {
-      "title": "Compte utilistateur vérifié",
+      "title": "Compte utilisateur vérifié",
       "buttonText": "Naviguer vers {{tenantName}}",
       "text": [
         "Votre e-mail a été vérifié.",
         "",
-        "Votre compte va être activer par un administrateur. Merci de patienter."
+        "Votre compte va être activé par un administrateur. Merci de patienter."
       ]
     },
     "admin-account-verification-notification": {

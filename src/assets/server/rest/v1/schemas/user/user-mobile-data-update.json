@@ -1,0 +1,32 @@
+{
+  "$id": "user-mobile-token-update",
+  "title": "Update User mobile data",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "user#/definitions/id"
+    },
+    "mobileToken": {
+      "$ref": "user#/definitions/mobileToken",
+      "default": ""
+    },
+    "mobileOS": {
+      "$ref": "user#/definitions/mobileOS"
+    },
+    "mobileBundleID": {
+      "$ref": "user#/definitions/mobileBundleID",
+      "default": ""
+    },
+    "mobileAppName": {
+      "$ref": "user#/definitions/mobileAppName",
+      "default": ""
+    },
+    "mobileVersion": {
+      "$ref": "user#/definitions/mobileVersion",
+      "default": ""
+    }
+  },
+  "required": [
+    "id"
+  ]
+}

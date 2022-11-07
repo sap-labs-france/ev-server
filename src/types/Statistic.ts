@@ -15,7 +15,7 @@ export default interface StatisticFilter {
   userIDs?: string[];
   dataType?: string;
   dataCategory?: string;
-  dataScope?: string;
+  dataScope?: StatsDataScope;
   stop: {
     $exists: boolean;
   };
@@ -45,11 +45,21 @@ export enum StatsDataType {
 export enum StatsDataScope {
   YEAR = 'year',
   MONTH = 'month',
+  DATE = 'date',
+  DAY_OF_MONTH = 'dayOfMonth',
+  DAY_OF_WEEK = 'dayOfWeek',
+  SUM = 'sum',
+  TOTAL = 'total',
+  DAY_OF_YEAR = 'dayOfYear',
+  HOUR = 'hour'
 }
 
-export interface ChargingStationStats {
+export type StatsAggregationKey = `$${StatsDataScope}`;
+
+type AnyDataScopeValue = {[key in StatsDataScope]?: number | string};
+
+export interface ChargingStationStats extends AnyDataScopeValue {
   chargeBox: string;
-  month: number;
   total: number;
   unit: string;
 }
