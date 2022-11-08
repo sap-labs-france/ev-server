@@ -90,7 +90,7 @@
     "test:ut-template": "npm run test:jest -- test/api/UnitTestTemplate.ts",
     "test:user": "npm run test:jest -- test/api/UserTest.ts",
     "test:email": "npm run test:jest -- test/api/EmailTest.ts",
-    "test:jest": "npm version && cross-env cross-env NODE_ENV=development NODE_OPTIONS=\"--max-old-space-size=4096\" TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit"
+    "test:jest": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit"
   },
   "dependencies": {
     "ajv": "^8.11.0",
