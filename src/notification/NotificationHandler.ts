@@ -370,14 +370,8 @@ export default class NotificationHandler {
     }
   }
 
-  public static async sendAdminAccountVerification(tenant: Tenant, notificationID: string, user: User, adminSourceData: AdminAccountVerificationNotification): Promise<void> {
+  public static async sendAdminAccountVerification(tenant: Tenant, notificationID: string, user: User, sourceData: AdminAccountVerificationNotification): Promise<void> {
     if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
-      // Get the Tenant logo
-      if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
-        const tenantLogo = await TenantStorage.getTenantLogo(tenant);
-        tenant.logo = tenantLogo.logo;
-      }
-      adminSourceData.tenantLogoURL = tenant.logo;
       // Get the admin
       const adminUsers = await NotificationHandler.getAdminUsers(tenant, 'sendAdminAccountVerificationNotification');
       if (!Utils.isEmptyArray(adminUsers)) {
@@ -391,7 +385,7 @@ export default class NotificationHandler {
               // Send
               for (const adminUser of adminUsers) {
                 await notificationSource.notificationTask.sendAdminAccountVerificationNotification(
-                  adminSourceData, adminUser, tenant, NotificationSeverity.INFO);
+                  sourceData, adminUser, tenant, NotificationSeverity.INFO);
               }
             } catch (error) {
               await Logging.logActionExceptionMessage(tenant.id, ServerAction.ADMIN_ACCOUNT_VERIFICATION, error);
@@ -1210,12 +1204,6 @@ export default class NotificationHandler {
   public static async sendBillingAccountCreationLink(tenant: Tenant, notificationID: string, user: User,
       sourceData: BillingAccountCreationLinkNotification): Promise<void> {
     if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
-    // Get the Tenant logo
-      if (Utils.isNullOrUndefined(tenant.logo) || tenant.logo === '') {
-        const tenantLogo = await TenantStorage.getTenantLogo(tenant);
-        tenant.logo = tenantLogo.logo;
-      }
-      sourceData.tenantLogoURL = tenant.logo;
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
       // Active?

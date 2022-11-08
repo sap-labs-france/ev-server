@@ -1,32 +1,10 @@
 <mj-section padding-top="40px">
   <mj-column width="40%">
-    <mj-image href="{{infoIcon}}" src="{{infoIcon}}"></mj-image>
-  </mj-column>
-</mj-section>
-<mj-section>
-  <mj-column>
-    <mj-text color="#ffffff" font-size="12px">{{infoIcon}}</mj-text>
-    <mj-text color="#ffffff" font-size="12px">{{evseDashboardURL}}</mj-text>
-  </mj-column>
-</mj-section>
-<mj-section padding-top="40px">
-  <mj-column width="40%">
-		<mj-image href="{{tenantLogoURL}}" src="{{tenantLogoURL}}"></mj-image>
+		<mj-image href="{{evseDashboardURL}}" src="{{tenantLogoURL}}"></mj-image>
   </mj-column>
 </mj-section>
 <mj-section>
   <mj-column>
 		<mj-text color="#ffffff" font-size="12px">{{tenantName}}</mj-text>
-		<mj-text color="#ffffff" font-size="12px">{{tenantLogoURL}}</mj-text>
-  </mj-column>
-</mj-section>
-<mj-section padding-top="40px">
-  <mj-column width="40%">
-		<mj-image href="{{staticLogo}}" src="{{staticLogo}}"></mj-image>
-  </mj-column>
-</mj-section>
-<mj-section>
-  <mj-column>
-		<mj-text color="#ffffff" font-size="12px">{{staticLogo}}</mj-text>
   </mj-column>
 </mj-section>

@@ -8,6 +8,7 @@ import User, { UserRole } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
+import BrandingConstants from '../../../../utils/BrandingConstants';
 import Constants from '../../../../utils/Constants';
 import { LockEntity } from '../../../../types/Locking';
 import LockingManager from '../../../../locking/LockingManager';
@@ -87,6 +88,10 @@ export default class TenantService {
     // Get Logo
     const tenantLogo = await TenantStorage.getTenantLogo(req.tenant);
     let logo = tenantLogo?.logo;
+    if (!logo) {
+      // A default Open e-Mobility logo - base64 encoded
+      logo = BrandingConstants.TENANT_DEFAULT_LOGO_CONTENT;
+    }
     if (logo) {
       // Header
       let header = 'image';

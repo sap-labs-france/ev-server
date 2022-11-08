@@ -448,14 +448,23 @@ export default class EMailNotificationTask implements NotificationTask {
     sourceData.openEMobilityPoweredByLogo = BrandingConstants.OPEN_EMOBILITY_POWERED_BY,
     sourceData.openEmobilityWebSiteURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL;
     // Tenant information
-    sourceData.tenantName = (tenant.id === Constants.DEFAULT_TENANT_ID) ? Constants.DEFAULT_TENANT_ID : tenant.name;
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
+      sourceData.tenantName = Constants.DEFAULT_TENANT_ID;
+      // Open eMobility Logo
+      sourceData.tenantLogoURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_LOGO_URL;
+    } else {
+      sourceData.tenantName = tenant.name;
+    }
     // Perf optimization - do it only once to avoid too many calls to getTenantLogo()
     if (!sourceData.tenantLogoURL) {
-      // sourceData.tenantLogoURL = await this.getTenantLogo(tenant); // logo - base64 encoded are not shown in most of the email clients (such as outlook)
-      sourceData.tenantLogoURL = `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=${tenant.id}`;
+      // sourceData.tenantLogoURL = await this.getTenantLogo(tenant); // logo - base64 encoded images are not shown in most of the email clients (such as outlook)
+      if (Utils.isDevelopmentEnv()) {
+        // Dev and test mode only - URL to localhost are not shown by most of the email clients (such as outlook)
+        sourceData.tenantLogoURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_LOGO_URL;
+      } else {
+        sourceData.tenantLogoURL = `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=${tenant.id}`;
+      }
     }
-    sourceData.infoIcon = `${Utils.buildEvseURL()}/assets/img/info.png`;
-    sourceData.staticLogo = 'https://open-e-mobility.io/wp-content/uploads/2022/09/OEM_degrade_name-200x150.png';
   }
 
   private populateNotificationContext(tenant: Tenant, recipient: User, sourceData: any): any {
@@ -465,15 +474,6 @@ export default class EMailNotificationTask implements NotificationTask {
       recipientName: recipient.firstName || recipient.name,
       recipientEmail: recipient.email,
     };
-  }
-
-  private async getTenantLogo(tenant: Tenant): Promise<string> {
-    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
-      return BrandingConstants.TENANT_DEFAULT_LOGO_CONTENT;
-    } else if (!tenant.logo) {
-      tenant.logo = (await TenantStorage.getTenantLogo(tenant))?.logo;
-    }
-    return tenant.logo || BrandingConstants.TENANT_DEFAULT_LOGO_CONTENT;
   }
 
   private getSMTPClient(useSmtpClientBackup: boolean): SMTPClient {
