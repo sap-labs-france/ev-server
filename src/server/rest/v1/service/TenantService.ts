@@ -8,6 +8,7 @@ import User, { UserRole } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
+import BrandingConstants from '../../../../utils/BrandingConstants';
 import Constants from '../../../../utils/Constants';
 import { LockEntity } from '../../../../types/Locking';
 import LockingManager from '../../../../locking/LockingManager';
@@ -76,31 +77,26 @@ export default class TenantService {
   }
 
   public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check Tenant
-    if (!req.tenant) {
-      throw new AppError({
-        errorCode: StatusCodes.BAD_REQUEST,
-        message: 'Tenant must be provided',
-        module: MODULE_NAME, method: 'handleGetTenantLogo', action: action,
-      });
+    let logoContent: string;
+    if (req.tenant) {
+      // Get the Tenant Logo (if any)
+      const tenantLogo = await TenantStorage.getTenantLogo(req.tenant);
+      logoContent = tenantLogo?.logo;
     }
-    // Get Logo
-    const tenantLogo = await TenantStorage.getTenantLogo(req.tenant);
-    let logo = tenantLogo?.logo;
-    if (logo) {
-      // Header
-      let header = 'image';
-      let encoding: BufferEncoding = 'base64';
-      if (logo.startsWith('data:image/')) {
-        header = logo.substring(5, logo.indexOf(';'));
-        encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
-        logo = logo.substring(logo.indexOf(',') + 1);
-      }
-      res.setHeader('Content-Type', header);
-      res.send(Buffer.from(logo, encoding));
-    } else {
-      res.status(StatusCodes.NOT_FOUND);
+    if (!logoContent) {
+      // A default Open e-Mobility logo - base64 encoded
+      logoContent = BrandingConstants.TENANT_DEFAULT_LOGO_CONTENT;
     }
+    // Header
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    if (logoContent.startsWith('data:image/')) {
+      header = logoContent.substring(5, logoContent.indexOf(';'));
+      encoding = logoContent.substring(logoContent.indexOf(';') + 1, logoContent.indexOf(',')) as BufferEncoding;
+      logoContent = logoContent.substring(logoContent.indexOf(',') + 1);
+    }
+    res.setHeader('Content-Type', header);
+    res.send(Buffer.from(logoContent, encoding));
     next();
   }
 
