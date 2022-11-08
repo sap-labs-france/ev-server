@@ -70,7 +70,7 @@ export default class ContextBuilder {
     // Connect to the DB
     await global.database.start();
     // Populate the DB with some initial templates (that the tests require when creating fake charging stations )
-    await ContextBuilder.populateTemplates()
+    await ContextBuilder.populateTemplates();
     // Destroy all tenants
     await this.destroyTestTenants();
     let tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST;
@@ -428,6 +428,7 @@ export default class ContextBuilder {
     return newTenantContext;
   }
 
+  // eslint-disable-next-line @typescript-eslint/member-ordering
   private static async populateTemplates(): Promise<void> {
     let created = 0;
     // Check if there is existing templates
@@ -436,145 +437,145 @@ export default class ContextBuilder {
       return;
     }
     try {
-      let chargingStationTemplates: ChargingStationTemplate[] = [
+      const chargingStationTemplates: ChargingStationTemplate[] = [
         // Template Schneider~EV2S22P44|EVC1S22P4E4E
         {
           id: null,
           template: {
-            chargePointVendor: "Schneider Electric",
-          extraFilters: {
-            chargePointModel: "MONOBLOCK|City \\(On Street\\)",
-            chargeBoxSerialNumber: "EV\\.2S22P44|EVC1S22P4E4E"
-          },
-          technical: {
-            maximumPower: 44160,
-            voltage: 230,
-            powerLimitUnit: ChargingRateUnitType.AMPERE,
-            chargePoints: [
+            chargePointVendor: 'Schneider Electric',
+            extraFilters: {
+              chargePointModel: 'MONOBLOCK|City \\(On Street\\)',
+              chargeBoxSerialNumber: 'EV\\.2S22P44|EVC1S22P4E4E'
+            },
+            technical: {
+              maximumPower: 44160,
+              voltage: 230,
+              powerLimitUnit: ChargingRateUnitType.AMPERE,
+              chargePoints: [
+                {
+                  chargePointID: 1,
+                  currentType: CurrentType.AC,
+                  amperage: 192,
+                  numberOfConnectedPhase: 3,
+                  cannotChargeInParallel: false,
+                  sharePowerToAllConnectors: false,
+                  excludeFromPowerLimitation: false,
+                  ocppParamForPowerLimitation: 'maxintensitysocket',
+                  power: 44160,
+                  voltage: null,
+                  efficiency: null,
+                  connectorIDs: [
+                    1,
+                    2
+                  ]
+                }
+              ],
+              connectors: [
+                {
+                  connectorId: 1,
+                  type: ConnectorType.TYPE_2,
+                  power: 22080,
+                  amperage: 96,
+                  chargePointID: 1
+                },
+                {
+                  connectorId: 2,
+                  type: ConnectorType.TYPE_2,
+                  power: 22080,
+                  amperage: 96,
+                  chargePointID: 1
+                }
+              ]
+            },
+            capabilities: [
               {
-                chargePointID: 1,
-                currentType: CurrentType.AC,
-                amperage: 192,
-                numberOfConnectedPhase: 3,
-                cannotChargeInParallel: false,
-                sharePowerToAllConnectors: false,
-                excludeFromPowerLimitation: false,
-                ocppParamForPowerLimitation: "maxintensitysocket",
-                power: 44160,
-                voltage: null,
-                efficiency: null,
-                connectorIDs: [
-                  1,
-                  2
-                ]
+                supportedFirmwareVersions: [
+                  '3\\.[2-4]\\.0\\..*'
+                ],
+                supportedOcppVersions: [
+                  '1.6'
+                ],
+                capabilities: {
+                  supportStaticLimitation: true,
+                  supportChargingProfiles: true,
+                  supportRemoteStartStopTransaction: true,
+                  supportUnlockConnector: true,
+                  supportReservation: false,
+                  supportCreditCard: false,
+                  supportRFIDCard: false
+                }
               }
             ],
-            connectors: [
+            ocppStandardParameters: [
               {
-                connectorId: 1,
-                type: ConnectorType.TYPE_2,
-                power: 22080,
-                amperage: 96,
-                chargePointID: 1
+                supportedFirmwareVersions: [
+                  '3\\.[2-4]\\.0\\..*'
+                ],
+                supportedOcppVersions: [
+                  '1.6'
+                ],
+                parameters: {
+                  'AllowOfflineTxForUnknownId': 'true',
+                  'AuthorizationCacheEnabled': 'false',
+                  'StopTransactionOnInvalidId': 'true'
+                }
+              }
+            ],
+            ocppVendorParameters: [
+              {
+                supportedFirmwareVersions: [
+                  '3\\.2\\.0\\..*'
+                ],
+                supportedOcppVersions: [
+                  '1.6'
+                ],
+                parameters: {
+                  'authenticationmanager': '2',
+                  'ocppconnecttimeout': '60',
+                  'clockaligneddatainterval': '0',
+                  'metervaluessampleddata': 'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
+                  'metervaluesampleinterval': '60',
+                  'emsetting': '3',
+                  'enableevdetection': 'true',
+                  'useautotimemanagment': 'true',
+                  'timeservername': 'pool.ntp.org',
+                  'monophasedloadsheddingfloorvalue': '6',
+                  'triphasedloadsheddingfloorvalue': '6'
+                }
               },
               {
-                connectorId: 2,
-                type: ConnectorType.TYPE_2,
-                power: 22080,
-                amperage: 96,
-                chargePointID: 1
+                supportedFirmwareVersions: [
+                  '3\\.[3-4]\\.0\\..*'
+                ],
+                supportedOcppVersions: [
+                  '1.6'
+                ],
+                parameters: {
+                  'authenticationmanager': '2',
+                  'ocppconnecttimeout': '60',
+                  'clockaligneddatainterval': '0',
+                  'metervaluessampleddata': 'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
+                  'metervaluesampleinterval': '60',
+                  'emsetting': '3',
+                  'enableevdetection': 'true',
+                  'useautotimemanagment': 'true',
+                  'timeservername': 'pool.ntp.org',
+                  'websocketpinginterval': '30',
+                  'monophasedloadsheddingfloorvalue': '6',
+                  'triphasedloadsheddingfloorvalue': '6'
+                }
               }
             ]
-          },
-          capabilities: [
-            {
-              supportedFirmwareVersions: [
-                "3\\.[2-4]\\.0\\..*"
-              ],
-              supportedOcppVersions: [
-                "1.6"
-              ],
-              capabilities: {
-                supportStaticLimitation: true,
-                supportChargingProfiles: true,
-                supportRemoteStartStopTransaction: true,
-                supportUnlockConnector: true,
-                supportReservation: false,
-                supportCreditCard: false,
-                supportRFIDCard: false
-              }
-            }
-          ],
-          ocppStandardParameters: [
-            {
-              supportedFirmwareVersions: [
-                "3\\.[2-4]\\.0\\..*"
-              ],
-              supportedOcppVersions: [
-                "1.6"
-              ],
-              parameters: {
-                "AllowOfflineTxForUnknownId": "true",
-                "AuthorizationCacheEnabled": "false",
-                "StopTransactionOnInvalidId": "true"
-              }
-            }
-          ],
-          ocppVendorParameters: [
-            {
-              supportedFirmwareVersions: [
-                "3\\.2\\.0\\..*"
-              ],
-              supportedOcppVersions: [
-                "1.6"
-              ],
-              parameters: {
-                "authenticationmanager": "2",
-                "ocppconnecttimeout": "60",
-                "clockaligneddatainterval": "0",
-                "metervaluessampleddata": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3",
-                "metervaluesampleinterval": "60",
-                "emsetting": "3",
-                "enableevdetection": "true",
-                "useautotimemanagment": "true",
-                "timeservername": "pool.ntp.org",
-                "monophasedloadsheddingfloorvalue": "6",
-                "triphasedloadsheddingfloorvalue": "6"
-              }
-            },
-            {
-              supportedFirmwareVersions: [
-                "3\\.[3-4]\\.0\\..*"
-              ],
-              supportedOcppVersions: [
-                "1.6"
-              ],
-              parameters: {
-                "authenticationmanager": "2",
-                "ocppconnecttimeout": "60",
-                "clockaligneddatainterval": "0",
-                "metervaluessampleddata": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3",
-                "metervaluesampleinterval": "60",
-                "emsetting": "3",
-                "enableevdetection": "true",
-                "useautotimemanagment": "true",
-                "timeservername": "pool.ntp.org",
-                "websocketpinginterval": "30",
-                "monophasedloadsheddingfloorvalue": "6",
-                "triphasedloadsheddingfloorvalue": "6"
-              }
-            }
-          ]
           }
         },
         // Template Schneider~EV2S7P44|EVC1S7P4E4E
         {
           id: null,
           template: {
-            chargePointVendor: "Schneider Electric",
+            chargePointVendor: 'Schneider Electric',
             extraFilters: {
-              chargePointModel: "MONOBLOCK|City \\(On Street\\)",
-              chargeBoxSerialNumber: "EV\\.2S7P44|EVC1S7P4E4E"
+              chargePointModel: 'MONOBLOCK|City \\(On Street\\)',
+              chargeBoxSerialNumber: 'EV\\.2S7P44|EVC1S7P4E4E'
             },
             technical: {
               maximumPower: 14720,
@@ -589,7 +590,7 @@ export default class ContextBuilder {
                   cannotChargeInParallel: false,
                   sharePowerToAllConnectors: false,
                   excludeFromPowerLimitation: false,
-                  ocppParamForPowerLimitation: "maxintensitysocket",
+                  ocppParamForPowerLimitation: 'maxintensitysocket',
                   power: 14720,
                   voltage: null,
                   efficiency: null,
@@ -619,10 +620,10 @@ export default class ContextBuilder {
             capabilities: [
               {
                 supportedFirmwareVersions: [
-                  "3\\.[2-4]\\.0\\..*"
+                  '3\\.[2-4]\\.0\\..*'
                 ],
                 supportedOcppVersions: [
-                  "1.6"
+                  '1.6'
                 ],
                 capabilities: {
                   supportStaticLimitation: true,
@@ -638,60 +639,60 @@ export default class ContextBuilder {
             ocppStandardParameters: [
               {
                 supportedFirmwareVersions: [
-                  "3\\.[2-4]\\.0\\..*"
+                  '3\\.[2-4]\\.0\\..*'
                 ],
                 supportedOcppVersions: [
-                  "1.6"
+                  '1.6'
                 ],
                 parameters: {
-                  "AllowOfflineTxForUnknownId": "true",
-                  "AuthorizationCacheEnabled": "false",
-                  "StopTransactionOnInvalidId": "true"
+                  'AllowOfflineTxForUnknownId': 'true',
+                  'AuthorizationCacheEnabled': 'false',
+                  'StopTransactionOnInvalidId': 'true'
                 }
               }
             ],
             ocppVendorParameters: [
               {
                 supportedFirmwareVersions: [
-                  "3\\.2\\.0\\..*"
+                  '3\\.2\\.0\\..*'
                 ],
                 supportedOcppVersions: [
-                  "1.6"
+                  '1.6'
                 ],
                 parameters: {
-                  "authenticationmanager": "2",
-                  "ocppconnecttimeout": "60",
-                  "clockaligneddatainterval": "0",
-                  "metervaluessampleddata": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3",
-                  "metervaluesampleinterval": "60",
-                  "emsetting": "3",
-                  "enableevdetection": "true",
-                  "useautotimemanagment": "true",
-                  "timeservername": "pool.ntp.org",
-                  "monophasedloadsheddingfloorvalue": "6",
-                  "triphasedloadsheddingfloorvalue": "6"
+                  'authenticationmanager': '2',
+                  'ocppconnecttimeout': '60',
+                  'clockaligneddatainterval': '0',
+                  'metervaluessampleddata': 'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
+                  'metervaluesampleinterval': '60',
+                  'emsetting': '3',
+                  'enableevdetection': 'true',
+                  'useautotimemanagment': 'true',
+                  'timeservername': 'pool.ntp.org',
+                  'monophasedloadsheddingfloorvalue': '6',
+                  'triphasedloadsheddingfloorvalue': '6'
                 }
               },
               {
                 supportedFirmwareVersions: [
-                  "3\\.[3-4]\\.0\\..*"
+                  '3\\.[3-4]\\.0\\..*'
                 ],
                 supportedOcppVersions: [
-                  "1.6"
+                  '1.6'
                 ],
                 parameters: {
-                  "authenticationmanager": "2",
-                  "ocppconnecttimeout": "60",
-                  "clockaligneddatainterval": "0",
-                  "metervaluessampleddata": "Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3",
-                  "metervaluesampleinterval": "60",
-                  "emsetting": "3",
-                  "enableevdetection": "true",
-                  "useautotimemanagment": "true",
-                  "timeservername": "pool.ntp.org",
-                  "websocketpinginterval": "30",
-                  "monophasedloadsheddingfloorvalue": "6",
-                  "triphasedloadsheddingfloorvalue": "6"
+                  'authenticationmanager': '2',
+                  'ocppconnecttimeout': '60',
+                  'clockaligneddatainterval': '0',
+                  'metervaluessampleddata': 'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
+                  'metervaluesampleinterval': '60',
+                  'emsetting': '3',
+                  'enableevdetection': 'true',
+                  'useautotimemanagment': 'true',
+                  'timeservername': 'pool.ntp.org',
+                  'websocketpinginterval': '30',
+                  'monophasedloadsheddingfloorvalue': '6',
+                  'triphasedloadsheddingfloorvalue': '6'
                 }
               }
             ]
@@ -701,9 +702,9 @@ export default class ContextBuilder {
         {
           id: null,
           template: {
-            chargePointVendor: "DELTA",
+            chargePointVendor: 'DELTA',
             extraFilters: {
-              chargePointModel: "10616"
+              chargePointModel: '10616'
             },
             technical: {
               maximumPower: 150000,
@@ -718,7 +719,7 @@ export default class ContextBuilder {
                   cannotChargeInParallel: false,
                   sharePowerToAllConnectors: true,
                   excludeFromPowerLimitation: false,
-                  ocppParamForPowerLimitation: "Device/GridCurrent",
+                  ocppParamForPowerLimitation: 'Device/GridCurrent',
                   power: 150000,
                   efficiency: 95,
                   voltage: null, // mandatory but never provided in the json templates
@@ -746,11 +747,11 @@ export default class ContextBuilder {
             capabilities: [
               {
                 supportedFirmwareVersions: [
-                  "3\\.[2-3]\\..*",
-                  "3\\.4.*"
+                  '3\\.[2-3]\\..*',
+                  '3\\.4.*'
                 ],
                 supportedOcppVersions: [
-                  "1.6"
+                  '1.6'
                 ],
                 capabilities: {
                   supportStaticLimitation: true,
@@ -766,40 +767,40 @@ export default class ContextBuilder {
             ocppStandardParameters: [
               {
                 supportedFirmwareVersions: [
-                  "3\\.[2-3]\\..*",
-                  "3\\.4.*"
+                  '3\\.[2-3]\\..*',
+                  '3\\.4.*'
                 ],
                 supportedOcppVersions: [
-                  "1.6"
+                  '1.6'
                 ],
                 parameters: {
-                  "AuthorizationCacheEnabled": "False",
-                  "AuthorizeRemoteTxRequests": "True",
-                  "ClockAlignedDataInterval": "0",
-                  "ConnectionTimeOut": "60",
-                  "LocalPreAuthorize": "True",
-                  "LocalAuthorizeOffline": "True",
-                  "StopTransactionOnInvalidId": "True",
-                  "MeterValuesAlignedData": "0",
-                  "MeterValueSampleInterval": "60",
-                  "MeterValuesSampledData": "SoC,Energy.Active.Import.Register,Power.Active.Import,Current.Import,Voltage",
-                  "StopTransactionOnEVSideDisconnect": "True",
-                  "UnlockConnectorOnEVSideDisconnect": "True",
-                  "WebSocketPingInterval": "30",
+                  'AuthorizationCacheEnabled': 'False',
+                  'AuthorizeRemoteTxRequests': 'True',
+                  'ClockAlignedDataInterval': '0',
+                  'ConnectionTimeOut': '60',
+                  'LocalPreAuthorize': 'True',
+                  'LocalAuthorizeOffline': 'True',
+                  'StopTransactionOnInvalidId': 'True',
+                  'MeterValuesAlignedData': '0',
+                  'MeterValueSampleInterval': '60',
+                  'MeterValuesSampledData': 'SoC,Energy.Active.Import.Register,Power.Active.Import,Current.Import,Voltage',
+                  'StopTransactionOnEVSideDisconnect': 'True',
+                  'UnlockConnectorOnEVSideDisconnect': 'True',
+                  'WebSocketPingInterval': '30',
                 }
               }
             ],
             ocppVendorParameters: [
               {
                 supportedFirmwareVersions: [
-                  "3\\.[2-3]\\..*",
-                  "3\\.4.*"
+                  '3\\.[2-3]\\..*',
+                  '3\\.4.*'
                 ],
                 supportedOcppVersions: [
-                  "1.6"
+                  '1.6'
                 ],
                 parameters: {
-                  "OCPP/idTagConversion": "HexZerofill4or7byte"
+                  'OCPP/idTagConversion': 'HexZerofill4or7byte'
                 }
               }
             ]
@@ -810,7 +811,7 @@ export default class ContextBuilder {
         template.createdOn = new Date();
         await ChargingStationTemplateStorage.saveChargingStationTemplate(template);
         created++;
-      };
+      }
     } catch (error) {
       console.log(`>>>> Error while importing the charging station templates : ${error.message as string}`);
     }

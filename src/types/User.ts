@@ -34,9 +34,7 @@ export default interface User extends CreatedUpdatedProps, UserAuthorizationActi
   verificationToken?: string;
   verifiedAt?: Date;
   billingData?: BillingUserData;
-  mobileOs: string;
-  mobileToken: string;
-  mobileLastChangedOn: Date;
+  mobileData?: UserMobileData;
   startTransactionData?: StartTransactionUserData;
   authorizationID?: string;
   importedData?: {
@@ -44,6 +42,15 @@ export default interface User extends CreatedUpdatedProps, UserAuthorizationActi
   };
   technical?: boolean;
   freeAccess?: boolean;
+}
+
+export interface UserMobileData {
+  mobileOS: 'ios' | 'android' | 'windows' | 'macos' | 'web';
+  mobileToken: string;
+  mobileBundleID: string;
+  mobileAppName: string;
+  mobileVersion: string;
+  mobileLastChangedOn?: Date;
 }
 
 export interface StartTransactionUserData {

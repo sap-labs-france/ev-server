@@ -1,5 +1,5 @@
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import User, { ImportedUser, StartTransactionUserData, UserRole, UserStatus } from '../../types/User';
+import User, { ImportedUser, StartTransactionUserData, UserMobileData, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { DatabaseCount, FilterParams, Image, ImportStatus } from '../../types/GlobalType';
 
@@ -17,6 +17,7 @@ import { ObjectId } from 'mongodb';
 import TagStorage from './TagStorage';
 import UserNotifications from '../../types/UserNotifications';
 import { UserSite } from '../../types/Site';
+import UserValidatorStorage from '../validator/UserValidatorStorage';
 import Utils from '../../utils/Utils';
 import fs from 'fs';
 import moment from 'moment';
@@ -385,14 +386,19 @@ export default class UserStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserLastSelectedCarID', startTime, { startTransactionData });
   }
 
-  public static async saveUserMobileToken(tenant: Tenant, userID: string,
-      params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date }): Promise<void> {
+  public static async saveUserMobileData(tenant: Tenant, userID: string, params: UserMobileData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
+    // Validate
+    const mobileDataMDB = UserValidatorStorage.getInstance().validateUserMobileDataSave(params);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(userID) },
-      { $set: params });
+      {
+        $set: {
+          mobileData: mobileDataMDB
+        }
+      });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserMobileToken', startTime, params);
   }
 

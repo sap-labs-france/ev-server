@@ -413,10 +413,10 @@ export default class EMailNotificationTask implements NotificationTask {
           message: `No email is provided for User for '${templateName}'`
         });
       }
-      // ----------------------------------------------------------------------------------------------------------
-      //  ACHTUNG - to not alter the original sourceData object (the caller nay need to reuse the initial values)
-      // ----------------------------------------------------------------------------------------------------------
-      const context: Record<string, unknown> = await this.populateNotificationContext(tenant, recipient, sourceData);
+      // Enrich the sourceData with constant values
+      await this.enrichSourceData(tenant, sourceData);
+      // Build the context with recipient data
+      const context: Record<string, unknown> = this.populateNotificationContext(tenant, recipient, sourceData);
       // Send the email
       emailContent = await this.sendSmartEmail(templateName, context, recipient, tenant, severity, optionalComponents);
       return {
@@ -440,19 +440,24 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async populateNotificationContext(tenant: Tenant, recipient: User, sourceData: any): Promise<any> {
+  private async enrichSourceData(tenant: Tenant, sourceData: any): Promise<void> {
+    // Branding Information
+    sourceData.openEMobilityPoweredByLogo = BrandingConstants.OPEN_EMOBILITY_POWERED_BY,
+    sourceData.openEmobilityWebSiteURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL;
+    // Tenant information
+    sourceData.tenantName = (tenant.id === Constants.DEFAULT_TENANT_ID) ? Constants.DEFAULT_TENANT_ID : tenant.name;
+    if (!sourceData.tenantLogoURL) {
+      // Perf optimization - do it only once to avoid too many calls to getTenantLogo()
+      sourceData.tenantLogoURL = await this.getTenantLogo(tenant);
+    }
+  }
+
+  private populateNotificationContext(tenant: Tenant, recipient: User, sourceData: any): any {
     return {
-      ...sourceData,
-      // Tenant
-      tenantName: (tenant.id === Constants.DEFAULT_TENANT_ID) ? Constants.DEFAULT_TENANT_ID : tenant.name,
+      ...sourceData, // Do not alter the original sourceData object (the caller nay need to reuse the initial values)
       // Recipient
       recipientName: recipient.firstName || recipient.name,
       recipientEmail: recipient.email,
-      // Tenant LOGO
-      tenantLogoURL: await this.getTenantLogo(tenant),
-      // Branding
-      openEMobilityPoweredByLogo: BrandingConstants.OPEN_EMOBILITY_POWERED_BY,
-      openEmobilityWebSiteURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL
     };
   }
 

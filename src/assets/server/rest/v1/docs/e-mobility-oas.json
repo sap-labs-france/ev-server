@@ -6979,14 +6979,14 @@
         }
       }
     },
-    "/api/users/{id}/mobile-token": {
+    "/api/users/{id}/mobile-data": {
       "put": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Update user's mobile tokens",
+        "description": "Update user's mobile data",
         "parameters": [
           {
             "$ref": "#/components/parameters/userID"
@@ -7006,8 +7006,21 @@
                   "mobileToken": {
                     "type": "string"
                   },
-                  "mobileOS": {
+                  "mobileBundleID": {
                     "type": "string"
+                  },
+                  "mobileAppName": {
+                    "type": "string"
+                  },
+                  "mobileVersion": {
+                    "type": "string"
+                  },
+                  "mobileOS": {
+                    "type": "string",
+                    "enum": [
+                      "ios",
+                      "android"
+                    ]
                   }
                 }
               }
