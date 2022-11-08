@@ -551,7 +551,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionCdrExportReq(req.query);
     // Get Transaction
-    const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, filteredRequest.ID, Action.EXPORT_OCPI_CDR, action);
+    const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, filteredRequest.ID, Action.EXPORT_OCPI_CDR, action, null, null, true);
     if (!transaction?.ocpiData) {
       throw new AppError({
         ...LoggingHelper.getTransactionProperties(transaction),
@@ -741,7 +741,7 @@ export default class TransactionService {
   }
 
   private static async getTransactions(req: Request, filteredRequest: HttpTransactionsGetRequest,
-    authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
+      authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(
       req.tenant, req.user, authAction, filteredRequest, false);
@@ -803,7 +803,7 @@ export default class TransactionService {
   }
 
   private static async transactionSoftStop(action: ServerAction, transaction: Transaction, chargingStation: ChargingStation,
-    connector: Connector, req: Request, res: Response, next: NextFunction): Promise<void> {
+      connector: Connector, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if already stopped
     if (transaction.stop) {
       // Clear Connector
@@ -856,7 +856,7 @@ export default class TransactionService {
   }
 
   private static async checkAndGetTransactionChargingStationConnector(action: ServerAction, tenant: Tenant, user: UserToken,
-    transactionID: number, authAction: Action): Promise<{ transaction: Transaction; chargingStation: ChargingStation; connector: Connector; }> {
+      transactionID: number, authAction: Action): Promise<{ transaction: Transaction; chargingStation: ChargingStation; connector: Connector; }> {
     // Check dynamic auth
     const transaction = await UtilsService.checkAndGetTransactionAuthorization(tenant, user, transactionID, authAction, action);
     const { chargingStation, connector } = await TransactionService.checkAndGetChargingStationConnector(action, tenant, user,
@@ -865,7 +865,7 @@ export default class TransactionService {
   }
 
   private static async checkAndGetChargingStationConnector(action: ServerAction, tenant: Tenant, user: UserToken,
-    chargingStationID: string, connectorID: number, authAction: Action): Promise<{ chargingStation: ChargingStation; connector: Connector; }> {
+      chargingStationID: string, connectorID: number, authAction: Action): Promise<{ chargingStation: ChargingStation; connector: Connector; }> {
     // Get the Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(tenant, user, chargingStationID, authAction, action, null, { withSiteArea: true });
     // Check connector

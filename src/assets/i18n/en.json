@@ -343,10 +343,10 @@
       ]
     },
     "charging-station-status-error": {
-      "title": "Charging Station Error",
+      "title": "Error on {{chargeBoxID}}, connector {{connectorId}}",
       "buttonText": "View Error",
       "text": [
-        "Error occurred on {{chargeBoxID}}, connector {{connectorId}}",
+        "An error occurred on {{chargeBoxID}}, connector {{connectorId}}",
         "Error: {{error}}"
       ]
     },
@@ -475,16 +475,16 @@
       "title": "Billing Account Activated",
       "buttonText": "Navigate to {{tenantName}}",
       "text": [
-        "Congratulation!",
+        "Congratulations!",
         "",
         "The onboarding process has been successfully completed and your billing account has been activated."
       ]
     },
     "car-synchronization-failed": {
-      "title": "Car Synchronization Failed",
+      "title": "Vehicle Synchronization Failed",
       "buttonText": "Navigate to {{tenantName}}",
       "text": [
-        "Unable to synchronize {{nbrCarsInError}} car(s) with the electric vehicles data provider."
+        "Unable to synchronize the data of {{nbrCarsInError}} vehicle(s)."
       ]
     },
     "compute-and-apply-charging-profiles-failed": {
@@ -525,7 +525,7 @@
       "buttonText": "Set your Password",
       "text": [
         "An account has just been created on your behalf in '{{tenantName}}' organization.",
-        "You will have to log in at least once to be able to charge your car.",
+        "You will have to log in at least once to be able to charge your vehicle.",
         "",
         "Click on the link bellow to set your password."
       ]
