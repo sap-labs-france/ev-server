@@ -445,25 +445,18 @@ export default class EMailNotificationTask implements NotificationTask {
 
   private enrichSourceData(tenant: Tenant, sourceData: any): void {
     // Branding Information
-    sourceData.openEMobilityPoweredByLogo = BrandingConstants.OPEN_EMOBILITY_POWERED_BY,
     sourceData.openEmobilityWebSiteURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL;
     // Tenant information
     if (tenant.id === Constants.DEFAULT_TENANT_ID) {
       sourceData.tenantName = Constants.DEFAULT_TENANT_ID;
-      // Open eMobility Logo
-      sourceData.tenantLogoURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_LOGO_URL;
+      sourceData.tenantLogoURL = `${Utils.buildRestServerURL()}/v1/util/tenants/logo`; // Returns a default Open e-Mobility logo
     } else {
       sourceData.tenantName = tenant.name;
+      sourceData.tenantLogoURL = `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=${tenant.id}`;
     }
-    // Perf optimization - do it only once to avoid too many calls to getTenantLogo()
-    if (!sourceData.tenantLogoURL) {
-      // sourceData.tenantLogoURL = await this.getTenantLogo(tenant); // logo - base64 encoded images are not shown in most of the email clients (such as outlook)
-      if (Utils.isDevelopmentEnv()) {
-        // Dev and test mode only - URL to localhost are not shown by most of the email clients (such as outlook)
-        sourceData.tenantLogoURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_LOGO_URL;
-      } else {
-        sourceData.tenantLogoURL = `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=${tenant.id}`;
-      }
+    if (this.emailConfig.troubleshootingMode && sourceData.tenantLogoURL.includes('localhost:')) {
+      // Test only - for security reasons - localhost content is blocked in emails!
+      sourceData.tenantLogoURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_LOGO_URL;
     }
   }
 
