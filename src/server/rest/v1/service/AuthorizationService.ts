@@ -1061,6 +1061,8 @@ export default class AuthorizationService {
       authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add Meta Data
     billingAccounts.metadata = authorizationFilter.metadata;
+    billingAccounts.canCreate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.BILLING_ACCOUNT, Action.CREATE, authorizationFilter);
     billingAccounts.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
   }

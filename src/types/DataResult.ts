@@ -133,6 +133,7 @@ export interface BillingPaymentMethodDataResult extends DataResult<BillingPaymen
 }
 
 export interface BillingAccountsDataResult extends DataResult<BillingAccount> {
+  canCreate?: boolean;
   canListUsers?: boolean;
 }
 
