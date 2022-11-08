@@ -296,7 +296,10 @@ export default class EMailNotificationTask implements NotificationTask {
           content: email.html // Only log the email content when running automated tests
         }
       });
-      return ;
+      if (!this.emailConfig.troubleshootingMode) {
+        // Do not send emails when in dev mode or while running automated tests
+        return ;
+      }
     }
     try {
       // Get the SMTP client
@@ -414,7 +417,7 @@ export default class EMailNotificationTask implements NotificationTask {
         });
       }
       // Enrich the sourceData with constant values
-      await this.enrichSourceData(tenant, sourceData);
+      this.enrichSourceData(tenant, sourceData);
       // Build the context with recipient data
       const context: Record<string, unknown> = this.populateNotificationContext(tenant, recipient, sourceData);
       // Send the email
@@ -440,16 +443,19 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async enrichSourceData(tenant: Tenant, sourceData: any): Promise<void> {
+  private enrichSourceData(tenant: Tenant, sourceData: any): void {
     // Branding Information
     sourceData.openEMobilityPoweredByLogo = BrandingConstants.OPEN_EMOBILITY_POWERED_BY,
     sourceData.openEmobilityWebSiteURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL;
     // Tenant information
     sourceData.tenantName = (tenant.id === Constants.DEFAULT_TENANT_ID) ? Constants.DEFAULT_TENANT_ID : tenant.name;
+    // Perf optimization - do it only once to avoid too many calls to getTenantLogo()
     if (!sourceData.tenantLogoURL) {
-      // Perf optimization - do it only once to avoid too many calls to getTenantLogo()
-      sourceData.tenantLogoURL = await this.getTenantLogo(tenant);
+      // sourceData.tenantLogoURL = await this.getTenantLogo(tenant); // logo - base64 encoded are not shown in most of the email clients (such as outlook)
+      sourceData.tenantLogoURL = `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=${tenant.id}`;
     }
+    sourceData.infoIcon = `${Utils.buildEvseURL()}/assets/img/info.png`;
+    sourceData.staticLogo = 'https://open-e-mobility.io/wp-content/uploads/2022/09/OEM_degrade_name-200x150.png';
   }
 
   private populateNotificationContext(tenant: Tenant, recipient: User, sourceData: any): any {
