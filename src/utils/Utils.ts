@@ -908,9 +908,21 @@ export default class Utils {
     return Utils.getRandomInt(2147483648); // INT32 (signed: issue in Schneider)
   }
 
-  public static buildRestServerURL(): string {
+  public static buildRestServerURL(withPort = true): string {
     const centralSystemRestServer = Configuration.getCentralSystemRestServerConfig();
-    return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}:${centralSystemRestServer.port}`;
+    if (withPort) {
+      return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}:${centralSystemRestServer.port}`;
+    }
+    return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}`;
+  }
+
+  public static buildRestServerTenantEmailLogoURL(tenantID: string): string {
+    if (!tenantID || tenantID === Constants.DEFAULT_TENANT_ID) {
+      // URL to a default eMobility logo
+      return `${Utils.buildRestServerURL(false)}/v1/util/tenants/email-logo?ts=` + new Date().getTime();
+    }
+    // URL to the tenant logo (if any) or the Open -e-mobility logo as a fallback
+    return `${Utils.buildRestServerURL(false)}/v1/util/tenants/email-logo?ID=${tenantID}&ts=` + new Date().getTime();
   }
 
   public static buildEvseURL(subdomain: string = null): string {
