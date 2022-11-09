@@ -1,0 +1,52 @@
+<mj-section background-color="#ffffff">
+  <mj-column>
+		<mj-text font-size="12px">
+      === Dauerhafter Nachweis des Messergebnisses nach MessEV Anhang 2 Punkt 10.2 des Ladevorgangs ===
+    </mj-text>
+  </mj-column>
+</mj-section>
+<mj-section background-color="#ffffff">
+  <mj-column>
+    <mj-table>
+    {{_TABLE_CONTENT_}}
+    </mj-table>
+  </mj-column>
+</mj-section>
+<mj-section background-color="#ffffff">
+  <mj-column>
+		<mj-text font-size="12px">
+      === Anfang der eichrechtlich gesicherte Daten zur Überprüfung der Vollständigkeit und Integrität ===<br/>
+      Transaktionssignatur für Transparenzsoftware:<br/>
+    	---8&lt;----Signatur ab hier---8&lt;--- <br/>
+      &lt;?xml version="1.0"?&gt;<br/>
+      &lt;values&gt;<br/>
+      &lt;value transactionId="{{transactionId}}" context="Transaction.Begin"&gt;<br/>
+      &lt;signedData&gt;<br/>
+      {{startSignedData}}<br/>
+      &lt;/signedData&gt;<br/>
+      &lt;/value&gt;<br/>
+      &lt;value transactionId="{{transactionId}}" context="Transaction.End"&gt;<br/>
+      &lt;signedData&gt;<br/>
+      {{endSignedData}}><br/>
+      &lt;/signedData&gt;<br/>
+      &lt;/value&gt;<br/>
+      &lt;/values&gt;<br/>
+      ---8&lt;----Signatur bis hier---8&lt;--- <br/>
+    </mj-text>
+  </mj-column>
+</mj-section>
+
+<mj-section background-color="#ffffff" padding-top="20px" padding-bottom="20px">
+	<mj-column>
+    <mj-divider border-width="1px" border-color="#E0E0E0" padding="0px" ></mj-divider>
+		<mj-text font-size="12px">
+			Bitte validieren Sie bei Bedarf mit der Transparenzsoftware von <a href="http://www.transparenz.software">http://www.transparenz.software</a><br/>
+      - den oben angezeigten Zählerstand für Start- und Ende <br/>
+      - den daraus errechneten Verbrauch <br/>
+      - Start- und Endzeit der Ladetransaktion <br/>
+      - das der Paginierungswert in der Endsignatur genau um 1 höher ist als in der Startsignatur <br/>
+      - das der Public Key dem in der Ladeeinrichtung sichtbaren Public Key entspricht <br/>
+      - das die Transparenzsoftware beide Signaturen als korrekt validiert <br/>
+		</mj-text>
+	</mj-column>
+</mj-section>

@@ -80,10 +80,9 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // TBC - This one is confusing and inconsistent - Users are getting data in German only!
-    return Promise.resolve(null);
-    // data.buttonUrl = data.evseDashboardURL;
-    // return await this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity);
+    data.buttonUrl = data.evseDashboardChargingStationURL;
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_EICHRECHT_TABLE)];
+    return await this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
@@ -448,14 +447,14 @@ export default class EMailNotificationTask implements NotificationTask {
     sourceData.openEmobilityWebSiteURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL;
     // Tenant information
     if (tenant.id === Constants.DEFAULT_TENANT_ID) {
-      sourceData.tenantName = Constants.DEFAULT_TENANT_ID;
-      sourceData.tenantLogoURL = `${Utils.buildRestServerURL()}/v1/util/tenants/logo`; // Returns a default Open e-Mobility logo
+      sourceData.tenantName = 'Open e-Mobility'; // TBC - Not sure what to show in emails in that case
     } else {
       sourceData.tenantName = tenant.name;
-      sourceData.tenantLogoURL = `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=${tenant.id}`;
     }
-    if (this.emailConfig.troubleshootingMode && sourceData.tenantLogoURL.includes('localhost:')) {
-      // Test only - for security reasons - localhost content is blocked in emails!
+    // Tenant logo URL
+    sourceData.tenantLogoURL = Utils.buildRestServerTenantEmailLogoURL(tenant.id);
+    if (this.emailConfig.troubleshootingMode && sourceData.tenantLogoURL.startsWith('http://localhost')) {
+      // Dev and test only - for security reasons te browser blocks content from localhost in emails!
       sourceData.tenantLogoURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_LOGO_URL;
     }
   }

@@ -35,7 +35,7 @@ export default class CommonService {
       if (filteredRequest.Subdomain) {
         tenantSubdomain = filteredRequest.Subdomain;
       }
-      if (filteredRequest.ID && req.url.startsWith('/tenants/logo')) {
+      if (filteredRequest.ID && (req.url.startsWith('/tenants/logo') || req.url.startsWith('/tenants/email-logo'))) {
         tenantID = filteredRequest.ID;
       }
       // No Tenant info found
