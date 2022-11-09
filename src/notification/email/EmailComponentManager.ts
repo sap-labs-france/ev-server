@@ -9,6 +9,7 @@ export enum EmailComponent {
   MJML_MAIN_MESSAGE = 'email_main_message.mjml',
   MJML_TABLE='email_table.mjml',
   MJML_MAIN_ACTION = 'email_main_action.mjml',
+  MJML_EICHRECHT_TABLE='email_eichrecht_table.mjml',
 }
 
 export default class EmailComponentManager {

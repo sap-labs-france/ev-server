@@ -919,10 +919,10 @@ export default class Utils {
   public static buildRestServerTenantEmailLogoURL(tenantID: string): string {
     if (!tenantID || tenantID === Constants.DEFAULT_TENANT_ID) {
       // URL to a default eMobility logo
-      return `${Utils.buildRestServerURL(false)}/v1/util/tenants/email-logo`;
+      return `${Utils.buildRestServerURL(false)}/v1/util/tenants/email-logo?ts=` + new Date().getTime();
     }
     // URL to the tenant logo (if any) or the Open -e-mobility logo as a fallback
-    return `${Utils.buildRestServerURL(false)}/v1/util/tenants/email-logo?ID=${tenantID}`;
+    return `${Utils.buildRestServerURL(false)}/v1/util/tenants/email-logo?ID=${tenantID}&ts=` + new Date().getTime();
   }
 
   public static buildEvseURL(subdomain: string = null): string {
