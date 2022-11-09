@@ -77,6 +77,35 @@ export default class TenantService {
   }
 
   public static async handleGetTenantLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleGetTenantLogo', action: action,
+      });
+    }
+    // Get Logo
+    const tenantLogo = await TenantStorage.getTenantLogo(req.tenant);
+    let logo = tenantLogo?.logo;
+    if (logo) {
+      // Header
+      let header = 'image';
+      let encoding: BufferEncoding = 'base64';
+      if (logo.startsWith('data:image/')) {
+        header = logo.substring(5, logo.indexOf(';'));
+        encoding = logo.substring(logo.indexOf(';') + 1, logo.indexOf(',')) as BufferEncoding;
+        logo = logo.substring(logo.indexOf(',') + 1);
+      }
+      res.setHeader('Content-Type', header);
+      res.send(Buffer.from(logo, encoding));
+    } else {
+      res.status(StatusCodes.NOT_FOUND);
+    }
+    next();
+  }
+
+  public static async handleGetTenantEmailLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let logoContent: string;
     if (req.tenant) {
       // Get the Tenant Logo (if any)
