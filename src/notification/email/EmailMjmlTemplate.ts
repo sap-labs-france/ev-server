@@ -63,7 +63,7 @@ export default class MjmlTemplate {
       // Search for place holders - e.g.: {{stateOfCharge}}
       const valueRegex = new RegExp(/\{\{([a-zA-Z0-9_.-]*)\}\}/g);
       const valueSelector = valueRegex.exec(tableCase.value as string);
-      if (!context[valueSelector[1]]) {
+      if (valueSelector?.[1] && !context[valueSelector[1]]) {
         // skip if value is undefined in context - i.e.: context.stateValue is not set!
         continue;
       }
