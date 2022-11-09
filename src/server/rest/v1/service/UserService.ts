@@ -28,8 +28,10 @@ import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
+import { PrioritizationParameters } from '../../../../types/Setting';
 import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
@@ -49,6 +51,70 @@ import moment from 'moment';
 const MODULE_NAME = 'UserService';
 
 export default class UserService {
+  public static async handleGetUserSessionContext(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = UserValidatorRest.getInstance().validateUserSessionContextReq(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetUserSessionContext', req.user);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
+    // Handle Tag
+    // We retrieve Tag auth to get the projected fields here to fit with what's in auth definition
+    const tagAuthorization = await AuthorizationService.checkAndGetTagAuthorizations(req.tenant, req.user, {}, Action.READ);
+    let tag: Tag;
+    // Get the default Tag
+    if (tagAuthorization.authorized) {
+      tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, {
+        issuer: true
+      }, tagAuthorization.projectFields);
+      if (!tag) {
+        // Get the first active Tag
+        tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, {
+          issuer: true
+        }, tagAuthorization.projectFields);
+      }
+    }
+    // Handle Car
+    // We retrieve Car auth to get the projected fields here to fit with what's in auth definition
+    const carAuthorization = await AuthorizationService.checkAndGetCarAuthorizations(req.tenant, req.user, {}, Action.READ);
+    let car: Car;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) && carAuthorization.authorized) {
+    // Get the default Car
+      car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
+      if (!car) {
+        // Get the first available car
+        car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID, carAuthorization.projectFields);
+      }
+    }
+    let withBillingChecks = true ;
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ,
+      action, null, { withSiteArea: true });
+    if (!chargingStation.siteArea.accessControl) {
+      // The access control is switched off - so billing checks are useless
+      withBillingChecks = false;
+    }
+    // Check for billing errors
+    const errorCodes: Array<StartTransactionErrorCode> = [];
+    if (withBillingChecks) {
+      // Check for the billing prerequisites (such as the user's payment method)
+      await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    }
+    const settingAuthorization = await AuthorizationService.checkAndGetSettingAuthorizations(req.tenant, req.user, Action.READ);
+    let prioritizationParameters: PrioritizationParameters;
+    // Handle Smart Charging
+    if (chargingStation.siteArea?.smartCharging && !chargingStation.excludeFromSmartCharging && settingAuthorization.authorized
+      && chargingStation.capabilities.supportChargingProfiles && Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING)) {
+      const smartChargingSettings = await SettingStorage.getSmartChargingSettings(req.tenant);
+      if (smartChargingSettings.sapSmartCharging.prioritizationParameters?.active) {
+        prioritizationParameters = smartChargingSettings.sapSmartCharging.prioritizationParameters;
+      }
+    }
+    res.json({
+      tag, car, errorCodes, prioritizationParameters
+    });
+    next();
+  }
+
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUserDefaultTagCarGetReq(req.query);

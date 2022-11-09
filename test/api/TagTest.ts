@@ -232,7 +232,18 @@ describe('Tag', () => {
           expect(response.status).to.equal(StatusCodes.CREATED);
           testData.createdTags.push(testData.newTag);
           // Retrieve it
-          response = await testData.userService.userApi.getDefaultTagCar(testData.newUser.id);
+          response = await testData.userService.userApi.getUserSessionContext({
+            userID: testData.newUser.id, chargingStationID: testData.chargingStationContext.getChargingStation().id });
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data.tag.visualID).to.be.eq(testData.newTag.visualID);
+          expect(response.data.car).to.be.undefined;
+          expect(response.data.errorCodes).to.be.not.null;
+          expect(response.data.prioritizationParameters).to.be.undefined;
+        });
+
+        it('Should get the user default car tag with deprecated method', async () => {
+          // Retrieve it
+          const response = await testData.userService.userApi.getDefaultTagCar(testData.newUser.id);
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.tag.visualID).to.be.eq(testData.newTag.visualID);
           expect(response.data.car).to.be.undefined;
@@ -290,13 +301,24 @@ describe('Tag', () => {
           testData.newTagUnassigned.id = id;
         });
 
-        it('Should get the user default car tag', async () => {
+        it('Should get the user default car tag with deprecated method', async () => {
           // Retrieve it
           const response = await testData.userService.userApi.getDefaultTagCar(testData.newTagUnassigned.userID);
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.tag.visualID).to.be.eq(testData.newTagUnassigned.visualID);
           expect(response.data.car).to.be.undefined;
           expect(response.data.errorCodes).to.be.not.null;
+        });
+
+        it('Should get the user default car tag', async () => {
+          // Retrieve it
+          const response = await testData.userService.userApi.getUserSessionContext({
+            userID: testData.newTagUnassigned.userID, chargingStationID: testData.chargingStationContext.getChargingStation().id });
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data.tag.visualID).to.be.eq(testData.newTagUnassigned.visualID);
+          expect(response.data.car).to.be.undefined;
+          expect(response.data.errorCodes).to.be.not.null;
+          expect(response.data.prioritizationParameters).to.be.undefined;
         });
 
         it('Should be able to unassign his own badge', async () => {

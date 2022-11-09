@@ -279,6 +279,12 @@ export default class SettingStorage {
           stickyLimitation: config.sapSmartCharging.stickyLimitation ? config.sapSmartCharging.stickyLimitation : false,
           limitBufferDC: config.sapSmartCharging.limitBufferDC ? config.sapSmartCharging.limitBufferDC : 0,
           limitBufferAC: config.sapSmartCharging.limitBufferAC ? config.sapSmartCharging.limitBufferAC : 0,
+          prioritizationParameters: {
+            active: config.sapSmartCharging.prioritizationParameters?.active ?? false,
+            defaultSessionTimeHours: config.sapSmartCharging.prioritizationParameters?.defaultSessionTimeHours ?? null,
+            defaultInitialStateOfCharge: config.sapSmartCharging.prioritizationParameters?.defaultInitialStateOfCharge ?? null,
+            defaultTargetStateOfCharge: config.sapSmartCharging.prioritizationParameters?.defaultTargetStateOfCharge ?? null
+          }
         };
       }
     }

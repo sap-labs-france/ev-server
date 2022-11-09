@@ -1,0 +1,20 @@
+{
+  "$id": "user-session-context-get",
+  "title": "Get user session context",
+  "type": "object",
+  "properties": {
+    "UserID": {
+      "$ref": "user#/definitions/id"
+    },
+    "ChargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "UserID",
+    "ChargingStationID"
+  ]
+}
