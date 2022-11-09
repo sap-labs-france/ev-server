@@ -176,6 +176,7 @@ export interface EndOfSignedSessionNotification extends BaseNotification {
   relativeCost: number;
   startSignedData: string;
   endSignedData: string;
+  evseDashboardChargingStationURL: string;
   evseDashboardURL: string;
 }
 

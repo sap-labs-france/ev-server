@@ -260,6 +260,25 @@
         }
       ]
     },
+    "end-of-signed-session": {
+      "title": "Ladevorgang beendet - Signierter Ladevorgang",
+      "buttonText": "Ladevorgang anzeigen",
+      "text": [
+        "Ladetransaktion abgeschlossen"
+      ],
+      "table": [
+        { "label": "Ladestation", "value": "{{chargeBoxID}}" },
+        { "label": "Ladepunkt", "value": "{{connectorId}}" },
+        { "label": "RFID", "value": "{{tagId}}" },
+        { "label": "Startzeit", "value": "{{startDate}}" },
+        { "label": "Endzeit", "value": "{{endDate}}" },
+        { "label": "Startzähler", "value": "{{meterStart}} kWh" },
+        { "label": "Endzähler", "value": "{{meterStop}} kWh" },
+        { "label": "Consumption", "value": "{{totalConsumption}} kWh" },
+        { "label": "Kosten", "value": "{{price}}€ {{relativeCost}}€/kWh) (informativ)" },
+        { "label": "Vertrag für", "value":"LOCAL (informativ)" }
+      ]
+    },
     "end-of-charge": {
       "title": "Laden Beendet",
       "buttonText": "Ladevorgang anzeigen",

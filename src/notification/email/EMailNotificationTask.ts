@@ -80,10 +80,9 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // TBC - This one is confusing and inconsistent - Users are getting data in German only!
-    return Promise.resolve(null);
-    // data.buttonUrl = data.evseDashboardURL;
-    // return await this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity);
+    data.buttonUrl = data.evseDashboardChargingStationURL;
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_EICHRECHT_TABLE)];
+    return await this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
