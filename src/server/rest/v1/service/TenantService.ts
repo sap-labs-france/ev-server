@@ -124,8 +124,10 @@ export default class TenantService {
       encoding = logoContent.substring(logoContent.indexOf(';') + 1, logoContent.indexOf(',')) as BufferEncoding;
       logoContent = logoContent.substring(logoContent.indexOf(',') + 1);
     }
+    const buffer = Buffer.from(logoContent, encoding);
     res.setHeader('Content-Type', header);
-    res.send(Buffer.from(logoContent, encoding));
+    res.setHeader('Content-Length', buffer.length);
+    res.send(buffer);
     next();
   }
 
