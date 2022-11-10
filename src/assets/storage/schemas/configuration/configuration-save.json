@@ -508,6 +508,9 @@
         "disableBackup": {
           "type": "boolean"
         },
+        "troubleshootingMode": {
+          "type": "boolean"
+        },
         "smtp": {
           "type": "object",
           "properties": {

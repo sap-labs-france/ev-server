@@ -8,6 +8,7 @@ import User, { UserRole } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
+import BrandingConstants from '../../../../utils/BrandingConstants';
 import Constants from '../../../../utils/Constants';
 import { LockEntity } from '../../../../types/Locking';
 import LockingManager from '../../../../locking/LockingManager';
@@ -101,6 +102,32 @@ export default class TenantService {
     } else {
       res.status(StatusCodes.NOT_FOUND);
     }
+    next();
+  }
+
+  public static async handleGetTenantEmailLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    let logoContent: string;
+    if (req.tenant) {
+      // Get the Tenant Logo (if any)
+      const tenantLogo = await TenantStorage.getTenantLogo(req.tenant);
+      logoContent = tenantLogo?.logo;
+    }
+    if (!logoContent) {
+      // A default Open e-Mobility logo - base64 encoded
+      logoContent = BrandingConstants.TENANT_DEFAULT_LOGO_CONTENT;
+    }
+    // Header
+    let header = 'image';
+    let encoding: BufferEncoding = 'base64';
+    if (logoContent.startsWith('data:image/')) {
+      header = logoContent.substring(5, logoContent.indexOf(';'));
+      encoding = logoContent.substring(logoContent.indexOf(';') + 1, logoContent.indexOf(',')) as BufferEncoding;
+      logoContent = logoContent.substring(logoContent.indexOf(',') + 1);
+    }
+    const buffer = Buffer.from(logoContent, encoding);
+    res.setHeader('Content-Type', header);
+    res.setHeader('Content-Length', buffer.length);
+    res.send(buffer);
     next();
   }
 

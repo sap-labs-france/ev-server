@@ -28,6 +28,7 @@ export default class UtilRouter {
     this.buildRouteChargingStationDownloadFirmware();
     this.buildRouteGetSiteImage();
     this.buildRouteGetTenantLogo();
+    this.buildRouteGetTenantEmailLogo();
     this.buildRouteBillingRefreshAccount();
     this.buildRouteBillingActivateAccount();
     this.buildRouteBillingSettingScanAndPay();
@@ -67,6 +68,12 @@ export default class UtilRouter {
   private buildRouteGetTenantLogo(): void {
     this.router.get(`/${RESTServerRoute.REST_TENANT_LOGO}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleRestServerAction(TenantService.handleGetTenantLogo.bind(this), ServerAction.TENANT_LOGO, req, res, next);
+    });
+  }
+
+  private buildRouteGetTenantEmailLogo(): void {
+    this.router.get(`/${RESTServerRoute.REST_TENANT_EMAIL_LOGO}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(TenantService.handleGetTenantEmailLogo.bind(this), ServerAction.TENANT_LOGO, req, res, next);
     });
   }
 

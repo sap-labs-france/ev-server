@@ -80,10 +80,9 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // TBC - This one is confusing and inconsistent - Users are getting data in German only!
-    return Promise.resolve(null);
-    // data.buttonUrl = data.evseDashboardURL;
-    // return await this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity);
+    data.buttonUrl = data.evseDashboardChargingStationURL;
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_EICHRECHT_TABLE)];
+    return await this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
@@ -296,7 +295,10 @@ export default class EMailNotificationTask implements NotificationTask {
           content: email.html // Only log the email content when running automated tests
         }
       });
-      return ;
+      if (!this.emailConfig.troubleshootingMode) {
+        // Do not send emails when in dev mode or while running automated tests
+        return ;
+      }
     }
     try {
       // Get the SMTP client
@@ -414,7 +416,7 @@ export default class EMailNotificationTask implements NotificationTask {
         });
       }
       // Enrich the sourceData with constant values
-      await this.enrichSourceData(tenant, sourceData);
+      this.enrichSourceData(tenant, sourceData);
       // Build the context with recipient data
       const context: Record<string, unknown> = this.populateNotificationContext(tenant, recipient, sourceData);
       // Send the email
@@ -440,15 +442,20 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async enrichSourceData(tenant: Tenant, sourceData: any): Promise<void> {
+  private enrichSourceData(tenant: Tenant, sourceData: any): void {
     // Branding Information
-    sourceData.openEMobilityPoweredByLogo = BrandingConstants.OPEN_EMOBILITY_POWERED_BY,
     sourceData.openEmobilityWebSiteURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL;
     // Tenant information
-    sourceData.tenantName = (tenant.id === Constants.DEFAULT_TENANT_ID) ? Constants.DEFAULT_TENANT_ID : tenant.name;
-    if (!sourceData.tenantLogoURL) {
-      // Perf optimization - do it only once to avoid too many calls to getTenantLogo()
-      sourceData.tenantLogoURL = await this.getTenantLogo(tenant);
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
+      sourceData.tenantName = 'Open e-Mobility'; // TBC - Not sure what to show in emails in that case
+    } else {
+      sourceData.tenantName = tenant.name;
+    }
+    // Tenant logo URL
+    sourceData.tenantLogoURL = Utils.buildRestServerTenantEmailLogoURL(tenant.id);
+    if (this.emailConfig.troubleshootingMode && sourceData.tenantLogoURL.startsWith('http://localhost')) {
+      // Dev and test only - for security reasons te browser blocks content from localhost in emails!
+      sourceData.tenantLogoURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_LOGO_URL;
     }
   }
 
@@ -459,15 +466,6 @@ export default class EMailNotificationTask implements NotificationTask {
       recipientName: recipient.firstName || recipient.name,
       recipientEmail: recipient.email,
     };
-  }
-
-  private async getTenantLogo(tenant: Tenant): Promise<string> {
-    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
-      return BrandingConstants.TENANT_DEFAULT_LOGO_CONTENT;
-    } else if (!tenant.logo) {
-      tenant.logo = (await TenantStorage.getTenantLogo(tenant))?.logo;
-    }
-    return tenant.logo || BrandingConstants.TENANT_DEFAULT_LOGO_CONTENT;
   }
 
   private getSMTPClient(useSmtpClientBackup: boolean): SMTPClient {

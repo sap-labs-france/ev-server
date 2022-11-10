@@ -117,6 +117,7 @@ export default class NotificationHelper {
       // Notify Signed Data
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
+        const locale = user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-');
         void NotificationHandler.sendEndOfSignedTransaction(
           tenant,
           transaction.id.toString() + '-EOSS',
@@ -129,21 +130,19 @@ export default class NotificationHelper {
             chargeBoxID: chargingStation.id,
             connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
             tagId: transaction.tagID,
-            startDate: transaction.timestamp.toLocaleString(user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-            endDate: transaction.stop.timestamp.toLocaleString(user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-            meterStart: (transaction.meterStart / 1000).toLocaleString(
-              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-              { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-            meterStop: (transaction.stop.meterStop / 1000).toLocaleString(
-              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-              { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-            totalConsumption: (transaction.stop.totalConsumptionWh / 1000).toLocaleString(
-              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-              { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+            startDate: transaction.timestamp.toLocaleString(locale),
+            endDate: transaction.stop.timestamp.toLocaleString(locale),
+            meterStart: (transaction.meterStart / 1000).toLocaleString(locale, {
+              minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+            meterStop: (transaction.stop.meterStop / 1000).toLocaleString(locale, {
+              minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+            totalConsumption: (transaction.stop.totalConsumptionWh / 1000).toLocaleString(locale,{
+              minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
             price: transaction.stop.price,
             relativeCost: (transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000)),
             startSignedData: transaction.signedData,
             endSignedData: transaction.stop.signedData,
+            evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
             evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
           }
         );
