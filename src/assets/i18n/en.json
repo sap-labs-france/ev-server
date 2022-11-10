@@ -530,6 +530,13 @@
         "An administrator will soon check and activate your account."
       ]
     },
+    "scan-pay-account-verification-notification": {
+      "title": "Verify your email and proceed to charging",
+      "buttonText": "Proceed to charging",
+      "text": [
+        "Click on the link below to verify your email and proceed to charging."
+      ]
+    },
     "admin-account-verification-notification": {
       "title": "User Account Verification",
       "buttonText": "Verify Account",

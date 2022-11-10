@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, ScanPayVerifyEmailNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
 import EmailComponentManager, { EmailComponent } from './EmailComponentManager';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
@@ -14,7 +14,6 @@ import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationTask from '../NotificationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import mjmlBuilder from './EmailMjmlBuilder';
@@ -225,6 +224,12 @@ export default class EMailNotificationTask implements NotificationTask {
     } else {
       templateName = 'account-verification-notification-inactive';
     }
+    return await this.prepareAndSendEmail(templateName, data, user, tenant, severity);
+  }
+
+  public async sendScanPayVerifyEmailNotification(data: ScanPayVerifyEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
+    data.buttonUrl = data.evseDashboardVerifyScanPayEmailURL;
+    const templateName = 'scan-pay-account-verification-notification';
     return await this.prepareAndSendEmail(templateName, data, user, tenant, severity);
   }
 

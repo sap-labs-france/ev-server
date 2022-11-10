@@ -21,6 +21,7 @@ export default class AuthRouter {
     this.buildRouteEndUserLicenseAgreement();
     this.buildRouteEndUserLicenseAgreementHtml();
     this.buildRouteEndUserLicenseAgreementCheck();
+    this.buildRouteVerifyScanPayEmail();
     return this.router;
   }
 
@@ -57,6 +58,12 @@ export default class AuthRouter {
   protected buildRouteVerifyMail(): void {
     this.router.get(`/${RESTServerRoute.REST_MAIL_CHECK}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleRestServerAction(AuthService.handleVerifyEmail.bind(this), ServerAction.VERIFY_EMAIL, req, res, next);
+    });
+  }
+
+  protected buildRouteVerifyScanPayEmail(): void {
+    this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_VERIFY_EMAIL}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(AuthService.handleScanPayVerifyEmail.bind(this), ServerAction.VERIFY_EMAIL, req, res, next);
     });
   }
 

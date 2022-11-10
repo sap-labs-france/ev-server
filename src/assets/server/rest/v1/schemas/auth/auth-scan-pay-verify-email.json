@@ -1,0 +1,30 @@
+{
+  "$id": "auth-scan-pay-verify-email",
+  "title": "Send scan and pay verification email",
+  "type": "object",
+  "properties": {
+    "email": {
+      "$ref": "user#/definitions/email"
+    },
+    "name": {
+      "$ref": "user#/definitions/name"
+    },
+    "firstName": {
+      "$ref": "user#/definitions/firstName"
+    },
+    "captcha": {
+      "$ref": "common#/definitions/captcha"
+    },
+    "tenant": {
+      "$ref": "common#/definitions/authSubdomain"
+    },
+    "siteAreaID": {
+      "$ref": "asset#/definitions/siteAreaID"
+    }
+  },
+  "required": [
+    "email",
+    "captcha",
+    "siteAreaID"
+  ]
+}
