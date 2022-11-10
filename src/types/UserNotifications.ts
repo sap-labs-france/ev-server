@@ -206,6 +206,15 @@ export interface VerificationEmailNotification extends BaseNotification {
   evseDashboardVerifyEmailURL: string;
 }
 
+export interface ScanPayVerifyEmailNotification extends BaseNotification {
+  user: User;
+  // siteAreaID already sent via url
+  siteAreaID?: string;
+  tenantName?: string;
+  evseDashboardURL: string;
+  evseDashboardVerifyScanPayEmailURL: string;
+}
+
 export interface ChargingStationStatusErrorNotification extends BaseNotification {
   chargeBoxID: string;
   siteID: string;

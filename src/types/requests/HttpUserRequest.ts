@@ -85,6 +85,15 @@ export interface HttpResetPasswordRequest {
   password: string;
   hash: string;
 }
+
+export interface HttpScanPayVerifyEmailRequest {
+  email: string;
+  captcha: string;
+  siteAreaID: string;
+  name?: string;
+  firstName?: string;
+}
+
 export interface HttpCheckEulaRequest {
   Email: string;
 }
