@@ -303,6 +303,7 @@ export enum ServerAction {
   USER_ACCOUNT_VERIFICATION = 'UserAccountVerification',
   USER_CREATE_PASSWORD = 'UserCreatePassword',
   ADMIN_ACCOUNT_VERIFICATION = 'AdminAccountVerificationNotification',
+  SCAN_PAY_VERIFY_EMAIL = 'ScanPayVerifyEmail',
 
   UPDATE_LOCAL_CAR_CATALOGS = 'UpdateLocalCarCatalogs',
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
@@ -510,6 +511,7 @@ export enum RESTServerRoute {
   REST_END_USER_LICENSE_AGREEMENT_HTML = 'eula/html',
   REST_MAIL_CHECK = 'mail/check',
   REST_MAIL_RESEND = 'mail/resend',
+  REST_SCAN_PAY_VERIFY_EMAIL = 'mail/scan-pay-verify',
 
   REST_CHARGING_STATION_TEMPLATES = 'charging-station-templates',
   REST_CHARGING_STATION_TEMPLATE = 'charging-station-templates/:id',

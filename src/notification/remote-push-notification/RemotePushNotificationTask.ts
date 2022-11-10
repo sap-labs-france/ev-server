@@ -1,4 +1,4 @@
-import { AccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
+import { AccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, ScanPayVerifyEmailNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
 import User, { UserStatus } from '../../types/User';
 
 import Configuration from '../../utils/Configuration';
@@ -117,11 +117,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // TODO - old stuff - to be removed asap
-    data.chargeBoxIDs = data.chargingStationIDs.join(", ");
+    data.chargeBoxIDs = data.chargingStationIDs.join(', ');
     // Populate the context to have a human-readable message
     data.nbChargingStationIDs = data.chargingStationIDs?.length || 0;
     // Show only the ten first charging stations
-    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(", ") + "...";
+    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(', ') + '...';
     // Get Message Text
     const title = i18nManager.translate('notifications.offlineChargingStation.title');
     const body = i18nManager.translate('notifications.offlineChargingStation.body',
@@ -290,6 +290,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
+    return Promise.resolve({});
+  }
+
+  public async sendScanPayVerifyEmailNotification(data: ScanPayVerifyEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     return Promise.resolve({});
   }
 
