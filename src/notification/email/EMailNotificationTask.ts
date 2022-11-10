@@ -302,7 +302,7 @@ export default class EMailNotificationTask implements NotificationTask {
       });
       if (!this.emailConfig.troubleshootingMode) {
         // Do not send emails when in dev mode or while running automated tests
-        return ;
+        // return ;
       }
     }
     try {
