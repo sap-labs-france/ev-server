@@ -263,7 +263,7 @@ export default class BillingService {
     // Check and get user for whom we wish to update the payment method
     const user: User = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Invoke the billing implementation
-    const paymentMethodId: string = filteredRequest.paymentMethodId;
+    const paymentMethodId: string = filteredRequest.paymentMethodID;
     const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId);
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
@@ -288,8 +288,8 @@ export default class BillingService {
     // Check and get user for whom we wish to update the payment method
     const user: User = await UserStorage.getUser(req.tenant, filteredRequest.userID);
     // Invoke the billing implementation
-    const paymentMethodId: string = filteredRequest.paymentMethodId;
-    const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId, true);
+    const paymentMethodId: string = filteredRequest.paymentMethodID;
+    const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId, filteredRequest.paymentIntentID, true);
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
     }

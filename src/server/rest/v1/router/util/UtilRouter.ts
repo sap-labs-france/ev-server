@@ -52,8 +52,6 @@ export default class UtilRouter {
   private buildRouteScanAndPayPaymentMethodAttach(): void {
     this.router.post(`/${RESTServerRoute.REST_SCAN_AND_PAY_PAYMENT_METHOD_ATTACH}`, (req: Request, res: Response, next: NextFunction) => {
       // Creates a new payment method and attach it to the user as its default
-      req.body.userID = req.params.userID;
-      req.body.paymentMethodId = req.params.paymentMethodID;
       void RouterUtils.handleRestServerAction(BillingService.handleScanAndPaySetupPaymentMethod.bind(this), ServerAction.SCAN_AND_PAY_ATTACH_PAYMENT_METHOD, req, res, next);
     });
   }
