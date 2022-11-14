@@ -166,7 +166,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return newBillingsSettings;
   }
 
-  private convertToBillingUser(customer: Stripe.Customer, user: User) : BillingUser {
+  private convertToBillingUser(customer: Stripe.Customer, user: User): BillingUser {
     if (!user) {
       throw new Error('Unexpected situation - user cannot be null');
     }
@@ -208,10 +208,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async getTaxes(): Promise<BillingTax[]> {
     await this.checkConnection();
-    const taxes : BillingTax[] = [];
+    const taxes: BillingTax[] = [];
     try {
       let request;
-      const requestParams : Stripe.TaxRateListParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST, active: true };
+      const requestParams: Stripe.TaxRateListParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST, active: true };
       do {
         request = await this.stripe.taxRates.list(requestParams);
         for (const tax of request.data) {
@@ -247,7 +247,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async getTaxRate(taxID: string): Promise<BillingTax> {
     await this.checkConnection();
-    let taxRate : BillingTax = null;
+    let taxRate: BillingTax = null;
     try {
       const stripeTaxRate: Stripe.TaxRate = await this.stripe.taxRates.retrieve(taxID);
       if (stripeTaxRate && stripeTaxRate.active) {
@@ -352,13 +352,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // idempotency_key: idempotencyKey?.toString()
       idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property as been renamed!!!
     });
-      // returns the newly created invoice item
+    // returns the newly created invoice item
     return stripeInvoiceItem;
   }
 
   private getTaxRateIds(): Array<string> {
     if (this.settings.billing.taxID) {
-      return [this.settings.billing.taxID] ;
+      return [this.settings.billing.taxID];
     }
     return []; // No tax rates so far!
   }
@@ -501,7 +501,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  public async setupPaymentMethod(user: User, paymentMethodId: string, createPaymentIntent = false): Promise<BillingOperationResult> {
+  public async setupPaymentMethod(user: User, paymentMethodId: string, paymentIntentID: string, createPaymentIntent = false): Promise<BillingOperationResult> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
@@ -528,10 +528,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Let's create a setupPayment for the stripe customer
         billingOperationResult = await this.createPaymentIntent(user, customerID);
       } else {
-      // Let's create a setupIntent for the stripe customer
+        // Let's create a setupIntent for the stripe customer
         billingOperationResult = await this.createSetupIntent(user, customerID);
       }
     } else {
+      if (paymentIntentID) {
+        await this.capturePayment(user, 100, paymentMethodId, paymentIntentID);
+      }
       // Attach payment method to the stripe customer
       billingOperationResult = await this.attachPaymentMethod(user, customerID, paymentMethodId);
     }
@@ -665,7 +668,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const customer = await this.getStripeCustomer(customerID);
       if (customer) {
         let response: Stripe.ApiList<Stripe.PaymentMethod>;
-        const requestParams : Stripe.PaymentMethodListParams = {
+        const requestParams: Stripe.PaymentMethodListParams = {
           limit: StripeBillingIntegration.STRIPE_MAX_LIST,
           customer: customerID,
           type: 'card',
@@ -695,7 +698,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async getStripeDefaultPaymentMethod(paymentMethodID: string): Promise<BillingPaymentMethod> {
-    return this.getStripePaymentMethod(paymentMethodID, true) ;
+    return this.getStripePaymentMethod(paymentMethodID, true);
   }
 
   private async getStripePaymentMethod(paymentMethodID: string, asDefault = false): Promise<BillingPaymentMethod> {
@@ -792,51 +795,51 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  public async capturePayment(user: User, amount: number, paymentMethodId: string): Promise<string> {
-    // try {
-    //   // Let's create a setupIntent for the stripe customer
-    const setupIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.capture(paymentMethodId,{
-      amount_to_capture: amount
-    });
-    return null;
-    //   await Logging.logInfo({
-    //     tenantID: this.tenant.id,
-    //     action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-    //     module: MODULE_NAME, method: 'createSetupIntent',
-    //     actionOnUser: user,
-    //     message: `Setup intent has been created - customer '${customerID}'`
-    //   });
-    //   // Send some feedback
-    //   return {
-    //     succeeded: true,
-    //     internalData: setupIntent
-    //   };
-    // } catch (error) {
-    //   // catch stripe errors and send the information back to the client
-    //   await Logging.logError({
-    //     tenantID: this.tenant.id,
-    //     action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-    //     actionOnUser: user,
-    //     module: MODULE_NAME, method: 'createSetupIntent',
-    //     message: `Stripe operation failed - ${error?.message as string}`
-    //   });
-    //   return {
-    //     succeeded: false,
-    //     error
-    //   };
-    // }
+  public async capturePayment(user: User, amount: number, paymentMethodId: string, paymentIntentId: string): Promise<BillingOperationResult> {
+    try {
+      // Let's create a paymentIntent for the stripe customer
+      const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.capture(paymentIntentId, {
+        amount_to_capture: amount
+      });
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        module: MODULE_NAME, method: 'capturePayment',
+        actionOnUser: user,
+        message: `Amount has been captured - customer '${user.billingData.customerID}'`
+      });
+      // Send some feedback
+      return {
+        succeeded: true,
+        internalData: paymentIntent
+      };
+    } catch (error) {
+      // catch stripe errors and send the information back to the client
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        actionOnUser: user,
+        module: MODULE_NAME, method: 'capturePayment',
+        message: `Stripe operation failed - ${error?.message as string}`
+      });
+      return {
+        succeeded: false,
+        error
+      };
+    }
   }
 
   private async createPaymentIntent(user: User, customerID: string): Promise<BillingOperationResult> {
     try {
       // Let's create a paymentIntent for the stripe customer
       const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.create({
-        customer:customerID,
+        customer: customerID,
         amount: 100,
         currency: 'EUR',
-        off_session: true,
+        // off_session: true,
+        setup_future_usage: 'off_session',
         capture_method: 'manual',
-        confirm: true
+        // confirm: true
       });
       await Logging.logInfo({
         tenantID: this.tenant.id,
@@ -883,7 +886,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private async checkStripePaymentMethod(customer: Stripe.Customer): Promise<void> {
     if (Utils.isDevelopmentEnv() && customer.default_source) {
       // Specific situation used only while running tests
-      return ;
+      return;
     }
     if (!customer.invoice_settings?.default_payment_method) {
       throw new BackendError({
@@ -944,7 +947,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async createStripeInvoiceItemHeader(customerID: string,
-      billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
+    billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
     if (!billingInvoiceItem.headerDescription) {
       return;
     }
@@ -969,7 +972,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async createStripeInvoiceItems4PricingConsumptionData(customerID: string,
-      billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, counter: number, invoiceID?: string): Promise<void> {
+    billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, counter: number, invoiceID?: string): Promise<void> {
     // A stripe invoice item per dimension
     await this.createStripeInvoiceItem4Dimension(customerID, DimensionType.FLAT_FEE, billingInvoiceItem, pricedData, counter, invoiceID);
     await this.createStripeInvoiceItem4Dimension(customerID, DimensionType.CHARGING_TIME, billingInvoiceItem, pricedData, counter, invoiceID);
@@ -978,7 +981,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async createStripeInvoiceItem4Dimension(customerID: string, dimension: string,
-      billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, counter: number, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
+    billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, counter: number, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
     // data for the current dimension (energy | parkingTime, etc)
     const dimensionData: PricedDimensionData = pricedData[dimension];
     if (!dimensionData || !dimensionData.amount || !dimensionData.quantity) {
@@ -1129,7 +1132,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  private async getLatestDraftInvoiceOfTheMonth(tenantID:string, userID: string, customerID: string): Promise<Stripe.Invoice> {
+  private async getLatestDraftInvoiceOfTheMonth(tenantID: string, userID: string, customerID: string): Promise<Stripe.Invoice> {
     // Fetch the invoice list - c.f.: https://stripe.com/docs/api/invoices/list
     // The invoices are returned sorted by creation date, with the most recent ones appearing first.
     const list = await this.stripe.invoices.list({
@@ -1170,7 +1173,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return lightInvoiceItem;
   }
 
-  private convertToBillingInvoiceItem(transaction: Transaction, accountData: BillingSessionAccountData) : BillingInvoiceItem {
+  private convertToBillingInvoiceItem(transaction: Transaction, accountData: BillingSessionAccountData): BillingInvoiceItem {
     const transactionID = transaction.id;
     const currency = transaction.stop.priceUnit;
     const pricingData = this.extractTransactionPricingData(transaction);
@@ -1193,15 +1196,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
     billingInvoiceItem.headerDescription = this.buildLineItemDescription(transaction, true);
     // Returns a item representing the complete charging session (energy + parking information)
-    return billingInvoiceItem ;
+    return billingInvoiceItem;
   }
 
-  private extractTransactionPricingData(transaction: Transaction) : PricedConsumptionData[] {
+  private extractTransactionPricingData(transaction: Transaction): PricedConsumptionData[] {
     const pricingModel = Object.freeze(transaction.pricingModel);
     let pricingData: PricedConsumptionData[] = PricingEngine.extractFinalPricingData(pricingModel);
     if (!FeatureToggles.isFeatureActive(Feature.BILLING_SHOW_PRICING_DETAIL)) {
       // Accumulate data per dimensions = less details, less disputes
-      pricingData = [ PricingHelper.accumulatePricedConsumption(pricingData) ] ;
+      pricingData = [PricingHelper.accumulatePricedConsumption(pricingData)];
     }
     pricingData = pricingData.map((pricingConsumptionData) => this.enrichTransactionPricingData(transaction, pricingConsumptionData));
     void Logging.logInfo({
@@ -1216,7 +1219,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return pricingData;
   }
 
-  private enrichTransactionPricingData(transaction: Transaction, pricingConsumptionData: PricedConsumptionData) : PricedConsumptionData {
+  private enrichTransactionPricingData(transaction: Transaction, pricingConsumptionData: PricedConsumptionData): PricedConsumptionData {
     // -------------------------------------------------------------------------------
     // TODO - so far we use the same tax rates for all invoice items!
     // -------------------------------------------------------------------------------
@@ -1532,7 +1535,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     await this.checkIfUserCanBeUpdated(user);
     // Let's check if the STRIPE customer exists
-    const customerID:string = user?.billingData?.customerID;
+    const customerID: string = user?.billingData?.customerID;
     if (!customerID) {
       throw new Error('Unexpected situation - the customerID is NOT set');
     }
@@ -1771,7 +1774,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Update Billing Data
         if (transaction?.billingData?.stop) {
           transaction.billingData.stop.status = BillingStatus.BILLED,
-          transaction.billingData.stop.invoiceID = billingInvoice.id;
+            transaction.billingData.stop.invoiceID = billingInvoice.id;
           transaction.billingData.stop.invoiceStatus = billingInvoice.status;
           transaction.billingData.stop.invoiceNumber = billingInvoice.number;
           transaction.billingData.lastUpdate = new Date();
@@ -1918,7 +1921,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Generate the invoice item
       const description = this.buildTransferFeeItemDescription(user, billingTransfer.sessionCounter);
       // A single tax rate per session
-      const tax_rates = (taxID) ? [taxID] : [] ;
+      const tax_rates = (taxID) ? [taxID] : [];
       // Prepare item parameters
       const parameters: Stripe.InvoiceItemCreateParams = {
         invoice: stripeInvoice.id,
@@ -1973,7 +1976,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const createdOn = moment.unix(epoch).toDate(); // epoch to Date!
     const userID = metadata.userID;
     // Amount is in cents!
-    const amount = amountCents ;
+    const amount = amountCents;
     const totalAmount = Utils.createDecimal(amountCents).div(100).toNumber();
     const invoice: BillingPlatformInvoice = {
       invoiceID, documentNumber, liveMode, userID,

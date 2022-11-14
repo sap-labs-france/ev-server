@@ -18,7 +18,8 @@ export interface HttpBillingInvoicesRequest extends HttpDatabaseRequest {
 
 export interface HttpSetupPaymentMethod {
   userID: string;
-  paymentMethodId?: string;
+  paymentMethodID?: string;
+  paymentIntentID?: string;
 }
 
 export interface HttpPaymentMethods {

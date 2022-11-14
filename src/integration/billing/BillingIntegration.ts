@@ -700,7 +700,7 @@ export default abstract class BillingIntegration {
 
   public abstract consumeBillingEvent(req: Request): Promise<boolean>;
 
-  public abstract setupPaymentMethod(user: User, paymentMethodId: string, createPaymentIntent?: boolean): Promise<BillingOperationResult>;
+  public abstract setupPaymentMethod(user: User, paymentMethodId: string, paymentIntentID?: string, createPaymentIntent?: boolean): Promise<BillingOperationResult>;
 
   public abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
 
@@ -716,7 +716,7 @@ export default abstract class BillingIntegration {
 
   public abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
 
-  public abstract capturePayment(user: User, amount: number, paymentMethodId: string): Promise<string>;
+  public abstract capturePayment(user: User, amount: number, paymentMethodId: string, paymentIntentId: string): Promise<BillingOperationResult>;
 
   public async isUserSynchronized(user: User): Promise<boolean> {
     // Make sure to get fresh data
