@@ -7,10 +7,15 @@
       "$ref": "user#/definitions/email"
     },
     "name": {
-      "$ref": "user#/definitions/name"
+      "type": "string",
+      "maxLength": 100,
+      "transform": ["toUpperCase"],
+      "sanitize": "mongo"
     },
     "firstName": {
-      "$ref": "user#/definitions/firstName"
+      "type": "string",
+      "maxLength": 100,
+      "sanitize": "mongo"
     },
     "captcha": {
       "$ref": "common#/definitions/captcha"
