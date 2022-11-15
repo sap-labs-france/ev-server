@@ -273,8 +273,10 @@ export default class BillingService {
   }
 
   public static async handleScanAndPaySetupPaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // on handle la creation du user là
+    // await this.handleUserScanAndPay()
     // Filter
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingSetupUserPaymentMethodReq(req.body);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanAndPayReq(req.params);
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
@@ -286,9 +288,9 @@ export default class BillingService {
       });
     }
     // Check and get user for whom we wish to update the payment method
-    const user: User = await UserStorage.getUser(req.tenant, filteredRequest.userID);
+    const user: User = await UserStorage.getUser(req.tenant, 'filteredRequest.userID'); // ici on aura le user qu'on a créé plus haut
     // Invoke the billing implementation
-    const paymentMethodId: string = filteredRequest.paymentMethodID;
+    const paymentMethodId = filteredRequest.paymentMethodID; // null au premier tour et paymentmethod id au deuxieme coup
     const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId, filteredRequest.paymentIntentID, true);
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
@@ -827,7 +829,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-      authorizations.projectFields
+    authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
@@ -870,7 +872,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-      authorizations.projectFields
+    authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);

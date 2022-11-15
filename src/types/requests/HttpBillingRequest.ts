@@ -81,4 +81,6 @@ export interface HttpBillingTransferSendRequest extends HttpByIDRequest {
 export interface HttpBillingScanAndPayRequest {
   email: string;
   locale: string;
+  paymentMethodID?: string;
+  paymentIntentID?: string;
 }

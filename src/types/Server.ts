@@ -511,7 +511,6 @@ export enum RESTServerRoute {
   REST_END_USER_LICENSE_AGREEMENT_HTML = 'eula/html',
   REST_MAIL_CHECK = 'mail/check',
   REST_MAIL_RESEND = 'mail/resend',
-  REST_SCAN_PAY_VERIFY_EMAIL = 'mail/scan-pay-verify',
 
   REST_CHARGING_STATION_TEMPLATES = 'charging-station-templates',
   REST_CHARGING_STATION_TEMPLATE = 'charging-station-templates/:id',
@@ -706,10 +705,6 @@ export enum RESTServerRoute {
   REST_BILLING_PAYMENT_METHOD_DETACH = 'users/:userID/payment-methods/:paymentMethodID/detach',
 
   REST_BILLING_SETTING = 'billing-setting', // GET and PUT
-  REST_BILLING_SETTING_SCAN_AND_PAY = 'billing-setting-scan-and-pay', // GET and PUT
-  REST_SCAN_AND_PAY_PAYMENT_METHOD_SETUP = 'users/:userID/payment-methods-scan-and-pay/setup',
-  REST_SCAN_AND_PAY_PAYMENT_METHOD_ATTACH = 'users/:userID/payment-methods-scan-and-pay/:paymentMethodID/attach',
-
   REST_BILLING_CHECK = 'billing/check',
   REST_BILLING_CLEAR_TEST_DATA = 'billing/clearTestData',
 
@@ -740,6 +735,12 @@ export enum RESTServerRoute {
 
   // PRICING URLs for Non-CRUD operations
   REST_PRICING_MODEL_RESOLVE = 'pricing-model/resolve',
+
+  // SCAN AND PAY
+  REST_SCAN_PAY_VERIFY_EMAIL = 'scan-pay/verify-email',
+  REST_BILLING_SETTING_SCAN_AND_PAY = 'billing-setting-scan-and-pay',
+  REST_SCAN_AND_PAY_PAYMENT_METHOD_SETUP = 'scan-pay/setup',
+  REST_SCAN_AND_PAY_PAYMENT_METHOD_ATTACH = 'scan-pay/attach',
 }
 
 export enum OCPIServerRoute {

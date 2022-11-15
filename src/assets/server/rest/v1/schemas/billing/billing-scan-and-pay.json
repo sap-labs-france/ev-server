@@ -6,13 +6,31 @@
     "email": {
       "$ref": "user#/definitions/email"
     },
-    "locale": {
+    "name": {
       "type": "string",
-      "sanitize": "mongo",
-      "maxLength": 5
+      "maxLength": 100,
+      "transform": ["toUpperCase"],
+      "sanitize": "mongo"
+    },
+    "firstName": {
+      "type": "string",
+      "maxLength": 100,
+      "sanitize": "mongo"
+    },
+    "siteAreaID": {
+      "$ref": "asset#/definitions/siteAreaID"
+    },
+    "paymentMethodID": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "paymentIntentID": {
+      "type": "string",
+      "sanitize": "mongo"
     }
   },
   "required": [
-    "email"
+    "email",
+    "siteAreaID"
   ]
 }

@@ -45,6 +45,11 @@ export default class UtilRouter {
 
   private buildRouteScanAndPayPaymentMethodSetup(): void {
     this.router.post(`/${RESTServerRoute.REST_SCAN_AND_PAY_PAYMENT_METHOD_SETUP}`, (req: Request, res: Response, next: NextFunction) => {
+      // req.body.email = req.params.email;
+      // req.body.name = req.params.name;
+      // req.body.firstName = req.params.firstName;
+      // req.body.siteAreaID = req.params.siteAreaID;
+      // req.params.siteAreaID =
       void RouterUtils.handleRestServerAction(BillingService.handleScanAndPaySetupPaymentMethod.bind(this), ServerAction.SCAN_AND_PAY_SETUP_PAYMENT_METHOD, req, res, next);
     });
   }
