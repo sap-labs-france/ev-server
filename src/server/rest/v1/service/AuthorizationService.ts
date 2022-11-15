@@ -1011,7 +1011,6 @@ export default class AuthorizationService {
     }
   }
 
-
   public static addTaxAuthorizations(tenant: Tenant, userToken: UserToken, billingTax: BillingTax, authorizationFilter: AuthorizationFilter): void {
     billingTax.canRead = true; // Always true as it should be filtered upfront
     // Optimize data over the net
@@ -1154,6 +1153,7 @@ export default class AuthorizationService {
     setting.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SETTING, Action.DELETE, authorizationFilter);
     setting.canSyncRefund = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter);
     setting.canCheckBillingConnection = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.BILLING, Action.CHECK_CONNECTION, authorizationFilter);
+    setting.canCheckSmartChargingConnection = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SMART_CHARGING, Action.CHECK_CONNECTION, authorizationFilter);
     // Remove auth flags set to false
     Utils.removeCanPropertiesWithFalseValue(setting);
   }
@@ -1413,6 +1413,20 @@ export default class AuthorizationService {
     // Check static & dynamic authorization
     await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CONSUMPTION, authAction, authorizations, filteredRequest, null, failsWithException);
+    return authorizations;
+  }
+
+  public static async checkAndGetSmartChargingAuthorizations(tenant: Tenant, userToken: UserToken,
+      authAction: Action, failsWithException = true): Promise<AuthorizationFilter> {
+    const authorizations: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false,
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.SMART_CHARGING, authAction,
+      authorizations, {}, null, failsWithException);
     return authorizations;
   }
 

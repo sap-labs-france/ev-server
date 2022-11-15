@@ -372,6 +372,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id'
         ]
       },
+      { resource: Entity.SMART_CHARGING, action: Action.CHECK_CONNECTION },
       {
         resource: Entity.USER_SITE, action: [Action.ASSIGN_SITES_TO_USER, Action.UNASSIGN_SITES_FROM_USER, Action.READ, Action.UPDATE, Action.LIST],
         condition: {
