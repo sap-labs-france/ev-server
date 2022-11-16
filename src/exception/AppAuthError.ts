@@ -6,7 +6,7 @@ import User from '../types/User';
 import UserToken from '../types/UserToken';
 
 export default class AppAuthError extends Error {
-  constructor(public readonly params: {
+  public constructor(public readonly params: {
     action: Action;
     entity: Entity;
     value?: string;
