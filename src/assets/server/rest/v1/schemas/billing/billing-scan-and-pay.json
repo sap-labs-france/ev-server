@@ -27,6 +27,12 @@
     "paymentIntentID": {
       "type": "string",
       "sanitize": "mongo"
+    },
+    "locale": {
+      "$ref": "user#/definitions/locale"
+    },
+    "subdomain": {
+      "$ref": "common#/definitions/authSubdomain"
     }
   },
   "required": [
