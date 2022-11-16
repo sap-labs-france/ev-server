@@ -365,6 +365,7 @@ export interface SettingAuthorizationActions extends AuthorizationActions {
   canSyncRefund?: boolean;
   canCheckBillingConnection?: boolean;
   canCheckSmartChargingConnection?: boolean;
+  canCheckAssetConnection?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {
