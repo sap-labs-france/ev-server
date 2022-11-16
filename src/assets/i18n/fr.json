@@ -195,7 +195,7 @@
   },
   "email": {
     "greetings": "Bonjour {{recipientName}}",
-    "footerText": "Cet e-mail est destiné à {{recipientEmail}}. Il vous a été transmis via un service automatique. Merci de ne pas répondre. Vous pouvez vous déinscrire en modifiant vos paramètres de notification.",
+    "footerText": "Cet e-mail est destiné à {{recipientEmail}}. Il vous a été transmis via un service automatique. Merci de ne pas répondre. Vous pouvez vous désinscrire en modifiant vos paramètres de notification.",
     "new-registered-user": {
       "title": "Compte utilisateur créé",
       "buttonText": "Activer votre compte",
