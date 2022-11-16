@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Action, Entity } from '../../../../types/Authorization';
 import { BillingAccount, BillingAccountStatus, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTransferStatus } from '../../../../types/Billing';
 import { BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult } from '../../../../types/DataResult';
 import { NextFunction, Request, Response } from 'express';
-import User, { UserStatus } from '../../../../types/User';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
+import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
@@ -15,6 +17,7 @@ import BillingValidatorRest from '../validator/BillingValidatorRest';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
+import { HttpBillingScanAndPayRequest } from '../../../../types/requests/HttpBillingRequest';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -22,8 +25,7 @@ import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
-import { TenantComponents } from '../../../../types/Tenant';
-import UserService from './UserService';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -272,23 +274,23 @@ export default class BillingService {
     next();
   }
 
+  // handle user creation + create payment intent or capture if we already have a paymentmethod
   public static async handleScanAndPaySetupPaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanAndPayReq(req.body.params);
     // on handle la creation du user là
-    // await this.handleUserScanAndPay()
+    const tenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
+    const user = await BillingService.handleUserScanAndPay(filteredRequest, tenant);
     // Filter
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanAndPayReq(req.params);
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (!billingImpl) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleBillingSetupPaymentMethod',
+        module: MODULE_NAME, method: 'handleScanAndPaySetupPaymentMethod',
         action: action,
         user: req.user
       });
     }
-    // Check and get user for whom we wish to update the payment method
-    const user: User = await UserStorage.getUser(req.tenant, 'filteredRequest.userID'); // ici on aura le user qu'on a créé plus haut
     // Invoke the billing implementation
     const paymentMethodId = filteredRequest.paymentMethodID; // null au premier tour et paymentmethod id au deuxieme coup
     const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId, filteredRequest.paymentIntentID, true);
@@ -477,67 +479,6 @@ export default class BillingService {
     // Process sensitive data
     UtilsService.hashSensitiveData(req.tenant.id, billingSettings);
     res.json(billingSettings);
-    next();
-  }
-
-  public static async handleUserScanAndPay(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanAndPayReq(req.body);
-    // Override
-    let user: User;
-    user.status = UserStatus.PENDING;
-    if (!filteredRequest.locale) {
-      user.locale = Constants.DEFAULT_LOCALE;
-    }
-    // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleUserScanAndPay',
-        action: action,
-        user: req.user
-      });
-    }
-    // Check if the user exist
-    const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
-    if (foundUser) {
-      user = foundUser;
-    } else {
-      // Create
-      user = {
-        name: 'John DOE',
-        email: filteredRequest.email,
-        createdOn: new Date(),
-        issuer: true,
-      } as User;
-      // Create the User
-      user.id = await UserStorage.saveUser(req.tenant, user, true);
-    }
-    // Get the user with a custumer ID
-    user = await UserStorage.getUser(req.tenant, user.id);
-    // Get payement methods
-    const paymentMethods: BillingPaymentMethod[] = await billingImpl.getPaymentMethods(user);
-    // Get default payement method
-    const defaultPayementMethod = paymentMethods.find((paymentMethod) => paymentMethod.isDefault);
-    if (defaultPayementMethod) {
-      // Setup payment
-      const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, defaultPayementMethod.id);
-
-      if (operationResult) {
-        Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
-      }
-    }
-    // Log
-    await Logging.logInfo({
-      tenantID: req.tenant.id,
-      user: req.user, actionOnUser: req.user,
-      module: MODULE_NAME, method: 'handleUserScanAndPay',
-      message: `User with ID '${user.id}' has been created successfully`,
-      action: action
-    });
-    res.json(Object.assign({ id: user.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -1000,6 +941,37 @@ export default class BillingService {
     await BillingStorage.saveTransfer(req.tenant, transfer);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
+  }
+
+  private static async handleUserScanAndPay(filteredRequest: HttpBillingScanAndPayRequest, tenant: Tenant): Promise<User> {
+    // Check if the user exist
+    const foundUser = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
+    if (foundUser) {
+      return foundUser;
+    }
+    const locale = filteredRequest.locale ?? Constants.DEFAULT_LOCALE;
+    // Create
+    const newUser = UserStorage.createNewUser();
+    const user = {
+      ...newUser,
+      name: filteredRequest.name,
+      firstName: filteredRequest.firstName,
+      email: filteredRequest.email,
+      locale: locale,
+      status: UserStatus.PENDING,
+      role: UserRole.BASIC,
+    } as User;
+    // Create the User
+    user.id = await UserStorage.saveUser(tenant, user, true);
+    // Log
+    await Logging.logInfo({
+      tenantID: tenant.id,
+      user: user, actionOnUser: user,
+      module: MODULE_NAME, method: 'handleUserScanAndPay',
+      message: `User with ID '${user.id}' has been created successfully`,
+      action: ServerAction.SCAN_AND_PAY_SETUP_PAYMENT_METHOD
+    });
+    return user;
   }
 
   private static async checkActivationPrerequisites(action: ServerAction, req: Request): Promise<void> {
