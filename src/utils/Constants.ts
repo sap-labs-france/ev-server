@@ -472,4 +472,23 @@ export default class Constants {
   public static readonly STRIPE_APP_NAME = 'Open e-Mobility';
   public static readonly STRIPE_PARTNER_ID = 'TECH-000685';
   public static readonly STRIPE_API_VERSION = '2020-08-27';
+
+  public static readonly WEB_SOCKET_OCPP16_OPEN_COUNT = 'web_socket_ocpp16_open_count';
+  public static readonly WEB_SOCKET_REST_OPEN_COUNT = 'web_socket_rest_open_count';
+
+
+  public static readonly MONGODB_CONNECTION_POOL_CREATED = 'mongodb_connectionPoolCreated';
+  public static readonly MONGODB_CONNECTION_POOL_CLOSED = 'mongodb_connectionPoolClosed';
+  public static readonly MONGODB_CONNECTION_CREATED = 'mongodb_connectionCreated';
+  public static readonly MONGODB_CONNECTION_READY = 'mongodb_connectionReady';
+  public static readonly MONGODB_CONNECTION_CLOSED = 'mongodb_connectionClosed';
+  public static readonly MONGODB_CONNECTION_CHECK_OUT_STARTED = 'mongodb_connectionCheckOutStarted';
+  public static readonly MONGODB_CONNECTION_CHECK_OUT_FAILED = 'mongodb_connectionCheckOutFailed';
+  public static readonly MONGODB_CONNECTION_CHECK_OUT = 'mongodb_connectionCheckOut';
+  public static readonly MONGODB_CONNECTION_CHECK_IN = 'mongodb_connectionCheckIn';
+  public static readonly MONGODB_CONNECTION_POOL_CLEARED = 'mongodb_connectionPoolCleared';
+
+
+
+
 }

@@ -18,6 +18,7 @@ import urlencode from 'urlencode';
 
 const MODULE_NAME = 'MongoDBStorage';
 
+
 export default class MongoDBStorage {
   private mongoDBClient: MongoClient;
   private database: Db;
@@ -276,11 +277,31 @@ export default class MongoDBStorage {
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
       }
     );
+    const connections = new Set<any>();
     // Get the EVSE DB
     this.mongoDBClient = mongoDBClient;
+    mongoDBClient.on('connectionPoolCreated',
+      (event) => global.monitoringServer.getCounter(Constants.MONGODB_CONNECTION_POOL_CREATED).inc(1)
+    );
+    mongoDBClient.on('connectionCreated',
+      (event) => global.monitoringServer.getCounter(Constants.MONGODB_CONNECTION_CREATED).inc(1)
+    );
+    mongoDBClient.on('connectionClosed',
+      (event) => global.monitoringServer.getCounter(Constants.MONGODB_CONNECTION_CLOSED).inc(1)
+    );
+    mongoDBClient.on('connectionReady',
+      (event) => {
+        connections.add(event.connectionId);
+        global.monitoringServer.getGauge(Constants.MONGODB_CONNECTION_READY).set(connections.size);
+      }
+    );
+    mongoDBClient.on('connectionPoolClosed',
+      (event) => global.monitoringServer.getCounter(Constants.MONGODB_CONNECTION_POOL_CLOSED).inc(1)
+    );
     this.database = this.mongoDBClient.db();
     // Keep a global reference
     global.database = this;
+
     // Check Database only when migration is active
     if (this.migrationConfig?.active) {
       await this.checkDatabase();
