@@ -20,10 +20,6 @@
     "siteAreaID": {
       "$ref": "asset#/definitions/siteAreaID"
     },
-    "paymentMethodID": {
-      "type": "string",
-      "sanitize": "mongo"
-    },
     "paymentIntentID": {
       "type": "string",
       "sanitize": "mongo"
