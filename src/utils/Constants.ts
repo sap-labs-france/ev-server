@@ -487,8 +487,4 @@ export default class Constants {
   public static readonly MONGODB_CONNECTION_CHECK_OUT = 'mongodb_connectionCheckOut';
   public static readonly MONGODB_CONNECTION_CHECK_IN = 'mongodb_connectionCheckIn';
   public static readonly MONGODB_CONNECTION_POOL_CLEARED = 'mongodb_connectionPoolCleared';
-
-
-
-
 }
