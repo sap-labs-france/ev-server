@@ -276,12 +276,11 @@ export default class BillingService {
 
   // handle user creation + create payment intent or capture if we already have a paymentmethod
   public static async handleScanAndPaySetupPaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanAndPayReq(req.body.params);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanAndPayReq(req.body);
     // on handle la creation du user là
-    const tenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
-    const user = await BillingService.handleUserScanAndPay(filteredRequest, tenant);
+    const user = await BillingService.handleUserScanAndPay(filteredRequest, req.tenant);
     // Filter
-    const billingImpl = await BillingFactory.getBillingImpl(tenant);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
@@ -291,9 +290,7 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Invoke the billing implementation
-    const paymentMethodId = filteredRequest.paymentMethodID; // null au premier tour et paymentmethod id au deuxieme coup
-    const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId, filteredRequest.paymentIntentID, true);
+    const operationResult: BillingOperationResult = await billingImpl.setupPaymentIntent(user, filteredRequest.paymentIntentID);
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
     }

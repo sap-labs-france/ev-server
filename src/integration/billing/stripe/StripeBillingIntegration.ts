@@ -501,8 +501,39 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  // scan and pay -> create payment intent OR capture if we already have paymentMethodID
-  public async setupPaymentMethod(user: User, paymentMethodId: string, paymentIntentID: string, createPaymentIntent = false): Promise<BillingOperationResult> {
+  public async setupPaymentIntent(user: User, paymentIntentID: string): Promise<BillingOperationResult> {
+    // Check Stripe
+    await this.checkConnection();
+    // Check billing data consistency
+    let customerID = user?.billingData?.customerID;
+    if (!customerID) {
+      // User Sync is now made implicitly - LAZY mode
+      const billingUser = await this.synchronizeUser(user);
+      customerID = billingUser?.billingData?.customerID;
+    }
+    // User should now exist
+    if (!customerID) {
+      throw new BackendError({
+        message: `User is not known in Stripe: '${user.id}')`,
+        module: MODULE_NAME,
+        method: 'setupPaymentIntent',
+        actionOnUser: user,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD
+      });
+    }
+    // Let's do it!
+    let billingOperationResult: BillingOperationResult;
+    if (!paymentIntentID) {
+      // Let's create a setupPayment for the stripe customer
+      billingOperationResult = await this.createPaymentIntent(user, customerID);
+    } else {
+      // Capture amount
+      billingOperationResult = await this.capturePayment(user, 100, paymentIntentID);
+    }
+    return billingOperationResult;
+  }
+
+  public async setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
@@ -525,17 +556,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Let's do it!
     let billingOperationResult: BillingOperationResult;
     if (!paymentMethodId) {
-      if (createPaymentIntent) {
-        // Let's create a setupPayment for the stripe customer
-        billingOperationResult = await this.createPaymentIntent(user, customerID);
-      } else {
-        // Let's create a setupIntent for the stripe customer
-        billingOperationResult = await this.createSetupIntent(user, customerID);
-      }
+      // Let's create a setupIntent for the stripe customer
+      billingOperationResult = await this.createSetupIntent(user, customerID);
     } else {
-      if (paymentIntentID) {
-        await this.capturePayment(user, 100, paymentMethodId, paymentIntentID);
-      }
       // Attach payment method to the stripe customer
       billingOperationResult = await this.attachPaymentMethod(user, customerID, paymentMethodId);
     }
@@ -796,7 +819,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  public async capturePayment(user: User, amount: number, paymentMethodId: string, paymentIntentId: string): Promise<BillingOperationResult> {
+  public async capturePayment(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult> {
     try {
       // Let's create a paymentIntent for the stripe customer
       const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.capture(paymentIntentId, {
