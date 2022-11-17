@@ -1154,10 +1154,14 @@ export default class AuthorizationService {
     setting.canRead = true; // Always true as it should be filtered upfront
     setting.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SETTING, Action.UPDATE, authorizationFilter);
     setting.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SETTING, Action.DELETE, authorizationFilter);
-    setting.canSyncRefund = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter);
-    setting.canCheckBillingConnection = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.BILLING, Action.CHECK_CONNECTION, authorizationFilter);
-    setting.canCheckSmartChargingConnection = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SMART_CHARGING, Action.CHECK_CONNECTION, authorizationFilter);
-    setting.canCheckAssetConnection = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET, Action.CHECK_CONNECTION, authorizationFilter);
+    setting.canSyncRefund = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TRANSACTION,
+      Action.SYNCHRONIZE_REFUNDED_TRANSACTION, authorizationFilter);
+    setting.canCheckBillingConnection = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.BILLING,
+      Action.CHECK_CONNECTION, authorizationFilter);
+    setting.canCheckSmartChargingConnection = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SMART_CHARGING,
+      Action.CHECK_CONNECTION, authorizationFilter);
+    setting.canCheckAssetConnection = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.ASSET,
+      Action.CHECK_CONNECTION, authorizationFilter);
     // Remove auth flags set to false
     Utils.removeCanPropertiesWithFalseValue(setting);
   }
