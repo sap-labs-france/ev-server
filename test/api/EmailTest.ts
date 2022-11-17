@@ -1,4 +1,4 @@
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../src/types/UserNotifications';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../src/types/UserNotifications';
 import User, { UserStatus } from '../../src/types/User';
 import chai, { assert } from 'chai';
 
@@ -61,11 +61,11 @@ describe('Initialization', () => {
       recipient = Utils.cloneObject(tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN));
       recipient.firstName = 'Kaito (怪盗)';
       recipient.name = '(怪盗) Kaito';
-      recipient.locale = "fr_FR";
+      recipient.locale = 'fr_FR';
       // Set the user mentioned in the body of the mail
       user = Utils.cloneObject(tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER));
       user.phone = '+33 6 12 34 56 78';
-      user.locale = "fr_FR";
+      user.locale = 'fr_FR';
       tenant = tenantContext.getTenant();
     });
     it('new-registered-user', async () => {
@@ -152,6 +152,32 @@ describe('Initialization', () => {
         evseDashboardChargingStationURL: 'charging station url',
       };
       const notificationResult = await emailNotificationTask.sendEndOfSession(data, recipient, tenant, severity);
+      const isMissing = checkForMissing(notificationResult.html);
+      assert.equal(isMissing, null, isMissing);
+      assert.equal(notificationResult.error, null, notificationResult.error as string);
+    });
+
+    it('end-of-signed-session', async () => {
+      const data: EndOfSignedSessionNotification = {
+        transactionId: 1112233445566,
+        chargeBoxID,
+        connectorId,
+        user,
+        alternateUser: user,
+        evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
+        evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
+        tagId: '1234567890ABCDE',
+        startDate: new Date().toString(),
+        endDate: new Date().toString(),
+        meterStart: '5437080',
+        meterStop: '5447190',
+        totalConsumption: '10110',
+        price: 0,
+        relativeCost: 0,
+        startSignedData: 'OCMF|{"FV": "1.0", "GI": "ChargeX Messkapsel 1.0", "GS": "ESVFL915WH52", "GV": "1.2", "PG": "T53", "MV": "ChargeX", "IS": "true", "IT": "ISO14443", "ID": "8421A3EE", "CT": "CBIDC", "CI": "72ABHJLHYY568SEJ 2", "RD": [{"TM": "2022-07-25T08:37:19.962+00:00 S", "TX": "B", "RV": 543.708, "RI": "1-b:1.8.e", "RU": "kWh", "EF": "", "ST": "G"}]}|{"SA": "ECDSA-secp192k1-SHA256", "SD": "MDUCGH0gEwvhKU8n0x36wWszmForuqEP7EcBHQIZAJ70dXSN732qKgEikBNp/5fcQyuk/uzGZQ==", "SE": "base64"}',
+        endSignedData: 'OCMF|{"FV": "1.0", "GI": "ChargeX Messkapsel 1.0", "GS": "ESVFL915WH52", "GV": "1.2", "PG": "T54", "MV": "ChargeX", "IS": "true", "IT": "ISO14443", "ID": "8421A3EE", "CT": "CBIDC", "CI": "72ABHJLHYY568SEJ 2", "RD": [{"TM": "2022-07-25T08:45:38.425+00:00 S", "TX": "E", "RV": 544.719, "RI": "1-b:1.8.e", "RU": "kWh", "EF": "", "ST": "G"}]}|{"SA": "ECDSA-secp192k1-SHA256", "SD": "MDQCGFR9euJ/yXiVmefh6pzRX2avXxlrUT63kAIYY/OVK4Z/myHHHeAzbz7/U5Uy/FuZpMf8", "SE": "base64"}',
+      };
+      const notificationResult = await emailNotificationTask.sendEndOfSignedSession(data, recipient, tenant, severity);
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);

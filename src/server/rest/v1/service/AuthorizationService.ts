@@ -765,6 +765,9 @@ export default class AuthorizationService {
     chargingStation.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.USER, Action.LIST, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+    chargingStation.canAuthorize = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.AUTHORIZE, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
     chargingStation.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.UPDATE, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
@@ -916,7 +919,7 @@ export default class AuthorizationService {
     // Remove sensible data
     await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.VIEW_USER_DATA, authorizationFilter,
-      { chargingStationID: chargingStation.id, UserID: userToken.user.id, SiteID: chargingStation.siteID, UserData: true, TagData: true }, chargingStation);
+      { chargingStationID: chargingStation.id, UserID: userToken.user?.id, SiteID: chargingStation.siteID, UserData: true, TagData: true }, chargingStation);
     // Remove properties
     Utils.removeCanPropertiesWithFalseValue(chargingStation);
   }
