@@ -4,11 +4,11 @@ import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
+import { SettingDBDataResult } from '../../types/DataResult';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SettingStorage';
@@ -334,7 +334,7 @@ export default class SettingStorage {
 
   public static async getSettings(tenant: Tenant,
       params: { identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<SettingDBDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
