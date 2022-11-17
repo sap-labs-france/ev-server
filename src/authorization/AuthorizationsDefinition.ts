@@ -732,8 +732,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.TRANSACTION, action: [
-          Action.EXPORT, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, Action.UPDATE, Action.DELETE,
-          Action.REFUND_TRANSACTION, Action.REMOTE_STOP_TRANSACTION
+          Action.EXPORT, Action.SYNCHRONIZE_REFUNDED_TRANSACTION, Action.UPDATE, Action.DELETE, Action.REMOTE_STOP_TRANSACTION
         ]
       },
       {
@@ -2176,7 +2175,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['LocalIssuer']
+            filters: ['SitesAdminOrOwner', 'LocalIssuer']
           }
         },
         attributes: [

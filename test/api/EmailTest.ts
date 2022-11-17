@@ -61,11 +61,11 @@ describe('Initialization', () => {
       recipient = Utils.cloneObject(tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN));
       recipient.firstName = 'Kaito (怪盗)';
       recipient.name = '(怪盗) Kaito';
-      recipient.locale = "fr_FR";
+      recipient.locale = 'fr_FR';
       // Set the user mentioned in the body of the mail
       user = Utils.cloneObject(tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER));
       user.phone = '+33 6 12 34 56 78';
-      user.locale = "fr_FR";
+      user.locale = 'fr_FR';
       tenant = tenantContext.getTenant();
     });
     it('new-registered-user', async () => {
