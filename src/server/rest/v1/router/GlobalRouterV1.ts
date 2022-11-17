@@ -18,6 +18,7 @@ import SessionHashService from '../service/SessionHashService';
 import SettingRouter from './api/SettingRouter';
 import SiteAreaRouter from './api/SiteAreaRouter';
 import SiteRouter from './api/SiteRouter';
+import StaticResourceRouter from './doc/StaticResourceRouter';
 import StatisticsRouter from './api/StatisticsRouter';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
@@ -39,6 +40,7 @@ export default class GlobalRouterV1 {
     this.buildRouteAPI();
     this.buildRouteUtil();
     this.buildRouteDocs();
+    this.buildRouteToStaticResources();
     return this.router;
   }
 
@@ -86,5 +88,9 @@ export default class GlobalRouterV1 {
 
   protected buildRouteDocs(): void {
     this.router.use('/docs', new SwaggerRouter().buildRoutes());
+  }
+
+  protected buildRouteToStaticResources(): void {
+    this.router.use('/assets', new StaticResourceRouter().buildRoutes());
   }
 }
