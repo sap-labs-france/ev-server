@@ -18,6 +18,7 @@ import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
 import { HttpBillingScanAndPayRequest } from '../../../../types/requests/HttpBillingRequest';
+import I18nManager from '../../../../utils/I18nManager';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -25,6 +26,8 @@ import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
+import Tag from '../../../../types/Tag';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
@@ -965,6 +968,21 @@ export default class BillingService {
     } as User;
     // Create the User
     user.id = await UserStorage.saveUser(tenant, user, true);
+    // Get the i18n translation class
+    const i18nManager = I18nManager.getInstanceForLocale(locale);
+    // Create tag for the user
+    const tag: Tag = {
+      id: await TagStorage.findAvailableID(tenant),
+      active: true,
+      issuer: true,
+      userID: newUser.id,
+      createdBy: { id: newUser.id },
+      createdOn: new Date(),
+      description: i18nManager.translate('tags.virtualBadge'),
+      default: true
+    };
+    // Save the default Tag
+    await TagStorage.saveTag(tenant, tag);
     // Log
     await Logging.logInfo({
       tenantID: tenant.id,
