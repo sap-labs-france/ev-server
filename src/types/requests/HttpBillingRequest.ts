@@ -87,4 +87,6 @@ export interface HttpBillingScanAndPayRequest {
   locale: string;
   paymentMethodID?: string;
   paymentIntentID?: string;
+  connectorId?: number;
+  chargingStationID?: string;
 }

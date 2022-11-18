@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Action, Entity } from '../../../../types/Authorization';
 import { BillingAccount, BillingAccountStatus, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTransferStatus } from '../../../../types/Billing';
 import { BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult } from '../../../../types/DataResult';
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { UserRole, UserStatus } from '../../../../types/User';
@@ -14,6 +14,9 @@ import BillingSecurity from './security/BillingSecurity';
 import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import BillingValidatorRest from '../validator/BillingValidatorRest';
+import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
+import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
@@ -28,7 +31,6 @@ import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -281,7 +283,7 @@ export default class BillingService {
   public static async handleScanAndPaySetupPaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanAndPayReq(req.body);
     // on handle la creation du user là
-    const user = await BillingService.handleUserScanAndPay(filteredRequest, req.tenant);
+    const tag = await BillingService.handleUserScanAndPay(filteredRequest, req.tenant);
     // Filter
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -293,7 +295,15 @@ export default class BillingService {
         user: req.user
       });
     }
-    const operationResult: BillingOperationResult = await billingImpl.setupPaymentIntent(user, filteredRequest.paymentIntentID);
+    const operationResult: BillingOperationResult = await billingImpl.setupPaymentIntent(tag.user, filteredRequest.paymentIntentID);
+    if (operationResult.internalData['status'] === 'requires_capture') {
+      // Get the charging station
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.chargingStationID);
+      // Get the OCPP Client
+      const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
+      // Execute start transaction
+      await this.executeChargingStationStartTransaction(tag, filteredRequest.connectorId, chargingStationClient);
+    }
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
     }
@@ -770,7 +780,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    authorizations.projectFields
+      authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
@@ -813,7 +823,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    authorizations.projectFields
+      authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
@@ -943,11 +953,13 @@ export default class BillingService {
     next();
   }
 
-  private static async handleUserScanAndPay(filteredRequest: HttpBillingScanAndPayRequest, tenant: Tenant): Promise<User> {
+  private static async handleUserScanAndPay(filteredRequest: HttpBillingScanAndPayRequest, tenant: Tenant): Promise<Tag> {
     // Check if the user exist
     const foundUser = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
     if (foundUser) {
-      return foundUser;
+      const tag = await TagStorage.getDefaultUserTag(tenant, foundUser.id);
+      tag.user = foundUser;
+      return tag;
     }
     const locale = filteredRequest.locale ?? Constants.DEFAULT_LOCALE;
     // Create
@@ -978,6 +990,7 @@ export default class BillingService {
     };
     // Save the default Tag
     await TagStorage.saveTag(tenant, tag);
+    tag.user = user;
     // Log
     await Logging.logInfo({
       tenantID: tenant.id,
@@ -986,7 +999,7 @@ export default class BillingService {
       message: `User with ID '${user.id}' has been created successfully`,
       action: ServerAction.SCAN_AND_PAY_SETUP_PAYMENT_METHOD
     });
-    return user;
+    return tag;
   }
 
   private static async checkActivationPrerequisites(action: ServerAction, req: Request): Promise<void> {
@@ -1004,5 +1017,13 @@ export default class BillingService {
     await billingImpl.checkConnection();
     // Let's validate the new settings before activating
     await billingImpl.checkActivationPrerequisites();
+  }
+
+  private static async executeChargingStationStartTransaction(tag: Tag, connectorId: number, chargingStationClient: ChargingStationClient): Promise<any> {
+    // Execute it
+    return chargingStationClient.remoteStartTransaction({
+      connectorId: connectorId,
+      idTag: tag.id
+    });
   }
 }
