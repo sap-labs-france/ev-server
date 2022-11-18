@@ -16,64 +16,27 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
   private expressApplication: Application;
   private mapGauge = new Map<string, Gauge>();
   private mapCounter = new Map<string, Counter>();
+  private clientRegistry = new client.Registry();
 
   public constructor(monitoringConfig: MonitoringConfiguration) {
     super();
-    const webSocketGaugeRest : client.Gauge = new client.Gauge({
-      name: Constants.WEB_SOCKET_REST_OPEN_COUNT,
-      help: 'The number of rest web sockets that are open'
-    });
-
-    const webSocketGaugeOcpp : client.Gauge = new client.Gauge({
-      name: Constants.WEB_SOCKET_OCPP16_OPEN_COUNT,
-      help: 'The number of ocpp web sockets that are open'
-    });
     // Keep params
     this.monitoringConfig = monitoringConfig;
-    // Create a Registry which registers the metrics
-    const register = new client.Registry();
+    client.collectDefaultMetrics({ register: this.clientRegistry });
     // Add a default label which is added to all metrics
-    register.setDefaultLabels({
+    this.clientRegistry.setDefaultLabels({
       app: 'e-Mobility'
     });
-    client.collectDefaultMetrics({
-      register ,
-    });
-    const mongoDbConnectionCreated : client.Counter = new client.Counter({
-      name: Constants.MONGODB_CONNECTION_CREATED,
-      help: 'mongo db connection created'
-    });
-    register.registerMetric(mongoDbConnectionCreated);
-    this.mapCounter.set(Constants.MONGODB_CONNECTION_CREATED, mongoDbConnectionCreated);
-    const mongoDbConnectionPoolCreated : client.Counter = new client.Counter({
-      name: Constants.MONGODB_CONNECTION_POOL_CREATED,
-      help: 'mongo db connection pool created'
-    });
-    register.registerMetric(mongoDbConnectionPoolCreated);
-    this.mapCounter.set(Constants.MONGODB_CONNECTION_POOL_CREATED, mongoDbConnectionPoolCreated);
-    const mongoDbConnectionClosed : client.Counter = new client.Counter({
-      name: Constants.MONGODB_CONNECTION_CLOSED,
-      help: 'mongo db connection closed'
-    });
-    register.registerMetric(mongoDbConnectionClosed);
-    this.mapCounter.set(Constants.MONGODB_CONNECTION_CLOSED, mongoDbConnectionClosed);
-    const mongoDbConnectionPoolClosed : client.Counter = new client.Counter({
-      name: Constants.MONGODB_CONNECTION_POOL_CLOSED,
-      help: 'mongo db connection pool closed'
-    });
-    this.mapCounter.set(Constants.MONGODB_CONNECTION_POOL_CLOSED, mongoDbConnectionPoolClosed);
-    register.registerMetric(mongoDbConnectionPoolClosed);
-    const mongoDbConnectionReady : client.Gauge = new client.Gauge({
-      name: Constants.MONGODB_CONNECTION_READY,
-      help: 'mongo db connection ready'
-    });
-    this.mapGauge.set(Constants.MONGODB_CONNECTION_READY, mongoDbConnectionReady);
-    register.registerMetric(mongoDbConnectionReady);
-    // Enable the collection of default metrics
-    register.registerMetric(webSocketGaugeOcpp);
-    register.registerMetric(webSocketGaugeRest);
-    this.mapGauge.set(Constants.WEB_SOCKET_OCPP16_OPEN_COUNT, webSocketGaugeOcpp);
-    this.mapGauge.set(Constants.WEB_SOCKET_REST_OPEN_COUNT, webSocketGaugeRest);
+    this.createGaugeMetric(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT, 'The number of ocpp web sockets');
+    this.createGaugeMetric(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT, 'The number of rest web sockets');
+    this.createGaugeMetric(Constants.WEB_SOCKET_QUEUED_REQUEST, 'The number of web sockets that are queued');
+    this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST, 'The number of web sockets that are running');
+    this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE, 'The number of web sockets request + response that are running');
+    this.createGaugeMetric(Constants.MONGODB_CONNECTION_READY, 'The number of connection that are ready');
+    this.createGaugeMetric(Constants.MONGODB_CONNECTION_CREATED, 'The number of connection created');
+    this.createGaugeMetric(Constants.MONGODB_CONNECTION_CLOSED, 'The number of connection closed');
+
+
     // Create HTTP Server
     this.expressApplication = ExpressUtils.initApplication();
     // Handle requests
@@ -83,8 +46,8 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
         // Trace Request
         await Logging.traceExpressRequest(req, res, next, ServerAction.MONITORING);
         // Process
-        res.setHeader('Content-Type', register.contentType);
-        res.end(await register.metrics());
+        res.setHeader('Content-Type', this.clientRegistry.contentType);
+        res.end(await this.clientRegistry.metrics());
         next();
         // Trace Response
         Logging.traceExpressResponse(req, res, next, ServerAction.MONITORING);
@@ -94,9 +57,10 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     ExpressUtils.postInitApplication(this.expressApplication);
   }
 
-  public	getGauge(name: string): client.Gauge | undefined {
+  public getGauge(name: string): client.Gauge | undefined {
     return this.mapGauge.get(name) ;
   }
+
 
   public	getCounter(name: string): client.Counter | undefined {
     return this.mapCounter.get(name) ;
@@ -106,6 +70,16 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     global.monitoringServer = this;
     ServerUtils.startHttpServer(this.monitoringConfig,
       ServerUtils.createHttpServer(this.monitoringConfig, this.expressApplication), MODULE_NAME, ServerType.MONITORING_SERVER);
+  }
+
+  private createGaugeMetric(metricname : string, metrichelp : string) : void {
+    const gaugeMetric : client.Gauge = new client.Gauge({
+      name: metricname,
+      help: metrichelp
+    });
+    this.mapGauge.set(metricname, gaugeMetric);
+    this.clientRegistry.registerMetric(gaugeMetric);
+
   }
 }
 

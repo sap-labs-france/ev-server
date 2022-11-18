@@ -1,9 +1,9 @@
-import { Counter } from 'prom-client';
 import * as uWS from 'uWebSockets.js';
 
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
 import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Server';
 import { WebSocketAction, WebSocketCloseEventStatusCode, WebSocketPingResult } from '../../../types/WebSocket';
+
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
@@ -66,12 +66,6 @@ export default class JsonOCPPServer extends OCPPServer {
         // Convert right away
         const reason = Utils.convertBufferArrayToString(message);
         const wsWrapper = ws.wsWrapper as WSWrapper;
-        if (wsWrapper.url.startsWith('/OCPP16')) {
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP16_OPEN_COUNT).dec(1);
-        }
-        if (wsWrapper.url.startsWith('/REST')) {
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_OPEN_COUNT).dec(1);
-        }
         // Close
         wsWrapper.closed = true;
         await this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_CLOSE, code,
@@ -237,13 +231,11 @@ export default class JsonOCPPServer extends OCPPServer {
       if (wsWrapper.url.startsWith('/OCPP16')) {
         // Create and Initialize WS Connection
         await this.checkAndStoreWSOpenedConnection(WSServerProtocol.OCPP16, wsWrapper);
-        global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP16_OPEN_COUNT).inc(1);
       }
       // Check REST connection
       if (wsWrapper.url.startsWith('/REST')) {
         // Create and Initialize WS Connection
         await this.checkAndStoreWSOpenedConnection(WSServerProtocol.REST, wsWrapper);
-        global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_OPEN_COUNT).inc(1);
       }
     } catch (error) {
       await Logging.logException(error, ServerAction.WS_SERVER_CONNECTION_OPEN, MODULE_NAME, 'onOpen', Constants.DEFAULT_TENANT_ID);
@@ -253,12 +245,6 @@ export default class JsonOCPPServer extends OCPPServer {
       // Close WS
       await this.closeWebSocket(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsWrapper, WebSocketCloseEventStatusCode.CLOSE_ABNORMAL,
         `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been rejected and closed by server due to an exception: ${error.message as string}`);
-      if (wsWrapper.url.startsWith('/OCPP16')) {
-        global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP16_OPEN_COUNT).dec(1);
-      }
-      if (wsWrapper.url.startsWith('/REST')) {
-        global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_OPEN_COUNT).dec(1);
-      }
     } finally {
       this.runningWSMessages--;
       this.releaseLockForWSMessageRequest(wsWrapper);
@@ -708,6 +694,12 @@ export default class JsonOCPPServer extends OCPPServer {
             `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
           ]
         });
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE).set(this.runningWSMessages);
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT).set(this.jsonRestWSConnections.size);
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRRENT_REQUEST).set(numberOfCurrentRequests);
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(Object.keys(this.runningWSRequestsMessages).length);
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_QUEUED_REQUEST).set(this.waitingWSMessages);
         if (this.isDebug()) {
           Logging.logConsoleDebug('=====================================');
           Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);

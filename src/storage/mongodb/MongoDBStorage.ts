@@ -280,14 +280,12 @@ export default class MongoDBStorage {
     const connections = new Set<any>();
     // Get the EVSE DB
     this.mongoDBClient = mongoDBClient;
-    mongoDBClient.on('connectionPoolCreated',
-      (event) => global.monitoringServer.getCounter(Constants.MONGODB_CONNECTION_POOL_CREATED).inc(1)
-    );
+
     mongoDBClient.on('connectionCreated',
-      (event) => global.monitoringServer.getCounter(Constants.MONGODB_CONNECTION_CREATED).inc(1)
+      (event) => global.monitoringServer.getGauge(Constants.MONGODB_CONNECTION_CREATED).inc(1)
     );
     mongoDBClient.on('connectionClosed',
-      (event) => global.monitoringServer.getCounter(Constants.MONGODB_CONNECTION_CLOSED).inc(1)
+      (event) => global.monitoringServer.getGauge(Constants.MONGODB_CONNECTION_CLOSED).inc(1)
     );
     mongoDBClient.on('connectionReady',
       (event) => {
