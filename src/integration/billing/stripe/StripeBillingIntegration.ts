@@ -822,9 +822,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   public async capturePayment(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult> {
     try {
       // Let's create a paymentIntent for the stripe customer
-      const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.capture(paymentIntentId, {
-        amount_to_capture: amount
-      });
+      const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,

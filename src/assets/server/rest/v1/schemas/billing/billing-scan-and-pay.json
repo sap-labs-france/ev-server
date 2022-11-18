@@ -24,6 +24,12 @@
       "type": "string",
       "sanitize": "mongo"
     },
+    "connectorId": {
+      "$ref": "chargingstation#/definitions/connector/properties/connectorId"
+    },
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
     "locale": {
       "$ref": "user#/definitions/locale"
     },
