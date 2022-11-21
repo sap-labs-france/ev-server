@@ -111,6 +111,7 @@ export enum Entity {
   PAYMENT_METHOD = 'PaymentMethod',
   SOURCE = 'Source',
   CONSUMPTION = 'Consumption',
+  SMART_CHARGING = 'SmartCharging'
 }
 
 export enum Action {
@@ -359,6 +360,13 @@ export interface TransactionAuthorizationActions extends AuthorizationActions {
   canExportOcpiCdr?: boolean;
   canListLogs?: boolean;
   canReadChargingStation?: boolean;
+}
+
+export interface SettingAuthorizationActions extends AuthorizationActions {
+  canSyncRefund?: boolean;
+  canCheckBillingConnection?: boolean;
+  canCheckSmartChargingConnection?: boolean;
+  canCheckAssetConnection?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {
