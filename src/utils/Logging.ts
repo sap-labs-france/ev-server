@@ -113,12 +113,12 @@ export default class Logging {
         gaugeRequestSizeMetric = global.monitoringServer.createGaugeMetric(gaugeRequestSizeMetricName, 'Db perf gauge request size');
       }
       gaugeRequestSizeMetric.set(sizeOfRequestDataKB);
-      const gaugeResponsetSizeMetricName = 'mongodb' + '_' + tenant.subdomain + '_ResponseSize_' + `${module}_${method}`;
-      let gaugeResponsetSizeMetric :client.Gauge = global.monitoringServer.getGauge(gaugeResponsetSizeMetricName);
-      if (!gaugeResponsetSizeMetric) {
-        gaugeResponsetSizeMetric = global.monitoringServer.createGaugeMetric(gaugeResponsetSizeMetricName, 'Db perf gauge response size');
+      const gaugeResponseSizeMetricName = 'mongodb' + '_' + tenant.subdomain + '_ResponseSize_' + `${module}_${method}`;
+      let gaugeResponseSizeMetric :client.Gauge = global.monitoringServer.getGauge(gaugeResponseSizeMetricName);
+      if (!gaugeResponseSizeMetric) {
+        gaugeResponseSizeMetric = global.monitoringServer.createGaugeMetric(gaugeResponseSizeMetricName, 'Db perf gauge response size');
       }
-      gaugeResponsetSizeMetric.set(sizeOfResponseDataKB);
+      gaugeResponseSizeMetric.set(sizeOfResponseDataKB);
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
