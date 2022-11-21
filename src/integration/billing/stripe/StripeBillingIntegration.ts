@@ -524,10 +524,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Let's do it!
     let billingOperationResult: BillingOperationResult;
     if (!paymentIntentID) {
-      // Let's create a setupPayment for the stripe customer
+      // Let's create a payment intent for the stripe customer
       billingOperationResult = await this.createPaymentIntent(user, customerID);
     } else {
-      // Capture amount
+      // Capture amount // TODO on passe pas là pour l'instant
       billingOperationResult = await this.capturePayment(user, 100, paymentIntentID);
     }
     return billingOperationResult;

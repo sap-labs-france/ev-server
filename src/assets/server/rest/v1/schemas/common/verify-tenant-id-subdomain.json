@@ -15,6 +15,9 @@
     "Subdomain": {
       "$ref": "common#/definitions/authSubdomain"
     },
+    "subdomain": {
+      "$ref": "common#/definitions/authSubdomain"
+    },
     "TenantID": {
       "$ref": "common#/definitions/id"
     }

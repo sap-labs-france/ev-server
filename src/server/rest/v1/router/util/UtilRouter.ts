@@ -31,33 +31,29 @@ export default class UtilRouter {
     this.buildRouteGetTenantEmailLogo();
     this.buildRouteBillingRefreshAccount();
     this.buildRouteBillingActivateAccount();
-    this.buildRouteBillingSettingScanAndPay();
-    this.buildRouteScanAndPayPaymentMethodSetup();
-    this.buildRouteScanAndPayPaymentMethodAttach();
+    this.buildRouteScanPayBillingSetting();
+    this.buildRouteScanPayPaymentIntentSetup();
+    this.buildRouteScanPayPaymentIntentCapture();
     return this.router;
   }
 
-  private buildRouteBillingSettingScanAndPay(): void {
+  private buildRouteScanPayBillingSetting(): void {
     this.router.get(`/${RESTServerRoute.REST_BILLING_SETTING_SCAN_AND_PAY}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleRestServerAction(BillingService.handleGetBillingSettingScanAndPay.bind(this), ServerAction.SETTINGS_SCAN_AND_PAY, req, res, next);
+      void RouterUtils.handleRestServerAction(BillingService.handleGetBillingSettingScanPay.bind(this), ServerAction.SCAN_PAY_BILLING_SETTING, req, res, next);
     });
   }
 
-  private buildRouteScanAndPayPaymentMethodSetup(): void {
-    this.router.post(`/${RESTServerRoute.REST_SCAN_AND_PAY_PAYMENT_METHOD_SETUP}`, (req: Request, res: Response, next: NextFunction) => {
-      // req.body.email = req.params.email;
-      // req.body.name = req.params.name;
-      // req.body.firstName = req.params.firstName;
-      // req.body.siteAreaID = req.params.siteAreaID;
-      // req.params.siteAreaID =
-      void RouterUtils.handleRestServerAction(BillingService.handleScanAndPaySetupPaymentMethod.bind(this), ServerAction.SCAN_AND_PAY_SETUP_PAYMENT_METHOD, req, res, next);
+  private buildRouteScanPayPaymentIntentSetup(): void {
+    this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_PAYMENT_INTENT_SETUP}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(BillingService.handleScanPayPaymentIntentSetup.bind(this), ServerAction.SCAN_PAY_PAYMENT_INTENT_SETUP, req, res, next);
     });
   }
 
-  private buildRouteScanAndPayPaymentMethodAttach(): void {
-    this.router.post(`/${RESTServerRoute.REST_SCAN_AND_PAY_PAYMENT_METHOD_ATTACH}`, (req: Request, res: Response, next: NextFunction) => {
+  // TODO : we don't use it
+  private buildRouteScanPayPaymentIntentCapture(): void {
+    this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_PAYMENT_INTENT_CAPTURE}`, (req: Request, res: Response, next: NextFunction) => {
       // Creates a new payment method and attach it to the user as its default
-      void RouterUtils.handleRestServerAction(BillingService.handleScanAndPaySetupPaymentMethod.bind(this), ServerAction.SCAN_AND_PAY_ATTACH_PAYMENT_METHOD, req, res, next);
+      void RouterUtils.handleRestServerAction(BillingService.handleScanPayPaymentIntentSetup.bind(this), ServerAction.SCAN_PAY_PAYMENT_INTENT_CAPTURE, req, res, next);
     });
   }
 

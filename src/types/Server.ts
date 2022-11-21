@@ -303,7 +303,6 @@ export enum ServerAction {
   USER_ACCOUNT_VERIFICATION = 'UserAccountVerification',
   USER_CREATE_PASSWORD = 'UserCreatePassword',
   ADMIN_ACCOUNT_VERIFICATION = 'AdminAccountVerificationNotification',
-  SCAN_PAY_VERIFY_EMAIL = 'ScanPayVerifyEmail',
 
   UPDATE_LOCAL_CAR_CATALOGS = 'UpdateLocalCarCatalogs',
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
@@ -403,9 +402,6 @@ export enum ServerAction {
 
   SETTING_CREATE = 'SettingCreate',
   SETTING_BY_IDENTIFIER = 'SettingByIdentifier',
-  SETTINGS_SCAN_AND_PAY = 'SettingsScanAndPay',
-  SCAN_AND_PAY_SETUP_PAYMENT_METHOD = 'ScanAndPaySetupPaymentMethod',
-  SCAN_AND_PAY_ATTACH_PAYMENT_METHOD = 'ScanAndPayAttachPaymentMethod',
   SETTINGS = 'Settings',
   SETTING = 'Setting',
   SETTING_UPDATE = 'SettingUpdate',
@@ -477,6 +473,11 @@ export enum ServerAction {
   BILLING_TRANSFER_FINALIZE = 'BillingTransferFinalize',
   BILLING_TRANSFER_SEND = 'BillingTransferSend',
   BILLING_TRANSFER_DISPATCH_FUNDS = 'BillingTransferDispatchFunds',
+
+  SCAN_PAY_BILLING_SETTING = 'ScanPayBillingSettings',
+  SCAN_PAY_PAYMENT_INTENT_SETUP = 'ScanPayPaymentIntentSetup',
+  SCAN_PAY_PAYMENT_INTENT_CAPTURE = 'ScanPayPaymentIntentCapture',
+  SCAN_PAY_VERIFY_EMAIL = 'ScanPayVerifyEmail',
 
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',
@@ -718,6 +719,12 @@ export enum RESTServerRoute {
   REST_BILLING_ACCOUNT_REFRESH = 'billing/accounts/:id/refresh',
   REST_BILLING_ACCOUNT_ACTIVATE = 'billing/accounts/:id/activate',
 
+  // BILLING / SCAN AND PAY
+  REST_SCAN_PAY_VERIFY_EMAIL = 'billing/scan-pay/verify-email',
+  REST_BILLING_SETTING_SCAN_AND_PAY = 'billing/scan-pay/billing-settings',
+  REST_SCAN_PAY_PAYMENT_INTENT_SETUP = 'billing/scan-pay/setup',
+  REST_SCAN_PAY_PAYMENT_INTENT_CAPTURE = 'billing/scan-pay/capture',
+
   // BILLING URLs for CRUD operations on INVOICES
   REST_BILLING_INVOICES = 'invoices',
   REST_BILLING_INVOICE = 'invoices/:invoiceID',
@@ -737,12 +744,6 @@ export enum RESTServerRoute {
 
   // PRICING URLs for Non-CRUD operations
   REST_PRICING_MODEL_RESOLVE = 'pricing-model/resolve',
-
-  // SCAN AND PAY
-  REST_SCAN_PAY_VERIFY_EMAIL = 'scan-pay/verify-email',
-  REST_BILLING_SETTING_SCAN_AND_PAY = 'billing-setting-scan-and-pay',
-  REST_SCAN_AND_PAY_PAYMENT_METHOD_SETUP = 'scan-pay/setup',
-  REST_SCAN_AND_PAY_PAYMENT_METHOD_ATTACH = 'scan-pay/attach',
 }
 
 export enum OCPIServerRoute {

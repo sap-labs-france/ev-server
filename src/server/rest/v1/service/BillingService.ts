@@ -20,7 +20,7 @@ import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationS
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import { HttpBillingScanAndPayRequest } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingScanPayRequest } from '../../../../types/requests/HttpBillingRequest';
 import I18nManager from '../../../../utils/I18nManager';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -280,10 +280,10 @@ export default class BillingService {
   }
 
   // handle user creation + create payment intent or capture if we already have a paymentmethod
-  public static async handleScanAndPaySetupPaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanAndPayReq(req.body);
+  public static async handleScanPayPaymentIntentSetup(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayReq(req.body);
     // on handle la creation du user là
-    const tag = await BillingService.handleUserScanAndPay(filteredRequest, req.tenant);
+    const tag = await BillingService.handleUserScanPay(filteredRequest, req.tenant);
     // Filter
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -481,7 +481,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleGetBillingSettingScanAndPay(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetBillingSettingScanPay(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get the entity from storage
     const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(
       req.tenant
@@ -785,7 +785,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-      authorizations.projectFields
+    authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
@@ -828,7 +828,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-      authorizations.projectFields
+    authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
@@ -958,7 +958,7 @@ export default class BillingService {
     next();
   }
 
-  private static async handleUserScanAndPay(filteredRequest: HttpBillingScanAndPayRequest, tenant: Tenant): Promise<Tag> {
+  private static async handleUserScanPay(filteredRequest: HttpBillingScanPayRequest, tenant: Tenant): Promise<Tag> {
     // Check if the user exist
     const foundUser = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
     if (foundUser) {
@@ -1002,7 +1002,7 @@ export default class BillingService {
       user: user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUserScanAndPay',
       message: `User with ID '${user.id}' has been created successfully`,
-      action: ServerAction.SCAN_AND_PAY_SETUP_PAYMENT_METHOD
+      action: ServerAction.SCAN_PAY_PAYMENT_INTENT_SETUP
     });
     return tag;
   }
