@@ -3,6 +3,7 @@ config
 users.json
 users-imported.json
 src/assets/config.json
+src/assets/config_*.json
 manifest.yml
 test/results
 test/results-eslint
@@ -89,3 +90,4 @@ Thumbs.db
 # MTA
 *.mta
 mta_archives/
+

@@ -92,6 +92,27 @@ export default class Bootstrap {
         });
       });
 
+
+      // -------------------------------------------------------------------------
+      // Start Monitoring Server
+      // -------------------------------------------------------------------------
+      if (Bootstrap.monitoringConfig) {
+        // Create server instance
+        Bootstrap.monitoringServer = MonitoringServerFactory.getMonitoringServerImpl(Bootstrap.monitoringConfig);
+        // Start server instance
+        if (Bootstrap.monitoringServer) {
+          Bootstrap.monitoringServer.start();
+        } else {
+          const message = `Monitoring Server implementation does not exist '${this.monitoringConfig.implementation}'`;
+          Logging.logConsoleError(message);
+          await Logging.logError({
+            tenantID: Constants.DEFAULT_TENANT_ID,
+            action: ServerAction.STARTUP,
+            module: MODULE_NAME, method: 'startServers', message
+          });
+        }
+      }
+
       // -------------------------------------------------------------------------
       // Connect to the DB
       // -------------------------------------------------------------------------
@@ -120,25 +141,7 @@ export default class Bootstrap {
         await this.logDuration(startTimeMillis, 'Migration has been run successfully');
       }
 
-      // -------------------------------------------------------------------------
-      // Start Monitoring Server
-      // -------------------------------------------------------------------------
-      if (Bootstrap.monitoringConfig) {
-        // Create server instance
-        Bootstrap.monitoringServer = MonitoringServerFactory.getMonitoringServerImpl(Bootstrap.monitoringConfig);
-        // Start server instance
-        if (Bootstrap.monitoringServer) {
-          Bootstrap.monitoringServer.start();
-        } else {
-          const message = `Monitoring Server implementation does not exist '${this.monitoringConfig.implementation}'`;
-          Logging.logConsoleError(message);
-          await Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT_ID,
-            action: ServerAction.STARTUP,
-            module: MODULE_NAME, method: 'startServers', message
-          });
-        }
-      }
+
 
       // -------------------------------------------------------------------------
       // Start all the Servers
