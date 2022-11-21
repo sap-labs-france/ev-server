@@ -294,20 +294,22 @@ export default class MongoDBStorage {
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
       }
     );
-    this.mongoDBClient.on('connectionCreated',
+    if (global.monitoringServer) {
+      this.mongoDBClient.on('connectionCreated',
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (event) => global.monitoringServer.getGauge(Constants.MONGODB_CONNECTION_CREATED).inc(1)
-    );
-    this.mongoDBClient.on('connectionClosed',
+        (event) => global.monitoringServer?.getGauge(Constants.MONGODB_CONNECTION_CREATED).inc(1)
+      );
+      this.mongoDBClient.on('connectionClosed',
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (event) => global.monitoringServer.getGauge(Constants.MONGODB_CONNECTION_CLOSED).inc(1)
-    );
-    this.mongoDBClient.on('connectionReady',
-      (event) => {
-        this.connections.add(event.connectionId);
-        global.monitoringServer.getGauge(Constants.MONGODB_CONNECTION_READY).set(this.connections.size);
-      }
-    );
+        (event) => global.monitoringServer?.getGauge(Constants.MONGODB_CONNECTION_CLOSED).inc(1)
+      );
+      this.mongoDBClient.on('connectionReady',
+        (event) => {
+          this.connections.add(event.connectionId);
+          global.monitoringServer?.getGauge(Constants.MONGODB_CONNECTION_READY).set(this.connections.size);
+        }
+      );
+    }
     this.database = this.mongoDBClient.db();
     // Keep a global reference
     global.database = this;
