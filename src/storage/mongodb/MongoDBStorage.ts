@@ -293,9 +293,6 @@ export default class MongoDBStorage {
         global.monitoringServer.getGauge(Constants.MONGODB_CONNECTION_READY).set(connections.size);
       }
     );
-    mongoDBClient.on('connectionPoolClosed',
-      (event) => global.monitoringServer.getCounter(Constants.MONGODB_CONNECTION_POOL_CLOSED).inc(1)
-    );
     this.database = this.mongoDBClient.db();
     // Keep a global reference
     global.database = this;

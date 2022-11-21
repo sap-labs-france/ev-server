@@ -1,21 +1,21 @@
 import { Application, NextFunction, Request, Response } from 'express';
 import { ServerAction, ServerType } from '../../types/Server';
+import client, { Counter, DefaultMetricsCollectorConfiguration, Gauge, Metric } from 'prom-client';
 
-import ExpressUtils from '../../server/ExpressUtils';
 import Constants from '../../utils/Constants';
+import ExpressUtils from '../../server/ExpressUtils';
 import Logging from '../../utils/Logging';
 import MonitoringConfiguration from '../../types/configuration/MonitoringConfiguration';
 import MonitoringServer from '../MonitoringServer';
 import { ServerUtils } from '../../server/ServerUtils';
-import client, { Counter, DefaultMetricsCollectorConfiguration, Gauge, Metric } from 'prom-client';
-const MODULE_NAME = 'PrometheusMonitoringServer';
 import global from '../../types/GlobalType';
+
+const MODULE_NAME = 'PrometheusMonitoringServer';
 
 export default class PrometheusMonitoringServer extends MonitoringServer {
   private monitoringConfig: MonitoringConfiguration;
   private expressApplication: Application;
   private mapGauge = new Map<string, Gauge>();
-  private mapCounter = new Map<string, Counter>();
   private clientRegistry = new client.Registry();
 
   public constructor(monitoringConfig: MonitoringConfiguration) {
@@ -35,8 +35,6 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     this.createGaugeMetric(Constants.MONGODB_CONNECTION_READY, 'The number of connection that are ready');
     this.createGaugeMetric(Constants.MONGODB_CONNECTION_CREATED, 'The number of connection created');
     this.createGaugeMetric(Constants.MONGODB_CONNECTION_CLOSED, 'The number of connection closed');
-
-
     // Create HTTP Server
     this.expressApplication = ExpressUtils.initApplication();
     // Handle requests
@@ -61,25 +59,20 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     return this.mapGauge.get(name) ;
   }
 
-
-  public	getCounter(name: string): client.Counter | undefined {
-    return this.mapCounter.get(name) ;
-  }
-
   public start(): void {
     global.monitoringServer = this;
     ServerUtils.startHttpServer(this.monitoringConfig,
       ServerUtils.createHttpServer(this.monitoringConfig, this.expressApplication), MODULE_NAME, ServerType.MONITORING_SERVER);
   }
 
-  private createGaugeMetric(metricname : string, metrichelp : string) : void {
+  public createGaugeMetric(metricname : string, metrichelp : string) : Gauge {
     const gaugeMetric : client.Gauge = new client.Gauge({
       name: metricname,
       help: metrichelp
     });
     this.mapGauge.set(metricname, gaugeMetric);
     this.clientRegistry.registerMetric(gaugeMetric);
-
+    return gaugeMetric;
   }
-}
 
+}
