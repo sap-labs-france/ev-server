@@ -718,7 +718,8 @@ export default abstract class BillingIntegration {
 
   public abstract setupPaymentIntent(user: User, paymentIntentID: string): Promise<BillingOperationResult>;
 
-  public abstract capturePayment(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult>;
+  // public abstract capturePayment(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult>;
+  public abstract retrievePaymentIntent(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult>;
 
   public async isUserSynchronized(user: User): Promise<boolean> {
     // Make sure to get fresh data
