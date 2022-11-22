@@ -958,6 +958,14 @@ export default class BillingService {
     const foundUser = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
     if (foundUser) {
       const tag = await TagStorage.getDefaultUserTag(tenant, foundUser.id);
+      if (!tag) {
+        throw new AppError({
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `User '${foundUser.id}' does not have any badge`,
+          module: MODULE_NAME, method: 'handleUserScanPay',
+          user: foundUser
+        });
+      }
       tag.user = foundUser;
       return tag;
     }
