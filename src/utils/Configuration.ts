@@ -30,6 +30,7 @@ import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfig
 import chalk from 'chalk';
 import fs from 'fs';
 import global from './../types/GlobalType';
+import Utils from './Utils';
 
 const MODULE_NAME = 'Configuration';
 
@@ -288,16 +289,20 @@ export default class Configuration {
   private static getConfig(): ConfigurationData {
     if (!Configuration.config) {
       let configuration: ConfigurationData;
-      // K8s
-      if (fs.existsSync('/config/config.json')) {
+      if (process.env.SERVER_ROLE) {
         configuration = JSON.parse(
-          fs.readFileSync('/config/config.json', 'utf8')) as ConfigurationData;
-      // AWS
+          fs.readFileSync(`${global.appRoot}/assets/config_` + process.env.SERVER_ROLE + '.json', 'utf8')) as ConfigurationData;
       } else {
-        configuration = JSON.parse(
-          fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
+        // K8s
+        if (fs.existsSync('/config/config.json')) {
+          configuration = JSON.parse(
+            fs.readFileSync('/config/config.json', 'utf8')) as ConfigurationData;
+          // AWS
+        } else {
+          configuration = JSON.parse(
+            fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
+        }
       }
-      // Validate
       Configuration.config = ConfigurationValidatorStorage.getInstance().validateConfigurationSave(configuration);
     }
     return Configuration.config;
