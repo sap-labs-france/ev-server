@@ -208,8 +208,6 @@ export interface VerificationEmailNotification extends BaseNotification {
 
 export interface ScanPayVerifyEmailNotification extends BaseNotification {
   user: User;
-  // siteAreaID already sent via url
-  siteAreaID?: string;
   tenantName?: string;
   evseDashboardURL: string;
   evseDashboardVerifyScanPayEmailURL: string;

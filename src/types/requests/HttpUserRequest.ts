@@ -92,6 +92,8 @@ export interface HttpScanPayVerifyEmailRequest {
   siteAreaID: string;
   name?: string;
   firstName?: string;
+  connectorID: string;
+  chargingStationID: string;
 }
 
 export interface HttpCheckEulaRequest {
