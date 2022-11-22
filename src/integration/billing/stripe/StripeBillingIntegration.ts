@@ -527,7 +527,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Let's create a payment intent for the stripe customer
       billingOperationResult = await this.createPaymentIntent(user, customerID);
     } else {
-      // Capture amount // TODO on passe pas là pour l'instant
+      // Retrieve payment intent
       billingOperationResult = await this.retrievePaymentIntent(user, 100, paymentIntentID);
     }
     return billingOperationResult;
