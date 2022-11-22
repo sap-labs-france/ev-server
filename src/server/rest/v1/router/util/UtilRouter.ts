@@ -45,15 +45,15 @@ export default class UtilRouter {
 
   private buildRouteScanPayPaymentIntentSetup(): void {
     this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_PAYMENT_INTENT_SETUP}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleRestServerAction(BillingService.handleScanPayPaymentIntentSetup.bind(this), ServerAction.SCAN_PAY_PAYMENT_INTENT_SETUP, req, res, next);
+      // Step #1 - Creates user and payment intent
+      void RouterUtils.handleRestServerAction(BillingService.handleScanPayPaymentIntent.bind(this), ServerAction.SCAN_PAY_PAYMENT_INTENT_SETUP, req, res, next);
     });
   }
 
-  // TODO : we don't use it
   private buildRouteScanPayPaymentIntentCapture(): void {
-    this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_PAYMENT_INTENT_CAPTURE}`, (req: Request, res: Response, next: NextFunction) => {
-      // Creates a new payment method and attach it to the user as its default
-      void RouterUtils.handleRestServerAction(BillingService.handleScanPayPaymentIntentSetup.bind(this), ServerAction.SCAN_PAY_PAYMENT_INTENT_CAPTURE, req, res, next);
+    this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_PAYMENT_INTENT_RETRIEVE}`, (req: Request, res: Response, next: NextFunction) => {
+      // Step #2 - Validates the payment intent once credit card has been approved - prepare for capturing once session is ended
+      void RouterUtils.handleRestServerAction(BillingService.handleScanPayPaymentIntent.bind(this), ServerAction.SCAN_PAY_PAYMENT_INTENT_RETRIEVE, req, res, next);
     });
   }
 

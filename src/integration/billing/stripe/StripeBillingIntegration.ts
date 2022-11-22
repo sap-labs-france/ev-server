@@ -528,7 +528,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       billingOperationResult = await this.createPaymentIntent(user, customerID);
     } else {
       // Capture amount // TODO on passe pas là pour l'instant
-      billingOperationResult = await this.capturePayment(user, 100, paymentIntentID);
+      billingOperationResult = await this.retrievePaymentIntent(user, 100, paymentIntentID);
     }
     return billingOperationResult;
   }
@@ -819,16 +819,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  public async capturePayment(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult> {
+  public async retrievePaymentIntent(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult> {
     try {
-      // Let's create a paymentIntent for the stripe customer
+      // Let's retrieve the paymentIntent for the stripe customer
       const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: 'capturePayment',
+        module: MODULE_NAME, method: 'retrievePayment',
         actionOnUser: user,
-        message: `Amount has been captured - customer '${user.billingData.customerID}'`
+        message: 'payment intent has been retrieve, happy to hear about it ?'
       });
       // Send some feedback
       return {
@@ -866,7 +866,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: 'createSetupIntent',
+        module: MODULE_NAME, method: 'createPaymentIntent',
         actionOnUser: user,
         message: `Payment intent has been created - customer '${customerID}'`
       });
@@ -890,7 +890,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     }
   }
-
 
   private async checkStripeCustomer(customerID: string): Promise<Stripe.Customer> {
     const customer = await this.getStripeCustomer(customerID);
