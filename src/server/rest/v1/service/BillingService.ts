@@ -280,7 +280,7 @@ export default class BillingService {
   }
 
   // handle user creation + create payment intent or capture if we already have a paymentmethod
-  public static async handleScanPayPaymentIntentSetup(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleScanPayPaymentIntent(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayReq(req.body);
     // on handle la creation du user là
     const tag = await BillingService.handleUserScanPay(filteredRequest, req.tenant);
@@ -290,7 +290,7 @@ export default class BillingService {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleScanAndPaySetupPaymentMethod',
+        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
         action: action,
         user: req.user
       });
