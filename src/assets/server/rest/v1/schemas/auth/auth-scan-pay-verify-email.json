@@ -25,11 +25,19 @@
     },
     "siteAreaID": {
       "$ref": "asset#/definitions/siteAreaID"
+    },
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "connectorID": {
+      "$ref": "chargingstation#/definitions/id"
     }
   },
   "required": [
     "email",
     "captcha",
-    "siteAreaID"
+    "siteAreaID",
+    "chargingStationID",
+    "connectorID"
   ]
 }

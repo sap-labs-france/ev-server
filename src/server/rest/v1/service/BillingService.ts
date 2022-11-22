@@ -302,7 +302,7 @@ export default class BillingService {
       // Get the OCPP Client
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
       // Execute start transaction
-      await this.executeChargingStationStartTransaction(tag, filteredRequest.connectorId, chargingStationClient);
+      await BillingService.executeChargingStationStartTransaction(tag, filteredRequest.connectorID, chargingStationClient);
     }
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);

@@ -24,7 +24,7 @@
       "type": "string",
       "sanitize": "mongo"
     },
-    "connectorId": {
+    "connectorID": {
       "$ref": "chargingstation#/definitions/connector/properties/connectorId"
     },
     "chargingStationID": {
@@ -39,6 +39,8 @@
   },
   "required": [
     "email",
-    "siteAreaID"
+    "siteAreaID",
+    "connectorID",
+    "chargingStationID"
   ]
 }
