@@ -1,3 +1,4 @@
+import MonitoringServer from '../monitoring/MonitoringServer';
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from './Billing';
 import { Car, CarCatalog } from './Car';
 import ChargingStation, { ChargingStationTemplate, Connector } from './ChargingStation';
@@ -95,6 +96,7 @@ interface TSGlobal extends Global {
   centralSystemJsonServer: JsonOCPPServer;
   centralSystemSoapServer: SoapOCPPServer;
   serverType: ServerType;
+  monitoringServer : MonitoringServer;
   Promise: any;
 }
 
