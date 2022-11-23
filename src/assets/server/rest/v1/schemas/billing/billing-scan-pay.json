@@ -39,8 +39,6 @@
   },
   "required": [
     "email",
-    "siteAreaID",
-    "connectorID",
-    "chargingStationID"
+    "siteAreaID"
   ]
 }
