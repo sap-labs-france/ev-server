@@ -226,12 +226,12 @@ describe('User', () => {
           testData.createdTags.push(testData.newTag);
           // Retrieve it
           response = await testData.userService.userApi.getUserSessionContext({
-            userID: testData.newUser.id, chargingStationID: testData.chargingStationContext.getChargingStation().id });
+            userID: testData.newUser.id, chargingStationID: testData.chargingStationContext.getChargingStation().id, connectorID: 1 });
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.tag.visualID).to.be.eq(testData.newTag.visualID);
           expect(response.data.car).to.be.undefined;
           expect(response.data.errorCodes).to.be.not.null;
-          expect(response.data.prioritizationParameters).to.be.undefined;
+          expect(response.data.smartChargingSessionParameters).to.be.null;
         });
 
         it('Should get the user default car tag with deprecated method', async () => {

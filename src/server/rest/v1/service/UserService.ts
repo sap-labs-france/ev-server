@@ -114,7 +114,7 @@ export default class UserService {
         if (Utils.getChargingStationCurrentType(chargingStation, null, filteredRequest.ConnectorID) === CurrentType.DC) {
           smartChargingSessionParameters.departureTime = null;
           smartChargingSessionParameters.carStateOfCharge = null;
-        } else if (car.carConnectorData?.carConnectorMeterID) {
+        } else if (car.carConnectorData?.carConnectorID) {
           smartChargingSessionParameters.carStateOfCharge = null;
         }
       }
