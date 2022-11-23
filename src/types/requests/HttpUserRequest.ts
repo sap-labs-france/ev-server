@@ -120,4 +120,5 @@ export interface HttpUserDefaultTagCarGetRequest {
 export interface HttpUserSessionContextGetRequest {
   UserID: string;
   ChargingStationID: string;
+  ConnectorID: number;
 }

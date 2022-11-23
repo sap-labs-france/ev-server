@@ -6825,6 +6825,9 @@
           },
           {
             "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorID"
           }
         ],
         "tags": [

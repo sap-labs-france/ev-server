@@ -63,6 +63,6 @@ export default class UserApi extends CrudApi {
 
   public async getUserSessionContext(params) {
     const url = this.buildRestEndpointUrl(RESTServerRoute.REST_USER_SESSION_CONTEXT, { id: params.userID });
-    return super.read({ ChargingStationID: params.chargingStationID }, url);
+    return super.read({ ChargingStationID: params.chargingStationID, ConnectorID: params.ConnectorID }, url);
   }
 }
