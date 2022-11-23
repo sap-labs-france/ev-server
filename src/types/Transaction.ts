@@ -207,3 +207,9 @@ export interface CollectedFundReport {
   totalDurationSecs: number,
   transactionIDs: number[],
 }
+
+export interface SmartChargingSessionParameters {
+  departureTime: number,
+  carStateOfCharge: number,
+  targetStateOfCharge: number,
+}

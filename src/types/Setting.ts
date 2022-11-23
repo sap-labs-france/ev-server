@@ -207,6 +207,7 @@ export interface SapSmartChargingSetting extends SmartChargingSetting {
   stickyLimitation: boolean;
   limitBufferDC: number;
   limitBufferAC: number;
+  prioritizationParametersActive?: boolean;
 }
 
 export enum RefundSettingsType {
