@@ -1279,7 +1279,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const currency = billingInvoiceItem.currency.toLowerCase();
     // Check whether a DRAFT invoice can be used or not
     let stripeInvoice: Stripe.Invoice = null;
-    if (!this.settings.billing?.immediateBillingAllowed) {
+    if (!this.settings.billing?.immediateBillingAllowed) { // et que on n'est PAS en scan and pay
       // immediateBillingAllowed is OFF - let's retrieve to the latest DRAFT invoice (if any)
       stripeInvoice = await this.getLatestDraftInvoiceOfTheMonth(this.tenant.id, userID, customerID);
     }

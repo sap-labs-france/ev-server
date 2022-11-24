@@ -3543,6 +3543,61 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
     ]
   },
+  external: {
+    grants: [
+      { resource: Entity.TRANSACTION, action: Action.GET_ACTIVE_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
+        ]
+      },
+      { resource: Entity.TRANSACTION, action: [Action.REMOTE_STOP_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        }
+      },
+      { resource: Entity.CHARGING_STATION, action: [Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION, Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE],
+        // condition: {
+        //   Fn: 'custom:dynamicAuthorizations',
+        //   args: {
+        //     asserts: [],
+        //     filters: ['AssignedSites']
+        //   }
+        // },
+      },
+      // { resource: Entity.CONNECTOR, action: Action.REMOTE_START_TRANSACTION,
+      //   condition: {
+      //     Fn: 'custom:dynamicAuthorizations',
+      //     args: {
+      //       asserts: [],
+      //       filters: ['AssignedSites'],
+      //     }
+      //   },
+      // },
+      // { resource: Entity.CHARGING_STATION,
+      //   action: [Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE, Action.GET_CONNECTOR_QR_CODE],
+      //   condition: {
+      //     Fn: 'custom:dynamicAuthorizations',
+      //     args: {
+      //       asserts: [],
+      //       filters: ['AssignedSites', 'LocalIssuer']
+      //     }
+      //   },
+      // },
+    ]
+  },
 };
 
 export const AUTHORIZATION_CONDITIONS: IDictionary<IFunctionCondition> = {

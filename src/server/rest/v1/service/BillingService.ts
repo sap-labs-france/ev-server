@@ -16,7 +16,9 @@ import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import BillingValidatorRest from '../validator/BillingValidatorRest';
 import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
+import ChargingStationService from './ChargingStationService';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationValidatorRest from '../validator/ChargingStationValidatorRest';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
@@ -31,6 +33,8 @@ import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import TransactionService from './TransactionService';
+import UserService from './UserService';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -303,6 +307,24 @@ export default class BillingService {
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
       // Execute start transaction
       await BillingService.executeChargingStationStartTransaction(tag, filteredRequest.connectorID, chargingStationClient);
+
+      // Filter
+      // const remoteStartRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStartReq(req.body);
+      // Check dynamic auth
+      // const { chargingStation } = await TransactionService.checkAndGetChargingStationConnector(
+      //   action, req.tenant, req.user, remoteStartRequest.chargingStationID, remoteStartRequest.args.connectorId, Action.REMOTE_START_TRANSACTION);
+      // const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.chargingStationID);
+      // Handle the routing
+      // if (chargingStation.issuer) {
+      //   // OCPP Remote Start
+      //   await ChargingStationService.handleOcppAction(
+      //     ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, req, res, next);
+      // } else {
+      //   // OCPI Remote Start
+      //   await ChargingStationService.handleOcpiAction(
+      //     ServerAction.OCPI_EMSP_START_SESSION, req, res, next);
+      // }
+
     }
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
@@ -983,11 +1005,13 @@ export default class BillingService {
       firstName: filteredRequest.firstName,
       email: filteredRequest.email,
       locale: locale,
-      status: UserStatus.PENDING,
-      role: UserRole.BASIC,
     } as User;
     // Create the User
     user.id = await UserStorage.saveUser(tenant, user, true);
+    // Save User Status
+    await UserStorage.saveUserStatus(tenant, user.id, UserStatus.ACTIVE);
+    // Save User Role
+    await UserStorage.saveUserRole(tenant, user.id, UserRole.EXTERNAL);
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(locale);
     // Create tag for the user
