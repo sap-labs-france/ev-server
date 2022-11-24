@@ -34,28 +34,6 @@
             "user": {
               "type": "string",
               "sanitize": "mongo"
-            },
-            "usePrioritizationParameters": {
-              "type": "boolean",
-              "sanitize": "mongo"
-            },
-            "defaultSessionTimeHours" : {
-              "type": "number",
-              "sanitize": "mongo",
-              "minimum": 1,
-              "maximum": 20
-            },
-            "defaultInitialStateOfCharge": {
-              "type": "number",
-              "sanitize": "mongo",
-              "minimum": 1,
-              "maximum": 100
-            },
-            "defaultTargetStateOfCharge": {
-              "type": "number",
-              "sanitize": "mongo",
-              "minimum": 1,
-              "maximum": 100
             }
           }
         },

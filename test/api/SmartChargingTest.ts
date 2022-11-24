@@ -69,7 +69,7 @@ class TestData {
     sapSmartChargingSettings.stickyLimitation = false;
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
     smartChargingIntegrationWithoutStickyLimit = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant());
-    sapSmartChargingSettings.usePrioritizationParameters = false;
+    sapSmartChargingSettings.prioritizationParametersActive = false;
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
     smartChargingIntegrationWithoutPriorities = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant());
     expect(smartChargingIntegration).to.not.be.null;
@@ -86,10 +86,7 @@ class TestData {
       stickyLimitation: config.get('smartCharging.stickyLimitation'),
       limitBufferAC: config.get('smartCharging.limitBufferAC'),
       limitBufferDC: config.get('smartCharging.limitBufferDC'),
-      usePrioritizationParameters: config.get('smartCharging.usePrioritizationParameters'),
-      defaultSessionTimeHours:config.get('smartCharging.defaultSessionTimeHours'),
-      defaultInitialStateOfCharge: config.get('smartCharging.defaultInitialStateOfCharge'),
-      defaultTargetStateOfCharge: config.get('smartCharging.defaultTargetStateOfCharge'),
+      prioritizationParametersActive: config.get('smartCharging.prioritizationParametersActive'),
     } as SapSmartChargingSetting;
   }
 

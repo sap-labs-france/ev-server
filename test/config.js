@@ -321,26 +321,11 @@ const config = convict({
       format: Number,
       default: ''
     },
-    usePrioritizationParameters: {
+    prioritizationParametersActive: {
       doc: 'Use prioritization parameters',
       format: Boolean,
       default: ''
     },
-    defaultSessionTimeHours: {
-      doc: 'Default session time',
-      format: Number,
-      default: ''
-    },
-    defaultInitialStateOfCharge: {
-      doc: 'Default initial state of charge',
-      format: Number,
-      default: ''
-    },
-    defaultTargetStateOfCharge: {
-      doc: 'Default target state of charge',
-      format: Number,
-      default: ''
-    }
   },
   assetConnectors: {
     ioThink: {

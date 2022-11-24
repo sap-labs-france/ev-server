@@ -561,7 +561,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         customCar.maxCurrent = customCar.maxCurrentPerPhase * 3;
       }
     }
-    if (this.setting.usePrioritizationParameters) {
+    if (this.setting.prioritizationParametersActive) {
       this.handleCurrentStateOfCharge(customCar, transaction);
       this.handleTargetStateOfCharge(customCar, transaction);
       this.handleTimestampDeparture(customCar, transaction, currentType);
@@ -578,7 +578,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       customCar.startCapacity = (transaction.carStateOfCharge / 100) * customCar.maxCapacity;
     // Handle if no state of charge is available
     } else {
-      customCar.startCapacity = ((this.setting.defaultInitialStateOfCharge ?? 25) / 100) * customCar.maxCapacity;
+      customCar.startCapacity = (25 / 100) * customCar.maxCapacity;
     }
     // Adjust battery size, when coming close to 100% state of charge (otherwise car would be suspended, also when not fully charged in real life)
     if ((customCar.chargedCapacity + customCar.startCapacity) > (0.9 * customCar.maxCapacity)) {
@@ -592,7 +592,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       customCar.minLoadingState = (transaction.targetStateOfCharge / 100) * customCar.maxCapacity;
     // Handle if no state of charge is available
     } else {
-      customCar.minLoadingState = ((this.setting.defaultTargetStateOfCharge ?? 50) / 100) * customCar.maxCapacity;
+      customCar.minLoadingState = (50 / 100) * customCar.maxCapacity;
     }
   }
 
@@ -605,7 +605,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       optimizerCar.timestampDeparture = moment(transaction.timestamp).add(1, 'hours').diff(moment(), 'seconds');
     } else {
       // If not available set current time plus default hours
-      optimizerCar.timestampDeparture = moment(transaction.timestamp).add(this.setting.defaultSessionTimeHours ?? 8, 'hours').diff(moment(), 'seconds');
+      optimizerCar.timestampDeparture = moment(transaction.timestamp).add(8, 'hours').diff(moment(), 'seconds');
     }
     // Check if timestamp departure is in the past
     if (optimizerCar.timestampDeparture <= 0) {
