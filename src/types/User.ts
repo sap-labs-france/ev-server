@@ -99,6 +99,7 @@ export enum UserRole {
   ADMIN = 'A',
   BASIC = 'B',
   DEMO = 'D',
+  EXTERNAL = 'E',
 }
 
 export const UserRequiredImportProperties = [

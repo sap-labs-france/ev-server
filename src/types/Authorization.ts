@@ -7,6 +7,7 @@ export interface AuthorizationDefinition {
   demo: AuthorizationDefinitionRole;
   siteAdmin: AuthorizationDefinitionRole;
   siteOwner: AuthorizationDefinitionRole;
+  external: AuthorizationDefinitionRole;
 }
 export interface AuthorizationDefinitionRole {
   grants: AuthorizationDefinitionGrant[];
