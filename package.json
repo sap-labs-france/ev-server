@@ -1,6 +1,6 @@
 {
   "name": "ev-server",
-  "version": "2.7.4",
+  "version": "2.7.5",
   "engines": {
     "node": "16.x.x",
     "npm": "8.x.x"
@@ -30,8 +30,10 @@
     "start": "npm version && npm run start:prod",
     "start:dev": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development-build node -r source-map-support/register dist/start.js",
     "start:dev:debug": "npm version && cross-env NODE_ENV=development ts-node-dev --inspect --files --max-old-space-size=4096 -- src/start.ts",
-    "start:dev:debug:nodemon": "npm version && nodemon --exec 'ts-node --files' src/start.ts 9229",
-    "start:dev:nodemon": "npm version && nodemon --exec 'ts-node --files' src/start.ts",
+    "start:dev:debug:ocppj": "npm version && cross-env SERVER_ROLE=ocppj NODE_ENV=development ts-node-dev --inspect --files --max-old-space-size=4096 -- src/start.ts",
+    "start:dev:debug:rest": "npm version && cross-env SERVER_ROLE=rest NODE_ENV=development ts-node-dev --inspect --files --max-old-space-size=4096 -- src/start.ts",
+    "start:dev:debug:nodemon": "npm version && nodemon --exec \"ts-node --files\" src/start.ts 9229",
+    "start:dev:nodemon": "npm version && nodemon --exec \"ts-node --files\" src/start.ts",
     "start:dev:prof": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development node -r source-map-support/register --prof -- dist/start.js",
     "start:dev:doctorprof": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic doctor -- node -r source-map-support/register dist/start.js",
     "start:dev:flameprof": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic flame -- node -r source-map-support/register dist/start.js",
@@ -89,8 +91,8 @@
     "test:template": "npm run test:jest -- test/api/ChargingStationTemplateTest.ts",
     "test:ut-template": "npm run test:jest -- test/api/UnitTestTemplate.ts",
     "test:user": "npm run test:jest -- test/api/UserTest.ts",
-    "test:email": "cross-env NODE_ENV=development jest --config='test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- test/**/EmailTest.ts",
-    "test:jest": "npm version && cross-env cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit"
+    "test:email": "npm run test:jest -- test/api/EmailTest.ts",
+    "test:jest": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit"
   },
   "dependencies": {
     "ajv": "^8.11.0",

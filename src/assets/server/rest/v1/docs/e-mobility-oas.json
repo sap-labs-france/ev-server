@@ -6811,6 +6811,77 @@
         }
       }
     },
+    "/api/users/{id}/session-context": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get the User's session context",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorID"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved user session context",
+            "content": {
+              "application/json": {
+                "example": {
+                  "tag": {
+                    "active": true,
+                    "description": "###",
+                    "id": "###",
+                    "default": "###"
+                  },
+                  "car": {
+                    "licensePlate": "###",
+                    "default": "###",
+                    "type": "#",
+                    "converter": {
+                      "powerWatts": "###",
+                      "numberOfPhases": "###"
+                    },
+                    "carCatalog": {
+                      "vehicleMake": "###",
+                      "vehicleModel": "###",
+                      "vehicleModelVersion": "###",
+                      "image": "###",
+                      "batteryCapacityFull": "###",
+                      "fastChargePowerMax": "###"
+                    },
+                    "id": "###"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/users/{id}/sites": {
       "get": {
         "security": [

@@ -18,12 +18,14 @@ import urlencode from 'urlencode';
 
 const MODULE_NAME = 'MongoDBStorage';
 
+
 export default class MongoDBStorage {
   private mongoDBClient: MongoClient;
   private database: Db;
   private dbPingFailed = 0;
   private readonly dbConfig: StorageConfiguration;
   private readonly migrationConfig: MigrationConfiguration;
+  private connections = new Set<any>();
 
   // Create database access
   public constructor(dbConfig: StorageConfiguration) {
@@ -267,20 +269,51 @@ export default class MongoDBStorage {
     }
     // Connect to EVSE
     Logging.logConsoleDebug(`Connecting to '${mongoUrl}'`);
-    const mongoDBClient = await MongoClient.connect(
+    // Connection pool size
+    let minPoolSize: number, maxPoolSize: number;
+    if (this.dbConfig.minPoolSize && this.dbConfig.maxPoolSize) {
+      // New configuration (K8S)
+      minPoolSize = this.dbConfig.minPoolSize;
+      maxPoolSize = this.dbConfig.maxPoolSize;
+    } else if (this.dbConfig.poolSize) {
+      // Legacy configuration (AWS FARGATE)
+      minPoolSize = Math.floor(this.dbConfig.poolSize / 2);
+      maxPoolSize = this.dbConfig.poolSize;
+    } else {
+      // Default values
+      minPoolSize = 10;
+      maxPoolSize = 100;
+    }
+    // Mongo Client to EVSE DB
+    this.mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
-        minPoolSize: Math.floor(this.dbConfig.poolSize / 2),
-        maxPoolSize: this.dbConfig.poolSize,
+        minPoolSize,
+        maxPoolSize,
         loggerLevel: this.dbConfig.debug ? 'debug' : null,
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
       }
     );
-    // Get the EVSE DB
-    this.mongoDBClient = mongoDBClient;
+    if (global.monitoringServer) {
+      this.mongoDBClient.on('connectionCreated',
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        (event) => global.monitoringServer?.getGauge(Constants.MONGODB_CONNECTION_CREATED).inc(1)
+      );
+      this.mongoDBClient.on('connectionClosed',
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        (event) => global.monitoringServer?.getGauge(Constants.MONGODB_CONNECTION_CLOSED).inc(1)
+      );
+      this.mongoDBClient.on('connectionReady',
+        (event) => {
+          this.connections.add(event.connectionId);
+          global.monitoringServer?.getGauge(Constants.MONGODB_CONNECTION_READY).set(this.connections.size);
+        }
+      );
+    }
     this.database = this.mongoDBClient.db();
     // Keep a global reference
     global.database = this;
+
     // Check Database only when migration is active
     if (this.migrationConfig?.active) {
       await this.checkDatabase();

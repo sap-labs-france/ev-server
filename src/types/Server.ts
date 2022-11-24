@@ -426,6 +426,7 @@ export enum ServerAction {
   TAG = 'Tag',
   TAG_BY_VISUAL_ID= 'TagByVisualID',
   USER_DEFAULT_TAG_CAR = 'UserDefaultTagCar',
+  USER_SESSION_CONTEXT = 'UserSessionContext',
   TAG_CREATE = 'TagCreate',
   TAG_UPDATE = 'TagUpdate',
   TAG_UPDATE_BY_VISUAL_ID = 'TagUpdateByVisualID',
@@ -573,6 +574,7 @@ export enum RESTServerRoute {
   REST_USERS = 'users',
   REST_USER = 'users/:id',
   REST_USER_DEFAULT_TAG_CAR = 'users/:id/default-car-tag',
+  REST_USER_SESSION_CONTEXT = 'users/:id/session-context',
   REST_USER_SITES = 'users/:id/sites',
   REST_USER_UPDATE_MOBILE_TOKEN = 'users/:id/mobile-token',
   REST_USER_UPDATE_MOBILE_DATA = 'users/:id/mobile-data',
@@ -612,6 +614,7 @@ export enum RESTServerRoute {
   REST_TENANT = 'tenants/:id',
   REST_TENANT_DATA = 'tenants/:id/data',
   REST_TENANT_LOGO = 'tenants/logo',
+  REST_TENANT_EMAIL_LOGO = 'tenants/email-logo',
 
   REST_COMPANIES = 'companies',
   REST_COMPANY = 'companies/:id',

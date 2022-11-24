@@ -1,5 +1,5 @@
-import { AuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { SettingAuthorizationActions } from './Authorization';
 import { TenantComponents } from './Tenant';
 
 export enum TechnicalSettings {
@@ -24,7 +24,7 @@ export enum IntegrationSettings {
   STATISTICS = 'statistics'
 }
 
-export interface Setting extends AuthorizationActions, CreatedUpdatedProps {
+export interface Setting extends SettingAuthorizationActions, CreatedUpdatedProps {
   id?: string;
   identifier: TenantComponents | TechnicalSettings;
   sensitiveData?: string[];
@@ -207,10 +207,7 @@ export interface SapSmartChargingSetting extends SmartChargingSetting {
   stickyLimitation: boolean;
   limitBufferDC: number;
   limitBufferAC: number;
-  usePrioritizationParameters: boolean;
-  defaultSessionTimeHours: number;
-  defaultInitialStateOfCharge: number;
-  defaultTargetStateOfCharge: number;
+  prioritizationParametersActive?: boolean;
 }
 
 export enum RefundSettingsType {

@@ -9,6 +9,7 @@ export default interface EmailConfiguration {
     password: string;
   };
   disableBackup?: boolean;
+  troubleshootingMode?: boolean
   smtpBackup?: {
     from: string;
     host: string;

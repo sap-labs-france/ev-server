@@ -372,6 +372,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id'
         ]
       },
+      { resource: Entity.SMART_CHARGING, action: Action.CHECK_CONNECTION },
       {
         resource: Entity.USER_SITE, action: [Action.ASSIGN_SITES_TO_USER, Action.UNASSIGN_SITES_FROM_USER, Action.READ, Action.UPDATE, Action.LIST],
         condition: {
@@ -668,6 +669,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'
         ]
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.REFUND_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        }
       },
       {
         resource: Entity.TRANSACTION, action: Action.EXPORT_COMPLETED_TRANSACTION,

@@ -18,6 +18,7 @@ export default class UserRouter {
     this.buildRouteUpdateUser();
     this.buildRouteDeleteUser();
     this.buildRouteUserDefaultCarTag();
+    this.buildRouteUserSessionContext();
     this.buildRouteUserGetSites();
     this.buildRouteUserSiteAssign();
     this.buildRouteUserSiteUnassign();
@@ -71,6 +72,13 @@ export default class UserRouter {
         req.query.UserID = req.params.id;
       }
       void RouterUtils.handleRestServerAction(UserService.handleGetUserDefaultTagCar.bind(this), ServerAction.USER_DEFAULT_TAG_CAR, req, res, next);
+    });
+  }
+
+  private buildRouteUserSessionContext(): void {
+    this.router.get(`/${RESTServerRoute.REST_USER_SESSION_CONTEXT}`, (req: Request, res: Response, next: NextFunction) => {
+      req.query.UserID = req.params.id;
+      void RouterUtils.handleRestServerAction(UserService.handleGetUserSessionContext.bind(this), ServerAction.USER_SESSION_CONTEXT, req, res, next);
     });
   }
 
