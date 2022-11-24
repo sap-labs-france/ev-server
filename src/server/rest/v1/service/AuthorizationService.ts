@@ -1,5 +1,5 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, DynamicAuthorizationsFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingAccountsDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, ChargingStationTemplateDataResult, CompanyDataResult, LogDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SettingDBDataResult, SiteAreaDataResult, SiteDataResult, SiteUserDataResult, TagDataResult, TransactionDataResult, TransactionInErrorDataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
+import { AssetDataResult, BillingAccountsDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, ChargingStationTemplateDataResult, CompanyDataResult, LogDataResult, OcpiEndpointDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SettingDBDataResult, SiteAreaDataResult, SiteDataResult, SiteUserDataResult, TagDataResult, TransactionDataResult, TransactionInErrorDataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
@@ -29,9 +29,11 @@ import { EntityData } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpLogGetRequest } from '../../../../types/requests/HttpLogRequest';
+import { HttpOCPIEndpointGetRequest } from '../../../../types/requests/HttpOCPIEndpointRequest';
 import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/HttpRegistrationToken';
 import { Log } from '../../../../types/Log';
 import { OCPICapability } from '../../../../types/ocpi/OCPIEvse';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import PricingDefinition from '../../../../types/Pricing';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import { ServerAction } from '../../../../types/Server';
@@ -1165,6 +1167,50 @@ export default class AuthorizationService {
     // Remove auth flags set to false
     Utils.removeCanPropertiesWithFalseValue(setting);
   }
+
+  // New
+
+  public static async checkAndGetOCPIEndpointsAuthorizations(tenant: Tenant, userToken: UserToken,
+      authAction: Action, filteredRequest: Partial<HttpOCPIEndpointGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+    const authorizations: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.OCPI_ENDPOINT, authAction, authorizations, filteredRequest, null, failsWithException);
+    return authorizations;
+  }
+
+  public static async checkAndGetOCPIEndpointAuthorizations(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpOCPIEndpointGetRequest>,
+      authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.OCPI_ENDPOINT, userToken, filteredRequest, filteredRequest.ID ? { OcpiEndpointID: filteredRequest.ID } : {}, authAction, entityData);
+  }
+
+  public static async addOCPIEndpointsAuthorizations(tenant: Tenant, userToken: UserToken, ocpiEndpoints: OcpiEndpointDataResult, authorizationFilter: AuthorizationFilter,
+      filteredRequest: Partial<HttpSettingsGetRequest>): Promise<void> {
+    // Add Meta Data
+    ocpiEndpoints.metadata = authorizationFilter.metadata;
+    // Add Authorizations
+    ocpiEndpoints.canCreate = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.OCPI_ENDPOINT, Action.CREATE, authorizationFilter, filteredRequest.Identifier ? { ID: filteredRequest.Identifier } : {});
+    for (const ocpiEndpoint of ocpiEndpoints.result) {
+      await AuthorizationService.addOCPIEndpointAuthorizations(tenant, userToken, ocpiEndpoint, authorizationFilter);
+    }
+  }
+
+  public static async addOCPIEndpointAuthorizations(tenant: Tenant, userToken: UserToken, ocpiEndpoint: OCPIEndpoint, authorizationFilter: AuthorizationFilter): Promise<void> {
+    ocpiEndpoint.canRead = true; // Always true as it should be filtered upfront
+    ocpiEndpoint.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.OCPI_ENDPOINT, Action.UPDATE, authorizationFilter);
+    ocpiEndpoint.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.OCPI_ENDPOINT, Action.DELETE, authorizationFilter);
+    // Remove auth flags set to false
+    Utils.removeCanPropertiesWithFalseValue(ocpiEndpoint);
+  }
+
+  // END
 
   public static async checkAndGetCarsAuthorizations(tenant: Tenant, userToken: UserToken,
       filteredRequest: Partial<HttpCarsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {

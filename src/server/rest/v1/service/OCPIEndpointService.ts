@@ -31,20 +31,8 @@ export default class OCPIEndpointService {
       Action.DELETE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleDeleteOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointDeleteReq(req.query);
-    // Check auth
-    if (!await Authorizations.canDeleteOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleDeleteOcpiEndpoint',
-        value: filteredRequest.ID
-      });
-    }
-    // Get
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleDeleteOcpiEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.ID, Action.DELETE, action);
     // Delete
     await OCPIEndpointStorage.deleteOcpiEndpoint(req.tenant, ocpiEndpoint.id);
     await Logging.logInfo({

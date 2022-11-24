@@ -369,6 +369,10 @@ export interface SettingAuthorizationActions extends AuthorizationActions {
   canCheckAssetConnection?: boolean;
 }
 
+export interface OcpiEndpointAuthorizationActions extends AuthorizationActions {
+
+}
+
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
