@@ -1007,6 +1007,9 @@ export default class Authorizations {
       case UserRole.DEMO:
         roles.push('demo');
         break;
+      case UserRole.EXTERNAL:
+        roles.push('external');
+        break;
     }
     return roles;
   }
