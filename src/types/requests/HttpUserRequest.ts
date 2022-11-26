@@ -127,3 +127,9 @@ export interface HttpUserDefaultTagCarGetRequest {
   UserID: string;
   ChargingStationID?: string; // TODO: Backward-compatibility issue - This should be mandatory! - change it as soon as possible
 }
+
+export interface HttpUserSessionContextGetRequest {
+  UserID: string;
+  ChargingStationID: string;
+  ConnectorID: number;
+}

@@ -6,6 +6,7 @@ import { Car, CarType } from '../../../../types/Car';
 import { DataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import { SmartChargingSessionParameters, StartTransactionErrorCode } from '../../../../types/Transaction';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { ImportedUser, UserRequiredImportProperties, UserRole } from '../../../../types/User';
 
@@ -17,6 +18,7 @@ import BillingFactory from '../../../../integration/billing/BillingFactory';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
+import { CurrentType } from '../../../../types/ChargingStation';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import { HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
 import JSONStream from 'JSONStream';
@@ -30,7 +32,7 @@ import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
-import { StartTransactionErrorCode } from '../../../../types/Transaction';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
@@ -49,6 +51,80 @@ import moment from 'moment';
 const MODULE_NAME = 'UserService';
 
 export default class UserService {
+  public static async handleGetUserSessionContext(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = UserValidatorRest.getInstance().validateUserSessionContextReq(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetUserSessionContext', req.user);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
+    // Handle Tag
+    // We retrieve Tag auth to get the projected fields here to fit with what's in auth definition
+    const tagAuthorization = await AuthorizationService.checkAndGetTagAuthorizations(req.tenant, req.user, {}, Action.READ);
+    let tag: Tag;
+    // Get the default Tag
+    if (tagAuthorization.authorized) {
+      tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, {
+        issuer: true
+      }, tagAuthorization.projectFields);
+      if (!tag) {
+        // Get the first active Tag
+        tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, {
+          issuer: true
+        }, tagAuthorization.projectFields);
+      }
+    }
+    // Handle Car
+    // We retrieve Car auth to get the projected fields here to fit with what's in auth definition
+    const carAuthorization = await AuthorizationService.checkAndGetCarAuthorizations(req.tenant, req.user, {}, Action.READ);
+    let car: Car;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) && carAuthorization.authorized) {
+    // Get the default Car
+      car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
+      if (!car) {
+        // Get the first available car
+        car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID, carAuthorization.projectFields);
+      }
+    }
+    let withBillingChecks = true ;
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ,
+      action, null, { withSiteArea: true });
+    if (!chargingStation.siteArea.accessControl) {
+      // The access control is switched off - so billing checks are useless
+      withBillingChecks = false;
+    }
+    // Check for billing errors
+    const errorCodes: Array<StartTransactionErrorCode> = [];
+    if (withBillingChecks) {
+      // Check for the billing prerequisites (such as the user's payment method)
+      await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    }
+    let smartChargingSessionParameters: SmartChargingSessionParameters = null;
+    // Handle Smart Charging
+    if (chargingStation.siteArea?.smartCharging && !chargingStation.excludeFromSmartCharging
+      && chargingStation.capabilities.supportChargingProfiles && Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING)) {
+      const smartChargingSettings = await SettingStorage.getSmartChargingSettings(req.tenant);
+      if (smartChargingSettings.sapSmartCharging.prioritizationParametersActive) {
+        // Default values are hard coded for now
+        smartChargingSessionParameters = {
+          departureTime:  18,
+          carStateOfCharge: 30,
+          targetStateOfCharge: 70,
+        };
+        if (Utils.getChargingStationCurrentType(chargingStation, null, filteredRequest.ConnectorID) === CurrentType.DC) {
+          smartChargingSessionParameters.departureTime = null;
+          smartChargingSessionParameters.carStateOfCharge = null;
+        } else if (car.carConnectorData?.carConnectorID) {
+          smartChargingSessionParameters.carStateOfCharge = null;
+        }
+      }
+    }
+    res.json({
+      tag, car, errorCodes, smartChargingSessionParameters
+    });
+    next();
+  }
+
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUserDefaultTagCarGetReq(req.query);
