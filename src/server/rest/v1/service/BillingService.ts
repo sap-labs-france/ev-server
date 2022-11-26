@@ -301,6 +301,9 @@ export default class BillingService {
     }
     const operationResult: BillingOperationResult = await billingImpl.setupPaymentIntent(tag.user, filteredRequest.paymentIntentID);
     if (operationResult.internalData['status'] === 'requires_capture') {
+      // Save last Payment Intent ID to store it in transaction
+      tag.user.lastPaymentIntentID = filteredRequest.paymentIntentID;
+      await UserStorage.saveUser(req.tenant, tag.user);
       // Get the charging station
       const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.chargingStationID);
       // Get the OCPP Client

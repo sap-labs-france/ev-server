@@ -42,6 +42,7 @@ export default interface User extends CreatedUpdatedProps, UserAuthorizationActi
   };
   technical?: boolean;
   freeAccess?: boolean;
+  lastPaymentIntentID?: string;
 }
 
 export interface UserMobileData {

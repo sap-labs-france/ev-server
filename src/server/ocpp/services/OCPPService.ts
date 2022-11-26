@@ -5,6 +5,7 @@ import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource,
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
+import User, { UserRole } from '../../../types/User';
 
 import { Action } from '../../../types/Authorization';
 import AsyncTaskBuilder from '../../../async-task/AsyncTaskBuilder';
@@ -39,7 +40,6 @@ import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
@@ -385,6 +385,7 @@ export default class OCPPService {
         newTransaction.userID = user.id;
         newTransaction.user = user;
         newTransaction.authorizationID = user.authorizationID;
+        newTransaction.lastPaymentIntentID = user.role === UserRole.EXTERNAL && user.lastPaymentIntentID ? user.lastPaymentIntentID : null;
       }
       // Cleanup ongoing Transaction - TODO - To be clarified - header is incomplete >> Cannot read properties of undefined (reading 'ocppVersion')
       // await this.processExistingTransaction(tenant, chargingStation, startTransaction.connectorId);
