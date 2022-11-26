@@ -106,7 +106,7 @@ export default abstract class BillingIntegration {
     // Check connection
     await this.checkConnection();
     // Prepare filtering and sorting
-    let queryParameters : { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> };
+    let queryParameters: { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> };
     if (taskConfig?.onlyProcessUnpaidInvoices) {
       // ACHTUNG - Job configuration is sensitive - Too many payment retries may violate card network rules
       queryParameters = this.prepareRetryPaymentQueryParameters(taskConfig?.forceOperation);
@@ -373,7 +373,7 @@ export default abstract class BillingIntegration {
     return totalDuration;
   }
 
-  protected async retrieveAccountData(transaction: Transaction) : Promise<BillingSessionAccountData> {
+  protected async retrieveAccountData(transaction: Transaction): Promise<BillingSessionAccountData> {
     if (Utils.isTenantComponentActive(this.tenant, TenantComponents.BILLING_PLATFORM)) {
       const site = await SiteStorage.getSite(this.tenant, transaction.siteID, { withCompany: true });
       let accountData = site.accountData;
@@ -502,7 +502,7 @@ export default abstract class BillingIntegration {
         };
         transaction.billingData = {
           withBillingActive: false,
-          lastUpdate:new Date(),
+          lastUpdate: new Date(),
           stop
         };
         // Save to clear billing data
@@ -605,7 +605,7 @@ export default abstract class BillingIntegration {
       endDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
     }
     // Filter the invoice status based on the billing settings
-    const invoiceStatus = [ BillingInvoiceStatus.DRAFT ];
+    const invoiceStatus = [BillingInvoiceStatus.DRAFT];
     // Now return the query parameters
     return {
       // --------------------------------------------------------------------------------
@@ -634,10 +634,10 @@ export default abstract class BillingIntegration {
       // Used once a month
       limit = Constants.BATCH_PAGE_SIZE;
       startDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
-      endDateTime = moment().add(-1,'days').endOf('day').toDate(); // yesterday at midnight
+      endDateTime = moment().add(-1, 'days').endOf('day').toDate(); // yesterday at midnight
     }
     // Filter the invoice status based on the billing settings
-    const invoiceStatus = [ BillingInvoiceStatus.OPEN ];
+    const invoiceStatus = [BillingInvoiceStatus.OPEN];
     // Now return the query parameters
     return {
       // --------------------------------------------------------------------------------
@@ -658,9 +658,9 @@ export default abstract class BillingIntegration {
 
   public abstract checkActivationPrerequisites(): Promise<void>;
 
-  public abstract checkTestDataCleanupPrerequisites() : Promise<void>;
+  public abstract checkTestDataCleanupPrerequisites(): Promise<void>;
 
-  public abstract resetConnectionSettings() : Promise<BillingSettings>;
+  public abstract resetConnectionSettings(): Promise<BillingSettings>;
 
   public abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 
@@ -718,8 +718,9 @@ export default abstract class BillingIntegration {
 
   public abstract setupPaymentIntent(user: User, paymentIntentID: string): Promise<BillingOperationResult>;
 
-  // public abstract capturePayment(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult>;
-  public abstract retrievePaymentIntent(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult>;
+  public abstract capturePayment(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult>;
+
+  public abstract retrievePaymentIntent(user: User, paymentIntentId: string): Promise<BillingOperationResult>;
 
   public async isUserSynchronized(user: User): Promise<boolean> {
     // Make sure to get fresh data
@@ -797,7 +798,7 @@ export default abstract class BillingIntegration {
     }
   }
 
-  private async getDraftTransferForAccount(accountID: string, currency: string) : Promise<BillingTransfer> {
+  private async getDraftTransferForAccount(accountID: string, currency: string): Promise<BillingTransfer> {
     const filter = {
       // TODO - add filtering on the dates - we should have a transfer per month !?!
       // TODO - filter on the currency as well?

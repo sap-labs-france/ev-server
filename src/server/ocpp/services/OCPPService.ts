@@ -3,6 +3,7 @@ import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
+import User, { UserRole } from '../../../types/User';
 
 import { Action } from '../../../types/Authorization';
 import BackendError from '../../../exception/BackendError';
@@ -36,7 +37,6 @@ import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/v1/service/UtilsService';
@@ -372,6 +372,7 @@ export default class OCPPService {
         newTransaction.userID = user.id;
         newTransaction.user = user;
         newTransaction.authorizationID = user.authorizationID;
+        newTransaction.lastPaymentIntentID = user.role === UserRole.EXTERNAL && user.lastPaymentIntentID ? user.lastPaymentIntentID : null;
       }
       // Cleanup ongoing Transaction
       await this.processExistingTransaction(tenant, chargingStation, startTransaction.connectorId);

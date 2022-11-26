@@ -528,9 +528,43 @@ export default class StripeBillingIntegration extends BillingIntegration {
       billingOperationResult = await this.createPaymentIntent(user, customerID);
     } else {
       // Retrieve payment intent
-      billingOperationResult = await this.retrievePaymentIntent(user, 100, paymentIntentID);
+      billingOperationResult = await this.retrievePaymentIntent(user, paymentIntentID);
     }
     return billingOperationResult;
+  }
+
+  public async capturePayment(user: User, amount: number, paymentIntentID: string): Promise<BillingOperationResult> {
+    try {
+      // Let's capture the paymentIntent for the stripe customer
+      const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.capture(paymentIntentID, {
+        amount_to_capture: amount
+      });
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        module: MODULE_NAME, method: 'capturePayment',
+        actionOnUser: user,
+        message: 'payment intent has been captured'
+      });
+      // Send some feedback
+      return {
+        succeeded: true,
+        internalData: paymentIntent
+      };
+    } catch (error) {
+      // catch stripe errors and send the information back to the client
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        actionOnUser: user,
+        module: MODULE_NAME, method: 'capturePayment',
+        message: `Stripe operation failed - ${error?.message as string}`
+      });
+      return {
+        succeeded: false,
+        error
+      };
+    }
   }
 
   public async setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
@@ -819,7 +853,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  public async retrievePaymentIntent(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult> {
+  public async retrievePaymentIntent(user: User, paymentIntentId: string): Promise<BillingOperationResult> {
     try {
       // Let's retrieve the paymentIntent for the stripe customer
       const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
@@ -841,7 +875,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
-        module: MODULE_NAME, method: 'capturePayment',
+        module: MODULE_NAME, method: 'retrievePaymentIntent',
         message: `Stripe operation failed - ${error?.message as string}`
       });
       return {
@@ -968,7 +1002,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async createStripeInvoiceItemHeader(customerID: string,
-      billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
+    billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
     if (!billingInvoiceItem.headerDescription) {
       return;
     }
@@ -993,7 +1027,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async createStripeInvoiceItems4PricingConsumptionData(customerID: string,
-      billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, counter: number, invoiceID?: string): Promise<void> {
+    billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, counter: number, invoiceID?: string): Promise<void> {
     // A stripe invoice item per dimension
     await this.createStripeInvoiceItem4Dimension(customerID, DimensionType.FLAT_FEE, billingInvoiceItem, pricedData, counter, invoiceID);
     await this.createStripeInvoiceItem4Dimension(customerID, DimensionType.CHARGING_TIME, billingInvoiceItem, pricedData, counter, invoiceID);
@@ -1002,7 +1036,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async createStripeInvoiceItem4Dimension(customerID: string, dimension: string,
-      billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, counter: number, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
+    billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, counter: number, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
     // data for the current dimension (energy | parkingTime, etc)
     const dimensionData: PricedDimensionData = pricedData[dimension];
     if (!dimensionData || !dimensionData.amount || !dimensionData.quantity) {
@@ -1795,7 +1829,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Update Billing Data
         if (transaction?.billingData?.stop) {
           transaction.billingData.stop.status = BillingStatus.BILLED,
-          transaction.billingData.stop.invoiceID = billingInvoice.id;
+            transaction.billingData.stop.invoiceID = billingInvoice.id;
           transaction.billingData.stop.invoiceStatus = billingInvoice.status;
           transaction.billingData.stop.invoiceNumber = billingInvoice.number;
           transaction.billingData.lastUpdate = new Date();
