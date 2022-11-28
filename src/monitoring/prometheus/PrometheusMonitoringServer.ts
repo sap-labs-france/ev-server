@@ -9,6 +9,7 @@ import MonitoringConfiguration from '../../types/configuration/MonitoringConfigu
 import MonitoringServer from '../MonitoringServer';
 import { ServerUtils } from '../../server/ServerUtils';
 import global from '../../types/GlobalType';
+import { isArray } from 'lodash';
 
 const MODULE_NAME = 'PrometheusMonitoringServer';
 
@@ -65,11 +66,23 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
       ServerUtils.createHttpServer(this.monitoringConfig, this.expressApplication), MODULE_NAME, ServerType.MONITORING_SERVER);
   }
 
-  public createGaugeMetric(metricname : string, metrichelp : string) : Gauge {
-    const gaugeMetric : client.Gauge = new client.Gauge({
-      name: metricname,
-      help: metrichelp
-    });
+  public createGaugeMetric(metricname : string, metrichelp : string, labelNames? : string[]) : Gauge {
+
+    let gaugeMetric : client.Gauge;
+
+
+    if (Array.isArray(labelNames)) {
+      gaugeMetric = new client.Gauge({
+        name: metricname,
+        help: metrichelp,
+        labelNames: labelNames
+      });
+    } else {
+      gaugeMetric = new client.Gauge({
+        name: metricname,
+        help: metrichelp });
+    }
+
     this.mapGauge.set(metricname, gaugeMetric);
     this.clientRegistry.registerMetric(gaugeMetric);
     return gaugeMetric;
