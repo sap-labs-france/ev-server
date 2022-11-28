@@ -134,7 +134,6 @@ export default class Logging {
     }
   }
 
-
   public static traceNotificationStart(): number {
     if (Logging.getTraceConfiguration().traceNotification) {
       return Date.now();
