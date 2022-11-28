@@ -1,6 +1,6 @@
 import { Application, NextFunction, Request, Response } from 'express';
 import { ServerAction, ServerType } from '../../types/Server';
-import client, { Counter, DefaultMetricsCollectorConfiguration, Gauge, Metric } from 'prom-client';
+import client, { Gauge } from 'prom-client';
 
 import Constants from '../../utils/Constants';
 import ExpressUtils from '../../server/ExpressUtils';
@@ -9,7 +9,6 @@ import MonitoringConfiguration from '../../types/configuration/MonitoringConfigu
 import MonitoringServer from '../MonitoringServer';
 import { ServerUtils } from '../../server/ServerUtils';
 import global from '../../types/GlobalType';
-import { isArray } from 'lodash';
 
 const MODULE_NAME = 'PrometheusMonitoringServer';
 
@@ -67,9 +66,7 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
   }
 
   public createGaugeMetric(metricname : string, metrichelp : string, labelNames? : string[]) : Gauge {
-
     let gaugeMetric : client.Gauge;
-
 
     if (Array.isArray(labelNames)) {
       gaugeMetric = new client.Gauge({
@@ -80,7 +77,8 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     } else {
       gaugeMetric = new client.Gauge({
         name: metricname,
-        help: metrichelp });
+        help: metrichelp
+      });
     }
 
     this.mapGauge.set(metricname, gaugeMetric);
