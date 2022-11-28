@@ -1,13 +1,12 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
-import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
-import Authorizations from '../../../../authorization/Authorizations';
+import AuthorizationService from './AuthorizationService';
 import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -48,70 +47,47 @@ export default class OCPIEndpointService {
 
   public static async handleGetOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoint');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI, Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoint');
     // Filter
     const endpointID = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointGetReq(req.query).ID;
-    // Check auth
-    if (!await Authorizations.canReadOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleGetOcpiEndpoint',
-        value: endpointID
-      });
-    }
-    // Get it
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, endpointID,
-      [
-        'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'patchJobStatus', 'localToken', 'token',
-        'patchJobResult.successNbr', 'patchJobResult.failureNbr', 'patchJobResult.totalNbr'
-      ]);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${endpointID}' does not exist`,
-      MODULE_NAME, 'handleGetOcpiEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, endpointID, Action.READ, action, {}, {}, true);
     res.json(ocpiEndpoint);
     next();
   }
 
   public static async handleGetOcpiEndpoints(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.LIST, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoints');
-    // Check auth
-    if (!await Authorizations.canListOcpiEndpoints(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleGetOcpiEndpoints'
-      });
-    }
-    // Check User
-    let userProject: string[] = [];
-    if ((await Authorizations.canListUsers(req.user)).authorized) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
-    }
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI, Action.LIST, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoints');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointsGetReq(req.query);
+    // Check dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetOCPIEndpointsAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest, false);
+    if (!authorizations.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Get all ocpi endpoints
     const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(req.tenant,
       {
-        'search': filteredRequest.Search
-      }, {
+        search: filteredRequest.Search
+      },
+      {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [
-        'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'lastChangedOn', 'lastPatchJobOn', 'backgroundPatchJob', 'localToken', 'token',
-        'lastCpoPushStatuses.lastUpdatedOn', 'lastCpoPushStatuses.partial', 'lastCpoPushStatuses.failureNbr', 'lastCpoPushStatuses.successNbr', 'lastCpoPushStatuses.totalNbr',
-        'lastCpoPullTokens.lastUpdatedOn', 'lastCpoPullTokens.partial', 'lastCpoPullTokens.failureNbr', 'lastCpoPullTokens.successNbr', 'lastCpoPullTokens.totalNbr',
-        'lastEmspPushTokens.lastUpdatedOn', 'lastEmspPushTokens.partial', 'lastEmspPushTokens.failureNbr', 'lastEmspPushTokens.successNbr', 'lastEmspPushTokens.totalNbr',
-        'lastEmspPullLocations.lastUpdatedOn', 'lastEmspPullLocations.partial', 'lastEmspPullLocations.failureNbr', 'lastEmspPullLocations.successNbr', 'lastEmspPullLocations.totalNbr',
-        ...userProject
-      ]);
+      authorizations.projectFields
+    );
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      ocpiEndpoints.projectFields = authorizations.projectFields;
+    }
+    // Add Auth flags
+    if (filteredRequest.WithAuth) {
+      await AuthorizationService.addOCPIEndpointsAuthorizations(req.tenant, req.user, ocpiEndpoints, authorizations);
+    }
     res.json(ocpiEndpoints);
     next();
   }
@@ -120,17 +96,11 @@ export default class OCPIEndpointService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.CREATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCreateOcpiEndpoint');
-    // Check auth
-    if (!await Authorizations.canCreateOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleCreateOcpiEndpoint'
-      });
-    }
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCreateReq(req.body);
+    // Check dynamic auth
+    await AuthorizationService.checkAndGetOCPIEndpointsAuthorizations(req.tenant, req.user, Action.CREATE);
+    // Create
     const ocpiEndpoint: OCPIEndpoint = {
       ...filteredRequest,
       createdBy: { id: req.user.id },
@@ -155,20 +125,8 @@ export default class OCPIEndpointService {
       Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUpdateOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointUpdateReq(req.body);
-    // Check auth
-    if (!await Authorizations.canUpdateOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleUpdateOcpiEndpoint',
-        value: filteredRequest.id
-      });
-    }
-    // Get OcpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUpdateOcpiEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
     // Update timestamp
     ocpiEndpoint.lastChangedBy = { 'id': req.user.id };
     ocpiEndpoint.lastChangedOn = new Date();
@@ -188,18 +146,11 @@ export default class OCPIEndpointService {
   public static async handlePingOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePingOcpiEndpoint');
-    // Check auth
-    if (!await Authorizations.canPingOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.PING, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handlePingOcpiEndpoint'
-      });
-    }
+      Action.PING, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePingOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointPingReq(req.body);
+    // Check dynamic auth
+    await AuthorizationService.checkAndGetOCPIEndpointsAuthorizations(req.tenant, req.user, Action.PING);
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getOcpiClient(req.tenant, filteredRequest);
     // Try to ping
@@ -228,22 +179,11 @@ export default class OCPIEndpointService {
   public static async handlePullLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullLocationsEndpoint');
-    // Check auth
-    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handlePullLocationsEndpoint'
-      });
-    }
+      Action.TRIGGER_JOB, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullLocationsEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handlePullLocationsEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.TRIGGER_JOB, action);
     // Get the lock
     const pullLocationsLock = await LockingHelper.createOCPIPullLocationsLock(req.tenant.id, ocpiEndpoint);
     if (!pullLocationsLock) {
@@ -279,22 +219,11 @@ export default class OCPIEndpointService {
   public static async handlePullSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullSessionsEndpoint');
-    // Check auth
-    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handlePullLocationsEndpoint'
-      });
-    }
+      Action.TRIGGER_JOB, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullSessionsEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handlePullSessionsEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.TRIGGER_JOB, action);
     // Get the lock
     const pullSessionsLock = await LockingHelper.createOCPIPullSessionsLock(req.tenant.id, ocpiEndpoint);
     if (!pullSessionsLock) {
@@ -329,22 +258,11 @@ export default class OCPIEndpointService {
   public static async handlePullTokensEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullTokensEndpoint');
-    // Check auth
-    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handlePullTokensEndpoint'
-      });
-    }
+      Action.TRIGGER_JOB, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullTokensEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handlePullTokensEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.TRIGGER_JOB, action);
     // Get the lock
     const pullTokensLock = await LockingHelper.createOCPIPullTokensLock(req.tenant.id, ocpiEndpoint, false);
     if (!pullTokensLock) {
@@ -379,22 +297,11 @@ export default class OCPIEndpointService {
   public static async handlePullCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullCdrsEndpoint');
-    // Check auth
-    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handlePullCdrsEndpoint'
-      });
-    }
+      Action.TRIGGER_JOB, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullCdrsEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handlePullCdrsEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.TRIGGER_JOB, action);
     // Get the lock
     const pullCdrsLock = await LockingHelper.createOCPIPullCdrsLock(req.tenant.id, ocpiEndpoint);
     if (!pullCdrsLock) {
@@ -429,22 +336,11 @@ export default class OCPIEndpointService {
   public static async handleCheckCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckCdrsEndpoint');
-    // Check auth
-    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleCheckCdrsOcpiEndpoint'
-      });
-    }
+      Action.TRIGGER_JOB, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckCdrsEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleCheckCdrsEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.TRIGGER_JOB, action);
     // Get the lock
     const checkCdrsLock = await LockingHelper.createOCPICheckCdrsLock(req.tenant.id, ocpiEndpoint);
     if (!checkCdrsLock) {
@@ -479,22 +375,11 @@ export default class OCPIEndpointService {
   public static async handleCheckSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckSessionsEndpoint');
-    // Check auth
-    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleCheckSessionsOcpiEndpoint'
-      });
-    }
+      Action.TRIGGER_JOB, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckSessionsEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleCheckSessionsEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.TRIGGER_JOB, action);
     // Get the lock
     const checkSessionsLock = await LockingHelper.createOCPICheckSessionsLock(req.tenant.id, ocpiEndpoint);
     if (!checkSessionsLock) {
@@ -529,22 +414,11 @@ export default class OCPIEndpointService {
   public static async handleCheckLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckLocationsEndpoint');
-    // Check auth
-    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleCheckLocationsEndpoint'
-      });
-    }
+      Action.TRIGGER_JOB, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckLocationsEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleCheckLocationsEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.TRIGGER_JOB, action);
     // Get the lock
     const checkLocationsLock = await LockingHelper.createOCPICheckLocationsLock(req.tenant.id, ocpiEndpoint);
     if (!checkLocationsLock) {
@@ -579,22 +453,11 @@ export default class OCPIEndpointService {
   public static async handlePushEVSEStatusesOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint');
-    // Check auth
-    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handlePushEVSEStatusesOcpiEndpoint'
-      });
-    }
+      Action.TRIGGER_JOB, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.TRIGGER_JOB, action);
     // Get the lock
     const patchStatusesLock = await LockingHelper.createOCPIPatchEVSEStatusesLock(req.tenant.id, ocpiEndpoint);
     if (!patchStatusesLock) {
@@ -629,22 +492,11 @@ export default class OCPIEndpointService {
   public static async handlePushTokensOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushTokensOcpiEndpoint');
-    // Check auth
-    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handlePushTokensOcpiEndpoint'
-      });
-    }
+      Action.TRIGGER_JOB, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushTokensOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handlePushTokensOcpiEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.TRIGGER_JOB, action);
     // Get the lock
     const pushTokensLock = await LockingHelper.createOCPIPushTokensLock(req.tenant.id, ocpiEndpoint);
     if (!pushTokensLock) {
@@ -680,22 +532,11 @@ export default class OCPIEndpointService {
   public static async handleUpdateCredentialsOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUpdateCredentialsOcpiEndpoint');
-    // Check auth
-    if (!await Authorizations.canRegisterOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.REGISTER, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleUpdateCredentialsOcpiEndpoint'
-      });
-    }
+      Action.REGISTER, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUpdateCredentialsOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get OcpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUpdateCredentialsOcpiEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.REGISTER, action);
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getOcpiClient(req.tenant, ocpiEndpoint);
     // Try to register
@@ -733,22 +574,11 @@ export default class OCPIEndpointService {
   public static async handleUnregisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUnregisterOcpiEndpoint');
-    // Check auth
-    if (!await Authorizations.canRegisterOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.REGISTER, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint'
-      });
-    }
+      Action.REGISTER, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUnregisterOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get OcpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUnregisterOcpiEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.REGISTER, action);
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getOcpiClient(req.tenant, ocpiEndpoint);
     // Try to register
@@ -786,22 +616,11 @@ export default class OCPIEndpointService {
   public static async handleRegisterOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleRegisterOcpiEndpoint');
-    // Check auth
-    if (!await Authorizations.canRegisterOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.REGISTER, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint'
-      });
-    }
+      Action.REGISTER, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleRegisterOcpiEndpoint');
     // Filter
     const filteredRequest = OCPIEndpointValidatorRest.getInstance().validateOCPIEndpointCommandReq(req.body);
-    // Get OcpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleRegisterOcpiEndpoint', req.user);
+    // Check and get ocpi endpoint
+    const ocpiEndpoint = await UtilsService.checkAndGetOCPIEndpointAuthorization(req.tenant, req.user, filteredRequest.id, Action.REGISTER, action);
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getOcpiClient(req.tenant, ocpiEndpoint);
     // Try to register
@@ -839,16 +658,9 @@ export default class OCPIEndpointService {
   public static async handleGenerateLocalTokenOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGenerateLocalTokenOcpiEndpoint');
-    // Check auth
-    if (!await Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.GENERATE_LOCAL_TOKEN, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleGenerateLocalTokenOcpiEndpoint'
-      });
-    }
+      Action.GENERATE_LOCAL_TOKEN, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGenerateLocalTokenOcpiEndpoint');
+    // Check dynamic auth
+    await AuthorizationService.checkAndGetOCPIEndpointsAuthorizations(req.tenant, req.user, Action.GENERATE_LOCAL_TOKEN);
     // Generate endpoint
     const localToken = OCPIUtils.generateLocalToken(req.tenant.subdomain);
     await Logging.logInfo({

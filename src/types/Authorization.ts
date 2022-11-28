@@ -370,7 +370,10 @@ export interface SettingAuthorizationActions extends AuthorizationActions {
 }
 
 export interface OcpiEndpointAuthorizationActions extends AuthorizationActions {
-
+  canPing?: boolean;
+  canGenerateLocalToken?: boolean;
+  canRegister?: boolean;
+  canTriggerJob?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

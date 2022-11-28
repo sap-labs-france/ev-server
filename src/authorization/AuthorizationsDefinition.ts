@@ -943,11 +943,28 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.REGISTRATION_TOKEN, action: [Action.DELETE, Action.REVOKE] },
-      { resource: Entity.OCPI_ENDPOINT, action: Action.LIST },
+      {
+        resource: Entity.OCPI_ENDPOINT, action: Action.LIST,
+        attributes: [
+          'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'lastChangedOn', 'lastPatchJobOn', 'backgroundPatchJob', 'localToken', 'token',
+          'lastCpoPushStatuses.lastUpdatedOn', 'lastCpoPushStatuses.partial', 'lastCpoPushStatuses.failureNbr', 'lastCpoPushStatuses.successNbr', 'lastCpoPushStatuses.totalNbr',
+          'lastCpoPullTokens.lastUpdatedOn', 'lastCpoPullTokens.partial', 'lastCpoPullTokens.failureNbr', 'lastCpoPullTokens.successNbr', 'lastCpoPullTokens.totalNbr',
+          'lastEmspPushTokens.lastUpdatedOn', 'lastEmspPushTokens.partial', 'lastEmspPushTokens.failureNbr', 'lastEmspPushTokens.successNbr', 'lastEmspPushTokens.totalNbr',
+          'lastEmspPullLocations.lastUpdatedOn', 'lastEmspPullLocations.partial', 'lastEmspPullLocations.failureNbr', 'lastEmspPullLocations.successNbr', 'lastEmspPullLocations.totalNbr',
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
+        ]
+      },
+      {
+        resource: Entity.OCPI_ENDPOINT, action: Action.READ,
+        attributes: [
+          'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'patchJobStatus', 'localToken', 'token',
+          'patchJobResult.successNbr', 'patchJobResult.failureNbr', 'patchJobResult.totalNbr'
+        ]
+      },
       {
         resource: Entity.OCPI_ENDPOINT,
         action: [
-          Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.PING, Action.GENERATE_LOCAL_TOKEN,
+          Action.CREATE, Action.UPDATE, Action.DELETE, Action.PING, Action.GENERATE_LOCAL_TOKEN,
           Action.REGISTER, Action.TRIGGER_JOB
         ],
       },
