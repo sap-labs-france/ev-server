@@ -320,4 +320,5 @@ export enum ChargerVendor {
   ABB = 'abb',
   EVBOX = 'ev-box',
   KEBA = 'keba ag',
+  WALLBOX = 'wall box chargers',
 }
