@@ -1088,6 +1088,6 @@ export default class Logging {
   }
 
   private static createMetric(metricName: string) : Gauge {
-    return global.monitoringServer.createGaugeMetric(metricName, 'Db perf gauge duration ms', ['tenant','module', 'method' ]);
+    return global.monitoringServer.createGaugeMetric(metricName, 'Database perf gauge duration ms', ['tenant','module', 'method' ]);
   }
 }
