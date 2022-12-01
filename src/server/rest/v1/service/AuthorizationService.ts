@@ -1168,8 +1168,6 @@ export default class AuthorizationService {
     Utils.removeCanPropertiesWithFalseValue(setting);
   }
 
-  // New
-
   public static async checkAndGetOCPIEndpointsAuthorizations(tenant: Tenant, userToken: UserToken,
       authAction: Action, filteredRequest?: Partial<HttpOCPIEndpointGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
     const authorizations: AuthorizationFilter = {
@@ -1206,15 +1204,14 @@ export default class AuthorizationService {
     ocpiEndpoint.canRead = true; // Always true as it should be filtered upfront
     ocpiEndpoint.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.OCPI_ENDPOINT, Action.UPDATE, authorizationFilter);
     ocpiEndpoint.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.OCPI_ENDPOINT, Action.DELETE, authorizationFilter);
-    ocpiEndpoint.canGenerateLocalToken = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.OCPI_ENDPOINT, Action.GENERATE_LOCAL_TOKEN, authorizationFilter);
+    ocpiEndpoint.canGenerateLocalToken = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken,
+      Entity.OCPI_ENDPOINT, Action.GENERATE_LOCAL_TOKEN, authorizationFilter);
     ocpiEndpoint.canPing = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.OCPI_ENDPOINT, Action.PING, authorizationFilter);
     ocpiEndpoint.canRegister = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.OCPI_ENDPOINT, Action.REGISTER, authorizationFilter);
     ocpiEndpoint.canTriggerJob = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.OCPI_ENDPOINT, Action.TRIGGER_JOB, authorizationFilter);
     // Remove auth flags set to false
     Utils.removeCanPropertiesWithFalseValue(ocpiEndpoint);
   }
-
-  // END
 
   public static async checkAndGetCarsAuthorizations(tenant: Tenant, userToken: UserToken,
       filteredRequest: Partial<HttpCarsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
