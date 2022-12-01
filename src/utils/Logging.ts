@@ -2,9 +2,10 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 import PerformanceRecord, { PerformanceRecordGroup, PerformanceTracingData } from '../types/Performance';
-import client, { Gauge } from 'prom-client';
+import client, { Counter, DefaultMetricsCollectorConfiguration, Gauge, Metric } from 'prom-client';
 import global, { ActionsResponse } from '../types/GlobalType';
 
+import { Action } from '../types/Authorization';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
@@ -25,7 +26,6 @@ import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
 import chalk from 'chalk';
-import crypto from 'crypto';
 import sizeof from 'object-sizeof';
 
 const MODULE_NAME = 'Logging';
@@ -99,26 +99,28 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
-
       if (global.monitoringServer) {
-        const gaugeDurationMetricName = 'mongodb' + '_Duration_' + crypto.randomBytes(8).toString('hex');
+        const labels = { tenant: tenant.subdomain, module: module, method: method };
+        const values = Object.values(labels).toString();
+        const hashCode = Utils.positiveHashcode(values);
+        const gaugeDurationMetricName = 'mongodb' + '_Duration_' + hashCode;
         let gaugeDurationMetric:client.Gauge = global.monitoringServer.getGauge(gaugeDurationMetricName);
         if (!gaugeDurationMetric) {
           gaugeDurationMetric = this.createMetric(gaugeDurationMetricName);
-          gaugeDurationMetric.labels({ tenant: tenant.subdomain, module: module, method: method }).set(executionDurationMillis);
+          gaugeDurationMetric.labels(labels).set(executionDurationMillis);
         }
-        const gaugeRequestSizeMetricName = 'mongodb' + '_RequestSize_' + crypto.randomBytes(8).toString('hex');
+        const gaugeRequestSizeMetricName = 'mongodb' + '_RequestSize_' + hashCode;
         let gaugeRequestSizeMetric :client.Gauge = global.monitoringServer.getGauge(gaugeRequestSizeMetricName);
         if (!gaugeRequestSizeMetric) {
           gaugeRequestSizeMetric = this.createMetric(gaugeRequestSizeMetricName);
-          gaugeRequestSizeMetric.labels({ tenant: tenant.subdomain, module: module, method: method }).set(sizeOfRequestDataKB);
+          gaugeRequestSizeMetric.labels(labels).set(sizeOfRequestDataKB);
         }
-        const gaugeResponseSizeMetricName = 'mongodb' + '_ResponseSize_' + crypto.randomBytes(8).toString('hex');
+        const gaugeResponseSizeMetricName = 'mongodb' + '_ResponseSize_' + hashCode;
         let gaugeResponseSizeMetric :client.Gauge = global.monitoringServer.getGauge(gaugeResponseSizeMetricName);
         if (!gaugeResponseSizeMetric) {
           gaugeResponseSizeMetric = this.createMetric(gaugeResponseSizeMetricName);
         }
-        gaugeResponseSizeMetric.labels({ tenant: tenant.subdomain, module: module, method: method }).set(sizeOfResponseDataKB);
+        gaugeResponseSizeMetric.labels(labels).set(sizeOfResponseDataKB);
       }
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
@@ -133,6 +135,7 @@ export default class Logging {
       );
     }
   }
+
 
   public static traceNotificationStart(): number {
     if (Logging.getTraceConfiguration().traceNotification) {
