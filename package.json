@@ -109,7 +109,6 @@
     "chalk": "4.1.2",
     "cors": "^2.8.5",
     "countries-list": "^2.6.1",
-    "crypto": "^1.0.1",
     "csvtojson": "^2.0.10",
     "curvereduce": "^0.0.4",
     "decimal.js": "^10.4.2",
