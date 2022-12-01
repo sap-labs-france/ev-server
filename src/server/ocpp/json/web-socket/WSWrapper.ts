@@ -24,7 +24,8 @@ export default class WSWrapper {
   public nbrPingFailed: number;
   public lastPingDate: Date;
   public lastPongDate: Date;
-
+  public finishedOnOpen = true;
+  public insideOnOpen = false;
   private ws: WebSocket;
 
   public constructor(ws: WebSocket) {

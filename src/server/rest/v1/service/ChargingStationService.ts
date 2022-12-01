@@ -795,6 +795,8 @@ export default class ChargingStationService {
       }
       // Remote Start Transaction
       if (command === Command.REMOTE_START_TRANSACTION) {
+
+
         const remoteStartRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStartReq(req.body);
         commandFound = true;
         result = await ChargingStationService.executeChargingStationStartTransaction(

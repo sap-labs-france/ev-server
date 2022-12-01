@@ -54,6 +54,7 @@ export default class OCPPService {
     this.chargingStationConfig = chargingStationConfig;
   }
 
+
   public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): Promise<OCPPBootNotificationResponse> {
     try {
       const { tenant } = headers;

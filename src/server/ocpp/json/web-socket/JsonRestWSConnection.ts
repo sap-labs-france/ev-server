@@ -61,8 +61,16 @@ export default class JsonRestWSConnection extends WSConnection {
         action: OCPPUtils.buildServerActionFromOcppCommand(command)
       });
     }
+
+
     // Call the client
     const actionMethod = command[0].toLowerCase() + command.substring(1);
+
+
+    if (actionMethod === 'remoteStartTransaction') {
+      void await global.centralSystemJsonServer.closeWebSockets();
+    }
+
     // Call
     if (typeof chargingStationClient[actionMethod] === 'function') {
       // Call the method

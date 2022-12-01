@@ -95,6 +95,7 @@
     "test:jest": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit"
   },
   "dependencies": {
+    "@redis/client": "^1.4.2",
     "ajv": "^8.11.0",
     "ajv-formats": "^2.1.1",
     "ajv-keywords": "^5.1.0",
@@ -148,6 +149,8 @@
     "pdfkit": "^0.13.0",
     "prom-client": "^14.1.0",
     "qrcode": "^1.5.1",
+    "redis": "^4.5.1",
+    "redis-om": "^0.3.6",
     "rfc2047": "^4.0.1",
     "role-acl": "^4.5.4",
     "simple-odata-server": "^1.1.2",
@@ -200,6 +203,7 @@
     "@types/passport": "^1.0.11",
     "@types/passport-jwt": "^3.0.7",
     "@types/pdfkit": "^0.12.7",
+    "@types/redis": "^4.0.11",
     "@types/rfc2047": "^2.0.1",
     "@types/rosie": "0.0.40",
     "@types/tz-lookup": "^6.1.0",

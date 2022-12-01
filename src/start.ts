@@ -5,6 +5,7 @@ import AsyncTaskConfiguration from './types/configuration/AsyncTaskConfiguration
 import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
+import { Client } from 'redis-om';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
@@ -56,7 +57,9 @@ export default class Bootstrap {
   private static schedulerConfig: SchedulerConfiguration;
   private static monitoringConfig: MonitoringConfiguration;
 
+
   public static async start(): Promise<void> {
+    const url = process.env.REDIS_URL || 'redis://localhost:6379';
     let serverStarted: ServerType[] = [];
     let startTimeMillis: number;
     const startTimeGlobalMillis = await this.logAndGetStartTimeMillis('e-Mobility Server is starting...');
@@ -142,7 +145,6 @@ export default class Bootstrap {
       }
 
 
-
       // -------------------------------------------------------------------------
       // Start all the Servers
       // -------------------------------------------------------------------------
@@ -185,6 +187,11 @@ export default class Bootstrap {
       } else {
         global.serverType = ServerType.CENTRAL_SERVER;
       }
+
+
+      global.redisClient = await new Client().open();
+
+
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfully`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       Logging.logConsoleError(error);
