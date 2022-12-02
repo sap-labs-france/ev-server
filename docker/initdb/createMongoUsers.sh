@@ -83,7 +83,7 @@ if [ $? -ne 0 ]; then
 fi
 
 docker exec --tty mongodb mongo --port $MONGODB_PORT --eval "
-db.getCollection(\"default.users\").insert(
+db.getSiblingDB(\"$DB\").getCollection(\"default.users\").insert(
 {
   _id: ObjectId(),
   email: \"super.admin@ev.com\",
