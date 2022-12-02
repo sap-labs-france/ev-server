@@ -477,6 +477,8 @@ export enum ServerAction {
   SCAN_PAY_BILLING_SETTING = 'ScanPayBillingSettings',
   SCAN_PAY_PAYMENT_INTENT_SETUP = 'ScanPayPaymentIntentSetup',
   SCAN_PAY_PAYMENT_INTENT_RETRIEVE = 'ScanPayPaymentIntentRetrieve',
+  SCAN_PAY_PAYMENT_INTENT_CAPTURE = 'ScanPayPaymentIntentCapture',
+  SCAN_PAY_TRANSACTION_STARTED = 'ScanPayTransactionStarted',
 
   SCAN_PAY_VERIFY_EMAIL = 'ScanPayVerifyEmail',
 
@@ -725,6 +727,7 @@ export enum RESTServerRoute {
   REST_BILLING_SETTING_SCAN_AND_PAY = 'billing/scan-pay/billing-settings',
   REST_SCAN_PAY_PAYMENT_INTENT_SETUP = 'billing/scan-pay/setup',
   REST_SCAN_PAY_PAYMENT_INTENT_RETRIEVE = 'billing/scan-pay/retrieve',
+  REST_SCAN_PAY_PAYMENT_INTENT_CAPTURE = 'billing/scan-pay/capture',
 
   // BILLING URLs for CRUD operations on INVOICES
   REST_BILLING_INVOICES = 'invoices',

@@ -90,3 +90,9 @@ export interface HttpBillingScanPayRequest {
   connectorID?: number;
   chargingStationID?: string;
 }
+
+export interface HttpBillingScanPayStopTransactionRequest {
+  transactionId: number;
+  email: string;
+  subdomain: string;
+}

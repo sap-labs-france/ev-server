@@ -6,7 +6,7 @@
     "Roles": {
       "type": "string",
       "sanitize": "mongo",
-      "pattern": "^[SABD](\\|[SABD])*$"
+      "pattern": "^[SABDE](\\|[SABDE])*$"
     },
     "ErrorType": {
       "type": "string",

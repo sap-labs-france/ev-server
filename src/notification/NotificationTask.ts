@@ -37,4 +37,5 @@ export default interface NotificationTask {
   sendUserCreatePassword(data: UserCreatePassword, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult>;
   sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult>;
   sendScanPayVerifyEmailNotification(data: ScanPayVerifyEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult>;
+  sendScanPaySessionStarted(data: TransactionStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult>;
 }

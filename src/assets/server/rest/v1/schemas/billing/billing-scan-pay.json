@@ -35,6 +35,9 @@
     },
     "subdomain": {
       "$ref": "common#/definitions/authSubdomain"
+    },
+    "transactionId": {
+      "$ref": "transaction#/definitions/id"
     }
   },
   "required": [

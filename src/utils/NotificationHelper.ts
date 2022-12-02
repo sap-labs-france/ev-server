@@ -31,6 +31,29 @@ export default class NotificationHelper {
     }
   }
 
+  public static notifyScanPayStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
+    if (user) {
+      void NotificationHandler.sendScanPayTransactionStarted(
+        tenant,
+        transaction.id.toString(),
+        user,
+        chargingStation,
+        {
+          'user': user,
+          'transactionId': transaction.id,
+          'chargeBoxID': chargingStation.id,
+          'siteID': chargingStation.siteID,
+          'siteAreaID': chargingStation.siteAreaID,
+          'companyID': chargingStation.companyID,
+          'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+          'evseStopScanPayTransactionURL': Utils.buildEvseScanPayStopTransactionURL(tenant.subdomain, transaction.id)
+        }
+      );
+    }
+  }
+
   public static notifyEndOfCharge(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
     if (transaction.user) {
       // Get the i18n lib

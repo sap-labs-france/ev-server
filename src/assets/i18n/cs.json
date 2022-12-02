@@ -400,6 +400,15 @@
         "Your vehicle has been connected to the charging station {{chargeBoxID}} on connector {{connectorId}}."
       ]
     },
+    "scan-pay-session-started": {
+      "title": "Session Started",
+      "buttonText": "Stop Session",
+      "text": [
+        "Your vehicle has been connected to the charging station {{chargeBoxID}} on connector {{connectorId}}.",
+        "",
+        "Click on the link below to stop the transaction"
+      ]
+    },
     "verification-email": {
       "title": "User Account Activation",
       "buttonText": "Activate your Account",
@@ -528,6 +537,13 @@
         "Your email has been successfully verified.",
         "",
         "An administrator will soon check and activate your account."
+      ]
+    },
+    "scan-pay-account-verification-notification": {
+      "title": "Verify your email and proceed to charging",
+      "buttonText": "Proceed to charging",
+      "text": [
+        "Click on the link below to verify your email and proceed to charging."
       ]
     },
     "admin-account-verification-notification": {

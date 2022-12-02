@@ -27,6 +27,7 @@ export default interface UserNotifications {
   sendEndUserErrorNotification: boolean;
   sendAccountVerificationNotification: boolean;
   sendAdminAccountVerificationNotification: boolean;
+  // sendScanPaySessionStarted: boolean;
 }
 
 export type UserNotificationKeys =
@@ -252,6 +253,10 @@ export interface TransactionStartedNotification extends BaseNotification {
   connectorId: string;
   evseDashboardURL: string;
   evseDashboardChargingStationURL: string;
+}
+
+export interface ScanPayTransactionStartedNotification extends TransactionStartedNotification {
+  evseStopScanPayTransactionURL: string;
 }
 
 export interface OICPPatchChargingStationsErrorNotification extends BaseNotification {
