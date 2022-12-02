@@ -83,9 +83,10 @@ if [ $? -ne 0 ]; then
 fi
 
 docker exec --tty mongodb mongo --port $MONGODB_PORT --eval "
-db.getCollection('default.users').insert({
+db.getCollection(\"default.users\").insert(
+{
   _id: ObjectId(),
-  email: 'super.admin@ev.com',
+  email: \"super.admin@ev.com\",
   address: {
     address1: null,
     address2: null,
@@ -101,15 +102,15 @@ db.getCollection('default.users').insert({
   },
   costCenter: null,
   createdBy: null,
-  createdOn: ISODate('2020-04-02T00:00:00.000+0000'),
+  createdOn: ISODate(\"2020-04-02T00:00:00.000+0000\"),
   deleted: false,
-  firstName: 'Super',
+  firstName: \"Super\",
   iNumber: null,
   issuer: true,
   lastChangedBy: null,
-  locale: 'en_US',
+  locale: \"en_US\",
   mobile: null,
-  name: 'ADMIN',
+  name: \"ADMIN\",
   notifications: {
     sendSessionStarted: true,
     sendOptimalChargeReached: true,
@@ -130,15 +131,15 @@ db.getCollection('default.users').insert({
     sendOfflineChargingStations: false
   },
   phone: null,
-  password: '\$2a\$10$/c.TRisu3xPAGkgTL69b7uC4SGXqDIzFJuZgHOB1D.fvXf5h3WWwW',
+  password: \"\$2a\$10\$/c.TRisu3xPAGkgTL69b7uC4SGXqDIzFJuZgHOB1D.fvXf5h3WWwW\",
   passwordBlockedUntil: null,
   passwordResetHash: null,
   passwordWrongNbrTrials: NumberInt(0),
-  eulaAcceptedHash: 'c308ac57857ce483ef1bb50fe8c1bc2bc3b5fcf067114c8b4a3a7abf9896c45f',
-  eulaAcceptedOn: ISODate('2020-04-02T00:00:00.000+0000'),
+  eulaAcceptedHash: \"c308ac57857ce483ef1bb50fe8c1bc2bc3b5fcf067114c8b4a3a7abf9896c45f\",
+  eulaAcceptedOn: ISODate(\"2020-04-02T00:00:00.000+0000\"),
   eulaAcceptedVersion: 28,
-  role: 'S',
-  status: 'A',
+  role: \"S\",
+  status: \"A\",
   notificationsActive: true
 });"
 
