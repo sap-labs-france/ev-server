@@ -31,10 +31,8 @@ jobs:
         mongodb-replica-set: rs0
     - name: Initialize DB
       run: |
-        ls
         ls docker/initdb/
-        echo {PWD}
-        docker/initdb/createMongoUsers
+        docker/initdb/createMongoUsers.sh
     - name: Install NodeJs ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
