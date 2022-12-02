@@ -1,11 +1,12 @@
 import { Application, NextFunction, Request, Response } from 'express';
 import { ServerAction, ServerType } from '../../types/Server';
-import client, { Counter, DefaultMetricsCollectorConfiguration, Gauge, Metric } from 'prom-client';
+import client, { Gauge } from 'prom-client';
 
 import Constants from '../../utils/Constants';
 import ExpressUtils from '../../server/ExpressUtils';
 import Logging from '../../utils/Logging';
 import MonitoringConfiguration from '../../types/configuration/MonitoringConfiguration';
+import { DatabaseMonitoringMetric } from '../DatabaseMonitoringMetric';
 import MonitoringServer from '../MonitoringServer';
 import { ServerUtils } from '../../server/ServerUtils';
 import global from '../../types/GlobalType';
@@ -16,6 +17,7 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
   private monitoringConfig: MonitoringConfiguration;
   private expressApplication: Application;
   private mapGauge = new Map<string, Gauge>();
+  private mapDatabaseMetric = new Map<string, DatabaseMonitoringMetric>();
   private clientRegistry = new client.Registry();
 
   public constructor(monitoringConfig: MonitoringConfiguration) {
@@ -32,6 +34,7 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     this.createGaugeMetric(Constants.WEB_SOCKET_QUEUED_REQUEST, 'The number of web sockets that are queued');
     this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST, 'The number of web sockets that are running');
     this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE, 'The number of web sockets request + response that are running');
+    this.createGaugeMetric(Constants.WEB_SOCKET_CURRRENT_REQUEST, 'JSON WS Requests in cache');
     this.createGaugeMetric(Constants.MONGODB_CONNECTION_READY, 'The number of connection that are ready');
     this.createGaugeMetric(Constants.MONGODB_CONNECTION_CREATED, 'The number of connection created');
     this.createGaugeMetric(Constants.MONGODB_CONNECTION_CLOSED, 'The number of connection closed');
@@ -46,6 +49,9 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
         // Process
         res.setHeader('Content-Type', this.clientRegistry.contentType);
         res.end(await this.clientRegistry.metrics());
+        for (const val of this.mapDatabaseMetric.values()) {
+          val.clear();
+        }
         next();
         // Trace Response
         Logging.traceExpressResponse(req, res, next, ServerAction.MONITORING);
@@ -65,14 +71,34 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
       ServerUtils.createHttpServer(this.monitoringConfig, this.expressApplication), MODULE_NAME, ServerType.MONITORING_SERVER);
   }
 
-  public createGaugeMetric(metricname : string, metrichelp : string) : Gauge {
-    const gaugeMetric : client.Gauge = new client.Gauge({
-      name: metricname,
-      help: metrichelp
-    });
+  public createGaugeMetric(metricname : string, metrichelp : string, labelNames? : string[]) : Gauge {
+    let gaugeMetric : client.Gauge;
+    if (Array.isArray(labelNames)) {
+      gaugeMetric = new client.Gauge({
+        name: metricname,
+        help: metrichelp,
+        labelNames: labelNames
+      });
+    } else {
+      gaugeMetric = new client.Gauge({
+        name: metricname,
+        help: metrichelp
+      });
+    }
     this.mapGauge.set(metricname, gaugeMetric);
     this.clientRegistry.registerMetric(gaugeMetric);
     return gaugeMetric;
   }
 
+  public getDatabaseMetric(metricname: string, suffix: number, metrichelp: string, labelNames: string[]) : DatabaseMonitoringMetric {
+    const key = metricname + '_' + suffix;
+    let dbMetric : DatabaseMonitoringMetric = this.mapDatabaseMetric.get(key);
+    if (dbMetric) {
+      return dbMetric;
+    }
+    dbMetric = new DatabaseMonitoringMetric(metricname,suffix,metrichelp,labelNames);
+    dbMetric.register(this.clientRegistry);
+    this.mapDatabaseMetric.set(key, dbMetric);
+    return dbMetric;
+  }
 }

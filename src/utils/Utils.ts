@@ -1777,6 +1777,19 @@ export default class Utils {
     }
   }
 
+  public static positiveHashcode(str :string):number {
+    return this.hashCode(str) + 2147483647 + 1;
+  }
+
+  private static hashCode(s:string): number {
+    let hash = 0,i = 0;
+    const len = s.length;
+    while (i < len) {
+      hash = ((hash << 5) - hash + s.charCodeAt(i++)) << 0;
+    }
+    return hash;
+  }
+
   private static deleteUserPropertiesFromEntity(entityData?: EntityData): void {
     Utils.deletePropertiesFromEntity(entityData, ['user', 'userID']);
   }
