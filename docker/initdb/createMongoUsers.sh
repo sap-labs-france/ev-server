@@ -14,8 +14,40 @@ db.getSiblingDB(\"$DB\")
         user: \"$USER\",
         pwd: \"$PASSWORD\",
         roles: [
+            {
+                role: \"read\", 
+                db: \"$DB\" 
+            },
             { 
                 role: \"readWrite\", 
+                db: \"$DB\" 
+            },
+            { 
+                role: \"dbAdmin\", 
+                db: \"$DB\" 
+            },
+            { 
+                role: \"userAdmin\", 
+                db: \"$DB\" 
+            },
+            {
+                role: \"clusterAdmin\", 
+                db: \"$DB\" 
+            },
+            {
+                role: \"readAnyDatabase\", 
+                db: \"$DB\" 
+            },
+            {
+                role: \"readWriteAnyDatabase\", 
+                db: \"$DB\" 
+            },
+            {
+                role: \"userAdminAnyDatabase\", 
+                db: \"$DB\" 
+            },
+            {
+                role: \"dbAdminAnyDatabase\", 
                 db: \"$DB\" 
             }
         ]
