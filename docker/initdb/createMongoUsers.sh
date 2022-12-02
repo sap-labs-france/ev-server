@@ -1,24 +1,50 @@
 #!/bin/bash
 
-ADMIN_DB="admin"
-ADMIN_USERNAME="evse-admin"
-ADMIN_PASSWORD="evse-admin-pwd"
+# General conf
 MONGODB_PORT=27017
 
-echo "db.getSiblingDB(\"$ADMIN_DB\").createUser({user: \"$ADMIN_USERNAME\",pwd: \"$ADMIN_PASSWORD\",roles: [ { role: \"readWrite\", db: \"$ADMIN_DB\" } ]});"
+# Admin
+DB="admin"
+USER="evse-admin"
+PASSWORD="evse-admin-pwd"
 
 docker exec --tty mongodb mongo --port $MONGODB_PORT --eval "
-db.getSiblingDB(\"$ADMIN_DB\")
+db.getSiblingDB(\"$DB\")
     .createUser({
-        user: \"$ADMIN_USERNAME\",
-        pwd: \"$ADMIN_PASSWORD\",
+        user: \"$USER\",
+        pwd: \"$PASSWORD\",
         roles: [ { 
             role: \"readWrite\", 
-            db: \"$ADMIN_DB\" 
+            db: \"$DB\" 
             } 
         ]
     }
 );"
- 
-echo "Result $?"
-exit 1
+
+if [ $? -ne 0]; then
+    echo "Error at creating user"
+    exit 1
+fi
+
+# EVSE
+DB="evse"
+USER="evse-user"
+PASSWORD="evse-user-pwd"
+
+docker exec --tty mongodb mongo --port $MONGODB_PORT --eval "
+db.getSiblingDB(\"$DB\")
+    .createUser({
+        user: \"$USER\",
+        pwd: \"$PASSWORD\",
+        roles: [ { 
+            role: \"readWrite\", 
+            db: \"$DB\" 
+            } 
+        ]
+    }
+);"
+
+if [ $? -ne 0]; then
+    echo "Error at creating user"
+    exit 1
+fi
