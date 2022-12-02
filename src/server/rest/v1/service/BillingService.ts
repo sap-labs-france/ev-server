@@ -33,7 +33,10 @@ import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
+import { Transaction } from 'mongodb';
 import TransactionService from './TransactionService';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserService from './UserService';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
@@ -283,7 +286,7 @@ export default class BillingService {
     next();
   }
 
-  // handle user creation + create payment intent or capture if we already have a paymentmethod
+  // handle user creation + create payment intent + start transaction
   public static async handleScanPayPaymentIntent(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayReq(req.body);
     // on handle la creation du user là
@@ -310,29 +313,43 @@ export default class BillingService {
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
       // Execute start transaction
       await BillingService.executeChargingStationStartTransaction(tag, filteredRequest.connectorID, chargingStationClient);
-
-      // Filter
-      // const remoteStartRequest = ChargingStationValidatorRest.getInstance().validateChargingStationActionTransactionStartReq(req.body);
-      // Check dynamic auth
-      // const { chargingStation } = await TransactionService.checkAndGetChargingStationConnector(
-      //   action, req.tenant, req.user, remoteStartRequest.chargingStationID, remoteStartRequest.args.connectorId, Action.REMOTE_START_TRANSACTION);
-      // const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.chargingStationID);
-      // Handle the routing
-      // if (chargingStation.issuer) {
-      //   // OCPP Remote Start
-      //   await ChargingStationService.handleOcppAction(
-      //     ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, req, res, next);
-      // } else {
-      //   // OCPI Remote Start
-      //   await ChargingStationService.handleOcpiAction(
-      //     ServerAction.OCPI_EMSP_START_SESSION, req, res, next);
-      // }
-
     }
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
     }
     res.json(operationResult);
+    next();
+  }
+
+  // handle capture if we already have a paymentmethod
+  public static async handleScanPayCapturePayment(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayStopTransactionReq(req.body);
+    // Filter
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
+        action: action,
+        user: req.user
+      });
+    }
+
+    // const user: User = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
+    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.transactionId, { withUser:true });
+    // const operationResult: BillingOperationResult = await billingImpl.retrievePaymentIntent(transaction.user, transaction.lastPaymentIntentID);
+    // // Get the charging station
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID);
+    // // Get the OCPP Client
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
+    // // Execute start transaction
+    await BillingService.executeChargingStationStopTransaction(transaction.connectorId, chargingStationClient);
+    const operationResult: BillingOperationResult = await billingImpl.capturePayment(transaction.user, 100, transaction.lastPaymentIntentID);
+    // if (operationResult) {
+    //   Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
+    // }
+    res.json();
     next();
   }
 
@@ -1062,8 +1079,15 @@ export default class BillingService {
   private static async executeChargingStationStartTransaction(tag: Tag, connectorId: number, chargingStationClient: ChargingStationClient): Promise<any> {
     // Execute it
     return chargingStationClient.remoteStartTransaction({
-      connectorId: connectorId,
+      connectorId,
       idTag: tag.id
+    });
+  }
+
+  private static async executeChargingStationStopTransaction(transactionId: number, chargingStationClient: ChargingStationClient): Promise<any> {
+    // Execute it
+    return chargingStationClient.remoteStopTransaction({
+      transactionId
     });
   }
 }

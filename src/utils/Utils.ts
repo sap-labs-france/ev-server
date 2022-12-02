@@ -984,9 +984,13 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenant.subdomain)}/auth/account-onboarding?TenantID=${tenant.id}&AccountID=${billingAccountID}`;
   }
 
+  public static buildEvseScanPayStopTransactionURL(tenantSubdomain: string, transactionID: number): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/stop/${transactionID}`;
+  }
+
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
     return `${Utils.buildEvseURL(tenantSubdomain)}/users/${userId}`;
-  }
+  } // is it here we need to do something to handle the missing field in the ui to directly validate user ? = status
 
   public static getRequestIP(request: http.IncomingMessage | Partial<Request>): string | string[] {
     if (request['ip']) {

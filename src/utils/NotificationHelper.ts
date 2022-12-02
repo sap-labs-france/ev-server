@@ -8,6 +8,7 @@ import Constants from './Constants';
 import EMailNotificationTask from '../notification/email/EMailNotificationTask';
 import I18nManager from './I18nManager';
 import Logging from './Logging';
+import NotificationHandler from '../notification/NotificationHandler';
 import RawNotificationStorage from '../storage/mongodb/RawNotificationStorage';
 import RemotePushNotificationTask from '../notification/remote-push-notification/RemotePushNotificationTask';
 import { ServerAction } from '../types/Server';
@@ -36,11 +37,26 @@ export default class NotificationHelper {
     }
   }
 
-  public static notifyStopTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User, alternateUser?: User) {
-    if (user?.notificationsActive && user.notifications.sendEndOfSession) {
-      setTimeout(() => {
-        NotificationHelper.getSessionNotificationHelper(tenant, transaction, chargingStation, user).notifyStopTransaction(alternateUser);
-      }, 500);
+  public static notifyScanPayStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
+    if (user) {
+      void NotificationHandler.sendScanPayTransactionStarted(
+        tenant,
+        transaction.id.toString(),
+        user,
+        chargingStation,
+        {
+          'user': user,
+          'transactionId': transaction.id,
+          'chargeBoxID': chargingStation.id,
+          'siteID': chargingStation.siteID,
+          'siteAreaID': chargingStation.siteAreaID,
+          'companyID': chargingStation.companyID,
+          'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+          'evseStopScanPayTransactionURL': Utils.buildEvseScanPayStopTransactionURL(tenant.subdomain, transaction.id)
+        }
+      );
     }
   }
 

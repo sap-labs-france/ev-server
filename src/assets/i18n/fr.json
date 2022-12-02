@@ -400,6 +400,15 @@
         "Votre véhicule est connecté sur le connecteur {{connectorId}} de la borne {{chargeBoxID}}."
       ]
     },
+    "scan-pay-session-started": {
+      "title": "Session Started",
+      "buttonText": "Stop Session",
+      "text": [
+        "Your vehicle has been connected to the charging station {{chargeBoxID}} on connector {{connectorId}}.",
+        "",
+        "Click on the link below to stop the transaction"
+      ]
+    },
     "verification-email": {
       "title": "Activation de votre compte utilisateur",
       "buttonText": "Activer le compte",
@@ -528,6 +537,13 @@
         "Votre e-mail a été vérifié.",
         "",
         "Votre compte va être activé par un administrateur. Merci de patienter."
+      ]
+    },
+    "scan-pay-account-verification-notification": {
+      "title": "Verify your email and proceed to charging",
+      "buttonText": "Proceed to charging",
+      "text": [
+        "Click on the link below to verify your email and proceed to charging."
       ]
     },
     "admin-account-verification-notification": {

@@ -16,7 +16,7 @@
     "Role": {
       "type": "string",
       "sanitize": "mongo",
-      "pattern": "^[SABD](\\|[SABD])*$"
+      "pattern": "^[SABDE](\\|[SABDE])*$"
     },
     "Technical": {
       "type": "boolean",

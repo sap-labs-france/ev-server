@@ -224,6 +224,10 @@
         {
           "label": "Livello di carica della batteria",
           "value": "{{stateOfCharge}} %"
+        },
+        {
+          "label": "Battery Level",
+          "value": "{{stateOfCharge}} %"
         }
       ]
     },
@@ -234,6 +238,10 @@
         "La sessione sulla stazione di ricarica {{chargeBoxID}}, presa {{connectorId}} é appena terminata."
       ],
       "table": [
+        {
+          "label": "Session",
+          "value": "{{transactionId}}"
+        },
         {
           "label": "Consumo",
           "value": "{{totalConsumption}} kW.h"
@@ -278,6 +286,10 @@
         "Il veicolo, connesso alla stazione di ricarica {{chargeBoxID}}, presa {{connectorId}}, ha appena finito la ricarica."
       ],
       "table": [
+        {
+          "label": "Session",
+          "value": "{{transactionId}}"
+        },
         {
           "label": "Consumo",
           "value": "{{totalConsumption}} kW.h"
@@ -386,6 +398,15 @@
       "buttonText": "Visualizzare la sessione",
       "text": [
         "Il veicolo é stato connesso alla stazione di ricarica {{chargeBoxID}} sulla presa {{connectorId}}."
+      ]
+    },
+    "scan-pay-session-started": {
+      "title": "Session Started",
+      "buttonText": "Stop Session",
+      "text": [
+        "Your vehicle has been connected to the charging station {{chargeBoxID}} on connector {{connectorId}}.",
+        "",
+        "Click on the link below to stop the transaction"
       ]
     },
     "verification-email": {
@@ -516,6 +537,13 @@
         "L'email è stata verificata con successso.",
         "",
         "Un amministratore procederà alla validazione e all'attivazione dell'account."
+      ]
+    },
+    "scan-pay-account-verification-notification": {
+      "title": "Verify your email and proceed to charging",
+      "buttonText": "Proceed to charging",
+      "text": [
+        "Click on the link below to verify your email and proceed to charging."
       ]
     },
     "admin-account-verification-notification": {
