@@ -6,6 +6,7 @@ import Constants from '../../utils/Constants';
 import ExpressUtils from '../../server/ExpressUtils';
 import Logging from '../../utils/Logging';
 import MonitoringConfiguration from '../../types/configuration/MonitoringConfiguration';
+import { DatabaseMonitoringMetric } from '../DatabaseMonitoringMetric';
 import MonitoringServer from '../MonitoringServer';
 import { ServerUtils } from '../../server/ServerUtils';
 import global from '../../types/GlobalType';
@@ -16,6 +17,7 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
   private monitoringConfig: MonitoringConfiguration;
   private expressApplication: Application;
   private mapGauge = new Map<string, Gauge>();
+  private mapDatabaseMetric = new Map<string, DatabaseMonitoringMetric>();
   private clientRegistry = new client.Registry();
 
   public constructor(monitoringConfig: MonitoringConfiguration) {
@@ -46,6 +48,9 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
         // Process
         res.setHeader('Content-Type', this.clientRegistry.contentType);
         res.end(await this.clientRegistry.metrics());
+        for (const val of this.mapDatabaseMetric.values()) {
+          val.clear();
+        }
         next();
         // Trace Response
         Logging.traceExpressResponse(req, res, next, ServerAction.MONITORING);
@@ -67,7 +72,6 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
 
   public createGaugeMetric(metricname : string, metrichelp : string, labelNames? : string[]) : Gauge {
     let gaugeMetric : client.Gauge;
-
     if (Array.isArray(labelNames)) {
       gaugeMetric = new client.Gauge({
         name: metricname,
@@ -80,10 +84,20 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
         help: metrichelp
       });
     }
-
     this.mapGauge.set(metricname, gaugeMetric);
     this.clientRegistry.registerMetric(gaugeMetric);
     return gaugeMetric;
   }
 
+  public getDatabaseMetric(metricname: string, suffix: number, metrichelp: string, labelNames: string[]) : DatabaseMonitoringMetric {
+    const key = metricname + '_' + suffix;
+    let dbMetric : DatabaseMonitoringMetric = this.mapDatabaseMetric.get(key);
+    if (dbMetric) {
+      return dbMetric;
+    }
+    dbMetric = new DatabaseMonitoringMetric(metricname,suffix,metrichelp,labelNames);
+    dbMetric.register(this.clientRegistry);
+    this.mapDatabaseMetric.set(key, dbMetric);
+    return dbMetric;
+  }
 }

@@ -103,36 +103,24 @@ export default class Logging {
         const labels = { tenant: tenant.subdomain, module: module, method: method };
         const values = Object.values(labels).toString();
         const hashCode = Utils.positiveHashcode(values);
-        const gaugeDurationMetricName = 'mongodb' + '_Duration_' + hashCode;
-        let gaugeDurationMetric:client.Gauge = global.monitoringServer.getGauge(gaugeDurationMetricName);
-        if (!gaugeDurationMetric) {
-          gaugeDurationMetric = this.createMetric(gaugeDurationMetricName);
-          gaugeDurationMetric.labels(labels).set(executionDurationMillis);
-        }
-        const gaugeRequestSizeMetricName = 'mongodb' + '_RequestSize_' + hashCode;
-        let gaugeRequestSizeMetric :client.Gauge = global.monitoringServer.getGauge(gaugeRequestSizeMetricName);
-        if (!gaugeRequestSizeMetric) {
-          gaugeRequestSizeMetric = this.createMetric(gaugeRequestSizeMetricName);
-          gaugeRequestSizeMetric.labels(labels).set(sizeOfRequestDataKB);
-        }
-        const gaugeResponseSizeMetricName = 'mongodb' + '_ResponseSize_' + hashCode;
-        let gaugeResponseSizeMetric :client.Gauge = global.monitoringServer.getGauge(gaugeResponseSizeMetricName);
-        if (!gaugeResponseSizeMetric) {
-          gaugeResponseSizeMetric = this.createMetric(gaugeResponseSizeMetricName);
-        }
-        gaugeResponseSizeMetric.labels(labels).set(sizeOfResponseDataKB);
+        const durationMetric = global.monitoringServer.getDatabaseMetric('Duration', hashCode, 'db duration', Object.keys(labels));
+        durationMetric.setValue(labels, executionDurationMillis);
+        const requestSizeMetric = global.monitoringServer.getDatabaseMetric('RequestSize', hashCode, 'db duration', Object.keys(labels));
+        requestSizeMetric.setValue(labels, executionDurationMillis);
+        const responseSizeMetric = global.monitoringServer.getDatabaseMetric('ResponseSize', hashCode, 'db duration', Object.keys(labels));
+        responseSizeMetric.setValue(labels, executionDurationMillis);
+        await PerformanceStorage.savePerformanceRecord(
+          Utils.buildPerformanceRecord({
+            tenantSubdomain: tenant.subdomain,
+            group: PerformanceRecordGroup.MONGO_DB,
+            durationMs: executionDurationMillis,
+            reqSizeKb: sizeOfRequestDataKB,
+            resSizeKb: sizeOfResponseDataKB,
+            egress: true,
+            action: `${module}.${method}`
+          })
+        );
       }
-      await PerformanceStorage.savePerformanceRecord(
-        Utils.buildPerformanceRecord({
-          tenantSubdomain: tenant.subdomain,
-          group: PerformanceRecordGroup.MONGO_DB,
-          durationMs: executionDurationMillis,
-          reqSizeKb: sizeOfRequestDataKB,
-          resSizeKb: sizeOfResponseDataKB,
-          egress: true,
-          action: `${module}.${method}`
-        })
-      );
     }
   }
 
