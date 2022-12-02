@@ -26,7 +26,6 @@ import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
 import chalk from 'chalk';
-import { duration } from 'moment';
 import sizeof from 'object-sizeof';
 
 const MODULE_NAME = 'Logging';
@@ -100,26 +99,28 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
-
       if (global.monitoringServer) {
-        const gaugeDurationMetricName = 'mongodb' + '_' + tenant.subdomain + '_DurationMs_' + `${module}_${method}`;
+        const labels = { tenant: tenant.subdomain, module: module, method: method };
+        const values = Object.values(labels).toString();
+        const hashCode = Utils.positiveHashcode(values);
+        const gaugeDurationMetricName = 'mongodb' + '_Duration_' + hashCode;
         let gaugeDurationMetric:client.Gauge = global.monitoringServer.getGauge(gaugeDurationMetricName);
         if (!gaugeDurationMetric) {
-          gaugeDurationMetric = global.monitoringServer.createGaugeMetric(gaugeDurationMetricName, 'Db perf gauge duration ms');
+          gaugeDurationMetric = this.createMetric(gaugeDurationMetricName);
+          gaugeDurationMetric.labels(labels).set(executionDurationMillis);
         }
-        gaugeDurationMetric.set(executionDurationMillis);
-        const gaugeRequestSizeMetricName = 'mongodb' + '_' + tenant.subdomain + '_RequestSize_' + `${module}_${method}`;
+        const gaugeRequestSizeMetricName = 'mongodb' + '_RequestSize_' + hashCode;
         let gaugeRequestSizeMetric :client.Gauge = global.monitoringServer.getGauge(gaugeRequestSizeMetricName);
         if (!gaugeRequestSizeMetric) {
-          gaugeRequestSizeMetric = global.monitoringServer.createGaugeMetric(gaugeRequestSizeMetricName, 'Db perf gauge request size');
+          gaugeRequestSizeMetric = this.createMetric(gaugeRequestSizeMetricName);
+          gaugeRequestSizeMetric.labels(labels).set(sizeOfRequestDataKB);
         }
-        gaugeRequestSizeMetric.set(sizeOfRequestDataKB);
-        const gaugeResponseSizeMetricName = 'mongodb' + '_' + tenant.subdomain + '_ResponseSize_' + `${module}_${method}`;
+        const gaugeResponseSizeMetricName = 'mongodb' + '_ResponseSize_' + hashCode;
         let gaugeResponseSizeMetric :client.Gauge = global.monitoringServer.getGauge(gaugeResponseSizeMetricName);
         if (!gaugeResponseSizeMetric) {
-          gaugeResponseSizeMetric = global.monitoringServer.createGaugeMetric(gaugeResponseSizeMetricName, 'Db perf gauge response size');
+          gaugeResponseSizeMetric = this.createMetric(gaugeResponseSizeMetricName);
         }
-        gaugeResponseSizeMetric.set(sizeOfResponseDataKB);
+        gaugeResponseSizeMetric.labels(labels).set(sizeOfResponseDataKB);
       }
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
@@ -134,6 +135,7 @@ export default class Logging {
       );
     }
   }
+
 
   public static traceNotificationStart(): number {
     if (Logging.getTraceConfiguration().traceNotification) {
@@ -1083,5 +1085,9 @@ export default class Logging {
         stack: error.stack
       }
     };
+  }
+
+  private static createMetric(metricName: string) : Gauge {
+    return global.monitoringServer.createGaugeMetric(metricName, 'Database perf gauge duration ms', ['tenant','module', 'method' ]);
   }
 }

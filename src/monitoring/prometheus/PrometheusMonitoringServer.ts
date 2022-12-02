@@ -1,6 +1,6 @@
 import { Application, NextFunction, Request, Response } from 'express';
 import { ServerAction, ServerType } from '../../types/Server';
-import client, { Counter, DefaultMetricsCollectorConfiguration, Gauge, Metric } from 'prom-client';
+import client, { Gauge } from 'prom-client';
 
 import Constants from '../../utils/Constants';
 import ExpressUtils from '../../server/ExpressUtils';
@@ -65,11 +65,22 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
       ServerUtils.createHttpServer(this.monitoringConfig, this.expressApplication), MODULE_NAME, ServerType.MONITORING_SERVER);
   }
 
-  public createGaugeMetric(metricname : string, metrichelp : string) : Gauge {
-    const gaugeMetric : client.Gauge = new client.Gauge({
-      name: metricname,
-      help: metrichelp
-    });
+  public createGaugeMetric(metricname : string, metrichelp : string, labelNames? : string[]) : Gauge {
+    let gaugeMetric : client.Gauge;
+
+    if (Array.isArray(labelNames)) {
+      gaugeMetric = new client.Gauge({
+        name: metricname,
+        help: metrichelp,
+        labelNames: labelNames
+      });
+    } else {
+      gaugeMetric = new client.Gauge({
+        name: metricname,
+        help: metrichelp
+      });
+    }
+
     this.mapGauge.set(metricname, gaugeMetric);
     this.clientRegistry.registerMetric(gaugeMetric);
     return gaugeMetric;
