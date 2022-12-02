@@ -1,14 +1,17 @@
 #!/bin/bash
 
-# General conf
+# General configuration
 MONGODB_PORT=27017
+MONGO_CLIENT="mongo"
+
+echo "Using $MONGO_CLIENT command, please make sure to use mongosh --quiet for mongodb version > 4.x"
 
 # Admin
 DB="admin"
 USER="evse-admin"
 PASSWORD="evse-admin-pwd"
 
-docker exec --tty mongodb mongo --port $MONGODB_PORT --eval "
+docker exec --tty mongodb $MONGO_CLIENT --port $MONGODB_PORT --eval "
 db.getSiblingDB(\"$DB\")
     .createUser({
         user: \"$USER\",
@@ -59,12 +62,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# EVSE
+# Evse
 DB="evse"
 USER="evse-user"
 PASSWORD="evse-user-pwd"
 
-docker exec --tty mongodb mongo --port $MONGODB_PORT --eval "
+docker exec --tty mongodb $MONGO_CLIENT --port $MONGODB_PORT --eval "
 db.getSiblingDB(\"$DB\")
     .createUser({
         user: \"$USER\",
@@ -81,8 +84,10 @@ if [ $? -ne 0 ]; then
     echo "Error at creating user"
     exit 1
 fi
+# Insert admin user in evse DB, default collection
+DB="evse"
 
-docker exec --tty mongodb mongo --port $MONGODB_PORT --eval "
+docker exec --tty mongodb $MONGO_CLIENT --port $MONGODB_PORT --eval "
 db.getSiblingDB(\"$DB\").getCollection(\"default.users\").insert(
 {
   _id: ObjectId(),
