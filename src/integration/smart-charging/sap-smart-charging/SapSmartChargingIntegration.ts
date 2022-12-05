@@ -4,6 +4,7 @@ import ChargingStation, { ChargePoint, Connector, CurrentType, StaticLimitAmps, 
 import { ConnectorAmps, ExcludedAmperage, OptimizerCar, OptimizerCarConnectorAssignment, OptimizerChargingProfilesRequest, OptimizerChargingStationConnectorFuse, OptimizerChargingStationFuse, OptimizerFuse, OptimizerFuseTree, OptimizerFuseTreeNode, OptimizerResult } from '../../../types/Optimizer';
 import { ServerAction, ServerProtocol } from '../../../types/Server';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
+import Transaction, { SmartChargingSessionParameters } from '../../../types/Transaction';
 
 import AssetStorage from '../../../storage/mongodb/AssetStorage';
 import { AssetType } from '../../../types/Asset';
@@ -19,7 +20,6 @@ import { SapSmartChargingSetting } from '../../../types/Setting';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingIntegration from '../SmartChargingIntegration';
-import Transaction from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
@@ -297,7 +297,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         // Build car
         let car = {} as OptimizerCar;
         // If Car ID is provided - build custom car
-        car = this.buildCar(fuseID, chargingStation, transaction, currentChargingProfiles);
+        car = this.buildCar(fuseID, chargingStation, transaction, currentChargingProfiles, siteArea);
         cars.push(car);
         // Assign car to the connector
         carConnectorAssignments.push({
@@ -520,7 +520,8 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     return car;
   }
 
-  private buildCar(fuseID: { value: number }, chargingStation: ChargingStation, transaction: Transaction, currentChargingProfiles: ChargingProfile[]): OptimizerCar {
+  private buildCar(fuseID: { value: number }, chargingStation: ChargingStation, transaction: Transaction, currentChargingProfiles: ChargingProfile[],
+      siteArea: SiteArea): OptimizerCar {
     const voltage = Utils.getChargingStationVoltage(chargingStation);
     const customCar = this.buildSafeCar(fuseID.value, chargingStation, transaction);
     const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
@@ -561,15 +562,28 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         customCar.maxCurrent = customCar.maxCurrentPerPhase * 3;
       }
     }
+    // Check smart charging session parameters
     if (this.setting.prioritizationParametersActive) {
-      this.handleCurrentStateOfCharge(customCar, transaction);
-      this.handleTargetStateOfCharge(customCar, transaction);
-      this.handleTimestampDeparture(customCar, transaction, currentType);
+      // Get default session Parameters
+      const smartChargingSessionParameters = this.getSmartChargingSessionParameters(siteArea);
+      // Handle each parameter
+      this.handleCurrentStateOfCharge(customCar, transaction, smartChargingSessionParameters.carStateOfCharge);
+      this.handleTargetStateOfCharge(customCar, transaction, smartChargingSessionParameters.targetStateOfCharge);
+      this.handleTimestampDeparture(customCar, transaction, currentType, smartChargingSessionParameters.departureTime);
     }
     return customCar;
   }
 
-  private handleCurrentStateOfCharge(customCar: OptimizerCar, transaction: Transaction): void {
+  private getSmartChargingSessionParameters(siteArea: SiteArea): SmartChargingSessionParameters {
+    // Method will be extended with further entities in the future
+    return {
+      carStateOfCharge: siteArea.smartChargingSessionParameters?.carStateOfCharge ?? 25,
+      targetStateOfCharge: siteArea.smartChargingSessionParameters?.targetStateOfCharge ?? 50,
+      departureTime: siteArea.smartChargingSessionParameters?.departureTime ?? 8,
+    };
+  }
+
+  private handleCurrentStateOfCharge(customCar: OptimizerCar, transaction: Transaction, defaultCurrentStateOfCharge: number): void {
     // Check if technical state of charge is available
     if (transaction.stateOfCharge > 0) {
       customCar.startCapacity = (transaction.stateOfCharge / 100) * customCar.maxCapacity;
@@ -578,7 +592,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       customCar.startCapacity = (transaction.carStateOfCharge / 100) * customCar.maxCapacity;
     // Handle if no state of charge is available
     } else {
-      customCar.startCapacity = (25 / 100) * customCar.maxCapacity;
+      customCar.startCapacity = (defaultCurrentStateOfCharge / 100) * customCar.maxCapacity;
     }
     // Adjust battery size, when coming close to 100% state of charge (otherwise car would be suspended, also when not fully charged in real life)
     if ((customCar.chargedCapacity + customCar.startCapacity) > (0.9 * customCar.maxCapacity)) {
@@ -586,17 +600,17 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     }
   }
 
-  private handleTargetStateOfCharge(customCar: OptimizerCar, transaction: Transaction): void {
+  private handleTargetStateOfCharge(customCar: OptimizerCar, transaction: Transaction, defaultTargetStateOfCharge: number): void {
     // Check if manual target state of charge is available
     if (transaction.targetStateOfCharge > 0) {
       customCar.minLoadingState = (transaction.targetStateOfCharge / 100) * customCar.maxCapacity;
     // Handle if no state of charge is available
     } else {
-      customCar.minLoadingState = (50 / 100) * customCar.maxCapacity;
+      customCar.minLoadingState = (defaultTargetStateOfCharge / 100) * customCar.maxCapacity;
     }
   }
 
-  private handleTimestampDeparture(optimizerCar: OptimizerCar, transaction: Transaction, currentType: CurrentType): void {
+  private handleTimestampDeparture(optimizerCar: OptimizerCar, transaction: Transaction, currentType: CurrentType, defaultDepartureHour: number): void {
     // Set departure time based on user input
     if (!Utils.isNullOrUndefined(transaction.departureTime)) {
       optimizerCar.timestampDeparture = moment(transaction.departureTime).diff(moment(), 'seconds');
@@ -605,7 +619,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       optimizerCar.timestampDeparture = moment(transaction.timestamp).add(1, 'hours').diff(moment(), 'seconds');
     } else {
       // If not available set current time plus default hours
-      optimizerCar.timestampDeparture = moment(transaction.timestamp).add(8, 'hours').diff(moment(), 'seconds');
+      optimizerCar.timestampDeparture = moment(transaction.timestamp).add(defaultDepartureHour, 'hours').diff(moment(), 'seconds');
     }
     // Check if timestamp departure is in the past
     if (optimizerCar.timestampDeparture <= 0) {
