@@ -49,6 +49,9 @@ class DatabaseMonitoringMetric {
     this.metricSum = 0;
     this.metricAvg = 0;
     this.metricCount = 0;
+    this.gaugeMetricCount.reset();
+    this.gaugeMetricSum.reset();
+    this.gaugeMetricAvg.reset();
   }
 }
 export { DatabaseMonitoringMetric };
