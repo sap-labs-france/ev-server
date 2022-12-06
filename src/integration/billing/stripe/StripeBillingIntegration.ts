@@ -1162,7 +1162,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         const accountData = await this.retrieveAccountData(transaction);
         // ACHTUNG: a single transaction may generate several lines in the invoice - one line per paring dimension
         const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction, accountData);
-        const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem);
+        const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem, transaction.lastPaymentIntentID);
         // Send a notification to the user
         void this.sendInvoiceNotification(billingInvoice);
         return {
@@ -1307,7 +1307,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return pricingConsumptionData;
   }
 
-  public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem): Promise<BillingInvoice> {
+  public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem, lastPaymentIntentID = null): Promise<BillingInvoice> {
     // Let's collect the required information
     let refreshDataRequired = false;
     const userID: string = user.id;
@@ -1359,6 +1359,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Something went wrong - we need to fetch the latest information from STRIPE again!
         refreshDataRequired = true;
       }
+    }
+    if (lastPaymentIntentID) {
+      await this.capturePayment(user, stripeInvoice.amount_due, lastPaymentIntentID as string);
     }
     // Get fresh data only when necessary - e.g.: invoice has been finalized, however the payment attempt failed
     if (refreshDataRequired) {
