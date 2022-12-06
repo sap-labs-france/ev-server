@@ -106,9 +106,9 @@ export default class Logging {
         const durationMetric = global.monitoringServer.getDatabaseMetric('Duration', hashCode, 'db duration', Object.keys(labels));
         durationMetric.setValue(labels, executionDurationMillis);
         const requestSizeMetric = global.monitoringServer.getDatabaseMetric('RequestSize', hashCode, 'db duration', Object.keys(labels));
-        requestSizeMetric.setValue(labels, executionDurationMillis);
+        requestSizeMetric.setValue(labels, sizeOfRequestDataKB);
         const responseSizeMetric = global.monitoringServer.getDatabaseMetric('ResponseSize', hashCode, 'db duration', Object.keys(labels));
-        responseSizeMetric.setValue(labels, executionDurationMillis);
+        responseSizeMetric.setValue(labels, sizeOfResponseDataKB);
         await PerformanceStorage.savePerformanceRecord(
           Utils.buildPerformanceRecord({
             tenantSubdomain: tenant.subdomain,
