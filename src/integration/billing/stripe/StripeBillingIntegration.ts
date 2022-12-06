@@ -837,7 +837,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check whether the customer exists or not
     const customer = await this.checkStripeCustomer(customerID);
     // Check whether the customer has a default payment method
-    await this.checkStripePaymentMethod(customer);
+    await this.checkStripePaymentMethod(customer, transaction.lastPaymentIntentID ? true : false);
     // Well ... when in test mode we may allow to start the transaction
     if (!customerID) {
       // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
@@ -938,12 +938,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return customer;
   }
 
-  private async checkStripePaymentMethod(customer: Stripe.Customer): Promise<void> {
+  private async checkStripePaymentMethod(customer: Stripe.Customer, scanPayTransaction = false): Promise<void> {
     if (Utils.isDevelopmentEnv() && customer.default_source) {
       // Specific situation used only while running tests
       return;
     }
-    if (!customer.invoice_settings?.default_payment_method) {
+    if (!scanPayTransaction && !customer.invoice_settings?.default_payment_method) {
       throw new BackendError({
         message: `Customer has no default payment method - ${customer.id}`,
         module: MODULE_NAME,
@@ -952,7 +952,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     const defaultPaymentMethodID = customer.invoice_settings?.default_payment_method as string;
-    if (!defaultPaymentMethodID) {
+    if (!scanPayTransaction && !defaultPaymentMethodID) {
       throw new BackendError({
         message: `Customer has no default payment method - ${customer.id}`,
         module: MODULE_NAME,
@@ -960,14 +960,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    const billingPaymentMethod = await this.getStripeDefaultPaymentMethod(defaultPaymentMethodID);
-    if (!this.isPaymentMethodStillValid(billingPaymentMethod)) {
-      throw new BackendError({
-        message: `Default payment method has expired - ${customer.id}`,
-        module: MODULE_NAME,
-        method: 'startTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
+    if (!scanPayTransaction) {
+      const billingPaymentMethod = await this.getStripeDefaultPaymentMethod(defaultPaymentMethodID);
+      if (!this.isPaymentMethodStillValid(billingPaymentMethod)) {
+        throw new BackendError({
+          message: `Default payment method has expired - ${customer.id}`,
+          module: MODULE_NAME,
+          method: 'startTransaction',
+          action: ServerAction.BILLING_TRANSACTION
+        });
+      }
     }
   }
 
@@ -1002,7 +1004,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async createStripeInvoiceItemHeader(customerID: string,
-      billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
+    billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
     if (!billingInvoiceItem.headerDescription) {
       return;
     }
@@ -1829,7 +1831,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Update Billing Data
         if (transaction?.billingData?.stop) {
           transaction.billingData.stop.status = BillingStatus.BILLED,
-          transaction.billingData.stop.invoiceID = billingInvoice.id;
+            transaction.billingData.stop.invoiceID = billingInvoice.id;
           transaction.billingData.stop.invoiceStatus = billingInvoice.status;
           transaction.billingData.stop.invoiceNumber = billingInvoice.number;
           transaction.billingData.lastUpdate = new Date();
