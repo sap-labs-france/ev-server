@@ -16,6 +16,7 @@ import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { SiteAreaDataResult } from '../../../../types/DataResult';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteAreaValidatorRest from '../validator/SiteAreaValidatorRest';
@@ -244,6 +245,8 @@ export default class SiteAreaService {
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addSiteAreasAuthorizations(req.tenant, req.user, siteAreas as SiteAreaDataResult, authorizations);
     }
+    // Handle smart charging session parameters
+    await SiteAreaService.addSmartChargingSessionParametersActive(req.tenant, req.user, siteAreas as SiteAreaDataResult);
     res.json(siteAreas);
     next();
   }
@@ -386,6 +389,7 @@ export default class SiteAreaService {
       siteArea.tariffID = filteredRequest.tariffID;
     }
     siteArea.parentSiteAreaID = filteredRequest.parentSiteAreaID;
+    siteArea.smartChargingSessionParameters = filteredRequest.smartChargingSessionParameters;
     siteArea.siteID = filteredRequest.siteID;
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
@@ -498,6 +502,16 @@ export default class SiteAreaService {
         } finally {
           await LockingManager.release(siteAreaLock);
         }
+      }
+    }
+  }
+
+  private static async addSmartChargingSessionParametersActive(tenant: Tenant, user: UserToken, siteAreas: SiteAreaDataResult) {
+    siteAreas.smartChargingSessionParametersActive = false;
+    if (Utils.isComponentActiveFromToken(user, TenantComponents.SMART_CHARGING)) {
+      const smartChargingSettings = await SettingStorage.getSmartChargingSettings(tenant);
+      if (smartChargingSettings.sapSmartCharging.prioritizationParametersActive) {
+        siteAreas.smartChargingSessionParametersActive = true;
       }
     }
   }

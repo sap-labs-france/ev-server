@@ -66,6 +66,7 @@ export interface LogDataResult extends DataResult<Log> {
 
 export interface SiteAreaDataResult extends DataResult<SiteArea> {
   canCreate: boolean;
+  smartChargingSessionParametersActive: boolean;
 }
 
 export interface CarDataResult extends DataResult<Car> {

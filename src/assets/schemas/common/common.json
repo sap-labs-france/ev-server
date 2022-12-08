@@ -125,6 +125,23 @@
         }
       }
     },
+    "smartChargingSessionParameters": {
+      "type": "object",
+      "properties": {
+        "departureTime": {
+          "type": "integer",
+          "sanitize": "mongo"
+        },
+        "carStateOfCharge": {
+          "type": "integer",
+          "sanitize": "mongo"
+        },
+        "targetStateOfCharge": {
+          "type": "integer",
+          "sanitize": "mongo"
+        }
+      }
+    },
     "acceptEula": {
       "type": "boolean",
       "sanitize": "mongo"

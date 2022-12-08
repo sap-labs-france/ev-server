@@ -413,7 +413,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREA,
         action: [Action.READ, Action.READ_CHARGING_STATIONS_FROM_SITE_AREA],
         attributes: [
-          'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases', 'voltage', 'smartCharging', 'accessControl',
+          'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases', 'voltage', 'smartCharging', 'smartChargingSessionParameters',
+          'smartChargingSessionParameters.departureTime', 'smartChargingSessionParameters.carStateOfCharge', 'smartChargingSessionParameters.targetStateOfCharge', 'accessControl',
           'connectorStats', 'siteID', 'site.name', 'site.public', 'parentSiteAreaID', 'parentSiteArea.name', 'tariffID',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
