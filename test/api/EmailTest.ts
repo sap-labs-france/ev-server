@@ -28,7 +28,7 @@ function checkForMissing(html: string): string | null {
 }
 
 describe('Initialization', () => {
-  jest.setTimeout(600000);
+  jest.setTimeout(60000);
 
   beforeAll(async () => {
     global.database = new MongoDBStorage(config.get('storage'));
