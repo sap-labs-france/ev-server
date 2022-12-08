@@ -1362,6 +1362,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     if (lastPaymentIntentID) {
       await this.capturePayment(user, stripeInvoice.amount_due, lastPaymentIntentID as string);
+      stripeInvoice = await this.stripe.invoices.finalizeInvoice(stripeInvoice.id);
     }
     // Get fresh data only when necessary - e.g.: invoice has been finalized, however the payment attempt failed
     if (refreshDataRequired) {
