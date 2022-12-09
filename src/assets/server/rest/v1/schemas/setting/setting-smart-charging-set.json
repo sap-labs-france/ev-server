@@ -9,7 +9,7 @@
         "sapSmartCharging": {
           "type": "object",
           "properties": {
-            "limitBufferAC" : {
+            "limitBufferAC": {
               "type": "number",
               "sanitize": "mongo",
               "minimum": 1
@@ -34,13 +34,19 @@
             "user": {
               "type": "string",
               "sanitize": "mongo"
+            },
+            "prioritizationParametersActive": {
+              "type": "boolean",
+              "sanitize": "mongo"
             }
           }
         },
         "type": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": ["sapSmartCharging"]
+          "enum": [
+            "sapSmartCharging"
+          ]
         }
       },
       "links": {
@@ -57,7 +63,9 @@
     "identifier": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": ["smartCharging"]
+      "enum": [
+        "smartCharging"
+      ]
     },
     "sensitiveData": {
       "$ref": "setting#/definitions/sensitiveData"
