@@ -2,8 +2,9 @@ import CreatedUpdatedProps from '../CreatedUpdatedProps';
 import { OCPIBusinessDetails } from '../Setting';
 import { OCPIRegistrationStatus } from './OCPIRegistrationStatus';
 import { OCPIRole } from './OCPIRole';
+import { OcpiEndpointAuthorizationActions } from '../Authorization';
 
-export default interface OCPIEndpoint extends CreatedUpdatedProps {
+export default interface OCPIEndpoint extends OcpiEndpointAuthorizationActions, CreatedUpdatedProps {
   id: string;
   role: OCPIRole;
   name: string;
