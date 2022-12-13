@@ -1293,6 +1293,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
           'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID',
+          'smartChargingSessionParameters.departureTime', 'smartChargingSessionParameters.carStateOfCharge', 'smartChargingSessionParameters.targetStateOfCharge',
           'parentSiteAreaID', 'site.name', 'parentSiteArea.name',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
@@ -1849,6 +1850,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
           'voltage', 'smartCharging', 'accessControl', 'connectorStats',
+          'smartChargingSessionParameters.departureTime', 'smartChargingSessionParameters.carStateOfCharge', 'smartChargingSessionParameters.targetStateOfCharge',
           'siteID', 'parentSiteAreaID', 'site.name', 'parentSiteArea.name',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
@@ -2320,6 +2322,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
           'voltage', 'smartCharging', 'accessControl', 'connectorStats',
+          'smartChargingSessionParameters.departureTime', 'smartChargingSessionParameters.carStateOfCharge', 'smartChargingSessionParameters.targetStateOfCharge',
           'siteID', 'site.name', 'site.public', 'tariffID',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
