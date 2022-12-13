@@ -107,9 +107,9 @@ export default class UserService {
       if (smartChargingSettings.sapSmartCharging.prioritizationParametersActive) {
         // Default values are hard coded for now
         smartChargingSessionParameters = {
-          departureTime:  18,
-          carStateOfCharge: 30,
-          targetStateOfCharge: 70,
+          departureTime:  chargingStation.siteArea.smartChargingSessionParameters?.departureTime ?? 18,
+          carStateOfCharge: chargingStation.siteArea.smartChargingSessionParameters.carStateOfCharge ?? 30,
+          targetStateOfCharge: chargingStation.siteArea.smartChargingSessionParameters.targetStateOfCharge ?? 70,
         };
         if (Utils.getChargingStationCurrentType(chargingStation, null, filteredRequest.ConnectorID) === CurrentType.DC) {
           smartChargingSessionParameters.departureTime = null;
