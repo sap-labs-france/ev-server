@@ -354,10 +354,10 @@ export default class JsonOCPPServer extends OCPPServer {
   private async onMessage(ws: uWS.WebSocket, message: string, isBinary: boolean): Promise<void> {
     const wsWrapper: WSWrapper = ws.wsWrapper;
     try {
-      // Convert
-      const [ocppMessageType] = JSON.parse(message);
+      // Extract the OCPP Message Type
+      const [ocppMessageType]: [OCPPMessageType] = JSON.parse(message);
       // Lock incoming WS messages
-      await this.acquireLockForWSRequest(WebSocketAction.MESSAGE, ServerAction.WS_SERVER_MESSAGE, wsWrapper, ocppMessageType as OCPPMessageType);
+      await this.acquireLockForWSRequest(WebSocketAction.MESSAGE, ServerAction.WS_SERVER_MESSAGE, wsWrapper, ocppMessageType);
       try {
         this.runningWSMessages++;
         // Check if connection is available in Map
@@ -376,7 +376,7 @@ export default class JsonOCPPServer extends OCPPServer {
         }
       } finally {
         this.runningWSMessages--;
-        this.releaseLockForWSMessageRequest(wsWrapper, ocppMessageType as OCPPMessageType);
+        this.releaseLockForWSMessageRequest(wsWrapper, ocppMessageType);
       }
     } catch (error) {
       const logMessage = `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' got error while processing WS Message: ${error.message as string}`;
