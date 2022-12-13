@@ -357,7 +357,7 @@ export default class JsonOCPPServer extends OCPPServer {
       // Convert
       const [ocppMessageType] = JSON.parse(message);
       // Lock incoming WS messages
-      await this.acquireLockForWSRequest(WebSocketAction.MESSAGE, ServerAction.WS_SERVER_MESSAGE, wsWrapper, ocppMessageType);
+      await this.acquireLockForWSRequest(WebSocketAction.MESSAGE, ServerAction.WS_SERVER_MESSAGE, wsWrapper, ocppMessageType as OCPPMessageType);
       try {
         this.runningWSMessages++;
         // Check if connection is available in Map
@@ -376,7 +376,7 @@ export default class JsonOCPPServer extends OCPPServer {
         }
       } finally {
         this.runningWSMessages--;
-        this.releaseLockForWSMessageRequest(wsWrapper, ocppMessageType);
+        this.releaseLockForWSMessageRequest(wsWrapper, ocppMessageType as OCPPMessageType);
       }
     } catch (error) {
       const logMessage = `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' got error while processing WS Message: ${error.message as string}`;
