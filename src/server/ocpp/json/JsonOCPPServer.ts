@@ -352,7 +352,7 @@ export default class JsonOCPPServer extends OCPPServer {
       return;
     }
     // Unlock
-    delete this.runningWSRequestsMessages[wsWrapper.url];
+    this.runningWSRequestsMessages.delete(wsWrapper.url);
   }
 
   private async onMessage(ws: uWS.WebSocket, message: string, isBinary: boolean): Promise<void> {
