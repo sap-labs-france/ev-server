@@ -383,13 +383,13 @@ export default class SiteAreaService {
     }
     siteArea.numberOfPhases = filteredRequest.numberOfPhases;
     siteArea.smartCharging = filteredRequest.smartCharging;
+    siteArea.smartChargingSessionParameters = filteredRequest.smartChargingSessionParameters;
     siteArea.accessControl = filteredRequest.accessControl;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI) &&
         Utils.objectHasProperty(filteredRequest, 'tariffID')) {
       siteArea.tariffID = filteredRequest.tariffID;
     }
     siteArea.parentSiteAreaID = filteredRequest.parentSiteAreaID;
-    siteArea.smartChargingSessionParameters = filteredRequest.smartChargingSessionParameters;
     siteArea.siteID = filteredRequest.siteID;
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
