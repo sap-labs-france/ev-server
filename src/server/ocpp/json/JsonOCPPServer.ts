@@ -29,6 +29,7 @@ export default class JsonOCPPServer extends OCPPServer {
   private waitingWSMessages = 0;
   private runningWSMessages = 0;
   private runningWSRequestsMessages: Record<string, boolean> = {};
+  private onOpenFinished: Record<string, boolean> = {};
   private jsonWSConnections: Map<string, JsonWSConnection> = new Map();
   private jsonRestWSConnections: Map<string, JsonRestWSConnection> = new Map();
 
@@ -247,6 +248,7 @@ export default class JsonOCPPServer extends OCPPServer {
         `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been rejected and closed by server due to an exception: ${error.message as string}`);
     } finally {
       this.runningWSMessages--;
+      this.onOpenFinished[wsWrapper.url] = true;
       this.releaseLockForWSMessageRequest(wsWrapper);
     }
   }
@@ -507,14 +509,21 @@ export default class JsonOCPPServer extends OCPPServer {
         }
         // Handle remaining trial
         if (numberOfTrials >= maxNumberOfTrials) {
+
+          const openInProgress = !this.onOpenFinished[wsWrapper.url];
           // Abnormal situation: The lock should not be taken for so long!
           await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT_ID,
             chargingStationID: wsWrapper.chargingStationID,
             action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
-            message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Cannot acquire the lock after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs - Lock will be forced to be released`,
+            message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Cannot acquire the lock after ${numberOfTrials} trial(s) openInProgress : ${openInProgress} and ${Utils.computeTimeDurationSecs(timeStart)} secs - Lock will be forced to be released `,
             detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
           });
+          if (openInProgress) {
+            await this.closeWebSocket(wsAction, action, wsWrapper,
+              WebSocketCloseEventStatusCode.CLOSE_TRY_AGAIN_LATER, `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been closed after it has been timed out because onOpen is not finished`);
+            this.onOpenFinished[wsWrapper.url] = false;
+          }
           // Free the lock
           this.waitingWSMessages--;
           break;

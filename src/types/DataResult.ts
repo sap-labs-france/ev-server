@@ -11,6 +11,7 @@ import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import { ChargingProfile } from './ChargingProfile';
 import Company from './Company';
 import { Log } from './Log';
+import OCPIEndpoint from './ocpi/OCPIEndpoint';
 import PricingDefinition from './Pricing';
 import RegistrationToken from './RegistrationToken';
 import { SettingDB } from './Setting';
@@ -181,5 +182,9 @@ export interface ChargingProfileDataResult extends DataResult<ChargingProfile> {
 }
 
 export interface SettingDBDataResult extends DataResult<SettingDB> {
+  canCreate?: boolean;
+}
+
+export interface OcpiEndpointDataResult extends DataResult<OCPIEndpoint> {
   canCreate?: boolean;
 }

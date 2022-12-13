@@ -32,6 +32,8 @@ import { Log } from '../../../../types/Log';
 import LogStorage from '../../../../storage/mongodb/LogStorage';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 import PDFDocument from 'pdfkit';
 import PricingDefinition from '../../../../types/Pricing';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
@@ -856,6 +858,42 @@ export default class UtilsService {
       });
     }
     return setting;
+  }
+
+  public static async checkAndGetOCPIEndpointAuthorization(tenant: Tenant, userToken: UserToken, ocpiEndpointID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<OCPIEndpoint> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, ocpiEndpointID, MODULE_NAME, 'checkAndGetOCPIEndpointAuthorization', userToken);
+    // Get dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetOCPIEndpointAuthorizations(
+      tenant, userToken, { ID: ocpiEndpointID }, authAction, entityData);
+    // Get OCPI endpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(tenant, ocpiEndpointID,
+      applyProjectFields ? authorizations.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint '${ocpiEndpointID}' does not exist`,
+      MODULE_NAME, 'checkAndGetOCPIEndpointAuthorization', userToken);
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      ocpiEndpoint.projectFields = authorizations.projectFields;
+    }
+    // Assign Metadata
+    if (authorizations.metadata) {
+      ocpiEndpoint.metadata = authorizations.metadata;
+    }
+    // Add Actions
+    await AuthorizationService.addOCPIEndpointAuthorizations(tenant, userToken, ocpiEndpoint, authorizations);
+    const authorized = AuthorizationService.canPerformAction(ocpiEndpoint, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'checkAndGetOCPIEndpointAuthorization',
+        value: ocpiEndpointID
+      });
+    }
+    return ocpiEndpoint;
   }
 
   // This function is tailored for SETTING authorization, do not use it for "general" entities !
