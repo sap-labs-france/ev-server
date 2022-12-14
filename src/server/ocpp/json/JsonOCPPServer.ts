@@ -103,7 +103,7 @@ export default class JsonOCPPServer extends OCPPServer {
           void ws.wsWrapper.wsConnection.onPong(ocppMessage);
         }
       }
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
     }).any(Constants.HEALTH_CHECK_ROUTE, async (res: HttpResponse) => {
       res.onAborted(() => {
         res.aborted = true;
@@ -374,7 +374,7 @@ export default class JsonOCPPServer extends OCPPServer {
               await wsWrapper.wsConnection.receivedMessage(message, isBinary);
             }
           }
-        // Process the message
+          // Process the message
         } else if (wsWrapper.wsConnection) {
           await wsWrapper.wsConnection.receivedMessage(message, isBinary);
         }
@@ -492,46 +492,43 @@ export default class JsonOCPPServer extends OCPPServer {
         detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
       });
       this.waitingWSMessages++;
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        // Wait
-        await Utils.sleep(Constants.WS_LOCK_TIME_OUT_MILLIS);
-        numberOfTrials++;
-        // Message has been processed
-        if (!this.runningWSRequestsMessages.has(wsWrapper.url)) {
-          await Logging.logInfo({
-            tenantID: Constants.DEFAULT_TENANT_ID,
-            chargingStationID: wsWrapper.chargingStationID,
-            action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
-            message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Lock has been acquired successfully after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs`,
-            detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
-          });
-          // Free the lock
-          this.waitingWSMessages--;
-          break;
-        }
-        // Handle remaining trial
-        if (numberOfTrials >= maxNumberOfTrials) {
-
-          // Abnormal situation: The lock should not be taken for so long!
-          await Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT_ID,
-            chargingStationID: wsWrapper.chargingStationID,
-            action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
-            message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Cannot acquire the lock after ${numberOfTrials} trial(s) action : ${this.runningWSRequestsMessages.get(wsWrapper.url)}  and ${Utils.computeTimeDurationSecs(timeStart)} secs - Lock will be forced to be released `,
-            detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
-          });
-          if (this.runningWSRequestsMessages.get(wsWrapper.url) === WebSocketAction.OPEN) {
-            await this.closeWebSocket(wsAction, action, wsWrapper,
-              WebSocketCloseEventStatusCode.CLOSE_TRY_AGAIN_LATER, `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been closed after it has been timed out because onOpen is not finished`);
-            this.runningWSRequestsMessages.delete(wsWrapper.url);
-            this.waitingWSMessages--;
-            throw new Error('Reconnect later');
+      try {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          // Wait
+          await Utils.sleep(Constants.WS_LOCK_TIME_OUT_MILLIS);
+          numberOfTrials++;
+          // Message has been processed
+          if (!this.runningWSRequestsMessages.has(wsWrapper.url)) {
+            await Logging.logInfo({
+              tenantID: Constants.DEFAULT_TENANT_ID,
+              chargingStationID: wsWrapper.chargingStationID,
+              action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
+              message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Lock has been acquired successfully after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs`,
+              detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
+            });
+            break;
           }
-          // Free the lock
-          this.waitingWSMessages--;
-          break;
+          // Handle remaining trial
+          if (numberOfTrials >= maxNumberOfTrials) {
+            // Abnormal situation: The lock should not be taken for so long!
+            await Logging.logError({
+              tenantID: Constants.DEFAULT_TENANT_ID,
+              chargingStationID: wsWrapper.chargingStationID,
+              action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
+              message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Cannot acquire the lock after ${numberOfTrials} trial(s) action : ${this.runningWSRequestsMessages.get(wsWrapper.url)}  and ${Utils.computeTimeDurationSecs(timeStart)} secs - Lock will be forced to be released `,
+              detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
+            });
+            if (this.runningWSRequestsMessages.get(wsWrapper.url) === WebSocketAction.OPEN) {
+              await this.closeWebSocket(wsAction, action, wsWrapper,
+                WebSocketCloseEventStatusCode.CLOSE_TRY_AGAIN_LATER, `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been closed after it has been timed out because onOpen is not finished`);
+              throw new Error('CLOSE_TRY_AGAIN_LATER');
+            }
+            break;
+          }
         }
+      } finally {
+        this.waitingWSMessages--;
       }
     }
     return true;
@@ -708,6 +705,14 @@ export default class JsonOCPPServer extends OCPPServer {
             `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
           ]
         });
+        if (global.monitoringServer) {
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE).set(this.runningWSMessages);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT).set(this.jsonRestWSConnections.size);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRRENT_REQUEST).set(numberOfCurrentRequests);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(Object.keys(this.runningWSRequestsMessages).length);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_QUEUED_REQUEST).set(this.waitingWSMessages);
+        }
         if (this.isDebug()) {
           Logging.logConsoleDebug('=====================================');
           Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
