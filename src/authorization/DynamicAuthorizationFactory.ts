@@ -24,6 +24,8 @@ import SitesAdminUsersDynamicAuthorizationDataSource from './dynamic-data-source
 import SitesAdminUsersDynamicAuthorizationFilter from './dynamic-filters/SitesAdminUsersDynamicAuthorizationFilter';
 import SitesOwnerDynamicAuthorizationDataSource from './dynamic-data-source/SitesOwnerDynamicAuthorizationDataSource';
 import SitesOwnerDynamicAuthorizationFilter from './dynamic-filters/SitesOwnerDynamicAuthorizationFilter';
+import SitesOwnerUsersDynamicAuthorizationDataSource from './dynamic-data-source/SitesOwnerUsersDynamicAuthorizationDataSource';
+import SitesOwnerUsersDynamicAuthorizationFilter from './dynamic-filters/SitesOwnerUsersDynamicAuthorizationFilter';
 import Tenant from '../types/Tenant';
 import UserMandatoryDynamicAuthorizationAssert from './dynamic-assert/UserMandatoryDynamicAuthorizationAssert';
 import UserToken from '../types/UserToken';
@@ -68,6 +70,9 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationFilterName.SITES_ADMIN_OR_OWNER:
         dynamicFilter = new SitesAdminOrOwnerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        break;
+      case DynamicAuthorizationFilterName.SITES_OWNER_USERS:
+        dynamicFilter = new SitesOwnerUsersDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
     }
     // Init Data Source
@@ -133,6 +138,9 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationDataSourceName.SITES_ADMIN_OR_OWNER:
         dataSource = new SitesAdminOrOwnerDynamicAuthorizationDataSource(tenant, user);
+        break;
+      case DynamicAuthorizationDataSourceName.SITES_OWNER_USERS:
+        dataSource = new SitesOwnerUsersDynamicAuthorizationDataSource(tenant, user);
         break;
     }
     // Load data
