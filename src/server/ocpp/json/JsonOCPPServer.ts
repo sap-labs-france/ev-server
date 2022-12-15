@@ -5,8 +5,7 @@ import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Serve
 import {
   WebSocketAction,
   WebSocketCloseEventStatusCode,
-  WebSocketPingResult,
-  WSClientOptions
+  WebSocketPingResult
 } from '../../../types/WebSocket';
 
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
@@ -146,7 +145,8 @@ export default class JsonOCPPServer extends OCPPServer {
         tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: chargingStation.id,
         module: MODULE_NAME, method: 'getChargingStationClient',
-        action: ServerAction.WS_SERVER_CONNECTION, message
+        action: ServerAction.WS_SERVER_CONNECTION,
+        message: `${message} -  tenant: ${tenant.subdomain}`
       });
       return;
     }

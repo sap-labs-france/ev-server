@@ -15,10 +15,10 @@ import { WSClientOptions } from '../../../types/WebSocket';
 const MODULE_NAME = 'JsonRestChargingStationClient';
 
 export default class JsonRestChargingStationClient extends ChargingStationClient {
-  private jsonEndoint = Configuration.getJsonEndpointConfig();
+  private jsonEndpoint = Configuration.getJsonEndpointConfig();
   private serverURL: string;
   private chargingStation: ChargingStation;
-  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Record<string, unknown>) => void; command: Command } };
+  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Error|Record<string, unknown>) => void; command: Command } };
   private wsConnection: WSClient;
   private tenantID: string;
 
@@ -28,9 +28,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     // Get URL
     let jsonServerURL: string;
     // Check K8s
-    if (process.env.K8S && this.jsonEndoint.targetPort && chargingStation.cloudHostIP) {
+    if (process.env.K8S && this.jsonEndpoint.targetPort && chargingStation.cloudHostIP) {
       // Use K8s internal IP, always in ws
-      jsonServerURL = `ws://${chargingStation.cloudHostIP}:${this.jsonEndoint.targetPort}`;
+      jsonServerURL = `ws://${chargingStation.cloudHostIP}:${this.jsonEndpoint.targetPort}`;
     } else {
       jsonServerURL = chargingStation.chargingStationURL;
       if (!jsonServerURL) {
@@ -115,7 +115,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return this.sendMessage(this.buildRequest(Command.CANCEL_RESERVATION, params));
   }
 
-  private async openConnection(): Promise<any> {
+  private async openConnection(request: OCPPOutgoingRequest): Promise<any> {
+    // Extract Current Command
+    const triggeringCommand: Command = request[2];
     // Log
     await Logging.logInfo({
       tenantID: this.tenantID,
@@ -125,7 +127,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       chargingStationID: this.chargingStation.id,
       action: ServerAction.WS_CLIENT_CONNECTION,
       module: MODULE_NAME, method: 'onOpen',
-      message: `Try to connect to '${this.serverURL}'...`
+      message: `Try to connect to '${this.serverURL}' - command: ${triggeringCommand}`
     });
     // Create Promise
     return new Promise((resolve, reject) => {
@@ -141,8 +143,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Create and Open the WS
         this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
         // Opened
-        this.wsConnection.onopen = async () => {
-          await Logging.logInfo({
+        this.wsConnection.onopen = () => {
+          void Logging.logInfo({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -150,14 +152,14 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             chargingStationID: this.chargingStation.id,
             action: ServerAction.WS_CLIENT_CONNECTION_OPEN,
             module: MODULE_NAME, method: 'onOpen',
-            message: `Connection opened to '${this.serverURL}'`
+            message: `Connection opened to '${this.serverURL}' - command: ${triggeringCommand}`
           });
           // Connection is opened and ready to use
           resolve();
         };
         // Closed
-        this.wsConnection.onclose = async (code: number) => {
-          await Logging.logInfo({
+        this.wsConnection.onclose = (code: number) => {
+          void Logging.logInfo({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -170,8 +172,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           });
         };
         // Handle Error Message
-        this.wsConnection.onerror = async (error: Error) => {
-          await Logging.logError({
+        this.wsConnection.onerror = (error: Error) => {
+          void Logging.logError({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -187,16 +189,16 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           reject(new Error(`Error on opening Web Socket connection: ${error.message}'`));
         };
         // Handle Server Message
-        this.wsConnection.onmessage = async (message) => {
+        this.wsConnection.onmessage = (message) => {
           try {
             // Parse the message
-            const [messageType, messageId, command, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
+            const [messageType, messageId, command, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data as string) as OCPPIncomingRequest;
             // Check if this corresponds to a request
             if (this.requests[messageId]) {
               // Check message type
               if (messageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
                 // Error message
-                await Logging.logError({
+                void Logging.logError({
                   tenantID: this.tenantID,
                   siteID: this.chargingStation.siteID,
                   siteAreaID: this.chargingStation.siteAreaID,
@@ -208,7 +210,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                   detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
                 });
                 // Resolve with error message
-                this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, command, commandPayload, errorDetails] });
+                // this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, command, commandPayload, errorDetails] });
+                this.requests[messageId].reject(new Error(`${message.data as string}`));
               } else {
                 // Respond to the request
                 this.requests[messageId].resolve(command);
@@ -217,7 +220,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               this.closeConnection();
             } else {
               // Error message
-              await Logging.logError({
+              void Logging.logError({
                 tenantID: this.tenantID,
                 siteID: this.chargingStation.siteID,
                 siteAreaID: this.chargingStation.siteAreaID,
@@ -230,7 +233,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               });
             }
           } catch (error) {
-            await Logging.logException(error, ServerAction.WS_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
+            void Logging.logException(error as Error, ServerAction.WS_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
           }
         };
       } catch (error) {
@@ -261,7 +264,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return new Promise(async (resolve, reject) => {
       try {
         // Open WS Connection
-        await this.openConnection();
+        await this.openConnection(request);
         // Check if wsConnection is ready
         if (this.wsConnection?.isConnectionOpen()) {
           // Send
