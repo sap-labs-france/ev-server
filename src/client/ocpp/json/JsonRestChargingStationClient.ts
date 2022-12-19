@@ -143,8 +143,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Create and Open the WS
         this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
         // Opened
-        this.wsConnection.onopen = () => {
-          void Logging.logInfo({
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        this.wsConnection.onopen = async () => {
+          await Logging.logInfo({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -152,14 +153,15 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             chargingStationID: this.chargingStation.id,
             action: ServerAction.WS_CLIENT_CONNECTION_OPEN,
             module: MODULE_NAME, method: 'onOpen',
-            message: `Connection opened to '${this.serverURL}' - command: ${triggeringCommand}`
+            message: `Connection opened to '${this.serverURL}'`
           });
           // Connection is opened and ready to use
           resolve();
         };
         // Closed
-        this.wsConnection.onclose = (code: number) => {
-          void Logging.logInfo({
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        this.wsConnection.onclose = async (code: number) => {
+          await Logging.logInfo({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -172,8 +174,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           });
         };
         // Handle Error Message
-        this.wsConnection.onerror = (error: Error) => {
-          void Logging.logError({
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        this.wsConnection.onerror = async (error: Error) => {
+          await Logging.logError({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -189,16 +192,17 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           reject(new Error(`Error on opening Web Socket connection: ${error.message}'`));
         };
         // Handle Server Message
-        this.wsConnection.onmessage = (message) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        this.wsConnection.onmessage = async (message) => {
           try {
             // Parse the message
-            const [messageType, messageId, command, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data as string) as OCPPIncomingRequest;
+            const [messageType, messageId, command, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
             // Check if this corresponds to a request
             if (this.requests[messageId]) {
               // Check message type
               if (messageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
                 // Error message
-                void Logging.logError({
+                await Logging.logError({
                   tenantID: this.tenantID,
                   siteID: this.chargingStation.siteID,
                   siteAreaID: this.chargingStation.siteAreaID,
@@ -220,7 +224,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               this.closeConnection();
             } else {
               // Error message
-              void Logging.logError({
+              await Logging.logError({
                 tenantID: this.tenantID,
                 siteID: this.chargingStation.siteID,
                 siteAreaID: this.chargingStation.siteAreaID,
@@ -233,7 +237,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               });
             }
           } catch (error) {
-            void Logging.logException(error as Error, ServerAction.WS_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
+            await Logging.logException(error as Error, ServerAction.WS_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
           }
         };
       } catch (error) {
