@@ -902,14 +902,7 @@ export default class ChargingStationService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
       Action.CHECK_CONNECTION, Entity.CHARGING_STATION, MODULE_NAME, 'handleCheckSmartChargingConnection');
     // Check auth
-    if (!await Authorizations.canReadSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.SETTING, action: Action.UPDATE,
-        module: MODULE_NAME, method: 'handleCheckSmartChargingConnection'
-      });
-    }
+    await AuthorizationService.checkAndGetSmartChargingAuthorizations(req.tenant, req.user, Action.CHECK_CONNECTION);
     // Get implementation
     const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.tenant);
     if (!smartCharging) {

@@ -372,6 +372,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id'
         ]
       },
+      { resource: Entity.SMART_CHARGING, action: Action.CHECK_CONNECTION },
       {
         resource: Entity.USER_SITE, action: [Action.ASSIGN_SITES_TO_USER, Action.UNASSIGN_SITES_FROM_USER, Action.READ, Action.UPDATE, Action.LIST],
         condition: {
@@ -670,6 +671,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
+        resource: Entity.TRANSACTION, action: Action.REFUND_TRANSACTION,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        }
+      },
+      {
         resource: Entity.TRANSACTION, action: Action.EXPORT_COMPLETED_TRANSACTION,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -942,11 +953,28 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.REGISTRATION_TOKEN, action: [Action.DELETE, Action.REVOKE] },
-      { resource: Entity.OCPI_ENDPOINT, action: Action.LIST },
+      {
+        resource: Entity.OCPI_ENDPOINT, action: Action.LIST,
+        attributes: [
+          'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'lastChangedOn', 'lastPatchJobOn', 'backgroundPatchJob', 'localToken', 'token',
+          'lastCpoPushStatuses.lastUpdatedOn', 'lastCpoPushStatuses.partial', 'lastCpoPushStatuses.failureNbr', 'lastCpoPushStatuses.successNbr', 'lastCpoPushStatuses.totalNbr',
+          'lastCpoPullTokens.lastUpdatedOn', 'lastCpoPullTokens.partial', 'lastCpoPullTokens.failureNbr', 'lastCpoPullTokens.successNbr', 'lastCpoPullTokens.totalNbr',
+          'lastEmspPushTokens.lastUpdatedOn', 'lastEmspPushTokens.partial', 'lastEmspPushTokens.failureNbr', 'lastEmspPushTokens.successNbr', 'lastEmspPushTokens.totalNbr',
+          'lastEmspPullLocations.lastUpdatedOn', 'lastEmspPullLocations.partial', 'lastEmspPullLocations.failureNbr', 'lastEmspPullLocations.successNbr', 'lastEmspPullLocations.totalNbr',
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
+        ]
+      },
+      {
+        resource: Entity.OCPI_ENDPOINT, action: Action.READ,
+        attributes: [
+          'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'patchJobStatus', 'localToken', 'token',
+          'patchJobResult.successNbr', 'patchJobResult.failureNbr', 'patchJobResult.totalNbr'
+        ]
+      },
       {
         resource: Entity.OCPI_ENDPOINT,
         action: [
-          Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.PING, Action.GENERATE_LOCAL_TOKEN,
+          Action.CREATE, Action.UPDATE, Action.DELETE, Action.PING, Action.GENERATE_LOCAL_TOKEN,
           Action.REGISTER, Action.TRIGGER_JOB
         ],
       },
@@ -3094,7 +3122,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: ['SitesOwnerUsers']
           }
         },
         attributes: [
@@ -3119,7 +3147,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: ['SitesOwnerUsers']
           }
         },
         attributes: [
@@ -3136,7 +3164,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: ['SitesOwnerUsers']
           }
         },
         attributes: [
@@ -3174,7 +3202,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: ['SitesOwnerUsers']
           }
         },
         attributes: [
@@ -3194,7 +3222,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: ['SitesOwnerUsers']
           }
         },
         attributes: [
@@ -3207,7 +3235,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['AssignedSites']
+            filters: ['SitesOwnerUsers']
           }
         },
         attributes: [
@@ -3237,7 +3265,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SitesOwner']
+            filters: ['SitesOwnerUsers']
           }
         }
       },
@@ -3247,7 +3275,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizations',
           args: {
             asserts: [],
-            filters: ['SitesOwner']
+            filters: ['SitesOwnerUsers']
           }
         },
       },

@@ -4,6 +4,7 @@ import ChargingStationVendorIntegration from './ChargingStationVendorIntegration
 import DefaultChargingStationVendorIntegration from './default/DefaultChargingStationVendorIntegration';
 import EVBOXChargingStationVendorIntegration from './evbox/EVBOXChargingStationVendorIntegration';
 import KebaChargingStationVendorIntegration from './keba/KebaChargingStationVendorIntegration';
+import WALLBOXChargingStationVendorIntegration from './wallbox/WALLBOXChargingStationVendorIntegration';
 
 export default class ChargingStationVendorFactory {
   public static getChargingStationVendorImpl(chargingStation: ChargingStation): ChargingStationVendorIntegration {
@@ -14,6 +15,9 @@ export default class ChargingStationVendorFactory {
         break;
       case ChargerVendor.KEBA:
         chargingStationVendorImpl = new KebaChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.WALLBOX:
+        chargingStationVendorImpl = new WALLBOXChargingStationVendorIntegration(chargingStation);
         break;
       default:
         chargingStationVendorImpl = new DefaultChargingStationVendorIntegration(chargingStation);
