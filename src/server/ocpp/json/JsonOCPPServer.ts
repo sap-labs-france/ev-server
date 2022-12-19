@@ -49,32 +49,37 @@ export default class JsonOCPPServer extends OCPPServer {
       compression: uWS.SHARED_COMPRESSOR,
       maxPayloadLength: 64 * 1024, // 64 KB per request
       idleTimeout: 1 * 3600, // 1 hour of inactivity => Close
-      upgrade: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      upgrade: async (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => {
         // Delegate
-        void this.onUpgrade(res, req, context);
+        await this.onUpgrade(res, req, context);
       },
-      open: (ws: WebSocket) => {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      open: async (ws: WebSocket) => {
         // Delegate
-        void this.onOpen(ws);
+        await this.onOpen(ws);
       },
-      message: (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      message: async (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => {
         // Delegate
         const messageStr = Utils.convertBufferArrayToString(message);
-        void this.onMessage(ws, messageStr, isBinary);
+        await this.onMessage(ws, messageStr, isBinary);
       },
-      close: (ws: WebSocket, code: number, message: ArrayBuffer) => {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      close: async (ws: WebSocket, code: number, message: ArrayBuffer) => {
         // Convert right away
         const reason = Utils.convertBufferArrayToString(message);
         const wsWrapper = ws.wsWrapper as WSWrapper;
         // Close
         wsWrapper.closed = true;
         // Remove connection
-        void this.removeWSWrapper(WebSocketAction.CLOSE, ServerAction.WS_SERVER_CONNECTION_CLOSE, wsWrapper).then(async () => {
+        await this.removeWSWrapper(WebSocketAction.CLOSE, ServerAction.WS_SERVER_CONNECTION_CLOSE, wsWrapper).then(async () => {
           await this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_CLOSE, code,
             `${WebSocketAction.CLOSE} > WS Connection ID '${wsWrapper.guid}' closed by charging station with code '${code}', reason: '${!Utils.isNullOrEmptyString(reason) ? reason : 'No reason given'}'`);
         });
       },
-      ping: (ws: WebSocket, message: ArrayBuffer) => {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      ping: async (ws: WebSocket, message: ArrayBuffer) => {
         // Convert
         const ocppMessage = Utils.convertBufferArrayToString(message);
         // Update
@@ -83,10 +88,11 @@ export default class JsonOCPPServer extends OCPPServer {
         }
         // Get the WS
         if (ws.wsWrapper.wsConnection) {
-          void ws.wsWrapper.wsConnection.onPing(ocppMessage);
+          await ws.wsWrapper.wsConnection.onPing(ocppMessage);
         }
       },
-      pong: (ws: WebSocket, message: ArrayBuffer) => {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      pong: async (ws: WebSocket, message: ArrayBuffer) => {
         // Convert
         const ocppMessage = Utils.convertBufferArrayToString(message);
         // Update
@@ -95,7 +101,7 @@ export default class JsonOCPPServer extends OCPPServer {
         }
         // Get the WS
         if (ws.wsWrapper.wsConnection) {
-          void ws.wsWrapper.wsConnection.onPong(ocppMessage);
+          await ws.wsWrapper.wsConnection.onPong(ocppMessage);
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
