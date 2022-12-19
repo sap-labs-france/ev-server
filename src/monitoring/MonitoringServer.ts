@@ -1,5 +1,5 @@
 import client from 'prom-client';
-import { DatabaseMonitoringMetric } from './DatabaseMonitoringMetric';
+import { ComposedMonitoringMetric } from './ComposedMonitoringMetric';
 
 export default abstract class MonitoringServer {
   public abstract start(): void;
@@ -12,10 +12,11 @@ export default abstract class MonitoringServer {
     labelNames?: string[]
   ): client.Gauge;
 
-  public abstract getDatabaseMetric(
+  public abstract getComposedMetric(
+    prefix: string,
     metricname: string,
     suffix: number,
     metrichelp: string,
     labelNames: string[]
-  ): DatabaseMonitoringMetric;
+  ): ComposedMonitoringMetric;
 }
