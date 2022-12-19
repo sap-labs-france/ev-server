@@ -153,7 +153,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             chargingStationID: this.chargingStation.id,
             action: ServerAction.WS_CLIENT_CONNECTION_OPEN,
             module: MODULE_NAME, method: 'onOpen',
-            message: `Connection opened to '${this.serverURL}'`
+            message: `Connection opened to '${this.serverURL}' - command: ${triggeringCommand}`
           });
           // Connection is opened and ready to use
           resolve();
