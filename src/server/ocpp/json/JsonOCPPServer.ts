@@ -72,11 +72,10 @@ export default class JsonOCPPServer extends OCPPServer {
         const wsWrapper = ws.wsWrapper as WSWrapper;
         // Close
         wsWrapper.closed = true;
-        // Remove connection
-        await this.removeWSWrapper(WebSocketAction.CLOSE, ServerAction.WS_SERVER_CONNECTION_CLOSE, wsWrapper).then(async () => {
-          await this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_CLOSE, code,
-            `${WebSocketAction.CLOSE} > WS Connection ID '${wsWrapper.guid}' closed by charging station with code '${code}', reason: '${!Utils.isNullOrEmptyString(reason) ? reason : 'No reason given'}'`);
-        });
+        await this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_CLOSE, code,
+          `${WebSocketAction.CLOSE} > WS Connection ID '${wsWrapper.guid}' closed by charging station with code '${code}', reason: '${!Utils.isNullOrEmptyString(reason) ? reason : 'No reason given'}'`);
+        // Remove connection	        // Remove connection
+        await this.removeWSWrapper(WebSocketAction.CLOSE, ServerAction.WS_SERVER_CONNECTION_CLOSE, wsWrapper);
       },
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       ping: async (ws: WebSocket, message: ArrayBuffer) => {
