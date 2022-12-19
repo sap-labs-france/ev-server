@@ -759,14 +759,14 @@ export default class JsonOCPPServer extends OCPPServer {
             tenantID: Constants.DEFAULT_TENANT_ID,
             module: MODULE_NAME, method: 'checkAndCleanupWebSockets',
             action: ServerAction.WS_SERVER_CONNECTION_PING,
-            message, detailedMessages: { invalidConnections, validConnections }
+            message, detailedMessages: { invalidConnections, /* validConnections */ }
           });
         } else {
           await Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT_ID,
             module: MODULE_NAME, method: 'checkAndCleanupWebSockets',
             action: ServerAction.WS_SERVER_CONNECTION_PING,
-            message, detailedMessages: { invalidConnections, validConnections }
+            message, /* detailedMessages: { invalidConnections, validConnections } */
           });
         }
       }
