@@ -3,7 +3,6 @@ import client, { Gauge, LabelValues } from 'prom-client';
 class ComposedMonitoringMetric {
   private gaugeMetricAvg: client.Gauge;
   private gaugeMetricCount: client.Gauge;
-  private gaugeMetricSum: client.Gauge;
   private metricCount = 0;
   private metricAvg = 0;
 
@@ -40,7 +39,7 @@ class ComposedMonitoringMetric {
     this.metricAvg = 0;
     this.metricCount = 0;
     this.gaugeMetricCount.reset();
-    this.gaugeMetricSum.reset();
+    this.gaugeMetricAvg.reset();
   }
 }
 export { ComposedMonitoringMetric };
