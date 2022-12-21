@@ -329,7 +329,7 @@ export default class TransactionStorage {
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
         statistics?: TransactionStatisticsType; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
-        transactionsToStop?: boolean;
+        transactionsToStop?: boolean; siteOwnerIDs?: string[];
       },
       dbParams: DbParams, projectFields?: string[]): Promise<TransactionDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -355,6 +355,13 @@ export default class TransactionStorage {
       ownerMatch.$or.push({
         siteID: {
           $in: params.siteAdminIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+        }
+      });
+    }
+    if (params.siteOwnerIDs) {
+      ownerMatch.$or.push({
+        siteID: {
+          $in: params.siteOwnerIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
         }
       });
     }
