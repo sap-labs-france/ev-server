@@ -15,7 +15,6 @@ import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPUtils from '../../utils/OCPPUtils';
 import WSConnection from './WSConnection';
 import WSWrapper from './WSWrapper';
-
 const MODULE_NAME = 'JsonWSConnection';
 
 export default class JsonWSConnection extends WSConnection {
@@ -43,6 +42,13 @@ export default class JsonWSConnection extends WSConnection {
         Address: this.getClientIP()
       }
     };
+
+    await global.kafka.admin.createTopics({
+      validateOnly: false,
+      waitForLeaders: false,
+      timeout: 5000,
+      topics:  [{ topic : this.getTenant() + '_' + this.getChargingStationID() }]
+    });
     // Create the Json Client
     this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID());
     // Create the Json Server Service

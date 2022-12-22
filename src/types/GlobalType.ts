@@ -1,3 +1,4 @@
+import { Consumer, Kafka, Producer } from 'kafkajs';
 import MonitoringServer from '../monitoring/MonitoringServer';
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from './Billing';
 import { Car, CarCatalog } from './Car';
@@ -98,6 +99,8 @@ interface TSGlobal extends Global {
   centralSystemSoapServer: SoapOCPPServer;
   serverType: ServerType;
   monitoringServer : MonitoringServer;
+  kafka : Kafka;
+  kafkaProducer : Producer;
   Promise: any;
 }
 

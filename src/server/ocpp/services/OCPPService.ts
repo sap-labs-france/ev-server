@@ -42,6 +42,8 @@ import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/v1/service/UtilsService';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
+import global from '../../../types/GlobalType';
+import { ITopicConfig, Kafka } from 'kafkajs';
 
 momentDurationFormatSetup(moment as any);
 
@@ -56,6 +58,14 @@ export default class OCPPService {
 
   public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): Promise<OCPPBootNotificationResponse> {
     try {
+      const producer = global.kafkaProducer;
+      await producer.send({
+        topic: headers.tenant.subdomain + '-' + headers.chargingStation.id,
+        messages: [
+          { key: JSON.stringify(headers) , value:  JSON.stringify(bootNotification) }
+        ],
+      });
+
       const { tenant } = headers;
       let { chargingStation } = headers;
       OCPPValidator.getInstance().validateBootNotification(headers, bootNotification);
@@ -114,6 +124,13 @@ export default class OCPPService {
 
   public async handleHeartbeat(headers: OCPPHeader, heartbeat: OCPPHeartbeatRequestExtended): Promise<OCPPHeartbeatResponse> {
     try {
+      const producer = global.kafkaProducer;
+      await producer.send({
+        topic: headers.tenant.subdomain + '-' + headers.chargingStation.id,
+        messages: [
+          { key: JSON.stringify(headers) , value:  JSON.stringify(heartbeat) }
+        ],
+      });
       // Get the header infos
       const { chargingStation, tenant } = headers;
       if (!heartbeat) {

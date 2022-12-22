@@ -1,3 +1,4 @@
+import { Kafka } from 'kafkajs';
 import CentralSystemConfiguration, { CentralSystemImplementation } from './types/configuration/CentralSystemConfiguration';
 import { ServerAction, ServerType } from './types/Server';
 
@@ -185,6 +186,13 @@ export default class Bootstrap {
       } else {
         global.serverType = ServerType.CENTRAL_SERVER;
       }
+      global.kafka = new Kafka({
+        clientId: 'my-app',
+        brokers: ['localhost:29092'],
+      });
+      global.kafkaProducer = global.kafka.producer();
+      await global.kafkaProducer.connect();
+
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfully`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       Logging.logConsoleError(error);
