@@ -10,7 +10,6 @@ import BackendError from '../exception/BackendError';
 import Configuration from '../utils/Configuration';
 import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
-import LightLogger from './LightLogger';
 import LogConfiguration from '../types/configuration/LogConfiguration';
 import LogStorage from '../storage/mongodb/LogStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
@@ -28,6 +27,26 @@ import chalk from 'chalk';
 import sizeof from 'object-sizeof';
 
 const MODULE_NAME = 'Logging';
+
+export abstract class AbstractLightLogger {
+  public abstract log(log: Log): void ;
+}
+
+export class LightLogger extends AbstractLightLogger {
+
+  private logLevel: LogLevel;
+
+  public constructor(logLevel: LogLevel) {
+    super();
+    this.logLevel = logLevel;
+  }
+
+  public log(log: Log): void {
+    log.level = this.logLevel;
+    log.timestamp = new Date();
+    Logging.lightLog(log);
+  }
+}
 
 export default class Logging {
   private static logConfig: LogConfiguration;
@@ -67,23 +86,23 @@ export default class Logging {
     Logging.log(log).catch(() => { /* Intentional */ });
   }
 
-  public static beError(): LightLogger {
+  public static beError(): AbstractLightLogger {
     return Logging.beThatLevel(LogLevel.ERROR);
   }
 
-  public static beWarning(): LightLogger {
+  public static beWarning(): AbstractLightLogger {
     return Logging.beThatLevel(LogLevel.WARNING);
   }
 
-  public static beInfo(): LightLogger {
+  public static beInfo(): AbstractLightLogger {
     return Logging.beThatLevel(LogLevel.INFO);
   }
 
-  public static beDebug(): LightLogger {
+  public static beDebug(): AbstractLightLogger {
     return Logging.beThatLevel(LogLevel.DEBUG);
   }
 
-  public static beThatLevel(expectedLogLevel: LogLevel): LightLogger {
+  public static beThatLevel(expectedLogLevel: LogLevel): AbstractLightLogger {
     if (Logging.isLevelEnabled(expectedLogLevel)) {
       return new LightLogger(expectedLogLevel);
     }
@@ -1127,3 +1146,4 @@ export default class Logging {
     };
   }
 }
+
