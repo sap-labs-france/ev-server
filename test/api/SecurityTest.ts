@@ -108,7 +108,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data string (containing "=") is anonymized',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -124,7 +124,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data string (containing ":") is anonymized',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -140,7 +140,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data string (containing ",") is anonymized',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -156,7 +156,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data string (containing ";") is anonymized',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -172,7 +172,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data string (containing spaces and =) is anonymized',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -188,7 +188,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data string (containing spaces and :) is anonymized',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -204,7 +204,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data string (containing spaces and ,) is anonymized',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -220,7 +220,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data string (containing spaces and ;) is anonymized',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -236,7 +236,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data string matching a ws url with registration token is anonymized',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -250,7 +250,7 @@ describe('Security', () => {
       }
     );
     it('Check that sensitive data query string is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
+      const logId: string = Logging.beDebug()?.log({
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
         message: 'Just a test',
@@ -263,7 +263,7 @@ describe('Security', () => {
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that client_id field is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
+      const logId: string = Logging.beDebug()?.log({
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
         message: 'Just a test',
@@ -276,7 +276,7 @@ describe('Security', () => {
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that client_secret field is anonymized', async () => {
-      const logId: string = await Logging.logDebug({
+      const logId: string = Logging.beDebug()?.log({
         tenantID: testData.credentials.tenantId,
         action: ServerAction.HTTP_REQUEST,
         message: 'Just a test',
@@ -291,7 +291,7 @@ describe('Security', () => {
     it(
       'Check that client_id and client_secret are anonymized in object',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -310,7 +310,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data is anonymized in object with string fields',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -344,7 +344,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data is anonymized in object with query string fields',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
@@ -365,7 +365,7 @@ describe('Security', () => {
     it(
       'Check that sensitive data is anonymized in array with strings',
       async () => {
-        const logId: string = await Logging.logDebug({
+        const logId: string = Logging.beDebug()?.log({
           tenantID: testData.credentials.tenantId,
           action: ServerAction.HTTP_REQUEST,
           message: 'Just a test',
