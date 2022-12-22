@@ -1,4 +1,4 @@
-import { HttpUserCreateRequest, HttpUserDefaultTagCarGetRequest, HttpUserDeleteRequest, HttpUserGetRequest, HttpUserMobileTokenUpdateRequest, HttpUserSitesAssignRequest, HttpUserSitesGetRequest, HttpUserUpdateRequest, HttpUsersGetRequest, HttpUsersInErrorGetRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpUserCreateRequest, HttpUserDefaultTagCarGetRequest, HttpUserDeleteRequest, HttpUserGetRequest, HttpUserMobileTokenUpdateRequest, HttpUserSessionContextGetRequest, HttpUserSitesAssignRequest, HttpUserSitesGetRequest, HttpUserUpdateRequest, HttpUsersGetRequest, HttpUsersInErrorGetRequest } from '../../../../types/requests/HttpUserRequest';
 
 import { ImportedUser } from '../../../../types/User';
 import Schema from '../../../../types/validator/Schema';
@@ -19,6 +19,7 @@ export default class UserValidatorRest extends SchemaValidator {
   private userUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-update.json`, 'utf8'));
   private userMobileDataUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-mobile-data-update.json`, 'utf8'));
   private userDefaultTagCarGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-default-tag-car-get.json`, 'utf8'));
+  private userSessionContextGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-session-context-get.json`, 'utf8'));
 
   private constructor() {
     super('UserValidatorRest');
@@ -73,5 +74,9 @@ export default class UserValidatorRest extends SchemaValidator {
 
   public validateUserDefaultTagCarGetReq(data: Record<string, unknown>): HttpUserDefaultTagCarGetRequest {
     return this.validate(this.userDefaultTagCarGet, data);
+  }
+
+  public validateUserSessionContextReq(data: Record<string, unknown>): HttpUserSessionContextGetRequest {
+    return this.validate(this.userSessionContextGet, data);
   }
 }

@@ -647,20 +647,23 @@ describe('Setting', () => {
       it('Should not be able to read all settings', async () => {
         try {
           const read = await testData.userService.settingApi.readAll({}, TestConstants.DEFAULT_PAGING);
-          expect(read.status).to.not.equal(StatusCodes.OK);
+          // Expect empty list when not authorized
+          expect(read.status).to.equal(StatusCodes.OK);
+          expect(read.data.count).to.equal(0);
         } catch (error) {
           expect(error.actual).to.equal(StatusCodes.FORBIDDEN);
         }
       });
-      it('Should not be able to read setting by identifier', async () => {
+      it('Should be able to read setting by identifier', async () => {
         try {
-          const read = await testData.userService.settingApi.readAll({ 'Identifier': 'pricing' }, TestConstants.DEFAULT_PAGING);
-          expect(read.status).to.not.equal(StatusCodes.OK);
+          const read = await testData.userService.settingApi.readAll({ 'Identifier': 'crypto' }, TestConstants.DEFAULT_PAGING);
+          expect(read.status).to.equal(StatusCodes.OK);
+          expect(read.data.id).to.not.be.null;
         } catch (error) {
           expect(error.actual).to.equal(StatusCodes.FORBIDDEN);
         }
       });
-      it('Should not be able to read setting by id', async () => {
+      it('Should not be able to read setting with unknown id', async () => {
         try {
           const read = await testData.userService.settingApi.readById('5c6c8e8ee7fd060008215e30');
           expect(read.status).to.not.equal(StatusCodes.OK);

@@ -11,8 +11,10 @@ import { AuthorizationDefinitionFieldMetadata } from './Authorization';
 import { ChargingProfile } from './ChargingProfile';
 import Company from './Company';
 import { Log } from './Log';
+import OCPIEndpoint from './ocpi/OCPIEndpoint';
 import PricingDefinition from './Pricing';
 import RegistrationToken from './RegistrationToken';
+import { SettingDB } from './Setting';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
 
@@ -132,6 +134,7 @@ export interface BillingPaymentMethodDataResult extends DataResult<BillingPaymen
 }
 
 export interface BillingAccountsDataResult extends DataResult<BillingAccount> {
+  canCreate?: boolean;
   canListUsers?: boolean;
 }
 
@@ -176,4 +179,12 @@ export interface ChargingStationInErrorDataResult extends DataResult<ChargingSta
 }
 export interface ChargingProfileDataResult extends DataResult<ChargingProfile> {
   canListChargingStations?:boolean;
+}
+
+export interface SettingDBDataResult extends DataResult<SettingDB> {
+  canCreate?: boolean;
+}
+
+export interface OcpiEndpointDataResult extends DataResult<OCPIEndpoint> {
+  canCreate?: boolean;
 }

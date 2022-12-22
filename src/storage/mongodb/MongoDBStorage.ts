@@ -267,17 +267,31 @@ export default class MongoDBStorage {
     }
     // Connect to EVSE
     Logging.logConsoleDebug(`Connecting to '${mongoUrl}'`);
-    const mongoDBClient = await MongoClient.connect(
+    // Connection pool size
+    let minPoolSize: number, maxPoolSize: number;
+    if (this.dbConfig.minPoolSize && this.dbConfig.maxPoolSize) {
+      // New configuration (K8S)
+      minPoolSize = this.dbConfig.minPoolSize;
+      maxPoolSize = this.dbConfig.maxPoolSize;
+    } else if (this.dbConfig.poolSize) {
+      // Legacy configuration (AWS FARGATE)
+      minPoolSize = Math.floor(this.dbConfig.poolSize / 2);
+      maxPoolSize = this.dbConfig.poolSize;
+    } else {
+      // Default values
+      minPoolSize = 10;
+      maxPoolSize = 100;
+    }
+    // Mongo Client to EVSE DB
+    this.mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
-        minPoolSize: Math.floor(this.dbConfig.poolSize / 2),
-        maxPoolSize: this.dbConfig.poolSize,
+        minPoolSize,
+        maxPoolSize,
         loggerLevel: this.dbConfig.debug ? 'debug' : null,
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
       }
     );
-    // Get the EVSE DB
-    this.mongoDBClient = mongoDBClient;
     this.database = this.mongoDBClient.db();
     // Keep a global reference
     global.database = this;
