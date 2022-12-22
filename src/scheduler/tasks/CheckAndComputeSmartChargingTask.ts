@@ -29,7 +29,7 @@ export default class CheckAndComputeSmartChargingTask extends TenantSchedulerTas
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant);
             if (!smartCharging) {
               // Log
-              await Logging.logError({
+              Logging.beError()?.log({
                 tenantID: tenant.id,
                 module: MODULE_NAME, method: 'processTenant',
                 action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
@@ -40,7 +40,7 @@ export default class CheckAndComputeSmartChargingTask extends TenantSchedulerTas
             await smartCharging.computeAndApplyChargingProfiles(siteArea);
           } catch (error) {
             // Log error
-            await Logging.logError({
+            Logging.beError()?.log({
               tenantID: tenant.id,
               module: MODULE_NAME, method: 'processTenant',
               action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
@@ -53,7 +53,7 @@ export default class CheckAndComputeSmartChargingTask extends TenantSchedulerTas
           }
         }
       }
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'processTenant',
         action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,

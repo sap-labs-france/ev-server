@@ -47,14 +47,14 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
         // Delete
         const result = await LogStorage.deleteLogs(tenant, deleteUpToDate);
         if (result.acknowledged) {
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: tenant.id,
             action: ServerAction.LOGS_CLEANUP,
             module: MODULE_NAME, method: 'deleteLogs',
             message: `${result.deletedCount} Log(s) have been deleted before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
           });
         } else {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: tenant.id,
             action: ServerAction.LOGS_CLEANUP,
             module: MODULE_NAME, method: 'deleteLogs',
@@ -90,14 +90,14 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
         // Delete Logs
         const result = await PerformanceStorage.deletePerformanceRecords({ deleteUpToDate });
         if (result.acknowledged) {
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: tenant.id,
             action: ServerAction.PERFORMANCES_CLEANUP,
             module: MODULE_NAME, method: 'deletePerformanceRecords',
             message: `${result.deletedCount} Performance Record(s) have been deleted before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
           });
         } else {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: tenant.id,
             action: ServerAction.PERFORMANCES_CLEANUP,
             module: MODULE_NAME, method: 'deletePerformanceRecords',

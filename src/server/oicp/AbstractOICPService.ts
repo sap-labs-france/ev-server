@@ -103,7 +103,7 @@ export default abstract class AbstractOICPService {
       // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(endpointName);
       if (endpoint) {
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: endpointName,
           message: `>> OICP Request ${req.method} ${req.originalUrl}`,
@@ -112,7 +112,7 @@ export default abstract class AbstractOICPService {
         });
         const response = await endpoint.process(req, res, next, tenant);
         if (response) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: endpointName,
             message: `<< OICP Response ${req.method} ${req.originalUrl}`,
@@ -121,7 +121,7 @@ export default abstract class AbstractOICPService {
           });
           res.json(response);
         } else {
-          await Logging.logWarning({
+          Logging.beWarning()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: endpointName,
             message: `<< OICP Endpoint ${req.method} ${req.originalUrl} not implemented`,
@@ -139,7 +139,7 @@ export default abstract class AbstractOICPService {
         });
       }
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: endpointName,
         message: `<< OICP Response Error ${req.method} ${req.originalUrl}`,

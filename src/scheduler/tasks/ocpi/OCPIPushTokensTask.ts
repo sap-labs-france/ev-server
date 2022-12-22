@@ -40,7 +40,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -49,7 +49,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -57,7 +57,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
           });
           return;
         }
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -67,7 +67,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
         // Push Tokens
         const result = await ocpiClient.pushTokens(config.partial);
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',

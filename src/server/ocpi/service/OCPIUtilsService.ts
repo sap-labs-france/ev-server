@@ -321,7 +321,7 @@ export default class OCPIUtilsService {
     }
     // Check the CDR
     if (transaction?.ocpiData?.cdr?.id) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         actionOnUser: transaction.userID,
@@ -333,7 +333,7 @@ export default class OCPIUtilsService {
     }
     // Check the Session Status
     if (transaction?.ocpiData?.session?.status === OCPISessionStatus.COMPLETED) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         actionOnUser: transaction.userID,
@@ -445,7 +445,7 @@ export default class OCPIUtilsService {
     }
     // Session in the past
     if (moment(session.last_updated).isBefore(transaction.lastConsumption.timestamp)) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         actionOnUser: transaction.userID,

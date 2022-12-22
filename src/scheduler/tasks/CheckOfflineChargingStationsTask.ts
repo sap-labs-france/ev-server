@@ -45,7 +45,7 @@ export default class CheckOfflineChargingStationsTask extends TenantSchedulerTas
             }
             // Charging Station is still connected: ignore it
             if (ocppHeartbeatConfiguration) {
-              await Logging.logInfo({
+              Logging.beInfo()?.log({
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
                 tenantID: tenant.id,
                 action: ServerAction.OFFLINE_CHARGING_STATION,

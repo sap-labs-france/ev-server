@@ -40,7 +40,7 @@ export default class OCPICheckSessionsTask extends TenantSchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CPO_CHECK_SESSIONS,
@@ -49,7 +49,7 @@ export default class OCPICheckSessionsTask extends TenantSchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CPO_CHECK_SESSIONS,
@@ -57,7 +57,7 @@ export default class OCPICheckSessionsTask extends TenantSchedulerTask {
           });
           return;
         }
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CPO_CHECK_SESSIONS,
@@ -67,7 +67,7 @@ export default class OCPICheckSessionsTask extends TenantSchedulerTask {
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         // Check Sessions
         const result = await ocpiClient.checkSessions();
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CPO_CHECK_SESSIONS,

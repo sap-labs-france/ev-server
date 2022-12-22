@@ -21,7 +21,7 @@ export default abstract class SchedulerTask {
     if (scheduledTaskLock) {
       try {
         const startTime = moment();
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
@@ -35,7 +35,7 @@ export default abstract class SchedulerTask {
           // Hook
           await this.afterTaskRun(config);
         } catch (error) {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'run',
@@ -45,7 +45,7 @@ export default abstract class SchedulerTask {
         }
         // Log Total Processing Time
         const totalTimeSecs = moment.duration(moment().diff(startTime)).asSeconds();
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',

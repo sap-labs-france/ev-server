@@ -104,7 +104,7 @@ export default class UtilsService {
         message: `The Captcha score is too low, got ${response.data.score as string} but expected ${centralSystemRestConfig.captchaScore}`,
       });
     }
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: tenant?.id,
       module: MODULE_NAME, action, method,
       message: `The Captcha score is ${response.data.score as string} (score limit is ${centralSystemRestConfig.captchaScore})`,

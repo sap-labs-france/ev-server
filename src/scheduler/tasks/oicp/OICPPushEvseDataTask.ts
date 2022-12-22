@@ -40,7 +40,7 @@ export default class OICPPushEvseDataTask extends TenantSchedulerTask {
       try {
         // Check if OICP endpoint is registered
         if (oicpEndpoint.status !== OICPRegistrationStatus.REGISTERED) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOICPEndpoint',
             action: ServerAction.OICP_PUSH_EVSE_DATA,
@@ -49,7 +49,7 @@ export default class OICPPushEvseDataTask extends TenantSchedulerTask {
           return;
         }
         if (!oicpEndpoint.backgroundPatchJob) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOICPEndpoint',
             action: ServerAction.OICP_PUSH_EVSE_DATA,
@@ -57,7 +57,7 @@ export default class OICPPushEvseDataTask extends TenantSchedulerTask {
           });
           return;
         }
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOICPEndpoint',
           action: ServerAction.OICP_PUSH_EVSE_DATA,
@@ -67,7 +67,7 @@ export default class OICPPushEvseDataTask extends TenantSchedulerTask {
         const oicpClient = await OICPClientFactory.getCpoOicpClient(tenant, oicpEndpoint);
         // Send EVSEs
         const sendEVSEDataResult = await oicpClient.sendEVSEs(!Utils.isUndefined(config.partial) ? config.partial : false);
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOICPEndpoint',
           action: ServerAction.OICP_PUSH_EVSE_DATA,

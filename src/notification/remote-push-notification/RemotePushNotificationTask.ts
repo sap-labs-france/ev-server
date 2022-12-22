@@ -469,7 +469,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         return Promise.resolve();
       }
       if (!user?.mobileData?.mobileToken) {
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: tenant.id,
           siteID: data?.siteID,
           siteAreaID: data?.siteAreaID,

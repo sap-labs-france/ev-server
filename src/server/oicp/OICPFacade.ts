@@ -58,7 +58,7 @@ export default class OICPFacade {
       // Update OICP Session
       await oicpClient.updateSession(transaction);
     } catch (error) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         action, module: MODULE_NAME, method: 'processUpdateTransaction',
@@ -128,7 +128,7 @@ export default class OICPFacade {
         }
       }
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'updateConnectorStatus',

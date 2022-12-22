@@ -117,7 +117,7 @@ export default class CpoOCPIClient extends OCPIClient {
       }
       const numberOfTags = response.data.data.length as number;
       totalNumberOfTags += numberOfTags;
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_CPO_GET_TOKENS,
         message: `${numberOfTags.toString()} Tokens retrieved from ${tokensUrl}`,
@@ -162,7 +162,7 @@ export default class CpoOCPIClient extends OCPIClient {
       }
       const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
       const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_CPO_GET_TOKENS,
         message: `${numberOfTags.toString()} token(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfTags} token(s) processed in ${executionDurationTotalLoopSecs}s`,
@@ -239,7 +239,7 @@ export default class CpoOCPIClient extends OCPIClient {
         detailedMessages: { locationReference, authorizationInfo }
       });
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getChargingStationProperties(chargingStation),
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CPO_AUTHORIZE_TOKEN,
@@ -284,7 +284,7 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiData = {
       session: ocpiSession
     };
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getChargingStationProperties(chargingStation),
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CPO_START_SESSION,
@@ -330,7 +330,7 @@ export default class CpoOCPIClient extends OCPIClient {
           'Content-Type': 'application/json'
         },
       });
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CPO_PUSH_SESSIONS,
@@ -375,7 +375,7 @@ export default class CpoOCPIClient extends OCPIClient {
           'Content-Type': 'application/json'
         },
       });
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CPO_STOP_SESSION,
@@ -441,7 +441,7 @@ export default class CpoOCPIClient extends OCPIClient {
             'Content-Type': 'application/json'
           },
         });
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_CPO_PUSH_CDRS,
@@ -451,7 +451,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
       return true;
     }
-    await Logging.logWarning({
+    Logging.beWarning()?.log({
       ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CPO_PUSH_CDRS,
@@ -758,7 +758,7 @@ export default class CpoOCPIClient extends OCPIClient {
             { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
             const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
             const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
-            await Logging.logDebug({
+            Logging.beDebug()?.log({
               tenantID: this.tenant.id,
               action: ServerAction.OCPI_CPO_UPDATE_STATUS,
               message: `${evses.length} EVSE Status(es) processed in ${executionDurationLoopSecs}s in Location '${location.name}' - Total of ${totalNumberOfEvses} EVSE(s) processed in ${executionDurationTotalLoopSecs}s`,
@@ -862,7 +862,7 @@ export default class CpoOCPIClient extends OCPIClient {
           'Content-Type': 'application/json'
         },
       });
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getChargingStationProperties(chargingStation as ChargingStation),
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CPO_UPDATE_STATUS,
@@ -896,7 +896,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     // Create if it does not exit
     if (response.data.status_code === 3001) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_CPO_CHECK_CDRS,
@@ -918,7 +918,7 @@ export default class CpoOCPIClient extends OCPIClient {
       const cdr = response.data.data as OCPICdr;
       if (cdr) {
         // CDR checked
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: this.tenant.id,
           action: ServerAction.OCPI_CPO_CHECK_CDRS,
@@ -929,7 +929,7 @@ export default class CpoOCPIClient extends OCPIClient {
         return true;
       }
     }
-    await Logging.logError({
+    Logging.beError()?.log({
       ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CPO_CHECK_CDRS,
@@ -964,7 +964,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (OCPIUtilsService.isSuccessResponse(response.data)) {
       const session = response.data.data as OCPISession;
       if (session) {
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: this.tenant.id,
           action: ServerAction.OCPI_CPO_CHECK_SESSIONS,
@@ -975,7 +975,7 @@ export default class CpoOCPIClient extends OCPIClient {
         return true;
       }
     }
-    await Logging.logError({
+    Logging.beError()?.log({
       ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CPO_CHECK_SESSIONS,
@@ -1020,7 +1020,7 @@ export default class CpoOCPIClient extends OCPIClient {
         detailedMessages: { location, ocpiLocation }
       });
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CPO_CHECK_LOCATIONS,
       message: `Location '${location.name}' with ID '${location.id}' checked successfully`,
