@@ -10,6 +10,7 @@ import BackendError from '../exception/BackendError';
 import Configuration from '../utils/Configuration';
 import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
+import LightLogger from './LightLogger';
 import LogConfiguration from '../types/configuration/LogConfiguration';
 import LogStorage from '../storage/mongodb/LogStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
@@ -31,6 +32,62 @@ const MODULE_NAME = 'Logging';
 export default class Logging {
   private static logConfig: LogConfiguration;
   private static traceConfig: TraceConfiguration;
+
+  public static isLevelEnabled(expectedLogLevel: LogLevel): boolean {
+    // Check the configuration for the actual log level being enabled
+    const logConfig = Logging.getConfiguration();
+    const logLevelLetter = logConfig.logLevel ? logConfig.logLevel : 'D';
+    const logLevel = logLevelLetter as LogLevel;
+    switch (logLevel) {
+      case LogLevel.NONE:
+        return false;
+      case LogLevel.INFO:
+        if (expectedLogLevel === LogLevel.DEBUG) {
+          return false;
+        }
+        break;
+      case LogLevel.WARNING:
+        if (expectedLogLevel === LogLevel.INFO || expectedLogLevel === LogLevel.DEBUG) {
+          return false;
+        }
+        break;
+      case LogLevel.ERROR:
+        if (expectedLogLevel === LogLevel.INFO || expectedLogLevel === LogLevel.WARNING || expectedLogLevel === LogLevel.DEBUG) {
+          return false;
+        }
+        break;
+      case LogLevel.DEBUG:
+      default:
+        break;
+    }
+    return true;
+  }
+
+  public static lightLog(log: Log): void {
+    Logging.log(log).catch(() => { /* Intentional */ });
+  }
+
+  public static beError(): LightLogger {
+    return Logging.beThatLevel(LogLevel.ERROR);
+  }
+
+  public static beWarning(): LightLogger {
+    return Logging.beThatLevel(LogLevel.WARNING);
+  }
+
+  public static beInfo(): LightLogger {
+    return Logging.beThatLevel(LogLevel.INFO);
+  }
+
+  public static beDebug(): LightLogger {
+    return Logging.beThatLevel(LogLevel.DEBUG);
+  }
+
+  public static beThatLevel(expectedLogLevel: LogLevel): LightLogger {
+    if (Logging.isLevelEnabled(expectedLogLevel)) {
+      return new LightLogger(expectedLogLevel);
+    }
+  }
 
   public static getConfiguration(): LogConfiguration {
     if (!this.logConfig) {
@@ -898,9 +955,10 @@ export default class Logging {
     // Check Log Level
     const logConfig = Logging.getConfiguration();
     // Default Log Level
-    const logLevel = logConfig.logLevel ? logConfig.logLevel : LogLevel.DEBUG;
+    const logLevelAsString = logConfig.logLevel ? logConfig.logLevel : 'D';
+    const logLevel = logLevelAsString as LogLevel;
     // Log Level
-    switch (LogLevel[logLevel]) {
+    switch (logLevel) {
       // No log at all
       case LogLevel.NONE:
         return;
@@ -928,7 +986,7 @@ export default class Logging {
         break;
     }
     // Timestamp
-    log.timestamp = new Date();
+    log.timestamp = log.timestamp || new Date();
     // Host
     log.host = Utils.getHostName();
     if (log.detailedMessages) {
