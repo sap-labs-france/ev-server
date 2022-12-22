@@ -210,7 +210,7 @@ export default class UserService {
     } else {
       await UserStorage.removeSitesFromUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME,
@@ -230,7 +230,7 @@ export default class UserService {
     if (!user.issuer) {
       // Delete User
       await UserStorage.deleteUser(req.tenant, user.id);
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: req.tenant.id,
         user: req.user, actionOnUser: user,
         module: MODULE_NAME, method: 'handleDeleteUser',
@@ -250,7 +250,7 @@ export default class UserService {
     // Delete User
     await UserStorage.deleteUser(req.tenant, user.id);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleDeleteUser',
@@ -315,7 +315,7 @@ export default class UserService {
     // Update Billing
     await UserService.syncUserAndUpdateBillingData(ServerAction.USER_UPDATE, req.tenant, req.user, user);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateUser',
@@ -353,7 +353,7 @@ export default class UserService {
       mobileVersion: filteredRequest.mobileVersion,
       mobileLastChangedOn: new Date()
     });
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: user,
       module: MODULE_NAME, method: 'handleUpdateUserMobileData',
@@ -573,7 +573,7 @@ export default class UserService {
               // Release the lock
               await LockingManager.release(importUsersLock);
               // Log
-              await Logging.logError({
+              Logging.beError()?.log({
                 tenantID: req.tenant.id,
                 module: MODULE_NAME, method: 'handleImportUsers',
                 action: action,
@@ -648,7 +648,7 @@ export default class UserService {
               // Release the lock
               await LockingManager.release(importUsersLock);
               // Log
-              await Logging.logError({
+              Logging.beError()?.log({
                 tenantID: req.tenant.id,
                 module: MODULE_NAME, method: 'handleImportUsers',
                 action: action,
@@ -667,7 +667,7 @@ export default class UserService {
             // Release the lock
             await LockingManager.release(importUsersLock);
             // Log
-            await Logging.logError({
+            Logging.beError()?.log({
               tenantID: req.tenant.id,
               module: MODULE_NAME, method: 'handleImportUsers',
               action: action,
@@ -735,7 +735,7 @@ export default class UserService {
     // Update Billing
     await UserService.syncUserAndUpdateBillingData(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, actionOnUser: req.user,
       module: MODULE_NAME, method: 'handleCreateUser',
@@ -754,7 +754,7 @@ export default class UserService {
       // Handle dup keys
       result.inSuccess += error.result.nInserted;
       result.inError += error.writeErrors.length;
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'insertUsers',
         action: action,
@@ -871,7 +871,7 @@ export default class UserService {
       usersToBeImported.push(newImportedUser);
       return true;
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: req.tenant.id,
         module: MODULE_NAME, method: 'importUser',
         action: action,
@@ -892,7 +892,7 @@ export default class UserService {
             ...await billingImpl.precheckStartTransactionPrerequisites(user));
         }
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME,
           method: 'checkBillingErrorCodes',
@@ -959,7 +959,7 @@ export default class UserService {
           }
         }
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME,
           method: 'checkAndDeleteUserOCPI',
@@ -1000,7 +1000,7 @@ export default class UserService {
           // For performance reasons, the creation of a customer in the billing system should be done in a LAZY mode
           await billingImpl.synchronizeUser(user);
         } catch (error) {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: tenant.id, action,
             module: MODULE_NAME, method: 'syncUserAndUpdateBillingData',
             user: loggedUser, actionOnUser: user,

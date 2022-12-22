@@ -30,7 +30,7 @@ export default class CompanyService {
       req.tenant, req.user, companyID, Action.DELETE, action);
     // Delete
     await CompanyStorage.deleteCompany(req.tenant, company.id);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCompany',
       message: `Company '${company.name}' has been deleted successfully`,
@@ -163,7 +163,7 @@ export default class CompanyService {
     }
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateCompany',
       message: `Company '${newCompany.id}' has been created successfully`,
@@ -203,7 +203,7 @@ export default class CompanyService {
     company.lastChangedOn = new Date();
     // Update Company
     await CompanyStorage.saveCompany(req.tenant, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCompany',
       message: `Company '${company.name}' has been updated successfully`,

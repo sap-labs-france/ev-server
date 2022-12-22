@@ -65,7 +65,7 @@ export default class TenantService {
     // Remove collection
     await TenantStorage.deleteTenantDB(tenant.id);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id, user: req.user,
       module: MODULE_NAME, method: 'handleDeleteTenant',
       message: `Tenant '${tenant.name}' has been deleted successfully`,
@@ -342,7 +342,7 @@ export default class TenantService {
       }
     );
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id, user: req.user,
       module: MODULE_NAME, method: 'handleCreateTenant',
       message: `Tenant '${filteredRequest.name}' has been created successfully`,
@@ -416,7 +416,7 @@ export default class TenantService {
     // Update with components
     await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id, user: req.user,
       module: MODULE_NAME, method: 'handleUpdateTenant',
       message: `Tenant '${filteredRequest.name}' has been updated successfully`,
@@ -455,7 +455,7 @@ export default class TenantService {
     // Update Tenant
     await TenantStorage.saveTenant(tenant, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id, user: req.user,
       module: MODULE_NAME, method: 'handleUpdateTenantData',
       message: `Tenant '${filteredRequest.name}' data has been updated successfully`,

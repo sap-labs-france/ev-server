@@ -1223,7 +1223,7 @@ export default class TransactionStorage {
       const id = Utils.getRandomIntSafe();
       existingTransaction = await TransactionStorage.getTransaction(tenant, id);
       if (existingTransaction) {
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'findAvailableID',
           action: ServerAction.TRANSACTION_STARTED,

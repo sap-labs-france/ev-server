@@ -76,7 +76,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
 
   public async createConnection(userID: string, data: any): Promise<Connection> {
     try {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         user: userID,
         tenantID: this.tenant.id,
         module: MODULE_NAME, method: 'createConnection',
@@ -95,7 +95,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
             'Authorization': `Basic ${Buffer.from(this.connection.mercedesConnection.clientId + ':' + await Cypher.decrypt(this.tenant, this.connection.mercedesConnection.clientSecret)).toString('base64')}`
           },
         });
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         user: userID,
         tenantID: this.tenant.id,
         module: MODULE_NAME, method: 'createConnection',
@@ -144,7 +144,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
           headers: { 'Authorization': 'Bearer ' + connection.data.access_token }
         }
       );
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.CAR_CONNECTOR,
         message: `${car.vin} > Mercedes web service has been called successfully`,
@@ -201,7 +201,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
             'Authorization': `Basic ${Buffer.from(this.connection.mercedesConnection.clientId + ':' + await Cypher.decrypt(this.tenant, this.connection.mercedesConnection.clientSecret)).toString('base64')}`
           }
         });
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         user: userID,
         action: ServerAction.CAR_CONNECTOR,

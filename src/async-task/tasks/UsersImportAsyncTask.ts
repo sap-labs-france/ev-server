@@ -42,7 +42,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
         // Get total number of Users to import
         const totalUsersToImport = await UserStorage.getImportedUsersCount(tenant);
         if (totalUsersToImport > 0) {
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: tenant.id,
             action: ServerAction.USERS_IMPORT,
             module: MODULE_NAME, method: 'processTenant',
@@ -66,7 +66,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               result.inError++;
               // Update it
               await UserStorage.saveImportedUser(tenant, importedUser);
-              await Logging.logError({
+              Logging.beError()?.log({
                 tenantID: tenant.id,
                 action: ServerAction.USERS_IMPORT,
                 module: MODULE_NAME, method: 'executeAsyncTask',
@@ -77,7 +77,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
           }
           if (importedUsers.result.length > 0 && (result.inError + result.inSuccess) > 0) {
             const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
-            await Logging.logDebug({
+            Logging.beDebug()?.log({
               tenantID: tenant.id,
               action: ServerAction.USERS_IMPORT,
               module: MODULE_NAME, method: 'processTenant',

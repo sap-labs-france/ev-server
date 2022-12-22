@@ -87,6 +87,14 @@ export default class Logging {
     if (Logging.isLevelEnabled(expectedLogLevel)) {
       return new LightLogger(expectedLogLevel);
     }
+    // ------------------------------------------------------------------------------
+    // ACHTUNG - returns null when the level is disabled
+    // ------------------------------------------------------------------------------
+    // The purpose here is to avoid evaluating the log parameters and thus
+    // avoid triggering unnecessary garbage collection of log messages
+    // Make sure to use optional chaining operator (?.) when calling the log method
+    // ------------------------------------------------------------------------------
+    return null;
   }
 
   public static getConfiguration(): LogConfiguration {

@@ -54,7 +54,7 @@ export default class AsyncTaskManager {
 
   public static async handleAsyncTasks(): Promise<void> {
     let failedToAcquireLock = false;
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: Constants.DEFAULT_TENANT_ID,
       action: ServerAction.ASYNC_TASK,
       module: MODULE_NAME, method: 'handleAsyncTasks',
@@ -75,7 +75,7 @@ export default class AsyncTaskManager {
       { status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_MAX_LIMIT);
     // Process them
     if (!Utils.isEmptyArray(asyncTasks.result)) {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.ASYNC_TASK,
         module: MODULE_NAME, method: 'handleAsyncTasks',
@@ -98,7 +98,7 @@ export default class AsyncTaskManager {
                 asyncTask.lastChangedOn = asyncTask.execTimestamp;
                 await AsyncTaskStorage.saveAsyncTask(asyncTask);
                 // Log
-                await Logging.logInfo({
+                Logging.beInfo()?.log({
                   tenantID: Constants.DEFAULT_TENANT_ID,
                   action: ServerAction.ASYNC_TASK,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
@@ -115,7 +115,7 @@ export default class AsyncTaskManager {
                 await AsyncTaskStorage.saveAsyncTask(asyncTask);
                 processedTask.inSuccess++;
                 // Log
-                await Logging.logInfo({
+                Logging.beInfo()?.log({
                   tenantID: Constants.DEFAULT_TENANT_ID,
                   action: ServerAction.ASYNC_TASK,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
@@ -130,7 +130,7 @@ export default class AsyncTaskManager {
                 asyncTask.lastChangedOn = new Date();
                 await AsyncTaskStorage.saveAsyncTask(asyncTask);
                 // Log error
-                await Logging.logError({
+                Logging.beError()?.log({
                   tenantID: Constants.DEFAULT_TENANT_ID,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
                   action: ServerAction.ASYNC_TASK,
@@ -162,7 +162,7 @@ export default class AsyncTaskManager {
         void AsyncTaskManager.handleAsyncTasks();
       }
     } else {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.ASYNC_TASK,
         module: MODULE_NAME, method: 'handleAsyncTasks',
@@ -201,7 +201,7 @@ export default class AsyncTaskManager {
       case AsyncTasks.OCPI_PUSH_EVSE_STATUSES:
         return new OCPIPushEVSEStatusesAsyncTask(asyncTask, correlationID);
       default:
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.ASYNC_TASK,
           module: MODULE_NAME, method: 'handleAsyncTasks',

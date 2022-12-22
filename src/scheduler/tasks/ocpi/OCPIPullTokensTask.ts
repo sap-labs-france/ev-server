@@ -40,7 +40,7 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CPO_GET_TOKENS,
@@ -49,7 +49,7 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CPO_GET_TOKENS,
@@ -57,7 +57,7 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
           });
           return;
         }
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CPO_GET_TOKENS,
@@ -67,7 +67,7 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         // Pull Tokens
         const result = await ocpiClient.pullTokens(config.partial);
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CPO_GET_TOKENS,

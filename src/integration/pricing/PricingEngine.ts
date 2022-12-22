@@ -25,7 +25,7 @@ export default class PricingEngine {
     // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.COMPANY, transaction.companyID));
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.TENANT, tenant.id));
     if (!pricingContext.timezone) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         ...LoggingHelper.getPricingContextProperties(pricingContext),
         tenantID: tenant.id,
         module: MODULE_NAME,
@@ -43,7 +43,7 @@ export default class PricingEngine {
       },
       pricingDefinitions
     };
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getPricingContextProperties(pricingContext),
       tenantID: tenant.id,
       module: MODULE_NAME,
@@ -75,7 +75,7 @@ export default class PricingEngine {
 
   private static async getPricingDefinitions4Entity(tenant: Tenant, pricingContext: PricingContext, entityType: PricingEntity, entityID: string): Promise<ResolvedPricingDefinition[]> {
     if (!entityID) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         ...LoggingHelper.getPricingContextProperties(pricingContext),
         tenantID: tenant.id,
         module: MODULE_NAME,
@@ -94,7 +94,7 @@ export default class PricingEngine {
     ).map((pricingDefinition) =>
       PricingEngine.shrinkPricingDefinition(pricingDefinition)
     );
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       ...LoggingHelper.getPricingContextProperties(pricingContext),
       tenantID: tenant.id,
       module: MODULE_NAME,

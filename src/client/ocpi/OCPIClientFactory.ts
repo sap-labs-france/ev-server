@@ -22,7 +22,7 @@ export default class OCPIClientFactory {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       const ocpiSettings = await SettingStorage.getOCPISettings(tenant);
       if (!ocpiSettings && ocpiSettings.ocpi) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: tenant.id,
           action: ServerAction.OCPI_SETTINGS,
           module: MODULE_NAME, method: 'getOcpiClient',
@@ -37,7 +37,7 @@ export default class OCPIClientFactory {
             return new EmspOCPIClient(tenant, ocpiSettings.ocpi, ocpiEndpoint);
         }
       } else {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: tenant.id,
           action: ServerAction.OCPI_SETTINGS,
           module: MODULE_NAME, method: 'getOcpiClient',
@@ -52,7 +52,7 @@ export default class OCPIClientFactory {
       const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
       return client as CpoOCPIClient;
     }
-    await Logging.logError({
+    Logging.beError()?.log({
       tenantID: tenant.id,
       action: ServerAction.OCPI_CLIENT_INITIALIZATION,
       module: MODULE_NAME, method: 'getCpoOcpiClient',
@@ -65,7 +65,7 @@ export default class OCPIClientFactory {
       const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
       return client as EmspOCPIClient;
     }
-    await Logging.logError({
+    Logging.beError()?.log({
       tenantID: tenant.id,
       action: ServerAction.OCPI_CLIENT_INITIALIZATION,
       module: MODULE_NAME, method: 'getEmspOcpiClient',

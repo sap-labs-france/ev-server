@@ -234,7 +234,7 @@ export default abstract class WSConnection {
           });
       }
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenantID,
         siteID: this.siteID,
         siteAreaID: this.siteAreaID,

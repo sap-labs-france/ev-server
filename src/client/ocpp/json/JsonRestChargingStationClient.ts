@@ -119,7 +119,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     // Extract Current Command
     const triggeringCommand: Command = request[2];
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenantID,
       siteID: this.chargingStation.siteID,
       siteAreaID: this.chargingStation.siteAreaID,
@@ -145,7 +145,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Opened
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.wsConnection.onopen = async () => {
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -161,7 +161,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Closed
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.wsConnection.onclose = async (code: number) => {
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -176,7 +176,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Handle Error Message
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.wsConnection.onerror = async (error: Error) => {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -202,7 +202,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               // Check message type
               if (messageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
                 // Error message
-                await Logging.logError({
+                Logging.beError()?.log({
                   tenantID: this.tenantID,
                   siteID: this.chargingStation.siteID,
                   siteAreaID: this.chargingStation.siteAreaID,
@@ -224,7 +224,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               this.closeConnection();
             } else {
               // Error message
-              await Logging.logError({
+              Logging.beError()?.log({
                 tenantID: this.tenantID,
                 siteID: this.chargingStation.siteID,
                 siteAreaID: this.chargingStation.siteAreaID,

@@ -41,7 +41,7 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_GET_CDRS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -50,7 +50,7 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_GET_CDRS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -58,7 +58,7 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
           });
           return;
         }
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_GET_CDRS,
           module: MODULE_NAME, method: 'processOCPIEndpointatch',
@@ -68,7 +68,7 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
         // Pull CDRs
         const result = await ocpiClient.pullCdrs(true);
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_GET_CDRS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',

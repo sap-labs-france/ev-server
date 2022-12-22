@@ -41,7 +41,7 @@ export default abstract class CarIntegration {
           externalCar.id = await CarStorage.saveCarCatalog(externalCar);
           actionsDone.inSuccess++;
           // Log
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
             module: MODULE_NAME, method: 'synchronizeCarCatalogs',
@@ -75,7 +75,7 @@ export default abstract class CarIntegration {
           await CarStorage.saveCarCatalog(externalCar);
           actionsDone.inSuccess++;
           // Log
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
             module: MODULE_NAME, method: 'synchronizeCarCatalogs',
@@ -84,7 +84,7 @@ export default abstract class CarIntegration {
         }
       } catch (error) {
         actionsDone.inError++;
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
           module: MODULE_NAME, method: 'synchronizeCarCatalogs',

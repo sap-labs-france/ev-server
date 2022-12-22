@@ -43,7 +43,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
         // Get total number of Tags to import
         const totalTagsToImport = await TagStorage.getImportedTagsCount(tenant);
         if (totalTagsToImport > 0) {
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: tenant.id,
             action: ServerAction.TAGS_IMPORT,
             module: MODULE_NAME, method: 'processTenant',
@@ -66,7 +66,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
               importedTag.errorDescription = error.message;
               result.inError++;
               await TagStorage.saveImportedTag(tenant, importedTag);
-              await Logging.logError({
+              Logging.beError()?.log({
                 tenantID: tenant.id,
                 action: ServerAction.TAGS_IMPORT,
                 module: MODULE_NAME, method: 'processTenant',
@@ -77,7 +77,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
           }
           if (!Utils.isEmptyArray(importedTags.result) && (result.inError + result.inSuccess) > 0) {
             const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
-            await Logging.logDebug({
+            Logging.beDebug()?.log({
               tenantID: tenant.id,
               action: ServerAction.TAGS_IMPORT,
               module: MODULE_NAME, method: 'processTenant',
