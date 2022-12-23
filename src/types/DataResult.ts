@@ -188,3 +188,11 @@ export interface SettingDBDataResult extends DataResult<SettingDB> {
 export interface OcpiEndpointDataResult extends DataResult<OCPIEndpoint> {
   canCreate?: boolean;
 }
+
+export interface StatisticDataResult extends DataResult<any> {
+  canListUsers?: boolean;
+  canListChargingStations?: boolean;
+  canListSites?: boolean;
+  canListSiteAreas?: boolean;
+  canExport?: boolean;
+}
