@@ -18,7 +18,7 @@ export default class MigrationHandler {
     if (await LockingManager.acquire(migrationLock)) {
       try {
         const startTime = moment();
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
@@ -49,14 +49,14 @@ export default class MigrationHandler {
         }
         // Log Total Processing Time
         const totalTimeSecs = moment.duration(moment().diff(startTime)).asSeconds();
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
           message: `The ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration has been run in ${totalTimeSecs} secs`
         });
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
@@ -80,7 +80,7 @@ export default class MigrationHandler {
     try {
       // Log Start Task
       let logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`;
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'executeTask',
@@ -104,7 +104,7 @@ export default class MigrationHandler {
         durationSecs: totalTaskTimeSecs
       });
       logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`;
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'executeTask',
@@ -114,7 +114,7 @@ export default class MigrationHandler {
       Utils.isDevelopmentEnv() && Logging.logConsoleDebug(logMsg);
     } catch (error) {
       const logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.message as string}`;
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'executeTask',

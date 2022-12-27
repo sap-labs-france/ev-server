@@ -8,7 +8,7 @@ import PerformanceRecord from '../../types/Performance';
 import PerformanceValidatorStorage from '../validator/PerformanceValidatorStorage';
 import Utils from '../../utils/Utils';
 
-const PERFS_ENABLED = true;
+const PERFS_ENABLED = false;
 
 // TODO: To remove when switched to k8s with Prometheus
 export default class PerformanceStorage {

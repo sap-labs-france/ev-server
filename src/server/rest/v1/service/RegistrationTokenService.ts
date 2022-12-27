@@ -41,7 +41,7 @@ export default class RegistrationTokenService {
     };
     // Save
     registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateRegistrationToken',
@@ -72,7 +72,7 @@ export default class RegistrationTokenService {
     registrationToken.revocationDate = null;
     // Save
     await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateRegistrationToken',
@@ -91,7 +91,7 @@ export default class RegistrationTokenService {
       req.tenant, req.user, registrationTokenID, Action.DELETE, action);
     // Delete
     await RegistrationTokenStorage.deleteRegistrationToken(req.tenant, registrationToken.id);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
       tenantID: req.tenant.id,
       user: req.user,
@@ -126,7 +126,7 @@ export default class RegistrationTokenService {
     registrationToken.lastChangedOn = now;
     // Save
     await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getRegistrationTokenProperties(registrationToken),
       tenantID: req.tenant.id,
       user: req.user,

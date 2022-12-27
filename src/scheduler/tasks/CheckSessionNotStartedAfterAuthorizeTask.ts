@@ -37,7 +37,7 @@ export default class CheckSessionNotStartedAfterAuthorizeTask extends TenantSche
         }
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.PREPARING_SESSION_NOT_STARTED, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.PREPARING_SESSION_NOT_STARTED, error);
       } finally {
         // Release the lock
         await LockingManager.release(sessionNotStartedLock);

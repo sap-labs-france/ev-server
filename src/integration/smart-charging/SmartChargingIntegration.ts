@@ -32,7 +32,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     // Call the charging plans
     const chargingProfiles: ChargingProfile[] = await this.buildChargingProfiles(siteArea, this.excludedChargingStations);
     if (!chargingProfiles) {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
@@ -56,7 +56,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
           continue;
         }
         actionsResponse.inError++;
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: this.tenant.id,
           siteID: chargingProfile.chargingStation.siteID,
           siteAreaID: chargingProfile.chargingStation.siteAreaID,
@@ -116,7 +116,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         return true;
       } catch (error) {
         // Log failed
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: this.tenant.id,
           siteID: chargingProfile.chargingStation.siteID,
           siteAreaID: chargingProfile.chargingStation.siteAreaID,

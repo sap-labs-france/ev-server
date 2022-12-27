@@ -80,7 +80,7 @@ export default class CpoOICPClient extends OICPClient {
     transaction.oicpData = {
       session: oicpSession
     };
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       action: ServerAction.OICP_PUSH_SESSIONS,
@@ -159,7 +159,7 @@ export default class CpoOICPClient extends OICPClient {
     // Stop
     if (transaction.tagID !== OICPDefaultTagId.RemoteIdentification) {
       const response = await this.authorizeStop(transaction);
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_SESSIONS,
@@ -529,7 +529,7 @@ export default class CpoOICPClient extends OICPClient {
         }
       });
     } else {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_EVSE_DATA,
         message: `${evses.length} EVSEs have been pushed successfully`,
@@ -571,7 +571,7 @@ export default class CpoOICPClient extends OICPClient {
       requestError = error;
     }
     if (!pushEvseStatusResponse?.Result || pushEvseStatusResponse?.Result !== true) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_EVSE_STATUSES,
         message: this.buildOICPChargingNotificationErrorMessage(pushEvseStatusResponse, requestError),
@@ -583,7 +583,7 @@ export default class CpoOICPClient extends OICPClient {
         }
       });
     } else {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_EVSE_STATUSES,
         message: `${evseStatuses.length} EVSE Statuses have been pushed successfully`,
@@ -628,7 +628,7 @@ export default class CpoOICPClient extends OICPClient {
       requestError = error;
     }
     if (requestError) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
         message: this.buildOICPChargingNotificationErrorMessage(authorizeResponse, requestError),
@@ -641,7 +641,7 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     if (authorizeResponse?.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
         module: MODULE_NAME, method: 'authorizeStart',
@@ -649,7 +649,7 @@ export default class CpoOICPClient extends OICPClient {
         detailedMessages: { authorize: payload, response: authorizeResponse }
       });
     } else {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
         message: `OICP Tag ID '${tagID}' has been authorized`,
@@ -694,7 +694,7 @@ export default class CpoOICPClient extends OICPClient {
       requestError = error;
     }
     if (requestError) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         user: user,
@@ -709,7 +709,7 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     if (authorizeResponse?.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         user: user,
@@ -719,7 +719,7 @@ export default class CpoOICPClient extends OICPClient {
         detailedMessages: { authorize: payload, response: authorizeResponse }
       });
     } else {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         user: user,
@@ -800,7 +800,7 @@ export default class CpoOICPClient extends OICPClient {
       requestError = error;
     }
     if (!pushCdrResponse?.Result || pushCdrResponse?.Result !== true) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_CDRS,
@@ -813,7 +813,7 @@ export default class CpoOICPClient extends OICPClient {
         }
       });
     } else {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_CDRS,
@@ -871,7 +871,7 @@ export default class CpoOICPClient extends OICPClient {
       requestError = error;
     }
     if (!notificationStartResponse?.Result || notificationStartResponse?.Result !== true) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
@@ -884,7 +884,7 @@ export default class CpoOICPClient extends OICPClient {
         }
       });
     } else {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
@@ -946,7 +946,7 @@ export default class CpoOICPClient extends OICPClient {
       }
       transaction.oicpData.session.last_progress_notification = new Date();
       if (!notificationProgressResponse?.Result || notificationProgressResponse?.Result !== true) {
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: this.tenant.id,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
@@ -959,7 +959,7 @@ export default class CpoOICPClient extends OICPClient {
           }
         });
       } else {
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: this.tenant.id,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
@@ -1034,7 +1034,7 @@ export default class CpoOICPClient extends OICPClient {
       requestError = error;
     }
     if (!notificationEndResponse?.Result || notificationEndResponse?.Result !== true) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
@@ -1047,7 +1047,7 @@ export default class CpoOICPClient extends OICPClient {
         }
       });
     } else {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
@@ -1102,7 +1102,7 @@ export default class CpoOICPClient extends OICPClient {
       requestError = err;
     }
     if (!notificationErrorResponse?.Result || notificationErrorResponse?.Result !== true) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
@@ -1142,7 +1142,7 @@ export default class CpoOICPClient extends OICPClient {
   }
 
   private async pingEvseEndpoint(): Promise<any> {
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.OICP_PUSH_EVSE_DATA,
       message: `Ping Hubject at ${this.getEndpointUrl('evses',ServerAction.OICP_PUSH_EVSE_DATA)}`,

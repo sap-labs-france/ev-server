@@ -23,7 +23,7 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
       (taskSettings.task.disableAllTasks || !Utils.isEmptyArray(taskSettings.task.disableTasksInEnv) && taskSettings.task.disableTasksInEnv.includes(currentTaskEnv))) {
       // Tasks are disabled for this environment
       isTaskExecutionDisabled = true;
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'processTask',
@@ -43,7 +43,7 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
         }
         // Check if tenant task needs to run on a specific environment
         if (tenant.taskExecutionEnv && tenant.taskExecutionEnv !== currentTaskEnv) {
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'processTask',
@@ -54,13 +54,13 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
         }
         const tenantCorrelationID = Utils.generateShortNonUniqueID();
         const startTimeInTenant = moment();
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'processTask',
           message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' is running for Tenant ${Utils.buildTenantName(tenant)}...`
         });
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: tenant.id,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'processTask',
@@ -74,14 +74,14 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
           // Hook
           await this.afterProcessTenant(tenant, config);
         } catch (error) {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'processTask',
             message: `Error while running the Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' for Tenant ${Utils.buildTenantName(tenant)}: ${error.message as string}`,
             detailedMessages: { error: error.stack }
           });
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: tenant.id,
             action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'processTask',
@@ -91,13 +91,13 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
         }
         // Log Total Processing Time in Tenant
         const totalTimeSecsInTenant = moment.duration(moment().diff(startTimeInTenant)).asSeconds();
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'processTask',
           message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(tenant)}`
         });
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: tenant.id,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'processTask',

@@ -12,7 +12,7 @@ export class ServerUtils {
       protocol: ServerProtocol, hostname: string, port: number): Promise<void> {
     const logMsg = `${serverType} Server listening on '${protocol}://${hostname}:${port}'`;
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: Constants.DEFAULT_TENANT_ID,
       module: serverModuleName, method: methodName,
       action: ServerAction.STARTUP,

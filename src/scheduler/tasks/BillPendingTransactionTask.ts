@@ -43,7 +43,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                   }
                 ]).toArray();
               if (!Utils.isEmptyArray(transactionsMDB)) {
-                await Logging.logInfo({
+                Logging.beInfo()?.log({
                   tenantID: tenant.id,
                   action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                   module: MODULE_NAME, method: 'processTenant',
@@ -56,7 +56,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                     // Get Transaction
                       const transaction = await TransactionStorage.getTransaction(tenant, transactionMDB._id, { withUser: true, withChargingStation: true });
                       if (!transaction) {
-                        await Logging.logError({
+                        Logging.beError()?.log({
                           tenantID: tenant.id,
                           action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                           module: MODULE_NAME, method: 'processTenant',
@@ -67,7 +67,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                       // Get Charging Station
                       const chargingStation = transaction.chargeBox;
                       if (!chargingStation) {
-                        await Logging.logError({
+                        Logging.beError()?.log({
                           tenantID: tenant.id,
                           action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                           module: MODULE_NAME, method: 'processTenant',
@@ -87,7 +87,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                       }
                       // Check for the billing status
                       if (transaction.billingData?.stop?.status !== BillingStatus.PENDING) {
-                        await Logging.logWarning({
+                        Logging.beWarning()?.log({
                           tenantID: tenant.id,
                           action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                           module: MODULE_NAME, method: 'processTenant',
@@ -97,7 +97,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                       }
                       // Avoid billing again!
                       if (transaction.billingData?.stop?.invoiceID) {
-                        await Logging.logWarning({
+                        Logging.beWarning()?.log({
                           tenantID: tenant.id,
                           action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                           module: MODULE_NAME, method: 'processTenant',
@@ -112,7 +112,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                       await BillingFacade.processEndTransaction(tenant, transaction, transaction.user);
                       // Save
                       await TransactionStorage.saveTransaction(tenant, transaction);
-                      await Logging.logInfo({
+                      Logging.beInfo()?.log({
                         tenantID: tenant.id,
                         action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                         actionOnUser: transaction.user,
@@ -120,7 +120,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
                         message: `The billing process has been started for transaction '${transaction.id}'`,
                       });
                     } catch (error) {
-                      await Logging.logError({
+                      Logging.beError()?.log({
                         tenantID: tenant.id,
                         action: ServerAction.BILLING_BILL_PENDING_TRANSACTION,
                         module: MODULE_NAME, method: 'processTenant',
@@ -142,7 +142,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
         }
       }
     } catch (error) {
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_BILL_PENDING_TRANSACTION, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_BILL_PENDING_TRANSACTION, error);
     }
   }
 }

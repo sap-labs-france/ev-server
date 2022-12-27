@@ -166,7 +166,7 @@ export default class AssetService {
       res.json(Object.assign({ connectionIsValid: true }, Constants.REST_RESPONSE_SUCCESS));
     } catch (error) {
       // KO
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: req.tenant.id,
         user: req.user,
         module: MODULE_NAME, method: 'handleCheckAssetConnection',
@@ -292,7 +292,7 @@ export default class AssetService {
     // Delete
     await AssetStorage.deleteAsset(req.tenant, asset.id);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getAssetProperties(asset),
       tenantID: req.tenant.id,
       user: req.user,
@@ -422,7 +422,7 @@ export default class AssetService {
     // Save
     newAsset.id = await AssetStorage.saveAsset(req.tenant, newAsset);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getAssetProperties(newAsset),
       tenantID: req.tenant.id,
       user: req.user,
@@ -469,7 +469,7 @@ export default class AssetService {
     asset.lastChangedOn = new Date();
     await AssetStorage.saveAsset(req.tenant, asset);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getAssetProperties(asset),
       tenantID: req.tenant.id,
       user: req.user,

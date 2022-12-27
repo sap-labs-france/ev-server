@@ -38,7 +38,7 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
 
   public async getCurrentSoC(car: Car): Promise<number> {
     if (Utils.isNullOrUndefined(car.carConnectorData.carConnectorMeterID)) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         module: MODULE_NAME,
         method: 'getCurrentSoC',
@@ -57,7 +57,7 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
           headers: { 'Authorization': 'Bearer ' + connectionToken }
         }
       );
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.CAR_CONNECTOR,
         message: `${car.vin} > Tronity web service has been called successfully`,

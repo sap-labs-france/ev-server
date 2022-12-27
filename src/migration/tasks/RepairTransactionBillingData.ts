@@ -18,7 +18,7 @@ export default class RepairTransactionBillingData extends TenantMigrationTask {
       const billingImpl = await BillingFactory.getBillingImpl(tenant);
       if (billingImpl && billingImpl instanceof StripeBillingIntegration) {
         await this.repairTransactionsBillingData(tenant, billingImpl);
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           module: MODULE_NAME, method: 'migrateTenant',
           action: ServerAction.MIGRATION,
@@ -26,7 +26,7 @@ export default class RepairTransactionBillingData extends TenantMigrationTask {
         });
       }
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: tenant.id,
         action: ServerAction.BILLING_PERFORM_OPERATIONS,
         module: MODULE_NAME, method: 'repairInvoices',
@@ -66,7 +66,7 @@ export default class RepairTransactionBillingData extends TenantMigrationTask {
       skip += limit;
       for (const billingInvoice of invoices.result) {
         try {
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: tenant.id,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: billingInvoice.user,
@@ -74,7 +74,7 @@ export default class RepairTransactionBillingData extends TenantMigrationTask {
             message: `Attempt to repair transaction's billing data for invoice: '${billingInvoice.id}' - '${billingInvoice.number}' `
           });
           await billingImpl.repairTransactionsBillingData(billingInvoice);
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: tenant.id,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: billingInvoice.user,
@@ -82,7 +82,7 @@ export default class RepairTransactionBillingData extends TenantMigrationTask {
             message: `Transaction's billing data has been repaired for invoice: '${billingInvoice.id}' - '${billingInvoice.number}' `
           });
         } catch (error) {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: tenant.id,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: billingInvoice.user,

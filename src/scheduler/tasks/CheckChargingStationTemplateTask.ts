@@ -22,7 +22,7 @@ export default class CheckChargingStationTemplateTask extends TenantSchedulerTas
         await this.applyTemplateToChargingStations(tenant);
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE, error);
       } finally {
         // Release the lock
         await LockingManager.release(checkChargingStationTemplateLock);
@@ -34,7 +34,7 @@ export default class CheckChargingStationTemplateTask extends TenantSchedulerTas
     let updated = 0;
     // Bypass perf tenant
     if (tenant.subdomain === 'testperf') {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         tenantID: tenant.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
@@ -57,7 +57,7 @@ export default class CheckChargingStationTemplateTask extends TenantSchedulerTas
           updated++;
         }
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -68,7 +68,7 @@ export default class CheckChargingStationTemplateTask extends TenantSchedulerTas
       }
     }
     if (updated > 0) {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: tenant.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
