@@ -1244,6 +1244,14 @@ export default class OCPPUtils {
         message: `Tenant ID '${tenantID}' does not exist!`
       });
     }
+    // Check consistency
+    if (!tenant?.id || !tenant?.components) {
+      throw new BackendError({
+        chargingStationID,
+        module: MODULE_NAME, method: 'checkAndGetChargingStationData',
+        message: `Tenant ID '${tenantID}' data is not consistent - sounds like the database is under pressure!`
+      });
+    }
     // Get the Charging Station
     let token: RegistrationToken;
     const chargingStation = await ChargingStationStorage.getChargingStation(
