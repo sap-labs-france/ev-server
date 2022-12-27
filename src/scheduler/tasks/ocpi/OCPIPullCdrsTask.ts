@@ -29,7 +29,7 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_CDRS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_CDRS, error);
     }
   }
 
@@ -76,7 +76,7 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_CDRS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_CDRS, error);
       } finally {
         await LockingManager.release(ocpiLock);
       }

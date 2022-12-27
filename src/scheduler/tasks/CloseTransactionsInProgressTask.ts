@@ -64,7 +64,7 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
           `No Transaction have been soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`
         );
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.TRANSACTION_SOFT_STOP, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.TRANSACTION_SOFT_STOP, error);
       } finally {
         // Release the lock
         await LockingManager.release(transactionsCloseLock);

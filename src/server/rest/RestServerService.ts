@@ -319,7 +319,7 @@ export default class RestServerService {
     });
     // Check HTTP Verbs
     if (!['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)) {
-      await Logging.logActionExceptionMessageAndSendResponse(
+      Logging.logActionExceptionMessageAndSendResponse(
         null, new Error(`Unsupported request method ${req.method}`), req, res, next);
       return;
     }

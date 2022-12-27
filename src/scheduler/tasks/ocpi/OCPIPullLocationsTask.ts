@@ -29,7 +29,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_LOCATIONS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_LOCATIONS, error);
     }
   }
 
@@ -75,7 +75,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_LOCATIONS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_LOCATIONS, error);
       } finally {
         await LockingManager.release(ocpiLock);
       }

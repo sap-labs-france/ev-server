@@ -1067,10 +1067,10 @@ export default class UtilsService {
   public static async handleUnknownAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Action provided
     if (!action) {
-      await Logging.logActionExceptionMessageAndSendResponse(
+      Logging.logActionExceptionMessageAndSendResponse(
         null, new Error('No Action has been provided'), req, res, next);
     } else {
-      await Logging.logActionExceptionMessageAndSendResponse(
+      Logging.logActionExceptionMessageAndSendResponse(
         action, new Error(`The Action '${action}' does not exist`), req, res, next);
     }
   }

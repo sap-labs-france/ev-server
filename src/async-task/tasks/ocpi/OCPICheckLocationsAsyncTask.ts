@@ -35,7 +35,7 @@ export default class OCPICheckLocationsAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_LOCATIONS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_LOCATIONS, error);
       }
     }
   }

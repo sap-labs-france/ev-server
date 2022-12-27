@@ -53,7 +53,7 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_TRANSACTION, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_TRANSACTION, error);
       }
     }
   }

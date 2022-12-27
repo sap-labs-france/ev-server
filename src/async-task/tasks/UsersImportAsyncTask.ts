@@ -95,7 +95,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
         );
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.USERS_IMPORT, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.USERS_IMPORT, error);
       } finally {
         // Release the lock
         await LockingManager.release(importUsersLock);

@@ -146,7 +146,7 @@ export default abstract class AbstractOICPService {
         action: ServerAction.OICP_ENDPOINT,
         detailedMessages: { error: error.stack }
       });
-      await Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT_ID, ServerAction.OICP_ENDPOINT, error);
+      Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT_ID, ServerAction.OICP_ENDPOINT, error);
       let errorCode: any = {};
       if (error instanceof AppError || error instanceof AppAuthError) {
         errorCode = error.params.errorCode;

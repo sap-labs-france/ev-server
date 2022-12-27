@@ -99,7 +99,7 @@ export default class OCPPCommon {
       });
       return { status: OCPPConfigurationStatus.ACCEPTED };
     } catch (error) {
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, error);
       return { status: OCPPConfigurationStatus.REJECTED };
     }
   }

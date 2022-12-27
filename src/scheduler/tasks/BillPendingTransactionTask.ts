@@ -142,7 +142,7 @@ export default class BillPendingTransactionTask extends TenantSchedulerTask {
         }
       }
     } catch (error) {
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_BILL_PENDING_TRANSACTION, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_BILL_PENDING_TRANSACTION, error);
     }
   }
 }

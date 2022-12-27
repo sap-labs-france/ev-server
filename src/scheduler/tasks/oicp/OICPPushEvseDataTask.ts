@@ -29,7 +29,7 @@ export default class OICPPushEvseDataTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OICP_PUSH_EVSE_DATA, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OICP_PUSH_EVSE_DATA, error);
     }
   }
 
@@ -75,7 +75,7 @@ export default class OICPPushEvseDataTask extends TenantSchedulerTask {
         });
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OICP_PUSH_EVSE_DATA, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OICP_PUSH_EVSE_DATA, error);
       } finally {
         // Release the lock
         await LockingManager.release(oicpLock);

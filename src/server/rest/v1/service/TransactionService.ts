@@ -70,7 +70,7 @@ export default class TransactionService {
       res.json(response);
       next();
     } catch (error) {
-      await Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
 
@@ -421,7 +421,7 @@ export default class TransactionService {
       };
       res.json(advenirPayload);
     } catch (error) {
-      await Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
 

@@ -39,7 +39,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
           break;
         default:
           // Log
-          void Logging.logError({
+          Logging.beError()?.log({
             tenantID: scsc.tenant.id,
             action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
             siteID: scsc.chargingStation.siteID,
@@ -54,7 +54,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Client options
       const options: any = {};
       // Create SOAP client
-      soap.createClient(chargingStationWdsl, options, async (error, client) => {
+      soap.createClient(chargingStationWdsl, options, (error, client) => {
         if (error) {
           Logging.beError()?.log({
             tenantID: scsc.tenant.id,

@@ -95,7 +95,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
         );
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.TAGS_IMPORT, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.TAGS_IMPORT, error);
       } finally {
         // Release the lock
         await LockingManager.release(importTagsLock);

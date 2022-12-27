@@ -22,7 +22,7 @@ export default class CheckChargingStationTemplateTask extends TenantSchedulerTas
         await this.applyTemplateToChargingStations(tenant);
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE, error);
       } finally {
         // Release the lock
         await LockingManager.release(checkChargingStationTemplateLock);

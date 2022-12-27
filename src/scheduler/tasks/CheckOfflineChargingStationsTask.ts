@@ -79,7 +79,7 @@ export default class CheckOfflineChargingStationsTask extends TenantSchedulerTas
         }
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OFFLINE_CHARGING_STATION, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OFFLINE_CHARGING_STATION, error);
       } finally {
         // Release the lock
         await LockingManager.release(offlineChargingStationLock);

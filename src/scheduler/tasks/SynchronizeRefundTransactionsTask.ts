@@ -74,7 +74,7 @@ export default class SynchronizeRefundTransactionsTask extends TenantSchedulerTa
               }
             } catch (error) {
               actionsDone.error++;
-              await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_REFUND, error);
+              Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_REFUND, error);
             }
           }
           // Log result
@@ -95,7 +95,7 @@ export default class SynchronizeRefundTransactionsTask extends TenantSchedulerTa
         }
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_REFUND, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_REFUND, error);
       } finally {
         // Release the lock
         await LockingManager.release(refundLock);

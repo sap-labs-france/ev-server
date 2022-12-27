@@ -29,7 +29,7 @@ export default class OCPIPushEVSEStatusesTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES, error);
     }
   }
 
@@ -74,7 +74,7 @@ export default class OCPIPushEVSEStatusesTask extends TenantSchedulerTask {
           message: `Push of Locations process for endpoint '${ocpiEndpoint.name}' is completed (Success: ${sendResult.success} / Failure: ${sendResult.failure})`
         });
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES, error);
       } finally {
         await LockingManager.release(ocpiLock);
       }

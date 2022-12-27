@@ -63,7 +63,7 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
           });
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.LOGS_CLEANUP, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.LOGS_CLEANUP, error);
       } finally {
         await LockingManager.release(logsCleanUpLock);
       }
@@ -106,7 +106,7 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
           });
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.PERFORMANCES_CLEANUP, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.PERFORMANCES_CLEANUP, error);
       } finally {
         // Release the lock
         await LockingManager.release(performanceCleanUpLock);
