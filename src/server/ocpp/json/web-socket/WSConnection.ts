@@ -342,7 +342,7 @@ export default abstract class WSConnection {
 
   public abstract handleRequest(command: Command, commandPayload: Record<string, unknown> | string): Promise<any>;
 
-  public abstract onPing(message: string): Promise<void>;
+  public abstract onPing(message: string): void;
 
-  public abstract onPong(message: string): Promise<void>;
+  public abstract onPong(message: string): void;
 }

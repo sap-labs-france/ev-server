@@ -1,6 +1,7 @@
 import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValue, OCPPMeterValuesRequest, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
+import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
@@ -118,13 +119,15 @@ export default class OCPPService {
       if (!heartbeat) {
         heartbeat = {} as OCPPHeartbeatRequestExtended;
       }
-      OCPPValidator.getInstance().validateHeartbeat(heartbeat);
-      // Set Heart Beat Object
-      heartbeat.chargeBoxID = chargingStation.id;
-      heartbeat.timestamp = new Date();
-      heartbeat.timezone = Utils.getTimezone(chargingStation.coordinates);
-      // Save Heart Beat
-      await OCPPStorage.saveHeartbeat(tenant, heartbeat);
+      if (FeatureToggles.isFeatureActive(Feature.OCPP_STORE_HEARTBEATS)) {
+        OCPPValidator.getInstance().validateHeartbeat(heartbeat);
+        // Set Heart Beat Object
+        heartbeat.chargeBoxID = chargingStation.id;
+        heartbeat.timestamp = new Date();
+        heartbeat.timezone = Utils.getTimezone(chargingStation.coordinates);
+        // Save Heart Beat
+        await OCPPStorage.saveHeartbeat(tenant, heartbeat);
+      }
       Logging.beInfo()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
@@ -133,16 +136,13 @@ export default class OCPPService {
         message: 'Heartbeat saved',
         detailedMessages: { heartbeat }
       });
-      return {
-        currentTime: new Date().toISOString()
-      };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_HEARTBEAT, error, { heartbeat });
-      return {
-        currentTime: new Date().toISOString()
-      };
     }
+    return {
+      currentTime: new Date().toISOString()
+    };
   }
 
   public async handleStatusNotification(headers: OCPPHeader, statusNotification: OCPPStatusNotificationRequestExtended): Promise<OCPPStatusNotificationResponse> {
@@ -167,12 +167,11 @@ export default class OCPPService {
         // Update only the given Connector ID
         await this.processConnectorFromStatusNotification(tenant, chargingStation, statusNotification);
       }
-      return {};
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
       Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_STATUS_NOTIFICATION, error, { statusNotification });
-      return {};
     }
+    return {};
   }
 
   public async handleMeterValues(headers: OCPPHeader, meterValues: OCPPMeterValuesRequestExtended): Promise<OCPPMeterValuesResponse> {
@@ -197,8 +196,10 @@ export default class OCPPService {
       }
       // Get Transaction
       const transaction = await this.getTransactionFromMeterValues(tenant, chargingStation, headers, meterValues);
-      // Save Meter Values
-      await OCPPStorage.saveMeterValues(tenant, normalizedMeterValues);
+      if (FeatureToggles.isFeatureActive(Feature.OCPP_STORE_METER_VALUES)) {
+        // Save Meter Values
+        await OCPPStorage.saveMeterValues(tenant, normalizedMeterValues);
+      }
       // Update Transaction
       this.updateTransactionWithMeterValues(chargingStation, transaction, normalizedMeterValues.values);
       // Create Consumptions
@@ -752,7 +753,7 @@ export default class OCPPService {
         detailedMessages: { statusNotification, connector }
       });
       // Notify Users
-      await this.notifyStatusNotification(tenant, chargingStation, connector, statusNotification);
+      this.notifyStatusNotification(tenant, chargingStation, connector, statusNotification);
     }
   }
 
@@ -955,7 +956,7 @@ export default class OCPPService {
     return transactionUpdated;
   }
 
-  private async notifyStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, statusNotification: OCPPStatusNotificationRequestExtended) {
+  private notifyStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, statusNotification: OCPPStatusNotificationRequestExtended): void {
     // Faulted?
     if (connector.status !== ChargePointStatus.AVAILABLE &&
         connector.status !== ChargePointStatus.FINISHING && // TODO: To remove after fix of ABB bug having Finishing status with an Error Code to avoid spamming Admins

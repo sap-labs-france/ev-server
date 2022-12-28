@@ -1,6 +1,7 @@
 import * as uWS from 'uWebSockets.js';
 
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
+import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Server';
 import { WebSocketAction, WebSocketCloseEventStatusCode, WebSocketPingResult } from '../../../types/WebSocket';
 
@@ -34,8 +35,12 @@ export default class JsonOCPPServer extends OCPPServer {
 
   public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     super(centralSystemConfig, chargingStationConfig);
-    // Start job to clean WS connections
-    this.checkAndCleanupAllWebSockets();
+    if (FeatureToggles.isFeatureActive(Feature.WS_SEND_PING_AUTOMATICALLY)) {
+      // Nothing to do - the uWS layer takes care to ping the WS for us!
+    } else {
+      // Start job to ping and clean WS connections (if necessary)
+      this.checkAndCleanupAllWebSockets();
+    }
     // Monitor WS activity
     this.monitorWSConnections();
   }
@@ -43,12 +48,21 @@ export default class JsonOCPPServer extends OCPPServer {
   public start(): void {
     // Keep it global
     global.centralSystemJsonServer = this;
+    // uWS can send pings automatically before the idleTimeout is reached
+    let idleTimeout: number;
+    const sendPingsAutomatically = FeatureToggles.isFeatureActive(Feature.WS_SEND_PING_AUTOMATICALLY);
+    if (sendPingsAutomatically) {
+      idleTimeout = 2 * 60; // 2 minutes of inactivity close
+    } else {
+      idleTimeout = 3600; // 1 hour of inactivity ==> close
+    }
     // Start the WS server
     Logging.logConsoleDebug(`Starting ${ServerType.JSON_SERVER} Server...`);
     App({}).ws('/*', {
       compression: uWS.SHARED_COMPRESSOR,
       maxPayloadLength: 64 * 1024, // 64 KB per request
-      idleTimeout: 1 * 3600, // 1 hour of inactivity => Close
+      idleTimeout,
+      sendPingsAutomatically,
       upgrade: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => {
         // Delegate
         this.onUpgrade(res, req, context);
@@ -63,15 +77,18 @@ export default class JsonOCPPServer extends OCPPServer {
         this.onMessage(ws, messageStr, isBinary).catch(() => { /* Intentional */ });
       },
       close: (ws: WebSocket, code: number, message: ArrayBuffer) => {
-        // Convert right away
-        const reason = Utils.convertBufferArrayToString(message);
         const wsWrapper = ws.wsWrapper as WSWrapper;
-        // Close
-        wsWrapper.closed = true;
-        this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_CLOSE, code,
-          `${WebSocketAction.CLOSE} > WS Connection ID '${wsWrapper.guid}' closed by charging station with code '${code}', reason: '${!Utils.isNullOrEmptyString(reason) ? reason : 'No reason given'}'`);
-        // Remove connection
-        this.removeWSWrapper(WebSocketAction.CLOSE, ServerAction.WS_SERVER_CONNECTION_CLOSE, wsWrapper);
+        try {
+          // Convert right away
+          const reason = Utils.convertBufferArrayToString(message);
+          // Close
+          wsWrapper.closed = true;
+          this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_CLOSE, code,
+            `${WebSocketAction.CLOSE} > WS Connection ID '${wsWrapper.guid}' closed by charging station with code '${code}', reason: '${!Utils.isNullOrEmptyString(reason) ? reason : 'No reason given'}'`);
+        } finally {
+          // Remove connection
+          this.removeWSWrapper(WebSocketAction.CLOSE, ServerAction.WS_SERVER_CONNECTION_CLOSE, wsWrapper);
+        }
       },
       ping: (ws: WebSocket, message: ArrayBuffer) => {
         // Convert
@@ -97,19 +114,24 @@ export default class JsonOCPPServer extends OCPPServer {
           ws.wsWrapper.wsConnection.onPong(ocppMessage);
         }
       }
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    }).any(Constants.HEALTH_CHECK_ROUTE, async (res: HttpResponse) => {
+    }).any(Constants.HEALTH_CHECK_ROUTE, (res: HttpResponse) => {
       res.onAborted(() => {
         res.aborted = true;
       });
-      const pingSuccess = await global.database.ping();
-      if (!res.aborted) {
-        if (pingSuccess) {
-          res.end('OK');
-        } else {
-          res.writeStatus('500');
-          res.end('KO');
-        }
+      if (FeatureToggles.isFeatureActive(Feature.HEALTH_CHECK_PING_DATABASE)) {
+        global.database.ping().then((pingSuccess) => {
+          if (!res.aborted) {
+            if (pingSuccess) {
+              res.end('OK');
+            } else {
+              res.writeStatus('500');
+              res.end('KO');
+            }
+          }
+        }).catch(() => { /* Intentional */ });
+      } else {
+        // TODO - FIND ANOTHER METRIC TO CHECK THE READINESS and LIVENESS PROBE
+        res.end('OK');
       }
     }).any('/*', (res: HttpResponse) => {
       res.writeStatus('404');
@@ -711,13 +733,12 @@ export default class JsonOCPPServer extends OCPPServer {
   }
 
   private checkAndCleanupAllWebSockets() {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
+    setTimeout(() => {
       try {
         // Check Json connections
-        await this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS');
+        this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS');
         // Check Rest connections
-        await this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
+        this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
       } finally {
         // Relaunch it
         this.checkAndCleanupAllWebSockets();
@@ -725,7 +746,7 @@ export default class JsonOCPPServer extends OCPPServer {
     }, Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000);
   }
 
-  private async checkAndCleanupWebSockets(wsConnections: Map<string, WSConnection>, type: 'CS'|'REST') {
+  private checkAndCleanupWebSockets(wsConnections: Map<string, WSConnection>, type: 'CS'|'REST'): void {
     const validConnections: Record<string, any>[] = [], invalidConnections: Record<string, any>[] = [];
     const timeStart = Date.now();
     const wsConnectionKeys = Array.from(wsConnections.keys());
@@ -736,7 +757,7 @@ export default class JsonOCPPServer extends OCPPServer {
           // Get the WS
           const wsWrapper = wsConnection.getWS();
           // Check WS
-          const result = await this.pingWebSocket(wsWrapper);
+          const result = this.pingWebSocket(wsWrapper);
           if (result.ok) {
             validConnections.push(this.getWSWrapperData(wsWrapper));
           } else {

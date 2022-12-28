@@ -82,10 +82,10 @@ export default class JsonRestWSConnection extends WSConnection {
     return result;
   }
 
-  public async onPing(message: string): Promise<void> {
+  public onPing(message: string): void {
   }
 
-  public async onPong(message: string): Promise<void> {
+  public onPong(message: string): void {
   }
 
   private isValidOcppClientCommand(command: Command): boolean {
