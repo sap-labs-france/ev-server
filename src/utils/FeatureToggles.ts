@@ -9,6 +9,7 @@ export enum Feature {
   OCPP_STORE_HEARTBEATS,
   OCPP_STORE_METER_VALUES,
   OCPP_OPTIMIZE_LAST_SEEN_UPDATE,
+  OCPP_MONITOR_MEMORY_USAGE,
   HEALTH_CHECK_PING_DATABASE,
 }
 
@@ -22,7 +23,8 @@ export default class FeatureToggles {
     // Feature.OCPP_STORE_HEARTBEATS,
     // Feature.OCPP_STORE_METER_VALUES,
     Feature.OCPP_OPTIMIZE_LAST_SEEN_UPDATE,
-    // Feature.HEALTH_CHECK_PING_DATABASE
+    Feature.OCPP_MONITOR_MEMORY_USAGE,
+    // Feature.HEALTH_CHECK_PING_DATABASE,
   ];
 
   // Check whether the feature is active or not!

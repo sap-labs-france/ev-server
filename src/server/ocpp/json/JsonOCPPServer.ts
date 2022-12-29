@@ -43,6 +43,10 @@ export default class JsonOCPPServer extends OCPPServer {
     }
     // Monitor WS activity
     this.monitorWSConnections();
+    // Monitor Memory Usage
+    if (FeatureToggles.isFeatureActive(Feature.OCPP_MONITOR_MEMORY_USAGE)) {
+      this.monitorMemoryUsage();
+    }
   }
 
   public start(): void {
@@ -730,6 +734,43 @@ export default class JsonOCPPServer extends OCPPServer {
         this.monitorWSConnections();
       }
     }, Configuration.getChargingStationConfig().monitoringIntervalOCPPJSecs * 1000);
+  }
+
+  private monitorMemoryUsage() {
+    setInterval(() => {
+      try {
+        // get Node memory usage
+        const beginDate = new Date().getTime();
+        const memoryUsage = process.memoryUsage();
+        const elapsedTime = new Date().getTime() - beginDate;
+        const memoryUsagePercentage = ((memoryUsage.heapUsed / memoryUsage.rss) * 100);
+        const usagePercentage = memoryUsagePercentage.toFixed(2);
+        const heapTotal = (memoryUsage.heapTotal / 1024 / 1024).toFixed(2);
+        const heapUsed = (memoryUsage.heapUsed / 1024 / 1024).toFixed(2);
+        const external = (memoryUsage.external / 1024 / 1024).toFixed(2);
+        const rss = (memoryUsage.rss / 1024 / 1024).toFixed(2); // total amount of memory allocated to the process - to be clarified!
+        const message = `Memory Usage ${usagePercentage}% - total heap: ${heapTotal} MiB - heap used: ${heapUsed} MiB - rss: ${rss} MiB - external: ${external} MiB - elapsed time: ${elapsedTime}`;
+        const dataToLog = {
+          tenantID: Constants.DEFAULT_TENANT_ID,
+          action: ServerAction.PERFORMANCES, module: MODULE_NAME, method: 'monitorMemoryUsage',
+          message
+        };
+        // TODO - remove it - JUST FOR TROUBLESHOOTING STRESS TESTS
+        Logging.beError()?.log(dataToLog);
+        // if (memoryUsagePercentage > 90) {
+        //   Logging.beError()?.log(dataToLog);
+        // } else if (memoryUsagePercentage > 80) {
+        //   Logging.beWarning()?.log(dataToLog);
+        // } else {
+        //   Logging.beDebug()?.log(dataToLog);
+        // }
+        if (this.isDebug()) {
+          Logging.logConsoleDebug(message);
+        }
+      } catch (error) {
+        /* Intentional */
+      }
+    }, 5 * 60 * 1000); // every minute - TODO - add new configuration for it!
   }
 
   private checkAndCleanupAllWebSockets() {
