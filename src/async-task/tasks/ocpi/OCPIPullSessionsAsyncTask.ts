@@ -35,7 +35,7 @@ export default class OCPIPullSessionsAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_SESSION, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_SESSION, error);
       }
     }
   }

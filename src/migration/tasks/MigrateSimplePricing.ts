@@ -17,7 +17,7 @@ export default class SimplePricingMigrationTask extends TenantMigrationTask {
     const pricingSetting = await SettingStorage.getSettingByIdentifier(tenant, TenantComponents.PRICING);
     if (pricingSetting?.content?.type === PricingSettingsType.SIMPLE) {
       await this.createDefaultPricingDefinition(tenant, pricingSetting.content.simple);
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,

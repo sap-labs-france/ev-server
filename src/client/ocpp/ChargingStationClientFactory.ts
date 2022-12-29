@@ -17,7 +17,7 @@ export default class ChargingStationClientFactory {
           // Json Server
           if (global.centralSystemJsonServer?.hasChargingStationConnected(tenant, chargingStation)) {
             // Get the local WS Connection Client
-            chargingClient = await global.centralSystemJsonServer.getChargingStationClient(tenant, chargingStation);
+            chargingClient = global.centralSystemJsonServer.getChargingStationClient(tenant, chargingStation);
           } else {
             // Get the Remote WS Connection Client (Rest)
             chargingClient = new JsonRestChargingStationClient(tenant.id, chargingStation);

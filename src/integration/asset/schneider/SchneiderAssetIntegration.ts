@@ -43,7 +43,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
           headers: this.buildAuthHeader(token)
         }
       );
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > Schneider web service has been called successfully`,

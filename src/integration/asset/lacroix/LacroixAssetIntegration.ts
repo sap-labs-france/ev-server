@@ -64,7 +64,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
           }
         }
       );
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > Lacroix web service has been called successfully`,

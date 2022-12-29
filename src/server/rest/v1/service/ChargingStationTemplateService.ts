@@ -34,7 +34,7 @@ export default class ChargingStationTemplateService {
       }
     };
     newChargingStationTemplate.id = await ChargingStationTemplateStorage.saveChargingStationTemplate(newChargingStationTemplate);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateChargingStationTemplate',
       message: `ChargingStationTemplate '${newChargingStationTemplate.id}' has been created successfully`,
@@ -99,7 +99,7 @@ export default class ChargingStationTemplateService {
     const chargingStationTemplate = await UtilsService.checkAndGetChargingStationTemplateAuthorization(req.tenant, req.user, chargingStationTemplateID, Action.DELETE, action);
     // Delete
     await ChargingStationTemplateStorage.deleteChargingStationTemplate(req.tenant, chargingStationTemplate.id);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStationTemplate',
       message: `Charging Station Template'${chargingStationTemplate.id}' has been deleted successfully`,
@@ -129,7 +129,7 @@ export default class ChargingStationTemplateService {
     chargingStationTemplate.lastChangedOn = new Date();
     // Save
     await ChargingStationTemplateStorage.saveChargingStationTemplate(chargingStationTemplate);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateChargingStationTemplate',
       message: `'${chargingStationTemplate.id}' has been updated successfully`,

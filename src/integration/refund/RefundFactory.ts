@@ -25,7 +25,7 @@ export default class RefundFactory {
         }
         return refundIntegrationImpl;
       }
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: tenant.id,
         action: ServerAction.REFUND,
         module: MODULE_NAME,

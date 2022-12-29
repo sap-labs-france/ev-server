@@ -99,7 +99,7 @@ export default class EmspOCPIClient extends OCPIClient {
       currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
       const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
       const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
         message: `${tokens.count.toString()} token(s) pushed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfTokens} token(s) pushed in ${executionDurationTotalLoopSecs}s`,
@@ -188,7 +188,7 @@ export default class EmspOCPIClient extends OCPIClient {
       }
       const numberOfLocations = response.data.data.length as number;
       totalNumberOfLocations += numberOfLocations;
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_CPO_GET_TOKENS,
         message: `${numberOfLocations.toString()} Tokens retrieved from ${locationsUrl}`,
@@ -237,7 +237,7 @@ export default class EmspOCPIClient extends OCPIClient {
       }
       const executionDurationLoopSecs = (new Date().getTime() - startTimeLoop) / 1000;
       const executionDurationTotalLoopSecs = (new Date().getTime() - startTime) / 1000;
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_EMSP_GET_LOCATIONS,
         message: `${numberOfLocations.toString()} location(s) processed in ${executionDurationLoopSecs}s - Total of ${totalNumberOfLocations} location(s) processed in ${executionDurationTotalLoopSecs}s`,
@@ -471,7 +471,7 @@ export default class EmspOCPIClient extends OCPIClient {
           'Content-Type': 'application/json'
         },
       });
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: this.tenant.id,
       ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: ServerAction.OCPI_EMSP_START_SESSION,
@@ -527,7 +527,7 @@ export default class EmspOCPIClient extends OCPIClient {
           'Content-Type': 'application/json'
         },
       });
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_EMSP_STOP_SESSION,

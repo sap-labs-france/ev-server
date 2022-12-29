@@ -29,7 +29,7 @@ export default class OCPICheckCdrsTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_CDRS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_CDRS, error);
     }
   }
 
@@ -40,7 +40,7 @@ export default class OCPICheckCdrsTask extends TenantSchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CPO_CHECK_CDRS,
@@ -49,7 +49,7 @@ export default class OCPICheckCdrsTask extends TenantSchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CPO_CHECK_CDRS,
@@ -57,7 +57,7 @@ export default class OCPICheckCdrsTask extends TenantSchedulerTask {
           });
           return;
         }
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CPO_CHECK_CDRS,
@@ -67,7 +67,7 @@ export default class OCPICheckCdrsTask extends TenantSchedulerTask {
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         // Check CDRs
         const result = await ocpiClient.checkCdrs();
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CPO_CHECK_CDRS,
@@ -75,7 +75,7 @@ export default class OCPICheckCdrsTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_CDRS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_CDRS, error);
       } finally {
         await LockingManager.release(ocpiLock);
       }
