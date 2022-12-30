@@ -46,7 +46,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
     await this.loadSimplePricingSettings(tenant);
     if (transactionsMDB.length > 0 && this.pricingSettings?.simple?.price > 0) {
       let message = `${transactionsMDB.length} Transaction(s) are going to be repaired in Tenant ${Utils.buildTenantName(tenant)}...`;
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
@@ -57,7 +57,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
         const numberOfProcessedTransactions = transactionsUpdated.inError + transactionsUpdated.inSuccess;
         if (numberOfProcessedTransactions > 0 && (numberOfProcessedTransactions % 100) === 0) {
           message = `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Transaction consumptions recomputed in Tenant ${Utils.buildTenantName(tenant)}`;
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.MIGRATION,
             module: MODULE_NAME, method: 'migrateTenant',
@@ -78,7 +78,7 @@ export default class RepairTransactionPricedAtZero extends TenantMigrationTask {
           transactionsUpdated.inSuccess++;
         } catch (error) {
           transactionsUpdated.inError++;
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.MIGRATION,
             module: MODULE_NAME, method: 'migrateTenant',

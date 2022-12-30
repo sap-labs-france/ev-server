@@ -119,7 +119,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     // Extract Current Command
     const triggeringCommand: Command = request[2];
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenantID,
       siteID: this.chargingStation.siteID,
       siteAreaID: this.chargingStation.siteAreaID,
@@ -143,9 +143,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Create and Open the WS
         this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
         // Opened
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        this.wsConnection.onopen = async () => {
-          await Logging.logInfo({
+        this.wsConnection.onopen = () => {
+          Logging.beInfo()?.log({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -159,9 +158,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           resolve();
         };
         // Closed
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        this.wsConnection.onclose = async (code: number) => {
-          await Logging.logInfo({
+        this.wsConnection.onclose = (code: number) => {
+          Logging.beInfo()?.log({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -174,9 +172,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           });
         };
         // Handle Error Message
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        this.wsConnection.onerror = async (error: Error) => {
-          await Logging.logError({
+        this.wsConnection.onerror = (error: Error) => {
+          Logging.beError()?.log({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
             siteAreaID: this.chargingStation.siteAreaID,
@@ -192,8 +189,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           reject(new Error(`Error on opening Web Socket connection: ${error.message}'`));
         };
         // Handle Server Message
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        this.wsConnection.onmessage = async (message) => {
+        this.wsConnection.onmessage = (message) => {
           try {
             // Parse the message
             const [messageType, messageId, command, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
@@ -202,7 +198,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               // Check message type
               if (messageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
                 // Error message
-                await Logging.logError({
+                Logging.beError()?.log({
                   tenantID: this.tenantID,
                   siteID: this.chargingStation.siteID,
                   siteAreaID: this.chargingStation.siteAreaID,
@@ -224,7 +220,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               this.closeConnection();
             } else {
               // Error message
-              await Logging.logError({
+              Logging.beError()?.log({
                 tenantID: this.tenantID,
                 siteID: this.chargingStation.siteID,
                 siteAreaID: this.chargingStation.siteAreaID,
@@ -237,7 +233,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               });
             }
           } catch (error) {
-            await Logging.logException(error as Error, ServerAction.WS_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
+            Logging.logException(error as Error, ServerAction.WS_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
           }
         };
       } catch (error) {

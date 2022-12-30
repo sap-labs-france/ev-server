@@ -44,7 +44,7 @@ export default class SiteService {
     const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.tenant.id,
       user: req.user, actionOnUser: user,
@@ -70,7 +70,7 @@ export default class SiteService {
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteOwner(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.tenant.id,
       user: req.user, actionOnUser: user,
@@ -111,7 +111,7 @@ export default class SiteService {
     } else {
       await SiteStorage.removeUsersFromSite(req.tenant, site.id, users.map((user) => user.id));
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.tenant.id,
       user: req.user,
@@ -169,7 +169,7 @@ export default class SiteService {
       req.tenant, req.user, siteID, Action.DELETE, action);
     // Delete
     await SiteStorage.deleteSite(req.tenant, site.id);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
@@ -314,7 +314,7 @@ export default class SiteService {
     }
     // Save
     site.id = await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSite',
@@ -393,7 +393,7 @@ export default class SiteService {
     await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image'));
     // Update all refs
     void SiteStorage.updateEntitiesWithOrganizationIDs(req.tenant, site.companyID, filteredRequest.id);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getSiteProperties(site),
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSite',

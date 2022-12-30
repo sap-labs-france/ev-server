@@ -97,7 +97,7 @@ export default class ODataRestAdapter {
       }
     } catch (error) {
       // Add logging
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: req.user.tenantID,
         module: MODULE_NAME, method: 'query',
         action: ServerAction.ODATA_SERVER,

@@ -46,7 +46,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
           headers: this.buildAuthHeader(token)
         }
       );
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > GreenCom web service has been called successfully`,
