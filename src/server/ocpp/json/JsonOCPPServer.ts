@@ -2,6 +2,7 @@ import * as uWS from 'uWebSockets.js';
 
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
+import { OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Server';
 import { WebSocketAction, WebSocketCloseEventStatusCode, WebSocketPingResult } from '../../../types/WebSocket';
 
@@ -15,7 +16,6 @@ import JsonRestWSConnection from './web-socket/JsonRestWSConnection';
 import JsonWSConnection from './web-socket/JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
-import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import OCPPServer from '../OCPPServer';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
@@ -380,7 +380,8 @@ export default class JsonOCPPServer extends OCPPServer {
     const wsWrapper: WSWrapper = ws.wsWrapper;
     try {
       // Extract the OCPP Message Type
-      const [ocppMessageType]: [OCPPMessageType] = JSON.parse(message);
+      const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(message);
+      const ocppMessageType = ocppMessage[0];
       // Lock incoming WS messages
       await this.acquireLockForWSRequest(WebSocketAction.MESSAGE, ServerAction.WS_SERVER_MESSAGE, wsWrapper, ocppMessageType);
       try {
@@ -388,16 +389,16 @@ export default class JsonOCPPServer extends OCPPServer {
         // Check if connection is available in Map
         this.checkWSConnectionFromOnMessage(wsWrapper);
         // OCPP Request?
-        if (ocppMessageType === OCPPMessageType.CALL_MESSAGE) {
-          if (!wsWrapper.closed) {
-            // Process the message
-            if (wsWrapper.wsConnection) {
-              await wsWrapper.wsConnection.receivedMessage(message, isBinary);
-            }
-          }
-          // Process the message
-        } else if (wsWrapper.wsConnection) {
-          await wsWrapper.wsConnection.receivedMessage(message, isBinary);
+        if (wsWrapper.wsConnection) {
+          await wsWrapper.wsConnection.handleIncomingOcppMessage(wsWrapper, ocppMessage);
+        } else {
+          Logging.beError()?.log({
+            ...LoggingHelper.getWSWrapperProperties(wsWrapper),
+            action: ServerAction.WS_SERVER_MESSAGE,
+            module: MODULE_NAME, method: 'onMessage',
+            message: 'Unexpected situation - message is received but wsConnection is not set',
+            detailedMessages: { message, isBinary, wsWrapper: this.getWSWrapperData(wsWrapper) }
+          });
         }
       } finally {
         this.runningWSMessages--;
@@ -700,7 +701,7 @@ export default class JsonOCPPServer extends OCPPServer {
   }
 
   private monitorWSConnections() {
-    setTimeout(() => {
+    setInterval(() => {
       try {
         // Log size of WS Json Connections (track leak)
         let sizeOfCurrentRequestsBytes = 0, numberOfCurrentRequests = 0;
@@ -729,9 +730,8 @@ export default class JsonOCPPServer extends OCPPServer {
           Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
           Logging.logConsoleDebug('=====================================');
         }
-      } finally {
-        // Relaunch it
-        this.monitorWSConnections();
+      } catch (error) {
+        /* Intentional */
       }
     }, Configuration.getChargingStationConfig().monitoringIntervalOCPPJSecs * 1000);
   }
@@ -774,15 +774,14 @@ export default class JsonOCPPServer extends OCPPServer {
   }
 
   private checkAndCleanupAllWebSockets() {
-    setTimeout(() => {
+    setInterval(() => {
       try {
         // Check Json connections
         this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS');
         // Check Rest connections
         this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
-      } finally {
-        // Relaunch it
-        this.checkAndCleanupAllWebSockets();
+      } catch (error) {
+        /* Intentional */
       }
     }, Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000);
   }

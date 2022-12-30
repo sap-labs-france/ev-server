@@ -149,90 +149,54 @@ export default abstract class WSConnection {
     });
   }
 
-  public async receivedMessage(message: string, isBinary: boolean): Promise<void> {
-    let responseCallback: FctOCPPResponse;
-    let rejectCallback: FctOCPPReject;
-    let command: Command, commandPayload: Record<string, any>, errorDetails: Record<string, any>;
-    // Parse the data
-    const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(message);
-    const [messageType, messageID] = ocppMessage;
-    let result: any;
+  public async handleIncomingOcppMessage(wsWrapper: WSWrapper, ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse): Promise<void> {
+    const ocppMessageType = ocppMessage[0];
     try {
-      // Check the Type of message
-      switch (messageType) {
-        // Received Ocpp Request
-        case OCPPMessageType.CALL_MESSAGE:
-          // Get the data
-          [,,command,commandPayload] = ocppMessage as OCPPIncomingRequest;
-          try {
-            // Process the call
-            result = await this.handleRequest(command, commandPayload);
-          } catch (error) {
-            // Send Error Response
-            await this.sendError(messageID, error);
-            throw error;
-          }
-          // Send Response
-          await this.sendResponse(messageID, command, result);
-          break;
-        // Response to an OCPP Request
-        case OCPPMessageType.CALL_RESULT_MESSAGE:
-          // Get the data
-          [,,commandPayload] = ocppMessage as OCPPIncomingResponse;
-          // Respond
-          if (Array.isArray(this.ocppRequests[messageID])) {
-            [responseCallback,,command] = this.ocppRequests[messageID];
-          }
-          if (!responseCallback) {
-            throw new BackendError({
-              chargingStationID: this.getChargingStationID(),
-              siteID: this.getSiteID(),
-              siteAreaID: this.getSiteAreaID(),
-              companyID: this.getCompanyID(),
-              module: MODULE_NAME, method: 'onMessage',
-              message: `Unknown OCPP Request: '${message.toString()}'`,
-            });
-          }
-          responseCallback(commandPayload);
-          break;
-        // Error Response to an OCPP Request
-        case OCPPMessageType.CALL_ERROR_MESSAGE:
-          [,,commandPayload,errorDetails] = ocppMessage as OCPPIncomingResponse;
-          if (Array.isArray(this.ocppRequests[messageID])) {
-            [,rejectCallback,command] = this.ocppRequests[messageID];
-          }
-          if (!rejectCallback) {
-            throw new BackendError({
-              chargingStationID: this.getChargingStationID(),
-              siteID: this.getSiteID(),
-              siteAreaID: this.getSiteAreaID(),
-              companyID: this.getCompanyID(),
-              module: MODULE_NAME, method: 'onMessage',
-              message: `Unknown OCPP Request: '${message.toString()}'`,
-              detailedMessages: { messageType, messageID, commandPayload, errorDetails }
-            });
-          }
-          rejectCallback(new OCPPError({
-            chargingStationID: this.getChargingStationID(),
-            siteID: this.getSiteID(),
-            siteAreaID: this.getSiteAreaID(),
-            companyID: this.getCompanyID(),
-            module: MODULE_NAME, method: 'onMessage',
-            code: command,
-            message: message.toString(),
-          }));
-          break;
-        default:
-          throw new BackendError({
-            chargingStationID: this.getChargingStationID(),
-            siteID: this.getSiteID(),
-            siteAreaID: this.getSiteAreaID(),
-            companyID: this.getCompanyID(),
-            action: OCPPUtils.buildServerActionFromOcppCommand(command),
-            module: MODULE_NAME, method: 'onMessage',
-            message: `Wrong OCPP Message Type '${messageType as string}' for '${message.toString()}'`,
-          });
+      if (ocppMessageType === OCPPMessageType.CALL_MESSAGE) {
+        await wsWrapper.wsConnection.handleIncomingOcppRequest(wsWrapper, ocppMessage as OCPPIncomingRequest);
+      } else if (ocppMessageType === OCPPMessageType.CALL_RESULT_MESSAGE) {
+        wsWrapper.wsConnection.handleIncomingOcppResponse(ocppMessage as OCPPIncomingResponse);
+      } else if (ocppMessageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
+        wsWrapper.wsConnection.handleIncomingOcppError(ocppMessage as OCPPIncomingResponse);
+      } else {
+        Logging.beError()?.log({
+          tenantID: this.tenantID,
+          siteID: this.siteID,
+          siteAreaID: this.siteAreaID,
+          companyID: this.companyID,
+          chargingStationID: this.chargingStationID,
+          action: ServerAction.UNKNOWN_ACTION,
+          message: `Wrong OCPP Message Type in '${JSON.stringify(ocppMessage)}'`,
+          module: MODULE_NAME, method: 'onMessage',
+        });
       }
+    } catch (error) {
+      Logging.beError()?.log({
+        tenantID: this.tenantID,
+        siteID: this.siteID,
+        siteAreaID: this.siteAreaID,
+        companyID: this.companyID,
+        chargingStationID: this.chargingStationID,
+        action: ServerAction.UNKNOWN_ACTION,
+        message: `${error.message as string}`,
+        module: MODULE_NAME, method: 'onMessage',
+        detailedMessages: { data: JSON.stringify(ocppMessage), error: error.stack }
+      });
+    }
+  }
+
+  public async handleIncomingOcppRequest(wsWrapper: WSWrapper, ocppMessage: OCPPIncomingRequest): Promise<void> {
+    if (wsWrapper.closed) {
+      // Is there anything to cleanup?
+      return;
+    }
+    // Parse the data
+    const [ ,messageID, command, commandPayload] = ocppMessage;
+    try {
+      // Process the call
+      const result = await this.handleRequest(command, commandPayload);
+      // Send Response
+      await this.sendResponse(messageID, command, result as Record<string, unknown>);
     } catch (error) {
       Logging.beError()?.log({
         tenantID: this.tenantID,
@@ -243,8 +207,73 @@ export default abstract class WSConnection {
         action: OCPPUtils.buildServerActionFromOcppCommand(command),
         message: `${error.message as string}`,
         module: MODULE_NAME, method: 'onMessage',
-        detailedMessages: { data: message, error: error.stack }
+        detailedMessages: { data: ocppMessage, error: error.stack }
       });
+    }
+  }
+
+  public handleIncomingOcppResponse(ocppMessage: OCPPIncomingResponse): void {
+    let done = false;
+    // Parse the data
+    const [messageType, messageID, commandPayload] = ocppMessage as OCPPIncomingResponse;
+    // Which request matches the current response?
+    const ocppRequest = this.ocppRequests[messageID];
+    if (ocppRequest) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [responseCallback, rejectCallback, command]: [FctOCPPResponse, FctOCPPReject, string] = ocppRequest;
+      if (responseCallback) {
+        responseCallback(commandPayload);
+        done = true;
+      }
+    }
+    if (!done) {
+      // No OCPP request found ???
+      // Is there anything to cleanup?
+      throw new BackendError({
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
+        module: MODULE_NAME, method: 'onMessage',
+        message: `OCPP Request not found for messageID: '${messageID}'`,
+        detailedMessages: { messageType, messageID, commandPayload }
+      });
+    }
+  }
+
+  public handleIncomingOcppError(ocppMessage: OCPPIncomingResponse): void {
+    let done = false;
+    const [messageType, messageID, commandPayload, errorDetails] = ocppMessage;
+    // Which request matches the current OCPP error?
+    const ocppRequest = this.ocppRequests[messageID];
+    if (ocppRequest) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [responseCallback, rejectCallback, command] = ocppRequest;
+      if (rejectCallback) {
+        rejectCallback(new OCPPError({
+          chargingStationID: this.getChargingStationID(),
+          siteID: this.getSiteID(),
+          siteAreaID: this.getSiteAreaID(),
+          companyID: this.getCompanyID(),
+          module: MODULE_NAME, method: 'onMessage',
+          code: command,
+          message: JSON.stringify(ocppMessage),
+        }));
+        done = true;
+      }
+      if (!done) {
+        // No OCPP request found ???
+        // Is there anything to cleanup?
+        throw new BackendError({
+          chargingStationID: this.getChargingStationID(),
+          siteID: this.getSiteID(),
+          siteAreaID: this.getSiteAreaID(),
+          companyID: this.getCompanyID(),
+          module: MODULE_NAME, method: 'onMessage',
+          message: `OCPP Request not found for messageID: '${messageID}'`,
+          detailedMessages: { messageType, messageID, commandPayload, errorDetails }
+        });
+      }
     }
   }
 
