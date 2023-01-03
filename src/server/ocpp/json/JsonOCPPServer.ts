@@ -716,7 +716,7 @@ export default class JsonOCPPServer extends OCPPServer {
   }
 
   private checkAndCleanupAllWebSockets() {
-    setTimeout(() => {
+    setInterval(() => {
       // Check Json connections
       this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS').catch(() => { /* Intentional */ });
       // Check Rest connections
