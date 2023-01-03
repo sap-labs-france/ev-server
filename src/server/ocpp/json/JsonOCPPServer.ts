@@ -680,8 +680,7 @@ export default class JsonOCPPServer extends OCPPServer {
   }
 
   private monitorWSConnections() {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
+    setInterval(() => {
       try {
         // Log size of WS Json Connections (track leak)
         let sizeOfCurrentRequestsBytes = 0, numberOfCurrentRequests = 0;
@@ -691,7 +690,7 @@ export default class JsonOCPPServer extends OCPPServer {
           numberOfCurrentRequests += Object.keys(currentOcppRequests).length;
         }
         // Log Stats on number of WS Connections
-        await Logging.logDebug({
+        Logging.logDebug({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.WS_SERVER_CONNECTION, module: MODULE_NAME, method: 'monitorWSConnections',
           message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages, ${Object.keys(this.runningWSRequestsMessages).length} Requests, ${this.waitingWSMessages} queued WS Message(s)`,
@@ -699,7 +698,7 @@ export default class JsonOCPPServer extends OCPPServer {
             `${numberOfCurrentRequests} JSON WS Requests cached`,
             `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
           ]
-        });
+        }).catch(() => { /* Intentional */ });
         if (this.isDebug()) {
           Logging.logConsoleDebug('=====================================');
           Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
@@ -710,25 +709,18 @@ export default class JsonOCPPServer extends OCPPServer {
           Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
           Logging.logConsoleDebug('=====================================');
         }
-      } finally {
-        // Relaunch it
-        this.monitorWSConnections();
+      } catch (error) {
+        /* Intentional */
       }
     }, Configuration.getChargingStationConfig().monitoringIntervalOCPPJSecs * 1000);
   }
 
   private checkAndCleanupAllWebSockets() {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
-      try {
-        // Check Json connections
-        await this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS');
-        // Check Rest connections
-        await this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
-      } finally {
-        // Relaunch it
-        this.checkAndCleanupAllWebSockets();
-      }
+    setTimeout(() => {
+      // Check Json connections
+      this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS').catch(() => { /* Intentional */ });
+      // Check Rest connections
+      this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST').catch(() => { /* Intentional */ });
     }, Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000);
   }
 
