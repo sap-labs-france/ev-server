@@ -95,6 +95,7 @@
     "test:jest": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" TS_NODE_FILES=true jest --config='./test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit"
   },
   "dependencies": {
+    "@types/better-queue": "^3.8.3",
     "ajv": "^8.11.0",
     "ajv-formats": "^2.1.1",
     "ajv-keywords": "^5.1.0",
@@ -102,6 +103,7 @@
     "axios-retry": "^3.3.1",
     "basic-auth": "^2.0.1",
     "bcryptjs": "^2.4.3",
+    "better-queue": "^3.8.12",
     "bluebird": "^3.7.2",
     "body-parser": "^1.20.0",
     "body-parser-xml": "^2.0.3",

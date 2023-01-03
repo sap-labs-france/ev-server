@@ -22,6 +22,7 @@ import WSConnection from './web-socket/WSConnection';
 import WSWrapper from './web-socket/WSWrapper';
 import global from '../../../types/GlobalType';
 import sizeof from 'object-sizeof';
+import Queue, { ProcessFunction } from 'better-queue';
 
 const MODULE_NAME = 'JsonOCPPServer';
 
@@ -223,39 +224,96 @@ export default class JsonOCPPServer extends OCPPServer {
     }
   }
 
-  private async onOpen(ws: uWS.WebSocket) {
+  private getQueueFunction(wsWrapper: WSWrapper): ProcessFunction<any, any> {
+    const queueFunction = async function(task, cb) {
+      this.runningWSMessages++;
+      if (task.type === 'onOpen') {
+        try {
+          this.runningWSMessages++;
+          // Path must contain /OCPP16 or /REST as it is already checked during the Upgrade process
+          // Check OCPP16 connection
+          if (wsWrapper.url.startsWith('/OCPP16')) {
+            // Create and Initialize WS Connection
+            await this.checkAndStoreWSOpenedConnection(WSServerProtocol.OCPP16, wsWrapper);
+          }
+          // Check REST connection
+          if (wsWrapper.url.startsWith('/REST')) {
+            // Create and Initialize WS Connection
+            await this.checkAndStoreWSOpenedConnection(WSServerProtocol.REST, wsWrapper);
+          }
+        } catch (error) {
+          await Logging.logException(error as Error, ServerAction.WS_SERVER_CONNECTION_OPEN, MODULE_NAME, 'onOpen', Constants.DEFAULT_TENANT_ID);
+          if (wsWrapper.tenantID) {
+            await Logging.logException(error as Error, ServerAction.WS_SERVER_CONNECTION_OPEN, MODULE_NAME, 'onOpen', wsWrapper.tenantID);
+          }
+          // Close WS
+          await this.closeWebSocket(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsWrapper, WebSocketCloseEventStatusCode.CLOSE_ABNORMAL,
+            `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been rejected and closed by server due to an exception: ${error.message as string}`);
+        } finally {
+          cb();
+          this.runningWSMessages--;
+        }
+      } else if (task.type === 'onMessage') {
+        const mess = task.message;
+        const bin = task.isBinary;
+        try {
+          // Extract the OCPP Message Type
+          const [ocppMessageType]: [OCPPMessageType] = JSON.parse(mess);
+          // Lock incoming WS messages
+          try {
+            this.runningWSMessages++;
+            // Check if connection is available in Map
+            await this.checkWSConnectionFromOnMessage(wsWrapper);
+            // OCPP Request?
+            if (ocppMessageType === OCPPMessageType.CALL_MESSAGE) {
+              if (!wsWrapper.closed) {
+                // Process the message
+                if (wsWrapper.wsConnection) {
+                  await wsWrapper.wsConnection.receivedMessage(mess, bin);
+                }
+              }
+              // Process the message
+            } else if (wsWrapper.wsConnection) {
+              await wsWrapper.wsConnection.receivedMessage(mess, bin);
+            }
+          } finally {
+            this.runningWSMessages--;
+          }
+        } catch (error) {
+          const logMessage = `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' got error while processing WS Message: ${error.message as string}`;
+          await Logging.logError({
+            ...LoggingHelper.getWSWrapperProperties(wsWrapper),
+            action: ServerAction.WS_SERVER_MESSAGE,
+            module: MODULE_NAME, method: 'onMessage',
+            message: logMessage,
+            detailedMessages: { mess, bin, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
+          });
+          await Logging.logError({
+            tenantID: Constants.DEFAULT_TENANT_ID,
+            chargingStationID: wsWrapper.chargingStationID,
+            action: ServerAction.WS_SERVER_MESSAGE,
+            module: MODULE_NAME, method: 'onMessage',
+            message: logMessage,
+            detailedMessages: { mess, bin, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
+          });
+        } finally {
+          cb();
+        }
+      }
+    };
+    return queueFunction;
+  }
+
+  private onOpen(ws: uWS.WebSocket): void {
     // Create WS Wrapper
     const wsWrapper = new WSWrapper(ws);
     // Keep it on the ws
     ws.wsWrapper = wsWrapper;
+    ws.q = new Queue(this.getQueueFunction(wsWrapper).bind(this) as ProcessFunction<any, any>);
     // Lock incoming WS messages
-    await this.acquireLockForWSRequest(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsWrapper);
-    try {
-      this.runningWSMessages++;
-      // Path must contain /OCPP16 or /REST as it is already checked during the Upgrade process
-      // Check OCPP16 connection
-      if (wsWrapper.url.startsWith('/OCPP16')) {
-        // Create and Initialize WS Connection
-        await this.checkAndStoreWSOpenedConnection(WSServerProtocol.OCPP16, wsWrapper);
-      }
-      // Check REST connection
-      if (wsWrapper.url.startsWith('/REST')) {
-        // Create and Initialize WS Connection
-        await this.checkAndStoreWSOpenedConnection(WSServerProtocol.REST, wsWrapper);
-      }
-    } catch (error) {
-      await Logging.logException(error as Error, ServerAction.WS_SERVER_CONNECTION_OPEN, MODULE_NAME, 'onOpen', Constants.DEFAULT_TENANT_ID);
-      if (wsWrapper.tenantID) {
-        await Logging.logException(error as Error, ServerAction.WS_SERVER_CONNECTION_OPEN, MODULE_NAME, 'onOpen', wsWrapper.tenantID);
-      }
-      // Close WS
-      await this.closeWebSocket(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsWrapper, WebSocketCloseEventStatusCode.CLOSE_ABNORMAL,
-        `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been rejected and closed by server due to an exception: ${error.message as string}`);
-    } finally {
-      this.runningWSMessages--;
-      this.releaseLockForWSMessageRequest(wsWrapper);
-    }
+    ws.q.push({ type: 'onOpen' });
   }
+
 
   private async checkAndStoreWSOpenedConnection(protocol: WSServerProtocol, wsWrapper: WSWrapper): Promise<void> {
     let wsConnection: WSConnection;
@@ -336,71 +394,9 @@ export default class JsonOCPPServer extends OCPPServer {
     }
   }
 
-  private async acquireLockForWSRequest(wsAction: WebSocketAction, action: ServerAction, wsWrapper: WSWrapper, ocppMessageType?: OCPPMessageType): Promise<void> {
-    // Only lock requests, not responses
-    if (ocppMessageType && ocppMessageType !== OCPPMessageType.CALL_MESSAGE) {
-      return;
-    }
-    // Wait for Init (avoid WS connection with same URL), ocppMessageType only provided when a WS Message is received
-    await this.waitForWSLockToRelease(wsAction, action, wsWrapper);
-    // Lock
-    this.runningWSRequestsMessages[wsWrapper.url] = true;
-  }
-
-  private releaseLockForWSMessageRequest(wsWrapper: WSWrapper, ocppMessageType?: OCPPMessageType): void {
-    // Only lock requests, not responses
-    if (ocppMessageType && (ocppMessageType !== OCPPMessageType.CALL_MESSAGE)) {
-      return;
-    }
-    // Unlock
-    delete this.runningWSRequestsMessages[wsWrapper.url];
-  }
-
-  private async onMessage(ws: uWS.WebSocket, message: string, isBinary: boolean): Promise<void> {
+  private onMessage(ws: uWS.WebSocket, message: string, isBinary: boolean): void {
     const wsWrapper: WSWrapper = ws.wsWrapper;
-    try {
-      // Extract the OCPP Message Type
-      const [ocppMessageType]: [OCPPMessageType] = JSON.parse(message);
-      // Lock incoming WS messages
-      await this.acquireLockForWSRequest(WebSocketAction.MESSAGE, ServerAction.WS_SERVER_MESSAGE, wsWrapper, ocppMessageType);
-      try {
-        this.runningWSMessages++;
-        // Check if connection is available in Map
-        await this.checkWSConnectionFromOnMessage(wsWrapper);
-        // OCPP Request?
-        if (ocppMessageType === OCPPMessageType.CALL_MESSAGE) {
-          if (!wsWrapper.closed) {
-            // Process the message
-            if (wsWrapper.wsConnection) {
-              await wsWrapper.wsConnection.receivedMessage(message, isBinary);
-            }
-          }
-          // Process the message
-        } else if (wsWrapper.wsConnection) {
-          await wsWrapper.wsConnection.receivedMessage(message, isBinary);
-        }
-      } finally {
-        this.runningWSMessages--;
-        this.releaseLockForWSMessageRequest(wsWrapper, ocppMessageType);
-      }
-    } catch (error) {
-      const logMessage = `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' got error while processing WS Message: ${error.message as string}`;
-      await Logging.logError({
-        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
-        action: ServerAction.WS_SERVER_MESSAGE,
-        module: MODULE_NAME, method: 'onMessage',
-        message: logMessage,
-        detailedMessages: { message, isBinary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
-      });
-      await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT_ID,
-        chargingStationID: wsWrapper.chargingStationID,
-        action: ServerAction.WS_SERVER_MESSAGE,
-        module: MODULE_NAME, method: 'onMessage',
-        message: logMessage,
-        detailedMessages: { message, isBinary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
-      });
-    }
+    ws.q.push({ type: 'onMessage', message: message, isBinary: isBinary });
   }
 
   private async checkWSConnectionFromOnMessage(wsWrapper: WSWrapper) {
@@ -700,6 +696,14 @@ export default class JsonOCPPServer extends OCPPServer {
             `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
           ]
         });
+        if (global.monitoringServer) {
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE).set(this.runningWSMessages);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT).set(this.jsonRestWSConnections.size);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRRENT_REQUEST).set(numberOfCurrentRequests);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(Object.keys(this.runningWSRequestsMessages).length);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_QUEUED_REQUEST).set(this.waitingWSMessages);
+        }
         if (this.isDebug()) {
           Logging.logConsoleDebug('=====================================');
           Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
