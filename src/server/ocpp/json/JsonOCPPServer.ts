@@ -706,9 +706,9 @@ export default class JsonOCPPServer extends OCPPServer {
         // Log size of WS Json Connections (track leak)
         let sizeOfCurrentRequestsBytes = 0, numberOfCurrentRequests = 0;
         for (const jsonWSConnection of Array.from(this.jsonWSConnections.values())) {
-          const currentOcppRequests = jsonWSConnection.getCurrentOcppRequests();
-          sizeOfCurrentRequestsBytes += sizeof(currentOcppRequests);
-          numberOfCurrentRequests += Object.keys(currentOcppRequests).length;
+          const pendingCommands = jsonWSConnection.getPendingOccpCommands();
+          sizeOfCurrentRequestsBytes += sizeof(pendingCommands);
+          numberOfCurrentRequests += Object.keys(pendingCommands).length;
         }
         // Log Stats on number of WS Connections
         Logging.beDebug()?.log({

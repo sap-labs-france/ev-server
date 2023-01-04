@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
-import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPRequest } from '../../../../types/ocpp/OCPPCommon';
+import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType } from '../../../../types/ocpp/OCPPCommon';
 
 import BackendError from '../../../../exception/BackendError';
 import Constants from '../../../../utils/Constants';
@@ -13,6 +14,42 @@ import WSWrapper from './WSWrapper';
 
 const MODULE_NAME = 'WSConnection';
 
+export class OcppPendingCommand {
+  private command;
+  private resolveCallback: FctOCPPResponse;
+  private rejectCallback: FctOCPPReject;
+  private timer: NodeJS.Timeout;
+
+  public constructor(command: string, resolveCallback: FctOCPPResponse, rejectCallback: FctOCPPReject, timer: NodeJS.Timeout) {
+    this.command = command;
+    this.resolveCallback = resolveCallback;
+    this.rejectCallback = rejectCallback;
+    this.timer = timer;
+  }
+
+  public getCommand(): string {
+    return this.command;
+  }
+
+  public resolve(payload: Record<string, unknown> | string): void {
+    this.clearTimer();
+    this.resolveCallback(payload);
+  }
+
+  public reject(error: OCPPError): void {
+    this.clearTimer();
+    this.rejectCallback(error);
+  }
+
+  private clearTimer() {
+    const timer = this.timer;
+    if (timer) {
+      this.timer = null;
+      clearTimeout(timer);
+    }
+  }
+}
+
 export default abstract class WSConnection {
   private siteID: string;
   private siteAreaID: string;
@@ -25,7 +62,7 @@ export default abstract class WSConnection {
   private url: string;
   private clientIP: string | string[];
   private ws: WSWrapper;
-  private ocppRequests: Record<string, OCPPRequest> = {};
+  private pendingOcppCommands: Record<string, OcppPendingCommand> = {};
 
   public constructor(ws: WSWrapper) {
     // Init
@@ -45,108 +82,98 @@ export default abstract class WSConnection {
     this.setChargingStation(chargingStation);
   }
 
-  public async sendResponse(messageID: string, command: Command, response: Record<string, any>): Promise<Record<string, any>> {
-    return this.sendMessage(messageID, OCPPMessageType.CALL_RESULT_MESSAGE, command, response);
+  public sendResponse(messageID: string, command: Command, response: Record<string, any>): void {
+    // Build Message
+    const messageType = OCPPMessageType.CALL_RESULT_MESSAGE;
+    const messageToSend = JSON.stringify([messageType, messageID, response]);
+    Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`Send Response ${messageToSend} for '${this.ws.url }'`);
+    this.sendPayload(messageToSend);
   }
 
-  public async sendError(messageID: string, error: OCPPError): Promise<unknown> {
-    return this.sendMessage(messageID, OCPPMessageType.CALL_ERROR_MESSAGE, null, null, error);
+  public sendError(messageID: string, error: OCPPError): void {
+    // Build Error Message
+    const messageType = OCPPMessageType.CALL_ERROR_MESSAGE;
+    const messageToSend = JSON.stringify([messageType, messageID, error.code ?? OCPPErrorType.GENERIC_ERROR, error.message ? error.message : '', error.details ? error.details : {}]);
+    Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`Send Error ${messageToSend} for '${this.ws.url }'`);
+    this.sendPayload(messageToSend);
   }
 
-  public async sendMessage(messageID: string, messageType: OCPPMessageType, command?: Command, data?: Record<string, any>, error?: OCPPError): Promise<unknown> {
-    // Create a promise
-    return new Promise((resolve, reject) => {
-      let messageToSend: string;
-      let messageProcessed = false;
-      let requestTimeout: NodeJS.Timer;
+  public async sendMessageAndWaitForResult(messageID: string, command: Command, data: Record<string, any>): Promise<unknown> {
+    // Create a pending promise
+    const pendingPromise = new Promise((resolve, reject) => {
+      // Send the message to the charging station
+      const messageType = OCPPMessageType.CALL_MESSAGE;
+      const messageToSend = JSON.stringify([messageType, messageID, command, data]);
       // Function that will receive the request's response
       const responseCallback = (payload?: Record<string, unknown> | string): void => {
-        if (!messageProcessed) {
-          if (requestTimeout) {
-            clearTimeout(requestTimeout);
-          }
-          // Send response
-          messageProcessed = true;
-          delete this.ocppRequests[messageID];
-          resolve(payload);
-        }
+        resolve(payload);
       };
       // Function that will receive the request's rejection
-      const rejectCallback = (reason: string | OCPPError): void => {
-        if (!messageProcessed) {
-          if (requestTimeout) {
-            clearTimeout(requestTimeout);
-          }
-          // Send error
-          messageProcessed = true;
-          delete this.ocppRequests[messageID];
-          const ocppError = reason instanceof OCPPError ? reason : new Error(reason);
-          reject(ocppError);
-        }
+      const rejectCallback = (error: OCPPError): void => {
+        reject(error);
       };
-      // Type of message
-      switch (messageType) {
-        // Request
-        case OCPPMessageType.CALL_MESSAGE:
-          // Store Promise callback
-          this.ocppRequests[messageID] = [responseCallback, rejectCallback, command];
-          // Build request
-          messageToSend = JSON.stringify([messageType, messageID, command, data]);
-          break;
-        // Response
-        case OCPPMessageType.CALL_RESULT_MESSAGE:
-          // Build response
-          messageToSend = JSON.stringify([messageType, messageID, data]);
-          break;
-        // Error Message
-        case OCPPMessageType.CALL_ERROR_MESSAGE:
-          // Build Error Message
-          messageToSend = JSON.stringify([messageType, messageID, error.code ?? OCPPErrorType.GENERIC_ERROR, error.message ? error.message : '', error.details ? error.details : {}]);
-          break;
-      }
+      // Make sure to reject automatically if we do not receive any response from the charging station
+      const timeout = setTimeout(() => {
+        // Remove it from the cache
+        this.consumePendingOcppCommands(messageID);
+        // Send some feedback
+        const timeoutError = new Error(`Timeout after ${Constants.OCPP_SOCKET_TIMEOUT_MILLIS / 1000} secs for Message ID '${messageID}' with content '${messageToSend} - (${this.tenantSubdomain})`);
+        reject(timeoutError);
+      }, Constants.OCPP_SOCKET_TIMEOUT_MILLIS);
+      // Let's send it
       Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`Send Message ${messageToSend} for '${this.ws.url }'`);
-      try {
-        // Send Message
-        if (!this.ws.send(messageToSend)) {
-          // Not always an error with uWebSocket: check BackPressure example
-          const message = `Error when sending message '${messageToSend}' to Web Socket`;
-          void Logging.logError({
-            tenantID: this.tenantID,
-            chargingStationID: this.chargingStationID,
-            companyID: this.companyID,
-            siteID: this.siteID,
-            siteAreaID: this.siteAreaID,
-            module: MODULE_NAME, method: 'sendMessage',
-            action: ServerAction.WS_SERVER_CONNECTION_ERROR,
-            message, detailedMessages: { message: messageToSend }
-          });
-          Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
-        }
-      } catch (wsError) {
-        // Invalid Web Socket
-        const message = `Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`;
+      // Keep track of the pending promise
+      this.pendingOcppCommands[messageID] = new OcppPendingCommand(command, responseCallback, rejectCallback, timeout);
+      // Send the message
+      if (!this.sendPayload(messageToSend)) {
+        // Well - we have not been able to send the message - Remove the pending promise from the cache
+        this.consumePendingOcppCommands(messageID);
+        // send some feedback
+        const unexpectedError = new Error(`Unexpected situation - Failed to send Message ID '${messageID}' with content '${messageToSend} - (${this.tenantSubdomain})`);
+        reject(unexpectedError);
+      }
+    });
+    // This promise is pending and will be resolved as soon as we get a response/error from the charging station
+    return pendingPromise;
+  }
+
+  public sendPayload(messageToSend: string): boolean {
+    let sent = false ;
+    try {
+      // Send Message
+      if (this.ws.send(messageToSend)) {
+        sent = true;
+      } else {
+        // Not always an error with uWebSocket: check BackPressure example
+        const message = `Error when sending error '${messageToSend}' to Web Socket`;
         void Logging.logError({
           tenantID: this.tenantID,
           chargingStationID: this.chargingStationID,
           companyID: this.companyID,
           siteID: this.siteID,
           siteAreaID: this.siteAreaID,
-          module: MODULE_NAME, method: 'sendMessage',
+          module: MODULE_NAME, method: 'sendError',
           action: ServerAction.WS_SERVER_CONNECTION_ERROR,
-          message, detailedMessages: { message: messageToSend, error: wsError?.stack }
+          message, detailedMessages: { message: messageToSend }
         });
         Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
       }
-      // Response?
-      if (messageType !== OCPPMessageType.CALL_MESSAGE) {
-        responseCallback();
-      } else {
-        // Trigger timeout
-        requestTimeout = setTimeout(() => {
-          rejectCallback(`Timeout after ${Constants.OCPP_SOCKET_TIMEOUT_MILLIS / 1000} secs for Message ID '${messageID}' with content '${messageToSend} (${this.tenantSubdomain})`);
-        }, Constants.OCPP_SOCKET_TIMEOUT_MILLIS);
-      }
-    });
+    } catch (wsError) {
+      // Invalid Web Socket
+      const message = `Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`;
+      void Logging.logError({
+        tenantID: this.tenantID,
+        chargingStationID: this.chargingStationID,
+        companyID: this.companyID,
+        siteID: this.siteID,
+        siteAreaID: this.siteAreaID,
+        module: MODULE_NAME, method: 'sendPayload',
+        action: ServerAction.WS_SERVER_CONNECTION_ERROR,
+        message, detailedMessages: { message: messageToSend, error: wsError?.stack }
+      });
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
+    }
+    return sent;
   }
 
   public async handleIncomingOcppMessage(wsWrapper: WSWrapper, ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse): Promise<void> {
@@ -196,7 +223,7 @@ export default abstract class WSConnection {
       // Process the call
       const result = await this.handleRequest(command, commandPayload);
       // Send Response
-      await this.sendResponse(messageID, command, result as Record<string, unknown>);
+      this.sendResponse(messageID, command, result as Record<string, unknown>);
     } catch (error) {
       Logging.beError()?.log({
         tenantID: this.tenantID,
@@ -212,19 +239,25 @@ export default abstract class WSConnection {
     }
   }
 
+  private consumePendingOcppCommands(messageID: string) {
+    const pendingOcppCommand = this.pendingOcppCommands[messageID];
+    if (pendingOcppCommand) {
+      // It can be consumed only once - so we remove it from the cache
+      delete this.pendingOcppCommands[messageID];
+    }
+    return pendingOcppCommand;
+  }
+
   public handleIncomingOcppResponse(ocppMessage: OCPPIncomingResponse): void {
     let done = false;
     // Parse the data
     const [messageType, messageID, commandPayload] = ocppMessage as OCPPIncomingResponse;
-    // Which request matches the current response?
-    const ocppRequest = this.ocppRequests[messageID];
-    if (ocppRequest) {
+    // Consume the pending OCPP command matching the current OCPP error?
+    const ocppPendingCommand = this.consumePendingOcppCommands(messageID);
+    if (ocppPendingCommand) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [responseCallback, rejectCallback, command]: [FctOCPPResponse, FctOCPPReject, string] = ocppRequest;
-      if (responseCallback) {
-        responseCallback(commandPayload);
-        done = true;
-      }
+      ocppPendingCommand.resolve(commandPayload);
+      done = true;
     }
     if (!done) {
       // No OCPP request found ???
@@ -244,36 +277,32 @@ export default abstract class WSConnection {
   public handleIncomingOcppError(ocppMessage: OCPPIncomingResponse): void {
     let done = false;
     const [messageType, messageID, commandPayload, errorDetails] = ocppMessage;
-    // Which request matches the current OCPP error?
-    const ocppRequest = this.ocppRequests[messageID];
-    if (ocppRequest) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [responseCallback, rejectCallback, command] = ocppRequest;
-      if (rejectCallback) {
-        rejectCallback(new OCPPError({
-          chargingStationID: this.getChargingStationID(),
-          siteID: this.getSiteID(),
-          siteAreaID: this.getSiteAreaID(),
-          companyID: this.getCompanyID(),
-          module: MODULE_NAME, method: 'onMessage',
-          code: command,
-          message: JSON.stringify(ocppMessage),
-        }));
-        done = true;
-      }
-      if (!done) {
-        // No OCPP request found ???
-        // Is there anything to cleanup?
-        throw new BackendError({
-          chargingStationID: this.getChargingStationID(),
-          siteID: this.getSiteID(),
-          siteAreaID: this.getSiteAreaID(),
-          companyID: this.getCompanyID(),
-          module: MODULE_NAME, method: 'onMessage',
-          message: `OCPP Request not found for messageID: '${messageID}'`,
-          detailedMessages: { messageType, messageID, commandPayload, errorDetails }
-        });
-      }
+    // Consume the pending OCPP command matching the current OCPP error?
+    const ocppPendingCommand = this.consumePendingOcppCommands(messageID);
+    if (ocppPendingCommand) {
+      ocppPendingCommand.reject(new OCPPError({
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
+        module: MODULE_NAME, method: 'onMessage',
+        code: ocppPendingCommand.getCommand(),
+        message: JSON.stringify(ocppMessage),
+      }));
+      done = true;
+    }
+    if (!done) {
+      // No OCPP request found ???
+      // Is there anything to cleanup?
+      throw new BackendError({
+        chargingStationID: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
+        module: MODULE_NAME, method: 'onMessage',
+        message: `OCPP Request not found for messageID: '${messageID}'`,
+        detailedMessages: { messageType, messageID, commandPayload, errorDetails }
+      });
     }
   }
 
@@ -337,8 +366,8 @@ export default abstract class WSConnection {
     return `${this.getTenantID()}~${this.getChargingStationID()}`;
   }
 
-  public getCurrentOcppRequests(): Record<string, OCPPRequest> {
-    return this.ocppRequests;
+  public getPendingOccpCommands(): Record<string, OcppPendingCommand> {
+    return this.pendingOcppCommands;
   }
 
   private checkMandatoryFieldsInRequest() {

@@ -4,7 +4,6 @@ import ChargingStationClient from '../../ocpp/ChargingStationClient';
 import { Command } from '../../../types/ChargingStation';
 import JsonWSConnection from '../../../server/ocpp/json/web-socket/JsonWSConnection';
 import Logging from '../../../utils/Logging';
-import { OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
 import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
@@ -103,7 +102,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
       OCPPUtils.buildServerActionFromOcppCommand(command), params, '<<',
       { siteAreaID: this.siteAreaID, siteID: this.siteID, companyID: this.companyID });
     // Execute
-    const result = await this.wsConnection.sendMessage(Utils.generateUUID(), OCPPMessageType.CALL_MESSAGE, command, params);
+    const result = await this.wsConnection.sendMessageAndWaitForResult(Utils.generateUUID(), command, params as Record<string, any>);
     // Trace
     await Logging.traceOcppMessageResponse(MODULE_NAME, this.tenant, this.chargingStationID,
       OCPPUtils.buildServerActionFromOcppCommand(command), params, result, '>>',
