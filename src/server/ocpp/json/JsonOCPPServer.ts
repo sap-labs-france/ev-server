@@ -615,6 +615,9 @@ export default class JsonOCPPServer extends OCPPServer {
     // Reference a Json WebSocket connection object
     if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
       this.jsonWSConnections.set(wsConnection.getID(), wsConnection as JsonWSConnection);
+      if (global.monitoringServer) {
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
+      }
       Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
@@ -666,6 +669,9 @@ export default class JsonOCPPServer extends OCPPServer {
         if (existingWsWrapper.guid === wsWrapper.guid) {
           // Remove from WS Cache
           wsConnections.delete(wsConnection.getID());
+          if (global.monitoringServer) {
+            global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
+          }
           Logging.beDebug()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             chargingStationID: wsWrapper.chargingStationID,
