@@ -462,7 +462,7 @@ export default class JsonOCPPServer extends OCPPServer {
           chargingStationID: wsWrapper.chargingStationID,
           action: ServerAction.WS_SERVER_MESSAGE,
           module: MODULE_NAME, method: 'checkWSConnectionFromOnMessage',
-          message: `${WebSocketAction.MESSAGE} > Existing WS Connection ID '${wsExistingWrapper.guid}' ping succeded meaning multiple WS connections are opened by the same charging station, existing one will be closed and replaced by new one with ID '${wsWrapper.guid}'`,
+          message: `${WebSocketAction.MESSAGE} > Existing WS Connection ID '${wsExistingWrapper.guid}' ping succeeded meaning multiple WS connections are opened by the same charging station, existing one will be closed and replaced by new one with ID '${wsWrapper.guid}'`,
           detailedMessages: { wsExistingWrapper: this.getWSWrapperData(wsExistingWrapper), wsWrapper: this.getWSWrapperData(wsWrapper) }
         });
         // Close WS
