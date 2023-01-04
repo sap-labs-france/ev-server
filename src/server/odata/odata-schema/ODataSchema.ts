@@ -42,7 +42,7 @@ export default class ODataSchema {
       }
     } catch (error) {
       // Add logging: login info
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'getSchema',
         action: ServerAction.ODATA_SERVER,

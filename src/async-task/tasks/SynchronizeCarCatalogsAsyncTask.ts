@@ -24,7 +24,7 @@ export default class SynchronizeCarCatalogsAsyncTask extends AbstractAsyncTask {
         await carDatabaseImpl.synchronizeCarCatalogs();
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT_ID, ServerAction.SYNCHRONIZE_CAR_CATALOGS, error);
+        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT_ID, ServerAction.SYNCHRONIZE_CAR_CATALOGS, error);
       } finally {
         // Release the lock
         await LockingManager.release(syncCarCatalogsLock);

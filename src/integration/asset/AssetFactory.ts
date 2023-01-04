@@ -45,7 +45,7 @@ export default class AssetFactory {
           return assetIntegrationImpl;
         }
       }
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: tenant.id,
         action: ServerAction.ASSET,
         module: MODULE_NAME, method: 'getAssetImpl',

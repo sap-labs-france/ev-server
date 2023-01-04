@@ -35,7 +35,7 @@ export default class OCPIPullCdrsAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_CDR, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_CDR, error);
       }
     }
   }

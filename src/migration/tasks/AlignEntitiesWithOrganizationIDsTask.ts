@@ -30,7 +30,7 @@ export default class AlignEntitiesWithOrganizationIDsTask extends TenantMigratio
           updated += await SiteAreaStorage.updateEntitiesWithOrganizationIDs(
             tenant, foundSite.companyID.toString(), siteArea.siteID.toString(), siteArea._id.toString());
         } else {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             module: MODULE_NAME, method: 'migrateTenant',
             action: ServerAction.MIGRATION,
@@ -41,7 +41,7 @@ export default class AlignEntitiesWithOrganizationIDsTask extends TenantMigratio
     }
     // Log in the default tenant
     if (updated > 0) {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,

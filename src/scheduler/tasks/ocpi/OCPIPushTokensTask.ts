@@ -29,7 +29,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_UPDATE_TOKENS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_UPDATE_TOKENS, error);
     }
   }
 
@@ -40,7 +40,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -49,7 +49,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -57,7 +57,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
           });
           return;
         }
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -67,7 +67,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
         // Push Tokens
         const result = await ocpiClient.pushTokens(config.partial);
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -75,7 +75,7 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_UPDATE_TOKENS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_UPDATE_TOKENS, error);
       } finally {
         await LockingManager.release(ocpiLock);
       }

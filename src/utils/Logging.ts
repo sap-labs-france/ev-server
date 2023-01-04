@@ -28,9 +28,93 @@ import sizeof from 'object-sizeof';
 
 const MODULE_NAME = 'Logging';
 
+export abstract class AbstractLightLogger {
+  public abstract log(log: Log): void ;
+}
+
+export class LightLogger extends AbstractLightLogger {
+
+  private logLevel: LogLevel;
+
+  public constructor(logLevel: LogLevel) {
+    super();
+    this.logLevel = logLevel;
+  }
+
+  public log(log: Log): void {
+    log.level = this.logLevel;
+    log.timestamp = new Date();
+    Logging.lightLog(log);
+  }
+}
+
 export default class Logging {
   private static logConfig: LogConfiguration;
   private static traceConfig: TraceConfiguration;
+
+  public static isLevelEnabled(expectedLogLevel: LogLevel): boolean {
+    // Check the configuration for the actual log level being enabled
+    const logConfig = Logging.getConfiguration();
+    const logLevelLetter = logConfig.logLevel ? logConfig.logLevel : 'D';
+    const logLevel = logLevelLetter as LogLevel;
+    switch (logLevel) {
+      case LogLevel.NONE:
+        return false;
+      case LogLevel.INFO:
+        if (expectedLogLevel === LogLevel.DEBUG) {
+          return false;
+        }
+        break;
+      case LogLevel.WARNING:
+        if (expectedLogLevel === LogLevel.INFO || expectedLogLevel === LogLevel.DEBUG) {
+          return false;
+        }
+        break;
+      case LogLevel.ERROR:
+        if (expectedLogLevel === LogLevel.INFO || expectedLogLevel === LogLevel.WARNING || expectedLogLevel === LogLevel.DEBUG) {
+          return false;
+        }
+        break;
+      case LogLevel.DEBUG:
+      default:
+        break;
+    }
+    return true;
+  }
+
+  public static lightLog(log: Log): void {
+    Logging.log(log).catch(() => { /* Intentional */ });
+  }
+
+  public static beError(): AbstractLightLogger {
+    return Logging.beThatLevel(LogLevel.ERROR);
+  }
+
+  public static beWarning(): AbstractLightLogger {
+    return Logging.beThatLevel(LogLevel.WARNING);
+  }
+
+  public static beInfo(): AbstractLightLogger {
+    return Logging.beThatLevel(LogLevel.INFO);
+  }
+
+  public static beDebug(): AbstractLightLogger {
+    return Logging.beThatLevel(LogLevel.DEBUG);
+  }
+
+  public static beThatLevel(expectedLogLevel: LogLevel): AbstractLightLogger {
+    if (Logging.isLevelEnabled(expectedLogLevel)) {
+      return new LightLogger(expectedLogLevel);
+    }
+    // ------------------------------------------------------------------------------
+    // ACHTUNG - returns null when the level is disabled
+    // ------------------------------------------------------------------------------
+    // The purpose here is to avoid evaluating the log parameters and thus
+    // avoid triggering unnecessary garbage collection of log messages
+    // Make sure to use optional chaining operator (?.) when calling the log method
+    // ------------------------------------------------------------------------------
+    return null;
+  }
 
   public static getConfiguration(): LogConfiguration {
     if (!this.logConfig) {
@@ -96,6 +180,17 @@ export default class Logging {
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
         }
+      }
+      if (global.monitoringServer) {
+        const labels = { tenant: tenant.subdomain, module: module, method: method };
+        const values = Object.values(labels).toString();
+        const hashCode = Utils.positiveHashcode(values);
+        const durationMetric = global.monitoringServer.getComposedMetric('mongodb', 'Duration', hashCode, 'db duration', Object.keys(labels));
+        durationMetric.setValue(labels, executionDurationMillis);
+        const requestSizeMetric = global.monitoringServer.getComposedMetric('mongodb', 'RequestSize', hashCode, 'db duration', Object.keys(labels));
+        requestSizeMetric.setValue(labels, sizeOfRequestDataKB);
+        const responseSizeMetric = global.monitoringServer.getComposedMetric('mongodb', 'ResponseSize', hashCode, 'db duration', Object.keys(labels));
+        responseSizeMetric.setValue(labels, sizeOfResponseDataKB);
       }
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
@@ -455,8 +550,8 @@ export default class Logging {
     }
   }
 
-  public static async traceExpressError(error: Error, req: Request, res: Response, next: NextFunction): Promise<void> {
-    await Logging.logActionExceptionMessageAndSendResponse(
+  public static traceExpressError(error: Error, req: Request, res: Response, next: NextFunction): void {
+    Logging.logActionExceptionMessageAndSendResponse(
       error['params'] && error['params']['action'] ? error['params']['action'] : ServerAction.HTTP_ERROR, error, req, res, next);
     if (Logging.getTraceConfiguration().traceIngressHttp) {
       // Nothing done yet
@@ -623,40 +718,40 @@ export default class Logging {
     }
   }
 
-  public static async logException(exception: Error, action: ServerAction,
-      module: string, method: string, tenantID: string, user?: UserToken | User | string): Promise<void> {
+  public static logException(exception: Error, action: ServerAction,
+      module: string, method: string, tenantID: string, user?: UserToken | User | string): void {
     if (exception instanceof AppAuthError) {
-      await Logging.logActionAppAuthException(tenantID, action, exception);
+      Logging.logActionAppAuthException(tenantID, action, exception);
     } else if (exception instanceof AppError) {
-      await Logging.logActionAppException(tenantID, action, exception);
+      Logging.logActionAppException(tenantID, action, exception);
     } else if (exception instanceof OCPPError) {
-      await Logging.logActionOcppException(tenantID, action, exception);
+      Logging.logActionOcppException(tenantID, action, exception);
     } else if (exception instanceof BackendError) {
-      await Logging.logActionBackendException(tenantID, action, exception);
+      Logging.logActionBackendException(tenantID, action, exception);
     } else {
-      await Logging.logError(
+      Logging.beError()?.log(
         Logging.buildLogError(action, module, method, tenantID, user, exception));
     }
   }
 
   // Used to log exception in catch(...) only
-  public static async logActionExceptionMessage(tenantID: string, action: ServerAction, exception: Error, detailedMessages = {}): Promise<void> {
+  public static logActionExceptionMessage(tenantID: string, action: ServerAction, exception: Error, detailedMessages = {}): void {
     if (exception instanceof AppError) {
-      await Logging.logActionAppException(tenantID, action, exception, detailedMessages);
+      Logging.logActionAppException(tenantID, action, exception, detailedMessages);
     } else if (exception instanceof BackendError) {
-      await Logging.logActionBackendException(tenantID, action, exception, detailedMessages);
+      Logging.logActionBackendException(tenantID, action, exception, detailedMessages);
     } else if (exception instanceof AppAuthError) {
-      await Logging.logActionAppAuthException(tenantID, action, exception, detailedMessages);
+      Logging.logActionAppAuthException(tenantID, action, exception, detailedMessages);
     } else if (exception instanceof OCPPError) {
-      await Logging.logActionOcppException(tenantID, action, exception);
+      Logging.logActionOcppException(tenantID, action, exception);
     } else {
-      await Logging.logActionException(tenantID, action, exception, detailedMessages);
+      Logging.logActionException(tenantID, action, exception, detailedMessages);
     }
   }
 
   // Used to log exception in catch(...) only
-  public static async logActionExceptionMessageAndSendResponse(action: ServerAction, exception: Error,
-      req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT_ID): Promise<void> {
+  public static logActionExceptionMessageAndSendResponse(action: ServerAction, exception: Error,
+      req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT_ID): void {
     // Clear password
     if (action === ServerAction.LOGIN && req.body.password) {
       req.body.password = '####';
@@ -668,15 +763,15 @@ export default class Logging {
       tenantID = req.tenant.id;
     }
     if (exception instanceof AppError) {
-      await Logging.logActionAppException(tenantID, action, exception);
+      Logging.logActionAppException(tenantID, action, exception);
     } else if (exception instanceof BackendError) {
-      await Logging.logActionBackendException(tenantID, action, exception);
+      Logging.logActionBackendException(tenantID, action, exception);
     } else if (exception instanceof AppAuthError) {
-      await Logging.logActionAppAuthException(tenantID, action, exception);
+      Logging.logActionAppAuthException(tenantID, action, exception);
     } else if (exception instanceof OCPPError) {
-      await Logging.logActionOcppException(tenantID, action, exception);
+      Logging.logActionOcppException(tenantID, action, exception);
     } else {
-      await Logging.logActionException(tenantID, action, exception);
+      Logging.logActionException(tenantID, action, exception);
     }
     // Send error
     if (!res.headersSent) {
@@ -710,6 +805,13 @@ export default class Logging {
         })
       );
       const message = `${direction} OCPP Request '${action}~${Utils.last5Chars(performanceID)}' on '${chargingStationID}' has been ${direction === '>>' ? 'received' : 'sent'} - Req ${sizeOfRequestDataKB} KB`;
+      if (global.monitoringServer) {
+        const labels = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
+        const values = Object.values(labels).toString();
+        const hashCode = Utils.positiveHashcode(values);
+        const durationMetric = global.monitoringServer.getComposedMetric('ocpp', 'requestSize', hashCode, 'ocpp response time ', Object.keys(labels));
+        durationMetric.setValue(labels,sizeOfRequestDataKB);
+      }
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
         tenantID: tenant.id,
@@ -754,6 +856,13 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
+      if (global.monitoringServer) {
+        const labels = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
+        const values = Object.values(labels).toString();
+        const hashCode = Utils.positiveHashcode(values);
+        const durationMetric = global.monitoringServer.getComposedMetric('ocpp', 'responsetime', hashCode, 'ocpp response time ', Object.keys(labels));
+        durationMetric.setValue(labels,executionDurationMillis);
+      }
       if (response && response['status'] === OCPPStatus.REJECTED) {
         await Logging.logError({
           tenantID: tenant?.id,
@@ -786,8 +895,8 @@ export default class Logging {
     }
   }
 
-  private static async logActionException(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): Promise<void> {
-    await Logging.logError({
+  private static logActionException(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): void {
+    Logging.beError()?.log({
       tenantID: tenantID,
       user: exception.user,
       module: exception.module,
@@ -798,9 +907,9 @@ export default class Logging {
     });
   }
 
-  private static async logActionAppException(tenantID: string, action: ServerAction, exception: AppError, detailedMessages = {}): Promise<void> {
+  private static logActionAppException(tenantID: string, action: ServerAction, exception: AppError, detailedMessages = {}): void {
     Utils.handleExceptionDetailedMessages(exception);
-    await Logging.logError({
+    Logging.beError()?.log({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
       siteID: exception.params.siteID,
@@ -819,9 +928,9 @@ export default class Logging {
     });
   }
 
-  private static async logActionBackendException(tenantID: string, action: ServerAction, exception: BackendError, detailedMessages = {}): Promise<void> {
+  private static logActionBackendException(tenantID: string, action: ServerAction, exception: BackendError, detailedMessages = {}): void {
     Utils.handleExceptionDetailedMessages(exception);
-    await Logging.logError({
+    Logging.beError()?.log({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
       siteID: exception.params.siteID,
@@ -841,9 +950,9 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static async logActionAppAuthException(tenantID: string, action: ServerAction, exception: AppAuthError, detailedMessages = {}): Promise<void> {
+  private static logActionAppAuthException(tenantID: string, action: ServerAction, exception: AppAuthError, detailedMessages = {}): void {
     Utils.handleExceptionDetailedMessages(exception);
-    await Logging.logError({
+    Logging.beError()?.log({
       tenantID: tenantID,
       user: exception.params.user,
       chargingStationID: exception.params.chargingStationID,
@@ -862,9 +971,9 @@ export default class Logging {
     });
   }
 
-  private static async logActionOcppException(tenantID: string, action: ServerAction, exception: OCPPError, detailedMessages = {}): Promise<void> {
+  private static logActionOcppException(tenantID: string, action: ServerAction, exception: OCPPError, detailedMessages = {}): void {
     Utils.handleExceptionDetailedMessages(exception);
-    await Logging.logError({
+    Logging.beError()?.log({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
       siteID: exception.params.siteID,
@@ -929,7 +1038,7 @@ export default class Logging {
         break;
     }
     // Timestamp
-    log.timestamp = new Date();
+    log.timestamp = log.timestamp || new Date();
     // Host
     log.host = Utils.getHostName();
     if (log.detailedMessages) {
@@ -1062,3 +1171,4 @@ export default class Logging {
     };
   }
 }
+

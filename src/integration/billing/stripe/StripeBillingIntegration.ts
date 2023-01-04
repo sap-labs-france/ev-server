@@ -226,7 +226,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           requestParams.starting_after = taxes[taxes.length - 1].id;
         }
       } while (request.has_more);
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TAXES,
         module: MODULE_NAME, method: 'getTaxes',
@@ -234,7 +234,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     } catch (error) {
       // catch stripe errors and send the information back to the client
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TAXES,
         module: MODULE_NAME, method: 'getTaxes',
@@ -256,7 +256,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
     } catch (error) {
       // catch stripe errors and send the information back to the client
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TAXES,
         module: MODULE_NAME, method: 'getTaxRate',
@@ -442,7 +442,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         await BillingStorage.saveInvoice(this.tenant, billingInvoice);
         throw operationResult.error;
       } else {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_CHARGE_INVOICE,
           actionOnUser: billingInvoice.user,
@@ -539,7 +539,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check billing data consistency
     const customerID = user?.billingData?.customerID;
     const paymentMethods: BillingPaymentMethod[] = await this.getStripePaymentMethods(user, customerID);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       user,
       action: ServerAction.BILLING_PAYMENT_METHODS,
@@ -574,7 +574,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const setupIntent: Stripe.SetupIntent = await this.stripe.setupIntents.create({
         customer: customerID
       });
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: 'createSetupIntent',
@@ -588,7 +588,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     } catch (error) {
       // catch stripe errors and send the information back to the client
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
@@ -617,7 +617,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         };
       }
       await this.stripe.paymentMethods.update(paymentMethodId, paymentMethodUpdateParams);
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: 'attachPaymentMethod',
@@ -627,7 +627,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       await this.stripe.customers.update(customerID, {
         invoice_settings: { default_payment_method: paymentMethodId }
       });
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: 'attachPaymentMethod',
@@ -640,7 +640,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     } catch (error) {
       // catch stripe errors and send the information back to the client
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
@@ -677,7 +677,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         } while (response.has_more);
       }
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_PAYMENT_METHODS,
         actionOnUser: user,
@@ -698,7 +698,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const paymentMethod = await this.stripe.paymentMethods.retrieve(paymentMethodID);
       return this.convertToBillingPaymentMethod(paymentMethod, asDefault);
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_PAYMENT_METHODS,
         module: MODULE_NAME, method: 'getStripePaymentMethod',
@@ -735,7 +735,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
       // Detach payment method from the stripe customer
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.detach(paymentMethodId);
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
         module: MODULE_NAME, method: 'detachStripePaymentMethod',
@@ -748,7 +748,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     } catch (error) {
       // catch stripe errors and send the information back to the client
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
         module: MODULE_NAME, method: 'detachStripePaymentMethod',
@@ -775,7 +775,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Well ... when in test mode we may allow to start the transaction
     if (!customerID) {
       // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'startTransaction',
@@ -958,7 +958,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     }
     if (transaction.billingData?.stop?.status === BillingStatus.BILLED) {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'endTransaction',
@@ -972,7 +972,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       return transaction.billingData.stop;
     }
     if (!transaction.stop?.extraInactivityComputed) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'endTransaction',
@@ -1010,7 +1010,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const customerID: string = transaction.user?.billingData?.customerID;
       const customer = await this.getStripeCustomer(customerID);
       if (customer) {
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: this.tenant.id,
           user: transaction.userID,
@@ -1034,7 +1034,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         };
       }
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: this.tenant.id,
         user: transaction.userID,
@@ -1203,7 +1203,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Let's try to bill the stripe invoice using the default payment method of the customer
       operationResult = await this.chargeStripeInvoice(stripeInvoice.id);
       if (!operationResult?.succeeded && operationResult?.error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: this.tenant.id,
           user: user.id,
           action: ServerAction.BILLING_TRANSACTION,
@@ -1364,7 +1364,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       status: BillingInvoiceStatus.OPEN,
     });
     if (list && !Utils.isEmptyArray(list.data)) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.USER_DELETE,
         actionOnUser: user,
@@ -1379,7 +1379,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       status: BillingInvoiceStatus.DRAFT,
     });
     if (list && !Utils.isEmptyArray(list.data)) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.USER_DELETE,
         actionOnUser: user,
@@ -1394,7 +1394,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       pending: true,
     });
     if (itemsList && itemsList.data && itemsList.data.length > 0) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.USER_DELETE,
         actionOnUser: user,
@@ -1541,7 +1541,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     try {
       await this.checkConnection();
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
@@ -1554,7 +1554,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     try {
       await this.checkTaxPrerequisites(); // Checks that the taxID is still valid
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
@@ -1571,7 +1571,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Check whether the customer has a default payment method
       await this.checkStripePaymentMethod(customer);
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
@@ -1674,7 +1674,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // This method is ONLY USED when repairing invoices - c.f.: RepairInvoiceInconsistencies migration task
     if (!billingInvoice.sessions) {
       // This should not happen - but it happened once!
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING,
         actionOnUser: billingInvoice.user,
@@ -1706,7 +1706,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         }
       } catch (error) {
         // Catch stripe errors and send the information back to the client
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING,
           actionOnUser: billingInvoice.user,

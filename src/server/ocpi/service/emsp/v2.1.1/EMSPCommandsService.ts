@@ -39,7 +39,7 @@ export default class EMSPCommandsService {
       case OCPICommandType.RESERVE_NOW:
       case OCPICommandType.UNLOCK_CONNECTOR:
         if (req.body?.result !== OCPICommandResponseType.ACCEPTED) {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: tenant.id,
             action: EMSPCommandsService.getAction(command),
             message: `OCPI Callback '${req.body?.result as string}' received for Command '${command}' with ID '${commandId}'`,
@@ -47,7 +47,7 @@ export default class EMSPCommandsService {
             detailedMessages: { response: req.body }
           });
         } else {
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: tenant.id,
             action: EMSPCommandsService.getAction(command),
             message: `OCPI Callback '${req.body?.result as string}' received for Command '${command}' with ID '${commandId}'`,

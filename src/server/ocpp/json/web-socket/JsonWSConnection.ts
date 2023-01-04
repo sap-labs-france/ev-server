@@ -1,4 +1,5 @@
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
+import FeatureToggles, { Feature } from '../../../../utils/FeatureToggles';
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import BackendError from '../../../../exception/BackendError';
@@ -120,12 +121,14 @@ export default class JsonWSConnection extends WSConnection {
     super.setChargingStation(chargingStation);
   }
 
-  public async onPing(message: string): Promise<void> {
-    await this.updateChargingStationLastSeen();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onPing(message: string): void {
+    this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
   }
 
-  public async onPong(message: string): Promise<void> {
-    await this.updateChargingStationLastSeen();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onPong(message: string): void {
+    this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
   }
 
   private async updateChargingStationLastSeen(): Promise<void> {
@@ -134,11 +137,16 @@ export default class JsonWSConnection extends WSConnection {
         (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
       // Update last seen
       this.lastSeen = new Date();
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),
-        this.getChargingStationID(), { issuer: true }, ['id']);
-      if (chargingStation) {
+      if (FeatureToggles.isFeatureActive(Feature.OCPP_OPTIMIZE_LAST_SEEN_UPDATE)) {
         await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
           { lastSeen: this.lastSeen });
+      } else {
+        const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),
+          this.getChargingStationID(), { issuer: true }, ['id']);
+        if (chargingStation) {
+          await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
+            { lastSeen: this.lastSeen });
+        }
       }
     }
   }

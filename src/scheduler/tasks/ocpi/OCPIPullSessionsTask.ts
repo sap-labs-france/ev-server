@@ -29,7 +29,7 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_SESSION, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_SESSION, error);
     }
   }
 
@@ -40,7 +40,7 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_EMSP_GET_SESSION,
@@ -49,7 +49,7 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_EMSP_GET_SESSION,
@@ -57,7 +57,7 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
           });
           return;
         }
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_EMSP_GET_SESSION,
@@ -67,7 +67,7 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
         // Pull Sessions
         const result = await ocpiClient.pullSessions(true);
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_EMSP_GET_SESSION,
@@ -75,7 +75,7 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_SESSION, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_SESSION, error);
       } finally {
         await LockingManager.release(ocpiLock);
       }

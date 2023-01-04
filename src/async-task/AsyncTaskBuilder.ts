@@ -25,7 +25,7 @@ export default class AsyncTaskBuilder {
     // Save
     await AsyncTaskStorage.saveAsyncTask(asyncTask as AsyncTask);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: Constants.DEFAULT_TENANT_ID,
       action: ServerAction.ASYNC_TASK,
       module: MODULE_NAME, method: 'createAndSaveAsyncTasks',
