@@ -15,19 +15,19 @@ import WSWrapper from './WSWrapper';
 const MODULE_NAME = 'WSConnection';
 
 export class OcppPendingCommand {
-  private command;
+  private command: Command;
   private resolveCallback: FctOCPPResponse;
   private rejectCallback: FctOCPPReject;
   private timer: NodeJS.Timeout;
 
-  public constructor(command: string, resolveCallback: FctOCPPResponse, rejectCallback: FctOCPPReject, timer: NodeJS.Timeout) {
+  public constructor(command: Command, resolveCallback: FctOCPPResponse, rejectCallback: FctOCPPReject, timer: NodeJS.Timeout) {
     this.command = command;
     this.resolveCallback = resolveCallback;
     this.rejectCallback = rejectCallback;
     this.timer = timer;
   }
 
-  public getCommand(): string {
+  public getCommand(): Command {
     return this.command;
   }
 
@@ -90,11 +90,14 @@ export default abstract class WSConnection {
     this.sendPayload(messageToSend);
   }
 
-  public sendError(messageID: string, error: OCPPError): void {
+  public sendError(messageID: string, error: any): void {
     // Build Error Message
     const messageType = OCPPMessageType.CALL_ERROR_MESSAGE;
-    const messageToSend = JSON.stringify([messageType, messageID, error.code ?? OCPPErrorType.GENERIC_ERROR, error.message ? error.message : '', error.details ? error.details : {}]);
-    Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`Send Error ${messageToSend} for '${this.ws.url }'`);
+    const errorCode = error.code ?? OCPPErrorType.GENERIC_ERROR;
+    const errorMessage = error.message ? error.message : '';
+    const errorDetail = error.details ? error.details : {};
+    const messageToSend = JSON.stringify([messageType, messageID, errorCode, errorMessage, errorDetail]);
+    Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`Send Error ${messageToSend} for '${this.ws.url}'`);
     this.sendPayload(messageToSend);
   }
 
@@ -112,7 +115,7 @@ export default abstract class WSConnection {
       const rejectCallback = (error: OCPPError): void => {
         reject(error);
       };
-      // Make sure to reject automatically if we do not receive any response from the charging station
+      // Make sure to reject automatically if we do not receive anything after 10 seconds
       const timeout = setTimeout(() => {
         // Remove it from the cache
         this.consumePendingOcppCommands(messageID);
@@ -194,7 +197,7 @@ export default abstract class WSConnection {
           chargingStationID: this.chargingStationID,
           action: ServerAction.UNKNOWN_ACTION,
           message: `Wrong OCPP Message Type in '${JSON.stringify(ocppMessage)}'`,
-          module: MODULE_NAME, method: 'onMessage',
+          module: MODULE_NAME, method: 'handleIncomingOcppMessage',
         });
       }
     } catch (error) {
@@ -206,7 +209,7 @@ export default abstract class WSConnection {
         chargingStationID: this.chargingStationID,
         action: ServerAction.UNKNOWN_ACTION,
         message: `${error.message as string}`,
-        module: MODULE_NAME, method: 'onMessage',
+        module: MODULE_NAME, method: 'handleIncomingOcppMessage',
         detailedMessages: { data: JSON.stringify(ocppMessage), error: error.stack }
       });
     }
@@ -225,6 +228,8 @@ export default abstract class WSConnection {
       // Send Response
       this.sendResponse(messageID, command, result as Record<string, unknown>);
     } catch (error) {
+      // Send Error Response
+      this.sendError(messageID, error);
       Logging.beError()?.log({
         tenantID: this.tenantID,
         siteID: this.siteID,
@@ -233,7 +238,7 @@ export default abstract class WSConnection {
         chargingStationID: this.chargingStationID,
         action: OCPPUtils.buildServerActionFromOcppCommand(command),
         message: `${error.message as string}`,
-        module: MODULE_NAME, method: 'onMessage',
+        module: MODULE_NAME, method: 'handleIncomingOcppRequest',
         detailedMessages: { data: ocppMessage, error: error.stack }
       });
     }
@@ -267,8 +272,8 @@ export default abstract class WSConnection {
         siteID: this.getSiteID(),
         siteAreaID: this.getSiteAreaID(),
         companyID: this.getCompanyID(),
-        module: MODULE_NAME, method: 'onMessage',
-        message: `OCPP Request not found for messageID: '${messageID}'`,
+        module: MODULE_NAME, method: 'handleIncomingOcppResponse',
+        message: `OCPP Request not found for a response to messageID: '${messageID}'`,
         detailedMessages: { messageType, messageID, commandPayload }
       });
     }
@@ -299,8 +304,8 @@ export default abstract class WSConnection {
         siteID: this.getSiteID(),
         siteAreaID: this.getSiteAreaID(),
         companyID: this.getCompanyID(),
-        module: MODULE_NAME, method: 'onMessage',
-        message: `OCPP Request not found for messageID: '${messageID}'`,
+        module: MODULE_NAME, method: 'handleIncomingOcppError',
+        message: `OCPP Request not found for an error response to messageID: '${messageID}'`,
         detailedMessages: { messageType, messageID, commandPayload, errorDetails }
       });
     }
