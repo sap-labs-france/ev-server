@@ -259,7 +259,11 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   }
 
   private async sendMessage(request: OCPPOutgoingRequest): Promise<any> {
-    // Return a promise
+    // Check for the lastSeen
+    if (Date.now() - this.chargingStation.lastSeen.getTime() > Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 * 2) {
+      // Charging station is not connected to the server - let's abort the current operation
+      throw new Error(`Charging station is not connected to the server - request '${request[2]}' has been aborted`);
+    }
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {

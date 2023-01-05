@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
 import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType } from '../../../../types/ocpp/OCPPCommon';
+import { ServerAction, WSServerProtocol } from '../../../../types/Server';
 
 import BackendError from '../../../../exception/BackendError';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import OCPPError from '../../../../exception/OcppError';
 import OCPPUtils from '../../utils/OCPPUtils';
-import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import WSWrapper from './WSWrapper';
@@ -74,9 +74,14 @@ export default abstract class WSConnection {
   }
 
   public async initialize(): Promise<void> {
+    // Do not update the lastSeen when the caller is the REST server!
+    const updateChargingStationData = (this.ws.protocol !== WSServerProtocol.REST);
     // Check and Get Charging Station data
     const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationConnectionData(
-      ServerAction.WS_SERVER_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID());
+      ServerAction.WS_SERVER_CONNECTION,
+      this.getTenantID(),
+      this.getChargingStationID(), this.getTokenID(),
+      updateChargingStationData);
     // Set
     this.setTenant(tenant);
     this.setChargingStation(chargingStation);
