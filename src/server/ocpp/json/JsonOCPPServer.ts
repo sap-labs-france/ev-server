@@ -427,6 +427,7 @@ export default class JsonOCPPServer extends OCPPServer {
       });
       // Add WS connection from OnMessage in cache
       await this.setWSConnection(WebSocketAction.MESSAGE, ServerAction.WS_SERVER_MESSAGE, wsConnection, wsWrapper);
+      return;
     }
     // Should have the same GUID
     const wsExistingWrapper = wsExistingConnection.getWS();
