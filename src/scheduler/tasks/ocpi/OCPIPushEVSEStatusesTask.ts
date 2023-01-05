@@ -29,7 +29,7 @@ export default class OCPIPushEVSEStatusesTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES, error);
     }
   }
 
@@ -40,7 +40,7 @@ export default class OCPIPushEVSEStatusesTask extends TenantSchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES,
@@ -49,7 +49,7 @@ export default class OCPIPushEVSEStatusesTask extends TenantSchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES,
@@ -57,7 +57,7 @@ export default class OCPIPushEVSEStatusesTask extends TenantSchedulerTask {
           });
           return;
         }
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES,
@@ -67,14 +67,14 @@ export default class OCPIPushEVSEStatusesTask extends TenantSchedulerTask {
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         // Push EVSE statuses
         const sendResult = await ocpiClient.pushChargingStationStatuses(config.partial);
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES,
           message: `Push of Locations process for endpoint '${ocpiEndpoint.name}' is completed (Success: ${sendResult.success} / Failure: ${sendResult.failure})`
         });
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_EVSE_STATUSES, error);
       } finally {
         await LockingManager.release(ocpiLock);
       }

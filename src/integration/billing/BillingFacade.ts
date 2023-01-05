@@ -34,7 +34,7 @@ export default class BillingFacade {
         };
       } catch (error) {
         const message = `Billing - Start Transaction failed with Transaction ID '${transaction.id}'`;
-        await Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
           action: ServerAction.BILLING_TRANSACTION,
@@ -66,7 +66,7 @@ export default class BillingFacade {
         }
       } catch (error) {
         const message = `Billing - Update Transaction failed with Transaction ID '${transaction.id}'`;
-        await Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
           action: ServerAction.BILLING_TRANSACTION,
@@ -92,7 +92,7 @@ export default class BillingFacade {
         }
       } catch (error) {
         const message = `Billing - Stop Transaction failed with Transaction ID '${transaction.id}'`;
-        await Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
           action: ServerAction.BILLING_TRANSACTION,
@@ -119,7 +119,7 @@ export default class BillingFacade {
         }
       } catch (error) {
         const message = `Billing - End Transaction failed with Transaction ID '${transaction.id}'`;
-        await Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
           action: ServerAction.BILLING_TRANSACTION,

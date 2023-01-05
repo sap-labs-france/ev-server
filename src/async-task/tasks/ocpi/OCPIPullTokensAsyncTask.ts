@@ -35,7 +35,7 @@ export default class OCPIPullTokensAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_GET_TOKENS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_GET_TOKENS, error);
       }
     }
   }

@@ -112,7 +112,7 @@ export default class OCPPValidator extends SchemaValidator {
     // Check Connector ID
     if (meterValues.connectorId === 0) {
       // KEBA: Connector ID must be > 0 according to OCPP
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenantID,
         module: MODULE_NAME, method: 'validateMeterValues',
@@ -125,7 +125,7 @@ export default class OCPPValidator extends SchemaValidator {
     // Check if the transaction ID matches with the one on the Connector
     const foundConnector = Utils.getConnectorFromID(chargingStation, meterValues.connectorId);
     if (!foundConnector) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenantID,
         module: MODULE_NAME, method: 'validateMeterValues',
@@ -140,7 +140,7 @@ export default class OCPPValidator extends SchemaValidator {
       if (meterValues.transactionId === 0 && foundConnector.currentTransactionID > 0) {
         // Reuse Transaction ID from Connector
         meterValues.transactionId = foundConnector.currentTransactionID;
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenantID,
           module: MODULE_NAME, method: 'validateMeterValues',

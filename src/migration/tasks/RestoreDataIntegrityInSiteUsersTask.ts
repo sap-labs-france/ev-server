@@ -47,7 +47,7 @@ export default class RestoreDataIntegrityInSiteUsersTask extends TenantMigration
     }
     // Log in the default tenant
     if (deleted > 0) {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,

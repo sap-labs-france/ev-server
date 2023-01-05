@@ -1,3 +1,4 @@
+import FeatureToggles, { Feature } from '../utils/FeatureToggles';
 import express, { Application, NextFunction, Request, Response } from 'express';
 
 import Constants from '../utils/Constants';
@@ -51,7 +52,7 @@ export default class ExpressUtils {
       limit: bodyLimit
     }));
     // Health Check Handling
-    app.get(Constants.HEALTH_CHECK_ROUTE, ExpressUtils.healthCheckService.bind(this));
+    app.get(Constants.HEALTH_CHECK_ROUTE, (req: Request, res: Response, next: NextFunction) => ExpressUtils.healthCheckService(req, res, next));
     // Use
     app.use(locale(Constants.SUPPORTED_LOCALES));
     return app;
@@ -62,12 +63,19 @@ export default class ExpressUtils {
     expressApplication.use(Logging.traceExpressError.bind(this));
   }
 
-  private static async healthCheckService(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const pingSuccess = await global.database.ping();
-    if (pingSuccess) {
-      res.sendStatus(StatusCodes.OK);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private static healthCheckService(req: Request, res: Response, next: NextFunction): void {
+    if (FeatureToggles.isFeatureActive(Feature.HEALTH_CHECK_PING_DATABASE)) {
+      global.database.ping().then((pingSuccess) => {
+        if (pingSuccess) {
+          res.sendStatus(StatusCodes.OK);
+        } else {
+          res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+        }
+      }).catch(() => { /* Intentional */ });
     } else {
-      res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+      // TODO - FIND ANOTHER METRIC TO CHECK THE READINESS and LIVENESS PROBE
+      res.sendStatus(StatusCodes.OK);
     }
   }
 }

@@ -22,6 +22,12 @@
     "@typescript-eslint/explicit-member-accessibility": "off",
     "jsdoc/require-jsdoc": "off",
     "indent": "off",
+    "@typescript-eslint/unbound-method": [
+      "error",
+      {
+        "ignoreStatic": true
+      }
+    ],
     "@typescript-eslint/indent": [
       "error",
       2,
@@ -138,7 +144,7 @@
     "max-len": [
       "warn",
       {
-        "code": 180,
+        "code": 220,
         "ignoreComments": true,
         "ignoreUrls": true,
         "ignoreStrings": true,

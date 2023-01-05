@@ -105,7 +105,7 @@ export default class Bootstrap {
         } else {
           const message = `Monitoring Server implementation does not exist '${this.monitoringConfig.implementation}'`;
           Logging.logConsoleError(message);
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.STARTUP,
             module: MODULE_NAME, method: 'startServers', message
@@ -140,7 +140,6 @@ export default class Bootstrap {
         await MigrationHandler.migrate();
         await this.logDuration(startTimeMillis, 'Migration has been run successfully');
       }
-
 
 
       // -------------------------------------------------------------------------
@@ -188,7 +187,7 @@ export default class Bootstrap {
       await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfully`, ServerAction.BOOTSTRAP_STARTUP);
     } catch (error) {
       Logging.logConsoleError(error);
-      global.database && await Logging.logError({
+      global.database && Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.BOOTSTRAP_STARTUP,
         module: MODULE_NAME, method: 'start',
@@ -202,7 +201,7 @@ export default class Bootstrap {
     const timeStartMillis = Date.now();
     Logging.logConsoleDebug(logMessage);
     if (global.database) {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'start',
@@ -217,7 +216,7 @@ export default class Bootstrap {
     logMessage = `${logMessage} in ${timeDurationSecs} secs`;
     Logging.logConsoleDebug(logMessage);
     if (global.database) {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action,
         module: MODULE_NAME, method: 'start',
@@ -303,7 +302,7 @@ export default class Bootstrap {
       }
     } catch (error) {
       Logging.logConsoleError(error.stack);
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServers',

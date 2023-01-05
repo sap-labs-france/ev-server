@@ -39,7 +39,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
           break;
         default:
           // Log
-          void Logging.logError({
+          Logging.beError()?.log({
             tenantID: scsc.tenant.id,
             action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
             siteID: scsc.chargingStation.siteID,
@@ -54,9 +54,9 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Client options
       const options: any = {};
       // Create SOAP client
-      soap.createClient(chargingStationWdsl, options, async (error, client) => {
+      soap.createClient(chargingStationWdsl, options, (error, client) => {
         if (error) {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: scsc.tenant.id,
             action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
             siteID: scsc.chargingStation.siteID,
@@ -96,7 +96,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       'remoteStopTransactionRequest': params
     });
     if (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
         siteID: this.chargingStation.siteID,
@@ -135,7 +135,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     const { error, result, envelope } = await this.client.RemoteStartTransaction(params);
     if (error) {
       // Log
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
         siteID: this.chargingStation.siteID,
@@ -175,7 +175,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     });
     if (error) {
       // Log
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
         siteID: this.chargingStation.siteID,
@@ -215,7 +215,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     });
     if (error) {
       // Log
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_RESET,
         siteID: this.chargingStation.siteID,
@@ -253,7 +253,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     const { error, result, envelope } = await this.client.ClearCache({ clearCacheRequest: {} });
     if (error) {
       // Log
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_CLEAR_CACHE,
         siteID: this.chargingStation.siteID,
@@ -300,7 +300,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     const { error, result, envelope } = await this.client.GetConfiguration(request);
     if (error) {
       // Log
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.CHARGING_STATION_GET_CONFIGURATION,
         siteID: this.chargingStation.siteID,
@@ -344,7 +344,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     });
     if (error) {
       // Log
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         siteID: this.chargingStation.siteID,
         siteAreaID: this.chargingStation.siteAreaID,
