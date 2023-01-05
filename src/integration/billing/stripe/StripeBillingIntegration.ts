@@ -476,6 +476,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     try {
       // Fetch the invoice from stripe (do NOT TRUST the local copy)
       let stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(invoiceID);
+      const paymentOptions: Stripe.InvoicePayParams = {};
       // Check the current invoice status
       if (stripeInvoice.status !== BillingInvoiceStatus.PAID) {
         // Finalize the invoice (if necessary)
@@ -487,11 +488,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
           || stripeInvoice.status === BillingInvoiceStatus.UNCOLLECTIBLE) {
           if (lastPaymentIntentID) {
             await this.capturePayment(user, stripeInvoice.amount_due, lastPaymentIntentID as string);
-          } else {
             // Set the payment options
-            const paymentOptions: Stripe.InvoicePayParams = {};
-            stripeInvoice = await this.stripe.invoices.pay(invoiceID, paymentOptions);
+            paymentOptions.paid_out_of_band = true;
           }
+          stripeInvoice = await this.stripe.invoices.pay(invoiceID, paymentOptions);
         }
       }
       return {
