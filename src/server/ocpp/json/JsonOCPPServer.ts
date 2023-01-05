@@ -410,7 +410,7 @@ export default class JsonOCPPServer extends OCPPServer {
     const wsConnection = wsWrapper.wsConnection;
     if (wsWrapper.closed) {
       // Current message is from a charger which should not reach us!
-      // e.g.: Websocket has been closed during the onOpen because the tenant does not exists
+      // e.g.: Websocket has been closed during the onOpen because the tenant does not exist
       throw new Error('Websocket is already closed');
     }
     // Get WS Connection from cache
