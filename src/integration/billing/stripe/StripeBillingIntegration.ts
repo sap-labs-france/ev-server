@@ -273,7 +273,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return stripeInvoice;
   }
 
-  private async createStripeInvoice(customerID: string, userID: string, idempotencyKey: string, currency: string): Promise<Stripe.Invoice> {
+  private async createStripeInvoice(customerID: string, userID: string, idempotencyKey: string, currency: string, lastPaymentIntentID?: string): Promise<Stripe.Invoice> {
     const creationParameters: Stripe.InvoiceCreateParams = {
       customer: customerID,
       // collection_method: 'send_invoice', //Default option is 'charge_automatically'
@@ -281,7 +281,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       auto_advance: false, // our integration is responsible for transitioning the invoice between statuses
       metadata: {
         tenantID: this.tenant.id,
-        userID
+        userID,
+        lastPaymentIntentID
       },
       currency
     };
@@ -471,7 +472,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoice;
   }
 
-  private async chargeStripeInvoice(invoiceID: string): Promise<StripeChargeOperationResult> {
+  private async chargeStripeInvoice(invoiceID: string, user?: User, lastPaymentIntentID = null): Promise<StripeChargeOperationResult> {
     try {
       // Fetch the invoice from stripe (do NOT TRUST the local copy)
       let stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(invoiceID);
@@ -484,9 +485,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Once finalized, the invoice is in the "open" state!
         if (stripeInvoice.status === BillingInvoiceStatus.OPEN
           || stripeInvoice.status === BillingInvoiceStatus.UNCOLLECTIBLE) {
-          // Set the payment options
-          const paymentOptions: Stripe.InvoicePayParams = {};
-          stripeInvoice = await this.stripe.invoices.pay(invoiceID, paymentOptions);
+          if (lastPaymentIntentID) {
+            await this.capturePayment(user, stripeInvoice.amount_due, lastPaymentIntentID as string);
+          } else {
+            // Set the payment options
+            const paymentOptions: Stripe.InvoicePayParams = {};
+            stripeInvoice = await this.stripe.invoices.pay(invoiceID, paymentOptions);
+          }
         }
       }
       return {
@@ -1315,14 +1320,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const currency = billingInvoiceItem.currency.toLowerCase();
     // Check whether a DRAFT invoice can be used or not
     let stripeInvoice: Stripe.Invoice = null;
-    if (!this.settings.billing?.immediateBillingAllowed) { // et que on n'est PAS en scan and pay
+    if (!this.settings.billing?.immediateBillingAllowed || !lastPaymentIntentID) { // et que on n'est PAS en scan and pay
       // immediateBillingAllowed is OFF - let's retrieve to the latest DRAFT invoice (if any)
       stripeInvoice = await this.getLatestDraftInvoiceOfTheMonth(this.tenant.id, userID, customerID);
     }
     if (FeatureToggles.isFeatureActive(Feature.BILLING_INVOICES_EXCLUDE_PENDING_ITEMS)) {
       if (!stripeInvoice) {
         // NEW STRIPE API - Invoice can mow be created before its items
-        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'), currency);
+        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'), currency, lastPaymentIntentID as string);
       }
       // Let's create an invoice item per dimension
       await this.createStripeInvoiceItems(customerID, billingInvoiceItem, stripeInvoice.id);
@@ -1339,9 +1344,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
     }
     let operationResult: StripeChargeOperationResult;
-    if (this.settings.billing?.immediateBillingAllowed) {
+    if (this.settings.billing?.immediateBillingAllowed || lastPaymentIntentID) {
       // Let's try to bill the stripe invoice using the default payment method of the customer
-      operationResult = await this.chargeStripeInvoice(stripeInvoice.id);
+      operationResult = await this.chargeStripeInvoice(stripeInvoice.id, user, lastPaymentIntentID);
       if (!operationResult?.succeeded && operationResult?.error) {
         await Logging.logError({
           tenantID: this.tenant.id,
@@ -1359,10 +1364,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Something went wrong - we need to fetch the latest information from STRIPE again!
         refreshDataRequired = true;
       }
-    }
-    if (lastPaymentIntentID) {
-      await this.capturePayment(user, stripeInvoice.amount_due, lastPaymentIntentID as string);
-      stripeInvoice = await this.stripe.invoices.finalizeInvoice(stripeInvoice.id);
     }
     // Get fresh data only when necessary - e.g.: invoice has been finalized, however the payment attempt failed
     if (refreshDataRequired) {
