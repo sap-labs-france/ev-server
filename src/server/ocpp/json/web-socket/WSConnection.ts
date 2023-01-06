@@ -198,6 +198,8 @@ export default abstract class WSConnection {
       // Send Response
       await this.sendResponse(messageID, command, result as Record<string, unknown>);
     } catch (error) {
+      // Send Error Response
+      await this.sendError(messageID, error);
       Logging.beError()?.log({
         tenantID: this.tenantID,
         siteID: this.siteID,
