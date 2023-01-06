@@ -467,7 +467,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType,
-      title: string, body: string, user: User, data: Record<string, string> = {}, severity?: NotificationSeverity): Promise<void> {
+      title: string, body: string, user: User, data: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
     let startTime: number;
     let message = {} as admin.messaging.MessagingPayload;
     try {

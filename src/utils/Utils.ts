@@ -961,7 +961,6 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/transactions?TransactionID=${transactionId.toString()}${hash}`;
   }
 
-
   public static buildEvseBillingSettingsURL(tenantSubdomain: string): string {
     return `${Utils.buildEvseURL(tenantSubdomain)}/settings#billing`;
   }
