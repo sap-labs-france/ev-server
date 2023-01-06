@@ -415,7 +415,7 @@ export default class JsonOCPPServer extends OCPPServer {
           detailedMessages: { message, isBinary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
         });
       }
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
         action: ServerAction.WS_SERVER_MESSAGE,
