@@ -2,34 +2,34 @@ import { AuthorizationFilter, DynamicAuthorizationDataSourceName, Entity } from 
 
 import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
 import { EntityData } from '../../types/GlobalType';
-import SitesAdminUsersDynamicAuthorizationDataSource from '../dynamic-data-source/SitesAdminUsersDynamicAuthorizationDataSource';
+import SitesOwnerUsersDynamicAuthorizationDataSource from '../dynamic-data-source/SitesOwnerUsersDynamicAuthorizationDataSource';
 import { TenantComponents } from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
-export default class SitesAdminUsersDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
+export default class SitesOwnerUsersDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
   public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>, entityData?: EntityData): void {
-    // Retrieve site ids where user is site admin and logged user id
-    const sitesAdminUsersDataSource = this.getDataSource(
-      DynamicAuthorizationDataSourceName.SITES_ADMIN_USERS) as SitesAdminUsersDynamicAuthorizationDataSource;
-    const { siteIDs, tagIDs, userID } = sitesAdminUsersDataSource.getData();
+    // Retrieve site ids where user is site owner and logged user id
+    const sitesOwnerUsersDataSource = this.getDataSource(
+      DynamicAuthorizationDataSourceName.SITES_OWNER_USERS) as SitesOwnerUsersDynamicAuthorizationDataSource;
+    const { siteIDs, tagIDs, userID } = sitesOwnerUsersDataSource.getData();
     // Flag
     let authFilterUsed = false;
     // Perform site ids check only if organization component is active
     if (Utils.isTenantComponentActive(this.tenant, TenantComponents.ORGANIZATION)) {
       // Init user site IDs
-      authorizationFilters.filters.siteAdminIDs = [];
+      authorizationFilters.filters.siteOwnerIDs = [];
       if (!Utils.isEmptyArray(siteIDs)) {
-        authorizationFilters.filters.siteAdminIDs = siteIDs;
+        authorizationFilters.filters.siteOwnerIDs = siteIDs;
         // Check if filter is provided
         if (Utils.objectHasProperty(extraFilters, 'SiteID') && !Utils.isNullOrUndefined(extraFilters['SiteID'])) {
           // Update flag
           authFilterUsed = true;
           const filteredSiteIDs: string[] = extraFilters['SiteID'].split('|');
           // Override
-          authorizationFilters.filters.siteAdminIDs = filteredSiteIDs.filter(
-            (siteID) => authorizationFilters.filters.siteAdminIDs.includes(siteID));
+          authorizationFilters.filters.siteOwnerIDs = filteredSiteIDs.filter(
+            (siteID) => authorizationFilters.filters.siteOwnerIDs.includes(siteID));
           // Check auth
-          if (!Utils.isEmptyArray(authorizationFilters.filters.siteAdminIDs)) {
+          if (!Utils.isEmptyArray(authorizationFilters.filters.siteOwnerIDs)) {
             authorizationFilters.authorized = true;
           }
         }
@@ -82,14 +82,13 @@ export default class SitesAdminUsersDynamicAuthorizationFilter extends DynamicAu
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.CHARGING_STATION,
-      Entity.CONNECTOR
+      Entity.TRANSACTION,
     ];
   }
 
   public getApplicableDataSources(): DynamicAuthorizationDataSourceName[] {
     return [
-      DynamicAuthorizationDataSourceName.SITES_ADMIN_USERS
+      DynamicAuthorizationDataSourceName.SITES_OWNER_USERS
     ];
   }
 }

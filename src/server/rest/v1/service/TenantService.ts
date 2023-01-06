@@ -125,8 +125,27 @@ export default class TenantService {
       logoContent = logoContent.substring(logoContent.indexOf(',') + 1);
     }
     const buffer = Buffer.from(logoContent, encoding);
+    // Set headers
     res.setHeader('Content-Type', header);
     res.setHeader('Content-Length', buffer.length);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    // Remove headers that may prevent email clients to show the image (e.g.: Outlook)
+    res.removeHeader('Content-Security-Policy');
+    res.removeHeader('Cross-Origin-Embedder-Policy');
+    res.removeHeader('Cross-Origin-Opener-Policy');
+    res.removeHeader('Cross-Origin-Resource-Policy');
+    res.removeHeader('Expect-CT');
+    res.removeHeader('X-Frame-Options');
+    res.removeHeader('Strict-Transport-Security');
+    res.removeHeader('X-Download-Options');
+    res.removeHeader('X-Content-Type-Options');
+    res.removeHeader('Origin-Agent-Cluster');
+    res.removeHeader('X-Permitted-Cross-Domain-Policies');
+    res.removeHeader('Referrer-Policy');
+    res.removeHeader('X-XSS-Protection');
+    res.removeHeader('X-DNS-Prefetch-Control');
     res.send(buffer);
     next();
   }

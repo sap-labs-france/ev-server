@@ -1,5 +1,6 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { BillingAccount, BillingInvoice, BillingTransfer } from '../../../../types/Billing';
+import { BillingSettings, SettingDB } from '../../../../types/Setting';
 import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, ChargingStationTemplate, Command } from '../../../../types/ChargingStation';
 import { EntityData, URLInfo } from '../../../../types/GlobalType';
@@ -16,7 +17,6 @@ import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
 import { AxiosResponse } from 'axios';
-import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import CentralSystemRestServiceConfiguration from '../../../../types/configuration/CentralSystemRestServiceConfiguration';
@@ -32,6 +32,8 @@ import { Log } from '../../../../types/Log';
 import LogStorage from '../../../../storage/mongodb/LogStorage';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 import PDFDocument from 'pdfkit';
 import PricingDefinition from '../../../../types/Pricing';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
@@ -217,7 +219,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetTransactionAuthorization(tenant: Tenant, userToken: UserToken, transactionID: number, authAction: Action,
-    action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Transaction> {
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Transaction> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'checkAndGetTransactionAuthorization', userToken);
     // Get dynamic auth
@@ -814,11 +816,91 @@ export default class UtilsService {
     return carCatalog;
   }
 
+  public static async checkAndGetSettingAuthorization(tenant: Tenant, userToken: UserToken, settingID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<SettingDB> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'checkAndGetSettingAuthorization', userToken);
+    // Get dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(
+      tenant, userToken, { ID: settingID }, authAction, entityData);
+    // Get Setting
+    let setting;
+    if (additionalFilters?.identifier) {
+      setting = await SettingStorage.getSettingByIdentifier(tenant, settingID,
+        applyProjectFields ? authorizations.projectFields : null
+      );
+    } else {
+      setting = await SettingStorage.getSetting(tenant, settingID,
+        applyProjectFields ? authorizations.projectFields : null
+      );
+    }
+
+    UtilsService.assertObjectExists(action, setting, `Setting '${settingID}' does not exist`,
+      MODULE_NAME, 'checkAndGetSettingAuthorization', userToken);
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      setting.projectFields = authorizations.projectFields;
+    }
+    // Assign Metadata
+    if (authorizations.metadata) {
+      setting.metadata = authorizations.metadata;
+    }
+    // Add Actions
+    await AuthorizationService.addSettingAuthorizations(tenant, userToken, setting, authorizations);
+    const authorized = AuthorizationService.canPerformAction(setting, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'checkAndGetSettingAuthorization',
+        value: settingID
+      });
+    }
+    return setting;
+  }
+
+  public static async checkAndGetOCPIEndpointAuthorization(tenant: Tenant, userToken: UserToken, ocpiEndpointID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<OCPIEndpoint> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, ocpiEndpointID, MODULE_NAME, 'checkAndGetOCPIEndpointAuthorization', userToken);
+    // Get dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetOCPIEndpointAuthorizations(
+      tenant, userToken, { ID: ocpiEndpointID }, authAction, entityData);
+    // Get OCPI endpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(tenant, ocpiEndpointID,
+      applyProjectFields ? authorizations.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint '${ocpiEndpointID}' does not exist`,
+      MODULE_NAME, 'checkAndGetOCPIEndpointAuthorization', userToken);
+    // Assign projected fields
+    if (authorizations.projectFields) {
+      ocpiEndpoint.projectFields = authorizations.projectFields;
+    }
+    // Assign Metadata
+    if (authorizations.metadata) {
+      ocpiEndpoint.metadata = authorizations.metadata;
+    }
+    // Add Actions
+    await AuthorizationService.addOCPIEndpointAuthorizations(tenant, userToken, ocpiEndpoint, authorizations);
+    const authorized = AuthorizationService.canPerformAction(ocpiEndpoint, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME, method: 'checkAndGetOCPIEndpointAuthorization',
+        value: ocpiEndpointID
+      });
+    }
+    return ocpiEndpoint;
+  }
+
   // This function is tailored for SETTING authorization, do not use it for "general" entities !
-  public static async checkAndGetBillingSettingAuthorization(tenant: Tenant, userToken: UserToken, billingSettingID: number, authAction: Action,
+  public static async checkAndGetBillingSettingAuthorization(tenant: Tenant, userToken: UserToken, billingSettingID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingSettings> {
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(tenant, userToken, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(tenant, userToken, { ID: billingSettingID }, authAction, entityData);
     // Get the entity from storage
     const billingSetting = await SettingStorage.getBillingSetting(
       tenant,

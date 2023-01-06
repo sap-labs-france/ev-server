@@ -25,14 +25,13 @@ jobs:
         ssh-key: ${{ secrets.ACTION_ACCESS_SUB_MODULES_PRIVATE_REPOS }}
         submodules: true
     - name: Start MongoDB ${{ matrix.mongodb-version }}
-      uses: supercharge/mongodb-github-action@1.3.0
+      uses: supercharge/mongodb-github-action@1.8.0
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
         mongodb-replica-set: rs0
     - name: Initialize DB
       run: |
-        mongo docker/initdb/000_createMongoUsers.js
-        mongo docker/initdb/002_createSuperAdmin.js
+        bash docker/initdb/createMongoUsers.sh
     - name: Install NodeJs ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
