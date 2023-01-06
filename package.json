@@ -102,6 +102,7 @@
     "axios-retry": "^3.3.1",
     "basic-auth": "^2.0.1",
     "bcryptjs": "^2.4.3",
+    "better-queue": "^3.8.12",
     "bluebird": "^3.7.2",
     "body-parser": "^1.20.0",
     "body-parser-xml": "^2.0.3",
