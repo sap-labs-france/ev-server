@@ -208,10 +208,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18nManager.translate('notifications.endUserErrorNotification.body',
       { userName: data.name, errorTitle: data.errorTitle, errorDescription: data.errorDescription ,tenantName: tenant.name });
     // Send Notification
-    const url1 = 'https://proviridis.e-mobility-group.org/charging-stations?ChargingStationID=ScameTest#all';
-    const url2 = 'https://proviridis.e-mobility-group.org/transactions/history?TransactionID=1564825025';
-    const url3 = 'https://proviridis.e-mobility-group.org/transactions/inprogress?TransactionID=1564825025';
-    const url4 = 'https://proviridis.e-mobility-group.org/invoices';
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_USER_ERROR_NOTIFICATION, title, body, user, null, severity);
     return {};
   }
@@ -471,7 +467,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType,
-      title: string, body: string, user: User, data?: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
+      title: string, body: string, user: User, data: Record<string, string> = {}, severity?: NotificationSeverity): Promise<void> {
     let startTime: number;
     let message = {} as admin.messaging.MessagingPayload;
     try {
@@ -581,7 +577,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         tenantID: tenant.id,
         tenantSubdomain: tenant.subdomain,
         notificationType,
-        ...data
+        ...(data || {})
       }
     };
     return message;
