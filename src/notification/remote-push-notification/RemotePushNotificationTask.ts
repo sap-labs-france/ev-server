@@ -94,7 +94,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.PREPARING_SESSION_NOT_STARTED, title, body, user, {
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -109,6 +110,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_NOT_STARTED_AFTER_AUTHORIZE, title, body, user, {
       chargeBoxID: data.chargeBoxID,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -150,7 +152,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OPTIMAL_CHARGE_REACHED, title, body, user, {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -166,7 +169,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_CHARGE, title, body, user, {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -182,7 +186,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_SESSION, title, body, user, {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -203,6 +208,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18nManager.translate('notifications.endUserErrorNotification.body',
       { userName: data.name, errorTitle: data.errorTitle, errorDescription: data.errorDescription ,tenantName: tenant.name });
     // Send Notification
+    const url1 = 'https://proviridis.e-mobility-group.org/charging-stations?ChargingStationID=ScameTest#all';
+    const url2 = 'https://proviridis.e-mobility-group.org/transactions/history?TransactionID=1564825025';
+    const url3 = 'https://proviridis.e-mobility-group.org/transactions/inprogress?TransactionID=1564825025';
+    const url4 = 'https://proviridis.e-mobility-group.org/invoices';
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_USER_ERROR_NOTIFICATION, title, body, user, null, severity);
     return {};
   }
@@ -217,7 +226,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.CHARGING_STATION_STATUS_ERROR, title, body, user, {
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -231,7 +241,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, tenantName: tenant.name });
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.CHARGING_STATION_REGISTERED, title, body, user, {
-      chargeBoxID: data.chargeBoxID
+      chargeBoxID: data.chargeBoxID,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -280,7 +291,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_STARTED, title, body, user, {
       'transactionId': data.transactionId.toString(),
       'chargeBoxID': data.chargeBoxID,
-      'connectorId': data.connectorId
+      'connectorId': data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -430,7 +442,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
-      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
+      title, body, user, { 'invoiceNumber': data.invoiceNumber, deepLink: data.evseDashboardInvoiceURL }, severity);
     return {};
   }
 
