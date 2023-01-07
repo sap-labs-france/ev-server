@@ -29,6 +29,9 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     this.clientRegistry.setDefaultLabels({
       app: 'e-Mobility'
     });
+
+
+    this.createGaugeMetric(Constants.OCCP_QUEUE_MESSAGE_SIZE, 'The number of ocpp messages in queues');
     this.createGaugeMetric(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT, 'The number of ocpp web sockets');
     this.createGaugeMetric(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT, 'The number of rest web sockets');
     this.createGaugeMetric(Constants.WEB_SOCKET_QUEUED_REQUEST, 'The number of web sockets that are queued');
