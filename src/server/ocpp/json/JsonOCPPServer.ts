@@ -1,3 +1,4 @@
+import fastq, { queueAsPromised } from 'fastq';
 import * as uWS from 'uWebSockets.js';
 
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
@@ -78,7 +79,11 @@ export default class JsonOCPPServer extends OCPPServer {
       message: (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => {
         // Delegate
         const messageStr = Utils.convertBufferArrayToString(message);
-        this.onMessage(ws, messageStr, isBinary).catch(() => { /* Intentional */ });
+        ws.q.push({
+          message: messageStr,
+          isBinary: isBinary,
+          ws: ws.wsWrapper
+        });
       },
       close: (ws: WebSocket, code: number, message: ArrayBuffer) => {
         const wsWrapper = ws.wsWrapper as WSWrapper;
@@ -245,11 +250,18 @@ export default class JsonOCPPServer extends OCPPServer {
 
   private async onOpen(ws: uWS.WebSocket) {
     // Create WS Wrapper
-    const wsWrapper = new WSWrapper(ws);
+
+
+    const q: queueAsPromised<Task> = fastq.promise(this.onMessage.bind(this), 5);
+    ws.q = q;
+    ws.q.pause();
+
+    const wsWrapper = new WSWrapper(ws, q);
     // Keep it on the ws
     ws.wsWrapper = wsWrapper;
+
     // Lock incoming WS messages
-    await this.acquireLockForWSRequest(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsWrapper);
+
     try {
       this.runningWSMessages++;
       // Path must contain /OCPP16 or /REST as it is already checked during the Upgrade process
@@ -272,8 +284,9 @@ export default class JsonOCPPServer extends OCPPServer {
       this.closeWebSocket(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsWrapper, WebSocketCloseEventStatusCode.CLOSE_ABNORMAL,
         `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been rejected and closed by server due to an exception: ${error.message as string}`);
     } finally {
+      ws.q.resume();
       this.runningWSMessages--;
-      this.releaseLockForWSMessageRequest(wsWrapper);
+
     }
   }
 
@@ -356,16 +369,6 @@ export default class JsonOCPPServer extends OCPPServer {
     }
   }
 
-  private async acquireLockForWSRequest(wsAction: WebSocketAction, action: ServerAction, wsWrapper: WSWrapper, ocppMessageType?: OCPPMessageType): Promise<void> {
-    // Only lock requests, not responses
-    if (ocppMessageType && ocppMessageType !== OCPPMessageType.CALL_MESSAGE) {
-      return;
-    }
-    // Wait for Init (avoid WS connection with same URL), ocppMessageType only provided when a WS Message is received
-    await this.waitForWSLockToRelease(wsAction, action, wsWrapper);
-    // Lock
-    this.runningWSRequestsMessages[wsWrapper.url] = true;
-  }
 
   private releaseLockForWSMessageRequest(wsWrapper: WSWrapper, ocppMessageType?: OCPPMessageType): void {
     // Only lock requests, not responses
@@ -376,14 +379,17 @@ export default class JsonOCPPServer extends OCPPServer {
     delete this.runningWSRequestsMessages[wsWrapper.url];
   }
 
-  private async onMessage(ws: uWS.WebSocket, message: string, isBinary: boolean): Promise<void> {
-    const wsWrapper: WSWrapper = ws.wsWrapper;
+
+  private async onMessage(task: Task): Promise<void> {
+    const wsWrapper: WSWrapper = task.ws;
+    const mess = task.message;
+    const binary = task.isBinary;
     try {
       // Extract the OCPP Message Type
-      const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(message);
+      const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(task.message);
       const ocppMessageType = ocppMessage[0];
-      // Lock incoming WS messages
-      await this.acquireLockForWSRequest(WebSocketAction.MESSAGE, ServerAction.WS_SERVER_MESSAGE, wsWrapper, ocppMessageType);
+
+
       try {
         this.runningWSMessages++;
         // Check if connection is available in Map
@@ -397,12 +403,11 @@ export default class JsonOCPPServer extends OCPPServer {
             action: ServerAction.WS_SERVER_MESSAGE,
             module: MODULE_NAME, method: 'onMessage',
             message: 'Unexpected situation - message is received but wsConnection is not set',
-            detailedMessages: { message, isBinary, wsWrapper: this.getWSWrapperData(wsWrapper) }
+            detailedMessages: { mess, binary, wsWrapper: this.getWSWrapperData(wsWrapper) }
           });
         }
       } finally {
         this.runningWSMessages--;
-        this.releaseLockForWSMessageRequest(wsWrapper, ocppMessageType);
       }
     } catch (error) {
       const logMessage = `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' got error while processing WS Message: ${error.message as string}`;
@@ -412,7 +417,7 @@ export default class JsonOCPPServer extends OCPPServer {
           action: ServerAction.WS_SERVER_MESSAGE,
           module: MODULE_NAME, method: 'onMessage',
           message: logMessage,
-          detailedMessages: { message, isBinary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
+          detailedMessages: { mess, binary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
         });
       }
       Logging.beError()?.log({
@@ -421,7 +426,7 @@ export default class JsonOCPPServer extends OCPPServer {
         action: ServerAction.WS_SERVER_MESSAGE,
         module: MODULE_NAME, method: 'onMessage',
         message: logMessage + ` - tenant: ${wsWrapper?.tenantID}`,
-        detailedMessages: { message, isBinary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
+        detailedMessages: { mess, binary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
       });
     }
   }
@@ -507,56 +512,6 @@ export default class JsonOCPPServer extends OCPPServer {
     });
   }
 
-  private async waitForWSLockToRelease(wsAction: WebSocketAction, action: ServerAction, wsWrapper: WSWrapper): Promise<boolean> {
-    // Wait for init to handle multiple same WS Connection
-    if (this.runningWSRequestsMessages[wsWrapper.url]) {
-      const maxNumberOfTrials = 10;
-      let numberOfTrials = 0;
-      const timeStart = Date.now();
-      Logging.beWarning()?.log({
-        tenantID: Constants.DEFAULT_TENANT_ID,
-        chargingStationID: wsWrapper.chargingStationID,
-        action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
-        message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Lock is taken: Wait and try to acquire the lock after ${Constants.WS_LOCK_TIME_OUT_MILLIS} ms...`,
-        detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
-      });
-      this.waitingWSMessages++;
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        // Wait
-        await Utils.sleep(Constants.WS_LOCK_TIME_OUT_MILLIS);
-        numberOfTrials++;
-        // Message has been processed
-        if (!this.runningWSRequestsMessages[wsWrapper.url]) {
-          Logging.beInfo()?.log({
-            tenantID: Constants.DEFAULT_TENANT_ID,
-            chargingStationID: wsWrapper.chargingStationID,
-            action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
-            message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Lock has been acquired successfully after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs`,
-            detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
-          });
-          // Free the lock
-          this.waitingWSMessages--;
-          break;
-        }
-        // Handle remaining trial
-        if (numberOfTrials >= maxNumberOfTrials) {
-          // Abnormal situation: The lock should not be taken for so long!
-          Logging.beError()?.log({
-            tenantID: Constants.DEFAULT_TENANT_ID,
-            chargingStationID: wsWrapper.chargingStationID,
-            action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
-            message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Cannot acquire the lock after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs - Lock will be forced to be released`,
-            detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
-          });
-          // Free the lock
-          this.waitingWSMessages--;
-          break;
-        }
-      }
-    }
-    return true;
-  }
 
   private pingWebSocket(wsWrapper: WSWrapper): WebSocketPingResult {
     try {
@@ -713,6 +668,14 @@ export default class JsonOCPPServer extends OCPPServer {
         // Log size of WS Json Connections (track leak)
         let sizeOfCurrentRequestsBytes = 0, numberOfCurrentRequests = 0;
         for (const jsonWSConnection of Array.from(this.jsonWSConnections.values())) {
+
+          if (this.isDebug()) {
+            const queueSize = jsonWSConnection.getWS().getQueue().length();
+            Logging.logConsoleDebug(`** ${queueSize} JSON Connection(s)`);
+          }
+          jsonWSConnection.getWS().getQueue().length();
+
+
           const pendingCommands = jsonWSConnection.getPendingOccpCommands();
           sizeOfCurrentRequestsBytes += sizeof(pendingCommands);
           numberOfCurrentRequests += Object.keys(pendingCommands).length;
@@ -857,3 +820,9 @@ export default class JsonOCPPServer extends OCPPServer {
     };
   }
 }
+
+export type Task = {
+  message: string,
+  isBinary: boolean,
+  ws: WSWrapper
+};
