@@ -1,3 +1,4 @@
+import { Redis } from 'ioredis';
 import MonitoringServer from '../monitoring/MonitoringServer';
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from './Billing';
 import { Car, CarCatalog } from './Car';
@@ -98,6 +99,7 @@ interface TSGlobal extends Global {
   centralSystemSoapServer: SoapOCPPServer;
   serverType: ServerType;
   monitoringServer : MonitoringServer;
+  redisClient : Redis;
   Promise: any;
 }
 

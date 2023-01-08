@@ -1,3 +1,4 @@
+import Redis from 'ioredis';
 import CentralSystemConfiguration, { CentralSystemImplementation } from './types/configuration/CentralSystemConfiguration';
 import { ServerAction, ServerType } from './types/Server';
 
@@ -30,6 +31,7 @@ import SoapOCPPServer from './server/ocpp/soap/SoapOCPPServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
 import global from './types/GlobalType';
+
 
 const MODULE_NAME = 'Bootstrap';
 
@@ -91,8 +93,10 @@ export default class Bootstrap {
           detailedMessages: (reason ? reason.stack : null)
         });
       });
-
-
+      global.redisClient = new Redis();
+      global.redisClient.on('connect', () => {
+        console.log('Connected to Redis');
+      });
       // -------------------------------------------------------------------------
       // Start Monitoring Server
       // -------------------------------------------------------------------------

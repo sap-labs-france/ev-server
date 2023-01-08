@@ -1254,7 +1254,7 @@ export default class OCPPUtils {
     }
     // Get the Charging Station
     let token: RegistrationToken;
-    const chargingStation = await ChargingStationStorage.getChargingStation(
+    const chargingStation = await ChargingStationStorage.getChargingStationRedis(
       tenant, chargingStationID, { withSiteArea: true, issuer: true });
     if (!chargingStation) {
       // Must have a valid connection Token

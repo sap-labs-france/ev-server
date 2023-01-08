@@ -1,3 +1,4 @@
+import { getData } from 'ajv/dist/compile/validate';
 import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
 import { ChargingProfileDataResult, ChargingStationDataResult, ChargingStationInErrorDataResult, DataResult } from '../../types/DataResult';
@@ -81,6 +82,16 @@ export default class ChargingStationStorage {
     );
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteChargingStationTemplates', startTime, { qa: { $not: { $eq: true } } });
   }
+
+  public static async getChargingStationRedis(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
+      params: { includeDeleted?: boolean, issuer?: boolean; siteIDs?: string[]; withSiteArea?: boolean; withSite?: boolean; } = {},
+      projectFields?: string[]): Promise<ChargingStation> {
+
+    const key = tenant.id + id + this.computeParamKey(params);
+    const cachedMethod = this.getChargingStation.bind(this, tenant, id ,params);
+    return ChargingStationStorage.getDataFromRedis(key, cachedMethod);
+  }
+
 
   public static async getChargingStation(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
       params: { includeDeleted?: boolean, issuer?: boolean; siteIDs?: string[]; withSiteArea?: boolean; withSite?: boolean; } = {},
@@ -718,9 +729,11 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingProfiles(tenant: Tenant,
-      params: { search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
+      params: {
+        search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
         profilePurposeType?: ChargingProfilePurposeType; transactionId?: number;
-        withSiteArea?: boolean; siteIDs?: string[]; } = {},
+        withSiteArea?: boolean; siteIDs?: string[];
+      } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<ChargingProfileDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -859,7 +872,7 @@ export default class ChargingStationStorage {
       chargingProfileFilter._id = chargingProfileToSave.id;
     } else {
       chargingProfileFilter._id =
-      Utils.hash(`${chargingProfileToSave.chargingStationID}~${chargingProfileToSave.connectorID}~${chargingProfileToSave.profile.chargingProfileId}`);
+        Utils.hash(`${chargingProfileToSave.chargingStationID}~${chargingProfileToSave.connectorID}~${chargingProfileToSave.profile.chargingProfileId}`);
     }
     // Properties to save
     const chargingProfileMDB: any = {
@@ -941,7 +954,11 @@ export default class ChargingStationStorage {
           }
         }) as UpdateResult;
     }
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateChargingStationsWithOrganizationIDs', startTime, { siteID, companyID, siteAreaID });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateChargingStationsWithOrganizationIDs', startTime, {
+      siteID,
+      companyID,
+      siteAreaID
+    });
     return result.modifiedCount;
   }
 
@@ -1026,6 +1043,10 @@ export default class ChargingStationStorage {
     return null;
   }
 
+  private static computeParamKey(params: { includeDeleted?: boolean, issuer?: boolean; siteIDs?: string[]; withSiteArea?: boolean; withSite?: boolean; }): string {
+    return JSON.stringify(params);
+  }
+
   private static filterChargePointMDB(chargePoint: ChargePoint): ChargePoint {
     if (chargePoint) {
       return {
@@ -1045,4 +1066,17 @@ export default class ChargingStationStorage {
     }
     return null;
   }
+
+  private static async getDataFromRedis<T>(key: string, callback: any): Promise<T> {
+
+    let cachedValue = await global.redisClient.get(key);
+    if (!cachedValue) {
+      const val = await callback();
+      cachedValue = JSON.stringify(val);
+      await global.redisClient.set(key, cachedValue);
+    }
+
+    return JSON.parse(cachedValue);
+  }
+
 }
