@@ -480,7 +480,7 @@ export default class Constants {
   public static readonly WEB_SOCKET_RUNNING_REQUEST = 'web_socket_running_request';
   public static readonly WEB_SOCKET_RUNNING_REQUEST_RESPONSE = 'web_socket_running_request_response';
   public static readonly WEB_SOCKET_QUEUED_REQUEST = 'web_socket_queued_request';
-
+  public static readonly WEB_SOCKET_ON_OPEN_RUNNING_REQUEST = 'web_socket_on_open_running_request';
   public static readonly MONGODB_CONNECTION_POOL_CREATED = 'mongodb_connectionPoolCreated';
   public static readonly MONGODB_CONNECTION_POOL_CLOSED = 'mongodb_connectionPoolClosed';
   public static readonly MONGODB_CONNECTION_CREATED = 'mongodb_connectionCreated';
@@ -491,5 +491,6 @@ export default class Constants {
   public static readonly MONGODB_CONNECTION_CHECK_OUT = 'mongodb_connectionCheckOut';
   public static readonly MONGODB_CONNECTION_CHECK_IN = 'mongodb_connectionCheckIn';
   public static readonly MONGODB_CONNECTION_POOL_CLEARED = 'mongodb_connectionPoolCleared';
-  public static readonly OCCP_QUEUE_MESSAGE_SIZE = 'ocpp_queue_message_size';
+
+
 }

@@ -30,7 +30,7 @@ const MODULE_NAME = 'JsonOCPPServer';
 export default class JsonOCPPServer extends OCPPServer {
   private waitingWSMessages = 0;
   private runningWSMessages = 0;
-  private runningWSRequestsMessages: Record<string, boolean> = {};
+  private onOpenMessages = 0;
   private jsonWSConnections: Map<string, JsonWSConnection> = new Map();
   private jsonRestWSConnections: Map<string, JsonRestWSConnection> = new Map();
 
@@ -263,6 +263,7 @@ export default class JsonOCPPServer extends OCPPServer {
     // Lock incoming WS messages
 
     try {
+      this.onOpenMessages++;
       // Path must contain /OCPP16 or /REST as it is already checked during the Upgrade process
       // Check OCPP16 connection
       if (wsWrapper.url.startsWith('/OCPP16')) {
@@ -283,6 +284,7 @@ export default class JsonOCPPServer extends OCPPServer {
       this.closeWebSocket(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsWrapper, WebSocketCloseEventStatusCode.CLOSE_ABNORMAL,
         `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been rejected and closed by server due to an exception: ${error.message as string}`);
     } finally {
+      this.onOpenMessages--;
       ws.q.resume();
     }
   }
@@ -654,12 +656,12 @@ export default class JsonOCPPServer extends OCPPServer {
       try {
         // Log size of WS Json Connections (track leak)
         let sizeOfCurrentRequestsBytes = 0, numberOfCurrentRequests = 0;
-        let allMessagesInQueues = 0;
+        this.waitingWSMessages = 0;
         for (const jsonWSConnection of Array.from(this.jsonWSConnections.values())) {
 
           if (this.isDebug()) {
             const queueSize = jsonWSConnection.getWS().getQueue().length();
-            allMessagesInQueues += queueSize;
+            this.waitingWSMessages += queueSize;
             Logging.logConsoleDebug(`** ${queueSize} mumber of message in queues`);
           }
           const pendingCommands = jsonWSConnection.getPendingOccpCommands();
@@ -670,19 +672,18 @@ export default class JsonOCPPServer extends OCPPServer {
         Logging.beDebug()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.WS_SERVER_CONNECTION, module: MODULE_NAME, method: 'monitorWSConnections',
-          message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages, ${Object.keys(this.runningWSRequestsMessages).length} Requests, ${this.waitingWSMessages} queued WS Message(s)`,
+          message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages,  ${this.waitingWSMessages} queued WS Message(s)`,
           detailedMessages: [
             `${numberOfCurrentRequests} JSON WS Requests cached`,
             `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
           ]
         });
         if (global.monitoringServer) {
-          global.monitoringServer.getGauge(Constants.OCCP_QUEUE_MESSAGE_SIZE).set(allMessagesInQueues);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE).set(this.runningWSMessages);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_ON_OPEN_RUNNING_REQUEST).set(this.onOpenMessages);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT).set(this.jsonRestWSConnections.size);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRRENT_REQUEST).set(numberOfCurrentRequests);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(Object.keys(this.runningWSRequestsMessages).length);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(this.runningWSMessages);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_QUEUED_REQUEST).set(this.waitingWSMessages);
         }
         if (this.isDebug()) {
@@ -690,7 +691,6 @@ export default class JsonOCPPServer extends OCPPServer {
           Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
           Logging.logConsoleDebug(`** ${numberOfCurrentRequests} JSON WS Requests in cache with a size of ${sizeOfCurrentRequestsBytes / 1000} kB`);
           Logging.logConsoleDebug(`** ${this.jsonRestWSConnections.size} REST Connection(s)`);
-          Logging.logConsoleDebug(`** ${Object.keys(this.runningWSRequestsMessages).length} running WS Requests`);
           Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages (Requests + Responses)`);
           Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
           Logging.logConsoleDebug('=====================================');
