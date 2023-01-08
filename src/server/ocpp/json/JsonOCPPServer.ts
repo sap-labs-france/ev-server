@@ -250,18 +250,12 @@ export default class JsonOCPPServer extends OCPPServer {
 
   private async onOpen(ws: uWS.WebSocket) {
     // Create WS Wrapper
-
-
-    const q: queueAsPromised<Task> = fastq.promise(this.onMessage.bind(this), 100);
+    const q: queueAsPromised<Task> = fastq.promise(this.onMessage.bind(this), 1);
     ws.q = q;
     ws.q.pause();
-
     const wsWrapper = new WSWrapper(ws, q);
     // Keep it on the ws
     ws.wsWrapper = wsWrapper;
-
-    // Lock incoming WS messages
-
     try {
       this.onOpenMessages++;
       // Path must contain /OCPP16 or /REST as it is already checked during the Upgrade process
@@ -376,8 +370,6 @@ export default class JsonOCPPServer extends OCPPServer {
       // Extract the OCPP Message Type
       const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(task.message);
       const ocppMessageType = ocppMessage[0];
-
-
       try {
         this.runningWSMessages++;
         // Check if connection is available in Map
@@ -566,6 +558,9 @@ export default class JsonOCPPServer extends OCPPServer {
     // Reference a Json WebSocket connection object
     if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
       this.jsonWSConnections.set(wsConnection.getID(), wsConnection as JsonWSConnection);
+      if (global.monitoringServer) {
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
+      }
       Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
@@ -611,6 +606,9 @@ export default class JsonOCPPServer extends OCPPServer {
     if (wsConnection) {
       const wsWrapper = wsConnection.getWS();
       const existingWsConnection = wsConnections.get(wsConnection.getID());
+      if (global.monitoringServer) {
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
+      }
       if (existingWsConnection) {
         const existingWsWrapper = existingWsConnection.getWS();
         // Check id same WS Connection

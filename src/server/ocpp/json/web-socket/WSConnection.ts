@@ -229,10 +229,7 @@ export default abstract class WSConnection {
     const [ ,messageID, command, commandPayload] = ocppMessage;
     try {
       // Process the call
-
-
       const result = await this.handleRequest(command, commandPayload);
-
       // Send Response
       this.sendResponse(messageID, command, result as Record<string, unknown>);
     } catch (error) {
