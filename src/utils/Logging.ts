@@ -97,6 +97,17 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
+      if ((global.monitoringServer) && (process.env.K8S)) {
+        const labels = { tenant: tenant.subdomain, module: module, method: method };
+        const values = Object.values(labels).toString();
+        const hashCode = Utils.positiveHashcode(values);
+        const durationMetric = global.monitoringServer.getComposedMetric('mongodb', 'Duration', hashCode, 'db duration', Object.keys(labels));
+        durationMetric.setValue(labels, executionDurationMillis);
+        const requestSizeMetric = global.monitoringServer.getComposedMetric('mongodb', 'RequestSize', hashCode, 'db duration', Object.keys(labels));
+        requestSizeMetric.setValue(labels, sizeOfRequestDataKB);
+        const responseSizeMetric = global.monitoringServer.getComposedMetric('mongodb', 'ResponseSize', hashCode, 'db duration', Object.keys(labels));
+        responseSizeMetric.setValue(labels, sizeOfResponseDataKB);
+      }
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -367,7 +378,7 @@ export default class Logging {
           next();
         }
       }
-    // Express call does not provide action
+      // Express call does not provide action
     } else if (!action) {
       next();
     }
@@ -710,6 +721,13 @@ export default class Logging {
         })
       );
       const message = `${direction} OCPP Request '${action}~${Utils.last5Chars(performanceID)}' on '${chargingStationID}' has been ${direction === '>>' ? 'received' : 'sent'} - Req ${sizeOfRequestDataKB} KB`;
+      if ((global.monitoringServer) && (process.env.K8S)) {
+        const labels = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
+        const values = Object.values(labels).toString();
+        const hashCode = Utils.positiveHashcode(values);
+        const durationMetric = global.monitoringServer.getComposedMetric('ocpp', 'requestSize', hashCode, 'ocpp response time ', Object.keys(labels));
+        durationMetric.setValue(labels,sizeOfRequestDataKB);
+      }
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
         tenantID: tenant.id,
@@ -753,6 +771,13 @@ export default class Logging {
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
         }
+      }
+      if ((global.monitoringServer) && (process.env.K8S)) {
+        const labels = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
+        const values = Object.values(labels).toString();
+        const hashCode = Utils.positiveHashcode(values);
+        const durationMetric = global.monitoringServer.getComposedMetric('ocpp', 'responsetime', hashCode, 'ocpp response time ', Object.keys(labels));
+        durationMetric.setValue(labels,executionDurationMillis);
       }
       if (response && response['status'] === OCPPStatus.REJECTED) {
         await Logging.logError({
