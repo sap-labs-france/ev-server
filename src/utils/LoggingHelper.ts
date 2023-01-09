@@ -8,9 +8,19 @@ import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
+import WSConnection from '../server/ocpp/json/web-socket/WSConnection';
 import WSWrapper from '../server/ocpp/json/web-socket/WSWrapper';
 
 export default class LoggingHelper {
+
+  public static getWSConnectionProperties(wsConnection: WSConnection): { siteID: string; siteAreaID: string; companyID: string; chargingStationID } {
+    return {
+      siteID: wsConnection?.getSiteID(),
+      siteAreaID: wsConnection?.getSiteAreaID(),
+      companyID: wsConnection?.getCompanyID(),
+      chargingStationID: wsConnection?.getChargingStationID(),
+    };
+  }
 
   public static getPricingContextProperties(pricingContext: PricingContext): { siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; actionOnUser: string } {
     return {
@@ -91,7 +101,7 @@ export default class LoggingHelper {
     };
   }
 
-  public static getSourceDataProperties(sourceData: any): { siteID: string,  siteAreaID?: string, companyID: string, chargingStationID: string } {
+  public static getSourceDataProperties(sourceData: any): { siteID: string, siteAreaID?: string, companyID: string, chargingStationID: string } {
     return {
       siteID: sourceData?.siteID,
       siteAreaID: sourceData?.siteAreaID,

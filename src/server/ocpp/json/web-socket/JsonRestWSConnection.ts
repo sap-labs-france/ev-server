@@ -18,8 +18,8 @@ export default class JsonRestWSConnection extends WSConnection {
     await super.initialize();
   }
 
-  public async handleRequest(command: Command, commandPayload: Record<string, unknown> | string): Promise<any> {
-    let result: any;
+  public async handleRequest(command: Command, request: Record<string, unknown> | string): Promise<Record<string, any>> {
+    let response: Record<string, any>;
     // Check Command
     if (!this.isValidOcppClientCommand(command)) {
       throw new BackendError({
@@ -66,7 +66,7 @@ export default class JsonRestWSConnection extends WSConnection {
     // Call
     if (typeof chargingStationClient[actionMethod] === 'function') {
       // Call the method
-      result = await chargingStationClient[actionMethod](commandPayload);
+      response = await chargingStationClient[actionMethod](request);
     } else {
       throw new BackendError({
         chargingStationID: this.getChargingStationID(),
@@ -79,7 +79,7 @@ export default class JsonRestWSConnection extends WSConnection {
         action: OCPPUtils.buildServerActionFromOcppCommand(command)
       });
     }
-    return result;
+    return response;
   }
 
   public async onPing(message: string): Promise<void> {

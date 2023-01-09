@@ -9,10 +9,12 @@ import Constants from '../../../../utils/Constants';
 import JsonChargingStationClient from '../../../../client/ocpp/json/JsonChargingStationClient';
 import JsonChargingStationService from '../services/JsonChargingStationService';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPError from '../../../../exception/OcppError';
 import { OCPPErrorType } from '../../../../types/ocpp/OCPPCommon';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPUtils from '../../utils/OCPPUtils';
+import { ServerAction } from '../../../../types/Server';
 import WSConnection from './WSConnection';
 import WSWrapper from './WSWrapper';
 
@@ -49,8 +51,8 @@ export default class JsonWSConnection extends WSConnection {
     this.chargingStationService = new JsonChargingStationService();
   }
 
-  public async handleRequest(command: Command, commandPayload: Record<string, unknown> | string): Promise<any> {
-    let result: any;
+  public async handleRequest(command: Command, request: Record<string, unknown> | string): Promise<Record<string, any>> {
+    let response: Record<string, any>;
     // Check Command
     if (!this.isValidOcppServerCommand(command)) {
       throw new BackendError({
@@ -79,12 +81,12 @@ export default class JsonWSConnection extends WSConnection {
       this.headers.token = token;
       // Trace
       const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
-        this.getTenant(), this.getChargingStationID(), OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, '>>',
+        this.getTenant(), this.getChargingStationID(), OCPPUtils.buildServerActionFromOcppCommand(command), request, '>>',
         { siteAreaID: this.getSiteAreaID(), siteID: this.getSiteID(), companyID: this.getCompanyID() }
       );
       try {
         // Call it
-        result = await this.chargingStationService[methodName](this.headers, commandPayload);
+        response = await this.chargingStationService[methodName](this.headers, request);
       } finally {
         // Clean the header
         delete this.headers.chargingStation;
@@ -92,24 +94,21 @@ export default class JsonWSConnection extends WSConnection {
         delete this.headers.token;
         // Trace
         await Logging.traceOcppMessageResponse(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenant(), this.getChargingStationID(),
-          OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, result, '<<',
+          OCPPUtils.buildServerActionFromOcppCommand(command), request, response, '<<',
           { siteAreaID: this.getSiteAreaID(), siteID: this.getSiteID(), companyID: this.getCompanyID() }, performanceTracingData
         );
       }
     } else {
       // Throw Exception
       throw new OCPPError({
-        chargingStationID: this.getChargingStationID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
+        ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OCPPErrorType.NOT_IMPLEMENTED,
         message: (typeof command === 'string') ? `OCPP method 'handle${command}()' has not been implemented` : `Unknown OCPP command: ${JSON.stringify(command)}`
       });
     }
-    return result;
+    return response;
   }
 
   public getChargingStationClient(): ChargingStationClient {
@@ -122,6 +121,14 @@ export default class JsonWSConnection extends WSConnection {
 
   public async onPing(message: string): Promise<void> {
     await this.updateChargingStationLastSeen();
+    await Logging.logDebug({
+      ...LoggingHelper.getWSConnectionProperties(this),
+      tenantID: [Constants.DEFAULT_TENANT_ID, this.getTenantID()],
+      action: ServerAction.WS_CLIENT_CONNECTION_PING,
+      module: MODULE_NAME, method: 'onPing',
+      message: 'Charging Station ping has been received',
+      detailedMessages: { message }
+    });
   }
 
   public async onPong(message: string): Promise<void> {

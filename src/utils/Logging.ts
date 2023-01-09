@@ -949,11 +949,22 @@ export default class Logging {
     if (typeof log.message === 'string' && log.message && log.message.length > 0) {
       log.message = log.message[0].toUpperCase() + log.message.substring(1);
     }
-    if (!log.tenantID || log.tenantID === '') {
+
+    if (!log.tenantID) {
       log.tenantID = Constants.DEFAULT_TENANT_ID;
     }
-    // Save
-    return LogStorage.saveLog(log.tenantID, log);
+    let result: Promise<string>;
+    if (Array.isArray(log.tenantID)) {
+      log.tenantID.forEach((tenantID) => {
+        if (!tenantID) {
+          tenantID = Constants.DEFAULT_TENANT_ID;
+        }
+        result = LogStorage.saveLog(tenantID, log);
+      });
+    } else {
+      result = LogStorage.saveLog(log.tenantID, log);
+    }
+    return result;
   }
 
   private static async anonymizeSensitiveData(message: any): Promise<any> {
