@@ -1032,6 +1032,13 @@ export default class BillingService {
     await UserStorage.saveUserStatus(tenant, user.id, UserStatus.ACTIVE);
     // Save User Role
     await UserStorage.saveUserRole(tenant, user.id, UserRole.EXTERNAL);
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenant, Utils.getLanguageFromLocale(newUser.locale));
+    // Save User EULA
+    await UserStorage.saveUserEULA(tenant, newUser.id, {
+      eulaAcceptedOn: new Date(),
+      eulaAcceptedVersion: endUserLicenseAgreement.version,
+      eulaAcceptedHash: endUserLicenseAgreement.hash
+    });
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(locale);
     // Create tag for the user
