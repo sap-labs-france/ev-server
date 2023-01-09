@@ -73,6 +73,18 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
       ServerUtils.createHttpServer(this.monitoringConfig, this.expressApplication), MODULE_NAME, ServerType.MONITORING_SERVER);
   }
 
+  public getComposedMetric(prefix : string, metricname: string, suffix: number, metrichelp: string, labelNames: string[]) : ComposedMonitoringMetric {
+    const key = prefix + '_' + metricname + '_' + suffix;
+    let composedMetric : ComposedMonitoringMetric = this.mapComposedMetric.get(key);
+    if (composedMetric) {
+      return composedMetric;
+    }
+    composedMetric = new ComposedMonitoringMetric(prefix, metricname,suffix,metrichelp,labelNames);
+    composedMetric.register(this.clientRegistry);
+    this.mapComposedMetric.set(key, composedMetric);
+    return composedMetric;
+  }
+
   private createGaugeMetric(metricname : string, metrichelp : string, labelNames? : string[]) : Gauge {
     let gaugeMetric : client.Gauge;
     if (Array.isArray(labelNames)) {
@@ -90,17 +102,5 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     this.mapGauge.set(metricname, gaugeMetric);
     this.clientRegistry.registerMetric(gaugeMetric);
     return gaugeMetric;
-  }
-
-  public getComposedMetric(prefix : string, metricname: string, suffix: number, metrichelp: string, labelNames: string[]) : ComposedMonitoringMetric {
-    const key = prefix + '_' + metricname + '_' + suffix;
-    let composedMetric : ComposedMonitoringMetric = this.mapComposedMetric.get(key);
-    if (composedMetric) {
-      return composedMetric;
-    }
-    composedMetric = new ComposedMonitoringMetric(prefix, metricname,suffix,metrichelp,labelNames);
-    composedMetric.register(this.clientRegistry);
-    this.mapComposedMetric.set(key, composedMetric);
-    return composedMetric;
   }
 }
