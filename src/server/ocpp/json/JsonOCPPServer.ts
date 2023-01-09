@@ -31,7 +31,7 @@ export default class JsonOCPPServer extends OCPPServer {
   private runningWSMessages = 0;
   private runningWSRequestsMessages: Record<string, boolean> = {};
   private jsonWSConnections: Map<string, JsonWSConnection> = new Map();
-  private jsonRestWSConnections: Map<string, JsonRestWSConnection> = new Map();
+  // private jsonRestWSConnections: Map<string, JsonRestWSConnection> = new Map();
 
   public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     super(centralSystemConfig, chargingStationConfig);
@@ -434,6 +434,10 @@ export default class JsonOCPPServer extends OCPPServer {
       // e.g.: Websocket has been closed during the onOpen because the tenant does not exist
       throw new Error('Websocket is already closed');
     }
+    if (wsWrapper.protocol === WSServerProtocol.REST) {
+      // Nothing to do for REST web socket
+      return;
+    }
     // Get WS Connection from cache
     const wsExistingConnection =
       this.getWSConnectionFromProtocolAndID(wsWrapper.protocol, wsWrapper.key);
@@ -630,16 +634,16 @@ export default class JsonOCPPServer extends OCPPServer {
         detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
       });
     }
-    if (wsWrapper.protocol === WSServerProtocol.REST) {
-      this.jsonRestWSConnections.set(wsConnection.getID(), wsConnection as JsonRestWSConnection);
-      Logging.beDebug()?.log({
-        tenantID: Constants.DEFAULT_TENANT_ID,
-        chargingStationID: wsWrapper.chargingStationID,
-        action, module: MODULE_NAME, method: 'setWSConnection',
-        message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been added in the WS cache`,
-        detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
-      });
-    }
+    // if (wsWrapper.protocol === WSServerProtocol.REST) {
+    //   this.jsonRestWSConnections.set(wsConnection.getID(), wsConnection as JsonRestWSConnection);
+    //   Logging.beDebug()?.log({
+    //     tenantID: Constants.DEFAULT_TENANT_ID,
+    //     chargingStationID: wsWrapper.chargingStationID,
+    //     action, module: MODULE_NAME, method: 'setWSConnection',
+    //     message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been added in the WS cache`,
+    //     detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
+    //   });
+    // }
     wsWrapper.wsConnection = wsConnection;
   }
 
@@ -647,9 +651,9 @@ export default class JsonOCPPServer extends OCPPServer {
     if (protocol === WSServerProtocol.OCPP16) {
       return this.jsonWSConnections.get(wsConnectionID);
     }
-    if (protocol === WSServerProtocol.REST) {
-      return this.jsonRestWSConnections.get(wsConnectionID);
-    }
+    // if (protocol === WSServerProtocol.REST) {
+    //   return this.jsonRestWSConnections.get(wsConnectionID);
+    // }
   }
 
   private removeWSWrapper(wsAction: WebSocketAction, action: ServerAction, wsWrapper: WSWrapper): void {
@@ -657,10 +661,10 @@ export default class JsonOCPPServer extends OCPPServer {
       this.removeWSConnection(
         wsAction, action, wsWrapper.wsConnection, this.jsonWSConnections);
     }
-    if (wsWrapper.protocol === WSServerProtocol.REST) {
-      this.removeWSConnection(
-        wsAction, action, wsWrapper.wsConnection, this.jsonRestWSConnections);
-    }
+    // if (wsWrapper.protocol === WSServerProtocol.REST) {
+    //   this.removeWSConnection(
+    //     wsAction, action, wsWrapper.wsConnection, this.jsonRestWSConnections);
+    // }
   }
 
   private removeWSConnection(wsAction: WebSocketAction, action: ServerAction, wsConnection: WSConnection, wsConnections: Map<string, WSConnection>): void {
@@ -721,7 +725,8 @@ export default class JsonOCPPServer extends OCPPServer {
         Logging.beDebug()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.WS_SERVER_CONNECTION, module: MODULE_NAME, method: 'monitorWSConnections',
-          message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages, ${Object.keys(this.runningWSRequestsMessages).length} Requests, ${this.waitingWSMessages} queued WS Message(s)`,
+          // message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages, ${Object.keys(this.runningWSRequestsMessages).length} Requests, ${this.waitingWSMessages} queued WS Message(s)`,
+          message: `${this.jsonWSConnections.size} WS connections, ${this.runningWSMessages} Messages, ${Object.keys(this.runningWSRequestsMessages).length} Requests, ${this.waitingWSMessages} queued WS Message(s)`,
           detailedMessages: [
             `${numberOfCurrentRequests} JSON WS Requests cached`,
             `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
@@ -731,7 +736,7 @@ export default class JsonOCPPServer extends OCPPServer {
           Logging.logConsoleDebug('=====================================');
           Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
           Logging.logConsoleDebug(`** ${numberOfCurrentRequests} JSON WS Requests in cache with a size of ${sizeOfCurrentRequestsBytes / 1000} kB`);
-          Logging.logConsoleDebug(`** ${this.jsonRestWSConnections.size} REST Connection(s)`);
+          // Logging.logConsoleDebug(`** ${this.jsonRestWSConnections.size} REST Connection(s)`);
           Logging.logConsoleDebug(`** ${Object.keys(this.runningWSRequestsMessages).length} running WS Requests`);
           Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages (Requests + Responses)`);
           Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
@@ -786,7 +791,7 @@ export default class JsonOCPPServer extends OCPPServer {
         // Check Json connections
         this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS');
         // Check Rest connections
-        this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
+        // this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
       } catch (error) {
         /* Intentional */
       }
