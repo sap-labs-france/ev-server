@@ -898,9 +898,10 @@ export default class Logging {
     // Check Log Level
     const logConfig = Logging.getConfiguration();
     // Default Log Level
-    const logLevel = logConfig.logLevel ? logConfig.logLevel : LogLevel.DEBUG;
+    const logLevelAsString = logConfig.logLevel ? logConfig.logLevel : 'D';
+    const logLevel = logLevelAsString as LogLevel;
     // Log Level
-    switch (LogLevel[logLevel]) {
+    switch (logLevel) {
       // No log at all
       case LogLevel.NONE:
         return;

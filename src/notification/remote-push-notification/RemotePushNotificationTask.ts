@@ -94,7 +94,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.PREPARING_SESSION_NOT_STARTED, title, body, user, {
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -109,6 +110,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_NOT_STARTED_AFTER_AUTHORIZE, title, body, user, {
       chargeBoxID: data.chargeBoxID,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -150,7 +152,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OPTIMAL_CHARGE_REACHED, title, body, user, {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -166,7 +169,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_CHARGE, title, body, user, {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -182,7 +186,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_SESSION, title, body, user, {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -217,7 +222,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.CHARGING_STATION_STATUS_ERROR, title, body, user, {
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -231,7 +237,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, tenantName: tenant.name });
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.CHARGING_STATION_REGISTERED, title, body, user, {
-      chargeBoxID: data.chargeBoxID
+      chargeBoxID: data.chargeBoxID,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -280,7 +287,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_STARTED, title, body, user, {
       'transactionId': data.transactionId.toString(),
       'chargeBoxID': data.chargeBoxID,
-      'connectorId': data.connectorId
+      'connectorId': data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -438,7 +446,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
-      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
+      title, body, user, { 'invoiceNumber': data.invoiceNumber, deepLink: data.evseDashboardInvoiceURL }, severity);
     return {};
   }
 
@@ -577,7 +585,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         tenantID: tenant.id,
         tenantSubdomain: tenant.subdomain,
         notificationType,
-        ...data
+        ...(data || {})
       }
     };
     return message;
