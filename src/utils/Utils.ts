@@ -1550,6 +1550,15 @@ export default class Utils {
     return os.hostname();
   }
 
+  public static getLoadAverages(): Array<number> {
+    // Will return [0,0,0] for windows host
+    return os.loadavg();
+  }
+
+  public static getCpusCount(): number {
+    return os.cpus().length;
+  }
+
   public static getHostIP(): string {
     // K8s
     if (process.env.POD_IP) {

@@ -50,6 +50,8 @@ export default class Constants {
   public static readonly CHARGING_STATION_LOCK_SECS = 5;
   public static readonly CHARGING_STATION_CONNECTION_LOCK_SECS = 5;
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
+  public static readonly OCPPJ_LIVENESS_ROUTE = '/ocppj-liveness-check';
+  public static readonly OCPPJ_READINESS_ROUTE = '/ocppj-readiness-check';
 
   public static readonly DEFAULT_TENANT_ID = 'default';
   public static readonly DEFAULT_TENANT_OBJECT = Object.freeze({

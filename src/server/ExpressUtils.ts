@@ -52,6 +52,8 @@ export default class ExpressUtils {
     }));
     // Health Check Handling
     app.get(Constants.HEALTH_CHECK_ROUTE, ExpressUtils.healthCheckService.bind(this));
+    app.get(Constants.OCPPJ_LIVENESS_ROUTE, ExpressUtils.ocppjLivenessService.bind(this));
+    app.get(Constants.OCPPJ_READINESS_ROUTE, ExpressUtils.ocppjReadinessService.bind(this));
     // Use
     app.use(locale(Constants.SUPPORTED_LOCALES));
     return app;
@@ -65,6 +67,26 @@ export default class ExpressUtils {
   private static async healthCheckService(req: Request, res: Response, next: NextFunction): Promise<void> {
     const pingSuccess = await global.database.ping();
     if (pingSuccess) {
+      res.sendStatus(StatusCodes.OK);
+    } else {
+      res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  private static async ocppjLivenessService(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const isHealthy = global.centralSystemJsonServer.isHealthy();
+    if (isHealthy) {
+      res.sendStatus(StatusCodes.OK);
+    } else {
+      res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  private static async ocppjReadinessService(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const isReady = global.centralSystemJsonServer.isReady();
+    if (isReady) {
       res.sendStatus(StatusCodes.OK);
     } else {
       res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);

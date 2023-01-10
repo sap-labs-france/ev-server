@@ -158,6 +158,38 @@ export default class JsonOCPPServer extends OCPPServer {
     return this.jsonWSConnections.has(`${tenant.id}~${chargingStation.id}`);
   }
 
+  public isReady() {
+    const avgLoad = Utils.getLoadAverages();
+    const lastMinAvgLoad = avgLoad[0];
+    const cpus = Utils.getCpusCount();
+    Logging.logConsoleDebug(`Readiness - Server avg load (1min: ${avgLoad[0]}, 5mins ${avgLoad[1]}, 15mins ${avgLoad[2]}) - CPU count ${cpus}`);
+    // In case of windows  or 0 load we return ready
+    if (!lastMinAvgLoad || cpus === 0) {
+      return true;
+    }
+    // In practice if load is higher than cpu count, the load is too high, we will flag not ready when we reach 90%
+    if (lastMinAvgLoad > cpus * 0.9) {
+      return false;
+    }
+    return true;
+  }
+
+  public isHealthy() {
+    const avgLoad = Utils.getLoadAverages();
+    const lastFiveMinAvgLoad = avgLoad[1];
+    const cpus = Utils.getCpusCount();
+    Logging.logConsoleDebug(`Liveness - Server avg load (1min: ${avgLoad[0]}, 5mins ${avgLoad[1]}, 15mins ${avgLoad[2]}) - CPU count ${cpus}`);
+    // In case of windows  or 0 load we return ready
+    if (!lastFiveMinAvgLoad || cpus === 0) {
+      return true;
+    }
+    // In practice if load is higher than cpu count, the load is too high, we will flag not healthy when we reach 110%
+    if (lastFiveMinAvgLoad > cpus * 1.1) {
+      return false;
+    }
+    return true;
+  }
+
   private async onUpgrade(res: uWS.HttpResponse, req: uWS.HttpRequest, context: uWS.us_socket_context_t) {
     // Check for WS connection over HTTP
     const url = req.getUrl();
@@ -706,14 +738,6 @@ export default class JsonOCPPServer extends OCPPServer {
             `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
           ]
         }).catch(() => { /* Intentional */ });
-        if ((global.monitoringServer) && (process.env.K8S)) {
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE).set(this.runningWSMessages);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT).set(this.jsonRestWSConnections.size);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRRENT_REQUEST).set(numberOfCurrentRequests);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(Object.keys(this.runningWSRequestsMessages).length);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_QUEUED_REQUEST).set(this.waitingWSMessages);
-        }
         if (this.isDebug()) {
           Logging.logConsoleDebug('=====================================');
           Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
