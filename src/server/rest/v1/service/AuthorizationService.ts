@@ -1195,6 +1195,10 @@ export default class AuthorizationService {
     // Add Authorizations
     ocpiEndpoints.canCreate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.OCPI_ENDPOINT, Action.CREATE, authorizationFilter, filteredRequest?.Identifier ? { ID: filteredRequest.Identifier } : {});
+    ocpiEndpoints.canGenerateLocalToken = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.OCPI_ENDPOINT, Action.GENERATE_LOCAL_TOKEN, authorizationFilter, filteredRequest?.Identifier ? { ID: filteredRequest.Identifier } : {});
+    ocpiEndpoints.canPing = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.OCPI_ENDPOINT, Action.PING, authorizationFilter, filteredRequest?.Identifier ? { ID: filteredRequest.Identifier } : {});
     for (const ocpiEndpoint of ocpiEndpoints.result) {
       await AuthorizationService.addOCPIEndpointAuthorizations(tenant, userToken, ocpiEndpoint, authorizationFilter);
     }
