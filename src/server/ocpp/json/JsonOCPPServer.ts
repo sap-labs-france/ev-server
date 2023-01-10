@@ -1,6 +1,5 @@
-import fastq, { queueAsPromised } from 'fastq';
 import * as uWS from 'uWebSockets.js';
-
+import fastq, { queueAsPromised } from 'fastq';
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import { OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
@@ -8,7 +7,7 @@ import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Serve
 import { WebSocketAction, WebSocketCloseEventStatusCode, WebSocketPingResult } from '../../../types/WebSocket';
 
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
-import ChargingStation, { Command } from '../../../types/ChargingStation';
+import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Configuration from '../../../utils/Configuration';
@@ -31,8 +30,10 @@ export default class JsonOCPPServer extends OCPPServer {
   private waitingWSMessages = 0;
   private runningWSMessages = 0;
   private onOpenMessages = 0;
+  private runningWSRequestsMessages: Record<string, boolean> = {};
   private jsonWSConnections: Map<string, JsonWSConnection> = new Map();
-  private jsonRestWSConnections: Map<string, JsonRestWSConnection> = new Map();
+  private TTL_MS = 30000;
+  // private jsonRestWSConnections: Map<string, JsonRestWSConnection> = new Map();
 
   public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     super(centralSystemConfig, chargingStationConfig);
@@ -77,12 +78,12 @@ export default class JsonOCPPServer extends OCPPServer {
         this.onOpen(ws).catch(() => { /* Intentional */ });
       },
       message: (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => {
-        // Delegate
         const messageStr = Utils.convertBufferArrayToString(message);
         ws.q.push({
           message: messageStr,
           isBinary: isBinary,
-          ws: ws.wsWrapper
+          ws: ws.wsWrapper,
+          queueEntryTime : new Date().getTime()
         });
       },
       close: (ws: WebSocket, code: number, message: ArrayBuffer) => {
@@ -283,6 +284,67 @@ export default class JsonOCPPServer extends OCPPServer {
     }
   }
 
+  private async onMessage(task: Task): Promise<void> {
+    const wsWrapper: WSWrapper = task.ws;
+    const mess = task.message;
+    const binary = task.isBinary;
+    const currentTime : number = new Date().getTime();
+    const timeSpentInQueue = currentTime - task.queueEntryTime;
+    if (timeSpentInQueue > this.TTL_MS) {
+      Logging.beError()?.log({
+        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
+        action: ServerAction.WS_SERVER_MESSAGE,
+        module: MODULE_NAME, method: 'onMessage',
+        message: 'Message has exceeded allowed time spent in the queue ' ,
+        detailedMessages: { timeSpentInQueue } });
+      return;
+    }
+    try {
+      // Extract the OCPP Message Type
+      const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(task.message);
+      const ocppMessageType = ocppMessage[0];
+      try {
+        this.runningWSMessages++;
+        // Check if connection is available in Map
+        this.checkWSConnectionFromOnMessage(wsWrapper);
+        // OCPP Request?
+        if (wsWrapper.wsConnection) {
+          const [ ,messageID, command, commandPayload] = ocppMessage;
+          await wsWrapper.wsConnection.handleIncomingOcppMessage(wsWrapper, ocppMessage);
+        } else {
+          Logging.beError()?.log({
+            ...LoggingHelper.getWSWrapperProperties(wsWrapper),
+            action: ServerAction.WS_SERVER_MESSAGE,
+            module: MODULE_NAME, method: 'onMessage',
+            message: 'Unexpected situation - message is received but wsConnection is not set',
+            detailedMessages: { mess, binary, wsWrapper: this.getWSWrapperData(wsWrapper) }
+          });
+        }
+      } finally {
+        this.runningWSMessages--;
+      }
+    } catch (error) {
+      const logMessage = `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' got error while processing WS Message: ${error.message as string}`;
+      if (wsWrapper?.tenantID) {
+        Logging.beError()?.log({
+          ...LoggingHelper.getWSWrapperProperties(wsWrapper),
+          action: ServerAction.WS_SERVER_MESSAGE,
+          module: MODULE_NAME, method: 'onMessage',
+          message: logMessage,
+          detailedMessages: { mess, binary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
+        });
+      }
+      Logging.beError()?.log({
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        chargingStationID: wsWrapper.chargingStationID,
+        action: ServerAction.WS_SERVER_MESSAGE,
+        module: MODULE_NAME, method: 'onMessage',
+        message: logMessage + ` - tenant: ${wsWrapper?.tenantID}`,
+        detailedMessages: { mess, binary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
+      });
+    }
+  }
+
   private async checkAndStoreWSOpenedConnection(protocol: WSServerProtocol, wsWrapper: WSWrapper): Promise<void> {
     let wsConnection: WSConnection;
     const timeStart = Date.now();
@@ -362,55 +424,6 @@ export default class JsonOCPPServer extends OCPPServer {
     }
   }
 
-  private async onMessage(task: Task): Promise<void> {
-    const wsWrapper: WSWrapper = task.ws;
-    const mess = task.message;
-    const binary = task.isBinary;
-    try {
-      // Extract the OCPP Message Type
-      const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(task.message);
-      const ocppMessageType = ocppMessage[0];
-      try {
-        this.runningWSMessages++;
-        // Check if connection is available in Map
-        this.checkWSConnectionFromOnMessage(wsWrapper);
-        // OCPP Request?
-        if (wsWrapper.wsConnection) {
-          const [ ,messageID, command, commandPayload] = ocppMessage;
-          await wsWrapper.wsConnection.handleIncomingOcppMessage(wsWrapper, ocppMessage);
-        } else {
-          Logging.beError()?.log({
-            ...LoggingHelper.getWSWrapperProperties(wsWrapper),
-            action: ServerAction.WS_SERVER_MESSAGE,
-            module: MODULE_NAME, method: 'onMessage',
-            message: 'Unexpected situation - message is received but wsConnection is not set',
-            detailedMessages: { mess, binary, wsWrapper: this.getWSWrapperData(wsWrapper) }
-          });
-        }
-      } finally {
-        this.runningWSMessages--;
-      }
-    } catch (error) {
-      const logMessage = `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' got error while processing WS Message: ${error.message as string}`;
-      if (wsWrapper?.tenantID) {
-        Logging.beError()?.log({
-          ...LoggingHelper.getWSWrapperProperties(wsWrapper),
-          action: ServerAction.WS_SERVER_MESSAGE,
-          module: MODULE_NAME, method: 'onMessage',
-          message: logMessage,
-          detailedMessages: { mess, binary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
-        });
-      }
-      Logging.beError()?.log({
-        tenantID: Constants.DEFAULT_TENANT_ID,
-        chargingStationID: wsWrapper.chargingStationID,
-        action: ServerAction.WS_SERVER_MESSAGE,
-        module: MODULE_NAME, method: 'onMessage',
-        message: logMessage + ` - tenant: ${wsWrapper?.tenantID}`,
-        detailedMessages: { mess, binary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
-      });
-    }
-  }
 
   private checkWSConnectionFromOnMessage(wsWrapper: WSWrapper) {
     // Get WS Connection
@@ -419,6 +432,10 @@ export default class JsonOCPPServer extends OCPPServer {
       // Current message is from a charger which should not reach us!
       // e.g.: Websocket has been closed during the onOpen because the tenant does not exist
       throw new Error('Websocket is already closed');
+    }
+    if (wsWrapper.protocol === WSServerProtocol.REST) {
+      // Nothing to do for REST web socket
+      return;
     }
     // Get WS Connection from cache
     const wsExistingConnection =
@@ -494,6 +511,7 @@ export default class JsonOCPPServer extends OCPPServer {
   }
 
 
+
   private pingWebSocket(wsWrapper: WSWrapper): WebSocketPingResult {
     try {
       // Ping the WS
@@ -558,9 +576,6 @@ export default class JsonOCPPServer extends OCPPServer {
     // Reference a Json WebSocket connection object
     if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
       this.jsonWSConnections.set(wsConnection.getID(), wsConnection as JsonWSConnection);
-      if (global.monitoringServer) {
-        global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
-      }
       Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
@@ -569,16 +584,16 @@ export default class JsonOCPPServer extends OCPPServer {
         detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
       });
     }
-    if (wsWrapper.protocol === WSServerProtocol.REST) {
-      this.jsonRestWSConnections.set(wsConnection.getID(), wsConnection as JsonRestWSConnection);
-      Logging.beDebug()?.log({
-        tenantID: Constants.DEFAULT_TENANT_ID,
-        chargingStationID: wsWrapper.chargingStationID,
-        action, module: MODULE_NAME, method: 'setWSConnection',
-        message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been added in the WS cache`,
-        detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
-      });
-    }
+    // if (wsWrapper.protocol === WSServerProtocol.REST) {
+    //   this.jsonRestWSConnections.set(wsConnection.getID(), wsConnection as JsonRestWSConnection);
+    //   Logging.beDebug()?.log({
+    //     tenantID: Constants.DEFAULT_TENANT_ID,
+    //     chargingStationID: wsWrapper.chargingStationID,
+    //     action, module: MODULE_NAME, method: 'setWSConnection',
+    //     message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been added in the WS cache`,
+    //     detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
+    //   });
+    // }
     wsWrapper.wsConnection = wsConnection;
   }
 
@@ -586,9 +601,9 @@ export default class JsonOCPPServer extends OCPPServer {
     if (protocol === WSServerProtocol.OCPP16) {
       return this.jsonWSConnections.get(wsConnectionID);
     }
-    if (protocol === WSServerProtocol.REST) {
-      return this.jsonRestWSConnections.get(wsConnectionID);
-    }
+    // if (protocol === WSServerProtocol.REST) {
+    //   return this.jsonRestWSConnections.get(wsConnectionID);
+    // }
   }
 
   private removeWSWrapper(wsAction: WebSocketAction, action: ServerAction, wsWrapper: WSWrapper): void {
@@ -596,19 +611,16 @@ export default class JsonOCPPServer extends OCPPServer {
       this.removeWSConnection(
         wsAction, action, wsWrapper.wsConnection, this.jsonWSConnections);
     }
-    if (wsWrapper.protocol === WSServerProtocol.REST) {
-      this.removeWSConnection(
-        wsAction, action, wsWrapper.wsConnection, this.jsonRestWSConnections);
-    }
+    // if (wsWrapper.protocol === WSServerProtocol.REST) {
+    //   this.removeWSConnection(
+    //     wsAction, action, wsWrapper.wsConnection, this.jsonRestWSConnections);
+    // }
   }
 
   private removeWSConnection(wsAction: WebSocketAction, action: ServerAction, wsConnection: WSConnection, wsConnections: Map<string, WSConnection>): void {
     if (wsConnection) {
       const wsWrapper = wsConnection.getWS();
       const existingWsConnection = wsConnections.get(wsConnection.getID());
-      if (global.monitoringServer) {
-        global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
-      }
       if (existingWsConnection) {
         const existingWsWrapper = existingWsConnection.getWS();
         // Check id same WS Connection
@@ -654,9 +666,7 @@ export default class JsonOCPPServer extends OCPPServer {
       try {
         // Log size of WS Json Connections (track leak)
         let sizeOfCurrentRequestsBytes = 0, numberOfCurrentRequests = 0;
-        this.waitingWSMessages = 0;
         for (const jsonWSConnection of Array.from(this.jsonWSConnections.values())) {
-
           if (this.isDebug()) {
             const queueSize = jsonWSConnection.getWS().getQueue().length();
             this.waitingWSMessages += queueSize;
@@ -670,25 +680,19 @@ export default class JsonOCPPServer extends OCPPServer {
         Logging.beDebug()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.WS_SERVER_CONNECTION, module: MODULE_NAME, method: 'monitorWSConnections',
-          message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages,  ${this.waitingWSMessages} queued WS Message(s)`,
+          // message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages, ${Object.keys(this.runningWSRequestsMessages).length} Requests, ${this.waitingWSMessages} queued WS Message(s)`,
+          message: `${this.jsonWSConnections.size} WS connections, ${this.runningWSMessages} Messages, ${Object.keys(this.runningWSRequestsMessages).length} Requests, ${this.waitingWSMessages} queued WS Message(s)`,
           detailedMessages: [
             `${numberOfCurrentRequests} JSON WS Requests cached`,
             `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
           ]
         });
-        if (global.monitoringServer) {
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_ON_OPEN_RUNNING_REQUEST).set(this.onOpenMessages);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT).set(this.jsonRestWSConnections.size);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRRENT_REQUEST).set(numberOfCurrentRequests);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(this.runningWSMessages);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_QUEUED_REQUEST).set(this.waitingWSMessages);
-        }
         if (this.isDebug()) {
           Logging.logConsoleDebug('=====================================');
           Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
           Logging.logConsoleDebug(`** ${numberOfCurrentRequests} JSON WS Requests in cache with a size of ${sizeOfCurrentRequestsBytes / 1000} kB`);
-          Logging.logConsoleDebug(`** ${this.jsonRestWSConnections.size} REST Connection(s)`);
+          // Logging.logConsoleDebug(`** ${this.jsonRestWSConnections.size} REST Connection(s)`);
+          Logging.logConsoleDebug(`** ${Object.keys(this.runningWSRequestsMessages).length} running WS Requests`);
           Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages (Requests + Responses)`);
           Logging.logConsoleDebug(`** ${this.waitingWSMessages} queued WS Message(s)`);
           Logging.logConsoleDebug('=====================================');
@@ -742,7 +746,7 @@ export default class JsonOCPPServer extends OCPPServer {
         // Check Json connections
         this.checkAndCleanupWebSockets(this.jsonWSConnections, 'CS');
         // Check Rest connections
-        this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
+        // this.checkAndCleanupWebSockets(this.jsonRestWSConnections, 'REST');
       } catch (error) {
         /* Intentional */
       }
@@ -813,9 +817,9 @@ export default class JsonOCPPServer extends OCPPServer {
     };
   }
 }
-
 export type Task = {
   message: string,
   isBinary: boolean,
-  ws: WSWrapper
+  ws: WSWrapper,
+  queueEntryTime : number
 };
