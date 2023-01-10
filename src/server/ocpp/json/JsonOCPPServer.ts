@@ -290,26 +290,27 @@ export default class JsonOCPPServer extends OCPPServer {
     const binary = task.isBinary;
     const currentTime : number = new Date().getTime();
     const timeSpentInQueue = currentTime - task.queueEntryTime;
-    if (timeSpentInQueue > this.TTL_MS) {
-      Logging.beError()?.log({
-        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
-        action: ServerAction.WS_SERVER_MESSAGE,
-        module: MODULE_NAME, method: 'onMessage',
-        message: 'Message has exceeded allowed time spent in the queue ' ,
-        detailedMessages: { timeSpentInQueue } });
-      return;
-    }
     try {
       // Extract the OCPP Message Type
       const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(task.message);
+      const [ ,messageID, command, commandPayload] = ocppMessage;
       const ocppMessageType = ocppMessage[0];
       try {
+        if (timeSpentInQueue > this.TTL_MS) {
+          Logging.beError()?.log({
+            ...LoggingHelper.getWSWrapperProperties(wsWrapper),
+            action: ServerAction.WS_SERVER_MESSAGE,
+            module: MODULE_NAME, method: 'onMessage',
+            message: 'Message has exceeded allowed time spent in the queue ! ' ,
+            detailedMessages: { timeSpentInQueue, command } });
+          return;
+        }
         this.runningWSMessages++;
         // Check if connection is available in Map
         this.checkWSConnectionFromOnMessage(wsWrapper);
         // OCPP Request?
         if (wsWrapper.wsConnection) {
-          const [ ,messageID, command, commandPayload] = ocppMessage;
+
           await wsWrapper.wsConnection.handleIncomingOcppMessage(wsWrapper, ocppMessage);
         } else {
           Logging.beError()?.log({
