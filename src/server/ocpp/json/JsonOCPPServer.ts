@@ -104,6 +104,34 @@ export default class JsonOCPPServer extends OCPPServer {
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    }).any(Constants.OCPPJ_LIVENESS_ROUTE, (res: HttpResponse) => {
+      res.onAborted(() => {
+        res.aborted = true;
+      });
+      const isHealthy = this.isHealthy();
+      if (!res.aborted) {
+        if (isHealthy) {
+          res.end('OK');
+        } else {
+          res.writeStatus('500');
+          res.end('KO');
+        }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    }).any(Constants.OCPPJ_READINESS_ROUTE, (res: HttpResponse) => {
+      res.onAborted(() => {
+        res.aborted = true;
+      });
+      const isReady = this.isReady();
+      if (!res.aborted) {
+        if (isReady) {
+          res.end('OK');
+        } else {
+          res.writeStatus('500');
+          res.end('KO');
+        }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
     }).any(Constants.HEALTH_CHECK_ROUTE, async (res: HttpResponse) => {
       res.onAborted(() => {
         res.aborted = true;
