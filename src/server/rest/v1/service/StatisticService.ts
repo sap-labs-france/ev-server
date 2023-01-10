@@ -411,6 +411,8 @@ export default class StatisticService {
       if (Authorizations.isSiteAdmin(loggedUser)) {
         if (filteredRequest.UserID) {
           filter.userIDs = filteredRequest.UserID.split('|');
+        } else if (filteredRequest.SiteID) {
+          filter.siteIDs = filteredRequest.SiteID.split('|');
         } else {
           // Only for current sites
           filter.siteIDs = loggedUser.sitesAdmin;
