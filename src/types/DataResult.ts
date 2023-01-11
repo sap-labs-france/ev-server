@@ -187,4 +187,6 @@ export interface SettingDBDataResult extends DataResult<SettingDB> {
 
 export interface OcpiEndpointDataResult extends DataResult<OCPIEndpoint> {
   canCreate?: boolean;
+  canPing?: boolean;
+  canGenerateLocalToken?: boolean;
 }
