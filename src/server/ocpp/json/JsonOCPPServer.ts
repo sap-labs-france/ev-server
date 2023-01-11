@@ -577,6 +577,9 @@ export default class JsonOCPPServer extends OCPPServer {
     // Reference a Json WebSocket connection object
     if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
       this.jsonWSConnections.set(wsConnection.getID(), wsConnection as JsonWSConnection);
+      if (global.monitoringServer) {
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
+      }
       Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         chargingStationID: wsWrapper.chargingStationID,
@@ -628,6 +631,9 @@ export default class JsonOCPPServer extends OCPPServer {
         if (existingWsWrapper.guid === wsWrapper.guid) {
           // Remove from WS Cache
           wsConnections.delete(wsConnection.getID());
+          if (global.monitoringServer) {
+            global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
+          }
           Logging.beDebug()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             chargingStationID: wsWrapper.chargingStationID,
@@ -688,6 +694,13 @@ export default class JsonOCPPServer extends OCPPServer {
             `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
           ]
         });
+        if (global.monitoringServer) {
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_ON_OPEN_RUNNING_REQUEST).set(this.onOpenMessages);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRRENT_REQUEST).set(numberOfCurrentRequests);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(this.runningWSMessages);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_QUEUED_REQUEST).set(this.waitingWSMessages);
+        }
         if (this.isDebug()) {
           Logging.logConsoleDebug('=====================================');
           Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
