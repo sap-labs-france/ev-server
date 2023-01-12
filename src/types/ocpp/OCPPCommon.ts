@@ -4,12 +4,10 @@ import OCPPError from '../../exception/OcppError';
 export type FctOCPPResponse = (payload?: Record<string, unknown> | string) => void;
 export type FctOCPPReject = (reason?: OCPPError) => void;
 
-// export type OCPPRequest = [FctOCPPResponse, FctOCPPReject, Command];
-
-export type OCPPIncomingRequest = [OCPPMessageType, string, Command, Record<string, unknown>, Record<string, unknown>];
-export type OCPPIncomingResponse = [OCPPMessageType, string, Record<string, unknown>, Record<string, unknown>];
-
-export type OCPPOutgoingRequest = [OCPPMessageType, string, Command, Record<string, unknown>];
+export type OCPPPayload = Record<string, unknown>;
+export type OCPPIncomingRequest = [OCPPMessageType, string, Command, OCPPPayload, OCPPPayload];
+export type OCPPIncomingResponse = [OCPPMessageType, string, OCPPPayload, OCPPPayload];
+export type OCPPOutgoingRequest = [OCPPMessageType, string, Command, OCPPPayload];
 
 export enum OCPPMessageType {
   CALL_MESSAGE = 2, // Caller to Callee

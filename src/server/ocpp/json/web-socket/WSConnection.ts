@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
-import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType } from '../../../../types/ocpp/OCPPCommon';
+import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPPayload } from '../../../../types/ocpp/OCPPCommon';
 import { ServerAction, WSServerProtocol } from '../../../../types/Server';
 
 import BackendError from '../../../../exception/BackendError';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPError from '../../../../exception/OcppError';
 import OCPPUtils from '../../utils/OCPPUtils';
 import Tenant from '../../../../types/Tenant';
@@ -60,22 +61,20 @@ export default abstract class WSConnection {
   private tenantSubdomain: string;
   private tokenID: string;
   private url: string;
-  private clientIP: string | string[];
-  private ws: WSWrapper;
+  private wsWrapper: WSWrapper;
   private pendingOcppCommands: Record<string, OcppPendingCommand> = {};
 
   public constructor(ws: WSWrapper) {
     // Init
     this.url = ws.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
-    this.ws = ws;
-    this.clientIP = ws.getRemoteAddress();
+    this.wsWrapper = ws;
     // Check mandatory fields
     this.checkMandatoryFieldsInRequest();
   }
 
   public async initialize(): Promise<void> {
     // Do not update the lastSeen when the caller is the REST server!
-    const updateChargingStationData = (this.ws.protocol !== WSServerProtocol.REST);
+    const updateChargingStationData = (this.wsWrapper.protocol !== WSServerProtocol.REST);
     // Check and Get Charging Station data
     const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationConnectionData(
       ServerAction.WS_SERVER_CONNECTION,
@@ -85,35 +84,39 @@ export default abstract class WSConnection {
     // Set
     this.setTenant(tenant);
     this.setChargingStation(chargingStation);
+    this.wsWrapper.setConnection(this);
   }
 
-  public sendResponse(messageID: string, command: Command, response: Record<string, any>): void {
+  public sendResponse(messageID: string, command: Command, initialPayload: OCPPPayload, response: OCPPPayload): void {
     // Build Message
     const messageType = OCPPMessageType.CALL_RESULT_MESSAGE;
     const messageToSend = JSON.stringify([messageType, messageID, response]);
-    Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`Send Response ${messageToSend} for '${this.ws.url }'`);
-    this.sendPayload(messageToSend);
+    Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`Send Response ${messageToSend} for '${this.wsWrapper.url }'`);
+    this.sendMessageInternal(messageToSend, command, initialPayload);
   }
 
-  public sendError(messageID: string, error: any): void {
+  public sendError(messageID: string,
+      initialCommand: Command,
+      initialPayload: OCPPPayload,
+      error: any): void {
     // Build Error Message
     const messageType = OCPPMessageType.CALL_ERROR_MESSAGE;
     const errorCode = error.code ?? OCPPErrorType.GENERIC_ERROR;
     const errorMessage = error.message ? error.message : '';
     const errorDetail = error.details ? error.details : {};
     const messageToSend = JSON.stringify([messageType, messageID, errorCode, errorMessage, errorDetail]);
-    Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`Send Error ${messageToSend} for '${this.ws.url}'`);
-    this.sendPayload(messageToSend);
+    Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`Send Error ${messageToSend} for '${this.wsWrapper.url}'`);
+    this.sendMessageInternal(messageToSend, initialCommand, initialPayload);
   }
 
-  public async sendMessageAndWaitForResult(messageID: string, command: Command, data: Record<string, any>): Promise<unknown> {
+  public async sendMessageAndWaitForResult(messageID: string, command: Command, dataToSend: OCPPPayload): Promise<unknown> {
     // Create a pending promise
     const pendingPromise = new Promise((resolve, reject) => {
       // Send the message to the charging station
       const messageType = OCPPMessageType.CALL_MESSAGE;
-      const messageToSend = JSON.stringify([messageType, messageID, command, data]);
+      const messageToSend = JSON.stringify([messageType, messageID, command, dataToSend]);
       // Function that will receive the request's response
-      const responseCallback = (payload?: Record<string, unknown> | string): void => {
+      const responseCallback = (payload?: OCPPPayload | string): void => {
         resolve(payload);
       };
       // Function that will receive the request's rejection
@@ -129,11 +132,11 @@ export default abstract class WSConnection {
         reject(timeoutError);
       }, Constants.OCPP_SOCKET_TIMEOUT_MILLIS);
       // Let's send it
-      Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`Send Message ${messageToSend} for '${this.ws.url }'`);
+      Utils.isDevelopmentEnv() && Logging.logConsoleDebug(`Send Message ${messageToSend} for '${this.wsWrapper.url }'`);
       // Keep track of the pending promise
       this.pendingOcppCommands[messageID] = new OcppPendingCommand(command, responseCallback, rejectCallback, timeout);
       // Send the message
-      if (!this.sendPayload(messageToSend)) {
+      if (!this.sendMessageInternal(messageToSend)) {
         // Well - we have not been able to send the message - Remove the pending promise from the cache
         this.consumePendingOcppCommands(messageID);
         // send some feedback
@@ -145,11 +148,14 @@ export default abstract class WSConnection {
     return pendingPromise;
   }
 
-  public sendPayload(messageToSend: string): boolean {
+  private sendMessageInternal(
+      messageToSend: string,
+      initialCommand: Command = null,
+      initialCommandPayload: OCPPPayload = null): boolean {
     let sent = false ;
     try {
       // Send Message
-      if (this.ws.send(messageToSend)) {
+      if (this.wsWrapper.send(messageToSend, initialCommand, initialCommandPayload)) {
         sent = true;
       } else {
         // Not always an error with uWebSocket: check BackPressure example
@@ -221,20 +227,20 @@ export default abstract class WSConnection {
   }
 
   public async handleIncomingOcppRequest(wsWrapper: WSWrapper, ocppMessage: OCPPIncomingRequest): Promise<void> {
-    if (wsWrapper.closed) {
-      // Is there anything to cleanup?
+    if (wsWrapper.closed || !wsWrapper.isValid) {
       return;
     }
     // Parse the data
-    const [ ,messageID, command, commandPayload] = ocppMessage;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [messageType, messageID, command, commandPayload] = ocppMessage;
     try {
       // Process the call
       const result = await this.handleRequest(command, commandPayload);
       // Send Response
-      this.sendResponse(messageID, command, result as Record<string, unknown>);
+      this.sendResponse(messageID, command, commandPayload, result as Record<string, unknown>);
     } catch (error) {
       // Send Error Response
-      this.sendError(messageID, error);
+      this.sendError(messageID, command, commandPayload, error);
       Logging.beError()?.log({
         tenantID: this.tenantID,
         siteID: this.siteID,
@@ -273,10 +279,7 @@ export default abstract class WSConnection {
       // No OCPP request found ???
       // Is there anything to cleanup?
       throw new BackendError({
-        chargingStationID: this.getChargingStationID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
+        ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME, method: 'handleIncomingOcppResponse',
         message: `OCPP Request not found for a response to messageID: '${messageID}'`,
         detailedMessages: { messageType, messageID, commandPayload }
@@ -291,10 +294,7 @@ export default abstract class WSConnection {
     const ocppPendingCommand = this.consumePendingOcppCommands(messageID);
     if (ocppPendingCommand) {
       ocppPendingCommand.reject(new OCPPError({
-        chargingStationID: this.getChargingStationID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
+        ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME, method: 'onMessage',
         code: ocppPendingCommand.getCommand(),
         message: JSON.stringify(ocppMessage),
@@ -305,10 +305,7 @@ export default abstract class WSConnection {
       // No OCPP request found ???
       // Is there anything to cleanup?
       throw new BackendError({
-        chargingStationID: this.getChargingStationID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
+        ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME, method: 'handleIncomingOcppError',
         message: `OCPP Request not found for an error response to messageID: '${messageID}'`,
         detailedMessages: { messageType, messageID, commandPayload, errorDetails }
@@ -317,7 +314,7 @@ export default abstract class WSConnection {
   }
 
   public getWS(): WSWrapper {
-    return this.ws;
+    return this.wsWrapper;
   }
 
   public getURL(): string {
@@ -325,7 +322,7 @@ export default abstract class WSConnection {
   }
 
   public getClientIP(): string | string[] {
-    return this.clientIP;
+    return this.wsWrapper.getRemoteAddress();
   }
 
   public setChargingStation(chargingStation: ChargingStation): void {

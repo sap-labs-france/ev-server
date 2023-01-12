@@ -10,10 +10,12 @@ import Constants from '../../../../utils/Constants';
 import JsonChargingStationClient from '../../../../client/ocpp/json/JsonChargingStationClient';
 import JsonChargingStationService from '../services/JsonChargingStationService';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPError from '../../../../exception/OcppError';
 import { OCPPErrorType } from '../../../../types/ocpp/OCPPCommon';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPUtils from '../../utils/OCPPUtils';
+import { ServerAction } from '../../../../types/Server';
 import WSConnection from './WSConnection';
 import WSWrapper from './WSWrapper';
 
@@ -100,10 +102,7 @@ export default class JsonWSConnection extends WSConnection {
     } else {
       // Throw Exception
       throw new OCPPError({
-        chargingStationID: this.getChargingStationID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
+        ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OCPPErrorType.NOT_IMPLEMENTED,
@@ -124,11 +123,25 @@ export default class JsonWSConnection extends WSConnection {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public onPing(message: string): void {
     this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
+    Logging.beDebug()?.log({
+      ...LoggingHelper.getWSConnectionProperties(this),
+      tenantID: this.getTenantID(),
+      action: ServerAction.WS_CLIENT_CONNECTION_PING,
+      module: MODULE_NAME, method: 'onPing',
+      message: 'Ping received'
+    });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public onPong(message: string): void {
     this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
+    Logging.beDebug()?.log({
+      ...LoggingHelper.getWSConnectionProperties(this),
+      tenantID: this.getTenantID(),
+      action: ServerAction.WS_CLIENT_CONNECTION_PONG,
+      module: MODULE_NAME, method: 'onPing',
+      message: 'Pong received'
+    });
   }
 
   private async updateChargingStationLastSeen(): Promise<void> {

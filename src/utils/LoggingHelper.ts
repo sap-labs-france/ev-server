@@ -8,6 +8,7 @@ import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
+import WSConnection from '../server/ocpp/json/web-socket/WSConnection';
 import WSWrapper from '../server/ocpp/json/web-socket/WSWrapper';
 
 export default class LoggingHelper {
@@ -41,13 +42,21 @@ export default class LoggingHelper {
     };
   }
 
-  public static getWSWrapperProperties(wsWrapper: WSWrapper): { tenantID: string; siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; } {
+  public static getWSWrapperProperties(wsWrapper: WSWrapper): { siteID: string; siteAreaID: string; companyID: string; chargingStationID } {
     return {
-      tenantID: wsWrapper?.tenantID,
-      siteID: wsWrapper?.siteID,
-      siteAreaID: wsWrapper?.siteAreaID,
-      companyID: wsWrapper?.companyID,
-      chargingStationID: wsWrapper?.chargingStationID,
+      siteID: wsWrapper?.wsConnection?.getSiteID(),
+      siteAreaID: wsWrapper?.wsConnection?.getSiteAreaID(),
+      companyID: wsWrapper?.wsConnection?.getCompanyID(),
+      chargingStationID: wsWrapper?.wsConnection?.getChargingStationID(),
+    };
+  }
+
+  public static getWSConnectionProperties(wsConnection: WSConnection): { siteID: string; siteAreaID: string; companyID: string; chargingStationID } {
+    return {
+      siteID: wsConnection?.getSiteID(),
+      siteAreaID: wsConnection?.getSiteAreaID(),
+      companyID: wsConnection?.getCompanyID(),
+      chargingStationID: wsConnection?.getChargingStationID(),
     };
   }
 
@@ -91,7 +100,7 @@ export default class LoggingHelper {
     };
   }
 
-  public static getSourceDataProperties(sourceData: any): { siteID: string,  siteAreaID?: string, companyID: string, chargingStationID: string } {
+  public static getSourceDataProperties(sourceData: any): { siteID: string, siteAreaID?: string, companyID: string, chargingStationID: string } {
     return {
       siteID: sourceData?.siteID,
       siteAreaID: sourceData?.siteAreaID,

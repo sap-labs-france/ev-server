@@ -56,9 +56,10 @@ export default class JsonOCPPServer extends OCPPServer {
     let idleTimeout: number;
     const sendPingsAutomatically = FeatureToggles.isFeatureActive(Feature.WS_SEND_PING_AUTOMATICALLY);
     if (sendPingsAutomatically) {
-      idleTimeout = 2 * 60; // 2 minutes of inactivity close
+      idleTimeout = 1 * 60; // closed if inactive
     } else {
-      idleTimeout = 3600; // 1 hour of inactivity ==> close
+      // idleTimeout = 3600; // 1 hour of inactivity ==> close
+      idleTimeout = 0; // Never close Web Sockets
     }
     // Start the WS server
     Logging.logConsoleDebug(`Starting ${ServerType.JSON_SERVER} Server...`);
@@ -243,147 +244,90 @@ export default class JsonOCPPServer extends OCPPServer {
     }
   }
 
-  private async onOpen(ws: uWS.WebSocket) {
-    // Create WS Wrapper
-    const wsWrapper = new WSWrapper(ws);
-    // Keep it on the ws
-    ws.wsWrapper = wsWrapper;
-    // Lock incoming WS messages
-    await this.acquireLockForWSRequest(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsWrapper);
-    try {
-      this.runningWSMessages++;
-      // Path must contain /OCPP16 or /REST as it is already checked during the Upgrade process
-      // Check OCPP16 connection
-      if (wsWrapper.url.startsWith('/OCPP16')) {
-        // Create and Initialize WS Connection
-        await this.checkAndStoreWSOpenedConnection(WSServerProtocol.OCPP16, wsWrapper);
-      }
-      // Check REST connection
-      if (wsWrapper.url.startsWith('/REST')) {
-        // Create and Initialize WS Connection
-        await this.checkAndStoreWSOpenedConnection(WSServerProtocol.REST, wsWrapper);
-      }
-    } catch (error) {
-      Logging.logException(error as Error, ServerAction.WS_SERVER_CONNECTION_OPEN, MODULE_NAME, 'onOpen', Constants.DEFAULT_TENANT_ID);
-      if (wsWrapper.tenantID) {
-        Logging.logException(error as Error, ServerAction.WS_SERVER_CONNECTION_OPEN, MODULE_NAME, 'onOpen', wsWrapper.tenantID);
-      }
-      // Close WS
-      this.closeWebSocket(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsWrapper, WebSocketCloseEventStatusCode.CLOSE_ABNORMAL,
-        `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been rejected and closed by server due to an exception: ${error.message as string}`);
-    } finally {
-      this.runningWSMessages--;
-      this.releaseLockForWSMessageRequest(wsWrapper);
-    }
-  }
-
-  private async checkAndStoreWSOpenedConnection(protocol: WSServerProtocol, wsWrapper: WSWrapper): Promise<void> {
+  private async createAndKeepJsonConnection(wsWrapper: WSWrapper): Promise<void> {
     let wsConnection: WSConnection;
     const timeStart = Date.now();
-    // Set the protocol
-    wsWrapper.protocol = protocol;
-    // Create a WebSocket connection object
-    if (protocol === WSServerProtocol.OCPP16) {
-      wsConnection = new JsonWSConnection(wsWrapper);
-    }
-    if (protocol === WSServerProtocol.REST) {
-      wsConnection = new JsonRestWSConnection(wsWrapper);
-    }
-    Logging.beDebug()?.log({
-      tenantID: Constants.DEFAULT_TENANT_ID,
-      action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'checkAndStoreWSOpenedConnection',
-      message: `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}'  is being checked ('${wsWrapper.url}')`,
-      detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
-    });
-    // Initialize (check of Tenant, Token, Charging Station -> Can take time)
-    await wsConnection.initialize();
-    // Check if WS is still opened (long time initialization when thousand of WS are connecting at the same time)
-    if (!wsWrapper.closed) {
-      // Keep common data (Set here to get Tenant info in case of exception in Logs)
-      wsWrapper.key = wsConnection.getID();
-      wsWrapper.chargingStationID = wsConnection.getChargingStationID();
-      wsWrapper.tenantID = wsConnection.getTenantID();
-      wsWrapper.tokenID = wsConnection.getTokenID();
-      wsWrapper.siteID = wsConnection.getSiteID();
-      wsWrapper.siteAreaID = wsConnection.getSiteAreaID();
-      wsWrapper.companyID = wsConnection.getCompanyID();
-      // Check already existing WS Connection
-      this.checkAndCloseIdenticalOpenedWSConnection(wsWrapper, wsConnection);
-      const message = `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been accepted in ${Utils.computeTimeDurationSecs(timeStart)} secs`;
-      Logging.beInfo()?.log({
+    try {
+      // Create a WebSocket connection object
+      if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
+        wsConnection = new JsonWSConnection(wsWrapper);
+      }
+      if (wsWrapper.protocol === WSServerProtocol.REST) {
+        wsConnection = new JsonRestWSConnection(wsWrapper);
+      }
+      Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        chargingStationID: wsWrapper.chargingStationID,
-        action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'checkAndStoreWSOpenedConnection',
-        message, detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
+        action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'createAndKeepJsonConnection',
+        message: `${WebSocketAction.OPEN} > WS ID '${wsWrapper.guid}'  is being checked ('${wsWrapper.url}')`,
+        detailedMessages: { wsWrapper: wsWrapper.toJson() }
       });
+      // Initialize (check of Tenant, Token, Charging Station -> Can take time)
+      await wsConnection.initialize();
+      // Keep common data (Set here to get Tenant info in case of exception in Logs)
+      wsWrapper.setConnection(wsConnection);
+      // Keep WS connection in cache
+      if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
+        this.jsonWSConnections.set(wsConnection.getID(), wsConnection as JsonWSConnection);
+      }
       Logging.beInfo()?.log({
         ...LoggingHelper.getWSWrapperProperties(wsWrapper),
-        action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'checkAndStoreWSOpenedConnection',
-        message, detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
+        tenantID: wsWrapper.wsConnection?.getTenantID(),
+        action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'createAndKeepJsonConnection',
+        message: `${WebSocketAction.OPEN} > WS ID '${wsWrapper.guid}' is valid (processed in ${Utils.computeTimeDurationSecs(timeStart)} secs)`,
+        detailedMessages: { wsWrapper: wsWrapper.toJson() }
       });
-      // Keep WS connection in cache
-      this.setWSConnection(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsConnection, wsWrapper);
-    } else {
-      this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_OPEN, WebSocketCloseEventStatusCode.CLOSE_ABNORMAL,
-        `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been closed during initialization in ${Utils.computeTimeDurationSecs(timeStart)} secs ('${wsWrapper.url}')`);
+    } catch (error) {
+      wsWrapper.isValid = false;
+      Logging.beError()?.log({
+        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
+        tenantID: wsWrapper.wsConnection?.getTenantID(),
+        action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'createAndKeepJsonConnection',
+        message: `${WebSocketAction.OPEN} > WS ID '${wsWrapper.guid}' is invalid (processed in ${Utils.computeTimeDurationSecs(timeStart)} secs)`,
+        detailedMessages: { wsWrapper: wsWrapper.toJson() }
+      });
     }
   }
 
-  private checkAndCloseIdenticalOpenedWSConnection(wsWrapper: WSWrapper, wsConnection: WSConnection): void {
-    // Get connection
-    const existingWSConnection =
-      this.getWSConnectionFromProtocolAndID(wsConnection.getWS().protocol, wsConnection.getID());
-    // Found existing WS Connection?
-    if (existingWSConnection) {
-      // Still opened WS?
-      const existingWSWrapper = existingWSConnection.getWS();
-      if (!existingWSWrapper.closed) {
-        // Ping WS
-        const result = this.pingWebSocket(existingWSWrapper);
-        if (result.ok) {
-          // Close the old WS and keep the new incoming one
-          Logging.beWarning()?.log({
-            tenantID: Constants.DEFAULT_TENANT_ID,
-            chargingStationID: wsWrapper.chargingStationID,
-            action: ServerAction.WS_SERVER_CONNECTION, module: MODULE_NAME, method: 'checkAndCloseIdenticalOpenedWSConnection',
-            message: `${WebSocketAction.OPEN} > Existing WS Connection ID '${existingWSWrapper.guid}' will be closed and replaced by new incoming one with ID '${wsWrapper.guid}'`,
-            detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
-          });
-          this.closeWebSocket(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, existingWSConnection.getWS(), WebSocketCloseEventStatusCode.CLOSE_ABNORMAL,
-            `${WebSocketAction.OPEN} > Existing WS Connection ID '${existingWSWrapper.guid}' has been closed successfully by the server`);
-        }
+  private async resolveAndGetWSWrapper(ws: uWS.WebSocket): Promise<WSWrapper> {
+    // Check if already initialized
+    let wsWrapper = ws.wsWrapper as WSWrapper;
+    if (wsWrapper) {
+      if (!wsWrapper.closed) {
+        return wsWrapper;
       }
-    }
-  }
-
-  private async acquireLockForWSRequest(wsAction: WebSocketAction, action: ServerAction, wsWrapper: WSWrapper, ocppMessageType?: OCPPMessageType): Promise<void> {
-    // Only lock requests, not responses
-    if (ocppMessageType && ocppMessageType !== OCPPMessageType.CALL_MESSAGE) {
       return;
     }
-    // Wait for Init (avoid WS connection with same URL), ocppMessageType only provided when a WS Message is received
-    await this.waitForWSLockToRelease(wsAction, action, wsWrapper);
-    // Lock
-    this.runningWSRequestsMessages[wsWrapper.url] = true;
+    // Create new Wrapper
+    wsWrapper = new WSWrapper(ws);
+    // Create Json connection
+    await this.createAndKeepJsonConnection(wsWrapper);
+    // Assign it
+    if (wsWrapper.isValid) {
+      ws.wsWrapper = wsWrapper;
+    }
+    return wsWrapper;
   }
 
-  private releaseLockForWSMessageRequest(wsWrapper: WSWrapper, ocppMessageType?: OCPPMessageType): void {
-    // Only lock requests, not responses
-    if (ocppMessageType && (ocppMessageType !== OCPPMessageType.CALL_MESSAGE)) {
-      return;
+  private async onOpen(ws: uWS.WebSocket) {
+    // Get WS Wrapper
+    const wsWrapper = await this.resolveAndGetWSWrapper(ws);
+    if (!wsWrapper?.isValid) {
+      // TODO - To be clarified - why should we close the WebSocket?
+      wsWrapper.close(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Connection rejected by the backend');
     }
-    // Unlock
-    delete this.runningWSRequestsMessages[wsWrapper.url];
   }
 
   private async onMessage(ws: uWS.WebSocket, message: string, isBinary: boolean): Promise<void> {
-    const wsWrapper: WSWrapper = ws.wsWrapper;
+    const wsWrapper = await this.resolveAndGetWSWrapper(ws);
+    if (!wsWrapper?.isValid) {
+      // TODO - To be clarified - why should we close the WebSocket?
+      wsWrapper.close(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Connection rejected by the backend');
+      return;
+    }
     try {
       // Extract the OCPP Message Type
       const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(message);
-      const ocppMessageType = ocppMessage[0];
       // Lock incoming WS messages
-      await this.acquireLockForWSRequest(WebSocketAction.MESSAGE, ServerAction.WS_SERVER_MESSAGE, wsWrapper, ocppMessageType);
       try {
         this.runningWSMessages++;
         // Check if connection is available in Map
@@ -402,11 +346,10 @@ export default class JsonOCPPServer extends OCPPServer {
         }
       } finally {
         this.runningWSMessages--;
-        this.releaseLockForWSMessageRequest(wsWrapper, ocppMessageType);
       }
     } catch (error) {
       const logMessage = `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' got error while processing WS Message: ${error.message as string}`;
-      if (wsWrapper?.tenantID) {
+      if (wsWrapper?.wsConnection?.getTenantID()) {
         Logging.beError()?.log({
           ...LoggingHelper.getWSWrapperProperties(wsWrapper),
           action: ServerAction.WS_SERVER_MESSAGE,
@@ -417,10 +360,10 @@ export default class JsonOCPPServer extends OCPPServer {
       }
       Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        chargingStationID: wsWrapper.chargingStationID,
+        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
         action: ServerAction.WS_SERVER_MESSAGE,
         module: MODULE_NAME, method: 'onMessage',
-        message: logMessage + ` - tenant: ${wsWrapper?.tenantID}`,
+        message: logMessage + ` - tenant: ${wsWrapper?.wsConnection?.getTenantID()}`,
         detailedMessages: { message, isBinary, wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
       });
     }
@@ -440,11 +383,11 @@ export default class JsonOCPPServer extends OCPPServer {
     }
     // Get WS Connection from cache
     const wsExistingConnection =
-      this.getWSConnectionFromProtocolAndID(wsWrapper.protocol, wsWrapper.key);
+      this.getWSConnection(wsWrapper);
     if (!wsExistingConnection) {
       Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        chargingStationID: wsWrapper.chargingStationID,
+        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
         action: ServerAction.WS_SERVER_MESSAGE,
         module: MODULE_NAME, method: 'checkWSConnectionFromOnMessage',
         message: `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' has sent a WS Message on an unreferenced WS Connection, it will be then added in the WS cache`,
@@ -459,7 +402,7 @@ export default class JsonOCPPServer extends OCPPServer {
     if (wsExistingWrapper.guid !== wsWrapper.guid) {
       Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        chargingStationID: wsWrapper.chargingStationID,
+        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
         action: ServerAction.WS_SERVER_MESSAGE,
         module: MODULE_NAME, method: 'checkWSConnectionFromOnMessage',
         message: `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' has sent a WS Message on an already referenced WS Connection ID '${wsExistingWrapper.guid}' in WS cache, ping will be performed...`,
@@ -470,7 +413,7 @@ export default class JsonOCPPServer extends OCPPServer {
       if (result.ok) {
         Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
-          chargingStationID: wsWrapper.chargingStationID,
+          ...LoggingHelper.getWSWrapperProperties(wsWrapper),
           action: ServerAction.WS_SERVER_MESSAGE,
           module: MODULE_NAME, method: 'checkWSConnectionFromOnMessage',
           message: `${WebSocketAction.MESSAGE} > Existing WS Connection ID '${wsExistingWrapper.guid}' ping succeeded meaning multiple WS connections are opened by the same charging station, existing one will be closed and replaced by new one with ID '${wsWrapper.guid}'`,
@@ -482,7 +425,7 @@ export default class JsonOCPPServer extends OCPPServer {
       } else {
         Logging.beWarning()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
-          chargingStationID: wsWrapper.chargingStationID,
+          ...LoggingHelper.getWSWrapperProperties(wsWrapper),
           action: ServerAction.WS_SERVER_MESSAGE,
           module: MODULE_NAME, method: 'checkWSConnectionFromOnMessage',
           message: `${WebSocketAction.MESSAGE} > Existing WS Connection ID '${wsExistingWrapper.guid}' ping failed, new WS Connection ID '${wsWrapper.guid}' will be then added in the WS cache`,
@@ -496,7 +439,7 @@ export default class JsonOCPPServer extends OCPPServer {
 
   private logWSConnectionClosed(wsWrapper: WSWrapper, action: ServerAction, code: number, message: string): void {
     this.isDebug() && Logging.logConsoleDebug(message);
-    if (wsWrapper.tenantID) {
+    if (wsWrapper?.wsConnection?.getTenantID()) {
       Logging.beInfo()?.log({
         ...LoggingHelper.getWSWrapperProperties(wsWrapper),
         action, module: MODULE_NAME, method: 'logWSConnectionClosed',
@@ -505,7 +448,7 @@ export default class JsonOCPPServer extends OCPPServer {
     }
     Logging.beInfo()?.log({
       tenantID: Constants.DEFAULT_TENANT_ID,
-      chargingStationID: wsWrapper.chargingStationID,
+      ...LoggingHelper.getWSWrapperProperties(wsWrapper),
       action, module: MODULE_NAME, method: 'logWSConnectionClosed',
       message: message, detailedMessages: { code, message, wsWrapper: this.getWSWrapperData(wsWrapper) }
     });
@@ -519,7 +462,7 @@ export default class JsonOCPPServer extends OCPPServer {
       const timeStart = Date.now();
       Logging.beWarning()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        chargingStationID: wsWrapper.chargingStationID,
+        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
         action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
         message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Lock is taken: Wait and try to acquire the lock after ${Constants.WS_LOCK_TIME_OUT_MILLIS} ms...`,
         detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
@@ -534,7 +477,7 @@ export default class JsonOCPPServer extends OCPPServer {
         if (!this.runningWSRequestsMessages[wsWrapper.url]) {
           Logging.beInfo()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
-            chargingStationID: wsWrapper.chargingStationID,
+            ...LoggingHelper.getWSWrapperProperties(wsWrapper),
             action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
             message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Lock has been acquired successfully after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs`,
             detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
@@ -548,7 +491,7 @@ export default class JsonOCPPServer extends OCPPServer {
           // Abnormal situation: The lock should not be taken for so long!
           Logging.beError()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
-            chargingStationID: wsWrapper.chargingStationID,
+            ...LoggingHelper.getWSWrapperProperties(wsWrapper),
             action, module: MODULE_NAME, method: 'waitForWSLockToRelease',
             message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' - Cannot acquire the lock after ${numberOfTrials} trial(s) and ${Utils.computeTimeDurationSecs(timeStart)} secs - Lock will be forced to be released`,
             detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
@@ -565,7 +508,7 @@ export default class JsonOCPPServer extends OCPPServer {
   private pingWebSocket(wsWrapper: WSWrapper): WebSocketPingResult {
     try {
       // Ping the WS
-      wsWrapper.ping();
+      wsWrapper.ping('OCPPJ Ping');
       // Reset
       wsWrapper.nbrPingFailed = 0;
       return {
@@ -577,7 +520,7 @@ export default class JsonOCPPServer extends OCPPServer {
       if (wsWrapper.nbrPingFailed >= Constants.WS_MAX_NBR_OF_FAILED_PINGS) {
         Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
-          chargingStationID: wsWrapper.chargingStationID,
+          ...LoggingHelper.getWSWrapperProperties(wsWrapper),
           action: ServerAction.WS_SERVER_CONNECTION_PING, module: MODULE_NAME, method: 'pingWebSocket',
           message: `${WebSocketAction.PING} > Failed to ping the WS Connection ID '${wsWrapper.guid}' after ${wsWrapper.nbrPingFailed} trial(s), will be removed from WS cache`,
           detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
@@ -587,7 +530,7 @@ export default class JsonOCPPServer extends OCPPServer {
       } else {
         Logging.beWarning()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
-          chargingStationID: wsWrapper.chargingStationID,
+          ...LoggingHelper.getWSWrapperProperties(wsWrapper),
           action: ServerAction.WS_SERVER_CONNECTION_PING, module: MODULE_NAME, method: 'pingWebSocket',
           message: `${WebSocketAction.PING} > Failed to ping the WS Connection ID '${wsWrapper.guid}' after ${wsWrapper.nbrPingFailed} trial(s) (${Constants.WS_MAX_NBR_OF_FAILED_PINGS - wsWrapper.nbrPingFailed} remaining)`,
           detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper), error: error.stack }
@@ -611,7 +554,7 @@ export default class JsonOCPPServer extends OCPPServer {
         // Just log and ignore issue
         Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
-          chargingStationID: wsWrapper.chargingStationID,
+          ...LoggingHelper.getWSWrapperProperties(wsWrapper),
           action, module: MODULE_NAME, method: 'closeWebSocket',
           message: `${wsAction} > Failed to close WS Connection ID '${wsWrapper.guid}': ${error.message as string}`,
           detailedMessages: { error: error.stack, wsWrapper: this.getWSWrapperData(wsWrapper) }
@@ -628,7 +571,7 @@ export default class JsonOCPPServer extends OCPPServer {
       this.jsonWSConnections.set(wsConnection.getID(), wsConnection as JsonWSConnection);
       Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        chargingStationID: wsWrapper.chargingStationID,
+        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
         action, module: MODULE_NAME, method: 'setWSConnection',
         message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been added in the WS cache`,
         detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
@@ -647,9 +590,9 @@ export default class JsonOCPPServer extends OCPPServer {
     wsWrapper.wsConnection = wsConnection;
   }
 
-  private getWSConnectionFromProtocolAndID(protocol: WSServerProtocol, wsConnectionID: string): WSConnection {
-    if (protocol === WSServerProtocol.OCPP16) {
-      return this.jsonWSConnections.get(wsConnectionID);
+  private getWSConnection(wsWrapper: WSWrapper): WSConnection {
+    if (wsWrapper?.protocol === WSServerProtocol.OCPP16) {
+      return this.jsonWSConnections.get(wsWrapper.wsConnection.getID());
     }
     // if (protocol === WSServerProtocol.REST) {
     //   return this.jsonRestWSConnections.get(wsConnectionID);
@@ -679,7 +622,7 @@ export default class JsonOCPPServer extends OCPPServer {
           wsConnections.delete(wsConnection.getID());
           Logging.beDebug()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
-            chargingStationID: wsWrapper.chargingStationID,
+            ...LoggingHelper.getWSWrapperProperties(wsWrapper),
             action, module: MODULE_NAME, method: 'setWSConnection',
             message: `${wsAction} > WS Connection ID '${wsWrapper.guid}' has been removed from the WS cache`,
             detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
@@ -688,7 +631,7 @@ export default class JsonOCPPServer extends OCPPServer {
           // WS Connection not identical
           Logging.beWarning()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
-            chargingStationID: wsWrapper.chargingStationID,
+            ...LoggingHelper.getWSWrapperProperties(wsWrapper),
             action, module: MODULE_NAME, method: 'removeWSConnection',
             message: `${wsAction} > Failed to remove WS Connection ID '${wsWrapper.guid}' from WS cache due to an already existing WS with different ID '${existingWsWrapper.guid}'`,
             detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper), existingWsWrapper: this.getWSWrapperData(existingWsWrapper) }
@@ -698,7 +641,7 @@ export default class JsonOCPPServer extends OCPPServer {
         // WS Connection not found
         Logging.beWarning()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
-          chargingStationID: wsWrapper.chargingStationID,
+          ...LoggingHelper.getWSWrapperProperties(wsWrapper),
           action, module: MODULE_NAME, method: 'removeWSConnection',
           message: `${wsAction} > Failed to remove WS Connection ID '${wsWrapper.guid}' from WS cache as it does not exist anymore in it`,
           detailedMessages: { wsWrapper: this.getWSWrapperData(wsWrapper) }
@@ -841,15 +784,12 @@ export default class JsonOCPPServer extends OCPPServer {
 
   private getWSWrapperData(wsWrapper: WSWrapper): Record<string, any> {
     return {
-      key: wsWrapper.key,
+      tenantID: wsWrapper.wsConnection?.getTenantID(),
+      key: wsWrapper.wsConnection?.getID(),
       guid: wsWrapper.guid,
       nbrPingFailed: wsWrapper.nbrPingFailed,
-      siteID: wsWrapper.siteID,
-      siteAreaID: wsWrapper.siteAreaID,
-      companyID: wsWrapper.companyID,
-      chargingStationID: wsWrapper.chargingStationID,
-      tenantID: wsWrapper.tenantID,
       tokenID: wsWrapper.tokenID,
+      ...LoggingHelper.getWSConnectionProperties(wsWrapper.wsConnection),
       url: wsWrapper.url,
       clientIP: wsWrapper.clientIP,
       closed: wsWrapper.closed,
