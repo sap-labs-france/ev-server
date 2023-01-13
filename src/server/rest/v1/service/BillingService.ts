@@ -288,7 +288,8 @@ export default class BillingService {
 
   // handle user creation + create payment intent + start transaction
   public static async handleScanPayPaymentIntent(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayReq(req.body);
+    const data = JSON.parse(Buffer.from(req.body.data, 'base64').toString('ascii'));
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayReq({ ...req.body, ...data });
     // on handle la creation du user là
     const tag = await BillingService.handleUserScanPay(filteredRequest, req.tenant);
     // Filter
