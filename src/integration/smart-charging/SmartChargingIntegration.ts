@@ -134,14 +134,24 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     // Remember Charging Stations which were removed from Smart Charging
     this.excludedChargingStations.push(chargingStation.id);
     // Notify Admins
-    void NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
+    NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
       { chargeBoxID: chargingProfile.chargingStationID,
         siteID: chargingProfile.chargingStation?.siteID,
         siteAreaID: chargingProfile.chargingStation?.siteAreaID,
         companyID: chargingProfile.chargingStation?.companyID,
         siteAreaName: siteAreaName,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-      });
+      }
+    ).catch((error) => {
+      // TODO - This should be done everywhere!
+      Logging.logError({
+        tenantID: tenant.id,
+        action: ServerAction.NOTIFICATION,
+        module: MODULE_NAME, method: 'notificationHelper',
+        message: 'Notification failed',
+        detailedMessages: { error: error.stack }
+      }).catch(() => { /* Intentional */ });
+    });
     return false;
   }
 
