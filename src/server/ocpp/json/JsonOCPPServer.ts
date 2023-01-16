@@ -293,10 +293,13 @@ export default class JsonOCPPServer extends OCPPServer {
         wsConnection = new JsonRestWSConnection(wsWrapper);
       }
       Logging.beDebug()?.log({
-        tenantID: Constants.DEFAULT_TENANT_ID,
+        tenantID: wsConnection.getTenantID(),
+        ...LoggingHelper.getWSConnectionProperties(wsConnection),
         action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'createAndKeepJsonConnection',
-        message: `${WebSocketAction.OPEN} > WS ID '${wsWrapper.guid}'  is being checked ('${wsWrapper.url}')`,
-        detailedMessages: { wsWrapper: wsWrapper.toJson() }
+        message: `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}'  is being checked ('${wsWrapper.url}')`,
+        detailedMessages: {
+          wsWrapper: wsWrapper.toJson()
+        }
       });
       // Initialize (check of Tenant, Token, Charging Station -> Can take time)
       await wsConnection.initialize();
@@ -402,9 +405,23 @@ export default class JsonOCPPServer extends OCPPServer {
   private async onMessage(ws: uWS.WebSocket, message: string, isBinary: boolean): Promise<void> {
     const wsWrapper = this.resolveAndGetWSWrapper(ws);
     if (!wsWrapper) {
+      Logging.beError()?.log({
+        action: ServerAction.WS_SERVER_MESSAGE,
+        module: MODULE_NAME, method: 'onMessage',
+        message: `${WebSocketAction.MESSAGE} > WS Connection not found ('${ws['url'] as string}')`,
+        detailedMessages: { message, isBinary }
+      });
+      ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Connection rejected by the backend: No WS Wrapper found');
       return;
     }
     if (!wsWrapper.isValid) {
+      Logging.beError()?.log({
+        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
+        action: ServerAction.WS_SERVER_MESSAGE,
+        module: MODULE_NAME, method: 'onMessage',
+        message: `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' is invalid ('${wsWrapper.url}')`,
+        detailedMessages: { message, isBinary, wsWrapper: wsWrapper.toJson() }
+      });
       wsWrapper.close(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Connection rejected by the backend');
       return;
     }
