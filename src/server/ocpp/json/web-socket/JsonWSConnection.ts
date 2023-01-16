@@ -1,20 +1,20 @@
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
-import BackendError from '../../../../exception/BackendError';
 import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Configuration from '../../../../utils/Configuration';
-import Constants from '../../../../utils/Constants';
 import JsonChargingStationClient from '../../../../client/ocpp/json/JsonChargingStationClient';
-import JsonChargingStationService from '../services/JsonChargingStationService';
-import Logging from '../../../../utils/Logging';
-import LoggingHelper from '../../../../utils/LoggingHelper';
+import BackendError from '../../../../exception/BackendError';
 import OCPPError from '../../../../exception/OcppError';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import { OCPPErrorType } from '../../../../types/ocpp/OCPPCommon';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
+import { ServerAction, WSServerProtocol } from '../../../../types/Server';
+import Configuration from '../../../../utils/Configuration';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPUtils from '../../utils/OCPPUtils';
-import { ServerAction } from '../../../../types/Server';
+import JsonChargingStationService from '../services/JsonChargingStationService';
 import WSConnection from './WSConnection';
 import WSWrapper from './WSWrapper';
 
@@ -72,9 +72,10 @@ export default class JsonWSConnection extends WSConnection {
     if (typeof this.chargingStationService[methodName] === 'function') {
       this.headers.currentIPAddress = this.getClientIP();
       // Check the Charging Station
+      const updateChargingStationData = this.getWS().protocol !== WSServerProtocol.REST;
       const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationConnectionData(
         OCPPUtils.buildServerActionFromOcppCommand(command),
-        this.getTenantID(), this.getChargingStationID(), this.getTokenID());
+        this.getTenantID(), this.getChargingStationID(), this.getTokenID(), updateChargingStationData);
       // Set the header
       this.headers.tenant = tenant;
       this.headers.chargingStation = chargingStation;

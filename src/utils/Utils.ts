@@ -925,10 +925,16 @@ export default class Utils {
     return `${Utils.buildRestServerURL(false)}/v1/util/tenants/email-logo?ID=${tenantID}&ts=` + new Date().getTime();
   }
 
-  public static buildEvseURL(subdomain: string = null): string {
+  public static buildEvseURL(subdomain?: string, withPort = true): string {
     const centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
     if (subdomain) {
-      return `${centralSystemFrontEndConfig.protocol}://${subdomain}.${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
+      if (withPort) {
+        return `${centralSystemFrontEndConfig.protocol}://${subdomain}.${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
+      }
+      return `${centralSystemFrontEndConfig.protocol}://${subdomain}.${centralSystemFrontEndConfig.host}`;
+    }
+    if (withPort) {
+      return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}`;
     }
     return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
   }

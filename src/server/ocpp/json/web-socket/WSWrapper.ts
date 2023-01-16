@@ -34,10 +34,8 @@ export default class WSWrapper {
 
   private ws: WebSocket;
 
-  public constructor(ws: WebSocket) {
-    this.ws = ws;
-    this.url = ws.url;
-    this.remoteAddress = Utils.convertBufferArrayToString(ws.getRemoteAddressAsText()).toString();
+  public constructor(url: string) {
+    this.url = url;
     this.guid = Utils.generateShortNonUniqueID();
     this.firstConnectionDate = new Date();
     this.nbrPingFailed = 0;
@@ -49,6 +47,12 @@ export default class WSWrapper {
     if (this.url.startsWith('/REST')) {
       this.protocol = WSServerProtocol.REST;
     }
+  }
+
+  public setWebSocket(ws: WebSocket) {
+    this.ws = ws;
+    this.remoteAddress = Utils.convertBufferArrayToString(ws.getRemoteAddressAsText()).toString();
+    this.isValid = true;
   }
 
   public send(messageToSend: RecognizedString, command: Command, commandPayload?: Record<string, any>, isBinary?: boolean, compress?: boolean): boolean {

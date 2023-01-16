@@ -1,12 +1,12 @@
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
 import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPRequest } from '../../../../types/ocpp/OCPPCommon';
+import { ServerAction, WSServerProtocol } from '../../../../types/Server';
 
 import BackendError from '../../../../exception/BackendError';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import OCPPError from '../../../../exception/OcppError';
 import OCPPUtils from '../../utils/OCPPUtils';
-import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import WSWrapper from './WSWrapper';
@@ -23,12 +23,13 @@ export default abstract class WSConnection {
   private tenantSubdomain: string;
   private tokenID: string;
   private url: string;
+  private originalURL: string;
   private ws: WSWrapper;
   private ocppRequests: Record<string, OCPPRequest> = {};
 
   public constructor(ws: WSWrapper) {
-    // Init
     this.url = ws.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
+    this.originalURL = ws.url;
     this.ws = ws;
     // Check mandatory fields
     this.checkMandatoryFieldsInRequest();
@@ -36,8 +37,9 @@ export default abstract class WSConnection {
 
   public async initialize(): Promise<void> {
     // Check and Get Charging Station data
+    const updateChargingStationData = this.getWS().protocol !== WSServerProtocol.REST;
     const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationConnectionData(
-      ServerAction.WS_SERVER_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID());
+      ServerAction.WS_SERVER_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID(), updateChargingStationData);
     // Set
     this.setTenant(tenant);
     this.setChargingStation(chargingStation);
@@ -264,6 +266,10 @@ export default abstract class WSConnection {
 
   public getURL(): string {
     return this.url;
+  }
+
+  public getOriginalURL(): string {
+    return this.originalURL;
   }
 
   public getClientIP(): string | string[] {
