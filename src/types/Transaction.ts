@@ -213,3 +213,9 @@ export interface SmartChargingSessionParameters {
   carStateOfCharge: number,
   targetStateOfCharge: number,
 }
+
+export interface SmartChargingRuntimeSessionParameters {
+  departureTime?: Date,
+  carStateOfCharge?: number,
+  targetStateOfCharge?: number,
+}

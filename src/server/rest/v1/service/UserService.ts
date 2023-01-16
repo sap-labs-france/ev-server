@@ -6,7 +6,6 @@ import { Car, CarType } from '../../../../types/Car';
 import { DataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import { SmartChargingSessionParameters, StartTransactionErrorCode } from '../../../../types/Transaction';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import User, { ImportedUser, UserRequiredImportProperties, UserRole } from '../../../../types/User';
 
@@ -18,7 +17,6 @@ import BillingFactory from '../../../../integration/billing/BillingFactory';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
-import { CurrentType } from '../../../../types/ChargingStation';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import { HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
 import JSONStream from 'JSONStream';
@@ -32,7 +30,8 @@ import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
+import SmartChargingHelper from '../../../../integration/smart-charging/SmartChargingHelper';
+import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
@@ -99,28 +98,10 @@ export default class UserService {
       // Check for the billing prerequisites (such as the user's payment method)
       await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
     }
-    let smartChargingSessionParameters: SmartChargingSessionParameters = null;
-    // Handle Smart Charging
-    if (chargingStation.siteArea?.smartCharging && !chargingStation.excludeFromSmartCharging
-      && chargingStation.capabilities.supportChargingProfiles && Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING)) {
-      const smartChargingSettings = await SettingStorage.getSmartChargingSettings(req.tenant);
-      if (smartChargingSettings.sapSmartCharging.prioritizationParametersActive) {
-        // Default values are hard coded for now
-        smartChargingSessionParameters = {
-          departureTime:  chargingStation.siteArea.smartChargingSessionParameters?.departureTime ?? 18,
-          carStateOfCharge: chargingStation.siteArea.smartChargingSessionParameters.carStateOfCharge ?? 30,
-          targetStateOfCharge: chargingStation.siteArea.smartChargingSessionParameters.targetStateOfCharge ?? 70,
-        };
-        if (Utils.getChargingStationCurrentType(chargingStation, null, filteredRequest.ConnectorID) === CurrentType.DC) {
-          smartChargingSessionParameters.departureTime = null;
-          smartChargingSessionParameters.carStateOfCharge = null;
-        } else if (car?.carConnectorData?.carConnectorID) {
-          smartChargingSessionParameters.carStateOfCharge = null;
-        }
-      }
-    }
+    // Get additional Smart Charging parameters such as the Departure Time
+    const smartChargingRuntimeSessionParameters = SmartChargingHelper.getSessionParameters(req.tenant, req.user, chargingStation, filteredRequest.ConnectorID, car);
     res.json({
-      tag, car, errorCodes, smartChargingSessionParameters
+      tag, car, errorCodes, smartChargingRuntimeSessionParameters
     });
     next();
   }
