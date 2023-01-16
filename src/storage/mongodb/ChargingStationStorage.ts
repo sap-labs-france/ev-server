@@ -83,15 +83,6 @@ export default class ChargingStationStorage {
     await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteChargingStationTemplates', startTime, { qa: { $not: { $eq: true } } });
   }
 
-  public static async getChargingStationRedis(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
-      params: { includeDeleted?: boolean, issuer?: boolean; siteIDs?: string[]; withSiteArea?: boolean; withSite?: boolean; } = {},
-      projectFields?: string[]): Promise<ChargingStation> {
-
-    const key = tenant.id + id + this.computeParamKey(params);
-    const cachedMethod = this.getChargingStation.bind(this, tenant, id ,params);
-    return ChargingStationStorage.getDataFromRedis(key, cachedMethod);
-  }
-
 
   public static async getChargingStation(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
       params: { includeDeleted?: boolean, issuer?: boolean; siteIDs?: string[]; withSiteArea?: boolean; withSite?: boolean; } = {},
@@ -346,6 +337,12 @@ export default class ChargingStationStorage {
     const chargingStationsMDB = await global.database.getCollection<any>(tenant.id, 'chargingstations')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
       .toArray() as ChargingStation[];
+
+
+    for (const chargingStation of chargingStationsMDB) {
+      await this.updateChargingStationFromRedis(tenant, chargingStation);
+    }
+
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getChargingStations', startTime, aggregation, chargingStationsMDB);
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(chargingStationsCountMDB[0]),
@@ -578,30 +575,16 @@ export default class ChargingStationStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationOicpData', startTime, oicpData);
   }
 
-  public static async saveChargingStationRuntimeData(tenant: Tenant, id: string,
-      runtimeData: { lastSeen?: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; }): Promise<void> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    const runtimeDataMDB: { lastSeen?: Date; currentIPAddress?: string | string[]; tokenID?: string; cloudHostIP?: string; cloudHostName?: string; } = {};
-    if (runtimeData.lastSeen) {
-      runtimeDataMDB.lastSeen = Utils.convertToDate(runtimeData.lastSeen);
-    }
-    if (runtimeData.currentIPAddress) {
-      runtimeDataMDB.currentIPAddress = runtimeData.currentIPAddress;
-    }
-    if (runtimeData.tokenID) {
-      runtimeDataMDB.tokenID = runtimeData.tokenID;
-    }
-    if (runtimeData.cloudHostIP || runtimeData.cloudHostName) {
-      runtimeDataMDB.cloudHostIP = runtimeData.cloudHostIP;
-      runtimeDataMDB.cloudHostName = runtimeData.cloudHostName;
-    }
-    // Modify document
-    await global.database.getCollection<any>(tenant.id, 'chargingstations').findOneAndUpdate(
-      { '_id': id },
-      { $set: runtimeDataMDB },
-      { upsert: true });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationRuntimeData', startTime, runtimeData);
+  public static async saveServerDataToRedis(tenantId: string, chargingStationId: string,
+      serverData: { currentIPAddress?: string | string[];cloudHostIP?: string; cloudHostName?: string; }): Promise<void> {
+    const data = JSON.stringify(serverData);
+    await global.redisClient.set(tenantId + '_' + chargingStationId + '_SERVERDATA', data);
+  }
+
+  public static async saveLastSeenToRedis(tenantId: string, chargingStationId: string,
+      lastSeen: Date): Promise<void> {
+    const data = JSON.stringify(lastSeen);
+    await global.redisClient.set(tenantId + '_' + chargingStationId + '_LASTSEEN', data);
   }
 
   public static async saveChargingStationOcpiData(tenant: Tenant, id: string, ocpiData: ChargingStationOcpiData): Promise<void> {
@@ -962,6 +945,11 @@ export default class ChargingStationStorage {
     return result.modifiedCount;
   }
 
+  public static async clearRedis(tenantId: string, chargingStationId: string) {
+    await global.redisClient.del(tenantId + '_' + chargingStationId + '_LASTSEEN');
+    await global.redisClient.del(tenantId + '_' + chargingStationId + '_SERVERDATA');
+  }
+
   private static getChargerInErrorFacet(errorType: string) {
     switch (errorType) {
       case ChargingStationInErrorType.MISSING_SETTINGS:
@@ -1043,9 +1031,6 @@ export default class ChargingStationStorage {
     return null;
   }
 
-  private static computeParamKey(params: { includeDeleted?: boolean, issuer?: boolean; siteIDs?: string[]; withSiteArea?: boolean; withSite?: boolean; }): string {
-    return JSON.stringify(params);
-  }
 
   private static filterChargePointMDB(chargePoint: ChargePoint): ChargePoint {
     if (chargePoint) {
@@ -1067,16 +1052,26 @@ export default class ChargingStationStorage {
     return null;
   }
 
-  private static async getDataFromRedis<T>(key: string, callback: any): Promise<T> {
 
-    let cachedValue = await global.redisClient.get(key);
-    if (!cachedValue) {
-      const val = await callback();
-      cachedValue = JSON.stringify(val);
-      await global.redisClient.set(key, cachedValue);
+  private static async updateChargingStationFromRedis(tenant: Tenant, station:ChargingStation) {
+    const serverDataAsString = await global.redisClient.get(tenant.id + '_' + station.id + '_SERVERDATA');
+    const lastSeenAsString = await global.redisClient.get(tenant.id + '_' + station.id + '_LASTSEEN');
+
+    if (serverDataAsString) {
+      const runtimeData = JSON.parse(serverDataAsString);
+
+      if (runtimeData.currentIPAddress) {
+        station.currentIPAddress = runtimeData.currentIPAddress;
+      }
+      if (runtimeData.cloudHostIP || runtimeData.cloudHostName) {
+        station.cloudHostIP = runtimeData.cloudHostIP;
+        station.cloudHostName = runtimeData.cloudHostName;
+      }
     }
 
-    return JSON.parse(cachedValue);
+    if (lastSeenAsString) {
+      const lastSeen = JSON.parse(lastSeenAsString);
+      station.lastSeen = Utils.convertToDate(lastSeen);
+    }
   }
-
 }

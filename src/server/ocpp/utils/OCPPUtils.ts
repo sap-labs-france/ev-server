@@ -1254,7 +1254,7 @@ export default class OCPPUtils {
     }
     // Get the Charging Station
     let token: RegistrationToken;
-    const chargingStation = await ChargingStationStorage.getChargingStationRedis(
+    const chargingStation = await ChargingStationStorage.getChargingStation(
       tenant, chargingStationID, { withSiteArea: true, issuer: true });
     if (!chargingStation) {
       // Must have a valid connection Token
@@ -1305,16 +1305,16 @@ export default class OCPPUtils {
     if (updateChargingStationData) {
       // Reassign to the Charging station
       chargingStation.lastSeen = new Date();
-      chargingStation.tokenID = tokenID;
       chargingStation.cloudHostIP = Utils.getHostIP();
       chargingStation.cloudHostName = Utils.getHostName();
       // Save Charging Station runtime data
-      await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id, {
-        lastSeen: chargingStation.lastSeen,
-        tokenID: chargingStation.tokenID,
+      await ChargingStationStorage.saveServerDataToRedis(tenant.id, chargingStation.id, {
         cloudHostIP: chargingStation.cloudHostIP,
         cloudHostName: chargingStation.cloudHostName,
       });
+
+      await ChargingStationStorage.saveLastSeenToRedis(tenant.id, chargingStation.id, chargingStation.lastSeen);
+
     }
     return { tenant, chargingStation, token };
   }

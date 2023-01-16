@@ -54,9 +54,7 @@ export default class CheckOfflineChargingStationsTask extends TenantSchedulerTas
                 detailedMessages: { ocppHeartbeatConfiguration }
               });
               // Update lastSeen
-              await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id,
-                { lastSeen: new Date() }
-              );
+              await ChargingStationStorage.saveLastSeenToRedis(tenant.id, chargingStation.id, new Date());
               // Remove charging station from notification
               chargingStations.result.splice(i, 1);
             // Check if inactive

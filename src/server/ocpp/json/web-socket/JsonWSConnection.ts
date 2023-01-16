@@ -138,14 +138,12 @@ export default class JsonWSConnection extends WSConnection {
       // Update last seen
       this.lastSeen = new Date();
       if (FeatureToggles.isFeatureActive(Feature.OCPP_OPTIMIZE_LAST_SEEN_UPDATE)) {
-        await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
-          { lastSeen: this.lastSeen });
+        await ChargingStationStorage.saveLastSeenToRedis(this.getTenant().id, this.getChargingStationID(), this.lastSeen);
       } else {
         const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),
           this.getChargingStationID(), { issuer: true }, ['id']);
         if (chargingStation) {
-          await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
-            { lastSeen: this.lastSeen });
+          await ChargingStationStorage.saveLastSeenToRedis(this.getTenant().id, this.getChargingStationID(), this.lastSeen);
         }
       }
     }

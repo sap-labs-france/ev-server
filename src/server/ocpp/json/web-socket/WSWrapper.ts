@@ -1,4 +1,5 @@
 import { RecognizedString, WebSocket } from 'uWebSockets.js';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 
 import Utils from '../../../../utils/Utils';
 import WSConnection from './WSConnection';
@@ -46,6 +47,7 @@ export default class WSWrapper {
     if (!this.closed) {
       this.closed = true;
       this.ws.end(code, shortMessage);
+      ChargingStationStorage.clearRedis(this.tenantID, this.chargingStationID).catch(() => {});
     }
   }
 
