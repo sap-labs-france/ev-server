@@ -15,10 +15,10 @@ import { WSClientOptions } from '../../../types/WebSocket';
 const MODULE_NAME = 'JsonRestChargingStationClient';
 
 export default class JsonRestChargingStationClient extends ChargingStationClient {
-  private jsonEndoint = Configuration.getJsonEndpointConfig();
+  private jsonEndpoint = Configuration.getJsonEndpointConfig();
   private serverURL: string;
   private chargingStation: ChargingStation;
-  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Record<string, unknown>) => void; command: Command } };
+  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Error|Record<string, unknown>) => void; command: Command } };
   private wsConnection: WSClient;
   private tenantID: string;
 
@@ -28,9 +28,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     // Get URL
     let jsonServerURL: string;
     // Check K8s
-    if (process.env.K8S && this.jsonEndoint.targetPort && chargingStation.cloudHostIP) {
+    if (process.env.K8S && this.jsonEndpoint.targetPort && chargingStation.cloudHostIP) {
       // Use K8s internal IP, always in ws
-      jsonServerURL = `ws://${chargingStation.cloudHostIP}:${this.jsonEndoint.targetPort}`;
+      jsonServerURL = `ws://${chargingStation.cloudHostIP}:${this.jsonEndpoint.targetPort}`;
     } else {
       jsonServerURL = chargingStation.chargingStationURL;
       if (!jsonServerURL) {
@@ -115,7 +115,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return this.sendMessage(this.buildRequest(Command.CANCEL_RESERVATION, params));
   }
 
-  private async openConnection(): Promise<any> {
+  private async openConnection(request: OCPPOutgoingRequest): Promise<any> {
+    // Extract Current Command
+    const triggeringCommand: Command = request[2];
     // Log
     await Logging.logInfo({
       tenantID: this.tenantID,
@@ -125,7 +127,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       chargingStationID: this.chargingStation.id,
       action: ServerAction.WS_CLIENT_CONNECTION,
       module: MODULE_NAME, method: 'onOpen',
-      message: `Try to connect to '${this.serverURL}'...`
+      message: `Try to connect to '${this.serverURL}' - command: ${triggeringCommand}`
     });
     // Create Promise
     return new Promise((resolve, reject) => {
@@ -141,6 +143,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Create and Open the WS
         this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
         // Opened
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.wsConnection.onopen = async () => {
           await Logging.logInfo({
             tenantID: this.tenantID,
@@ -150,12 +153,13 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             chargingStationID: this.chargingStation.id,
             action: ServerAction.WS_CLIENT_CONNECTION_OPEN,
             module: MODULE_NAME, method: 'onOpen',
-            message: `Connection opened to '${this.serverURL}'`
+            message: `Connection opened to '${this.serverURL}' - command: ${triggeringCommand}`
           });
           // Connection is opened and ready to use
           resolve();
         };
         // Closed
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.wsConnection.onclose = async (code: number) => {
           await Logging.logInfo({
             tenantID: this.tenantID,
@@ -170,6 +174,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           });
         };
         // Handle Error Message
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.wsConnection.onerror = async (error: Error) => {
           await Logging.logError({
             tenantID: this.tenantID,
@@ -187,6 +192,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           reject(new Error(`Error on opening Web Socket connection: ${error.message}'`));
         };
         // Handle Server Message
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.wsConnection.onmessage = async (message) => {
           try {
             // Parse the message
@@ -208,7 +214,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                   detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
                 });
                 // Resolve with error message
-                this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, command, commandPayload, errorDetails] });
+                // this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, command, commandPayload, errorDetails] });
+                this.requests[messageId].reject(new Error(`${message.data as string}`));
               } else {
                 // Respond to the request
                 this.requests[messageId].resolve(command);
@@ -230,7 +237,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               });
             }
           } catch (error) {
-            await Logging.logException(error, ServerAction.WS_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
+            await Logging.logException(error as Error, ServerAction.WS_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
           }
         };
       } catch (error) {
@@ -256,12 +263,16 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   }
 
   private async sendMessage(request: OCPPOutgoingRequest): Promise<any> {
-    // Return a promise
+    // Check for the lastSeen
+    if (Date.now() - this.chargingStation.lastSeen.getTime() > Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 * 2) {
+      // Charging station is not connected to the server - let's abort the current operation
+      throw new Error(`Charging station is not connected to the server - request '${request[2]}' has been aborted`);
+    }
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
         // Open WS Connection
-        await this.openConnection();
+        await this.openConnection(request);
         // Check if wsConnection is ready
         if (this.wsConnection?.isConnectionOpen()) {
           // Send

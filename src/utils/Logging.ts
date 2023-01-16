@@ -2,10 +2,8 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 import PerformanceRecord, { PerformanceRecordGroup, PerformanceTracingData } from '../types/Performance';
-import client, { Counter, DefaultMetricsCollectorConfiguration, Gauge, Metric } from 'prom-client';
-import global, { ActionsResponse } from '../types/GlobalType';
 
-import { Action } from '../types/Authorization';
+import { ActionsResponse } from '../types/GlobalType';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
@@ -99,31 +97,30 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
-      if (global.monitoringServer) {
+      if ((global.monitoringServer) && (process.env.K8S)) {
         const labels = { tenant: tenant.subdomain, module: module, method: method };
         const values = Object.values(labels).toString();
         const hashCode = Utils.positiveHashcode(values);
-        const durationMetric = global.monitoringServer.getDatabaseMetric('Duration', hashCode, 'db duration', Object.keys(labels));
+        const durationMetric = global.monitoringServer.getComposedMetric('mongodb', 'Duration', hashCode, 'db duration', Object.keys(labels));
         durationMetric.setValue(labels, executionDurationMillis);
-        const requestSizeMetric = global.monitoringServer.getDatabaseMetric('RequestSize', hashCode, 'db duration', Object.keys(labels));
+        const requestSizeMetric = global.monitoringServer.getComposedMetric('mongodb', 'RequestSize', hashCode, 'db duration', Object.keys(labels));
         requestSizeMetric.setValue(labels, sizeOfRequestDataKB);
-        const responseSizeMetric = global.monitoringServer.getDatabaseMetric('ResponseSize', hashCode, 'db duration', Object.keys(labels));
+        const responseSizeMetric = global.monitoringServer.getComposedMetric('mongodb', 'ResponseSize', hashCode, 'db duration', Object.keys(labels));
         responseSizeMetric.setValue(labels, sizeOfResponseDataKB);
-        await PerformanceStorage.savePerformanceRecord(
-          Utils.buildPerformanceRecord({
-            tenantSubdomain: tenant.subdomain,
-            group: PerformanceRecordGroup.MONGO_DB,
-            durationMs: executionDurationMillis,
-            reqSizeKb: sizeOfRequestDataKB,
-            resSizeKb: sizeOfResponseDataKB,
-            egress: true,
-            action: `${module}.${method}`
-          })
-        );
       }
+      await PerformanceStorage.savePerformanceRecord(
+        Utils.buildPerformanceRecord({
+          tenantSubdomain: tenant.subdomain,
+          group: PerformanceRecordGroup.MONGO_DB,
+          durationMs: executionDurationMillis,
+          reqSizeKb: sizeOfRequestDataKB,
+          resSizeKb: sizeOfResponseDataKB,
+          egress: true,
+          action: `${module}.${method}`
+        })
+      );
     }
   }
-
 
   public static traceNotificationStart(): number {
     if (Logging.getTraceConfiguration().traceNotification) {
@@ -381,7 +378,7 @@ export default class Logging {
           next();
         }
       }
-    // Express call does not provide action
+      // Express call does not provide action
     } else if (!action) {
       next();
     }
@@ -724,6 +721,13 @@ export default class Logging {
         })
       );
       const message = `${direction} OCPP Request '${action}~${Utils.last5Chars(performanceID)}' on '${chargingStationID}' has been ${direction === '>>' ? 'received' : 'sent'} - Req ${sizeOfRequestDataKB} KB`;
+      if ((global.monitoringServer) && (process.env.K8S)) {
+        const labels = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
+        const values = Object.values(labels).toString();
+        const hashCode = Utils.positiveHashcode(values);
+        const durationMetric = global.monitoringServer.getComposedMetric('ocpp', 'requestSize', hashCode, 'ocpp response time ', Object.keys(labels));
+        durationMetric.setValue(labels,sizeOfRequestDataKB);
+      }
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
         tenantID: tenant.id,
@@ -767,6 +771,13 @@ export default class Logging {
           Logging.logConsoleWarning(message);
           Logging.logConsoleWarning('====================================');
         }
+      }
+      if ((global.monitoringServer) && (process.env.K8S)) {
+        const labels = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
+        const values = Object.values(labels).toString();
+        const hashCode = Utils.positiveHashcode(values);
+        const durationMetric = global.monitoringServer.getComposedMetric('ocpp', 'responsetime', hashCode, 'ocpp response time ', Object.keys(labels));
+        durationMetric.setValue(labels,executionDurationMillis);
       }
       if (response && response['status'] === OCPPStatus.REJECTED) {
         await Logging.logError({
@@ -912,9 +923,10 @@ export default class Logging {
     // Check Log Level
     const logConfig = Logging.getConfiguration();
     // Default Log Level
-    const logLevel = logConfig.logLevel ? logConfig.logLevel : LogLevel.DEBUG;
+    const logLevelAsString = logConfig.logLevel ? logConfig.logLevel : 'D';
+    const logLevel = logLevelAsString as LogLevel;
     // Log Level
-    switch (LogLevel[logLevel]) {
+    switch (logLevel) {
       // No log at all
       case LogLevel.NONE:
         return;
@@ -1073,9 +1085,5 @@ export default class Logging {
         stack: error.stack
       }
     };
-  }
-
-  private static createMetric(metricName: string) : Gauge {
-    return global.monitoringServer.createGaugeMetric(metricName, 'Database perf gauge duration ms', ['tenant','module', 'method' ]);
   }
 }

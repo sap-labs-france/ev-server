@@ -18,14 +18,12 @@ import urlencode from 'urlencode';
 
 const MODULE_NAME = 'MongoDBStorage';
 
-
 export default class MongoDBStorage {
   private mongoDBClient: MongoClient;
   private database: Db;
   private dbPingFailed = 0;
   private readonly dbConfig: StorageConfiguration;
   private readonly migrationConfig: MigrationConfiguration;
-  private connections = new Set<any>();
 
   // Create database access
   public constructor(dbConfig: StorageConfiguration) {
@@ -294,26 +292,9 @@ export default class MongoDBStorage {
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
       }
     );
-    if (global.monitoringServer) {
-      this.mongoDBClient.on('connectionCreated',
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (event) => global.monitoringServer?.getGauge(Constants.MONGODB_CONNECTION_CREATED).inc(1)
-      );
-      this.mongoDBClient.on('connectionClosed',
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (event) => global.monitoringServer?.getGauge(Constants.MONGODB_CONNECTION_CLOSED).inc(1)
-      );
-      this.mongoDBClient.on('connectionReady',
-        (event) => {
-          this.connections.add(event.connectionId);
-          global.monitoringServer?.getGauge(Constants.MONGODB_CONNECTION_READY).set(this.connections.size);
-        }
-      );
-    }
     this.database = this.mongoDBClient.db();
     // Keep a global reference
     global.database = this;
-
     // Check Database only when migration is active
     if (this.migrationConfig?.active) {
       await this.checkDatabase();

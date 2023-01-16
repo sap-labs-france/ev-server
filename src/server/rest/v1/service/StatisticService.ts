@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable */
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
 import StatisticFilter, { ChargingStationStats, StatsDataCategory, StatsDataScope, StatsDataType, StatsGroupBy, UserStats } from '../../../../types/Statistic';
@@ -409,8 +409,14 @@ export default class StatisticService {
     // User
     if (Authorizations.isBasic(loggedUser)) {
       if (Authorizations.isSiteAdmin(loggedUser)) {
-        // Only for current sites
-        filter.siteIDs = loggedUser.sitesAdmin;
+        if (filteredRequest.UserID) {
+          filter.userIDs = filteredRequest.UserID.split('|');
+        } else if (filteredRequest.SiteID) {
+          filter.siteIDs = filteredRequest.SiteID.split('|');
+        } else {
+          // Only for current sites
+          filter.siteIDs = loggedUser.sitesAdmin;
+        }
       } else {
         // Only for current user
         filter.userIDs = [loggedUser.id];
@@ -488,7 +494,7 @@ export default class StatisticService {
   }
 
   // Build header row
-  static getYearAndMonthCells(year: number | string, dataScope?: StatsDataScope) : string {
+  static getYearAndMonthCells(year: number | string, dataScope?: StatsDataScope): string {
     if (year && year !== '0') {
       const yearHeader = StatsDataScope.YEAR;
       if (dataScope === StatsDataScope.MONTH) {
@@ -499,7 +505,7 @@ export default class StatisticService {
   }
 
   // Build dataType cells
-  static getDataTypeCells = (dataType: StatsDataType) : string => {
+  static getDataTypeCells = (dataType: StatsDataType): string => {
     switch (dataType) {
       case StatsDataType.CONSUMPTION:
         return 'consumption';
@@ -517,7 +523,7 @@ export default class StatisticService {
   };
 
   static convertToCSV(transactionStats: ChargingStationStats[] | UserStats[],
-      dataCategory: StatsDataCategory, dataType: StatsDataType, year: number | string, dataScope?: StatsDataScope): string {
+    dataCategory: StatsDataCategory, dataType: StatsDataType, year: number | string, dataScope?: StatsDataScope): string {
     const headers = [
       dataCategory === StatsDataCategory.CHARGING_STATION ? 'chargingStation' : 'user',
       StatisticService.getYearAndMonthCells(year, dataScope),

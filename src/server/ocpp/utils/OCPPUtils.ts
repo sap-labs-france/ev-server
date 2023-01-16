@@ -1231,7 +1231,7 @@ export default class OCPPUtils {
   }
 
   public static async checkAndGetChargingStationConnectionData(action: ServerAction, tenantID: string, chargingStationID: string,
-      tokenID: string): Promise<{ tenant: Tenant; chargingStation?: ChargingStation; token?: RegistrationToken }> {
+      tokenID: string, updateChargingStationData = true): Promise<{ tenant: Tenant; chargingStation?: ChargingStation; token?: RegistrationToken }> {
     // Check parameters
     OCPPUtils.checkChargingStationConnectionData(
       ServerAction.WS_SERVER_CONNECTION, tenantID, tokenID, chargingStationID);
@@ -1294,18 +1294,20 @@ export default class OCPPUtils {
         message: 'Charging Station has been forced as inactive!'
       });
     }
-    // Reassign to the Charging station
-    chargingStation.lastSeen = new Date();
-    chargingStation.tokenID = tokenID;
-    chargingStation.cloudHostIP = Utils.getHostIP();
-    chargingStation.cloudHostName = Utils.getHostName();
-    // Save Charging Station runtime data
-    await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id, {
-      lastSeen: chargingStation.lastSeen,
-      tokenID: chargingStation.tokenID,
-      cloudHostIP: chargingStation.cloudHostIP,
-      cloudHostName: chargingStation.cloudHostName,
-    });
+    if (updateChargingStationData) {
+      // Reassign to the Charging station
+      chargingStation.lastSeen = new Date();
+      chargingStation.tokenID = tokenID;
+      chargingStation.cloudHostIP = Utils.getHostIP();
+      chargingStation.cloudHostName = Utils.getHostName();
+      // Save Charging Station runtime data
+      await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id, {
+        lastSeen: chargingStation.lastSeen,
+        tokenID: chargingStation.tokenID,
+        cloudHostIP: chargingStation.cloudHostIP,
+        cloudHostName: chargingStation.cloudHostName,
+      });
+    }
     return { tenant, chargingStation, token };
   }
 
