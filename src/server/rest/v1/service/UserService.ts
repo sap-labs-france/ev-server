@@ -99,9 +99,9 @@ export default class UserService {
       await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
     }
     // Get additional Smart Charging parameters such as the Departure Time
-    const smartChargingRuntimeSessionParameters = SmartChargingHelper.getSessionParameters(req.tenant, req.user, chargingStation, filteredRequest.ConnectorID, car);
+    const runtimeParameters = SmartChargingHelper.getSessionParameters(req.tenant, req.user, chargingStation, filteredRequest.ConnectorID, car);
     res.json({
-      tag, car, errorCodes, smartChargingRuntimeSessionParameters
+      tag, car, errorCodes, smartChargingSessionParameters: runtimeParameters
     });
     next();
   }
