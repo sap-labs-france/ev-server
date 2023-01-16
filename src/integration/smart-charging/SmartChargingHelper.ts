@@ -64,5 +64,6 @@ export default class SmartChargingHelper {
         targetStateOfCharge
       };
     }
+    return null;
   }
 }
