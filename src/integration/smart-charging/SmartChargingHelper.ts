@@ -38,20 +38,23 @@ export default class SmartChargingHelper {
     // Build the smart charging session parameters
     if (smartChargingSettings.sapSmartCharging?.prioritizationParametersActive) {
       // Default values
-      const targetStateOfCharge = chargingStation.siteArea?.smartChargingSessionParameters?.targetStateOfCharge || 70;
-      const carStateOfCharge = chargingStation.siteArea?.smartChargingSessionParameters?.carStateOfCharge || 30;
-      const expectedDepartureTime = chargingStation.siteArea.smartChargingSessionParameters?.departureTime || 18;
+      const targetStateOfCharge = chargingStation.siteArea?.smartChargingSessionParameters?.targetStateOfCharge ?? 70;
+      const carStateOfCharge = chargingStation.siteArea?.smartChargingSessionParameters?.carStateOfCharge ?? 30;
+      const expectedDepartureTime = chargingStation.siteArea.smartChargingSessionParameters?.departureTime ?? 18;
       const departureTime = SmartChargingHelper.getExpectedDepartureTime(chargingStation, expectedDepartureTime);
       if (Utils.getChargingStationCurrentType(chargingStation, null, connectorID) === CurrentType.DC) {
         // DC Charger
         return {
-          targetStateOfCharge
+          departureTime: null,
+          targetStateOfCharge,
+          carStateOfCharge: null,
         };
       } else if (car?.carConnectorData?.carConnectorID) {
         // AC Charger but with a Car Connector properly set
         return {
           departureTime,
-          targetStateOfCharge
+          targetStateOfCharge,
+          carStateOfCharge: null,
         };
       }
       // AC charger with no CAR Connector
