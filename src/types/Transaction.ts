@@ -209,13 +209,13 @@ export interface CollectedFundReport {
 }
 
 export interface SmartChargingSessionParameters {
-  departureTime: number,
+  departureTime: number, // Todo: Should be a String - "18:00", "18:15" ...
   carStateOfCharge: number,
   targetStateOfCharge: number,
 }
 
 export interface SmartChargingRuntimeSessionParameters {
-  departureTime?: Date,
+  departureTime?: Date, // Date of the departure time - taking into account the timezone of the charging station
   carStateOfCharge?: number,
   targetStateOfCharge?: number,
 }
