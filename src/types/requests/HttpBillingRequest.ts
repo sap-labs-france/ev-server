@@ -96,3 +96,8 @@ export interface HttpBillingScanPayStopTransactionRequest {
   email: string;
   subdomain: string;
 }
+
+export interface HttpBillingScanPayTransactionRequest {
+  transactionId: number;
+  subdomain: string;
+}

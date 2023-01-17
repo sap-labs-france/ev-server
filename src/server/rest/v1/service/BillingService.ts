@@ -354,6 +354,37 @@ export default class BillingService {
     next();
   }
 
+  public static async handleScanPayGetTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayTransactionReq(req.query);
+    // Filter
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
+        action: action,
+        user: req.user
+      });
+    }
+
+    // const user: User = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
+    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.transactionId);
+    // const operationResult: BillingOperationResult = await billingImpl.retrievePaymentIntent(transaction.user, transaction.lastPaymentIntentID);
+    // // Get the charging station
+    // const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID);
+    // // Get the OCPP Client
+    // const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
+    // // Execute start transaction
+    // await BillingService.executeChargingStationStopTransaction(transaction.id, chargingStationClient);
+    // const operationResult: BillingOperationResult = await billingImpl.capturePayment(transaction.user, 100, transaction.lastPaymentIntentID);
+    // // if (operationResult) {
+    //   Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
+    // }
+    res.json(transaction);
+    next();
+  }
+
   public static async handleBillingGetPaymentMethods(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingGetUserPaymentMethodsReq(req.query);

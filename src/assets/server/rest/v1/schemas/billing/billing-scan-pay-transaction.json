@@ -1,0 +1,13 @@
+{
+  "$id": "billing-scan-pay-get-transaction",
+  "title": "Handle scan and pay get transaction",
+  "type": "object",
+  "properties": {
+    "transactionId": {
+      "$ref": "transaction#/definitions/id"
+    }
+  },
+  "required": [
+    "transactionId"
+  ]
+}
