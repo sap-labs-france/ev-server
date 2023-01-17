@@ -395,7 +395,11 @@ export default class OCPPService {
       // Save
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       // Notify
-      NotificationHelper.notifyStartTransaction(tenant, newTransaction, chargingStation, user);
+      if (user.role === UserRole.EXTERNAL) {
+        NotificationHelper.notifyScanPayStartTransaction(tenant, newTransaction, chargingStation, user);
+      } else {
+        NotificationHelper.notifyStartTransaction(tenant, newTransaction, chargingStation, user);
+      }
       await Logging.logInfo({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
