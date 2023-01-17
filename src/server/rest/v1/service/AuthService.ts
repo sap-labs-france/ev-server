@@ -303,16 +303,8 @@ export default class AuthService {
       method: 'checkAndSendVerifyScanPayEmail',
       message: `User with Email '${req.body.email as string}' will receive an email to verify his email`
     });
-    const data = Buffer.from(JSON.stringify({
-      email: user.email,
-      siteAreaID: filteredRequest.siteAreaID,
-      name: user.name,
-      firstName: user.firstName,
-      chargingStationID: filteredRequest.chargingStationID,
-      connectorID: filteredRequest.connectorID
-    })).toString('base64');
     // Send notification
-    const evseDashboardVerifyScanPayEmailURL = Utils.buildEvseURL(req.tenant.subdomain) + '/auth/scan-pay?data=' + data;
+    const evseDashboardVerifyScanPayEmailURL = Utils.buildEvseURL(req.tenant.subdomain) + '/auth/scan-pay?email=' + user.email + '&siteAreaID=' + filteredRequest.siteAreaID + '&name=' + (user.name ?? '') + '&firstName=' + (user.firstName ?? '') + '&chargingStationID=' + filteredRequest.chargingStationID + '&connectorID=' + filteredRequest.connectorID;
     // Notify
     void NotificationHandler.sendScanPayVerifyEmail(
       tenant,
