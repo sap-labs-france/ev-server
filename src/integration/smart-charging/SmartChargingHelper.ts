@@ -6,23 +6,23 @@ import SettingStorage from '../../storage/mongodb/SettingStorage';
 import { SmartChargingRuntimeSessionParameters } from '../../types/Transaction';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
-import moment from 'moment';
+import moment from 'moment'; // moment-timezone?
 
 export default class SmartChargingHelper {
 
-  public static getExpectedDepartureTime(chargingStation: ChargingStation, expectedDepartureTime: number): Date {
-    // Timezone of the charging station
+  public static getExpectedDepartureTime(chargingStation: ChargingStation, expectedDepartureTime: string): Date {
+    const departureTime = moment(expectedDepartureTime, 'HH:mm');
+    let departureDate: moment.Moment;
     const timezone = Utils.getTimezone(chargingStation.coordinates);
-    let aDate: moment.Moment;
     if (timezone) {
-      aDate = moment().tz(timezone).set('hour', expectedDepartureTime);
-    } else {
-      aDate = moment().set('hour', expectedDepartureTime);
+      // Timezone of the charging station
+      departureDate = moment().tz(timezone);
     }
-    if (aDate.isBefore(moment())) {
-      aDate = aDate.add(1, 'day');
-    }
-    return aDate.toDate();
+    departureDate.set({
+      hour: departureTime.get('hour'),
+      minute: departureTime.get('minute'),
+    });
+    return departureDate.toDate();
   }
 
   public static async getSessionParameters(tenant: Tenant, user: UserToken, chargingStation: ChargingStation, connectorID: number, car: Car)
@@ -38,9 +38,10 @@ export default class SmartChargingHelper {
     // Build the smart charging session parameters
     if (smartChargingSettings.sapSmartCharging?.prioritizationParametersActive) {
       // Default values
-      const targetStateOfCharge = chargingStation.siteArea?.smartChargingSessionParameters?.targetStateOfCharge ?? 70;
-      const carStateOfCharge = chargingStation.siteArea?.smartChargingSessionParameters?.carStateOfCharge ?? 30;
-      const expectedDepartureTime = chargingStation.siteArea.smartChargingSessionParameters?.departureTime ?? 18;
+      const parameters = chargingStation.siteArea?.smartChargingSessionParameters;
+      const targetStateOfCharge = parameters?.targetStateOfCharge ?? 70;
+      const carStateOfCharge = parameters?.carStateOfCharge ?? 30;
+      const expectedDepartureTime = (parameters?.departureTime) ? `${parameters?.departureTime}:00` : '18:00';
       const departureTime = SmartChargingHelper.getExpectedDepartureTime(chargingStation, expectedDepartureTime);
       if (Utils.getChargingStationCurrentType(chargingStation, null, connectorID) === CurrentType.DC) {
         // DC Charger
