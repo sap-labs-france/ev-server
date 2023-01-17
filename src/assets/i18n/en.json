@@ -404,7 +404,7 @@
       "title": "Session Started",
       "buttonText": "Stop Session",
       "text": [
-        "Your vehicle has been connected to the charging station {{chargeBoxID}} on connector {{connectorId}}.",
+        "Your vehicle connected to the charging station {{chargeBoxID}} on connector {{connectorId}} is now charging.",
         "",
         "Click on the link below to stop the transaction"
       ]
