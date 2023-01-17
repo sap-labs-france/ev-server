@@ -10,14 +10,16 @@ import moment from 'moment';
 
 export default class SmartChargingHelper {
 
-  public static getExpectedDepartureTime(chargingStation: ChargingStation, expectedDepartureTime: number): Date {
+  public static getExpectedDepartureTime(chargingStation: ChargingStation, expectedDepartureTime: string): Date {
     // Timezone of the charging station
     const timezone = Utils.getTimezone(chargingStation.coordinates);
     let aDate: moment.Moment;
+    const expectedDepartureHour = Utils.convertToInt(expectedDepartureTime.slice(0, 2));
+    const expectedDepartureMinute = Utils.convertToInt(expectedDepartureTime.slice(3, 5));
     if (timezone) {
-      aDate = moment().tz(timezone).set('hour', expectedDepartureTime);
+      aDate = moment().tz(timezone).set('hour', expectedDepartureHour).set('minute', expectedDepartureMinute);
     } else {
-      aDate = moment().set('hour', expectedDepartureTime);
+      aDate = moment().set('hour', expectedDepartureHour).set('hour', expectedDepartureMinute);
     }
     if (aDate.isBefore(moment())) {
       aDate = aDate.add(1, 'day');
@@ -40,7 +42,7 @@ export default class SmartChargingHelper {
       // Default values
       const targetStateOfCharge = chargingStation.siteArea?.smartChargingSessionParameters?.targetStateOfCharge ?? 70;
       const carStateOfCharge = chargingStation.siteArea?.smartChargingSessionParameters?.carStateOfCharge ?? 30;
-      const expectedDepartureTime = chargingStation.siteArea.smartChargingSessionParameters?.departureTime ?? 18;
+      const expectedDepartureTime = chargingStation.siteArea.smartChargingSessionParameters?.departureTime ?? '18:00';
       const departureTime = SmartChargingHelper.getExpectedDepartureTime(chargingStation, expectedDepartureTime);
       if (Utils.getChargingStationCurrentType(chargingStation, null, connectorID) === CurrentType.DC) {
         // DC Charger

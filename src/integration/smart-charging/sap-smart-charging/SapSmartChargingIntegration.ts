@@ -610,7 +610,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     }
   }
 
-  private handleTimestampDeparture(optimizerCar: OptimizerCar, transaction: Transaction, currentType: CurrentType, defaultDepartureTime: number): void {
+  private handleTimestampDeparture(optimizerCar: OptimizerCar, transaction: Transaction, currentType: CurrentType, defaultDepartureTime: string): void {
     // Set departure time based on user input
     if (!Utils.isNullOrUndefined(transaction.departureTime)) {
       optimizerCar.timestampDeparture = moment(transaction.departureTime).diff(moment(), 'seconds');
@@ -621,7 +621,9 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       // Calculate departure time
       let timestampDeparture = moment(transaction.timestamp).add(8, 'hours');
       if (defaultDepartureTime) {
-        timestampDeparture = moment().set('hour', defaultDepartureTime);
+        const defaultDepartureHour = Utils.convertToInt(defaultDepartureTime.slice(0, 2));
+        const defaultDepartureMinute = Utils.convertToInt(defaultDepartureTime.slice(3, 5));
+        timestampDeparture = moment().set('hour', defaultDepartureHour).set('minute', defaultDepartureMinute);
         if (timestampDeparture < moment()) {
           timestampDeparture.add(1, 'days');
         }

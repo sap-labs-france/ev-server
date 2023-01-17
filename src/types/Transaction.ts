@@ -209,7 +209,7 @@ export interface CollectedFundReport {
 }
 
 export interface SmartChargingSessionParameters {
-  departureTime: number, // Todo: Should be a String - "18:00", "18:15" ...
+  departureTime: string,
   carStateOfCharge: number,
   targetStateOfCharge: number,
 }
