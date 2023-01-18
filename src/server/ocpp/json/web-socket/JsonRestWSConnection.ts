@@ -48,7 +48,7 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient = await global.centralSystemJsonServer.getChargingStationClient(this.getTenant(), chargingStation);
+    const chargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenant(), chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
         chargingStationID: this.getChargingStationID(),
@@ -82,10 +82,10 @@ export default class JsonRestWSConnection extends WSConnection {
     return result;
   }
 
-  public async onPing(message: string): Promise<void> {
+  public onPing(message: string): void {
   }
 
-  public async onPong(message: string): Promise<void> {
+  public onPong(message: string): void {
   }
 
   private isValidOcppClientCommand(command: Command): boolean {

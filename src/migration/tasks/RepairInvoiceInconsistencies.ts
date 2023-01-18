@@ -18,7 +18,7 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
       const billingImpl = await BillingFactory.getBillingImpl(tenant);
       if (billingImpl && billingImpl instanceof StripeBillingIntegration) {
         await this.repairInvoices(tenant, billingImpl);
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           module: MODULE_NAME, method: 'migrateTenant',
           action: ServerAction.MIGRATION,
@@ -26,7 +26,7 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
         });
       }
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: tenant.id,
         action: ServerAction.BILLING_PERFORM_OPERATIONS,
         module: MODULE_NAME, method: 'repairInvoices',
@@ -68,7 +68,7 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
         try {
           // Skip invoices that are already PAID or not relevant for the current billing process
           if (!billingInvoice.sessions) {
-            await Logging.logInfo({
+            Logging.beInfo()?.log({
               tenantID: tenant.id,
               action: ServerAction.BILLING_PERFORM_OPERATIONS,
               actionOnUser: billingInvoice.user,
@@ -76,7 +76,7 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
               message: `Attempt to repair invoice: '${billingInvoice.id}' - '${billingInvoice.number}' `
             });
             await billingImpl.repairInvoice(billingInvoice);
-            await Logging.logInfo({
+            Logging.beInfo()?.log({
               tenantID: tenant.id,
               action: ServerAction.BILLING_PERFORM_OPERATIONS,
               actionOnUser: billingInvoice.user,
@@ -85,7 +85,7 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
             });
           }
         } catch (error) {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: tenant.id,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: billingInvoice.user,

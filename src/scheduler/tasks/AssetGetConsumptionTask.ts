@@ -89,7 +89,7 @@ export default class AssetGetConsumptionTask extends TenantSchedulerTask {
             }
           } catch (error) {
             // Log error
-            await Logging.logActionExceptionMessage(tenant.id, ServerAction.RETRIEVE_ASSET_CONSUMPTION, error);
+            Logging.logActionExceptionMessage(tenant.id, ServerAction.RETRIEVE_ASSET_CONSUMPTION, error);
           } finally {
             // Release the lock
             await LockingManager.release(assetLock);

@@ -242,7 +242,7 @@ export default class CarService {
     };
     // Save
     newCar.id = await CarStorage.saveCar(req.tenant, newCar);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       ...LoggingHelper.getCarProperties(newCar),
       user: req.user, module: MODULE_NAME, method: 'handleCreateCar',
@@ -323,7 +323,7 @@ export default class CarService {
     if (setDefaultCarToOldUserID) {
       await CarService.setDefaultCarForUser(req.tenant, setDefaultCarToOldUserID);
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       ...LoggingHelper.getCarProperties(car),
       user: req.user, module: MODULE_NAME, method: 'handleUpdateCar',
@@ -405,7 +405,7 @@ export default class CarService {
     if (car.default) {
       await CarService.setDefaultCarForUser(req.tenant, car.userID);
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getCarProperties(car),
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',

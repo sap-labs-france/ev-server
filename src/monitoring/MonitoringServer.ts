@@ -7,6 +7,12 @@ export default abstract class MonitoringServer {
 
   public abstract getGauge(name: string): client.Gauge | undefined;
 
+  public abstract createGaugeMetric(
+    metricname: string,
+    metrichelp: string,
+    labelNames?: string[]
+  ): client.Gauge;
+
   public abstract getComposedMetric(
     prefix: string,
     metricname: string,

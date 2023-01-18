@@ -169,7 +169,7 @@ export default abstract class OCPIClient {
   }
 
   public async getVersions(): Promise<OCPIVersion[]> {
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_GET_VERSIONS,
       message: `Get OCPI Versions at ${this.ocpiEndpoint.baseUrl}`,
@@ -188,7 +188,7 @@ export default abstract class OCPIClient {
   }
 
   public async getEndpointVersions(): Promise<OCPIEndpointVersions> {
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_GET_ENDPOINT_VERSIONS,
       message: `Get OCPI Services at ${this.ocpiEndpoint.versionUrl}`,
@@ -267,7 +267,7 @@ export default abstract class OCPIClient {
   private async deleteCredentials(): Promise<OCPICredential> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CREATE_CREDENTIALS,
       message: `Delete Credentials at ${credentialsUrl}`,
@@ -288,7 +288,7 @@ export default abstract class OCPIClient {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
     const credentials = await OCPIUtils.buildOcpiCredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CREATE_CREDENTIALS,
       message: `Post Credentials at ${credentialsUrl}`,
@@ -310,7 +310,7 @@ export default abstract class OCPIClient {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_UPDATE_CREDENTIALS);
     const credentials = await OCPIUtils.buildOcpiCredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_UPDATE_CREDENTIALS,
       message: `Put Credentials at ${credentialsUrl}`,

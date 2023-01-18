@@ -29,7 +29,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_LOCATIONS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_LOCATIONS, error);
     }
   }
 
@@ -40,7 +40,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_GET_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -49,7 +49,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_GET_LOCATIONS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -57,7 +57,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
           });
           return;
         }
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_GET_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -67,7 +67,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
         // Pull Locations
         const result = await ocpiClient.pullLocations(config.partial);
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_GET_LOCATIONS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -75,7 +75,7 @@ export default class OCPIPullLocationsTask extends TenantSchedulerTask {
           detailedMessages: { result }
         });
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_LOCATIONS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_LOCATIONS, error);
       } finally {
         await LockingManager.release(ocpiLock);
       }

@@ -15,7 +15,7 @@ export default abstract class TenantMigrationTask extends MigrationTask {
     for (const tenant of tenants.result) {
       const tenantCorrelationID = Utils.generateShortNonUniqueID();
       const startTimeInTenant = moment();
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
@@ -25,7 +25,7 @@ export default abstract class TenantMigrationTask extends MigrationTask {
         // Migrate
         await this.migrateTenant(tenant);
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
@@ -35,7 +35,7 @@ export default abstract class TenantMigrationTask extends MigrationTask {
       }
       // Log Total Processing Time
       const totalTimeSecsInTenant = moment.duration(moment().diff(startTimeInTenant)).asSeconds();
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',

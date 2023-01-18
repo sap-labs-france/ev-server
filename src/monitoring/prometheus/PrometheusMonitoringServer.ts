@@ -6,7 +6,7 @@ import Constants from '../../utils/Constants';
 import ExpressUtils from '../../server/ExpressUtils';
 import Logging from '../../utils/Logging';
 import MonitoringConfiguration from '../../types/configuration/MonitoringConfiguration';
-import { ComposedMonitoringMetric } from '../ComposedMonitoringMetric';
+import { ComposedMonitoringMetric} from '../ComposedMonitoringMetric';
 import MonitoringServer from '../MonitoringServer';
 import { ServerUtils } from '../../server/ServerUtils';
 import global from '../../types/GlobalType';
@@ -29,17 +29,16 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     this.clientRegistry.setDefaultLabels({
       app: 'e-Mobility'
     });
-    if (process.env.K8S) {
-      this.createGaugeMetric(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT, 'The number of ocpp web sockets');
-      this.createGaugeMetric(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT, 'The number of rest web sockets');
-      this.createGaugeMetric(Constants.WEB_SOCKET_QUEUED_REQUEST, 'The number of web sockets that are queued');
-      this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST, 'The number of web sockets that are running');
-      this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE, 'The number of web sockets request + response that are running');
-      this.createGaugeMetric(Constants.WEB_SOCKET_CURRRENT_REQUEST, 'JSON WS Requests in cache');
-      this.createGaugeMetric(Constants.MONGODB_CONNECTION_READY, 'The number of connection that are ready');
-      this.createGaugeMetric(Constants.MONGODB_CONNECTION_CREATED, 'The number of connection created');
-      this.createGaugeMetric(Constants.MONGODB_CONNECTION_CLOSED, 'The number of connection closed');
-    }
+    this.createGaugeMetric(Constants.WEB_SOCKET_ON_OPEN_RUNNING_REQUEST, 'The number of on open running requests');
+    this.createGaugeMetric(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT, 'The number of ocpp web sockets');
+    this.createGaugeMetric(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT, 'The number of rest web sockets');
+    this.createGaugeMetric(Constants.WEB_SOCKET_QUEUED_REQUEST, 'The number of web sockets that are queued');
+    this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST, 'The number of web sockets that are running');
+    this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE, 'The number of web sockets request + response that are running');
+    this.createGaugeMetric(Constants.WEB_SOCKET_CURRRENT_REQUEST, 'JSON WS Requests in cache');
+    this.createGaugeMetric(Constants.MONGODB_CONNECTION_READY, 'The number of connection that are ready');
+    this.createGaugeMetric(Constants.MONGODB_CONNECTION_CREATED, 'The number of connection created');
+    this.createGaugeMetric(Constants.MONGODB_CONNECTION_CLOSED, 'The number of connection closed');
     // Create HTTP Server
     this.expressApplication = ExpressUtils.initApplication();
     // Handle requests
@@ -73,19 +72,7 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
       ServerUtils.createHttpServer(this.monitoringConfig, this.expressApplication), MODULE_NAME, ServerType.MONITORING_SERVER);
   }
 
-  public getComposedMetric(prefix : string, metricname: string, suffix: number, metrichelp: string, labelNames: string[]) : ComposedMonitoringMetric {
-    const key = prefix + '_' + metricname + '_' + suffix;
-    let composedMetric : ComposedMonitoringMetric = this.mapComposedMetric.get(key);
-    if (composedMetric) {
-      return composedMetric;
-    }
-    composedMetric = new ComposedMonitoringMetric(prefix, metricname,suffix,metrichelp,labelNames);
-    composedMetric.register(this.clientRegistry);
-    this.mapComposedMetric.set(key, composedMetric);
-    return composedMetric;
-  }
-
-  private createGaugeMetric(metricname : string, metrichelp : string, labelNames? : string[]) : Gauge {
+  public createGaugeMetric(metricname : string, metrichelp : string, labelNames? : string[]) : Gauge {
     let gaugeMetric : client.Gauge;
     if (Array.isArray(labelNames)) {
       gaugeMetric = new client.Gauge({
@@ -102,5 +89,17 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     this.mapGauge.set(metricname, gaugeMetric);
     this.clientRegistry.registerMetric(gaugeMetric);
     return gaugeMetric;
+  }
+
+  public getComposedMetric(prefix : string, metricname: string, suffix: number, metrichelp: string, labelNames: string[]) : ComposedMonitoringMetric {
+    const key = prefix + '_' + metricname + '_' + suffix;
+    let composedMetric : ComposedMonitoringMetric = this.mapComposedMetric.get(key);
+    if (composedMetric) {
+      return composedMetric;
+    }
+    composedMetric = new ComposedMonitoringMetric(prefix, metricname,suffix,metrichelp,labelNames);
+    composedMetric.register(this.clientRegistry);
+    this.mapComposedMetric.set(key, composedMetric);
+    return composedMetric;
   }
 }

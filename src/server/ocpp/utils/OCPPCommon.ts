@@ -35,7 +35,7 @@ export default class OCPPCommon {
       await OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation);
     }
     if (triggerConditionalReset && result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -52,7 +52,7 @@ export default class OCPPCommon {
     try {
       // Get the OCPP Configuration
       const ocppConfiguration = await OCPPCommon.requestChargingStationOcppParameters(tenant, chargingStation, {});
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -90,7 +90,7 @@ export default class OCPPCommon {
       }
       // Save configuration
       await ChargingStationStorage.saveOcppParameters(tenant, chargingStationOcppParameters);
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
@@ -99,7 +99,7 @@ export default class OCPPCommon {
       });
       return { status: OCPPConfigurationStatus.ACCEPTED };
     } catch (error) {
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, error);
       return { status: OCPPConfigurationStatus.REJECTED };
     }
   }
@@ -118,7 +118,7 @@ export default class OCPPCommon {
     }
     let resetResult = await chargingStationClient.reset({ type: resetType });
     if (resetResult.status === OCPPResetStatus.REJECTED) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         action: ServerAction.CHARGING_STATION_RESET,
@@ -126,7 +126,7 @@ export default class OCPPCommon {
         message: `Error at ${resetType} Rebooting charging station`,
       });
       if (hardResetFallback && resetType !== OCPPResetType.HARD) {
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           action: ServerAction.CHARGING_STATION_RESET,
@@ -135,7 +135,7 @@ export default class OCPPCommon {
         });
         resetResult = await chargingStationClient.reset({ type: OCPPResetType.HARD });
         if (resetResult.status === OCPPResetStatus.REJECTED) {
-          await Logging.logError({
+          Logging.beError()?.log({
             ...LoggingHelper.getChargingStationProperties(chargingStation),
             tenantID: tenant.id,
             action: ServerAction.CHARGING_STATION_RESET,
