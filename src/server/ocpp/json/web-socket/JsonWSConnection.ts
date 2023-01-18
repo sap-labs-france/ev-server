@@ -89,10 +89,11 @@ export default class JsonWSConnection extends WSConnection {
         // Call it
         result = await this.chargingStationService[methodName](this.headers, commandPayload);
       } finally {
+        // TODO - To be clarified - Why do we clean the header here?
         // Clean the header
-        delete this.headers.chargingStation;
-        delete this.headers.tenant;
-        delete this.headers.token;
+        // delete this.headers.chargingStation;
+        // delete this.headers.tenant;
+        // delete this.headers.token;
         // Trace
         await Logging.traceOcppMessageResponse(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenant(), this.getChargingStationID(),
           OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, result, '<<',
