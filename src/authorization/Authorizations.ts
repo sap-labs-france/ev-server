@@ -832,7 +832,7 @@ export default class Authorizations {
       default: false
     };
     // Notify (Async)
-    void NotificationHandler.sendUnknownUserBadged(
+    NotificationHandler.sendUnknownUserBadged(
       tenant,
       Utils.generateUUID(),
       chargingStation,
@@ -844,7 +844,9 @@ export default class Authorizations {
         badgeID: tagID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
       }
-    );
+    ).catch((error) => {
+      Logging.logPromiseError(error, tenant?.id);
+    });
     throw new BackendError({
       ...LoggingHelper.getChargingStationProperties(chargingStation),
       action: action,
