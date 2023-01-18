@@ -1009,7 +1009,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async createStripeInvoiceItemHeader(customerID: string,
-    billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
+      billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
     if (!billingInvoiceItem.headerDescription) {
       return;
     }
@@ -1714,7 +1714,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Check whether the customer exists or not
       const customer = await this.checkStripeCustomer(customerID);
       // Check whether the customer has a default payment method
-      await this.checkStripePaymentMethod(customer);
+      await this.checkStripePaymentMethod(customer, true);
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
@@ -1836,7 +1836,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Update Billing Data
         if (transaction?.billingData?.stop) {
           transaction.billingData.stop.status = BillingStatus.BILLED,
-            transaction.billingData.stop.invoiceID = billingInvoice.id;
+          transaction.billingData.stop.invoiceID = billingInvoice.id;
           transaction.billingData.stop.invoiceStatus = billingInvoice.status;
           transaction.billingData.stop.invoiceNumber = billingInvoice.number;
           transaction.billingData.lastUpdate = new Date();
