@@ -134,18 +134,21 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     // Remember Charging Stations which were removed from Smart Charging
     this.excludedChargingStations.push(chargingStation.id);
     // Notify Admins
-    void NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
+    NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
       { chargeBoxID: chargingProfile.chargingStationID,
         siteID: chargingProfile.chargingStation?.siteID,
         siteAreaID: chargingProfile.chargingStation?.siteAreaID,
         companyID: chargingProfile.chargingStation?.companyID,
         siteAreaName: siteAreaName,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-      });
+      }
+    ).catch((error) => {
+      Logging.logPromiseError(error, tenant?.id);
+    });
     return false;
   }
 
-  abstract buildChargingProfiles(siteArea: SiteArea, excludedChargingStations?: string[]): Promise<ChargingProfile[]>;
+  public abstract buildChargingProfiles(siteArea: SiteArea, excludedChargingStations?: string[]): Promise<ChargingProfile[]>;
 
-  abstract checkConnection(): Promise<void>;
+  public abstract checkConnection(): Promise<void>;
 }

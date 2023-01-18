@@ -19,7 +19,7 @@ export default class DispatchCollectedFundsTask extends TenantSchedulerTask {
           const actionResults = await billingImpl.dispatchCollectedFunds(taskConfig);
           if (actionResults.inError > 0) {
             // TODO - send a notification to the ADMINS
-            // void NotificationHandler.sendBillingPeriodicOperationFailed(
+            // NotificationHandler.sendBillingPeriodicOperationFailed(
             //   tenant,
             //   {
             //     nbrInvoicesInError: actionResults.inError,
@@ -27,6 +27,9 @@ export default class DispatchCollectedFundsTask extends TenantSchedulerTask {
             //     evseDashboardBillingURL: Utils.buildEvseBillingSettingsURL(tenant.subdomain)
             //   }
             // );
+            // }).catch((error) => {
+            //   Logging.logPromiseError(error, tenant?.id);
+            // });
           }
         }
       } catch (error) {

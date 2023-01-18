@@ -277,12 +277,14 @@ export default class CpoOICPClient extends OICPClient {
     } while (!Utils.isEmptyArray(sites));
     // Send notification to admins
     if (result.failure > 0) {
-      void NotificationHandler.sendOICPPatchChargingStationsError(
+      NotificationHandler.sendOICPPatchChargingStationsError(
         this.tenant,
         {
           evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
         }
-      );
+      ).catch((error) => {
+        Logging.logPromiseError(error, this.tenant?.id);
+      });
     }
     // Save result in oicp endpoint
     this.oicpEndpoint.lastPatchJobOn = startDate;
@@ -403,12 +405,14 @@ export default class CpoOICPClient extends OICPClient {
                 }
                 if (result.failure > 0) {
                   // Send notification to admins
-                  void NotificationHandler.sendOICPPatchChargingStationsStatusesError(
+                  NotificationHandler.sendOICPPatchChargingStationsStatusesError(
                     this.tenant,
                     {
                       evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
                     }
-                  );
+                  ).catch((error) => {
+                    Logging.logPromiseError(error, this.tenant?.id);
+                  });
                 }
               }
             }

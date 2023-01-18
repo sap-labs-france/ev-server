@@ -1,17 +1,21 @@
 import ChargingStation from '../types/ChargingStation';
 import Constants from './Constants';
 import I18nManager from './I18nManager';
+import Logging from './Logging';
 import NotificationHandler from '../notification/NotificationHandler';
+import { ServerAction } from '../types/Server';
 import Tenant from '../types/Tenant';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
 import Utils from './Utils';
 import moment from 'moment';
 
+const MODULE_NAME = 'NotificationHelper';
+
 export default class NotificationHelper {
   public static notifyStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
     if (user) {
-      void NotificationHandler.sendTransactionStarted(
+      NotificationHandler.sendTransactionStarted(
         tenant,
         transaction.id.toString(),
         user,
@@ -27,7 +31,9 @@ export default class NotificationHelper {
           'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
           'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress')
         }
-      );
+      ).catch((error) => {
+        Logging.logPromiseError(error, tenant?.id);
+      });
     }
   }
 
@@ -36,7 +42,7 @@ export default class NotificationHelper {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       // Notify (Async)
-      void NotificationHandler.sendEndOfCharge(
+      NotificationHandler.sendEndOfCharge(
         tenant,
         transaction.id.toString() + '-EOC',
         transaction.user,
@@ -55,7 +61,9 @@ export default class NotificationHelper {
           evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
-      );
+      ).catch((error) => {
+        Logging.logPromiseError(error, tenant?.id);
+      });
     }
   }
 
@@ -64,7 +72,7 @@ export default class NotificationHelper {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       // Notification Before End Of Charge (Async)
-      void NotificationHandler.sendOptimalChargeReached(
+      NotificationHandler.sendOptimalChargeReached(
         tenant,
         transaction.id.toString() + '-OCR',
         transaction.user,
@@ -82,7 +90,9 @@ export default class NotificationHelper {
           evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
-      );
+      ).catch((error) => {
+        Logging.logPromiseError(error, tenant?.id);
+      });
     }
   }
 
@@ -92,7 +102,7 @@ export default class NotificationHelper {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(user.locale);
       // Send Notification (Async)
-      void NotificationHandler.sendEndOfTransaction(
+      NotificationHandler.sendEndOfTransaction(
         tenant,
         transaction.id.toString() + '-EOS',
         user,
@@ -113,12 +123,14 @@ export default class NotificationHelper {
           evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
-      );
+      ).catch((error) => {
+        Logging.logPromiseError(error, tenant?.id);
+      });
       // Notify Signed Data
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
         const locale = user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-');
-        void NotificationHandler.sendEndOfSignedTransaction(
+        NotificationHandler.sendEndOfSignedTransaction(
           tenant,
           transaction.id.toString() + '-EOSS',
           user,
@@ -145,7 +157,9 @@ export default class NotificationHelper {
             evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
             evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
           }
-        );
+        ).catch((error) => {
+          Logging.logPromiseError(error, tenant?.id);
+        });
       }
     }
   }

@@ -164,7 +164,7 @@ export default class ImportHelper {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(tenant.subdomain) +
       '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' + user.email + '&ResetToken=' + resetHash;
     // Send activate account link
-    void NotificationHandler.sendVerificationEmailUserImport(
+    NotificationHandler.sendVerificationEmailUserImport(
       tenant,
       Utils.generateUUID(),
       user,
@@ -173,6 +173,9 @@ export default class ImportHelper {
         'user': user,
         'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-      });
+      }
+    ).catch((error) => {
+      Logging.logPromiseError(error, tenant?.id);
+    });
   }
 }

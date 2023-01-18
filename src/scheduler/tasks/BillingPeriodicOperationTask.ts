@@ -20,14 +20,16 @@ export default class BillingPeriodicOperationTask extends TenantSchedulerTask {
           // Attempt to finalize and pay invoices
           const chargeActionResults = await billingImpl.chargeInvoices(taskConfig);
           if (chargeActionResults.inError > 0) {
-            void NotificationHandler.sendBillingPeriodicOperationFailed(
+            NotificationHandler.sendBillingPeriodicOperationFailed(
               tenant,
               {
                 nbrInvoicesInError: chargeActionResults.inError,
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
                 evseDashboardBillingURL: Utils.buildEvseBillingSettingsURL(tenant.subdomain)
               }
-            );
+            ).catch((error) => {
+              Logging.logPromiseError(error, tenant?.id);
+            });
           }
         }
       } catch (error) {

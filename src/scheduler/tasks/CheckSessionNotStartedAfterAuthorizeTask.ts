@@ -22,7 +22,7 @@ export default class CheckSessionNotStartedAfterAuthorizeTask extends TenantSche
         });
         if (notificationTransactionNotStarted.result && notificationTransactionNotStarted.result.length > 0) {
           for (const notification of notificationTransactionNotStarted.result) {
-            void NotificationHandler.sendTransactionNotStarted(tenant,
+            NotificationHandler.sendTransactionNotStarted(tenant,
               `${notification.tagID}-${notification.authDate.toString()}`,
               notification.chargingStation, {
                 user: notification.user,
@@ -32,7 +32,9 @@ export default class CheckSessionNotStartedAfterAuthorizeTask extends TenantSche
                 companyID: notification.chargingStation.companyID,
                 evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, notification.chargingStation, '#all'),
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-              });
+              }).catch((error) => {
+              Logging.logPromiseError(error, tenant?.id);
+            });
           }
         }
       } catch (error) {
