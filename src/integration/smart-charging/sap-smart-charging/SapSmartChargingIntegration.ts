@@ -611,12 +611,16 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
   }
 
   private handleTimestampDeparture(optimizerCar: OptimizerCar, transaction: Transaction, currentType: CurrentType, defaultDepartureTime: string): void {
+    const currentTimeInSeconds = Utils.createDecimal(moment().diff(moment().startOf('hour'), 'seconds')).div(900).modulo(1).mul(900).toNumber();
     // Set departure time based on user input
     if (!Utils.isNullOrUndefined(transaction.departureTime)) {
-      optimizerCar.timestampDeparture = moment(transaction.departureTime).diff(moment(), 'seconds');
+      optimizerCar.timestampDeparture = moment(transaction.departureTime).diff(moment(), 'seconds') + 1 + currentTimeInSeconds;
     } else if (currentType === CurrentType.DC) {
       // Set static departure time for DC sessions
       optimizerCar.timestampDeparture = moment(transaction.timestamp).add(1, 'hours').diff(moment(), 'seconds');
+      if (optimizerCar.timestampDeparture < currentTimeInSeconds) {
+        optimizerCar.timestampDeparture = currentTimeInSeconds + 1;
+      }
     } else {
       // Calculate departure time
       let timestampDeparture = moment(transaction.timestamp).add(8, 'hours');
@@ -628,8 +632,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
           timestampDeparture.add(1, 'days');
         }
       }
-      optimizerCar.timestampDeparture = moment(timestampDeparture).diff(moment(), 'seconds') + 1 +
-      Utils.createDecimal(moment().diff(moment().startOf('hour'), 'seconds')).div(900).modulo(1).mul(900).toNumber();
+      optimizerCar.timestampDeparture = moment(timestampDeparture).diff(moment(), 'seconds') + 1 + currentTimeInSeconds;
     }
     // Check if timestamp departure is in the past
     if (optimizerCar.timestampDeparture <= 0) {
