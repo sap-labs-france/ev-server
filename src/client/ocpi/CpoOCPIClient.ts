@@ -745,13 +745,15 @@ export default class CpoOCPIClient extends OCPIClient {
                 }
                 if (result.failure > 0) {
                   // Send notification to admins
-                  void NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
+                  NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                     this.tenant,
                     {
                       location: location.name,
                       evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
                     }
-                  );
+                  ).catch((error) => {
+                    Logging.logPromiseError(error, this.tenant?.id);
+                  });
                 }
               }
             },

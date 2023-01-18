@@ -273,7 +273,6 @@ export interface PreparingSessionNotStartedNotification extends BaseNotification
   siteAreaID: string;
   companyID: string;
   connectorId: string;
-  startedOn: string;
   evseDashboardURL: string;
   evseDashboardChargingStationURL: string;
 }

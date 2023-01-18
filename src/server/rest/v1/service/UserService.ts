@@ -324,15 +324,17 @@ export default class UserService {
     });
     if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Notify
-      void NotificationHandler.sendUserAccountStatusChanged(
+      NotificationHandler.sendUserAccountStatusChanged(
         req.tenant,
         Utils.generateUUID(),
         user,
         {
-          'user': user,
-          'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain)
+          user,
+          evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain)
         }
-      );
+      ).catch((error) => {
+        Logging.logPromiseError(error, req?.tenant?.id);
+      });
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
