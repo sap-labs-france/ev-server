@@ -628,7 +628,8 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
           timestampDeparture.add(1, 'days');
         }
       }
-      optimizerCar.timestampDeparture = moment(timestampDeparture).diff(moment(), 'seconds');
+      optimizerCar.timestampDeparture = moment(timestampDeparture).diff(moment(), 'seconds') + 1 +
+      Utils.createDecimal(moment().diff(moment().startOf('hour'), 'seconds')).div(900).modulo(1).mul(900).toNumber();
     }
     // Check if timestamp departure is in the past
     if (optimizerCar.timestampDeparture <= 0) {
