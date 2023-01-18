@@ -635,7 +635,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       optimizerCar.timestampDeparture = moment(timestampDeparture).diff(moment(), 'seconds') + 1 + currentTimeInSeconds;
     }
     // Check if timestamp departure is in the past
-    if (optimizerCar.timestampDeparture <= 0) {
+    if (optimizerCar.timestampDeparture <= currentTimeInSeconds) {
       optimizerCar.timestampDeparture = 28800;
     }
     // Check if timestamp departure is  too far in the future
