@@ -368,7 +368,7 @@ export default class BillingService {
     }
 
     // const user: User = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.transactionId);
+    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.transactionId, { withUser: true });
     // const operationResult: BillingOperationResult = await billingImpl.retrievePaymentIntent(transaction.user, transaction.lastPaymentIntentID);
     // // Get the charging station
     // const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID);
