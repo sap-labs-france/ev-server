@@ -1,18 +1,12 @@
 import client, { Gauge, LabelValues } from 'prom-client';
+import { AvgMonitoringMetric } from './AvgMonitoringMetric';
 
-class ComposedMonitoringMetric {
-  private gaugeMetricAvg: client.Gauge;
+class ComposedMonitoringMetric extends AvgMonitoringMetric {
   private gaugeMetricCount: client.Gauge;
-  private metricCount = 0;
-  private metricAvg = 0;
 
   // Normal signature with defaults
   public constructor(prefix: string, metricname: string, suffix: number, metrichelp: string, labelNames: string[]) {
-    this.gaugeMetricAvg = new client.Gauge({
-      name: prefix + '_' + metricname + '_avg_' + suffix,
-      help: metrichelp,
-      labelNames: labelNames,
-    });
+    super(prefix, metricname, suffix, metrichelp, labelNames);
     this.gaugeMetricCount = new client.Gauge({
       name: prefix + '_' + metricname + '_count_' + suffix,
       help: metrichelp,
@@ -21,25 +15,18 @@ class ComposedMonitoringMetric {
   }
 
   public register(registry: client.Registry): void {
-    registry.registerMetric(this.gaugeMetricAvg);
+    super.register(registry);
     registry.registerMetric(this.gaugeMetricCount);
   }
 
   public setValue(labels: LabelValues<string>, value: number) {
-    if (this.metricCount === 0) {
-      this.metricAvg = 0;
-    }
-    this.metricAvg = (this.metricAvg * this.metricCount + value) / (this.metricCount + 1);
-    this.metricCount++;
+    super.setValue(labels, value);
     this.gaugeMetricCount.labels(labels).set(this.metricCount);
-    this.gaugeMetricAvg.labels(labels).set(this.metricAvg);
   }
 
   public clear() {
-    this.metricAvg = 0;
-    this.metricCount = 0;
+    super.clear();
     this.gaugeMetricCount.reset();
-    this.gaugeMetricAvg.reset();
   }
 }
 export { ComposedMonitoringMetric };

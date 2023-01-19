@@ -1,5 +1,6 @@
 
 import client from 'prom-client';
+import { AvgMonitoringMetric } from './AvgMonitoringMetric';
 import { ComposedMonitoringMetric } from './ComposedMonitoringMetric';
 
 export default abstract class MonitoringServer {
@@ -14,4 +15,15 @@ export default abstract class MonitoringServer {
     metrichelp: string,
     labelNames: string[]
   ): ComposedMonitoringMetric;
+
+
+  public abstract getAvgMetric(
+    prefix: string,
+    metricname: string,
+    suffix: number,
+    metrichelp: string,
+    labelNames: string[]
+  ): AvgMonitoringMetric;
+
+
 }

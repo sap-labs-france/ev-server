@@ -6,6 +6,7 @@ import Constants from '../../utils/Constants';
 import ExpressUtils from '../../server/ExpressUtils';
 import Logging from '../../utils/Logging';
 import MonitoringConfiguration from '../../types/configuration/MonitoringConfiguration';
+import { AvgMonitoringMetric } from '../AvgMonitoringMetric';
 import { ComposedMonitoringMetric } from '../ComposedMonitoringMetric';
 import MonitoringServer from '../MonitoringServer';
 import { ServerUtils } from '../../server/ServerUtils';
@@ -17,7 +18,7 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
   private monitoringConfig: MonitoringConfiguration;
   private expressApplication: Application;
   private mapGauge = new Map<string, Gauge>();
-  private mapComposedMetric = new Map<string, ComposedMonitoringMetric>();
+  private mapMetric = new Map<string, AvgMonitoringMetric>();
   private clientRegistry = new client.Registry();
 
   public constructor(monitoringConfig: MonitoringConfiguration) {
@@ -51,7 +52,7 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
         // Process
         res.setHeader('Content-Type', this.clientRegistry.contentType);
         res.end(await this.clientRegistry.metrics());
-        for (const val of this.mapComposedMetric.values()) {
+        for (const val of this.mapMetric.values()) {
           val.clear();
         }
         next();
@@ -73,17 +74,31 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
       ServerUtils.createHttpServer(this.monitoringConfig, this.expressApplication), MODULE_NAME, ServerType.MONITORING_SERVER);
   }
 
+  public getAvgMetric(prefix : string, metricname: string, suffix: number, metrichelp: string, labelNames: string[]) : AvgMonitoringMetric {
+    const key = prefix + '_' + metricname + '_' + suffix;
+    let composedMetric : AvgMonitoringMetric = this.mapMetric.get(key);
+    if (composedMetric) {
+      return composedMetric;
+    }
+    composedMetric = new AvgMonitoringMetric(prefix, metricname,suffix,metrichelp,labelNames);
+    composedMetric.register(this.clientRegistry);
+    this.mapMetric.set(key, composedMetric);
+    return composedMetric;
+  }
+
+
   public getComposedMetric(prefix : string, metricname: string, suffix: number, metrichelp: string, labelNames: string[]) : ComposedMonitoringMetric {
     const key = prefix + '_' + metricname + '_' + suffix;
-    let composedMetric : ComposedMonitoringMetric = this.mapComposedMetric.get(key);
+    let composedMetric : ComposedMonitoringMetric = this.mapMetric.get(key) as ComposedMonitoringMetric;
     if (composedMetric) {
       return composedMetric;
     }
     composedMetric = new ComposedMonitoringMetric(prefix, metricname,suffix,metrichelp,labelNames);
     composedMetric.register(this.clientRegistry);
-    this.mapComposedMetric.set(key, composedMetric);
+    this.mapMetric.set(key, composedMetric);
     return composedMetric;
   }
+
 
   private createGaugeMetric(metricname : string, metrichelp : string, labelNames? : string[]) : Gauge {
     let gaugeMetric : client.Gauge;
@@ -104,3 +119,6 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     return gaugeMetric;
   }
 }
+
+
+

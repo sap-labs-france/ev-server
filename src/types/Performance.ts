@@ -1,3 +1,4 @@
+import { MetricLabels } from '../utils/Logging';
 import { ServerAction } from './Server';
 
 export default interface PerformanceRecord {
