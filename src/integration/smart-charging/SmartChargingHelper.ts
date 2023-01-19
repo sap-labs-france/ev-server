@@ -22,6 +22,9 @@ export default class SmartChargingHelper {
       hour: departureTime.get('hour'),
       minute: departureTime.get('minute'),
     });
+    if (departureDate.isBefore(moment())) {
+      departureDate = departureDate.add(1, 'day');
+    }
     return departureDate.toDate();
   }
 
@@ -41,7 +44,7 @@ export default class SmartChargingHelper {
       const parameters = chargingStation.siteArea?.smartChargingSessionParameters;
       const targetStateOfCharge = parameters?.targetStateOfCharge ?? 70;
       const carStateOfCharge = parameters?.carStateOfCharge ?? 30;
-      const expectedDepartureTime = (parameters?.departureTime) ? `${parameters?.departureTime}:00` : '18:00';
+      const expectedDepartureTime: string = parameters?.departureTime || '18:00';
       const departureTime = SmartChargingHelper.getExpectedDepartureTime(chargingStation, expectedDepartureTime);
       if (Utils.getChargingStationCurrentType(chargingStation, null, connectorID) === CurrentType.DC) {
         // DC Charger
