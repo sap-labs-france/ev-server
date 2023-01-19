@@ -46,7 +46,6 @@ export default class PerformanceStorage {
         { $set: performanceRecordMDB },
         { upsert: true, returnDocument: 'after' }
       );
-
       const perRecordReturned = ret.value as PerformanceRecord;
       PerformanceStorage.savePrometheusMetric(perRecordReturned, metric);
     }
