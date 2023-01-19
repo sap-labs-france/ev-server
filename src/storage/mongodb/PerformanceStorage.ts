@@ -69,20 +69,20 @@ export default class PerformanceStorage {
     const hashCode = Utils.positiveHashcode(values);
     if (performanceRecord.durationMs) {
       if (performanceRecord.group === PerformanceRecordGroup.MONGO_DB) {
-        const durationMetric = global.monitoringServer.getComposedMetric(grafanaGroup, 'Duration', hashCode, 'duration', Object.keys(metric.labelvalues));
+        const durationMetric = global.monitoringServer.getComposedMetric(grafanaGroup, 'DurationMs', hashCode, 'duration in milliseconds', Object.keys(metric.labelvalues));
         durationMetric.setValue(metric.labelvalues, performanceRecord.durationMs);
 
       } else {
-        const durationMetric = global.monitoringServer.getAvgMetric(grafanaGroup, 'Duration', hashCode, 'duration', Object.keys(metric.labelvalues));
+        const durationMetric = global.monitoringServer.getAvgMetric(grafanaGroup, 'DurationMs', hashCode, 'duration in milliseconds', Object.keys(metric.labelvalues));
         durationMetric.setValue(metric.labelvalues, performanceRecord.durationMs);
       }
     }
     if (performanceRecord.reqSizeKb) {
-      const durationMetric = global.monitoringServer.getAvgMetric(grafanaGroup, 'RequestSize', hashCode, 'request size kb', Object.keys(metric.labelvalues));
+      const durationMetric = global.monitoringServer.getAvgMetric(grafanaGroup, 'RequestSizeKb', hashCode, 'request size kb', Object.keys(metric.labelvalues));
       durationMetric.setValue(metric.labelvalues, performanceRecord.reqSizeKb);
     }
     if (performanceRecord.resSizeKb) {
-      const durationMetric = global.monitoringServer.getAvgMetric(grafanaGroup, 'ResponseSize', hashCode, 'response size kb', Object.keys(metric.labelvalues));
+      const durationMetric = global.monitoringServer.getAvgMetric(grafanaGroup, 'ResponseSizeKb', hashCode, 'response size kb', Object.keys(metric.labelvalues));
       durationMetric.setValue(metric.labelvalues, performanceRecord.resSizeKb);
     }
   }
