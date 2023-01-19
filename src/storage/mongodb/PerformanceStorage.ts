@@ -14,8 +14,9 @@ const PERFS_ENABLED = true;
 // TODO: To remove when switched to k8s with Prometheus
 export default class PerformanceStorage {
   public static async savePerformanceRecord(performanceRecord: PerformanceRecord, metric:MetricLabels): Promise<string> {
-    PerformanceStorage.savePrometheusMetric(performanceRecord, metric);
+
     if (PERFS_ENABLED) {
+      PerformanceStorage.savePrometheusMetric(performanceRecord, metric);
       // Remove default Tenant
       if (!performanceRecord.tenantSubdomain || performanceRecord.tenantSubdomain === Constants.DEFAULT_TENANT_ID) {
         delete performanceRecord.tenantSubdomain;
@@ -33,18 +34,21 @@ export default class PerformanceStorage {
   }
 
   public static async updatePerformanceRecord(performanceRecord: PerformanceRecord, metric: MetricLabels): Promise<void> {
-    PerformanceStorage.savePrometheusMetric(performanceRecord, metric);
+    // PerformanceStorage.savePrometheusMetric(performanceRecord, metric);
     if (PERFS_ENABLED) {
       // Validate
       const performanceRecordMDB = PerformanceValidatorStorage.getInstance().validatePerformance(performanceRecord);
       // Convert to ObjectID
       DatabaseUtils.switchIDToMongoDBID(performanceRecordMDB);
       // Update
-      await global.database.getCollection<PerformanceRecord>(Constants.DEFAULT_TENANT_ID, 'performances').findOneAndUpdate(
+      const ret = await global.database.getCollection<PerformanceRecord>(Constants.DEFAULT_TENANT_ID, 'performances').findOneAndUpdate(
         { _id: performanceRecordMDB['_id'] },
         { $set: performanceRecordMDB },
         { upsert: true, returnDocument: 'after' }
       );
+
+      const perRecordReturned = ret.value as PerformanceRecord;
+      PerformanceStorage.savePrometheusMetric(perRecordReturned, metric);
     }
   }
 
@@ -71,7 +75,6 @@ export default class PerformanceStorage {
       if (performanceRecord.group === PerformanceRecordGroup.MONGO_DB) {
         const durationMetric = global.monitoringServer.getComposedMetric(grafanaGroup, 'DurationMs', hashCode, 'duration in milliseconds', Object.keys(metric.labelvalues));
         durationMetric.setValue(metric.labelvalues, performanceRecord.durationMs);
-
       } else {
         const durationMetric = global.monitoringServer.getAvgMetric(grafanaGroup, 'DurationMs', hashCode, 'duration in milliseconds', Object.keys(metric.labelvalues));
         durationMetric.setValue(metric.labelvalues, performanceRecord.durationMs);
