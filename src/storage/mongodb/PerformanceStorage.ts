@@ -14,9 +14,10 @@ const PERFS_ENABLED = true;
 // TODO: To remove when switched to k8s with Prometheus
 export default class PerformanceStorage {
   public static async savePerformanceRecord(performanceRecord: PerformanceRecord, metric:MetricLabels): Promise<string> {
-
     if (PERFS_ENABLED) {
-      PerformanceStorage.savePrometheusMetric(performanceRecord, metric);
+      if ((global.monitoringServer) && (process.env.K8S)) {
+        PerformanceStorage.savePrometheusMetric(performanceRecord, metric);
+      }
       // Remove default Tenant
       if (!performanceRecord.tenantSubdomain || performanceRecord.tenantSubdomain === Constants.DEFAULT_TENANT_ID) {
         delete performanceRecord.tenantSubdomain;
@@ -47,7 +48,9 @@ export default class PerformanceStorage {
         { upsert: true, returnDocument: 'after' }
       );
       const perRecordReturned = ret.value as PerformanceRecord;
-      PerformanceStorage.savePrometheusMetric(perRecordReturned, metric);
+      if ((global.monitoringServer) && (process.env.K8S)) {
+        PerformanceStorage.savePrometheusMetric(perRecordReturned, metric);
+      }
     }
   }
 

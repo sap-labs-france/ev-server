@@ -98,10 +98,8 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
-
       const labels = { tenant: tenant.subdomain, module: module, method: method };
       const metricLabels : MetricLabels = { labelvalues : labels };
-
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -148,11 +146,8 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
-
       const labels = { tenant: tenant.subdomain, module: module, method: method, userid:userID, templateName: templateName };
       const metricLabels : MetricLabels = { labelvalues : labels };
-
-
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
