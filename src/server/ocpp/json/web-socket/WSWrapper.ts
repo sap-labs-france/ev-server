@@ -1,4 +1,6 @@
+import { LabelValues } from 'prom-client';
 import { RecognizedString, WebSocket } from 'uWebSockets.js';
+import { CounterClearableMetric } from '../../../../monitoring/CounterClearableMetric';
 
 import Utils from '../../../../utils/Utils';
 import WSConnection from './WSConnection';
@@ -24,8 +26,15 @@ export default class WSWrapper {
   public nbrPingFailed: number;
   public lastPingDate: Date;
   public lastPongDate: Date;
+  public tenantSubDomain: string;
+
+
+  public ocppOpenWebSocketMetricCounter : CounterClearableMetric;
+  public ocppClosedWebSocketMetricCounter : CounterClearableMetric;
+
 
   private ws: WebSocket;
+
 
   public constructor(ws: WebSocket) {
     this.guid = Utils.generateShortNonUniqueID();

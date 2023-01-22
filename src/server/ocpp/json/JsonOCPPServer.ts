@@ -1,6 +1,7 @@
 import * as uWS from 'uWebSockets.js';
 
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
+import { PerformanceRecordGroup } from '../../../types/Performance';
 import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Server';
 import { WebSocketAction, WebSocketCloseEventStatusCode, WebSocketPingResult } from '../../../types/WebSocket';
 
@@ -303,6 +304,9 @@ export default class JsonOCPPServer extends OCPPServer {
       });
       // Keep WS connection in cache
       await this.setWSConnection(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsConnection, wsWrapper);
+      if (global.monitoringServer) {
+        wsWrapper.ocppOpenWebSocketMetricCounter.inc();
+      }
     } else {
       await this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_OPEN, WebSocketCloseEventStatusCode.CLOSE_ABNORMAL,
         `${WebSocketAction.OPEN} > WS Connection ID '${wsWrapper.guid}' has been closed during initialization in ${Utils.computeTimeDurationSecs(timeStart)} secs ('${wsWrapper.url}')`);
@@ -580,7 +584,6 @@ export default class JsonOCPPServer extends OCPPServer {
     // Close WS
     if (!wsWrapper.closed) {
       try {
-        wsWrapper.close(code, message);
         await this.logWSConnectionClosed(wsWrapper, action, code, message);
       } catch (error) {
         // Just log and ignore issue
@@ -651,6 +654,9 @@ export default class JsonOCPPServer extends OCPPServer {
         // Check id same WS Connection
         if (existingWsWrapper.guid === wsWrapper.guid) {
           // Remove from WS Cache
+          if (global.monitoringServer) {
+            wsWrapper.ocppClosedWebSocketMetricCounter.inc();
+          }
           wsConnections.delete(wsConnection.getID());
           await Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT_ID,
@@ -706,11 +712,11 @@ export default class JsonOCPPServer extends OCPPServer {
             `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
           ]
         }).catch(() => { /* Intentional */ });
-        if ((global.monitoringServer) && (process.env.K8S)) {
+        if (global.monitoringServer) {
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE).set(this.runningWSMessages);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT).set(this.jsonRestWSConnections.size);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRRENT_REQUEST).set(numberOfCurrentRequests);
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRENT_REQUEST).set(numberOfCurrentRequests);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(Object.keys(this.runningWSRequestsMessages).length);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_QUEUED_REQUEST).set(this.waitingWSMessages);
         }

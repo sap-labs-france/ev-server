@@ -1,12 +1,15 @@
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
+import global from '../../../../types/GlobalType';
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import BackendError from '../../../../exception/BackendError';
 import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import { PerformanceRecordGroup } from '../../../../types/Performance';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import JsonChargingStationClient from '../../../../client/ocpp/json/JsonChargingStationClient';
+import Utils from '../../../../utils/Utils';
 import JsonChargingStationService from '../services/JsonChargingStationService';
 import Logging from '../../../../utils/Logging';
 import OCPPError from '../../../../exception/OcppError';
@@ -43,6 +46,12 @@ export default class JsonWSConnection extends WSConnection {
         Address: this.getClientIP()
       }
     };
+    if (global.monitoringServer) {
+      // && (process.env.K8S)
+      const labelValues = { tenant: this.getTenant().subdomain };
+      this.getWS().ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OccpOpenWebSocket', 'open connection', labelValues);
+      this.getWS().ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OccpClosedWebSocket', 'closed connection', labelValues);
+    }
     // Create the Json Client
     this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID());
     // Create the Json Server Service
@@ -77,6 +86,8 @@ export default class JsonWSConnection extends WSConnection {
       this.headers.tenant = tenant;
       this.headers.chargingStation = chargingStation;
       this.headers.token = token;
+
+
       // Trace
       const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
         this.getTenant(), this.getChargingStationID(), OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, '>>',

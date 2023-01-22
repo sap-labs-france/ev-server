@@ -1,21 +1,28 @@
 import client, { Gauge, LabelValues } from 'prom-client';
+import { Clearable } from './Clearable';
 
-class AvgMonitoringMetric {
+class AvgGaugeClearableMetric extends Clearable {
   protected gaugeMetricAvg: client.Gauge;
   protected metricCount = 0;
   protected metricAvg = 0;
+  protected registry :client.Registry;
+  private key : string;
 
-  // Normal signature with defaults
-  public constructor(prefix: string, metricname: string, suffix: number, metrichelp: string, labelNames: string[]) {
+  public constructor(registry : client.Registry, key :string, metrichelp: string, labelNames: string[]) {
+    super();
     this.gaugeMetricAvg = new client.Gauge({
-      name: prefix + '_' + metricname + '_avg_' + suffix,
+      name: key,
       help: metrichelp,
       labelNames: labelNames,
     });
+    this.registry = registry;
+    registry.registerMetric(this.gaugeMetricAvg);
+    this.key = key;
+
   }
 
-  public register(registry: client.Registry): void {
-    registry.registerMetric(this.gaugeMetricAvg);
+  public unregister(): void {
+    this.registry.removeSingleMetric(this.key);
   }
 
   public setValue(labels: LabelValues<string>, value: number) {
@@ -33,4 +40,4 @@ class AvgMonitoringMetric {
     this.gaugeMetricAvg.reset();
   }
 }
-export { AvgMonitoringMetric };
+export { AvgGaugeClearableMetric };

@@ -15,7 +15,7 @@ const PERFS_ENABLED = true;
 export default class PerformanceStorage {
   public static async savePerformanceRecord(performanceRecord: PerformanceRecord, metric:MetricLabels): Promise<string> {
     if (PERFS_ENABLED) {
-      if ((global.monitoringServer) && (process.env.K8S)) {
+      if (global.monitoringServer)  {
         PerformanceStorage.savePrometheusMetric(performanceRecord, metric);
       }
       // Remove default Tenant
@@ -73,21 +73,23 @@ export default class PerformanceStorage {
     const grafanaGroup = performanceRecord.group.replace('-', '');
     const values = Object.values(metric.labelvalues).toString();
     const hashCode = Utils.positiveHashcode(values);
+    const labels = Object.keys(metric.labelvalues);
+
     if (performanceRecord.durationMs) {
       if (performanceRecord.group === PerformanceRecordGroup.MONGO_DB) {
-        const durationMetric = global.monitoringServer.getComposedMetric(grafanaGroup, 'DurationMs', hashCode, 'duration in milliseconds', Object.keys(metric.labelvalues));
+        const durationMetric = global.monitoringServer.getCountAvgClearableMetric(grafanaGroup, 'DurationMs', hashCode, 'duration in milliseconds', 'number of invocations', labels);
         durationMetric.setValue(metric.labelvalues, performanceRecord.durationMs);
       } else {
-        const durationMetric = global.monitoringServer.getAvgMetric(grafanaGroup, 'DurationMs', hashCode, 'duration in milliseconds', Object.keys(metric.labelvalues));
+        const durationMetric = global.monitoringServer.getAvgClearableMetric(grafanaGroup, 'DurationMs', hashCode, 'duration in milliseconds', labels);
         durationMetric.setValue(metric.labelvalues, performanceRecord.durationMs);
       }
     }
     if (performanceRecord.reqSizeKb) {
-      const durationMetric = global.monitoringServer.getAvgMetric(grafanaGroup, 'RequestSizeKb', hashCode, 'request size kb', Object.keys(metric.labelvalues));
+      const durationMetric = global.monitoringServer.getAvgClearableMetric(grafanaGroup, 'RequestSizeKb', hashCode, 'request size kb', labels);
       durationMetric.setValue(metric.labelvalues, performanceRecord.reqSizeKb);
     }
     if (performanceRecord.resSizeKb) {
-      const durationMetric = global.monitoringServer.getAvgMetric(grafanaGroup, 'ResponseSizeKb', hashCode, 'response size kb', Object.keys(metric.labelvalues));
+      const durationMetric = global.monitoringServer.getAvgClearableMetric(grafanaGroup, 'ResponseSizeKb', hashCode, 'response size kb', labels);
       durationMetric.setValue(metric.labelvalues, performanceRecord.resSizeKb);
     }
   }
