@@ -212,7 +212,7 @@ export default class AuthService {
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
         '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
       // Notify (Async)
-      void NotificationHandler.sendNewRegisteredUser(
+      NotificationHandler.sendNewRegisteredUser(
         req.tenant,
         Utils.generateUUID(),
         newUser,
@@ -222,7 +222,9 @@ export default class AuthService {
           'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
           'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
         }
-      );
+      ).catch((error) => {
+        Logging.logPromiseError(error, req?.tenant?.id);
+      });
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -260,7 +262,7 @@ export default class AuthService {
     const evseDashboardResetPassURL = Utils.buildEvseURL(req.tenant.subdomain) +
       '/auth/define-password?hash=' + resetHash;
     // Notify
-    void NotificationHandler.sendRequestPassword(
+    NotificationHandler.sendRequestPassword(
       tenant,
       Utils.generateUUID(),
       user,
@@ -269,7 +271,9 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
         'evseDashboardResetPassURL': evseDashboardResetPassURL
       }
-    );
+    ).catch((error) => {
+      Logging.logPromiseError(error, tenant?.id);
+    });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -450,7 +454,7 @@ export default class AuthService {
       detailedMessages: { params: req.query }
     });
     // Notify
-    void NotificationHandler.sendAccountVerification(
+    NotificationHandler.sendAccountVerification(
       req.tenant,
       Utils.generateUUID(),
       user,
@@ -459,7 +463,9 @@ export default class AuthService {
         'userStatus': userStatus,
         'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
       }
-    );
+    ).catch((error) => {
+      Logging.logPromiseError(error, req?.tenant?.id);
+    });
     res.json({ status: 'Success', userStatus });
     next();
   }
@@ -531,7 +537,7 @@ export default class AuthService {
       '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
     // Notify
-    void NotificationHandler.sendVerificationEmail(
+    NotificationHandler.sendVerificationEmail(
       req.tenant,
       Utils.generateUUID(),
       user,
@@ -540,7 +546,9 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
-    );
+    ).catch((error) => {
+      Logging.logPromiseError(error, req?.tenant?.id);
+    });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

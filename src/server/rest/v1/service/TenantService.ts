@@ -330,7 +330,7 @@ export default class TenantService {
       '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
     // Notify
-    void NotificationHandler.sendNewRegisteredUser(
+    NotificationHandler.sendNewRegisteredUser(
       tenant,
       Utils.generateUUID(),
       tenantUser,
@@ -340,7 +340,9 @@ export default class TenantService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
-    );
+    ).catch((error) => {
+      Logging.logPromiseError(error, req?.tenant?.id);
+    });
     // Log
     await Logging.logInfo({
       tenantID: req.tenant.id, user: req.user,

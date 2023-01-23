@@ -423,7 +423,6 @@ describe('Initialization', () => {
         siteAreaID,
         companyID,
         connectorId,
-        startedOn:  new Date().toDateString(),
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };

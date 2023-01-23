@@ -818,6 +818,16 @@ export default class Logging {
     }
   }
 
+  public static logPromiseError(error, tenantID?: string): void {
+    Logging.logError({
+      tenantID,
+      action: ServerAction.UNKNOWN_ACTION,
+      module: MODULE_NAME, method: 'logPromiseError',
+      message: 'Unexpected error in floating promise',
+      detailedMessages: { error: error.stack }
+    }).catch(() => { /* Intentional */ });
+  }
+
   private static async logActionException(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): Promise<void> {
     await Logging.logError({
       tenantID: tenantID,
