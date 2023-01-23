@@ -1,4 +1,5 @@
 import client, { Gauge, LabelValues } from 'prom-client';
+import global from '../types/GlobalType';
 import { AvgGaugeClearableMetric } from './AvgGaugeClearableMetric';
 
 class CountAvgGaugeClearableMetric extends AvgGaugeClearableMetric {
@@ -13,12 +14,16 @@ class CountAvgGaugeClearableMetric extends AvgGaugeClearableMetric {
       labelNames: labelNames,
     });
     this.keyCount = keyCount;
-    this.registry.registerMetric(this.gaugeMetricCount);
+    this.register();
   }
 
   public unregister(): void {
     super.unregister();
     this.registry.removeSingleMetric(this.keyCount);
+  }
+
+  public register():void{
+    this.registry.registerMetric(this.gaugeMetricCount);
   }
 
   public setValue(labels: LabelValues<string>, value: number) {

@@ -15,7 +15,7 @@ const PERFS_ENABLED = true;
 export default class PerformanceStorage {
   public static async savePerformanceRecord(performanceRecord: PerformanceRecord, metric:MetricLabels): Promise<string> {
     if (PERFS_ENABLED) {
-      if (global.monitoringServer)  {
+      if ((global.monitoringServer) && (process.env.K8S)) {
         PerformanceStorage.savePrometheusMetric(performanceRecord, metric);
       }
       // Remove default Tenant

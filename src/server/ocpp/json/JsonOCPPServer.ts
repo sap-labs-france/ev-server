@@ -304,7 +304,7 @@ export default class JsonOCPPServer extends OCPPServer {
       });
       // Keep WS connection in cache
       await this.setWSConnection(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsConnection, wsWrapper);
-      if (global.monitoringServer) {
+      if ((global.monitoringServer) && (process.env.K8S)) {
         wsWrapper.ocppOpenWebSocketMetricCounter.inc();
       }
     } else {
@@ -654,7 +654,7 @@ export default class JsonOCPPServer extends OCPPServer {
         // Check id same WS Connection
         if (existingWsWrapper.guid === wsWrapper.guid) {
           // Remove from WS Cache
-          if (global.monitoringServer) {
+          if ((global.monitoringServer) && (process.env.K8S)) {
             wsWrapper.ocppClosedWebSocketMetricCounter.inc();
           }
           wsConnections.delete(wsConnection.getID());
@@ -712,7 +712,7 @@ export default class JsonOCPPServer extends OCPPServer {
             `${sizeOfCurrentRequestsBytes / 1000} kB used in JSON WS cache`
           ]
         }).catch(() => { /* Intentional */ });
-        if (global.monitoringServer) {
+        if ((global.monitoringServer) && (process.env.K8S)) {
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE).set(this.runningWSMessages);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT).set(this.jsonRestWSConnections.size);

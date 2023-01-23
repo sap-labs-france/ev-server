@@ -45,9 +45,6 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     // Create HTTP Server
     this.expressApplication = ExpressUtils.initApplication();
     // Handle requests
-
-
-
     this.expressApplication.use(
       '/metrics', (req: Request, res: Response, next: NextFunction) => {
         // Trace Request
@@ -55,7 +52,6 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
           // Process
           res.setHeader('Content-Type', this.clientRegistry.contentType);
           this.clientRegistry.metrics().then((s) => {
-
             res.end(s);
             for (const val of this.mapAvgGaugeClearableMetric.values()) {
               val.clear();

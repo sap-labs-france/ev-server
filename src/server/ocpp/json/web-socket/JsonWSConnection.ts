@@ -49,8 +49,10 @@ export default class JsonWSConnection extends WSConnection {
     if (global.monitoringServer) {
       // && (process.env.K8S)
       const labelValues = { tenant: this.getTenant().subdomain };
-      this.getWS().ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OccpOpenWebSocket', 'open connection', labelValues);
-      this.getWS().ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OccpClosedWebSocket', 'closed connection', labelValues);
+      if ((global.monitoringServer) && (process.env.K8S)) {
+        this.getWS().ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OccpOpenWebSocket', 'open connection', labelValues);
+        this.getWS().ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OccpClosedWebSocket', 'closed connection', labelValues);
+      }
     }
     // Create the Json Client
     this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID());
