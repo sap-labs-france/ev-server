@@ -26,13 +26,8 @@ export default class WSWrapper {
   public nbrPingFailed: number;
   public lastPingDate: Date;
   public lastPongDate: Date;
-  public tenantSubDomain: string;
-
-
   public ocppOpenWebSocketMetricCounter : CounterClearableMetric;
   public ocppClosedWebSocketMetricCounter : CounterClearableMetric;
-
-
   private ws: WebSocket;
 
 

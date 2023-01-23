@@ -452,9 +452,7 @@ export default class Logging {
             durationMs: executionDurationMillis,
             resSizeKb: sizeOfResponseDataKB,
           } as PerformanceRecord;
-
-          const labelValues = { tenantId: tenantID };
-          await PerformanceStorage.updatePerformanceRecord(performanceRecord, labelValues);
+          await PerformanceStorage.updatePerformanceRecord(performanceRecord, null);
         }
       });
     }

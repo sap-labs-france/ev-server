@@ -49,6 +49,9 @@ export default class PerformanceStorage {
       );
       const perRecordReturned = ret.value as PerformanceRecord;
       if ((global.monitoringServer) && (process.env.K8S)) {
+        if (!labelValues) {
+          labelValues = { tenant: perRecordReturned.tenantSubdomain };
+        }
         PerformanceStorage.savePrometheusMetric(perRecordReturned, labelValues);
       }
     }
