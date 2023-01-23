@@ -82,9 +82,10 @@ export default class OCPPService {
       // Notify
       this.notifyBootNotification(tenant, chargingStation);
       // Request OCPP configuration
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      setTimeout(async () => {
-        await OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation);
+      setTimeout(() => {
+        OCPPCommon.requestAndSaveChargingStationOcppParameters(tenant, chargingStation).catch((error) => {
+          Logging.logPromiseError(error, tenant?.id);
+        });
       }, Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS);
       Logging.beInfo()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -178,7 +179,7 @@ export default class OCPPService {
     try {
       // Get the header infos
       const { chargingStation, tenant } = headers;
-      await OCPPValidator.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
+      OCPPValidator.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
       // Normalize Meter Values
       const normalizedMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
       // Handle Charging Station's specificities
@@ -464,7 +465,7 @@ export default class OCPPService {
       // Set header
       this.enrichOCPPRequest(chargingStation, stopTransaction, false);
       // Bypass Stop Transaction?
-      if (await this.bypassStopTransaction(tenant, chargingStation, stopTransaction)) {
+      if (this.bypassStopTransaction(tenant, chargingStation, stopTransaction)) {
         return {
           idTagInfo: {
             status: OCPPAuthorizationStatus.ACCEPTED
@@ -662,12 +663,8 @@ export default class OCPPService {
       // Delete TxProfile if any
       await this.deleteAllTransactionTxProfile(tenant, transaction);
       // Call async because the Transaction ID on the connector should be cleared
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      setTimeout(async () => {
-        try {
-          // Trigger Smart Charging
-          await this.triggerSmartCharging(tenant, chargingStation.siteArea);
-        } catch (error) {
+      setTimeout(() => {
+        this.triggerSmartCharging(tenant, chargingStation.siteArea).catch((error) => {
           Logging.beError()?.log({
             ...LoggingHelper.getChargingStationProperties(chargingStation),
             tenantID: tenant.id,
@@ -676,7 +673,7 @@ export default class OCPPService {
             message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Smart Charging exception occurred`,
             detailedMessages: { error: error.stack, transaction, chargingStation }
           });
-        }
+        });
       }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
     }
   }
@@ -1285,8 +1282,13 @@ export default class OCPPService {
     };
   }
 
-  private async processExistingTransaction(tenant: Tenant, chargingStation: ChargingStation, connectorId: number) {
+  private async processExistingTransaction(tenant: Tenant, chargingStation: ChargingStation, connectorId: number): Promise<void> {
+    if (!FeatureToggles.isFeatureActive(Feature.OCPP_PROCESS_EXISTING_TRANSACTION)) {
+      // Skip the code below - for better performances
+      return Promise.resolve();
+    }
     let activeTransaction: Transaction, lastCheckedTransactionID: number;
+    // TODO - to be clarified - why do we have a loop here!
     do {
       // Check if the charging station has already a transaction
       activeTransaction = await TransactionStorage.getActiveTransaction(tenant, chargingStation.id, connectorId);
@@ -1313,6 +1315,7 @@ export default class OCPPService {
           OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, activeTransaction.connectorId);
         } else {
           // Simulate a Stop Transaction
+          // TODO - To be clarified - the code below does not pass a valid OcppHeader
           const result = await this.handleStopTransaction({
             tenantID: tenant.id,
             chargeBoxIdentity: activeTransaction.chargeBoxID,
@@ -1713,8 +1716,8 @@ export default class OCPPService {
     }
   }
 
-  private async bypassStopTransaction(tenant: Tenant, chargingStation: ChargingStation,
-      stopTransaction: OCPPStopTransactionRequestExtended): Promise<boolean> {
+  private bypassStopTransaction(tenant: Tenant, chargingStation: ChargingStation,
+      stopTransaction: OCPPStopTransactionRequestExtended): boolean {
     // Ignore it (DELTA bug)?
     if (stopTransaction.transactionId === 0) {
       Logging.beWarning()?.log({
@@ -1745,8 +1748,9 @@ export default class OCPPService {
       tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
     if (!transaction) {
       // Abort the ongoing Transaction
-      // TODO - To be clarified!
-      // await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
+      if (FeatureToggles.isFeatureActive(Feature.OCPP_METER_VALUE_ABORT_GHOST_TRANSACTION)) {
+        await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
+      }
       // Unknown Transaction
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
@@ -1757,16 +1761,17 @@ export default class OCPPService {
       });
     }
     // Transaction finished
-    if (transaction?.stop) {
+    if (transaction.stop) {
       // Abort the ongoing Transaction
-      // TODO - To be clarified!
-      // await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
+      if (FeatureToggles.isFeatureActive(Feature.OCPP_METER_VALUE_ABORT_GHOST_TRANSACTION)) {
+        await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
+      }
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction has already been stopped`,
         action: ServerAction.OCPP_METER_VALUES,
-        detailedMessages: { transaction, meterValues }
+        detailedMessages: { meterValues }
       });
     }
     // Received Meter Values after the Transaction End Meter Value

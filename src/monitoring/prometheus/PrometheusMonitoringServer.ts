@@ -2,11 +2,11 @@ import { Application, NextFunction, Request, Response } from 'express';
 import { ServerAction, ServerType } from '../../types/Server';
 import client, { Gauge } from 'prom-client';
 
+import { ComposedMonitoringMetric } from '../ComposedMonitoringMetric';
 import Constants from '../../utils/Constants';
 import ExpressUtils from '../../server/ExpressUtils';
 import Logging from '../../utils/Logging';
 import MonitoringConfiguration from '../../types/configuration/MonitoringConfiguration';
-import { ComposedMonitoringMetric } from '../ComposedMonitoringMetric';
 import MonitoringServer from '../MonitoringServer';
 import { ServerUtils } from '../../server/ServerUtils';
 import global from '../../types/GlobalType';
@@ -32,10 +32,10 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     if (process.env.K8S) {
       this.createGaugeMetric(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT, 'The number of ocpp web sockets');
       this.createGaugeMetric(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT, 'The number of rest web sockets');
-      this.createGaugeMetric(Constants.WEB_SOCKET_QUEUED_REQUEST, 'The number of web sockets that are queued');
-      this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST, 'The number of web sockets that are running');
+      // this.createGaugeMetric(Constants.WEB_SOCKET_QUEUED_REQUEST, 'The number of web sockets that are queued');
+      // this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST, 'The number of web sockets that are running');
       this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE, 'The number of web sockets request + response that are running');
-      this.createGaugeMetric(Constants.WEB_SOCKET_CURRRENT_REQUEST, 'JSON WS Requests in cache');
+      this.createGaugeMetric(Constants.WEB_SOCKET_CURRENT_REQUEST, 'JSON WS Requests in cache');
       this.createGaugeMetric(Constants.MONGODB_CONNECTION_READY, 'The number of connection that are ready');
       this.createGaugeMetric(Constants.MONGODB_CONNECTION_CREATED, 'The number of connection created');
       this.createGaugeMetric(Constants.MONGODB_CONNECTION_CLOSED, 'The number of connection closed');
@@ -44,19 +44,25 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     this.expressApplication = ExpressUtils.initApplication();
     // Handle requests
     this.expressApplication.use(
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      '/metrics', async (req: Request, res: Response, next: NextFunction) => {
+      '/metrics', (req: Request, res: Response, next: NextFunction) => {
         // Trace Request
-        await Logging.traceExpressRequest(req, res, next, ServerAction.MONITORING);
+        Logging.traceExpressRequest(req, res, next, ServerAction.MONITORING).then(() => {
         // Process
-        res.setHeader('Content-Type', this.clientRegistry.contentType);
-        res.end(await this.clientRegistry.metrics());
-        for (const val of this.mapComposedMetric.values()) {
-          val.clear();
-        }
-        next();
-        // Trace Response
-        Logging.traceExpressResponse(req, res, next, ServerAction.MONITORING);
+          res.setHeader('Content-Type', this.clientRegistry.contentType);
+          this.clientRegistry.metrics().then((s) => {
+            res.end(s);
+            for (const val of this.mapComposedMetric.values()) {
+              val.clear();
+            }
+            next();
+            // Trace Response
+            Logging.traceExpressResponse(req, res, next, ServerAction.MONITORING);
+          }).catch((error) => {
+            Logging.logPromiseError(error);
+          });
+        }).catch((error) => {
+          Logging.logPromiseError(error);
+        });
       }
     );
     // Post init

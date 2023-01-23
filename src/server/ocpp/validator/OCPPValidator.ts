@@ -106,7 +106,7 @@ export default class OCPPValidator extends SchemaValidator {
     }
   }
 
-  public async validateMeterValues(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequestExtended): Promise<void> {
+  public validateMeterValues(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequestExtended): void {
     // Always integer
     this.validate(this.meterValueRequest, meterValues);
     // Check Connector ID

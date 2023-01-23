@@ -82,10 +82,14 @@ export default class WSWrapper {
   public close(code: number, shortMessage: RecognizedString): void {
     if (!this.closed) {
       this.closed = true;
-      if (this.ws) {
+      // Local ref to the Web Socket
+      const ws = this.ws;
+      if (ws) {
         try {
+          // Clear the reference to the WebSocket!
+          this.ws = null;
           // Close WS
-          this.ws.end(code, shortMessage);
+          ws.end(code, shortMessage);
         } catch (error) {
           // Do nothing
         }

@@ -115,9 +115,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return this.sendMessage(this.buildRequest(Command.CANCEL_RESERVATION, params));
   }
 
-  private async openConnection(request: OCPPOutgoingRequest): Promise<any> {
-    // Extract Current Command
-    const triggeringCommand: Command = request[2];
+  private async openConnection(triggeringCommand: string): Promise<any> {
     // Log
     Logging.beInfo()?.log({
       tenantID: this.tenantID,
@@ -264,11 +262,11 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       // Charging station is not connected to the server - let's abort the current operation
       throw new Error(`Charging station is not connected to the server - request '${request[2]}' has been aborted`);
     }
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
-      try {
-        // Open WS Connection
-        await this.openConnection(request);
+    // Extract Current Command
+    const triggeringCommand: Command = request[2];
+    return new Promise((resolve, reject) => {
+      // Open WS Connection
+      this.openConnection(triggeringCommand).then(() => {
         // Check if wsConnection is ready
         if (this.wsConnection?.isConnectionOpen()) {
           // Send
@@ -279,9 +277,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           // Reject it
           reject(new Error(`Socket is closed for message ${request[2]}`));
         }
-      } catch (error) {
+      }).catch((error: Error) => {
         reject(new Error(`Unexpected error on request '${request[2]}': ${error.message}'`));
-      }
+      });
     });
   }
 

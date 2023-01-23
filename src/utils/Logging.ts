@@ -255,25 +255,21 @@ export default class Logging {
 
   public static async logDebug(log: Log): Promise<string> {
     log.level = LogLevel.DEBUG;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging.log(log);
   }
 
   public static async logInfo(log: Log): Promise<string> {
     log.level = LogLevel.INFO;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging.log(log);
   }
 
   public static async logWarning(log: Log): Promise<string> {
     log.level = LogLevel.WARNING;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging.log(log);
   }
 
   public static async logError(log: Log): Promise<string> {
     log.level = LogLevel.ERROR;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging.log(log);
   }
 
@@ -470,8 +466,7 @@ export default class Logging {
 
   public static traceExpressResponse(req: Request, res: Response, next: NextFunction, action?: ServerAction): void {
     if (Logging.getTraceConfiguration().traceIngressHttp) {
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      res.on('finish', async () => {
+      res.on('finish',() => {
         // Get Tenant info
         const tenantID = req['tenantID'] as string;
         // Compute duration
@@ -488,7 +483,7 @@ export default class Logging {
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
         if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
           const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
-          await Logging.logWarning({
+          Logging.beWarning()?.log({
             tenantID,
             action: ServerAction.PERFORMANCES,
             module: MODULE_NAME, method: 'logExpressResponse',
@@ -505,7 +500,7 @@ export default class Logging {
         }
         if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
           const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms`);
-          await Logging.logWarning({
+          Logging.beWarning()?.log({
             tenantID,
             action: ServerAction.PERFORMANCES,
             module: MODULE_NAME, method: 'logExpressResponse',
@@ -520,7 +515,7 @@ export default class Logging {
             Logging.logConsoleWarning('====================================');
           }
         }
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: tenantID,
           user: req.user,
           action: action ?? ServerAction.HTTP_RESPONSE,
@@ -540,7 +535,9 @@ export default class Logging {
             durationMs: executionDurationMillis,
             resSizeKb: sizeOfResponseDataKB,
           } as PerformanceRecord;
-          await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+          PerformanceStorage.updatePerformanceRecord(performanceRecord).catch((error) => {
+            Logging.logPromiseError(error, tenantID);
+          });
         }
       });
     }
