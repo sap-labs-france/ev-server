@@ -1,7 +1,6 @@
 import * as uWS from 'uWebSockets.js';
 
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
-import { PerformanceRecordGroup } from '../../../types/Performance';
 import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Server';
 import { WebSocketAction, WebSocketCloseEventStatusCode, WebSocketPingResult } from '../../../types/WebSocket';
 
@@ -584,6 +583,7 @@ export default class JsonOCPPServer extends OCPPServer {
     // Close WS
     if (!wsWrapper.closed) {
       try {
+        wsWrapper.close(code, message);
         await this.logWSConnectionClosed(wsWrapper, action, code, message);
       } catch (error) {
         // Just log and ignore issue

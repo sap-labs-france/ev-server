@@ -1,5 +1,4 @@
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
-import global from '../../../../types/GlobalType';
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import BackendError from '../../../../exception/BackendError';
@@ -9,7 +8,6 @@ import { PerformanceRecordGroup } from '../../../../types/Performance';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import JsonChargingStationClient from '../../../../client/ocpp/json/JsonChargingStationClient';
-import Utils from '../../../../utils/Utils';
 import JsonChargingStationService from '../services/JsonChargingStationService';
 import Logging from '../../../../utils/Logging';
 import OCPPError from '../../../../exception/OcppError';
@@ -88,8 +86,6 @@ export default class JsonWSConnection extends WSConnection {
       this.headers.tenant = tenant;
       this.headers.chargingStation = chargingStation;
       this.headers.token = token;
-
-
       // Trace
       const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
         this.getTenant(), this.getChargingStationID(), OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, '>>',
@@ -144,7 +140,7 @@ export default class JsonWSConnection extends WSConnection {
   private async updateChargingStationLastSeen(): Promise<void> {
     // Update once every ping interval / 2
     if (!this.lastSeen ||
-        (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
+      (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
       // Update last seen
       this.lastSeen = new Date();
       const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),
