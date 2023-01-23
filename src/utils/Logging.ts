@@ -98,8 +98,7 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
-      const labels = { tenant: tenant.subdomain, module: module, method: method };
-      const metricLabels : MetricLabels = { labelvalues : labels };
+      const labelValues = { tenant: tenant.subdomain, module: module, method: method };
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -109,7 +108,7 @@ export default class Logging {
           resSizeKb: sizeOfResponseDataKB,
           egress: true,
           action: `${module}.${method}`
-        }), metricLabels
+        }), labelValues
       );
     }
   }
@@ -146,8 +145,7 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
-      const labels = { tenant: tenant.subdomain, module: module, method: method, userid:userID, templateName: templateName };
-      const metricLabels : MetricLabels = { labelvalues : labels };
+      const labelValues = { tenant: tenant.subdomain, module: module, method: method, userid:userID, templateName: templateName };
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -159,7 +157,7 @@ export default class Logging {
           action: `${module}.${method}.${templateName}`,
           userID
         }),
-        metricLabels
+        labelValues
       );
     }
   }
@@ -334,11 +332,7 @@ export default class Logging {
         const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
           sizeof({ headers: req.headers, query: req.query, body: req.body })
         ).div(1024).toNumber(), 2);
-
-
-        const labels = { tenant: tenantSubdomain };
-        const metricLabels : MetricLabels = { labelvalues : labels };
-
+        const labelValues = { tenant: tenantSubdomain };
         const performanceID = await PerformanceStorage.savePerformanceRecord(
           Utils.buildPerformanceRecord({
             tenantSubdomain,
@@ -349,7 +343,7 @@ export default class Logging {
             reqSizeKb: sizeOfRequestDataKB,
             action: ServerAction.HTTP_REQUEST,
           }),
-          metricLabels
+          labelValues
         );
         const message = `Express HTTP Request - '${Utils.last5Chars(performanceID)}' << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
@@ -459,9 +453,8 @@ export default class Logging {
             resSizeKb: sizeOfResponseDataKB,
           } as PerformanceRecord;
 
-          const labels = { tenantId: tenantID };
-          const metricLabels : MetricLabels = { labelvalues : labels };
-          await PerformanceStorage.updatePerformanceRecord(performanceRecord, metricLabels);
+          const labelValues = { tenantId: tenantID };
+          await PerformanceStorage.updatePerformanceRecord(performanceRecord, labelValues);
         }
       });
     }
@@ -486,8 +479,7 @@ export default class Logging {
       const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof(request)).div(1024).toNumber(), 2);
 
-      const labels = { tenant: tenant.subdomain };
-      const metricLabels : MetricLabels = { labelvalues : labels };
+      const labelValues = { tenant: tenant.subdomain };
       const performanceID = await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -498,7 +490,7 @@ export default class Logging {
           reqSizeKb: sizeOfRequestDataKB,
           action: Utils.getAxiosActionFromURL(request.url),
         }),
-        metricLabels
+        labelValues
       );
       const message = `Axios HTTP Request - '${Utils.last5Chars(performanceID)}' >> Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${request.method.toLocaleUpperCase()} '${request.url}'`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
@@ -582,15 +574,14 @@ export default class Logging {
           }
         });
         if (response.config['performanceID']) {
-          const labels = { tenant: tenant.subdomain };
-          const metricLabels : MetricLabels = { labelvalues : labels };
+          const labelValues = { tenant: tenant.subdomain };
           const performanceRecord = {
             id: response.config['performanceID'],
             httpResponseCode: response.status,
             durationMs: executionDurationMillis,
             resSizeKb: sizeOfResponseDataKB,
           } as PerformanceRecord;
-          await PerformanceStorage.updatePerformanceRecord(performanceRecord, metricLabels);
+          await PerformanceStorage.updatePerformanceRecord(performanceRecord, labelValues);
         }
       } catch (error) {
         await Logging.logDebug({
@@ -634,15 +625,14 @@ export default class Logging {
           sizeOfResponseDataKB = Utils.truncTo(
             Utils.createDecimal(sizeof(error.response?.data)).div(1024).toNumber(), 2);
         }
-        const labels = { tenant: tenant.subdomain };
-        const metricLabels : MetricLabels = { labelvalues : labels };
+        const labelValues = { tenant: tenant.subdomain };
         const performanceRecord = {
           id: error.response?.config['performanceID'],
           httpResponseCode: error.response?.status,
           durationMs: executionDurationMillis,
           resSizeKb: sizeOfResponseDataKB,
         } as PerformanceRecord;
-        await PerformanceStorage.updatePerformanceRecord(performanceRecord, metricLabels);
+        await PerformanceStorage.updatePerformanceRecord(performanceRecord, labelValues);
       }
     }
   }
@@ -723,8 +713,7 @@ export default class Logging {
       // Compute size
       const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof(request)).div(1024).toNumber(), 2);
-      const labels = { tenant: tenant.subdomain, module: module };
-      const metricLabels : MetricLabels = { labelvalues : labels };
+      const labelValues = { tenant: tenant.subdomain, module: module };
       const performanceID = await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -734,7 +723,7 @@ export default class Logging {
           egress: direction === '<<' ? true : false,
           action
         }),
-        metricLabels
+        labelValues
       );
       const message = `${direction} OCPP Request '${action}~${Utils.last5Chars(performanceID)}' on '${chargingStationID}' has been ${direction === '>>' ? 'received' : 'sent'} - Req ${sizeOfRequestDataKB} KB`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
@@ -781,11 +770,7 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
-
-      const labels = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
-      const metricLabels : MetricLabels = { labelvalues : labels };
-
-
+      const labelValues = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
       if (response && response['status'] === OCPPStatus.REJECTED) {
         await Logging.logError({
           tenantID: tenant?.id,
@@ -813,7 +798,7 @@ export default class Logging {
           durationMs: executionDurationMillis,
           resSizeKb: sizeOfResponseDataKB,
         } as PerformanceRecord;
-        await PerformanceStorage.updatePerformanceRecord(performanceRecord, metricLabels);
+        await PerformanceStorage.updatePerformanceRecord(performanceRecord, labelValues);
       }
     }
   }
@@ -1104,8 +1089,3 @@ export default class Logging {
     };
   }
 }
-
-type MetricLabels = {
-  labelvalues : LabelValues<string>;
-};
-export { MetricLabels };

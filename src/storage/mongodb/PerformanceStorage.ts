@@ -1,10 +1,10 @@
 import { ObjectId } from 'mongodb';
+import { LabelValues } from 'prom-client';
 import { DeletedResult } from '../../types/DataResult';
 import global, { FilterParams } from '../../types/GlobalType';
 import PerformanceRecord, { PerformanceRecordGroup } from '../../types/Performance';
 
 import Constants from '../../utils/Constants';
-import { MetricLabels } from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import PerformanceValidatorStorage from '../validator/PerformanceValidatorStorage';
 import DatabaseUtils from './DatabaseUtils';
@@ -13,10 +13,10 @@ const PERFS_ENABLED = true;
 
 // TODO: To remove when switched to k8s with Prometheus
 export default class PerformanceStorage {
-  public static async savePerformanceRecord(performanceRecord: PerformanceRecord, metric:MetricLabels): Promise<string> {
+  public static async savePerformanceRecord(performanceRecord: PerformanceRecord, labelValues:LabelValues<string>): Promise<string> {
     if (PERFS_ENABLED) {
       if ((global.monitoringServer) && (process.env.K8S)) {
-        PerformanceStorage.savePrometheusMetric(performanceRecord, metric);
+        PerformanceStorage.savePrometheusMetric(performanceRecord, labelValues);
       }
       // Remove default Tenant
       if (!performanceRecord.tenantSubdomain || performanceRecord.tenantSubdomain === Constants.DEFAULT_TENANT_ID) {
@@ -34,7 +34,7 @@ export default class PerformanceStorage {
     return Promise.resolve(new ObjectId().toString());
   }
 
-  public static async updatePerformanceRecord(performanceRecord: PerformanceRecord, metric: MetricLabels): Promise<void> {
+  public static async updatePerformanceRecord(performanceRecord: PerformanceRecord, labelValues: LabelValues<string>): Promise<void> {
     // PerformanceStorage.savePrometheusMetric(performanceRecord, metric);
     if (PERFS_ENABLED) {
       // Validate
@@ -49,7 +49,7 @@ export default class PerformanceStorage {
       );
       const perRecordReturned = ret.value as PerformanceRecord;
       if ((global.monitoringServer) && (process.env.K8S)) {
-        PerformanceStorage.savePrometheusMetric(perRecordReturned, metric);
+        PerformanceStorage.savePrometheusMetric(perRecordReturned, labelValues);
       }
     }
   }
@@ -69,28 +69,28 @@ export default class PerformanceStorage {
     return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
   }
 
-  private static savePrometheusMetric(performanceRecord: PerformanceRecord, metric:MetricLabels) {
+  private static savePrometheusMetric(performanceRecord: PerformanceRecord, labelValues:LabelValues<string>) {
     const grafanaGroup = performanceRecord.group.replace('-', '');
-    const values = Object.values(metric.labelvalues).toString();
+    const values = Object.values(labelValues).toString();
     const hashCode = Utils.positiveHashcode(values);
-    const labels = Object.keys(metric.labelvalues);
+    const labels = Object.keys(labelValues);
 
     if (performanceRecord.durationMs) {
       if (performanceRecord.group === PerformanceRecordGroup.MONGO_DB) {
         const durationMetric = global.monitoringServer.getCountAvgClearableMetric(grafanaGroup, 'DurationMs', hashCode, 'duration in milliseconds', 'number of invocations', labels);
-        durationMetric.setValue(metric.labelvalues, performanceRecord.durationMs);
+        durationMetric.setValue(labelValues, performanceRecord.durationMs);
       } else {
         const durationMetric = global.monitoringServer.getAvgClearableMetric(grafanaGroup, 'DurationMs', hashCode, 'duration in milliseconds', labels);
-        durationMetric.setValue(metric.labelvalues, performanceRecord.durationMs);
+        durationMetric.setValue(labelValues, performanceRecord.durationMs);
       }
     }
     if (performanceRecord.reqSizeKb) {
       const durationMetric = global.monitoringServer.getAvgClearableMetric(grafanaGroup, 'RequestSizeKb', hashCode, 'request size kb', labels);
-      durationMetric.setValue(metric.labelvalues, performanceRecord.reqSizeKb);
+      durationMetric.setValue(labelValues, performanceRecord.reqSizeKb);
     }
     if (performanceRecord.resSizeKb) {
       const durationMetric = global.monitoringServer.getAvgClearableMetric(grafanaGroup, 'ResponseSizeKb', hashCode, 'response size kb', labels);
-      durationMetric.setValue(metric.labelvalues, performanceRecord.resSizeKb);
+      durationMetric.setValue(labelValues, performanceRecord.resSizeKb);
     }
   }
 }
