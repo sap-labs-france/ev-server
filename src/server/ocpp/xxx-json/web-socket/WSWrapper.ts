@@ -141,8 +141,8 @@ export default class WSWrapper {
       remoteAddress: this.remoteAddress,
       firstConnectionDate: this.firstConnectionDate,
       durationSecs: Utils.computeTimeDurationSecs(new Date(this.firstConnectionDate).getTime()),
-      lastPingReceivedDate: this.lastPingDate,
-      lastPongReceivedDate: this.lastPongDate,
+      lastPingDate: this.lastPingDate,
+      lastPongDate: this.lastPongDate,
     };
   }
 
