@@ -303,7 +303,7 @@ export default class JsonOCPPServer extends OCPPServer {
       });
       // Keep WS connection in cache
       await this.setWSConnection(WebSocketAction.OPEN, ServerAction.WS_SERVER_CONNECTION_OPEN, wsConnection, wsWrapper);
-      if (Utils.isMonitoringEnabled()) {
+      if (Utils.isMonitoringEnabled() && (protocol === WSServerProtocol.OCPP16)) {
         wsWrapper.ocppOpenWebSocketMetricCounter.inc();
       }
     } else {
@@ -654,7 +654,7 @@ export default class JsonOCPPServer extends OCPPServer {
         // Check id same WS Connection
         if (existingWsWrapper.guid === wsWrapper.guid) {
           // Remove from WS Cache
-          if (Utils.isMonitoringEnabled()) {
+          if ((Utils.isMonitoringEnabled()) && (wsWrapper.protocol === WSServerProtocol.OCPP16)){
             wsWrapper.ocppClosedWebSocketMetricCounter.inc();
           }
           wsConnections.delete(wsConnection.getID());
