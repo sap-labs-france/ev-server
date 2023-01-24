@@ -1,6 +1,7 @@
 import BackendError from '../../../../exception/BackendError';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import { Command } from '../../../../types/ChargingStation';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPUtils from '../../utils/OCPPUtils';
 import WSConnection from './WSConnection';
 import WSWrapper from './WSWrapper';
@@ -23,10 +24,7 @@ export default class JsonRestWSConnection extends WSConnection {
     // Check Command
     if (!this.isValidOcppClientCommand(command)) {
       throw new BackendError({
-        chargingStationID: this.getChargingStationID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
+        ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME,
         method: 'handleRequest',
         message: `Command '${command}' is not allowed from REST server`,
@@ -37,10 +35,7 @@ export default class JsonRestWSConnection extends WSConnection {
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(), this.getChargingStationID());
     if (!chargingStation) {
       throw new BackendError({
-        chargingStationID: this.getChargingStationID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
+        ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station not found',
@@ -48,13 +43,10 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient = await global.centralSystemJsonServer.getChargingStationClient(this.getTenant(), chargingStation);
+    const chargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenant(), chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
-        chargingStationID: this.getChargingStationID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
+        ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station is not connected to the backend',
@@ -69,10 +61,7 @@ export default class JsonRestWSConnection extends WSConnection {
       result = await chargingStationClient[actionMethod](commandPayload);
     } else {
       throw new BackendError({
-        chargingStationID: this.getChargingStationID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
+        ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME,
         method: 'handleRequest',
         message: `'${actionMethod}' is not implemented`,
@@ -82,10 +71,10 @@ export default class JsonRestWSConnection extends WSConnection {
     return result;
   }
 
-  public async onPing(message: string): Promise<void> {
+  public onPing(message: string): void {
   }
 
-  public async onPong(message: string): Promise<void> {
+  public onPong(message: string): void {
   }
 
   private isValidOcppClientCommand(command: Command): boolean {

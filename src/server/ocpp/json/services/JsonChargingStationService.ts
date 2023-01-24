@@ -88,11 +88,11 @@ export default class JsonChargingStationService {
     };
   }
 
-  private async handle(command: Command, headers: OCPPHeader, payload) {
+  private async handle(command: Command, headers: OCPPHeader, payload): Promise<any> {
     try {
-      return this.chargingStationService[`handle${command}`](headers, payload);
+      return this.chargingStationService[`handle${command}`](headers, payload) as Promise<any>;
     } catch (error) {
-      await Logging.logException(error, OCPPUtils.buildServerActionFromOcppCommand(command), MODULE_NAME, command, headers.tenantID);
+      Logging.logException(error, OCPPUtils.buildServerActionFromOcppCommand(command), MODULE_NAME, command, headers.tenantID);
       throw error;
     }
   }

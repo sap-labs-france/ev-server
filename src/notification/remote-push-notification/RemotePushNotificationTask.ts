@@ -59,7 +59,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         }
         this.initialized = true;
       } catch (error) {
-        void Logging.logError({
+        Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.REMOTE_PUSH_NOTIFICATION,
           module: MODULE_NAME, method: 'constructor',
@@ -119,11 +119,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // TODO - old stuff - to be removed asap
-    data.chargeBoxIDs = data.chargingStationIDs.join(", ");
+    data.chargeBoxIDs = data.chargingStationIDs.join(', ');
     // Populate the context to have a human-readable message
     data.nbChargingStationIDs = data.chargingStationIDs?.length || 0;
     // Show only the ten first charging stations
-    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(", ") + "...";
+    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(', ') + '...';
     // Get Message Text
     const title = i18nManager.translate('notifications.offlineChargingStation.title');
     const body = i18nManager.translate('notifications.offlineChargingStation.body',
@@ -477,7 +477,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         return Promise.resolve();
       }
       if (!user?.mobileData?.mobileToken) {
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: tenant.id,
           siteID: data?.siteID,
           siteAreaID: data?.siteAreaID,
@@ -511,7 +511,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
           );
           // Error
           if (response.failureCount > 0) {
-            void Logging.logError({
+            Logging.beWarning()?.log({
               tenantID: tenant.id,
               siteID: data?.siteID,
               siteAreaID: data?.siteAreaID,
@@ -527,7 +527,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
           } else {
             // Stop sending notification
             notificationSent = true;
-            void Logging.logDebug({
+            Logging.beDebug()?.log({
               tenantID: tenant.id,
               siteID: data?.siteID,
               siteAreaID: data?.siteAreaID,
@@ -541,7 +541,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             });
           }
         } catch (error) {
-          void Logging.logError({
+          Logging.beError()?.log({
             tenantID: tenant.id,
             siteID: data?.siteID,
             siteAreaID: data?.siteAreaID,

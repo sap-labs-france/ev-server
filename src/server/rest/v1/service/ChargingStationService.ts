@@ -87,7 +87,7 @@ export default class ChargingStationService {
     // Check and Apply Charging Station templates
     await ChargingStationService.checkAndApplyChargingStationTemplate(
       action, req.tenant, chargingStation, req.user, resetAndApplyTemplate);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       action, user: req.user,
       module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
@@ -164,7 +164,7 @@ export default class ChargingStationService {
         detailedMessages: { result },
       });
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getChargingStationProperties(chargingStation),
       tenantID: req.tenant.id,
       action, user: req.user,
@@ -397,7 +397,7 @@ export default class ChargingStationService {
       // Delete physically
       await ChargingStationStorage.deleteChargingStation(req.tenant, chargingStation.id);
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStation',
       message: `Charging Station '${chargingStation.id}' has been deleted successfully`,
@@ -864,7 +864,7 @@ export default class ChargingStationService {
       }
       // OCPP Command with status
       if (Utils.objectHasProperty(result, 'status') && ![OCPPStatus.ACCEPTED, OCPPUnlockStatus.UNLOCKED].includes(result.status)) {
-        await Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: req.tenant.id,
           user: req.user,
@@ -874,7 +874,7 @@ export default class ChargingStationService {
         });
       } else {
         // OCPP Command with no status
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: req.tenant.id,
           user: req.user,
@@ -1321,7 +1321,7 @@ export default class ChargingStationService {
         result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
       // Reboot?
       if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: req.tenant.id,
           action, user: req.user,
@@ -1389,7 +1389,7 @@ export default class ChargingStationService {
           await ocpiClient.patchChargingStationStatus(chargingStation, status);
         }
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'updateChargingStationRoaming',
           action,
@@ -1421,7 +1421,7 @@ export default class ChargingStationService {
             site, chargingStation.siteArea, chargingStation, options), actionType);
         }
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'updateChargingStationRoaming',
           action,
@@ -1453,7 +1453,7 @@ export default class ChargingStationService {
               site, siteArea, chargingStation, options), OICPActionType.DELETE);
           }
         } catch (error) {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'deactivateChargingStationRoaming',
             action,
@@ -1690,7 +1690,7 @@ export default class ChargingStationService {
             detailedMessages: { result: chargingProfiles[index] }
           });
         }
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           action, user,

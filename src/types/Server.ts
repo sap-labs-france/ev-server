@@ -280,6 +280,8 @@ export enum ServerAction {
   WS_CLIENT_CONNECTION_CLOSE = 'WsClientConnectionClose',
   WS_CLIENT_CONNECTION_OPEN = 'WsClientConnectionOpen',
   WS_CLIENT_CONNECTION_ERROR = 'WsClientConnectionError',
+  WS_CLIENT_CONNECTION_PING = 'WsClientConnectionPing',
+  WS_CLIENT_CONNECTION_PONG = 'WsClientConnectionPong',
 
   NOTIFICATION = 'Notification',
   CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',

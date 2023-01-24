@@ -92,7 +92,7 @@ export default class CPOCommandsService {
       localToken = await OCPIUtilsService.updateCreateTagWithEmspToken(tenant, startSession.token, localToken, emspUser, action);
     }
     if (!localToken?.active || !localToken.ocpiToken?.valid) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStartSession', action,
         message: `Token ID '${startSession.token.uid}' is either not active or invalid`,
@@ -101,7 +101,7 @@ export default class CPOCommandsService {
       return CPOCommandsService.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (Utils.isNullOrUndefined(localToken.user) || localToken.user?.issuer) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStartSession', action,
         message: `Invalid user associated to Token ID '${startSession.token.uid}'`,
@@ -113,7 +113,7 @@ export default class CPOCommandsService {
     const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationEvseUid(
       tenant, startSession.location_id, startSession.evse_uid);
     if (!chargingStation) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStartSession', action,
         message: `Charging Station with EVSE ID '${startSession.evse_uid}' and Location ID '${startSession.location_id}' does not exist`,
@@ -125,7 +125,7 @@ export default class CPOCommandsService {
     const connectorID = Utils.convertToInt(OCPIUtils.getConnectorIDFromEvseID(startSession.evse_uid));
     const connector = Utils.getConnectorFromID(chargingStation, connectorID);
     if (!connector) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStartSession', action,
@@ -135,7 +135,7 @@ export default class CPOCommandsService {
       return CPOCommandsService.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (!chargingStation.issuer || !chargingStation.public) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStartSession', action,
@@ -146,7 +146,7 @@ export default class CPOCommandsService {
     }
     if (connector.status !== ChargePointStatus.AVAILABLE &&
         connector.status !== ChargePointStatus.PREPARING) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStartSession', action,
@@ -162,7 +162,7 @@ export default class CPOCommandsService {
       (authorization) => authorization.connectorId === connector.connectorId);
     if (existingAuthorization) {
       if (OCPIUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
-        await Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'remoteStartSession', action,
@@ -203,7 +203,7 @@ export default class CPOCommandsService {
     }
     const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, stopSession.session_id);
     if (!transaction) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStopSession', action,
         message: `Transaction with Session ID '${stopSession.session_id}' does not exists`,
@@ -212,7 +212,7 @@ export default class CPOCommandsService {
       return CPOCommandsService.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (!transaction.issuer) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStopSession', action,
@@ -222,7 +222,7 @@ export default class CPOCommandsService {
       return CPOCommandsService.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (transaction.stop) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStopSession', action,
@@ -233,7 +233,7 @@ export default class CPOCommandsService {
     }
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
     if (!chargingStation) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStopSession', action,
@@ -278,7 +278,7 @@ export default class CPOCommandsService {
     try {
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
       if (!chargingStationClient) {
-        await Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'remoteStartTransaction', action,
@@ -296,7 +296,7 @@ export default class CPOCommandsService {
         await CPOCommandsService.sendCommandResponse(tenant, action, startSession.response_url, OCPICommandResponseType.REJECTED, ocpiEndpoint);
       }
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStartTransaction', action,
@@ -311,7 +311,7 @@ export default class CPOCommandsService {
     try {
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
       if (!chargingStationClient) {
-        await Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'remoteStopTransaction', action,
@@ -328,7 +328,7 @@ export default class CPOCommandsService {
         await CPOCommandsService.sendCommandResponse(tenant, action, stopSession.response_url, OCPICommandResponseType.REJECTED, ocpiEndpoint);
       }
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'remoteStopTransaction', action,
@@ -343,7 +343,7 @@ export default class CPOCommandsService {
     const payload: OCPICommandResponse = {
       result: responseType
     };
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: tenant.id,
       module: MODULE_NAME, method: 'sendCommandResponse', action,
       message: `Post command response at ${responseUrl}`,

@@ -24,7 +24,7 @@ export default class TagStorage {
       const id = Utils.generateTagID();
       existingTag = await TagStorage.getTag(tenant, id);
       if (existingTag) {
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'findAvailableID',
           action: ServerAction.TAG_CREATE,

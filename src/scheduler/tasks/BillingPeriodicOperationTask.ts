@@ -34,7 +34,7 @@ export default class BillingPeriodicOperationTask extends TenantSchedulerTask {
         }
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_PERFORM_OPERATIONS, error as Error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_PERFORM_OPERATIONS, error as Error);
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);

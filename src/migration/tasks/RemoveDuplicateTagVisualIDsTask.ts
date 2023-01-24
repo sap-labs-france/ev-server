@@ -49,7 +49,7 @@ export default class RemoveDuplicateTagVisualIDsTask extends TenantMigrationTask
     }
     // Log in the default tenant
     if (updated > 0) {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
