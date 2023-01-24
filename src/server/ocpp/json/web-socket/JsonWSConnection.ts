@@ -8,6 +8,7 @@ import { PerformanceRecordGroup } from '../../../../types/Performance';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import JsonChargingStationClient from '../../../../client/ocpp/json/JsonChargingStationClient';
+import Utils from '../../../../utils/Utils';
 import JsonChargingStationService from '../services/JsonChargingStationService';
 import Logging from '../../../../utils/Logging';
 import OCPPError from '../../../../exception/OcppError';
@@ -44,7 +45,7 @@ export default class JsonWSConnection extends WSConnection {
         Address: this.getClientIP()
       }
     };
-    if ((global.monitoringServer) && (process.env.K8S)) {
+    if (Utils.isMonitoringEnabled()) {
       const labelValues = { tenant: this.getTenant().subdomain };
       this.getWS().ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OpenedWebSocket', 'Opened web sockets', labelValues);
       this.getWS().ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'ClosedWebSocket', 'Closed web sockets', labelValues);
