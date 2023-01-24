@@ -1288,7 +1288,6 @@ export default class OCPPService {
       return Promise.resolve();
     }
     let activeTransaction: Transaction, lastCheckedTransactionID: number;
-    // TODO - to be clarified - why do we have a loop here!
     do {
       // Check if the charging station has already a transaction
       activeTransaction = await TransactionStorage.getActiveTransaction(tenant, chargingStation.id, connectorId);
@@ -1315,10 +1314,11 @@ export default class OCPPService {
           OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, activeTransaction.connectorId);
         } else {
           // Simulate a Stop Transaction
-          // TODO - To be clarified - the code below does not pass a valid OcppHeader
           const result = await this.handleStopTransaction({
             tenantID: tenant.id,
+            tenant,
             chargeBoxIdentity: activeTransaction.chargeBoxID,
+            chargingStation,
             companyID: activeTransaction.companyID,
             siteID: activeTransaction.siteID,
             siteAreaID: activeTransaction.siteAreaID,

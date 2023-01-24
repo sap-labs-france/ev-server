@@ -23,6 +23,7 @@ export default class WSWrapper {
   public wsConnection: WSConnection;
   public firstConnectionDate: Date;
   public nbrPingFailed: number;
+  public lastMessageDate: Date;
   public lastPingDate: Date;
   public lastPongDate: Date;
   public isValid: boolean;
@@ -140,6 +141,7 @@ export default class WSWrapper {
       remoteAddress: this.remoteAddress,
       firstConnectionDate: this.firstConnectionDate,
       durationSecs: Utils.computeTimeDurationSecs(new Date(this.firstConnectionDate).getTime()),
+      lastMessageDate: this.lastMessageDate,
       lastPingDate: this.lastPingDate,
       lastPongDate: this.lastPongDate,
     };

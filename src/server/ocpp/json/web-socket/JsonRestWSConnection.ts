@@ -77,6 +77,10 @@ export default class JsonRestWSConnection extends WSConnection {
   public onPong(message: string): void {
   }
 
+  public async updateChargingStationRuntimeData(): Promise<void> {
+    // Do not update Charging Station when called by REST server
+  }
+
   private isValidOcppClientCommand(command: Command): boolean {
     // Only client request is allowed
     return [

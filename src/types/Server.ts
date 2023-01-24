@@ -273,6 +273,7 @@ export enum ServerAction {
   WS_SERVER_CONNECTION_CLOSE = 'WsServerConnectionClose',
   WS_SERVER_CONNECTION_OPEN = 'WsServerConnectionOpen',
   WS_SERVER_CONNECTION_ERROR = 'WsServerConnectionError',
+  WS_SERVER_CONNECTION_LAST_SEEN = 'WsServerConnectionLastSeen',
 
   WS_CLIENT_ERROR = 'WsClientError',
   WS_CLIENT_MESSAGE = 'WsClientMessage',

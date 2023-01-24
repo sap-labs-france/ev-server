@@ -2,7 +2,7 @@ import * as uWS from 'uWebSockets.js';
 
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
-import { OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
+import { OCPPIncomingRequest, OCPPIncomingResponse } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Server';
 import { WebSocketAction, WebSocketCloseEventStatusCode, WebSocketPingResult } from '../../../types/WebSocket';
 
@@ -10,6 +10,7 @@ import CentralSystemConfiguration from '../../../types/configuration/CentralSyst
 import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import JsonRestWSConnection from './web-socket/JsonRestWSConnection';
@@ -30,6 +31,7 @@ export default class JsonOCPPServer extends OCPPServer {
   private runningWSMessages = 0;
   private jsonWSConnections: Map<string, JsonWSConnection> = new Map();
   private jsonRestWSConnections: Map<string, JsonRestWSConnection> = new Map();
+  private lastUpdatedChargingStationsLastSeen = new Date();
 
   public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     super(centralSystemConfig, chargingStationConfig);
@@ -45,6 +47,8 @@ export default class JsonOCPPServer extends OCPPServer {
     if (FeatureToggles.isFeatureActive(Feature.OCPP_MONITOR_MEMORY_USAGE)) {
       this.monitorMemoryUsage();
     }
+    // Start 15 secs after ping checks
+    setTimeout(() => this.massUpdateChargingStationsLastSeen(), 15 * 1000);
   }
 
   public start(): void {
@@ -305,6 +309,7 @@ export default class JsonOCPPServer extends OCPPServer {
       wsWrapper.setConnection(wsConnection);
       // Keep WS connection in cache
       if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
+        await wsConnection.updateChargingStationRuntimeData();
         this.jsonWSConnections.set(wsConnection.getID(), wsConnection as JsonWSConnection);
       } else if (wsWrapper.protocol === WSServerProtocol.REST) {
         this.jsonRestWSConnections.set(wsConnection.getID(), wsConnection as JsonRestWSConnection);
@@ -423,6 +428,9 @@ export default class JsonOCPPServer extends OCPPServer {
       wsWrapper.close(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Connection rejected by the backend');
       return;
     }
+    // Keep last date
+    wsWrapper.lastMessageDate = new Date();
+    // Process Message
     try {
       // Extract the OCPP Message Type
       const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(message);
@@ -747,4 +755,97 @@ export default class JsonOCPPServer extends OCPPServer {
       lastPongDate: wsWrapper.lastPongDate,
     };
   }
+
+  private massUpdateChargingStationsLastSeen() {
+    setInterval(() => {
+      this._massUpdateChargingStationsLastSeen().catch((error) => {
+        Logging.logPromiseError(error);
+      });
+    }, (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs / 3) * 1000);
+  }
+
+  private async _massUpdateChargingStationsLastSeen() {
+    const lastUpdatedChargingStationsLastSeen = new Date();
+    const lastSeenChargingStationsMap = new Map<string, {tenant: Tenant; chargingStationIDs: string[]; lastSeenDate: Date;}>();
+    let numberOfUpdatedChargingStations = 0;
+    try {
+      for (const jsonWSConnection of this.jsonWSConnections.values()) {
+        const wsWrapper = jsonWSConnection.getWS();
+        let lastSeenDate: Date;
+        // Check Ping date
+        if (wsWrapper.lastPingDate) {
+          lastSeenDate = wsWrapper.lastPingDate;
+        }
+        // Check Pong date
+        if ((!lastSeenDate && wsWrapper.lastPongDate) ||
+              (lastSeenDate && wsWrapper.lastPongDate && lastSeenDate.getTime() < wsWrapper.lastPongDate.getTime())) {
+          lastSeenDate = wsWrapper.lastPongDate;
+        }
+        // Check Last Message date
+        if ((!lastSeenDate && wsWrapper.lastMessageDate) ||
+              (lastSeenDate && wsWrapper.lastMessageDate && lastSeenDate.getTime() < wsWrapper.lastMessageDate.getTime())) {
+          lastSeenDate = wsWrapper.lastMessageDate;
+        }
+        // Process lastSeen?
+        if (lastSeenDate && lastSeenDate.getTime() > this.lastUpdatedChargingStationsLastSeen.getTime()) {
+          // Round last seen for mass update
+          lastSeenDate.setMilliseconds(0);
+          lastSeenDate.setSeconds(lastSeenDate.getSeconds() - (lastSeenDate.getSeconds() % 10)); // Round seconds down
+          // Keep them for later mass update
+          const lastSeenChargingStationsKey = `${wsWrapper.wsConnection.getTenantID()}-${lastSeenDate.getTime()}`;
+          const lastSeenChargingStation = lastSeenChargingStationsMap.get(lastSeenChargingStationsKey);
+          if (!lastSeenChargingStation) {
+            // Create the entry and add Charging Station to update
+            lastSeenChargingStationsMap.set(lastSeenChargingStationsKey, {
+              tenant: jsonWSConnection.getTenant(),
+              lastSeenDate: lastSeenDate,
+              chargingStationIDs: [wsWrapper.wsConnection.getChargingStationID()],
+            });
+          } else {
+            // Add Charging Station to update
+            lastSeenChargingStation.chargingStationIDs.push(
+              wsWrapper.wsConnection.getChargingStationID());
+          }
+        }
+      }
+      // Process mass update lastSeen field
+      for (const lastSeenChargingStation of lastSeenChargingStationsMap.values()) {
+        await ChargingStationStorage.saveChargingStationsLastSeen(
+          lastSeenChargingStation.tenant,
+          lastSeenChargingStation.chargingStationIDs,
+          lastSeenChargingStation.lastSeenDate
+        );
+        numberOfUpdatedChargingStations += lastSeenChargingStation.chargingStationIDs.length;
+      }
+      // Next round
+      this.lastUpdatedChargingStationsLastSeen = lastUpdatedChargingStationsLastSeen;
+      Logging.beInfo()?.log({
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        action: ServerAction.WS_SERVER_CONNECTION_LAST_SEEN,
+        module: MODULE_NAME, method: 'massUpdateChargingStationsLastSeen',
+        message: `${numberOfUpdatedChargingStations} Charging Stations have been updated successfully (${lastSeenChargingStationsMap.size} grouped updates)`,
+        detailedMessages: { lastSeenChargingStations: Array.from(lastSeenChargingStationsMap.values())
+          .map((lastSeenChargingStation) =>
+            ({
+              tenant: {
+                id: lastSeenChargingStation.tenant.id,
+                subdomain: lastSeenChargingStation.tenant.subdomain,
+              },
+              lastSeen: lastSeenChargingStation.lastSeenDate.toISOString(),
+              chargingStationIDs: lastSeenChargingStation.chargingStationIDs,
+            })
+          )
+        }
+      });
+    } catch (error) {
+      Logging.beError()?.log({
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        action: ServerAction.WS_SERVER_CONNECTION_LAST_SEEN,
+        module: MODULE_NAME, method: 'massUpdateChargingStationsLastSeen',
+        message: 'Failed to update Charging Station\'s Last Seen',
+        detailedMessages: { error: error.stack }
+      });
+    }
+  }
+
 }

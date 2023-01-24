@@ -358,13 +358,7 @@ export default abstract class WSConnection {
   }
 
   public setTenant(tenant: Tenant): void {
-    this.tenantID = tenant.id;
-    this.tenantSubdomain = tenant.subdomain;
-    // Keep the minimum
-    this.tenant = {
-      id: this.tenantID,
-      subdomain: this.tenantSubdomain
-    } as Tenant;
+    this.tenant = tenant;
   }
 
   public getTenant(): Tenant {
@@ -416,4 +410,7 @@ export default abstract class WSConnection {
   public abstract onPing(message: string): void;
 
   public abstract onPong(message: string): void;
+
+  public abstract updateChargingStationRuntimeData(): Promise<void>;
+
 }

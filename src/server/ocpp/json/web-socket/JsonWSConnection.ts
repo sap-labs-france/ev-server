@@ -16,6 +16,7 @@ import { OCPPErrorType } from '../../../../types/ocpp/OCPPCommon';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPUtils from '../../utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
+import Utils from '../../../../utils/Utils';
 import WSConnection from './WSConnection';
 import WSWrapper from './WSWrapper';
 
@@ -123,7 +124,7 @@ export default class JsonWSConnection extends WSConnection {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public onPing(message: string): void {
-    this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
+    // this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
     Logging.beDebug()?.log({
       ...LoggingHelper.getWSConnectionProperties(this),
       tenantID: this.getTenantID(),
@@ -135,14 +136,33 @@ export default class JsonWSConnection extends WSConnection {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public onPong(message: string): void {
-    this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
+    // this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
     Logging.beDebug()?.log({
       ...LoggingHelper.getWSConnectionProperties(this),
       tenantID: this.getTenantID(),
       action: ServerAction.WS_CLIENT_CONNECTION_PONG,
-      module: MODULE_NAME, method: 'onPing',
+      module: MODULE_NAME, method: 'onPong',
       message: 'Pong received'
     });
+  }
+
+  public async updateChargingStationRuntimeData() {
+    // Update Charging Station info
+    const chargingStationID = this.getChargingStationID();
+    // First time the charging station connects, it does not yet exist
+    if (chargingStationID) {
+      const lastSeen = new Date();
+      const tokenID = this.getTokenID();
+      const cloudHostIP = Utils.getHostIP();
+      const cloudHostName = Utils.getHostName();
+      // Save Charging Station runtime data
+      await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), chargingStationID, {
+        lastSeen,
+        tokenID,
+        cloudHostIP,
+        cloudHostName,
+      });
+    }
   }
 
   private async updateChargingStationLastSeen(): Promise<void> {
@@ -164,6 +184,7 @@ export default class JsonWSConnection extends WSConnection {
       }
     }
   }
+
 
   private isValidOcppServerCommand(command: Command): boolean {
     // Only client request is allowed
