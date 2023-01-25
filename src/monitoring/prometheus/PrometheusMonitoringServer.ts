@@ -38,6 +38,7 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
       this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST, 'The number of web sockets that are running');
       this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE, 'The number of web sockets request + response that are running');
       this.createGaugeMetric(Constants.WEB_SOCKET_CURRENT_REQUEST, 'JSON WS Requests in cache');
+      this.createGaugeMetric(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT, 'number of json websockets');
       this.createGaugeMetric(Constants.MONGODB_CONNECTION_READY, 'The number of connection that are ready');
       this.createGaugeMetric(Constants.MONGODB_CONNECTION_CREATED, 'The number of connection created');
       this.createGaugeMetric(Constants.MONGODB_CONNECTION_CLOSED, 'The number of connection closed');
