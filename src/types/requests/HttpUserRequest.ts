@@ -90,6 +90,8 @@ export interface HttpScanPayVerifyEmailRequest {
   email: string;
   captcha: string;
   siteAreaID: string;
+  locale: string;
+  subdomain: string;
   name?: string;
   firstName?: string;
   connectorID: string;

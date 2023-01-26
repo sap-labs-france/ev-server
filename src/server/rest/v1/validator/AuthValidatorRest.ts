@@ -55,7 +55,7 @@ export default class AuthValidatorRest extends SchemaValidator {
     return this.validate(this.authEula, data);
   }
 
-  public validateScanPayVerifyEmailReq(data: Record<string, unknown>): Partial<HttpScanPayVerifyEmailRequest> {
+  public validateScanPayVerifyEmailReq(data: Record<string, unknown>): HttpScanPayVerifyEmailRequest {
     return this.validate(this.authScanPayVerifyEmail, data);
   }
 }
