@@ -27,7 +27,7 @@
       &lt;/value&gt;<br/>
       &lt;value transactionId="{{transactionId}}" context="Transaction.End"&gt;<br/>
       &lt;signedData&gt;<br/>
-      {{endSignedData}}><br/>
+      {{endSignedData}}<br/>
       &lt;/signedData&gt;<br/>
       &lt;/value&gt;<br/>
       &lt;/values&gt;<br/>
