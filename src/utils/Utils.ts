@@ -982,8 +982,8 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenant.subdomain)}/auth/account-onboarding?TenantID=${tenant.id}&AccountID=${billingAccountID}`;
   }
 
-  public static buildEvseScanPayStopTransactionURL(tenantSubdomain: string, transactionID: number): string {
-    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/stop/${transactionID}`;
+  public static buildEvseScanPayStopTransactionURL(tenantSubdomain: string, transactionID: number, password: string): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/stop/${transactionID}/${password}`;
   }
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {

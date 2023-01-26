@@ -89,6 +89,7 @@ export interface HttpBillingScanPayRequest {
   paymentIntentID?: string;
   connectorID?: number;
   chargingStationID?: string;
+  verificationToken?: string;
 }
 
 export interface HttpBillingScanPayStopTransactionRequest {

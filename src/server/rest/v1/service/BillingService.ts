@@ -23,6 +23,7 @@ import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
 import { HttpBillingScanPayRequest } from '../../../../types/requests/HttpBillingRequest';
+import { HttpScanPayVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
 import I18nManager from '../../../../utils/I18nManager';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -289,8 +290,42 @@ export default class BillingService {
   // handle user creation + create payment intent + start transaction
   public static async handleScanPayPaymentIntent(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayReq(req.body);
-    // on handle la creation du user là
-    const tag = await BillingService.handleUserScanPay(filteredRequest, req.tenant);
+    // const tag = await BillingService.handleUserScanPay(filteredRequest, req.tenant);
+    let tag: Tag;
+    // Check if the user exist
+    const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
+    if (foundUser) {
+      tag = await TagStorage.getDefaultUserTag(req.tenant, foundUser.id);
+      if (!tag) {
+        throw new AppError({
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `User '${foundUser.id}' does not have any badge`,
+          module: MODULE_NAME, method: 'handleUserScanPay',
+          user: foundUser
+        });
+      }
+      tag.user = foundUser;
+    } else {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `User '${filteredRequest.email}' does not exist`,
+        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
+      });
+    }
+    // Check verificationToken
+    if (foundUser.verificationToken !== filteredRequest.verificationToken) {
+      throw new AppError({
+        errorCode: HTTPError.INVALID_TOKEN_ERROR,
+        action: action,
+        user: foundUser,
+        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
+        message: 'Wrong Verification Token, cannot verify email'
+      });
+    }
+    // Save User Verification Account
+    await UserStorage.saveUserAccountVerification(req.tenant, foundUser.id,
+      { verificationToken: null, verifiedAt: new Date() });
+    await UserStorage.saveUserPassword(req.tenant, foundUser.id, { password: filteredRequest.verificationToken });
     // Filter
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -1026,7 +1061,7 @@ export default class BillingService {
     next();
   }
 
-  private static async handleUserScanPay(filteredRequest: HttpBillingScanPayRequest, tenant: Tenant): Promise<Tag> {
+  public static async handleUserScanPay(filteredRequest: HttpScanPayVerifyEmailRequest, tenant: Tenant): Promise<Tag> {
     // Check if the user exist
     const foundUser = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
     if (foundUser) {
@@ -1045,12 +1080,14 @@ export default class BillingService {
     const locale = filteredRequest.locale ?? Constants.DEFAULT_LOCALE;
     // Create
     const newUser = UserStorage.createNewUser();
+    const verificationToken = Utils.generateToken(filteredRequest.email);
     const user = {
       ...newUser,
       name: filteredRequest.name,
       firstName: filteredRequest.firstName,
       email: filteredRequest.email,
-      locale: locale,
+      locale,
+      verificationToken,
     } as User;
     // Create the User
     user.id = await UserStorage.saveUser(tenant, user, true);
@@ -1065,6 +1102,9 @@ export default class BillingService {
       eulaAcceptedVersion: endUserLicenseAgreement.version,
       eulaAcceptedHash: endUserLicenseAgreement.hash
     });
+    // Save User Account Verification
+    // const verificationToken = Utils.generateToken(filteredRequest.email);
+    // await UserStorage.saveUserAccountVerification(tenant, user.id, { verificationToken });
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(locale);
     // Create tag for the user

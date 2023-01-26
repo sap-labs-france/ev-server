@@ -6,6 +6,7 @@ import User, { UserRole, UserStatus } from '../../../../types/User';
 import AppError from '../../../../exception/AppError';
 import AuthValidatorRest from '../validator/AuthValidatorRest';
 import Authorizations from '../../../../authorization/Authorizations';
+import BillingService from './BillingService';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { Details } from 'express-useragent';
@@ -274,7 +275,7 @@ export default class AuthService {
     next();
   }
 
-  public static async checkAndSendVerifyScanPayEmail(tenant: Tenant, filteredRequest: Partial<HttpScanPayVerifyEmailRequest>, action: ServerAction, req: Request,
+  public static async checkAndSendVerifyScanPayEmail(tenant: Tenant, filteredRequest: HttpScanPayVerifyEmailRequest, action: ServerAction, req: Request,
       res: Response, next: NextFunction): Promise<void> {
     if (!filteredRequest.captcha) {
       throw new AppError({
@@ -287,27 +288,28 @@ export default class AuthService {
     // Check reCaptcha
     await UtilsService.checkReCaptcha(tenant, action, 'checkAndSendVerifyScanPayEmail',
       centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
-    const user = {
-      email: filteredRequest.email,
-      name: filteredRequest.name,
-      firstName: filteredRequest.firstName
-    } as User;
+    const tag = await BillingService.handleUserScanPay(filteredRequest, tenant);
+    // on handle la creation du user là
+    // const tag = await BillingService.handleUserScanPay(filteredRequest, req.tenant);
+
     await Logging.logInfo({
       tenantID: tenant.id,
-      user: user, action: action,
+      user: tag.user, action: action,
       module: MODULE_NAME,
       method: 'checkAndSendVerifyScanPayEmail',
       message: `User with Email '${req.body.email as string}' will receive an email to verify his email`
     });
     // Send notification
-    const evseDashboardVerifyScanPayEmailURL = Utils.buildEvseURL(req.tenant.subdomain) + '/auth/scan-pay?email=' + user.email + '&siteAreaID=' + filteredRequest.siteAreaID + '&name=' + (user.name ?? '') + '&firstName=' + (user.firstName ?? '') + '&chargingStationID=' + filteredRequest.chargingStationID + '&connectorID=' + filteredRequest.connectorID;
+    // const evseDashboardVerifyScanPayEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
+    // '/auth/verify-email?VerificationToken=' + tag.user.verificationToken + '&Email=' + tag.user.email;
+    const evseDashboardVerifyScanPayEmailURL = Utils.buildEvseURL(req.tenant.subdomain) + '/auth/scan-pay?VerificationToken=' + tag.user.verificationToken + '&email=' + tag.user.email + '&siteAreaID=' + filteredRequest.siteAreaID + '&chargingStationID=' + filteredRequest.chargingStationID + '&connectorID=' + filteredRequest.connectorID;
     // Notify
     void NotificationHandler.sendScanPayVerifyEmail(
       tenant,
       Utils.generateUUID(),
-      user,
+      tag.user,
       {
-        user,
+        user: tag.user,
         'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
         'evseDashboardVerifyScanPayEmailURL': evseDashboardVerifyScanPayEmailURL
       }
