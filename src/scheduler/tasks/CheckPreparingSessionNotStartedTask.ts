@@ -21,8 +21,8 @@ export default class CheckPreparingSessionNotStartedTask extends TenantScheduler
       try {
         // Get Charging Stations
         const chargingStations = await ChargingStationStorage.getChargingStations(tenant, {
-          'statusChangedBefore': moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate(),
-          'connectorStatuses': [ChargePointStatus.PREPARING],
+          statusChangedBefore: moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate(),
+          connectorStatuses: [ChargePointStatus.PREPARING],
           withSiteArea: true
         }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const chargingStation of chargingStations.result) {
@@ -33,18 +33,18 @@ export default class CheckPreparingSessionNotStartedTask extends TenantScheduler
               { siteIDs: [ chargingStation.siteArea.siteID ], siteOwnerOnly: true }, Constants.DB_PARAMS_MAX_LIMIT);
             if (siteOwners && siteOwners.count > 0) {
               // Send notification
-              moment.locale(siteOwners.result[0].user.locale);
               for (const connector of chargingStation.connectors) {
-                void NotificationHandler.sendPreparingTransactionNotStarted(tenant, chargingStation, siteOwners.result[0].user, {
+                NotificationHandler.sendPreparingTransactionNotStarted(tenant, chargingStation, siteOwners.result[0].user, {
                   user: siteOwners.result[0].user,
                   chargeBoxID: chargingStation.id,
                   siteID: chargingStation.siteID,
                   siteAreaID: chargingStation.siteAreaID,
                   companyID: chargingStation.companyID,
                   connectorId: Utils.getConnectorLetterFromConnectorID(connector.connectorId),
-                  startedOn: moment(chargingStation.connectors['statusLastChangedOn']).format('LL'),
                   evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#all'),
                   evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
+                }).catch((error) => {
+                  Logging.logPromiseError(error, tenant?.id);
                 });
               }
             }

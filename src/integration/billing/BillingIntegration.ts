@@ -181,7 +181,7 @@ export default abstract class BillingIntegration {
         // Format amount with currency symbol depending on locale
         const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(invoiceAmountAsDecimal.toNumber());
         // Send async notification
-        void NotificationHandler.sendBillingNewInvoiceNotification(
+        NotificationHandler.sendBillingNewInvoiceNotification(
           this.tenant,
           billingInvoice.id,
           user,
@@ -196,7 +196,9 @@ export default abstract class BillingIntegration {
             invoiceNumber: billingInvoice.number,
             invoiceStatus: billingInvoice.status,
           }
-        );
+        ).catch((error) => {
+          Logging.logPromiseError(error, this.tenant?.id);
+        });
         // Needed only for testing
         return true;
       }

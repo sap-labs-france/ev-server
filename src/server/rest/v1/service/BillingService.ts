@@ -735,7 +735,9 @@ export default class BillingService {
       user
     };
     // Send the notification
-    void NotificationHandler.sendBillingAccountCreationLink(req.tenant, Utils.generateUUID(), user, notificationData);
+    NotificationHandler.sendBillingAccountCreationLink(req.tenant, Utils.generateUUID(), user, notificationData).catch((error) => {
+      Logging.logPromiseError(error, req?.tenant?.id);
+    });
     res.json(Object.assign({ id: billingAccount.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -861,8 +863,11 @@ export default class BillingService {
     billingAccount.status = BillingAccountStatus.ACTIVE;
     await BillingStorage.saveAccount(req.tenant, billingAccount);
     // Notify the user
-    void NotificationHandler.sendBillingAccountActivationNotification(
-      req.tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
+    NotificationHandler.sendBillingAccountActivationNotification(
+      req.tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user }
+    ).catch((error) => {
+      Logging.logPromiseError(error, req?.tenant?.id);
+    });
     res.json(Object.assign({ id: billingAccount.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }

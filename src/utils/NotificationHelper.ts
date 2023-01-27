@@ -32,14 +32,7 @@ export default class NotificationHelper {
           'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress')
         }
       ).catch((error) => {
-        // TODO - This should be done everywhere!
-        Logging.logError({
-          tenantID: tenant.id,
-          action: ServerAction.NOTIFICATION,
-          module: MODULE_NAME, method: 'notificationHelper',
-          message: 'Notification failed',
-          detailedMessages: { error: error.stack }
-        }).catch(() => { /* Intentional */ });
+        Logging.logPromiseError(error, tenant?.id);
       });
     }
   }
@@ -92,14 +85,7 @@ export default class NotificationHelper {
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch((error) => {
-        // TODO - This should be done everywhere!
-        Logging.logError({
-          tenantID: tenant.id,
-          action: ServerAction.NOTIFICATION,
-          module: MODULE_NAME, method: 'notificationHelper',
-          message: 'Notification failed',
-          detailedMessages: { error: error.stack }
-        }).catch(() => { /* Intentional */ });
+        Logging.logPromiseError(error, tenant?.id);
       });
     }
   }
@@ -128,14 +114,7 @@ export default class NotificationHelper {
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch((error) => {
-        // TODO - This should be done everywhere!
-        Logging.logError({
-          tenantID: tenant.id,
-          action: ServerAction.NOTIFICATION,
-          module: MODULE_NAME, method: 'notificationHelper',
-          message: 'Notification failed',
-          detailedMessages: { error: error.stack }
-        }).catch(() => { /* Intentional */ });
+        Logging.logPromiseError(error, tenant?.id);
       });
     }
   }
@@ -168,14 +147,7 @@ export default class NotificationHelper {
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch((error) => {
-        // TODO - This should be done everywhere!
-        Logging.logError({
-          tenantID: tenant.id,
-          action: ServerAction.NOTIFICATION,
-          module: MODULE_NAME, method: 'notificationHelper',
-          message: 'Notification failed',
-          detailedMessages: { error: error.stack }
-        }).catch(() => { /* Intentional */ });
+        Logging.logPromiseError(error, tenant?.id);
       });
       // Notify Signed Data
       if (transaction.stop.signedData !== '') {
@@ -209,14 +181,7 @@ export default class NotificationHelper {
             evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
           }
         ).catch((error) => {
-          // TODO - This should be done everywhere!
-          Logging.logError({
-            tenantID: tenant.id,
-            action: ServerAction.NOTIFICATION,
-            module: MODULE_NAME, method: 'notificationHelper',
-            message: 'Notification failed',
-            detailedMessages: { error: error.stack }
-          }).catch(() => { /* Intentional */ });
+          Logging.logPromiseError(error, tenant?.id);
         });
       }
     }
