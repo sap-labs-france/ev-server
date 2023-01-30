@@ -234,6 +234,7 @@ export default class UserStorage {
       notificationsActive: userToSave.notificationsActive,
       authorizationID: userToSave.authorizationID,
       lastPaymentIntentID: userToSave.lastPaymentIntentID,
+      verificationToken: userToSave.verificationToken,
       notifications: {
         sendSessionStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionStarted) : false,
         sendOptimalChargeReached: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOptimalChargeReached) : false,

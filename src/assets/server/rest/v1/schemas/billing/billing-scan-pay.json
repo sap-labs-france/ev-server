@@ -38,6 +38,10 @@
     },
     "transactionId": {
       "$ref": "transaction#/definitions/id"
+    },
+    "verificationToken": {
+      "type": "string",
+      "sanitize": "mongo"
     }
   },
   "required": [
