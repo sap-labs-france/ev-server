@@ -300,7 +300,7 @@ export default class BillingService {
         throw new AppError({
           errorCode: HTTPError.GENERAL_ERROR,
           message: `User '${foundUser.id}' does not have any badge`,
-          module: MODULE_NAME, method: 'handleUserScanPay',
+          module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
           user: foundUser
         });
       }
@@ -313,19 +313,33 @@ export default class BillingService {
       });
     }
     // Check verificationToken
-    if (foundUser.verificationToken !== filteredRequest.verificationToken) {
-      throw new AppError({
-        errorCode: HTTPError.INVALID_TOKEN_ERROR,
-        action: action,
-        user: foundUser,
-        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
-        message: 'Wrong Verification Token, cannot verify email'
-      });
+    if (action === ServerAction.SCAN_PAY_PAYMENT_INTENT_SETUP) {
+      if (foundUser.verificationToken !== filteredRequest.verificationToken) {
+        throw new AppError({
+          errorCode: HTTPError.INVALID_TOKEN_ERROR,
+          action: action,
+          user: foundUser,
+          module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
+          message: 'Wrong Verification Token, cannot verify email'
+        });
+      }
+      // Save User Verification Account
+      await UserStorage.saveUserAccountVerification(req.tenant, foundUser.id,
+        { verificationToken: null, verifiedAt: new Date() });
+      await UserStorage.saveUserPassword(req.tenant, foundUser.id, { password: filteredRequest.verificationToken });
+    } else if (action === ServerAction.SCAN_PAY_PAYMENT_INTENT_RETRIEVE) {
+      if (foundUser.password !== filteredRequest.verificationToken) {
+        // TODO : improve this if/else part
+        // case we already have the user registered, the verification has become the password
+        throw new AppError({
+          errorCode: HTTPError.INVALID_TOKEN_ERROR,
+          action: action,
+          user: foundUser,
+          module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
+          message: 'Wrong Verification Token, cannot verify email'
+        });
+      }
     }
-    // Save User Verification Account
-    await UserStorage.saveUserAccountVerification(req.tenant, foundUser.id,
-      { verificationToken: null, verifiedAt: new Date() });
-    await UserStorage.saveUserPassword(req.tenant, foundUser.id, { password: filteredRequest.verificationToken });
     // Filter
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -1086,11 +1100,12 @@ export default class BillingService {
     // Create
     const newUser = UserStorage.createNewUser();
     const verificationToken = Utils.generateToken(filteredRequest.email);
+    const aliasEmail = Utils.buildAliasEmail(filteredRequest.email);
     const user = {
       ...newUser,
       name: filteredRequest.name,
       firstName: filteredRequest.firstName,
-      email: filteredRequest.email,
+      email: aliasEmail,
       locale,
       verificationToken,
     } as User;

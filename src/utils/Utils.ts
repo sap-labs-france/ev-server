@@ -1790,6 +1790,13 @@ export default class Utils {
     return this.hashCode(str) + 2147483647 + 1;
   }
 
+  public static buildAliasEmail(email: string): string {
+    const userName = email.split('@').slice(0,1)[0];
+    const domain = email.split('@').slice(1,2)[0];
+    const alias = '+' + Utils.generateUUID();
+    return (userName + alias + '@' + domain);
+  }
+
   private static hashCode(s:string): number {
     let hash = 0,i = 0;
     const len = s.length;

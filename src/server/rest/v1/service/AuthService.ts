@@ -306,7 +306,7 @@ export default class AuthService {
     // Send notification
     // const evseDashboardVerifyScanPayEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
     // '/auth/verify-email?VerificationToken=' + tag.user.verificationToken + '&Email=' + tag.user.email;
-    const evseDashboardVerifyScanPayEmailURL = Utils.buildEvseURL(req.tenant.subdomain) + '/auth/scan-pay?VerificationToken=' + tag.user.verificationToken + '&email=' + tag.user.email + '&siteAreaID=' + filteredRequest.siteAreaID + '&chargingStationID=' + filteredRequest.chargingStationID + '&connectorID=' + filteredRequest.connectorID;
+    const evseDashboardVerifyScanPayEmailURL = encodeURIComponent(Utils.buildEvseURL(req.tenant.subdomain) + '/auth/scan-pay?VerificationToken=' + tag.user.verificationToken + '&email=' + tag.user.email + '&siteAreaID=' + filteredRequest.siteAreaID + '&chargingStationID=' + filteredRequest.chargingStationID + '&connectorID=' + filteredRequest.connectorID);
     // Notify
     void NotificationHandler.sendScanPayVerifyEmail(
       tenant,
