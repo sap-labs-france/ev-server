@@ -2,6 +2,7 @@
 import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, ScanPayTransactionStartedNotification, ScanPayVerifyEmailNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
 import EmailComponentManager, { EmailComponent } from './EmailComponentManager';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
+import User, { UserRole } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
 import BrandingConstants from '../../utils/BrandingConstants';
@@ -14,7 +15,6 @@ import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationTask from '../NotificationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import mjmlBuilder from './EmailMjmlBuilder';
 import rfc2047 from 'rfc2047';
@@ -428,6 +428,12 @@ export default class EMailNotificationTask implements NotificationTask {
       }
       // Enrich the sourceData with constant values
       this.enrichSourceData(tenant, sourceData);
+      // Handle + sign in email addresses
+      if (recipient.role === UserRole.EXTERNAL && recipient.email.includes('+')) {
+        const lastPlusSignIndex = recipient.email.lastIndexOf('+');
+        const atSignIndex = recipient.email.indexOf('@');
+        recipient.email = recipient.email.slice(0, lastPlusSignIndex) + recipient.email.slice(atSignIndex);
+      }
       // Build the context with recipient data
       const context: Record<string, unknown> = this.populateNotificationContext(tenant, recipient, sourceData);
       // Send the email

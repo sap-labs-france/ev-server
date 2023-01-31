@@ -16,13 +16,10 @@ import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import BillingValidatorRest from '../validator/BillingValidatorRest';
 import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
-import ChargingStationService from './ChargingStationService';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationValidatorRest from '../validator/ChargingStationValidatorRest';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import { HttpBillingScanPayRequest } from '../../../../types/requests/HttpBillingRequest';
 import { HttpScanPayVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
 import I18nManager from '../../../../utils/I18nManager';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -34,11 +31,7 @@ import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import { Transaction } from 'mongodb';
-import TransactionService from './TransactionService';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import UserService from './UserService';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -1114,6 +1107,7 @@ export default class BillingService {
       email: aliasEmail,
       locale,
       verificationToken,
+      role: UserRole.EXTERNAL,
     } as User;
     // Create the User
     user.id = await UserStorage.saveUser(tenant, user, true);
@@ -1128,9 +1122,6 @@ export default class BillingService {
       eulaAcceptedVersion: endUserLicenseAgreement.version,
       eulaAcceptedHash: endUserLicenseAgreement.hash
     });
-    // Save User Account Verification
-    // const verificationToken = Utils.generateToken(filteredRequest.email);
-    // await UserStorage.saveUserAccountVerification(tenant, user.id, { verificationToken });
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(locale);
     // Create tag for the user
