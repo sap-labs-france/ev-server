@@ -340,6 +340,12 @@ export default class BillingService {
         });
       }
     }
+    // Save User Verification Account
+    await UserStorage.saveUserAccountVerification(req.tenant, foundUser.id,
+      { verificationToken: null, verifiedAt: new Date() });
+    // Generate a password
+    const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.verificationToken);
+    await UserStorage.saveUserPassword(req.tenant, foundUser.id, { password: newPasswordHashed });
     // Filter
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
