@@ -985,7 +985,7 @@ export default class Utils {
   }
 
   public static buildEvseScanPayStopTransactionURL(tenantSubdomain: string, transactionID: number, password: string): string {
-    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/stop/${transactionID}/${password}`;
+    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/stop/${transactionID}?token=${encodeURIComponent(password)}`;
   }
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
