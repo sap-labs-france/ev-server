@@ -373,8 +373,8 @@ export default class OCPPService {
         newTransaction.user = user;
         newTransaction.authorizationID = user.authorizationID;
       }
-      // Cleanup ongoing Transaction
-      await this.processExistingTransaction(tenant, chargingStation, startTransaction.connectorId);
+      // Cleanup ongoing Transaction - TODO - To be clarified - header is incomplete >> Cannot read properties of undefined (reading 'ocppVersion')
+      // await this.processExistingTransaction(tenant, chargingStation, startTransaction.connectorId);
       // Handle Car
       await this.processTransactionCar(tenant, newTransaction, chargingStation, null, user, TransactionAction.START);
       // Create consumption
