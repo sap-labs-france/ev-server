@@ -118,10 +118,6 @@ export default class JsonWSConnection extends WSConnection {
     return this.chargingStationClient;
   }
 
-  public setChargingStation(chargingStation: ChargingStation): void {
-    super.setChargingStation(chargingStation);
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public onPing(message: string): void {
     // this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
@@ -148,19 +144,19 @@ export default class JsonWSConnection extends WSConnection {
 
   public async updateChargingStationRuntimeData() {
     // Update Charging Station info
-    const chargingStationID = this.getChargingStationID();
+    const chargingStation = this.getChargingStation();
     // First time the charging station connects, it does not yet exist
-    if (chargingStationID) {
-      const lastSeen = new Date();
-      const tokenID = this.getTokenID();
-      const cloudHostIP = Utils.getHostIP();
-      const cloudHostName = Utils.getHostName();
+    if (chargingStation) {
+      chargingStation.lastSeen = new Date();
+      chargingStation.tokenID = this.getTokenID();
+      chargingStation.cloudHostIP = Utils.getHostIP();
+      chargingStation.cloudHostName = Utils.getHostName();
       // Save Charging Station runtime data
-      await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), chargingStationID, {
-        lastSeen,
-        tokenID,
-        cloudHostIP,
-        cloudHostName,
+      await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), chargingStation.id, {
+        lastSeen: chargingStation.lastSeen,
+        tokenID: chargingStation.tokenID,
+        cloudHostIP: chargingStation.cloudHostIP,
+        cloudHostName: chargingStation.cloudHostName,
       });
     }
   }

@@ -52,13 +52,10 @@ export class OcppPendingCommand {
 }
 
 export default abstract class WSConnection {
-  private siteID: string;
-  private siteAreaID: string;
-  private companyID: string;
-  private chargingStationID: string;
-  private tenantID: string;
+  private chargingStationID: string; // Resolved before the Charging Station object
+  private chargingStation: ChargingStation;
+  private tenantID: string; // Resolved before the Tenant object
   private tenant: Tenant;
-  private tenantSubdomain: string;
   private tokenID: string;
   private url: string;
   private originalURL: string;
@@ -130,7 +127,7 @@ export default abstract class WSConnection {
         // Remove it from the cache
         this.consumePendingOcppCommands(messageID);
         // Send some feedback
-        const timeoutError = new Error(`Timeout after ${Constants.OCPP_SOCKET_TIMEOUT_MILLIS / 1000} secs for Message ID '${messageID}' with content '${messageToSend} - (${this.tenantSubdomain})`);
+        const timeoutError = new Error(`Timeout after ${Constants.OCPP_SOCKET_TIMEOUT_MILLIS / 1000} secs for Message ID '${messageID}' with content '${messageToSend} - (${this.getTenantSubDomain()})`);
         reject(timeoutError);
       }, Constants.OCPP_SOCKET_TIMEOUT_MILLIS);
       // Let's send it
@@ -142,7 +139,7 @@ export default abstract class WSConnection {
         // Well - we have not been able to send the message - Remove the pending promise from the cache
         this.consumePendingOcppCommands(messageID);
         // send some feedback
-        const unexpectedError = new Error(`Unexpected situation - Failed to send Message ID '${messageID}' with content '${messageToSend} - (${this.tenantSubdomain})`);
+        const unexpectedError = new Error(`Unexpected situation - Failed to send Message ID '${messageID}' with content '${messageToSend} - (${this.getTenantSubDomain()})`);
         reject(unexpectedError);
       }
     });
@@ -163,11 +160,9 @@ export default abstract class WSConnection {
         // Not always an error with uWebSocket: check BackPressure example
         const message = `Error when sending error '${messageToSend}' to Web Socket`;
         void Logging.logError({
+          ...LoggingHelper.getChargingStationProperties(this.chargingStation),
           tenantID: this.tenantID,
           chargingStationID: this.chargingStationID,
-          companyID: this.companyID,
-          siteID: this.siteID,
-          siteAreaID: this.siteAreaID,
           module: MODULE_NAME, method: 'sendError',
           action: ServerAction.WS_SERVER_CONNECTION_ERROR,
           message, detailedMessages: { message: messageToSend }
@@ -178,11 +173,9 @@ export default abstract class WSConnection {
       // Invalid Web Socket
       const message = `Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`;
       void Logging.logError({
+        ...LoggingHelper.getChargingStationProperties(this.chargingStation),
         tenantID: this.tenantID,
         chargingStationID: this.chargingStationID,
-        companyID: this.companyID,
-        siteID: this.siteID,
-        siteAreaID: this.siteAreaID,
         module: MODULE_NAME, method: 'sendPayload',
         action: ServerAction.WS_SERVER_CONNECTION_ERROR,
         message, detailedMessages: { message: messageToSend, error: wsError?.stack }
@@ -203,10 +196,8 @@ export default abstract class WSConnection {
         wsWrapper.wsConnection.handleIncomingOcppError(ocppMessage as OCPPIncomingResponse);
       } else {
         Logging.beError()?.log({
+          ...LoggingHelper.getChargingStationProperties(this.chargingStation),
           tenantID: this.tenantID,
-          siteID: this.siteID,
-          siteAreaID: this.siteAreaID,
-          companyID: this.companyID,
           chargingStationID: this.chargingStationID,
           action: ServerAction.UNKNOWN_ACTION,
           message: `Wrong OCPP Message Type in '${JSON.stringify(ocppMessage)}'`,
@@ -215,10 +206,8 @@ export default abstract class WSConnection {
       }
     } catch (error) {
       Logging.beError()?.log({
+        ...LoggingHelper.getChargingStationProperties(this.chargingStation),
         tenantID: this.tenantID,
-        siteID: this.siteID,
-        siteAreaID: this.siteAreaID,
-        companyID: this.companyID,
         chargingStationID: this.chargingStationID,
         action: ServerAction.UNKNOWN_ACTION,
         message: `${error.message as string}`,
@@ -244,10 +233,8 @@ export default abstract class WSConnection {
       // Send Error Response
       this.sendError(messageID, command, commandPayload, error);
       Logging.beError()?.log({
+        ...LoggingHelper.getChargingStationProperties(this.chargingStation),
         tenantID: this.tenantID,
-        siteID: this.siteID,
-        siteAreaID: this.siteAreaID,
-        companyID: this.companyID,
         chargingStationID: this.chargingStationID,
         action: OCPPUtils.buildServerActionFromOcppCommand(command),
         message: `${error.message as string}`,
@@ -331,22 +318,24 @@ export default abstract class WSConnection {
     return this.wsWrapper.getRemoteAddress();
   }
 
+  public getChargingStation(): ChargingStation {
+    return this.chargingStation;
+  }
+
   public setChargingStation(chargingStation: ChargingStation): void {
-    this.siteID = chargingStation?.siteID;
-    this.siteAreaID = chargingStation?.siteAreaID;
-    this.companyID = chargingStation?.companyID;
+    this.chargingStation = chargingStation;
   }
 
   public getSiteID(): string {
-    return this.siteID;
+    return this.chargingStation?.siteID;
   }
 
   public getSiteAreaID(): string {
-    return this.siteAreaID;
+    return this.chargingStation?.siteAreaID;
   }
 
   public getCompanyID(): string {
-    return this.companyID;
+    return this.chargingStation?.companyID;
   }
 
   public getChargingStationID(): string {
@@ -355,6 +344,10 @@ export default abstract class WSConnection {
 
   public getTenantID(): string {
     return this.tenantID;
+  }
+
+  public getTenantSubDomain(): string {
+    return this.tenant?.subdomain;
   }
 
   public setTenant(tenant: Tenant): void {
