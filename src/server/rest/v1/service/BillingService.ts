@@ -319,9 +319,12 @@ export default class BillingService {
       // Save User Verification Account
       await UserStorage.saveUserAccountVerification(req.tenant, foundUser.id,
         { verificationToken: null, verifiedAt: new Date() });
-      await UserStorage.saveUserPassword(req.tenant, foundUser.id, { password: filteredRequest.verificationToken });
+      const password = await Utils.hashPasswordBcrypt(filteredRequest.verificationToken);
+      // Generate a password
+      await UserStorage.saveUserPassword(req.tenant, foundUser.id, { password });
     } else if (action === ServerAction.SCAN_PAY_PAYMENT_INTENT_RETRIEVE) {
-      if (foundUser.password !== filteredRequest.verificationToken) {
+      const match = await Utils.checkPasswordBCrypt(filteredRequest.verificationToken, foundUser.password);
+      if (!match) {
         // TODO : improve this if/else part
         // case we already have the user registered, the verification has become the password
         throw new AppError({
@@ -333,12 +336,6 @@ export default class BillingService {
         });
       }
     }
-    // Save User Verification Account
-    await UserStorage.saveUserAccountVerification(req.tenant, foundUser.id,
-      { verificationToken: null, verifiedAt: new Date() });
-    // Generate a password
-    const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.verificationToken);
-    await UserStorage.saveUserPassword(req.tenant, foundUser.id, { password: newPasswordHashed });
     // Filter
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
