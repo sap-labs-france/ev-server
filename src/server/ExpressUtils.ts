@@ -62,12 +62,14 @@ export default class ExpressUtils {
     expressApplication.use(Logging.traceExpressError.bind(this));
   }
 
-  private static async healthCheckService(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const pingSuccess = await global.database.ping();
-    if (pingSuccess) {
-      res.sendStatus(StatusCodes.OK);
-    } else {
-      res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
-    }
+  private static healthCheckService(req: Request, res: Response, next: NextFunction): void {
+    // TODO - Find another metric to check the health
+    res.sendStatus(StatusCodes.OK);
+    // const pingSuccess = await global.database.ping();
+    // if (pingSuccess) {
+    //   res.sendStatus(StatusCodes.OK);
+    // } else {
+    //   res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+    // }
   }
 }
