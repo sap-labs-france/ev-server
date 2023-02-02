@@ -895,12 +895,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Let's create a paymentIntent for the stripe customer
       const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.create({
         customer: customerID,
-        amount: 1000,
+        amount: 10000,
         currency: 'EUR',
         // off_session: true,
         setup_future_usage: 'off_session',
         capture_method: 'manual',
         // confirm: true
+        receipt_email: user.email
       });
       await Logging.logInfo({
         tenantID: this.tenant.id,
