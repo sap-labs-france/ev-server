@@ -143,19 +143,12 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
       }
     ).catch((error) => {
-      // TODO - This should be done everywhere!
-      Logging.logError({
-        tenantID: tenant.id,
-        action: ServerAction.NOTIFICATION,
-        module: MODULE_NAME, method: 'notificationHelper',
-        message: 'Notification failed',
-        detailedMessages: { error: error.stack }
-      }).catch(() => { /* Intentional */ });
+      Logging.logPromiseError(error, tenant?.id);
     });
     return false;
   }
 
-  abstract buildChargingProfiles(siteArea: SiteArea, excludedChargingStations?: string[]): Promise<ChargingProfile[]>;
+  public abstract buildChargingProfiles(siteArea: SiteArea, excludedChargingStations?: string[]): Promise<ChargingProfile[]>;
 
-  abstract checkConnection(): Promise<void>;
+  public abstract checkConnection(): Promise<void>;
 }

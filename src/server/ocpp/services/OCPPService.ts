@@ -373,8 +373,8 @@ export default class OCPPService {
         newTransaction.user = user;
         newTransaction.authorizationID = user.authorizationID;
       }
-      // Cleanup ongoing Transaction
-      await this.processExistingTransaction(tenant, chargingStation, startTransaction.connectorId);
+      // Cleanup ongoing Transaction - TODO - To be clarified - header is incomplete >> Cannot read properties of undefined (reading 'ocppVersion')
+      // await this.processExistingTransaction(tenant, chargingStation, startTransaction.connectorId);
       // Handle Car
       await this.processTransactionCar(tenant, newTransaction, chargingStation, null, user, TransactionAction.START);
       // Create consumption
@@ -969,7 +969,7 @@ export default class OCPPService {
         message: `${Utils.buildConnectorInfo(connector.connectorId)} Error occurred: ${this.buildStatusNotification(statusNotification)}`
       });
       // Send Notification (Async)
-      void NotificationHandler.sendChargingStationStatusError(
+      NotificationHandler.sendChargingStationStatusError(
         tenant,
         Utils.generateUUID(),
         chargingStation,
@@ -983,7 +983,9 @@ export default class OCPPService {
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
           evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#inerror')
         }
-      );
+      ).catch((error) => {
+        Logging.logPromiseError(error, tenant?.id);
+      });
     }
   }
 
@@ -1649,7 +1651,7 @@ export default class OCPPService {
   }
 
   private notifyBootNotification(tenant: Tenant, chargingStation: ChargingStation) {
-    void NotificationHandler.sendChargingStationRegistered(
+    NotificationHandler.sendChargingStationRegistered(
       tenant,
       Utils.generateUUID(),
       chargingStation,
@@ -1661,7 +1663,9 @@ export default class OCPPService {
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
         evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#all')
       }
-    );
+    ).catch((error) => {
+      Logging.logPromiseError(error, tenant?.id);
+    });
   }
 
   private enrichAuthorize(user: User, chargingStation: ChargingStation, headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended) {
