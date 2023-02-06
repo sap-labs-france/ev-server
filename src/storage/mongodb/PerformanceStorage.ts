@@ -15,7 +15,7 @@ const PERFS_ENABLED = true;
 export default class PerformanceStorage {
   public static async savePerformanceRecord(performanceRecord: PerformanceRecord, labelValues:LabelValues<string>): Promise<string> {
     if (PERFS_ENABLED) {
-      if ((global.monitoringServer) && (process.env.K8S)) {
+      if (Utils.isMonitoringEnabled()) {
         PerformanceStorage.savePrometheusMetric(performanceRecord, labelValues);
       }
       // Remove default Tenant
@@ -48,7 +48,7 @@ export default class PerformanceStorage {
         { upsert: true, returnDocument: 'after' }
       );
       const perRecordReturned = ret.value as PerformanceRecord;
-      if ((global.monitoringServer) && (process.env.K8S)) {
+      if (Utils.isMonitoringEnabled()) {
         if (!labelValues) {
           labelValues = { tenant: perRecordReturned.tenantSubdomain };
         }
