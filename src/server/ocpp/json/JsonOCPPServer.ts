@@ -104,19 +104,21 @@ export default class JsonOCPPServer extends OCPPServer {
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    }).any(Constants.HEALTH_CHECK_ROUTE, async (res: HttpResponse) => {
-      res.onAborted(() => {
-        res.aborted = true;
-      });
-      const pingSuccess = await global.database.ping();
-      if (!res.aborted) {
-        if (pingSuccess) {
-          res.end('OK');
-        } else {
-          res.writeStatus('500');
-          res.end('KO');
-        }
-      }
+    }).any(Constants.HEALTH_CHECK_ROUTE, (res: HttpResponse) => {
+      // TODO - Find another metric to check the health
+      res.end('OK');
+      // res.onAborted(() => {
+      //   res.aborted = true;
+      // });
+      // const pingSuccess = await global.database.ping();
+      // if (!res.aborted) {
+      //   if (pingSuccess) {
+      //     res.end('OK');
+      //   } else {
+      //     res.writeStatus('500');
+      //     res.end('KO');
+      //   }
+      // }
     }).any('/*', (res: HttpResponse) => {
       res.writeStatus('404');
       res.end();
