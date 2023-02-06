@@ -158,7 +158,7 @@
     "tz-lookup": "^6.1.25",
     "urlencode": "^1.1.0",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.10.0",
-    "validator": "^13.7.0",
+    "validator": "^13.9.0",
     "ws": "^8.10.0"
   },
   "optionalDependencies": {
@@ -204,7 +204,7 @@
     "@types/tz-lookup": "^6.1.0",
     "@types/urlencode": "^1.1.2",
     "@types/uuid": "^8.3.4",
-    "@types/validator": "^13.7.9",
+    "@types/validator": "^13.7.12",
     "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.41.0",
     "@typescript-eslint/parser": "^5.41.0",
