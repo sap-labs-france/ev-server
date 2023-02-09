@@ -1119,6 +1119,14 @@ export default class BillingService {
       eulaAcceptedVersion: endUserLicenseAgreement.version,
       eulaAcceptedHash: endUserLicenseAgreement.hash
     });
+    const newPasswordHashed = await Utils.hashPasswordBcrypt(verificationToken);
+    // Save User password
+    await UserStorage.saveUserPassword(tenant, newUser.id, {
+      password: newPasswordHashed,
+      passwordWrongNbrTrials: 0,
+      passwordResetHash: null,
+      passwordBlockedUntil: null
+    });
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(locale);
     // Create tag for the user
