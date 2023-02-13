@@ -734,6 +734,20 @@
       "required": [
         "logLevel"
       ]
+    },
+    "Cache": {
+      "type": "object",
+      "properties": {
+        "ttlSeconds": {
+          "type": "number"
+        },
+        "debug": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ttlSeconds"
+      ]
     }
   }
 }
