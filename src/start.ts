@@ -3,6 +3,8 @@ import { ServerAction, ServerType } from './types/Server';
 
 import AsyncTaskConfiguration from './types/configuration/AsyncTaskConfiguration';
 import AsyncTaskManager from './async-task/AsyncTaskManager';
+import { Cache } from './cache/Cache';
+import CacheConfiguration from './types/configuration/CacheConfiguration';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
 import Configuration from './utils/Configuration';
@@ -55,6 +57,7 @@ export default class Bootstrap {
   private static asyncTaskConfig: AsyncTaskConfiguration;
   private static schedulerConfig: SchedulerConfiguration;
   private static monitoringConfig: MonitoringConfiguration;
+  private static cacheConfig: CacheConfiguration;
 
   public static async start(): Promise<void> {
     let serverStarted: ServerType[] = [];
@@ -76,6 +79,7 @@ export default class Bootstrap {
       Bootstrap.asyncTaskConfig = Configuration.getAsyncTaskConfig();
       Bootstrap.schedulerConfig = Configuration.getSchedulerConfig();
       Bootstrap.monitoringConfig = Configuration.getMonitoringConfig();
+      Bootstrap.cacheConfig = Configuration.getCacheConfig();
 
       // -------------------------------------------------------------------------
       // Listen to promise failure
@@ -114,6 +118,15 @@ export default class Bootstrap {
       }
 
       // -------------------------------------------------------------------------
+      // Create in memory cache
+      // -------------------------------------------------------------------------
+      if (Bootstrap.cacheConfig) {
+        startTimeMillis = await this.logAndGetStartTimeMillis(`Creating memory cache with default TTL '${Bootstrap.cacheConfig.ttlSeconds}' seconds.`);
+        global.cache = new Cache(Bootstrap.cacheConfig);
+        await this.logDuration(startTimeMillis, 'Memory cache created successfully');
+      }
+
+      // -------------------------------------------------------------------------
       // Connect to the DB
       // -------------------------------------------------------------------------
       // Check database implementation
@@ -140,7 +153,6 @@ export default class Bootstrap {
         await MigrationHandler.migrate();
         await this.logDuration(startTimeMillis, 'Migration has been run successfully');
       }
-
 
 
       // -------------------------------------------------------------------------
