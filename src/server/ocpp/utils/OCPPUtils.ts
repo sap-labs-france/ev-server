@@ -1236,7 +1236,7 @@ export default class OCPPUtils {
     OCPPUtils.checkChargingStationConnectionData(
       ServerAction.WS_SERVER_CONNECTION, tenantID, tokenID, chargingStationID);
     // Get Tenant
-    const tenant = await TenantStorage.getTenant(tenantID);
+    const tenant = await TenantStorage.getTenantFromCache(tenantID);
     if (!tenant) {
       throw new BackendError({
         chargingStationID,
