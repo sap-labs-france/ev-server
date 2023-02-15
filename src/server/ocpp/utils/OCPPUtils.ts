@@ -1453,7 +1453,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static clearChargingStationConnectorRuntimeData(chargingStation: ChargingStation, connectorID: number): void {
+  public static clearChargingStationConnectorRuntimeData(chargingStation: ChargingStation, connectorID: number): Connector {
     // Cleanup connector transaction data
     const connector = Utils.getConnectorFromID(chargingStation, connectorID);
     if (connector) {
@@ -1467,6 +1467,7 @@ export default class OCPPUtils {
       connector.currentTagID = null;
       connector.currentUserID = null;
     }
+    return connector;
   }
 
   public static updateSignedData(transaction: Transaction, meterValue: OCPPNormalizedMeterValue): boolean {

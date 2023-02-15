@@ -6,6 +6,7 @@ import AsyncTaskConfiguration from '../types/configuration/AsyncTaskConfiguratio
 import AsyncTaskStorage from '../storage/mongodb/AsyncTaskStorage';
 import BillTransactionAsyncTask from './tasks/BillTransactionAsyncTask';
 import Constants from '../utils/Constants';
+import EndTransactionAsyncTask from './tasks/EndTransactionAsyncTask';
 import LockingHelper from '../locking/LockingHelper';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
@@ -174,6 +175,8 @@ export default class AsyncTaskManager {
   private static async createTask(asyncTask: AsyncTask): Promise<AbstractAsyncTask> {
     const correlationID = Utils.generateShortNonUniqueID();
     switch (asyncTask.name) {
+      case AsyncTasks.END_TRANSACTION:
+        return new EndTransactionAsyncTask(asyncTask, correlationID);
       case AsyncTasks.BILL_TRANSACTION:
         return new BillTransactionAsyncTask(asyncTask, correlationID);
       case AsyncTasks.TAGS_IMPORT:
