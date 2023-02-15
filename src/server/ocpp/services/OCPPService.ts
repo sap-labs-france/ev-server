@@ -884,8 +884,7 @@ export default class OCPPService {
               await TransactionStorage.saveTransaction(tenant, lastTransaction);
             }
           } else {
-            // Unexpected situation - This should not happen
-            // The connector is AVAILABLE before stopping the transaction
+            // Unexpected situation - This should not happen - The connector is AVAILABLE before stopping the transaction
             await Logging.logWarning({
               ...LoggingHelper.getChargingStationProperties(chargingStation),
               tenantID: tenant.id,
@@ -894,21 +893,6 @@ export default class OCPPService {
               message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' while a transaction is ongoing`,
               detailedMessages: { statusNotification }
             });
-            // // We need to wait first for the STOP transaction - this to make sure we won't charge an inconsistent extra inactivity (i.e.: parking time)
-            // // Trigger an async task to postpone the END transaction logic!
-            // await AsyncTaskBuilder.createAndSaveAsyncTasks({
-            //   name: AsyncTasks.END_TRANSACTION,
-            //   action: ServerAction.OCPP_STATUS_NOTIFICATION,
-            //   type: AsyncTaskType.TASK,
-            //   tenantID: tenant.id,
-            //   parameters: {
-            //     transactionID: String(lastTransaction.id),
-            //     userID: lastTransaction.userID,
-            //     statusNotification,
-            //   },
-            //   module: MODULE_NAME,
-            //   method: 'checkAndUpdateLastCompletedTransactionFromStatusNotification',
-            // });
           }
           // Clear Connector Runtime Data
           OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, lastTransaction.connectorId);
