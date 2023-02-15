@@ -1,6 +1,7 @@
 import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValue, OCPPMeterValuesRequest, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps } from '../../../types/ChargingStation';
+import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
@@ -39,7 +40,6 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import UtilsService from '../../rest/v1/service/UtilsService';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 
@@ -198,8 +198,19 @@ export default class OCPPService {
       }
       // Get Transaction
       const transaction = await this.getTransactionFromMeterValues(tenant, chargingStation, headers, meterValues);
-      // Save Meter Values
-      await OCPPStorage.saveMeterValues(tenant, normalizedMeterValues);
+      if (FeatureToggles.isFeatureActive(Feature.OCPPJ_PERSIST_RAW_METER_VALUES)) {
+        const beginAt = normalizedMeterValues.values[0].timestamp;
+        const endAt = normalizedMeterValues.values[normalizedMeterValues.values.length - 1].timestamp;
+        // Save
+        await OCPPStorage.saveRawMeterValues(tenant, {
+          beginAt,
+          endAt,
+          meterValues
+        });
+      } else {
+        // Save Meter Values
+        await OCPPStorage.saveMeterValues(tenant, normalizedMeterValues);
+      }
       // Update Transaction
       this.updateTransactionWithMeterValues(chargingStation, transaction, normalizedMeterValues.values);
       // Create Consumptions
