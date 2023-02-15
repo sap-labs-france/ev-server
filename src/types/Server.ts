@@ -725,7 +725,6 @@ export enum RESTServerRoute {
 
   // BILLING / SCAN AND PAY
   REST_SCAN_PAY_VERIFY_EMAIL = 'billing/scan-pay/verify-email',
-  REST_BILLING_SETTING_SCAN_AND_PAY = 'billing/scan-pay/billing-settings',
   REST_SCAN_PAY_PAYMENT_INTENT_SETUP = 'billing/scan-pay/setup',
   REST_SCAN_PAY_PAYMENT_INTENT_RETRIEVE = 'billing/scan-pay/retrieve',
   REST_SCAN_PAY_PAYMENT_INTENT_CAPTURE = 'billing/scan-pay/capture',
