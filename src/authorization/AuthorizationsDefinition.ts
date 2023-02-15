@@ -3364,6 +3364,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
         ]
       },
+      { resource: Entity.SETTING, action: Action.READ },
       { resource: Entity.TRANSACTION, action: [Action.REMOTE_STOP_TRANSACTION],
         condition: {
           Fn: 'custom:dynamicAuthorizations',

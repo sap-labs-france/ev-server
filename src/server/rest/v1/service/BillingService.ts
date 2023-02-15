@@ -599,17 +599,6 @@ export default class BillingService {
     next();
   }
 
-  public static async handleGetBillingSettingScanPay(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Get the entity from storage
-    const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(
-      req.tenant
-    );
-    // Process sensitive data
-    UtilsService.hashSensitiveData(req.tenant.id, billingSettings);
-    res.json(billingSettings);
-    next();
-  }
-
   public static async handleUpdateBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,

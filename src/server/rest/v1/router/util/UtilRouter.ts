@@ -31,18 +31,11 @@ export default class UtilRouter {
     this.buildRouteGetTenantEmailLogo();
     this.buildRouteBillingRefreshAccount();
     this.buildRouteBillingActivateAccount();
-    this.buildRouteScanPayBillingSetting();
     this.buildRouteScanPayPaymentIntentSetup();
     this.buildRouteScanPayPaymentIntentRetrieve();
     this.buildRouteScanPayPaymentIntentCapture();
     this.buildRouteScanPayGetTransaction();
     return this.router;
-  }
-
-  private buildRouteScanPayBillingSetting(): void {
-    this.router.get(`/${RESTServerRoute.REST_BILLING_SETTING_SCAN_AND_PAY}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleRestServerAction(BillingService.handleGetBillingSettingScanPay.bind(this), ServerAction.SCAN_PAY_BILLING_SETTING, req, res, next);
-    });
   }
 
   private buildRouteScanPayPaymentIntentSetup(): void {
