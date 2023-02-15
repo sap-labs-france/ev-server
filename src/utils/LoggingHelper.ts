@@ -105,7 +105,8 @@ export default class LoggingHelper {
       id: transaction?.id,
       userID: transaction?.userID || transaction?.user?.id,
       tagID: transaction?.tagID || transaction?.tag?.id,
-      carID: transaction?.carID || transaction?.car?.id
+      carID: transaction?.carID || transaction?.car?.id,
+      lastConsumptionTimestamp: transaction?.lastConsumption?.timestamp
     };
   }
 }
