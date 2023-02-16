@@ -488,7 +488,7 @@ export default class OCPPUtils {
             module: MODULE_NAME, method: 'createConsumptionsFromMeterValues',
             action: ServerAction.OCPP_METER_VALUES,
             message: 'Meter Value is in the past and will be ignored',
-            detailedMessages: { meterValue, transaction }
+            detailedMessages: { meterValue, transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
           });
           continue;
         }

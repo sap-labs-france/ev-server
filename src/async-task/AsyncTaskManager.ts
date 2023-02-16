@@ -37,7 +37,9 @@ export default class AsyncTaskManager {
     // Turn all Running task to Pending
     await AsyncTaskStorage.updateRunningAsyncTaskToPending();
     // First run
-    void AsyncTaskManager.handleAsyncTasks();
+    AsyncTaskManager.handleAsyncTasks().catch((error) => {
+      Logging.logPromiseError(error);
+    });
     // Listen to DB events
     await global.database.watchDatabaseCollection(Constants.DEFAULT_TENANT_OBJECT, 'asynctasks',
       (documentID: unknown, documentChange: DatabaseDocumentChange, document: unknown) => {
@@ -46,7 +48,9 @@ export default class AsyncTaskManager {
           // Check status
           if (document['status'] === AsyncTaskStatus.PENDING) {
             // Trigger the Async Framework
-            void AsyncTaskManager.handleAsyncTasks();
+            AsyncTaskManager.handleAsyncTasks().catch((error) => {
+              Logging.logPromiseError(error);
+            });
           }
         }
       }
@@ -160,7 +164,9 @@ export default class AsyncTaskManager {
       // Do not retry right away when lock failed to be acquired (infinite loop), wait for the Job
       if (!failedToAcquireLock) {
         // Retrigger the Async Framework
-        void AsyncTaskManager.handleAsyncTasks();
+        AsyncTaskManager.handleAsyncTasks().catch((error) => {
+          Logging.logPromiseError(error);
+        });
       }
     } else {
       await Logging.logDebug({
