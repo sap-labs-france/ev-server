@@ -1771,7 +1771,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction has already been stopped`,
         action: ServerAction.OCPP_METER_VALUES,
-        detailedMessages: { transaction, meterValues }
+        detailedMessages: { meterValues, transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
       });
     }
     // Received Meter Values after the Transaction End Meter Value
