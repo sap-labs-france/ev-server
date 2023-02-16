@@ -70,6 +70,7 @@ export default class Bootstrap {
       }
     }
 
+
     try {
       // Setup i18n
       I18nManager.initialize();
