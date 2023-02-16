@@ -13,9 +13,12 @@ export default class EndTransactionAsyncTask extends AbstractAsyncTask {
     const tenant = await TenantStorage.getTenant(this.getAsyncTask().tenantID);
     try {
       // Get the Transaction to bill
-      const transactionID: string = this.getAsyncTask().parameters.transactionID;
-      const transaction = await TransactionStorage.getTransaction(tenant, Number(transactionID), {}, [ 'id', 'stop' ]);
       const statusNotification: OCPPStatusNotificationRequestExtended = this.getAsyncTask().parameters.statusNotification;
+      const transactionID: number = statusNotification.transactionID;
+      if (!transactionID) {
+        throw new Error('Unexpected situation - Transaction ID is not set');
+      }
+      const transaction = await TransactionStorage.getTransaction(tenant, transactionID, {}, [ 'id', 'stop' ]);
       if (!transaction) {
         throw new Error(`Unknown Transaction ID '${transactionID}'`);
       }
