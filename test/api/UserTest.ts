@@ -15,6 +15,7 @@ import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
 import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
+import {Car} from '../../src/types/Car';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -454,4 +455,143 @@ describe('User', () => {
     });
   });
 
+  describe('Car component is active (utcar)', () => {
+    beforeAll(async () => {
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_CAR);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT);
+      testData.centralUserService = new CentralServerService(
+        testData.tenantContext.getTenant().subdomain,
+        testData.centralUserContext
+      );
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+    });
+
+    describe('Get user session context', () => {
+        let userTag;
+        let userCar;
+        let carCatalogID;
+        beforeAll(async () => {
+          carCatalogID = (await testData.centralUserService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id;
+          testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+          assert(testData.userContext, 'User context cannot be null');
+          if (testData.userContext === testData.centralUserContext) {
+            // Reuse the central user service (to avoid double login)
+            testData.userService = testData.centralUserService;
+          } else {
+            testData.userService = new CentralServerService(
+              testData.tenantContext.getTenant().subdomain,
+              testData.userContext
+            );
+          }
+          assert(!!testData.userService, 'User service cannot be null');
+          // Create
+          testData.newUser = await testData.userService.createEntity(
+            testData.userService.userApi,
+            Factory.user.build()
+          );
+          testData.newUser.issuer = true;
+          delete testData.newUser['password'];
+          testData.createdUsers.push(testData.newUser);
+
+          userTag = Factory.tag.build({userID: testData.newUser.id});
+          const createTagResponse = await testData.userService.tagApi.createTag(userTag);
+          expect(createTagResponse.status).to.be.eq(StatusCodes.CREATED);
+          userTag.id = createTagResponse.data.id;
+
+          userCar = Factory.car.build({licensePlate: 'LICENSE-PLATE', userID: testData.newUser.id, carCatalogID});
+          const createCarResponse = await testData.userService.carApi.create(userCar);
+          expect(createCarResponse.status).to.be.eq(StatusCodes.OK);
+          userCar.id = createCarResponse.data.id;
+        });
+        test('When passing only required params', async () => {
+          const response = await testData.userService.userApi.getUserSessionContext({
+            userID: testData.newUser.id,
+            chargingStationID: testData.chargingStationContext.getChargingStation().id,
+            connectorID: 1
+          });
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data.car.licensePlate).to.be.eq(userCar.licensePlate);
+          expect(response.data.car.id).to.be.eq(userCar.id);
+          expect(response.data.tag.visualID).to.be.eq(userTag.visualID);
+          expect(response.data.tag.id).to.be.eq(userTag.id);
+        });
+
+        describe('Given a user with no tag and no car', () => {
+          const user = Factory.user.build();
+
+          beforeAll(async () => {
+            const createUserResponse = await testData.userService.userApi.create(user);
+            user.id = createUserResponse.data.id;
+          });
+
+          test('When getting his session context for (any connector), (any charging station)', async () => {
+            const response = await testData.userService.userApi.getUserSessionContext({
+              userID: user.id,
+              chargingStationID: testData.chargingStationContext.getChargingStation().id,
+              connectorID: 1
+            });
+            expect(response.status).to.be.eq(StatusCodes.OK);
+            assert(response.data.car == null);
+            assert(response.data.tag == null);
+          });
+
+          test('When getting his session context for (any connector), (any charging station) and (non null carID)', async () => {
+            const randomCarID = (await testData.userService.carApi.create(Factory.car.build({carCatalogID}))).data.id;
+            const response = await testData.userService.userApi.getUserSessionContext({
+              userID: user.id,
+              chargingStationID: testData.chargingStationContext.getChargingStation().id,
+              connectorID: 1,
+              carID: randomCarID
+            })
+            expect(response.status).to.be.eq(StatusCodes.BAD_REQUEST);
+          });
+
+          test('When getting his session context for (any connector), (any charging station) and (non null tagID)', async () => {
+            const randomTagID = (await testData.userService.tagApi.createTag(Factory.tag.build())).data.id;
+            const response = await testData.userService.userApi.getUserSessionContext({
+              userID: user.id,
+              chargingStationID: testData.chargingStationContext.getChargingStation().id,
+              connectorID: 1,
+              tagID: randomTagID
+            });
+            expect(response.status).to.be.eq(StatusCodes.BAD_REQUEST);
+          });
+        });
+
+        describe('Given a user with a tag and a car but no defaults', () => {
+          const user = Factory.user.build();
+          let car;
+          let tag;
+
+          beforeAll(async () => {
+            const createUserResponse = await testData.userService.userApi.create(user);
+            user.id = createUserResponse.data.id;
+
+            car = Factory.car.build({default: false, carCatalogID, userID: user.id});
+            const createdCarResponse = await testData.userService.carApi.create(car);
+            car.id = createdCarResponse.data.id;
+
+            tag = Factory.tag.build({default: false, userID: user.id});
+            const createdTagResponse = await testData.userService.tagApi.createTag(tag);
+            tag.id = createdTagResponse.data.id;
+          });
+
+          test('When getting his sessions context for (any connector), (any charging station)', async () => {
+            const response = await testData.userService.userApi.getUserSessionContext({
+              userID: user.id,
+              chargingStationID: testData.chargingStationContext.getChargingStation().id,
+              connectorID: 1
+            });
+
+            expect(response.status).to.be.eq(StatusCodes.OK);
+            assert(response.data.car.default == undefined);
+            assert(response.data.tag.default == undefined);
+            assert(response.data.car.id === car.id);
+            assert(response.data.tag.id === tag.id);
+          })
+        })
+      })
+    })
 });

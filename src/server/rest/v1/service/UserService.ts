@@ -1,13 +1,13 @@
-import { Action, Entity } from '../../../../types/Authorization';
-import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
-import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
-import Busboy, { FileInfo } from 'busboy';
-import { Car, CarType } from '../../../../types/Car';
-import { DataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { NextFunction, Request, Response } from 'express';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
-import User, { ImportedUser, UserRequiredImportProperties, UserRole } from '../../../../types/User';
+import {Action, Entity} from '../../../../types/Authorization';
+import {ActionsResponse, ImportStatus} from '../../../../types/GlobalType';
+import {AsyncTasks, AsyncTaskType} from '../../../../types/AsyncTask';
+import Busboy, {FileInfo} from 'busboy';
+import {Car, CarType} from '../../../../types/Car';
+import {DataResult, UserDataResult, UserSiteDataResult} from '../../../../types/DataResult';
+import {HTTPAuthError, HTTPError} from '../../../../types/HTTPError';
+import {NextFunction, Request, Response} from 'express';
+import Tenant, {TenantComponents} from '../../../../types/Tenant';
+import User, {ImportedUser, UserRequiredImportProperties, UserRole} from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -18,24 +18,24 @@ import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
-import { HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
+import {HttpUsersGetRequest} from '../../../../types/requests/HttpUserRequest';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
-import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
-import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
+import {OCPIRole} from '../../../../types/ocpi/OCPIRole';
+import {OCPITokenWhitelist} from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
-import { Readable } from 'stream';
-import { ServerAction } from '../../../../types/Server';
+import {Readable} from 'stream';
+import {ServerAction} from '../../../../types/Server';
 import SmartChargingHelper from '../../../../integration/smart-charging/SmartChargingHelper';
-import { StartTransactionErrorCode } from '../../../../types/Transaction';
-import { StatusCodes } from 'http-status-codes';
+import {StartTransactionErrorCode} from '../../../../types/Transaction';
+import {StatusCodes} from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import { UserInErrorType } from '../../../../types/InError';
+import {UserInErrorType} from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -61,16 +61,29 @@ export default class UserService {
     // We retrieve Tag auth to get the projected fields here to fit with what's in auth definition
     const tagAuthorization = await AuthorizationService.checkAndGetTagAuthorizations(req.tenant, req.user, {}, Action.READ);
     let tag: Tag;
-    // Get the default Tag
     if (tagAuthorization.authorized) {
-      tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, {
-        issuer: true
-      }, tagAuthorization.projectFields);
+      // Get the tag from the request TagID
+      if (filteredRequest.TagID) {
+        const tagFromID = await TagStorage.getTag(req.tenant, filteredRequest.TagID, {}, ['id', 'userID']);
+        if (!tagFromID || tagFromID.userID !== filteredRequest.UserID) {
+          throw new AppError({
+            errorCode: StatusCodes.BAD_REQUEST,
+            message: 'This user has no tag with such TagID',
+            module: MODULE_NAME,
+            method: 'handleGetUserSessionContext',
+            action: action
+          });
+        } else {
+          tag = tagFromID;
+        }
+      }
       if (!tag) {
-        // Get the first active Tag
-        tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, {
-          issuer: true
-        }, tagAuthorization.projectFields);
+        // Get the default Tag
+        tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, { issuer: true }, tagAuthorization.projectFields);
+        if (!tag) {
+          // Get the first active Tag
+          tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, { issuer: true }, tagAuthorization.projectFields);
+        }
       }
     }
     // Handle Car
@@ -78,11 +91,28 @@ export default class UserService {
     const carAuthorization = await AuthorizationService.checkAndGetCarAuthorizations(req.tenant, req.user, {}, Action.READ);
     let car: Car;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) && carAuthorization.authorized) {
-    // Get the default Car
-      car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
+      // Get the car from the request CarID
+      if (filteredRequest.CarID) {
+        const carFromID = await CarStorage.getCar(req.tenant, filteredRequest.CarID, {}, ['id', 'userID']);
+        if (!carFromID || carFromID.userID !== filteredRequest.UserID) {
+          throw new AppError({
+            errorCode: StatusCodes.BAD_REQUEST,
+            message: 'This user has no car with such CarID',
+            module: MODULE_NAME,
+            method: 'handleGetUserSessionContext',
+            action: action
+          });
+        } else {
+          car = carFromID;
+        }
+      }
       if (!car) {
-        // Get the first available car
-        car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID, carAuthorization.projectFields);
+        // Get the default Car
+        car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
+        if (!car) {
+          // Get the first available car
+          car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID, carAuthorization.projectFields);
+        }
       }
     }
     let withBillingChecks = true ;

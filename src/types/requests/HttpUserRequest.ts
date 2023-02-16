@@ -121,4 +121,6 @@ export interface HttpUserSessionContextGetRequest {
   UserID: string;
   ChargingStationID: string;
   ConnectorID: number;
+  CarID: string;
+  TagID: string;
 }
