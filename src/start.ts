@@ -124,11 +124,6 @@ export default class Bootstrap {
         }
       }
 
-      global.tenantIdMap = new Map();
-      await fillTenantMap();
-      setInterval(async () => {
-        await fillTenantMap();
-      }, 10 * 60 * 1000); // 10 min
 
       // -------------------------------------------------------------------------
       // Connect to the DB
@@ -147,6 +142,14 @@ export default class Bootstrap {
       // Connect to the Database
       await Bootstrap.database.start();
       await this.logDuration(startTimeMillis, 'Connected to the Database successfully');
+
+
+      global.tenantIdMap = new Map();
+      await fillTenantMap();
+      setInterval(async () => {
+        await fillTenantMap();
+      }, 10 * 60 * 1000); // 10 min
+
 
       // -------------------------------------------------------------------------
       // Start DB Migration
