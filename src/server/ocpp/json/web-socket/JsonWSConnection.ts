@@ -90,7 +90,7 @@ export default class JsonWSConnection extends WSConnection {
         // Call it
         result = await this.chargingStationService[methodName](this.headers, commandPayload);
       } finally {
-        // TODO - To be clarified - Why do we clean the header here?
+        // TODO - to be clarified - why should we clear the header here?
         // Clean the header
         // delete this.headers.chargingStation;
         // delete this.headers.tenant;

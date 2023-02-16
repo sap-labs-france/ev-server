@@ -108,4 +108,14 @@ export default class LoggingHelper {
       chargingStationID: sourceData?.chargeBoxID,
     };
   }
+
+  public static shrinkTransactionProperties(transaction: Transaction) {
+    return {
+      id: transaction?.id,
+      userID: transaction?.userID || transaction?.user?.id,
+      tagID: transaction?.tagID || transaction?.tag?.id,
+      carID: transaction?.carID || transaction?.car?.id,
+      lastConsumptionTimestamp: transaction?.lastConsumption?.timestamp
+    };
+  }
 }

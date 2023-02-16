@@ -364,8 +364,8 @@ export default class MongoDBStorage {
           ]);
           // Performances
           await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'performances', [
-            { fields: { timestamp: 1 }, options: { expireAfterSeconds: 14 * 24 * 3600 } },
-            { fields: { timestamp: 1, group: 1, tenantSubdomain: 1 } },
+            { fields: { timestamp: 1 }, options: { expireAfterSeconds: 2 * 24 * 3600 } },
+            // { fields: { timestamp: 1, group: 1, tenantSubdomain: 1 } }, - this index seems wrong and useless
           ]);
           // Users
           await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'users', [

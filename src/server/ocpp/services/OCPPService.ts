@@ -374,8 +374,8 @@ export default class OCPPService {
         newTransaction.user = user;
         newTransaction.authorizationID = user.authorizationID;
       }
-      // Cleanup ongoing Transaction
-      await this.processExistingTransaction(tenant, chargingStation, startTransaction.connectorId);
+      // Cleanup ongoing Transaction - TODO - To be clarified - header is incomplete >> Cannot read properties of undefined (reading 'ocppVersion')
+      // await this.processExistingTransaction(tenant, chargingStation, startTransaction.connectorId);
       // Handle Car
       await this.processTransactionCar(tenant, newTransaction, chargingStation, null, user, TransactionAction.START);
       // Create consumption
@@ -1771,7 +1771,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `${Utils.buildConnectorInfo(meterValues.connectorId, meterValues.transactionId)} Transaction has already been stopped`,
         action: ServerAction.OCPP_METER_VALUES,
-        detailedMessages: { meterValues }
+        detailedMessages: { meterValues, transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
       });
     }
     // Received Meter Values after the Transaction End Meter Value
