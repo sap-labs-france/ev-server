@@ -27,15 +27,15 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
             try {
               const transaction = await TransactionStorage.getTransaction(tenant, Number(transactionID), { withUser: true, withChargingStation: true });
               if (!transaction) {
-                throw new Error(`Unknown Transaction ID '${this.getAsyncTask().parameters.transactionID}'`);
+                throw new Error(`Unknown Transaction ID '${transactionID}'`);
               }
               // Check consistency - async task should only bill transactions created while transaction billing was ON
               if (!transaction.billingData?.withBillingActive) {
-                throw new Error(`Unexpected situation - billing should be active - transaction ID: '${this.getAsyncTask().parameters.transactionID}'`);
+                throw new Error(`Unexpected situation - billing should be active - transaction ID: '${transactionID}'`);
               }
               // Check status - async task should only bill transactions marked as PENDING
               if (transaction.billingData?.stop?.status !== BillingStatus.PENDING) {
-                throw new Error(`Unexpected situation - billing status should be PENDING - transaction ID: '${this.getAsyncTask().parameters.transactionID}'`);
+                throw new Error(`Unexpected situation - billing status should be PENDING - transaction ID: '${transactionID}'`);
               }
               // Attempt to finalize and pay invoices
               const billingDataStop: BillingDataTransactionStop = await billingImpl.billTransaction(transaction);
@@ -49,7 +49,7 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
               await LockingManager.release(lock);
             }
           } else {
-            throw new Error(`Unexpected situation - concurrent billing - transaction ID: '${this.getAsyncTask().parameters.transactionID}' - user: ${this.getAsyncTask().parameters.userID}`);
+            throw new Error(`Unexpected situation - concurrent billing - transaction ID: '${transactionID}' - user: ${userID}`);
           }
         }
       } catch (error) {
