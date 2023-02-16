@@ -14,7 +14,7 @@ export default class Constants {
   public static readonly CR_LF = '\r\n';
 
   public static readonly PERF_MAX_DATA_VOLUME_KB = 512;
-  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 1000;
+  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 3000;
 
   public static readonly AXIOS_DEFAULT_TIMEOUT_SECS = 30;
 

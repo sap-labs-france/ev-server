@@ -1,6 +1,7 @@
 import AsyncTaskConfiguration from '../types/configuration/AsyncTaskConfiguration';
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AxiosConfiguration from '../types/configuration/AxiosConfiguration';
+import CacheConfiguration from '../types/configuration/CacheConfiguration';
 import CentralSystemConfiguration from '../types/configuration/CentralSystemConfiguration';
 import CentralSystemFrontEndConfiguration from '../types/configuration/CentralSystemFrontEndConfiguration';
 import CentralSystemRestServiceConfiguration from '../types/configuration/CentralSystemRestServiceConfiguration';
@@ -30,7 +31,6 @@ import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfig
 import chalk from 'chalk';
 import fs from 'fs';
 import global from './../types/GlobalType';
-import Utils from './Utils';
 
 const MODULE_NAME = 'Configuration';
 
@@ -284,6 +284,13 @@ export default class Configuration {
       trace.traceNotification = false;
     }
     return trace;
+  }
+
+  public static getCacheConfig(): CacheConfiguration {
+    const cache = Configuration.getConfig().Cache;
+    if (!Configuration.isUndefined('Cache', cache)) {
+      return cache;
+    }
   }
 
   private static getConfig(): ConfigurationData {
