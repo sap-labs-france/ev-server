@@ -183,11 +183,12 @@ export default class Logging {
   public static async logError(log: Log): Promise<string> {
     log.level = LogLevel.ERROR;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-
-    const subDomain = global.tenantIdMap.get(log.tenantID);
-    const labelValues = { tenant: subDomain, chargingstation: log.chargingStationID, serverAction: log.action };
-    const errorMetric = global.monitoringServer.getCounterClearableMetric('logging', 'error', 'Number of errors', labelValues);
-    errorMetric.inc();
+    if ( global.tenantIdMap) { // hack for unit test
+      const subDomain = global.tenantIdMap.get(log.tenantID);
+      const labelValues = { tenant: subDomain, chargingstation: log.chargingStationID, serverAction: log.action };
+      const errorMetric = global.monitoringServer.getCounterClearableMetric('logging', 'error', 'Number of errors', labelValues);
+      errorMetric.inc();
+    }
     return Logging.log(log);
   }
 
