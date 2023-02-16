@@ -92,6 +92,7 @@ export enum ImportStatus {
 export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting|BillingAccount|ChargingProfile|Connector|Transaction|TransactionStop|BillingTransfer|BillingTax|RefundReport|UserSite|SiteUser|ChargingStationTemplate|OCPIEndpoint;
 
 interface TSGlobal extends Global {
+  tenantIdMap: Map<string,string>;
   database: MongoDBStorage;
   appRoot: string;
   centralSystemJsonServer: JsonOCPPServer;

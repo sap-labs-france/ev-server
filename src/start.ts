@@ -1,3 +1,4 @@
+import TenantStorage from './storage/mongodb/TenantStorage';
 import CentralSystemConfiguration, { CentralSystemImplementation } from './types/configuration/CentralSystemConfiguration';
 import { ServerAction, ServerType } from './types/Server';
 
@@ -60,6 +61,15 @@ export default class Bootstrap {
     let serverStarted: ServerType[] = [];
     let startTimeMillis: number;
     const startTimeGlobalMillis = await this.logAndGetStartTimeMillis('e-Mobility Server is starting...');
+
+    async function fillTenantMap() : Promise<void> {
+      const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
+      // eslint-disable-next-line no-empty
+      for (const tenant of tenants.result) {
+        global.tenantIdMap.set(tenant.id, tenant.subdomain);
+      }
+    }
+
     try {
       // Setup i18n
       I18nManager.initialize();
@@ -112,6 +122,12 @@ export default class Bootstrap {
           });
         }
       }
+
+      global.tenantIdMap = new Map();
+      await fillTenantMap();
+      setInterval(async () => {
+        await fillTenantMap();
+      }, 10 * 60 * 1000); // 10 min
 
       // -------------------------------------------------------------------------
       // Connect to the DB
@@ -317,6 +333,8 @@ export default class Bootstrap {
     }
     return serverTypes;
   }
+
+
 }
 
 // Start

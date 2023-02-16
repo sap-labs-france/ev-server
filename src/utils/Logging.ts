@@ -3,7 +3,7 @@ import { LabelValues } from 'prom-client';
 import { Log, LogLevel } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 import PerformanceRecord, { PerformanceRecordGroup, PerformanceTracingData } from '../types/Performance';
-
+import global from '../types/GlobalType'
 import { ActionsResponse } from '../types/GlobalType';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
@@ -183,6 +183,11 @@ export default class Logging {
   public static async logError(log: Log): Promise<string> {
     log.level = LogLevel.ERROR;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
+
+    const subDomain = global.tenantIdMap.get(log.tenantID);
+    const labelValues = { tenant: subDomain, chargingstation: log.chargingStationID, serverAction: log.action };
+    const errorMetric = global.monitoringServer.getCounterClearableMetric('logging', 'error', 'Number of errors', labelValues);
+    errorMetric.inc();
     return Logging.log(log);
   }
 
