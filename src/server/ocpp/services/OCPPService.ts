@@ -503,6 +503,8 @@ export default class OCPPService {
       NotificationHelper.notifyStopTransaction(tenant, chargingStation, transaction, user, alternateUser);
       // Recompute the Smart Charging Plan
       await this.triggerSmartChargingStopTransaction(tenant, chargingStation, transaction);
+      // Check Connector Status
+      await this.checkConnectorStatusOnStopTransaction(tenant, chargingStation, transaction, connector, stopTransaction.timestamp);
       await Logging.logInfo({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
@@ -513,33 +515,6 @@ export default class OCPPService {
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
         detailedMessages: { stopTransaction }
       });
-      // Check for the connector status
-      if (connector?.status === ChargePointStatus.AVAILABLE || connector?.status === ChargePointStatus.PREPARING) {
-        // Should not happen - connector should not available yet - but some chargers send the status notification before the stop transaction
-        // Trigger an async task to trigger the regular END transaction logic!
-        const statusNotification: OCPPStatusNotificationRequestExtended = {
-          connectorId: connector.connectorId,
-          status: connector.status,
-          errorCode: ChargePointErrorCode.NO_ERROR,
-          timestamp: stopTransaction.timestamp,
-          chargeBoxID: chargingStation.id,
-          timezone: Utils.getTimezone(chargingStation.coordinates),
-          info: `Ongoing transaction ID: ${transaction.id}`,
-          transactionID: transaction.id
-        };
-        await AsyncTaskBuilder.createAndSaveAsyncTasks({
-          name: AsyncTasks.END_TRANSACTION,
-          action: ServerAction.OCPP_STATUS_NOTIFICATION,
-          type: AsyncTaskType.TASK,
-          tenantID: tenant.id,
-          parameters: {
-            userID: transaction.userID,
-            statusNotification
-          },
-          module: MODULE_NAME,
-          method: 'checkAndUpdateLastCompletedTransactionFromStatusNotification',
-        });
-      }
       // Accepted
       return {
         idTagInfo: {
@@ -682,6 +657,36 @@ export default class OCPPService {
           }
         }
       }
+    }
+  }
+
+  private async checkConnectorStatusOnStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction, connector: Connector, timestamp: string) {
+    // Check for the connector status
+    if (connector?.status === ChargePointStatus.AVAILABLE || connector?.status === ChargePointStatus.PREPARING) {
+      // Should not happen - connector should not available yet - but some chargers send the status notification before the stop transaction
+      // Trigger an async task to trigger the regular END transaction logic!
+      const statusNotification: OCPPStatusNotificationRequestExtended = {
+        connectorId: connector.connectorId,
+        status: connector.status,
+        errorCode: ChargePointErrorCode.NO_ERROR,
+        timestamp,
+        chargeBoxID: chargingStation.id,
+        timezone: Utils.getTimezone(chargingStation.coordinates),
+        info: `Ongoing transaction ID: ${transaction.id}`,
+        transactionID: transaction.id
+      };
+      await AsyncTaskBuilder.createAndSaveAsyncTasks({
+        name: AsyncTasks.END_TRANSACTION,
+        action: ServerAction.OCPP_STATUS_NOTIFICATION,
+        type: AsyncTaskType.TASK,
+        tenantID: tenant.id,
+        parameters: {
+          userID: transaction.userID,
+          statusNotification
+        },
+        module: MODULE_NAME,
+        method: 'checkConnectorStatusOnStopTransaction',
+      });
     }
   }
 
