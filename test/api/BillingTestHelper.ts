@@ -630,7 +630,7 @@ export default class BillingTestHelper {
     return transactionID;
   }
 
-  public async generateTransaction(expectedStatus = 'Accepted', expectedStartDate = new Date(), withSoftStopSimulation = false): Promise<number> {
+  public async generateTransaction(expectedStatus = 'Accepted', expectedStartDate = new Date(), withSoftStopSimulation = false, withWrongStatusNotificationSequence = false): Promise<number> {
     const meterStart = 0;
     const meterStop = 32325; // Unit: Wh
     const meterValueRampUp = Utils.createDecimal(meterStop).divToInt(80).toNumber();
@@ -650,6 +650,7 @@ export default class BillingTestHelper {
     if (expectedStatus === 'Accepted' && startTransactionResponse.idTagInfo.status !== expectedStatus) {
       await this.dumpLastErrors();
     }
+    await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.CHARGING);
     expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
     const transactionId = startTransactionResponse.transactionId;
     const currentTime = startDate.clone();
@@ -712,6 +713,10 @@ export default class BillingTestHelper {
         transaction.stop.extraInactivitySecs = 0;
         await BillingFacade.processEndTransaction(tenant, transaction, transaction.user);
       } else {
+        if (withWrongStatusNotificationSequence) {
+          await this.sendStatusNotification(connectorId, stopDate.clone().toDate(), ChargePointStatus.FINISHING);
+          await this.sendStatusNotification(connectorId, stopDate.clone().toDate(), ChargePointStatus.AVAILABLE);
+        }
         // #end
         const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
         if (expectedStatus === 'Accepted' && stopTransactionResponse.idTagInfo.status !== expectedStatus) {
@@ -719,8 +724,13 @@ export default class BillingTestHelper {
         }
         expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
         // Let's send an OCCP status notification to simulate some extra inactivities
-        await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
-        await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+        if (withWrongStatusNotificationSequence) {
+          // Give some time to the asyncTask to end the transaction
+          await this.waitForAsyncTasks();
+        } else {
+          await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
+          await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+        }
       }
       // Give some time to the asyncTask to bill the transaction
       await this.waitForAsyncTasks();
@@ -742,6 +752,7 @@ export default class BillingTestHelper {
 
   public async waitForAsyncTasks(): Promise<void> {
     let counter = 0, pending: DataResult<AsyncTask>, running: DataResult<AsyncTask>;
+    await TestUtils.sleep(1000);
     while (counter++ <= 10) {
       // Get the number of pending tasks
       pending = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_COUNT_ONLY);
