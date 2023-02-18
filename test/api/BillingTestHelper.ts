@@ -650,6 +650,7 @@ export default class BillingTestHelper {
     if (expectedStatus === 'Accepted' && startTransactionResponse.idTagInfo.status !== expectedStatus) {
       await this.dumpLastErrors();
     }
+    await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.CHARGING);
     expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
     const transactionId = startTransactionResponse.transactionId;
     const currentTime = startDate.clone();

@@ -70,7 +70,6 @@ export interface OCPPStatusNotificationRequest {
 export interface OCPPStatusNotificationRequestExtended extends OCPPStatusNotificationRequest {
   chargeBoxID: string;
   timezone: string;
-  transactionID?: number // Added to handle very-specific situation on DELTA CS sending StatusNotification before the STOP transaction
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

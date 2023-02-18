@@ -3,7 +3,6 @@ import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage
 import Configuration from '../../utils/Configuration';
 import Logging from '../../utils/Logging';
 import OCPPService from '../../server/ocpp/services/OCPPService';
-import { OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
@@ -13,31 +12,30 @@ export default class EndTransactionAsyncTask extends AbstractAsyncTask {
     const tenant = await TenantStorage.getTenant(this.getAsyncTask().tenantID);
     try {
       // Get the Transaction to bill
-      const statusNotification: OCPPStatusNotificationRequestExtended = this.getAsyncTask().parameters.statusNotification;
-      const transactionID: number = statusNotification.transactionID;
-      if (!transactionID) {
-        throw new Error('Unexpected situation - Transaction ID is not set');
+      const transactionID = Number(this.getAsyncTask().parameters.transactionID);
+      const chargeBoxID: string = this.getAsyncTask().parameters.chargeBoxID;
+      const connectorId = Number(this.getAsyncTask().parameters.connectorId);
+      if (!transactionID || !connectorId || !chargeBoxID) {
+        throw new Error('Unexpected situation - task parameters are not set');
       }
-      const transaction = await TransactionStorage.getTransaction(tenant, transactionID, {}, [ 'id', 'stop' ]);
+      const transaction = await TransactionStorage.getTransaction(tenant, Number(transactionID), {}, [ 'id', 'stop' ]);
       if (!transaction) {
         throw new Error(`Unknown Transaction ID '${transactionID}'`);
       }
       if (!transaction.stop) {
         throw new Error(`Unexpected situation - the transaction has not been stopped - Transaction ID '${transactionID}'`);
       }
-      if (!statusNotification.status
-        || !statusNotification.chargeBoxID
-        || !statusNotification.connectorId) {
-        throw new Error('Unexpected situation - the status notification is inconsistent');
+      if (transaction.stop.extraInactivityComputed) {
+        throw new Error(`Unexpected situation - the extra inactivity has already been computed  - Transaction ID '${transactionID}'`);
       }
       // Instantiate the OCPPService
       const ocppService = new OCPPService(Configuration.getChargingStationConfig());
-      const chargingStation = await ChargingStationStorage.getChargingStation(tenant, statusNotification.chargeBoxID, { withSiteArea: true, issuer: true });
+      const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargeBoxID, { withSiteArea: true, issuer: true });
       if (!chargingStation) {
-        throw new Error(`Unexpected situation - the charging station does not exist - Charging Station ID '${statusNotification.chargeBoxID}'`);
+        throw new Error(`Unexpected situation - the charging station does not exist - Charging Station ID '${chargeBoxID}'`);
       }
-      // Let's trigger  again the status notification to 'finalize' the transaction
-      await ocppService.simulateConnectorStatusNotification(tenant, chargingStation, statusNotification);
+      // Let's trigger the end of the transaction
+      await ocppService.triggerEndTransaction(tenant, chargingStation, transactionID, connectorId);
     } catch (error) {
       await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPP_STATUS_NOTIFICATION, error);
     }
