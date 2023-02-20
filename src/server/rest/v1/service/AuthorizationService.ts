@@ -5,7 +5,7 @@ import { Car, CarCatalog } from '../../../../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import ChargingStation, { ChargingStationTemplate } from '../../../../types/ChargingStation';
 import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
-import { HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingTransferGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingScanPayRequest, HttpBillingTransferGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 import { HttpCarCatalogGetRequest, HttpCarCatalogsGetRequest, HttpCarGetRequest, HttpCarsGetRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingProfileRequest, HttpChargingProfilesGetRequest, HttpChargingStationGetRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpChargingStationTemplateGetRequest, HttpChargingStationTemplatesGetRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
@@ -1089,6 +1089,13 @@ export default class AuthorizationService {
       tenant, userToken, Entity.PAYMENT_METHOD, Action.LIST, authorizations,
       filteredRequest.userID ? { UserID: filteredRequest.userID } : {}, null, failsWithException);
     return authorizations;
+  }
+
+  // EntityData is not usable here, the object is returned via external API call
+  public static async checkAndGetPaymentIntentAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpBillingScanPayRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.PAYMENT_INTENT, userToken, filteredRequest, {}, authAction, entityData);
   }
 
   // EntityData is not usable here, the object is returned via external API call

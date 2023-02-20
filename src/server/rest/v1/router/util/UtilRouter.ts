@@ -31,25 +31,9 @@ export default class UtilRouter {
     this.buildRouteGetTenantEmailLogo();
     this.buildRouteBillingRefreshAccount();
     this.buildRouteBillingActivateAccount();
-    this.buildRouteScanPayPaymentIntentSetup();
-    this.buildRouteScanPayPaymentIntentRetrieve();
     this.buildRouteScanPayPaymentIntentCapture();
     this.buildRouteScanPayGetTransaction();
     return this.router;
-  }
-
-  private buildRouteScanPayPaymentIntentSetup(): void {
-    this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_PAYMENT_INTENT_SETUP}`, (req: Request, res: Response, next: NextFunction) => {
-      // Step #1 - Creates user and payment intent
-      void RouterUtils.handleRestServerAction(BillingService.handleScanPayPaymentIntent.bind(this), ServerAction.SCAN_PAY_PAYMENT_INTENT_SETUP, req, res, next);
-    });
-  }
-
-  private buildRouteScanPayPaymentIntentRetrieve(): void {
-    this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_PAYMENT_INTENT_RETRIEVE}`, (req: Request, res: Response, next: NextFunction) => {
-      // Step #2 - Validates the payment intent once credit card has been approved - prepare for capturing once session is ended
-      void RouterUtils.handleRestServerAction(BillingService.handleScanPayPaymentIntent.bind(this), ServerAction.SCAN_PAY_PAYMENT_INTENT_RETRIEVE, req, res, next);
-    });
   }
 
   private buildRouteScanPayPaymentIntentCapture(): void {

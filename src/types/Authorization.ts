@@ -112,7 +112,8 @@ export enum Entity {
   PAYMENT_METHOD = 'PaymentMethod',
   SOURCE = 'Source',
   CONSUMPTION = 'Consumption',
-  SMART_CHARGING = 'SmartCharging'
+  SMART_CHARGING = 'SmartCharging',
+  PAYMENT_INTENT = 'PaymentIntent',
 }
 
 export enum Action {
@@ -206,6 +207,8 @@ export enum Action {
   GET_REFUND_REPORT = 'GetRefundReport',
   EXPORT_COMPLETED_TRANSACTION = 'ExportCompletedTransaction',
   EXPORT_OCPI_CDR = 'ExportOcpiCdr',
+  SETUP = 'Setup',
+  RETRIEVE = 'Retrieve'
 }
 
 export interface AuthorizationContext {
