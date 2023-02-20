@@ -206,9 +206,8 @@ export default class Utils {
     return Promise.race([
       promise,
       timeoutPromise,
-    ]).then((result) => {
+    ]).finally(() => {
       clearTimeout(timeoutHandle);
-      return result;
     });
   }
 
@@ -1771,6 +1770,16 @@ export default class Utils {
        !Utils.isNullOrUndefined(extraFilters['BillingData']) && extraFilters['BillingData']) {
       Utils.deleteBillingPropertiesFromEntity(entityData);
     }
+  }
+
+  public static isMonitoringEnabled() : boolean {
+    let enabled : boolean;
+    if (((global.monitoringServer) && (process.env.K8S))) {
+      enabled = true;
+    } else {
+      enabled = false;
+    }
+    return enabled;
   }
 
   public static positiveHashcode(str :string):number {

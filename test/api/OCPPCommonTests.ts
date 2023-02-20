@@ -257,8 +257,12 @@ export default class OCPPCommonTests {
   }
 
   public async testConnectorStatus(): Promise<void> {
+    this.chargingStationConnector1.status = ChargePointStatus.AVAILABLE;
+    this.chargingStationConnector1.timestamp = new Date().toISOString();
     let response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
     expect(response).to.eql({});
+    this.chargingStationConnector2.status = ChargePointStatus.AVAILABLE;
+    this.chargingStationConnector2.timestamp = new Date().toISOString();
     response = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector2);
     expect(response).to.eql({});
     // Warning: connector status is always 'Unavailable' if too much time has passed since last seen!

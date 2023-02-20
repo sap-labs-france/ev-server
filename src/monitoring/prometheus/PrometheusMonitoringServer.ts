@@ -1,12 +1,15 @@
 import { Application, NextFunction, Request, Response } from 'express';
 import { ServerAction, ServerType } from '../../types/Server';
-import client, { Gauge } from 'prom-client';
+import client, { Counter, Gauge, LabelValues } from 'prom-client';
 
 import Constants from '../../utils/Constants';
 import ExpressUtils from '../../server/ExpressUtils';
 import Logging from '../../utils/Logging';
 import MonitoringConfiguration from '../../types/configuration/MonitoringConfiguration';
-import { ComposedMonitoringMetric } from '../ComposedMonitoringMetric';
+import Utils from '../../utils/Utils';
+import { AvgGaugeClearableMetric } from '../AvgGaugeClearableMetric';
+import { CountAvgGaugeClearableMetric } from '../CountAvgGaugeClearableMetric';
+import { CounterClearableMetric } from '../CounterClearableMetric';
 import MonitoringServer from '../MonitoringServer';
 import { ServerUtils } from '../../server/ServerUtils';
 import global from '../../types/GlobalType';
@@ -17,7 +20,8 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
   private monitoringConfig: MonitoringConfiguration;
   private expressApplication: Application;
   private mapGauge = new Map<string, Gauge>();
-  private mapComposedMetric = new Map<string, ComposedMonitoringMetric>();
+  private mapCounterClearableMetric = new Map<string, CounterClearableMetric>();
+  private mapAvgGaugeClearableMetric = new Map<string, AvgGaugeClearableMetric>();
   private clientRegistry = new client.Registry();
 
   public constructor(monitoringConfig: MonitoringConfiguration) {
@@ -30,12 +34,11 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
       app: 'e-Mobility'
     });
     if (process.env.K8S) {
-      this.createGaugeMetric(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT, 'The number of ocpp web sockets');
-      this.createGaugeMetric(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT, 'The number of rest web sockets');
       this.createGaugeMetric(Constants.WEB_SOCKET_QUEUED_REQUEST, 'The number of web sockets that are queued');
       this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST, 'The number of web sockets that are running');
       this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE, 'The number of web sockets request + response that are running');
-      this.createGaugeMetric(Constants.WEB_SOCKET_CURRRENT_REQUEST, 'JSON WS Requests in cache');
+      this.createGaugeMetric(Constants.WEB_SOCKET_CURRENT_REQUEST, 'JSON WS Requests in cache');
+      this.createGaugeMetric(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT, 'number of json websockets');
       this.createGaugeMetric(Constants.MONGODB_CONNECTION_READY, 'The number of connection that are ready');
       this.createGaugeMetric(Constants.MONGODB_CONNECTION_CREATED, 'The number of connection created');
       this.createGaugeMetric(Constants.MONGODB_CONNECTION_CLOSED, 'The number of connection closed');
@@ -44,19 +47,25 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     this.expressApplication = ExpressUtils.initApplication();
     // Handle requests
     this.expressApplication.use(
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      '/metrics', async (req: Request, res: Response, next: NextFunction) => {
+      '/metrics', (req: Request, res: Response, next: NextFunction) => {
         // Trace Request
-        await Logging.traceExpressRequest(req, res, next, ServerAction.MONITORING);
-        // Process
-        res.setHeader('Content-Type', this.clientRegistry.contentType);
-        res.end(await this.clientRegistry.metrics());
-        for (const val of this.mapComposedMetric.values()) {
-          val.clear();
-        }
-        next();
-        // Trace Response
-        Logging.traceExpressResponse(req, res, next, ServerAction.MONITORING);
+        Logging.traceExpressRequest(req, res, next, ServerAction.MONITORING).then(() => {
+          // Process
+          res.setHeader('Content-Type', this.clientRegistry.contentType);
+          this.clientRegistry.metrics().then((s) => {
+            res.end(s);
+            for (const val of this.mapAvgGaugeClearableMetric.values()) {
+              val.clear();
+            }
+            for (const val of this.mapCounterClearableMetric.values()) {
+              val.clear();
+            }
+            next();
+            // Trace Response
+            Logging.traceExpressResponse(req, res, next, ServerAction.MONITORING);
+
+          }).catch((error) => { /* */ });
+        }).catch((error) => { /* */ });
       }
     );
     // Post init
@@ -73,16 +82,43 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
       ServerUtils.createHttpServer(this.monitoringConfig, this.expressApplication), MODULE_NAME, ServerType.MONITORING_SERVER);
   }
 
-  public getComposedMetric(prefix : string, metricname: string, suffix: number, metrichelp: string, labelNames: string[]) : ComposedMonitoringMetric {
-    const key = prefix + '_' + metricname + '_' + suffix;
-    let composedMetric : ComposedMonitoringMetric = this.mapComposedMetric.get(key);
-    if (composedMetric) {
-      return composedMetric;
+  public getAvgClearableMetric(prefix : string, metricname: string, suffix: number, metrichelp: string, labelNames: string[]) : AvgGaugeClearableMetric {
+    const keyAvg = this.getKeyAvg(prefix, metricname, suffix);
+    let metric : AvgGaugeClearableMetric = this.mapAvgGaugeClearableMetric.get(keyAvg);
+    if (metric) {
+      return metric;
     }
-    composedMetric = new ComposedMonitoringMetric(prefix, metricname,suffix,metrichelp,labelNames);
-    composedMetric.register(this.clientRegistry);
-    this.mapComposedMetric.set(key, composedMetric);
-    return composedMetric;
+    metric = new AvgGaugeClearableMetric(this.clientRegistry,keyAvg,metrichelp,labelNames);
+    this.mapAvgGaugeClearableMetric.set(keyAvg, metric);
+    return metric;
+  }
+
+  public getCountAvgClearableMetric(prefix : string, metricname: string, suffix: number, metricAvgHelp: string, metricCountHelp: string, labelNames: string[]) : CountAvgGaugeClearableMetric {
+    const keyAvg = this.getKeyAvg(prefix, metricname, suffix);
+    const keyCount = this.getKeyCount(prefix, metricname, suffix);
+    let metric : CountAvgGaugeClearableMetric = this.mapAvgGaugeClearableMetric.get(keyCount) as CountAvgGaugeClearableMetric;
+    if (metric) {
+      return metric;
+    }
+    metric = new CountAvgGaugeClearableMetric(this.clientRegistry,keyAvg, keyCount,metricAvgHelp , metricCountHelp,labelNames);
+    this.mapAvgGaugeClearableMetric.set(keyCount, metric);
+    return metric;
+  }
+
+
+  public getCounterClearableMetric(prefix : string, metricname: string, metricHelp: string, labelValues: LabelValues<string>) : CounterClearableMetric {
+    const labelNames = Object.keys(labelValues);
+    const values = Object.values(labelValues).toString();
+    const metricSuffix = Utils.positiveHashcode(values);
+    const key = prefix + '_' + metricname + '_' + metricSuffix;
+    let metric : CounterClearableMetric = this.mapCounterClearableMetric.get(key) ;
+    if (metric) {
+      return metric;
+    }
+    metric = new CounterClearableMetric(this.clientRegistry,key,metricHelp, labelValues);
+    this.mapCounterClearableMetric.set(key, metric);
+    metric.register();
+    return metric;
   }
 
   private createGaugeMetric(metricname : string, metrichelp : string, labelNames? : string[]) : Gauge {
@@ -103,4 +139,14 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     this.clientRegistry.registerMetric(gaugeMetric);
     return gaugeMetric;
   }
+
+  private getKeyAvg(prefix : string, metricname: string, suffix): string {
+    return prefix + '_' + metricname + '_avg_' + suffix;
+  }
+
+  private getKeyCount(prefix : string, metricname: string, suffix): string {
+    return prefix + '_' + metricname + '_count_' + suffix;
+  }
+
 }
+

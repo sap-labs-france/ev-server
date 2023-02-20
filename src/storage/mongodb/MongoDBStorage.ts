@@ -128,6 +128,10 @@ export default class MongoDBStorage {
       { fields: { host: 1, timestamp: 1 } },
       { fields: { message: 'text' } },
     ]);
+    // Raw MeterValues
+    await this.handleIndexesInCollection(tenantID, 'rawmetervalues', [
+      { fields: { beginAt: 1 }, options: { expireAfterSeconds: 2 * 24 * 3600 } }
+    ]);
     // MeterValues
     await this.handleIndexesInCollection(tenantID, 'metervalues', [
       { fields: { transactionId: 1 } }
@@ -184,10 +188,12 @@ export default class MongoDBStorage {
     // Sites
     await this.handleIndexesInCollection(tenantID, 'sites', [
       { fields: { 'address.coordinates': '2dsphere' } },
+      { fields: { 'ocpiData.location.id': 1 }, options: { partialFilterExpression: { ocpiData: { $exists: true } } } }
     ]);
     // Site Area
     await this.handleIndexesInCollection(tenantID, 'siteareas', [
       { fields: { 'address.coordinates': '2dsphere' } },
+      { fields: { 'ocpiData.location.id': 1 }, options: { partialFilterExpression: { ocpiData: { $exists: true } } } }
     ]);
     // Charging Stations
     await this.handleIndexesInCollection(tenantID, 'chargingstations', [
@@ -483,7 +489,12 @@ export default class MongoDBStorage {
           }
           // Check DB 'expireAfterSeconds' index option
           if (!Utils.areObjectPropertiesEqual(databaseIndex, foundIndex?.options, 'expireAfterSeconds')) {
-            // Force nound: Create
+            // expiration date
+            foundIndex = null;
+          }
+          // Check DB 'expireAfterSeconds' index option
+          if (!Utils.areObjectPropertiesEqual(databaseIndex, foundIndex?.options, 'partialFilterExpression')) {
+            // partial index
             foundIndex = null;
           }
           // Delete the index
