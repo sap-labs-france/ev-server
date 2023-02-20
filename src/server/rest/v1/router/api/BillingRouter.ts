@@ -50,6 +50,8 @@ export default class BillingRouter {
     this.buildRouteBillingSendAccountOnboarding();
     this.buildRouteBillingGetTransfers();
     this.buildRouteBillingGetTransfer();
+    this.buildRouteScanPayPaymentIntentRetrieve();
+    this.buildRouteScanPayPaymentIntentSetup();
     this.buildRouteBillingFinalizeTransfer();
     this.buildRouteBillingSendTransfer();
     return this.router;
@@ -64,6 +66,20 @@ export default class BillingRouter {
   private buildRouteUpdateBillingSetting(): void {
     this.router.put(`/${RESTServerRoute.REST_BILLING_SETTING}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleRestServerAction(BillingService.handleUpdateBillingSetting.bind(this), ServerAction.SETTINGS, req, res, next);
+    });
+  }
+
+  private buildRouteScanPayPaymentIntentSetup(): void {
+    this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_PAYMENT_INTENT_SETUP}`, (req: Request, res: Response, next: NextFunction) => {
+      // Step #1 - Creates user and payment intent
+      void RouterUtils.handleRestServerAction(BillingService.handleScanPayPaymentIntentSetup.bind(this), ServerAction.SCAN_PAY_PAYMENT_INTENT_SETUP, req, res, next);
+    });
+  }
+
+  private buildRouteScanPayPaymentIntentRetrieve(): void {
+    this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_PAYMENT_INTENT_RETRIEVE}`, (req: Request, res: Response, next: NextFunction) => {
+      // Step #2 - Validates the payment intent once credit card has been approved - prepare for capturing once session is ended
+      void RouterUtils.handleRestServerAction(BillingService.handleScanPayPaymentIntentRetrieve.bind(this), ServerAction.SCAN_PAY_PAYMENT_INTENT_RETRIEVE, req, res, next);
     });
   }
 

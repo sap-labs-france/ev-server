@@ -16,6 +16,7 @@ import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import BillingValidatorRest from '../validator/BillingValidatorRest';
 import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
+import ChargingStationService from './ChargingStationService';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
@@ -280,10 +281,11 @@ export default class BillingService {
     next();
   }
 
-  // handle user creation + create payment intent + start transaction
-  public static async handleScanPayPaymentIntent(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleScanPayPaymentIntentSetup(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayReq(req.body);
-    // const tag = await BillingService.handleUserScanPay(filteredRequest, req.tenant);
+    // Dynamic auth
+    await AuthorizationService.checkAndGetPaymentIntentAuthorizations(req.tenant, req.user, filteredRequest, Action.SETUP);
+    // Virtual user tag
     let tag: Tag;
     // Check if the user exist
     const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
@@ -306,36 +308,78 @@ export default class BillingService {
       });
     }
     // Check verificationToken
-    if (action === ServerAction.SCAN_PAY_PAYMENT_INTENT_SETUP) {
-      if (foundUser.verificationToken !== filteredRequest.verificationToken) {
-        throw new AppError({
-          errorCode: HTTPError.INVALID_TOKEN_ERROR,
-          action: action,
-          user: foundUser,
-          module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
-          message: 'Wrong Verification Token, cannot verify email'
-        });
-      }
-      // Save User Verification Account
-      await UserStorage.saveUserAccountVerification(req.tenant, foundUser.id,
-        { verificationToken: null, verifiedAt: new Date() });
-      const password = await Utils.hashPasswordBcrypt(filteredRequest.verificationToken);
-      // Generate a password
-      await UserStorage.saveUserPassword(req.tenant, foundUser.id, { password });
-    } else if (action === ServerAction.SCAN_PAY_PAYMENT_INTENT_RETRIEVE) {
-      const match = await Utils.checkPasswordBCrypt(filteredRequest.verificationToken, foundUser.password);
-      if (!match) {
-        // TODO : improve this if/else part
-        // case we already have the user registered, the verification has become the password
-        throw new AppError({
-          errorCode: HTTPError.INVALID_TOKEN_ERROR,
-          action: action,
-          user: foundUser,
-          module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
-          message: 'Wrong Verification Token, cannot verify email'
-        });
-      }
+    if (foundUser.verificationToken !== filteredRequest.verificationToken) {
+      throw new AppError({
+        errorCode: HTTPError.INVALID_TOKEN_ERROR,
+        action: action,
+        user: foundUser,
+        module: MODULE_NAME, method: 'handleScanPayPaymentIntentSetup',
+        message: 'Wrong Verification Token, cannot verify email'
+      });
     }
+    // Save User Verification Account
+    await UserStorage.saveUserAccountVerification(req.tenant, foundUser.id,
+      { verificationToken: null, verifiedAt: new Date() });
+    const password = await Utils.hashPasswordBcrypt(filteredRequest.verificationToken);
+    // Generate a password
+    await UserStorage.saveUserPassword(req.tenant, foundUser.id, { password });
+    // Filter
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
+        action: action,
+        user: req.user
+      });
+    }
+    const operationResult: BillingOperationResult = await billingImpl.setupPaymentIntent(tag.user, filteredRequest.paymentIntentID);
+    if (operationResult) {
+      Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
+    }
+    res.json(operationResult);
+    next();
+  }
+
+  public static async handleScanPayPaymentIntentRetrieve(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayReq(req.body);
+    // Dynamic auth
+    await AuthorizationService.checkAndGetPaymentIntentAuthorizations(req.tenant, req.user, filteredRequest, Action.RETRIEVE);
+    let tag: Tag;
+    // Check if the user exist
+    const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
+    if (foundUser) {
+      tag = await TagStorage.getDefaultUserTag(req.tenant, foundUser.id);
+      if (!tag) {
+        throw new AppError({
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `User '${foundUser.id}' does not have any badge`,
+          module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
+          user: foundUser
+        });
+      }
+      tag.user = foundUser;
+    } else {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `User '${filteredRequest.email}' does not exist`,
+        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
+      });
+    }
+    const match = await Utils.checkPasswordBCrypt(filteredRequest.verificationToken, foundUser.password);
+    if (!match) {
+      // TODO : improve this if/else part
+      // case we already have the user registered, the verification has become the password
+      throw new AppError({
+        errorCode: HTTPError.INVALID_TOKEN_ERROR,
+        action: action,
+        user: foundUser,
+        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
+        message: 'Wrong Verification Token, cannot verify email'
+      });
+    }
+
     // Filter
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -352,12 +396,17 @@ export default class BillingService {
       // Save last Payment Intent ID to store it in transaction
       tag.user.lastPaymentIntentID = filteredRequest.paymentIntentID;
       await UserStorage.saveUser(req.tenant, tag.user);
-      // Get the charging station
-      const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.chargingStationID);
-      // Get the OCPP Client
-      const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
       // Execute start transaction
-      await BillingService.executeChargingStationStartTransaction(tag, filteredRequest.connectorID, chargingStationClient);
+      req.body = {
+        args: {
+          tagID: tag.id,
+          connectorId: filteredRequest.connectorID
+        },
+        chargingStationID: filteredRequest.chargingStationID,
+        userID: foundUser.id
+      };
+
+      await ChargingStationService.handleOcppAction(ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, req, res, next);
     }
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
@@ -382,7 +431,7 @@ export default class BillingService {
     }
 
     // const user: User = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.transactionId, { withUser:true });
+    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.transactionId, { withUser: true });
     // const operationResult: BillingOperationResult = await billingImpl.retrievePaymentIntent(transaction.user, transaction.lastPaymentIntentID);
     // // Get the charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID);
@@ -892,7 +941,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    authorizations.projectFields
+      authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
@@ -935,7 +984,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    authorizations.projectFields
+      authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
@@ -1158,14 +1207,6 @@ export default class BillingService {
     await billingImpl.checkConnection();
     // Let's validate the new settings before activating
     await billingImpl.checkActivationPrerequisites();
-  }
-
-  private static async executeChargingStationStartTransaction(tag: Tag, connectorId: number, chargingStationClient: ChargingStationClient): Promise<any> {
-    // Execute it
-    return chargingStationClient.remoteStartTransaction({
-      connectorId,
-      idTag: tag.id
-    });
   }
 
   private static async executeChargingStationStopTransaction(transactionId: number, chargingStationClient: ChargingStationClient): Promise<any> {

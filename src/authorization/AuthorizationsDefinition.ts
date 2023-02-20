@@ -3545,6 +3545,42 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   external: {
     grants: [
+      {
+        resource: Entity.PAYMENT_INTENT, action: [Action.SETUP, Action.RETRIEVE]
+      },
+      {
+        resource: Entity.TAG, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser'],
+            metadata: {
+              id: {
+                visible: false
+              }
+            },
+          }
+        },
+        attributes: [
+          'userID', 'active', 'description', 'visualID', 'issuer', 'default',
+          'createdOn', 'lastChangedOn'
+        ],
+      },
+      {
+        resource: Entity.TAG, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser'],
+          }
+        },
+        attributes: [
+          'userID', 'issuer', 'active', 'description', 'visualID', 'default',
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.issuer'
+        ],
+      },
       { resource: Entity.TRANSACTION, action: Action.GET_ACTIVE_TRANSACTION,
         condition: {
           Fn: 'custom:dynamicAuthorizations',
