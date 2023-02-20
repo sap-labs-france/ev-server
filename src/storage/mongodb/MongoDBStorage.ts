@@ -128,6 +128,10 @@ export default class MongoDBStorage {
       { fields: { host: 1, timestamp: 1 } },
       { fields: { message: 'text' } },
     ]);
+    // Raw MeterValues
+    await this.handleIndexesInCollection(tenantID, 'rawmetervalues', [
+      { fields: { beginAt: 1 }, options: { expireAfterSeconds: 2 * 24 * 3600 } }
+    ]);
     // MeterValues
     await this.handleIndexesInCollection(tenantID, 'metervalues', [
       { fields: { transactionId: 1 } }

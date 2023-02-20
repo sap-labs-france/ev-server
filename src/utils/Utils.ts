@@ -206,9 +206,8 @@ export default class Utils {
     return Promise.race([
       promise,
       timeoutPromise,
-    ]).then((result) => {
+    ]).finally(() => {
       clearTimeout(timeoutHandle);
-      return result;
     });
   }
 
