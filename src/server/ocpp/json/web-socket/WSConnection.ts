@@ -328,9 +328,9 @@ export default abstract class WSConnection {
       this.url = this.url.substring(1, this.url.length);
     }
     // Parse URL: should be like /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
-    // We support previous format like for existing charging station without token also /OCPPxx/TENANTID/CHARGEBOXID
+    // Note in order to override the CS name the url would look like /OCPPxx/TENANTID/TOKEN/<DESIRED-CHARGEBOXID>/CHARGEBOXID
     const splittedURL = this.getURL().split('/');
-    if (splittedURL.length !== 4) {
+    if (splittedURL.length < 4) {
       throw new BackendError({
         module: MODULE_NAME, method: 'checkMandatoryFieldsInRequest',
         message: `Wrong number of arguments in URL '/${this.url}'`
