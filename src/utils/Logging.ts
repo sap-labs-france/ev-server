@@ -1,8 +1,9 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { LabelValues } from 'prom-client';
 import { Log, LogLevel } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 import PerformanceRecord, { PerformanceRecordGroup, PerformanceTracingData } from '../types/Performance';
-
+import global from '../types/GlobalType'
 import { ActionsResponse } from '../types/GlobalType';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
@@ -97,17 +98,7 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
-      if ((global.monitoringServer) && (process.env.K8S)) {
-        const labels = { tenant: tenant.subdomain, module: module, method: method };
-        const values = Object.values(labels).toString();
-        const hashCode = Utils.positiveHashcode(values);
-        const durationMetric = global.monitoringServer.getComposedMetric('mongodb', 'Duration', hashCode, 'db duration', Object.keys(labels));
-        durationMetric.setValue(labels, executionDurationMillis);
-        const requestSizeMetric = global.monitoringServer.getComposedMetric('mongodb', 'RequestSize', hashCode, 'db duration', Object.keys(labels));
-        requestSizeMetric.setValue(labels, sizeOfRequestDataKB);
-        const responseSizeMetric = global.monitoringServer.getComposedMetric('mongodb', 'ResponseSize', hashCode, 'db duration', Object.keys(labels));
-        responseSizeMetric.setValue(labels, sizeOfResponseDataKB);
-      }
+      const labelValues = { tenant: tenant.subdomain, module: module, method: method };
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -117,7 +108,7 @@ export default class Logging {
           resSizeKb: sizeOfResponseDataKB,
           egress: true,
           action: `${module}.${method}`
-        })
+        }), labelValues
       );
     }
   }
@@ -154,6 +145,7 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
+      const labelValues = { tenant: tenant.subdomain, module: module, method: method, userid:userID, templateName: templateName };
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -164,7 +156,8 @@ export default class Logging {
           egress: true,
           action: `${module}.${method}.${templateName}`,
           userID
-        })
+        }),
+        labelValues
       );
     }
   }
@@ -190,6 +183,12 @@ export default class Logging {
   public static async logError(log: Log): Promise<string> {
     log.level = LogLevel.ERROR;
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    if ( global.tenantIdMap) { // hack for unit test
+      const subDomain = global.tenantIdMap.get(log.tenantID);
+      const labelValues = { tenant: subDomain, chargingstation: log.chargingStationID, serverAction: log.action };
+      const errorMetric = global.monitoringServer.getCounterClearableMetric('logging', 'error', 'Number of errors', labelValues);
+      errorMetric.inc();
+    }
     return Logging.log(log);
   }
 
@@ -339,6 +338,7 @@ export default class Logging {
         const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
           sizeof({ headers: req.headers, query: req.query, body: req.body })
         ).div(1024).toNumber(), 2);
+        const labelValues = { tenant: tenantSubdomain };
         const performanceID = await PerformanceStorage.savePerformanceRecord(
           Utils.buildPerformanceRecord({
             tenantSubdomain,
@@ -348,7 +348,8 @@ export default class Logging {
             egress: false,
             reqSizeKb: sizeOfRequestDataKB,
             action: ServerAction.HTTP_REQUEST,
-          })
+          }),
+          labelValues
         );
         const message = `Express HTTP Request - '${Utils.last5Chars(performanceID)}' << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
@@ -450,13 +451,14 @@ export default class Logging {
           }
         });
         if (req['performanceID']) {
+
           const performanceRecord = {
             id: req['performanceID'],
             httpResponseCode: res.statusCode,
             durationMs: executionDurationMillis,
             resSizeKb: sizeOfResponseDataKB,
           } as PerformanceRecord;
-          await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+          await PerformanceStorage.updatePerformanceRecord(performanceRecord, null);
         }
       });
     }
@@ -480,6 +482,8 @@ export default class Logging {
       // Compute Length
       const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof(request)).div(1024).toNumber(), 2);
+
+      const labelValues = { tenant: tenant.subdomain };
       const performanceID = await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -489,7 +493,8 @@ export default class Logging {
           egress: true,
           reqSizeKb: sizeOfRequestDataKB,
           action: Utils.getAxiosActionFromURL(request.url),
-        })
+        }),
+        labelValues
       );
       const message = `Axios HTTP Request - '${Utils.last5Chars(performanceID)}' >> Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${request.method.toLocaleUpperCase()} '${request.url}'`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
@@ -573,13 +578,14 @@ export default class Logging {
           }
         });
         if (response.config['performanceID']) {
+          const labelValues = { tenant: tenant.subdomain };
           const performanceRecord = {
             id: response.config['performanceID'],
             httpResponseCode: response.status,
             durationMs: executionDurationMillis,
             resSizeKb: sizeOfResponseDataKB,
           } as PerformanceRecord;
-          await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+          await PerformanceStorage.updatePerformanceRecord(performanceRecord, labelValues);
         }
       } catch (error) {
         await Logging.logDebug({
@@ -623,13 +629,14 @@ export default class Logging {
           sizeOfResponseDataKB = Utils.truncTo(
             Utils.createDecimal(sizeof(error.response?.data)).div(1024).toNumber(), 2);
         }
+        const labelValues = { tenant: tenant.subdomain };
         const performanceRecord = {
           id: error.response?.config['performanceID'],
           httpResponseCode: error.response?.status,
           durationMs: executionDurationMillis,
           resSizeKb: sizeOfResponseDataKB,
         } as PerformanceRecord;
-        await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+        await PerformanceStorage.updatePerformanceRecord(performanceRecord, labelValues);
       }
     }
   }
@@ -710,6 +717,7 @@ export default class Logging {
       // Compute size
       const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof(request)).div(1024).toNumber(), 2);
+      const labelValues = { tenant: tenant.subdomain, module: module };
       const performanceID = await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -718,16 +726,10 @@ export default class Logging {
           reqSizeKb: sizeOfRequestDataKB,
           egress: direction === '<<' ? true : false,
           action
-        })
+        }),
+        labelValues
       );
       const message = `${direction} OCPP Request '${action}~${Utils.last5Chars(performanceID)}' on '${chargingStationID}' has been ${direction === '>>' ? 'received' : 'sent'} - Req ${sizeOfRequestDataKB} KB`;
-      if ((global.monitoringServer) && (process.env.K8S)) {
-        const labels = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
-        const values = Object.values(labels).toString();
-        const hashCode = Utils.positiveHashcode(values);
-        const durationMetric = global.monitoringServer.getComposedMetric('ocpp', 'requestSize', hashCode, 'ocpp response time ', Object.keys(labels));
-        durationMetric.setValue(labels,sizeOfRequestDataKB);
-      }
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
       await Logging.logDebug({
         tenantID: tenant.id,
@@ -772,13 +774,7 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
-      if ((global.monitoringServer) && (process.env.K8S)) {
-        const labels = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
-        const values = Object.values(labels).toString();
-        const hashCode = Utils.positiveHashcode(values);
-        const durationMetric = global.monitoringServer.getComposedMetric('ocpp', 'responsetime', hashCode, 'ocpp response time ', Object.keys(labels));
-        durationMetric.setValue(labels,executionDurationMillis);
-      }
+      const labelValues = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
       if (response && response['status'] === OCPPStatus.REJECTED) {
         await Logging.logError({
           tenantID: tenant?.id,
@@ -806,7 +802,7 @@ export default class Logging {
           durationMs: executionDurationMillis,
           resSizeKb: sizeOfResponseDataKB,
         } as PerformanceRecord;
-        await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+        await PerformanceStorage.updatePerformanceRecord(performanceRecord, labelValues);
       }
     }
   }
