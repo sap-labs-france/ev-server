@@ -200,6 +200,7 @@ export default class MongoDBStorage {
       { fields: { coordinates: '2dsphere' } },
       { fields: { deleted: 1, issuer: 1 } },
       { fields: { 'connectors.status': 1 } },
+      { fields: { 'ocpiData.evses.uid': 1 }, options: { partialFilterExpression: { 'ocpiData.evses': { $exists: true } } } }
     ]);
     await Logging.logDebug({
       tenantID: tenantID,
