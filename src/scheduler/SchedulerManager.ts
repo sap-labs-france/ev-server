@@ -2,7 +2,6 @@ import SchedulerConfiguration, { SchedulerTaskConfiguration } from '../types/con
 
 import AssetGetConsumptionTask from './tasks/AssetGetConsumptionTask';
 import AsyncTaskCheckTask from './tasks/AsyncTaskCheckTask';
-import BillPendingTransactionTask from './tasks/BillPendingTransactionTask';
 import BillingPeriodicOperationTask from './tasks/BillingPeriodicOperationTask';
 import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
 import CheckChargingStationTemplateTask from './tasks/CheckChargingStationTemplateTask';
@@ -127,8 +126,6 @@ export default class SchedulerManager {
         return new SynchronizeRefundTransactionsTask();
       case 'BillingPeriodicOperationTask':
         return new BillingPeriodicOperationTask();
-      case 'BillPendingTransactionTask':
-        return new BillPendingTransactionTask();
       case 'SynchronizeCarsTask':
         return new SynchronizeCarsTask();
       case 'CheckSessionNotStartedAfterAuthorizeTask':

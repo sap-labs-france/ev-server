@@ -3,6 +3,7 @@ import { ServerAction, WSServerProtocol } from '../../../../types/Server';
 
 import { Command } from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
+import { CounterClearableMetric } from '../../../../monitoring/CounterClearableMetric';
 import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import { OCPPPayload } from '../../../../types/ocpp/OCPPCommon';
@@ -27,6 +28,8 @@ export default class WSWrapper {
   public lastPingDate: Date;
   public lastPongDate: Date;
   public isValid: boolean;
+  public ocppOpenWebSocketMetricCounter : CounterClearableMetric;
+  public ocppClosedWebSocketMetricCounter : CounterClearableMetric;
 
   private ws: WebSocket;
 

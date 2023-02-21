@@ -309,6 +309,9 @@ export default class JsonOCPPServer extends OCPPServer {
       wsWrapper.setConnection(wsConnection);
       // Keep WS connection in cache
       if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
+        if (Utils.isMonitoringEnabled()) {
+          wsWrapper.ocppOpenWebSocketMetricCounter.inc();
+        }
         await wsConnection.updateChargingStationRuntimeData();
         this.jsonWSConnections.set(wsConnection.getID(), wsConnection as JsonWSConnection);
       } else if (wsWrapper.protocol === WSServerProtocol.REST) {
@@ -571,6 +574,9 @@ export default class JsonOCPPServer extends OCPPServer {
         // Check id same WS Connection
         if (existingWsWrapper.guid === wsWrapper.guid) {
           // Remove from WS Cache
+          if ((Utils.isMonitoringEnabled()) && (wsWrapper.protocol === WSServerProtocol.OCPP16)) {
+            wsWrapper.ocppClosedWebSocketMetricCounter.inc();
+          }
           wsConnections.delete(wsConnection.getID());
           Logging.beDebug()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
@@ -625,11 +631,13 @@ export default class JsonOCPPServer extends OCPPServer {
             `${numberOfPendingCommands} pending OCPP commands - ${sizeOfPendingCommands / 1000} kB`
           ]
         });
-        if ((global.monitoringServer) && (process.env.K8S)) {
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE).set(this.runningWSMessages);
+        if (Utils.isMonitoringEnabled()) {
+          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(this.runningWSMessages);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT).set(this.jsonRestWSConnections.size);
           global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRENT_REQUEST).set(numberOfPendingCommands);
+          // global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(Object.keys(this.runningWSRequestsMessages).length);
+          // global.monitoringServer.getGauge(Constants.WEB_SOCKET_QUEUED_REQUEST).set(this.waitingWSMessages);
         }
         if (this.isDebug()) {
           Logging.logConsoleDebug('=====================================');

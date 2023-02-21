@@ -1,10 +1,9 @@
-import ChargingStation, { Command } from '../../../../types/ChargingStation';
-import FeatureToggles, { Feature } from '../../../../utils/FeatureToggles';
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import BackendError from '../../../../exception/BackendError';
 import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import { Command } from '../../../../types/ChargingStation';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import JsonChargingStationClient from '../../../../client/ocpp/json/JsonChargingStationClient';
@@ -15,6 +14,7 @@ import OCPPError from '../../../../exception/OcppError';
 import { OCPPErrorType } from '../../../../types/ocpp/OCPPCommon';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPUtils from '../../utils/OCPPUtils';
+import { PerformanceRecordGroup } from '../../../../types/Performance';
 import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
 import WSConnection from './WSConnection';
@@ -47,6 +47,11 @@ export default class JsonWSConnection extends WSConnection {
         Address: this.getClientIP()
       }
     };
+    if (Utils.isMonitoringEnabled()) {
+      const labelValues = { tenant: this.getTenant().subdomain };
+      this.getWS().ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OpenedWebSocket', 'Opened web sockets', labelValues);
+      this.getWS().ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'ClosedWebSocket', 'Closed web sockets', labelValues);
+    }
     // Create the Json Client
     this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID());
     // Create the Json Server Service
@@ -161,26 +166,25 @@ export default class JsonWSConnection extends WSConnection {
     }
   }
 
-  private async updateChargingStationLastSeen(): Promise<void> {
-    // Update once every ping interval / 2
-    if (!this.lastSeen ||
-        (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
-      // Update last seen
-      this.lastSeen = new Date();
-      if (FeatureToggles.isFeatureActive(Feature.OCPP_OPTIMIZE_LAST_SEEN_UPDATE)) {
-        await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
-          { lastSeen: this.lastSeen });
-      } else {
-        const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),
-          this.getChargingStationID(), { issuer: true }, ['id']);
-        if (chargingStation) {
-          await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
-            { lastSeen: this.lastSeen });
-        }
-      }
-    }
-  }
-
+  // private async updateChargingStationLastSeen(): Promise<void> {
+  //   // Update once every ping interval / 2
+  //   if (!this.lastSeen ||
+  //     (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
+  //     // Update last seen
+  //     this.lastSeen = new Date();
+  //     if (FeatureToggles.isFeatureActive(Feature.OCPP_OPTIMIZE_LAST_SEEN_UPDATE)) {
+  //       await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
+  //         { lastSeen: this.lastSeen });
+  //     } else {
+  //       const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),
+  //         this.getChargingStationID(), { issuer: true }, ['id']);
+  //       if (chargingStation) {
+  //         await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
+  //           { lastSeen: this.lastSeen });
+  //       }
+  //     }
+  //   }
+  // }
 
   private isValidOcppServerCommand(command: Command): boolean {
     // Only client request is allowed

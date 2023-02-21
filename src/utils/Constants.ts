@@ -474,12 +474,14 @@ export default class Constants {
   public static readonly STRIPE_PARTNER_ID = 'TECH-000685';
   public static readonly STRIPE_API_VERSION = '2020-08-27';
 
+  public static readonly WEB_SOCKET_OCPP_NEW_CONNECTIONS_COUNT = 'web_socket_ocpp_new_connections_count';
+  public static readonly WEB_SOCKET_OCPP_CLOSED_CONNECTIONS_COUNT = 'web_socket_ocpp_closed_connections_count';
   public static readonly WEB_SOCKET_OCPP_CONNECTIONS_COUNT = 'web_socket_ocpp_connections_count';
   public static readonly WEB_SOCKET_CURRENT_REQUEST = 'web_socket_current_request';
   public static readonly WEB_SOCKET_REST_CONNECTIONS_COUNT = 'web_socket_rest_connections_count';
   public static readonly WEB_SOCKET_RUNNING_REQUEST = 'web_socket_running_request';
-  public static readonly WEB_SOCKET_RUNNING_REQUEST_RESPONSE = 'web_socket_running_request_response';
-  public static readonly WEB_SOCKET_QUEUED_REQUEST = 'web_socket_queued_request';
+  // public static readonly WEB_SOCKET_RUNNING_REQUEST_RESPONSE = 'web_socket_running_request_response';
+  // public static readonly WEB_SOCKET_QUEUED_REQUEST = 'web_socket_queued_request';
 
   public static readonly MONGODB_CONNECTION_POOL_CREATED = 'mongodb_connectionPoolCreated';
   public static readonly MONGODB_CONNECTION_POOL_CLOSED = 'mongodb_connectionPoolClosed';
