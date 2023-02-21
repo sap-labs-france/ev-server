@@ -449,7 +449,6 @@ export default class Logging {
           }
         });
         if (req['performanceID']) {
-
           const performanceRecord = {
             id: req['performanceID'],
             httpResponseCode: res.statusCode,
