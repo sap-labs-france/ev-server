@@ -951,6 +951,7 @@ export default class ChargingStationService {
         includeDeleted: filteredRequest.IncludeDeleted,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
+        public: filteredRequest.Public,
         ...additionalFilters,
         ...authorizations.filters
       },
