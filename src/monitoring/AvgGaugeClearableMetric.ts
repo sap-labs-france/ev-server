@@ -1,4 +1,5 @@
-import client, { Gauge, LabelValues } from 'prom-client';
+import client, { LabelValues } from 'prom-client';
+
 import { Clearable } from './Clearable';
 
 class AvgGaugeClearableMetric extends Clearable {
@@ -8,17 +9,16 @@ class AvgGaugeClearableMetric extends Clearable {
   protected registry :client.Registry;
   private key : string;
 
-  public constructor(registry : client.Registry, key :string, metrichelp: string, labelNames: string[]) {
+  public constructor(registry : client.Registry, key :string, metricHelp: string, labelNames: string[]) {
     super();
     this.gaugeMetricAvg = new client.Gauge({
       name: key,
-      help: metrichelp,
+      help: metricHelp,
       labelNames: labelNames,
     });
     this.registry = registry;
     registry.registerMetric(this.gaugeMetricAvg);
     this.key = key;
-
   }
 
   public unregister(): void {

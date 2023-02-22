@@ -1,10 +1,9 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { LabelValues } from 'prom-client';
 import { Log, LogLevel } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 import PerformanceRecord, { PerformanceRecordGroup, PerformanceTracingData } from '../types/Performance';
-import global from '../types/GlobalType'
-import { ActionsResponse } from '../types/GlobalType';
+import global, { ActionsResponse } from '../types/GlobalType';
+
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
@@ -450,7 +449,6 @@ export default class Logging {
           }
         });
         if (req['performanceID']) {
-
           const performanceRecord = {
             id: req['performanceID'],
             httpResponseCode: res.statusCode,
@@ -605,7 +603,7 @@ export default class Logging {
     // Error handling is done outside to get the proper module information
     await Logging.logError({
       tenantID: tenant.id,
-      action: Utils.getAxiosActionFromURL(error.config.url),
+      action: Utils.getAxiosActionFromURL(error.config?.url),
       message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
       module: Constants.MODULE_AXIOS, method: 'interceptor',
       detailedMessages: {
@@ -974,10 +972,6 @@ export default class Logging {
       }
       // Format
       log.detailedMessages = Logging.format(log.detailedMessages);
-    }
-    // First char always in Uppercase
-    if (typeof log.message === 'string' && log.message && log.message.length > 0) {
-      log.message = log.message[0].toUpperCase() + log.message.substring(1);
     }
     if (!log.tenantID || log.tenantID === '') {
       log.tenantID = Constants.DEFAULT_TENANT_ID;
