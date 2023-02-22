@@ -293,9 +293,6 @@ export default class AuthService {
     await UtilsService.checkReCaptcha(tenant, action, 'checkAndSendVerifyScanPayEmail',
       centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
     const tag = await BillingService.handleUserScanPay(filteredRequest, tenant);
-    // on handle la creation du user là
-    // const tag = await BillingService.handleUserScanPay(filteredRequest, req.tenant);
-
     await Logging.logInfo({
       tenantID: tenant.id,
       user: tag.user, action: action,

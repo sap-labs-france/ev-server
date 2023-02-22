@@ -308,7 +308,7 @@ export default class BillingService {
       });
     }
     // Check verificationToken
-    if (foundUser.verificationToken !== filteredRequest.verificationToken) {
+    if (foundUser.verifiedAt || foundUser.verificationToken !== filteredRequest.verificationToken) {
       throw new AppError({
         errorCode: HTTPError.INVALID_TOKEN_ERROR,
         action: action,
@@ -319,7 +319,7 @@ export default class BillingService {
     }
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(req.tenant, foundUser.id,
-      { verificationToken: null, verifiedAt: new Date() });
+      { verifiedAt: new Date() });
     const password = await Utils.hashPasswordBcrypt(filteredRequest.verificationToken);
     // Generate a password
     await UserStorage.saveUserPassword(req.tenant, foundUser.id, { password });
@@ -405,76 +405,12 @@ export default class BillingService {
         chargingStationID: filteredRequest.chargingStationID,
         userID: foundUser.id
       };
-
       await ChargingStationService.handleOcppAction(ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, req, res, next);
     }
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
     }
     res.json(operationResult);
-    next();
-  }
-
-  // handle capture if we already have a paymentmethod
-  public static async handleScanPayCapturePayment(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayStopTransactionReq(req.body);
-    // Filter
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
-        action: action,
-        user: req.user
-      });
-    }
-
-    // const user: User = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.transactionId, { withUser: true });
-    // const operationResult: BillingOperationResult = await billingImpl.retrievePaymentIntent(transaction.user, transaction.lastPaymentIntentID);
-    // // Get the charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID);
-    // // Get the OCPP Client
-    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
-    // // Execute start transaction
-    await BillingService.executeChargingStationStopTransaction(transaction.id, chargingStationClient);
-    const operationResult: BillingOperationResult = await billingImpl.capturePayment(transaction.user, 100, transaction.lastPaymentIntentID);
-    // if (operationResult) {
-    //   Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
-    // }
-    res.json();
-    next();
-  }
-
-  public static async handleScanPayGetTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayTransactionReq(req.query);
-    // Filter
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
-        action: action,
-        user: req.user
-      });
-    }
-
-    // const user: User = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
-    const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.transactionId, { withUser: true });
-    // const operationResult: BillingOperationResult = await billingImpl.retrievePaymentIntent(transaction.user, transaction.lastPaymentIntentID);
-    // // Get the charging station
-    // const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID);
-    // // Get the OCPP Client
-    // const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
-    // // Execute start transaction
-    // await BillingService.executeChargingStationStopTransaction(transaction.id, chargingStationClient);
-    // const operationResult: BillingOperationResult = await billingImpl.capturePayment(transaction.user, 100, transaction.lastPaymentIntentID);
-    // // if (operationResult) {
-    //   Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
-    // }
-    res.json(transaction);
     next();
   }
 
@@ -1207,12 +1143,5 @@ export default class BillingService {
     await billingImpl.checkConnection();
     // Let's validate the new settings before activating
     await billingImpl.checkActivationPrerequisites();
-  }
-
-  private static async executeChargingStationStopTransaction(transactionId: number, chargingStationClient: ChargingStationClient): Promise<any> {
-    // Execute it
-    return chargingStationClient.remoteStopTransaction({
-      transactionId
-    });
   }
 }
