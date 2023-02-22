@@ -1,4 +1,5 @@
 import client, { Gauge, LabelValues } from 'prom-client';
+
 import { AvgGaugeClearableMetric } from './AvgGaugeClearableMetric';
 import { Clearable } from './Clearable';
 
@@ -8,19 +9,17 @@ class CounterClearableMetric extends Clearable {
   private labelValues : LabelValues<string>;
   private key : string;
 
-
-  public constructor(registry : client.Registry, key: string, metrichelp: string, labelValues: LabelValues<string>) {
+  public constructor(registry : client.Registry, key: string, metricHelp: string, labelValues: LabelValues<string>) {
     super();
     this.registry = registry;
     this.key = key;
     const labelNames = Object.keys(labelValues);
     this.counterMetricCount = new client.Counter({
       name: key,
-      help: metrichelp,
+      help: metricHelp,
       labelNames: labelNames,
     });
     this.labelValues = labelValues;
-
   }
 
   public register(): void {
