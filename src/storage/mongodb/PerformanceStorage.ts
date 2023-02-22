@@ -72,7 +72,8 @@ export default class PerformanceStorage {
   }
 
   private static savePrometheusMetric(performanceRecord: PerformanceRecord, labelValues:LabelValues<string>) {
-    const grafanaGroup = performanceRecord.group.replace('-', '');
+    // const grafanaGroup = performanceRecord.group.replace('-', ''); // ACHTUNG - does not work - only replaces the first occurrence!
+    const grafanaGroup = PerformanceRecordGroup.SAP_SMART_CHARGING.replace(/-/g, '');
     const values = Object.values(labelValues).toString();
     const hashCode = Utils.positiveHashCode(values);
     const labels = Object.keys(labelValues);
@@ -95,7 +96,7 @@ export default class PerformanceStorage {
         durationMetric.setValue(labelValues, performanceRecord.resSizeKb);
       }
     } catch (error) {
-      throw new Error(`Failed to save performance metrics - group: '${grafanaGroup}' - hahCode: '${hashCode}', labels: '${JSON.stringify(labels)}' - message: '${error.message}'`);
+      throw new Error(`Failed to save performance metrics - group: '${grafanaGroup}' - hashCode: '${hashCode}', labels: '${JSON.stringify(labels)}' - message: '${error.message}'`);
     }
   }
 }
