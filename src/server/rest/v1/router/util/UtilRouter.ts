@@ -31,23 +31,7 @@ export default class UtilRouter {
     this.buildRouteGetTenantEmailLogo();
     this.buildRouteBillingRefreshAccount();
     this.buildRouteBillingActivateAccount();
-    this.buildRouteScanPayPaymentIntentCapture();
-    this.buildRouteScanPayGetTransaction();
     return this.router;
-  }
-
-  private buildRouteScanPayPaymentIntentCapture(): void {
-    this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_PAYMENT_INTENT_CAPTURE}`, (req: Request, res: Response, next: NextFunction) => {
-      // Step #2 - Validates the payment intent once credit card has been approved - prepare for capturing once session is ended
-      void RouterUtils.handleRestServerAction(BillingService.handleScanPayCapturePayment.bind(this), ServerAction.SCAN_PAY_PAYMENT_INTENT_CAPTURE, req, res, next);
-    });
-  }
-
-  private buildRouteScanPayGetTransaction(): void {
-    this.router.get(`/${RESTServerRoute.REST_SCAN_PAY_TANSACTION}`, (req: Request, res: Response, next: NextFunction) => {
-      // Step #2 - Validates the payment intent once credit card has been approved - prepare for capturing once session is ended
-      void RouterUtils.handleRestServerAction(BillingService.handleScanPayGetTransaction.bind(this), ServerAction.SCAN_PAY_TRANSACTION, req, res, next);
-    });
   }
 
   private buildRoutePing(): void {

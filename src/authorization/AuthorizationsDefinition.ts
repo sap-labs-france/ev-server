@@ -3581,7 +3581,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.id', 'user.name', 'user.firstName', 'user.email', 'user.issuer'
         ],
       },
-      { resource: Entity.TRANSACTION, action: Action.GET_ACTIVE_TRANSACTION,
+      { resource: Entity.TRANSACTION, action: [Action.GET_ACTIVE_TRANSACTION, Action.READ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -3592,7 +3592,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
           'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit','currentCumulatedRoundedPrice', 'stop.timestamp', 'stop.roundedPrice', 'stop.priceUnit', 'stop.totalDurationSecs', 'stop.totalConsumptionWh'
         ]
       },
       { resource: Entity.SETTING, action: Action.READ },
@@ -3605,34 +3605,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         }
       },
-      { resource: Entity.CHARGING_STATION, action: [Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION, Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE]
-        // condition: {
-        //   Fn: 'custom:dynamicAuthorizations',
-        //   args: {
-        //     asserts: [],
-        //     filters: ['AssignedSites']
-        //   }
-        // },
+      { resource: Entity.CHARGING_STATION,
+        action: [Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION, Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE]
+
       },
-      // { resource: Entity.CONNECTOR, action: Action.REMOTE_START_TRANSACTION,
-      //   condition: {
-      //     Fn: 'custom:dynamicAuthorizations',
-      //     args: {
-      //       asserts: [],
-      //       filters: ['AssignedSites'],
-      //     }
-      //   },
-      // },
-      // { resource: Entity.CHARGING_STATION,
-      //   action: [Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE, Action.GET_CONNECTOR_QR_CODE],
-      //   condition: {
-      //     Fn: 'custom:dynamicAuthorizations',
-      //     args: {
-      //       asserts: [],
-      //       filters: ['AssignedSites', 'LocalIssuer']
-      //     }
-      //   },
-      // },
     ]
   },
 };
