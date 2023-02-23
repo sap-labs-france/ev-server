@@ -487,7 +487,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         if (stripeInvoice.status === BillingInvoiceStatus.OPEN
           || stripeInvoice.status === BillingInvoiceStatus.UNCOLLECTIBLE) {
           if (lastPaymentIntentID) {
-            await this.capturePayment(user, stripeInvoice.amount_due, lastPaymentIntentID as string);
+            const paymentIntent = await this.stripe.paymentIntents.retrieve(lastPaymentIntentID as string);
+            await this.capturePayment(user, stripeInvoice.amount_due < paymentIntent.amount ? stripeInvoice.amount_due : paymentIntent.amount , lastPaymentIntentID as string);
             // Set the payment options
             paymentOptions.paid_out_of_band = true;
           }
