@@ -1817,10 +1817,8 @@ export default class OCPPService {
       tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
     if (!transaction) {
       // Abort the ongoing Transaction
-      if (meterValues.transactionId) {
-        await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
-      }
-      // Unkown Transaction
+      await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
+      // Unknown Transaction
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
