@@ -183,9 +183,13 @@ export default class Logging {
     log.level = LogLevel.ERROR;
     if ((global.tenantIdMap) && Utils.isMonitoringEnabled()) { // hack for unit test
       const subDomain = global.tenantIdMap.get(log.tenantID);
-      const labelValues = { tenant: subDomain, chargingstation: log.chargingStationID, serverAction: log.action };
-      const errorMetric = global.monitoringServer.getCounterClearableMetric('logging', 'error', 'Number of errors', labelValues);
-      errorMetric.inc();
+      if (log.tenantID && !subDomain) {
+        // Nothing to do - tenant has just been created - so not yet in the cache
+      } else {
+        const labelValues = { tenant: subDomain, chargingstation: log.chargingStationID, serverAction: log.action };
+        const errorMetric = global.monitoringServer.getCounterClearableMetric('logging', 'error', 'Number of errors', labelValues);
+        errorMetric.inc();
+      }
     }
     return Logging.log(log);
   }
