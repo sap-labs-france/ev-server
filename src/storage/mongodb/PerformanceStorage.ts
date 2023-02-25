@@ -73,7 +73,7 @@ export default class PerformanceStorage {
 
   private static savePrometheusMetric(performanceRecord: PerformanceRecord, labelValues:LabelValues<string>) {
     // const grafanaGroup = performanceRecord.group.replace('-', ''); // ACHTUNG - does not work - only replaces the first occurrence!
-    const grafanaGroup = PerformanceRecordGroup.SAP_SMART_CHARGING.replace(/-/g, '');
+    const grafanaGroup = performanceRecord.group.replace(/-/g, '');
     const values = Object.values(labelValues).toString();
     const hashCode = Utils.positiveHashCode(values);
     const labels = Object.keys(labelValues);
