@@ -64,7 +64,7 @@ export default class UserService {
     if (tagAuthorization.authorized) {
       // Get the tag from the request TagID
       if (filteredRequest.TagID) {
-        const tagFromID = await TagStorage.getTag(req.tenant, filteredRequest.TagID, {}, ['id', 'userID']);
+        const tagFromID = await TagStorage.getTag(req.tenant, filteredRequest.TagID, {issuer: true}, tagAuthorization.projectFields);
         if (!tagFromID || tagFromID.userID !== filteredRequest.UserID) {
           throw new AppError({
             errorCode: StatusCodes.BAD_REQUEST,
@@ -93,7 +93,7 @@ export default class UserService {
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) && carAuthorization.authorized) {
       // Get the car from the request CarID
       if (filteredRequest.CarID) {
-        const carFromID = await CarStorage.getCar(req.tenant, filteredRequest.CarID, {}, ['id', 'userID']);
+        const carFromID = await CarStorage.getCar(req.tenant, filteredRequest.CarID, {}, carAuthorization.projectFields);
         if (!carFromID || carFromID.userID !== filteredRequest.UserID) {
           throw new AppError({
             errorCode: StatusCodes.BAD_REQUEST,
