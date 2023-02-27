@@ -15,7 +15,11 @@ import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
 import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
-import {Car} from '../../src/types/Car';
+import global from '../../src/types/GlobalType';
+import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
+import config from '../config'
+import CarStorage from '../../src/storage/mongodb/CarStorage';
+import TagStorage from '../../src/storage/mongodb/TagStorage';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -138,7 +142,7 @@ describe('User', () => {
           await testData.userService.checkEntityInListWithParams(
             testData.userService.siteApi,
             testData.siteContext.getSite(),
-            { 'UserID': testData.newUser.id }
+            {'UserID': testData.newUser.id}
           );
         });
 
@@ -164,7 +168,7 @@ describe('User', () => {
           // Update
           await testData.userService.updateEntity(
             testData.userService.userApi,
-            { ...testData.newUser, password: testData.newUser.password }
+            {...testData.newUser, password: testData.newUser.password}
           );
         });
 
@@ -174,7 +178,7 @@ describe('User', () => {
             // Update
             await testData.userService.updateEntity(
               testData.userService.userApi,
-              { id: testData.newUser.id, role: UserRole.ADMIN }
+              {id: testData.newUser.id, role: UserRole.ADMIN}
             );
 
             testData.newUser = (await testData.userService.getEntityById(
@@ -187,7 +191,7 @@ describe('User', () => {
 
         it('Should be able to export users list', async () => {
           const response = await testData.userService.userApi.exportUsers({});
-          const users = await testData.userService.userApi.readAll({}, { limit: 1000, skip: 0 });
+          const users = await testData.userService.userApi.readAll({}, {limit: 1000, skip: 0});
           const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
           expect(response.status).eq(StatusCodes.OK);
           expect(response.data).not.null;
@@ -221,13 +225,16 @@ describe('User', () => {
 
         it('Should get the user default car tag', async () => {
           // Create a tag
-          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
+          testData.newTag = Factory.tag.build({userID: testData.newUser.id});
           let response = await testData.userService.tagApi.createTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.CREATED);
           testData.createdTags.push(testData.newTag);
           // Retrieve it
           response = await testData.userService.userApi.getUserSessionContext({
-            userID: testData.newUser.id, chargingStationID: testData.chargingStationContext.getChargingStation().id, connectorID: 1 });
+            userID: testData.newUser.id,
+            chargingStationID: testData.chargingStationContext.getChargingStation().id,
+            connectorID: 1
+          });
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.tag.visualID).to.be.eq(testData.newTag.visualID);
           expect(response.data.car).to.be.undefined;
@@ -262,20 +269,29 @@ describe('User', () => {
         it('Should be able to set/unset the technical flag', async () => {
           // Check the technical flag can be set
           const response = await testData.userService.userApi.exportUsers({});
-          let users = await testData.userService.userApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT, skip: 0 });
+          let users = await testData.userService.userApi.readAll({}, {
+            limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT,
+            skip: 0
+          });
           expect(response.status).eq(StatusCodes.OK);
           expect(response.data).not.null;
           expect(users.data.result.length).to.be.greaterThan(1);
           const user1 = users.data.result[0];
           user1.technical = true;
           await testData.userService.userApi.update(user1);
-          users = await testData.userService.userApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT, skip: 0 });
+          users = await testData.userService.userApi.readAll({}, {
+            limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT,
+            skip: 0
+          });
           const user2 = users.data.result[0];
           expect(user2.technical).eq(true);
           // Unset technical flag.
           user2.technical = false;
           await testData.userService.userApi.update(user2);
-          users = await testData.userService.userApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT, skip: 0 });
+          users = await testData.userService.userApi.readAll({}, {
+            limit: Constants.DB_RECORD_COUNT_MAX_PAGE_LIMIT,
+            skip: 0
+          });
           expect(user2.technical).eq(false);
         });
       });
@@ -284,7 +300,7 @@ describe('User', () => {
         it('Should not find an active user in error', async () => {
           const user = await testData.userService.createEntity(
             testData.userService.userApi,
-            Factory.user.build({ status: 'A' })
+            Factory.user.build({status: 'A'})
           );
           testData.createdUsers.push(user);
           const response = await testData.userService.userApi.readAllInError({}, {
@@ -302,7 +318,7 @@ describe('User', () => {
         it('Should find a pending user', async () => {
           const user = await testData.userService.createEntity(
             testData.userService.userApi,
-            Factory.user.build({ status: 'P' })
+            Factory.user.build({status: 'P'})
           );
           testData.createdUsers.push(user);
           const response = await testData.userService.userApi.readAllInError({}, {
@@ -322,7 +338,7 @@ describe('User', () => {
         it('Should find a blocked user', async () => {
           const user = await testData.userService.createEntity(
             testData.userService.userApi,
-            Factory.user.build({ status: 'B' })
+            Factory.user.build({status: 'B'})
           );
           testData.createdUsers.push(user);
           const response = await testData.userService.userApi.readAllInError({}, {
@@ -342,7 +358,7 @@ describe('User', () => {
         it('Should find a locked user', async () => {
           const user = await testData.userService.createEntity(
             testData.userService.userApi,
-            Factory.user.build({ status: 'L' })
+            Factory.user.build({status: 'L'})
           );
           testData.createdUsers.push(user);
           const response = await testData.userService.userApi.readAllInError({}, {
@@ -362,7 +378,7 @@ describe('User', () => {
         it('Should find an inactive user', async () => {
           const user = await testData.userService.createEntity(
             testData.userService.userApi,
-            Factory.user.build({ status: 'I' })
+            Factory.user.build({status: 'I'})
           );
           testData.createdUsers.push(user);
           const response = await testData.userService.userApi.readAllInError({}, {
@@ -446,7 +462,7 @@ describe('User', () => {
           // Let's delete the user
           await testData.userService.deleteEntity(
             testData.userService.userApi,
-            { id: testData.createdUsers[0].id }
+            {id: testData.createdUsers[0].id}
           );
           testData.createdUsers.shift();
         });
@@ -469,129 +485,190 @@ describe('User', () => {
     });
 
     describe('Get user session context', () => {
-        let userTag;
-        let userCar;
-        let carCatalogID;
-        beforeAll(async () => {
-          carCatalogID = (await testData.centralUserService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id;
-          testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-          assert(testData.userContext, 'User context cannot be null');
-          if (testData.userContext === testData.centralUserContext) {
-            // Reuse the central user service (to avoid double login)
-            testData.userService = testData.centralUserService;
-          } else {
-            testData.userService = new CentralServerService(
-              testData.tenantContext.getTenant().subdomain,
-              testData.userContext
-            );
-          }
-          assert(!!testData.userService, 'User service cannot be null');
-          // Create
-          testData.newUser = await testData.userService.createEntity(
-            testData.userService.userApi,
-            Factory.user.build()
+      let carCatalogID;
+      beforeAll(async () => {
+        carCatalogID = (await testData.centralUserService.carApi.readCarCatalogs({}, Constants.DB_PARAMS_SINGLE_RECORD)).data.result[0].id;
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        assert(testData.userContext, 'User context cannot be null');
+        if (testData.userContext === testData.centralUserContext) {
+          // Reuse the central user service (to avoid double login)
+          testData.userService = testData.centralUserService;
+        } else {
+          testData.userService = new CentralServerService(
+            testData.tenantContext.getTenant().subdomain,
+            testData.userContext
           );
-          testData.newUser.issuer = true;
-          delete testData.newUser['password'];
-          testData.createdUsers.push(testData.newUser);
+        }
+        assert(!!testData.userService, 'User service cannot be null');
+      });
 
-          userTag = Factory.tag.build({userID: testData.newUser.id});
-          const createTagResponse = await testData.userService.tagApi.createTag(userTag);
-          expect(createTagResponse.status).to.be.eq(StatusCodes.CREATED);
-          userTag.id = createTagResponse.data.id;
+      describe('Given a user with no tag and no car', () => {
+        const user = Factory.user.build();
 
-          userCar = Factory.car.build({licensePlate: 'LICENSE-PLATE', userID: testData.newUser.id, carCatalogID});
-          const createCarResponse = await testData.userService.carApi.create(userCar);
-          expect(createCarResponse.status).to.be.eq(StatusCodes.OK);
-          userCar.id = createCarResponse.data.id;
+        beforeAll(async () => {
+          const createUserResponse = await testData.userService.userApi.create(user);
+          user.id = createUserResponse.data.id;
         });
-        test('When passing only required params', async () => {
+
+        test('When getting his session context for (any connector), (any charging station)', async () => {
           const response = await testData.userService.userApi.getUserSessionContext({
-            userID: testData.newUser.id,
+            userID: user.id,
             chargingStationID: testData.chargingStationContext.getChargingStation().id,
             connectorID: 1
           });
           expect(response.status).to.be.eq(StatusCodes.OK);
-          expect(response.data.car.licensePlate).to.be.eq(userCar.licensePlate);
-          expect(response.data.car.id).to.be.eq(userCar.id);
-          expect(response.data.tag.visualID).to.be.eq(userTag.visualID);
-          expect(response.data.tag.id).to.be.eq(userTag.id);
+          assert(response.data.car == null);
+          assert(response.data.tag == null);
         });
 
-        describe('Given a user with no tag and no car', () => {
-          const user = Factory.user.build();
-
-          beforeAll(async () => {
-            const createUserResponse = await testData.userService.userApi.create(user);
-            user.id = createUserResponse.data.id;
-          });
-
-          test('When getting his session context for (any connector), (any charging station)', async () => {
-            const response = await testData.userService.userApi.getUserSessionContext({
-              userID: user.id,
-              chargingStationID: testData.chargingStationContext.getChargingStation().id,
-              connectorID: 1
-            });
-            expect(response.status).to.be.eq(StatusCodes.OK);
-            assert(response.data.car == null);
-            assert(response.data.tag == null);
-          });
-
-          test('When getting his session context for (any connector), (any charging station) and (non null carID)', async () => {
-            const randomCarID = (await testData.userService.carApi.create(Factory.car.build({carCatalogID}))).data.id;
-            const response = await testData.userService.userApi.getUserSessionContext({
-              userID: user.id,
-              chargingStationID: testData.chargingStationContext.getChargingStation().id,
-              connectorID: 1,
-              carID: randomCarID
-            })
-            expect(response.status).to.be.eq(StatusCodes.BAD_REQUEST);
-          });
-
-          test('When getting his session context for (any connector), (any charging station) and (non null tagID)', async () => {
-            const randomTagID = (await testData.userService.tagApi.createTag(Factory.tag.build())).data.id;
-            const response = await testData.userService.userApi.getUserSessionContext({
-              userID: user.id,
-              chargingStationID: testData.chargingStationContext.getChargingStation().id,
-              connectorID: 1,
-              tagID: randomTagID
-            });
-            expect(response.status).to.be.eq(StatusCodes.BAD_REQUEST);
-          });
-        });
-
-        describe('Given a user with a tag and a car but no defaults', () => {
-          const user = Factory.user.build();
-          let car;
-          let tag;
-
-          beforeAll(async () => {
-            const createUserResponse = await testData.userService.userApi.create(user);
-            user.id = createUserResponse.data.id;
-
-            car = Factory.car.build({default: false, carCatalogID, userID: user.id});
-            const createdCarResponse = await testData.userService.carApi.create(car);
-            car.id = createdCarResponse.data.id;
-
-            tag = Factory.tag.build({default: false, userID: user.id});
-            const createdTagResponse = await testData.userService.tagApi.createTag(tag);
-            tag.id = createdTagResponse.data.id;
-          });
-
-          test('When getting his sessions context for (any connector), (any charging station)', async () => {
-            const response = await testData.userService.userApi.getUserSessionContext({
-              userID: user.id,
-              chargingStationID: testData.chargingStationContext.getChargingStation().id,
-              connectorID: 1
-            });
-
-            expect(response.status).to.be.eq(StatusCodes.OK);
-            assert(response.data.car.default == undefined);
-            assert(response.data.tag.default == undefined);
-            assert(response.data.car.id === car.id);
-            assert(response.data.tag.id === tag.id);
+        test('When getting his session context for (any connector), (any charging station) and (non null carID)', async () => {
+          const randomCarID = (await testData.userService.carApi.create(Factory.car.build({carCatalogID}))).data.id;
+          const response = await testData.userService.userApi.getUserSessionContext({
+            userID: user.id,
+            chargingStationID: testData.chargingStationContext.getChargingStation().id,
+            connectorID: 1,
+            carID: randomCarID
           })
-        })
-      })
-    })
+          expect(response.status).to.be.eq(StatusCodes.BAD_REQUEST);
+        });
+
+        test('When getting his session context for (any connector), (any charging station) and (non null tagID)', async () => {
+          const randomTagID = (await testData.userService.tagApi.createTag(Factory.tag.build())).data.id;
+          const response = await testData.userService.userApi.getUserSessionContext({
+            userID: user.id,
+            chargingStationID: testData.chargingStationContext.getChargingStation().id,
+            connectorID: 1,
+            tagID: randomTagID
+          });
+          expect(response.status).to.be.eq(StatusCodes.BAD_REQUEST);
+        });
+      });
+
+      describe('Given a user with a tag and a car but no defaults', () => {
+        const user = Factory.user.build();
+        let car;
+        let tag;
+
+        beforeAll(async () => {
+          global.database = new MongoDBStorage(config.get('storage'));
+          await global.database.start();
+
+          const createUserResponse = await testData.userService.userApi.create(user);
+          user.id = createUserResponse.data.id;
+
+          // We use storage layer directly to enforce setting default to false
+          car = Factory.car.build({default: false, carCatalogID, userID: user.id});
+          const createdCarID = await CarStorage.saveCar(testData.tenantContext.getTenant(), car);
+          car.id = createdCarID;
+
+          // We use storage layer directly to enforce setting default to false
+          tag = Factory.tag.build({default: false, userID: user.id});
+          await TagStorage.saveTag(testData.tenantContext.getTenant(), tag);
+        });
+
+        afterAll(async () => {
+          await global.database.stop();
+        });
+
+        test('When getting his sessions context for (any connector), (any charging station)', async () => {
+          const response = await testData.userService.userApi.getUserSessionContext({
+            userID: user.id,
+            chargingStationID: testData.chargingStationContext.getChargingStation().id,
+            connectorID: 1
+          });
+
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          assert(response.data.car.id === car.id);
+          assert(response.data.tag.id === tag.id);
+          assert(!response.data.car.default);
+          assert(!response.data.tag.default);
+        });
+      });
+
+      describe('Given a user with 2 cars and 2 tags', () => {
+        const user = Factory.user.build();
+        let defaultTag;
+        let defaultCar;
+        let car;
+        let tag;
+
+        beforeAll(async () => {
+          global.database = new MongoDBStorage(config.get('storage'));
+          await global.database.start();
+
+          const createUserResponse = await testData.userService.userApi.create(user);
+          user.id = createUserResponse.data.id;
+
+
+          // Create non-default user car via storage layer
+          car = Factory.car.build({carCatalogID, userID: user.id, default: false});
+          const createdCarID = await CarStorage.saveCar(testData.tenantContext.getTenant(), car);
+          car.id = createdCarID;
+
+          // Create default user car via storage layer
+          defaultCar = Factory.car.build({carCatalogID, userID: user.id, default: true});
+          const createDefaultCarID = await CarStorage.saveCar(testData.tenantContext.getTenant(), defaultCar);
+          defaultCar.id = createDefaultCarID
+
+          // Create non-default user tag via storage layer
+          tag = Factory.tag.build({userID: user.id, default: false});
+          await TagStorage.saveTag(testData.tenantContext.getTenant(), tag);
+
+          // Create default user tag via storage layer
+          defaultTag = Factory.tag.build({userID: user.id, default: true});
+          await TagStorage.saveTag(testData.tenantContext.getTenant(), defaultTag);
+        });
+
+        afterAll(async () => {
+          await global.database.stop();
+        });
+
+        test('When getting his session context for (any connector), (any charging station)', async () => {
+          const response = await testData.userService.userApi.getUserSessionContext({
+            userID: user.id,
+            chargingStationID: testData.chargingStationContext.getChargingStation().id,
+            connectorID: 1
+          });
+
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          assert(response.data.car.id === defaultCar.id);
+          assert(response.data.tag.id === defaultTag.id);
+          expect(response.data.car.default).to.be.true;
+          expect(response.data.tag.default).to.be.true;
+        });
+
+        test('When getting his session context for (any connector), (any charging station), (default tag id) and (default car id)', async () => {
+          const response = await testData.userService.userApi.getUserSessionContext({
+            userID: user.id,
+            chargingStationID: testData.chargingStationContext.getChargingStation().id,
+            connectorID: 1,
+            carID: defaultCar.id,
+            tagID: defaultTag.id
+          });
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          assert(response.data.car.id === defaultCar.id);
+          assert(response.data.tag.id === defaultTag.id);
+          assert(response.data.car.default);
+          assert(response.data.tag.default);
+        });
+
+        test('When getting his session context for (any connector), (any charging station), (non-default tag id) and (non-default car id)', async () => {
+          const response = await testData.userService.userApi.getUserSessionContext({
+            userID: user.id,
+            chargingStationID: testData.chargingStationContext.getChargingStation().id,
+            connectorID: 1,
+            carID: car.id,
+            tagID: tag.id
+          });
+
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          assert(response.data.car.id === car.id);
+          assert(response.data.tag.id === tag.id);
+          assert(!response.data.car.default);
+          assert(!response.data.tag.default);
+
+        });
+      });
+    });
+  });
 });
