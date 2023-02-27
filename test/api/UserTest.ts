@@ -648,8 +648,8 @@ describe('User', () => {
           expect(response.status).to.be.eq(StatusCodes.OK);
           assert(response.data.car.id === defaultCar.id);
           assert(response.data.tag.id === defaultTag.id);
-          assert(response.data.car.default);
-          assert(response.data.tag.default);
+          expect(response.data.car.default).to.be.true;
+          expect(response.data.tag.default).to.be.true;
         });
 
         test('When getting his session context for (any connector), (any charging station), (non-default tag id) and (non-default car id)', async () => {
