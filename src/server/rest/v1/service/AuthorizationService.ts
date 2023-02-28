@@ -650,9 +650,9 @@ export default class AuthorizationService {
     // Downcast & enhance filters with values needed in dynamic filters
     siteArea.canRead = true; // Always true as it should be filtered upfront
     siteArea.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITE_AREA, Action.DELETE, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
-    siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.UPDATE, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
+    siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE_AREA, Action.DELETE, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canAssignAssets = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.ASSIGN_ASSETS_TO_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canUnassignAssets = await AuthorizationService.canPerformAuthorizationAction(
@@ -872,8 +872,10 @@ export default class AuthorizationService {
         }
       }
     }
+    chargingStation.inactive = false;
     // Add connector authorization
     for (const connector of chargingStation.connectors || []) {
+      connector.status = ChargePointStatus.AVAILABLE;
       // Start transaction (Auth check should be done first to apply filter)
       connector.canRemoteStopTransaction = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CONNECTOR, Action.REMOTE_STOP_TRANSACTION,
         authorizationFilter, { chargingStationID: chargingStation.id, UserID: connector.user?.id, SiteID: chargingStation.siteID }, connector)
