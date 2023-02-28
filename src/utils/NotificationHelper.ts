@@ -1,164 +1,165 @@
+import { EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NotificationSeverity, OptimalChargeReachedNotification, TransactionStartedNotification } from '../types/UserNotifications';
+
 import ChargingStation from '../types/ChargingStation';
 import Constants from './Constants';
 import I18nManager from './I18nManager';
 import Logging from './Logging';
-import NotificationHandler from '../notification/NotificationHandler';
-import { ServerAction } from '../types/Server';
+import NotificationTask from '../notification/NotificationTask';
 import Tenant from '../types/Tenant';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
+import UserNotificationFacilities from '../notification/NotificationFacilities';
 import Utils from './Utils';
 import moment from 'moment';
 
-const MODULE_NAME = 'NotificationHelper';
+// const MODULE_NAME = 'NotificationHelper';
 
 export default class NotificationHelper {
   public static notifyStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
     if (user) {
-      NotificationHandler.sendTransactionStarted(
-        tenant,
-        transaction.id.toString(),
+      // Notification data
+      const data: TransactionStartedNotification = {
         user,
-        chargingStation,
-        {
-          'user': user,
-          'transactionId': transaction.id,
-          'chargeBoxID': chargingStation.id,
-          'siteID': chargingStation.siteID,
-          'siteAreaID': chargingStation.siteAreaID,
-          'companyID': chargingStation.companyID,
-          'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
-          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress')
-        }
-      ).catch((error) => {
-        Logging.logPromiseError(error, tenant?.id);
-      });
+        transactionId: transaction.id,
+        chargeBoxID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+        evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress')
+      };
+      // Do it
+      if (user.notificationsActive && user.notifications.sendSessionStarted) {
+        UserNotificationFacilities.notifyUser(user, (task: NotificationTask) => {
+          task.sendSessionStarted(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
+            Logging.logPromiseError(error, tenant?.id);
+          });
+        });
+      }
     }
   }
 
   public static notifyEndOfCharge(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
     if (transaction.user) {
-      // Get the i18n lib
+      // i18n
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
-      // Notify (Async)
-      NotificationHandler.sendEndOfCharge(
-        tenant,
-        transaction.id.toString() + '-EOC',
-        transaction.user,
-        chargingStation,
-        {
-          user: transaction.user,
-          transactionId: transaction.id,
-          chargeBoxID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
-          connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
-          stateOfCharge: transaction.currentStateOfCharge,
-          totalDuration: Utils.transactionDurationToString(transaction),
-          evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
-          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-        }
-      ).catch((error) => {
-        Logging.logPromiseError(error, tenant?.id);
-      });
+      // Notification data
+      const data: EndOfChargeNotification = {
+        user: transaction.user,
+        transactionId: transaction.id,
+        chargeBoxID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+        totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
+        stateOfCharge: transaction.currentStateOfCharge,
+        totalDuration: Utils.transactionDurationToString(transaction),
+        evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
+      };
+      // Do it
+      const user = transaction.user;
+      if (user.notificationsActive && user.notifications.sendEndOfCharge) {
+        UserNotificationFacilities.notifyUser(user, (task: NotificationTask) => {
+          task.sendEndOfCharge(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
+            Logging.logPromiseError(error, tenant?.id);
+          });
+        });
+      }
     }
   }
 
   public static notifyOptimalChargeReached(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
     if (transaction.user) {
-      // Get the i18n lib
+      // i18n
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
-      // Notification Before End Of Charge (Async)
-      NotificationHandler.sendOptimalChargeReached(
-        tenant,
-        transaction.id.toString() + '-OCR',
-        transaction.user,
-        chargingStation,
-        {
-          user: transaction.user,
-          chargeBoxID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
-          transactionId: transaction.id,
-          connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
-          stateOfCharge: transaction.currentStateOfCharge,
-          evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
-          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-        }
-      ).catch((error) => {
-        Logging.logPromiseError(error, tenant?.id);
-      });
+      // Notification data
+      const data: OptimalChargeReachedNotification = {
+        user: transaction.user,
+        chargeBoxID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        transactionId: transaction.id,
+        connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+        totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
+        stateOfCharge: transaction.currentStateOfCharge,
+        evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
+      };
+      // Do it
+      const user = transaction.user;
+      if (user.notificationsActive && user.notifications.sendOptimalChargeReached) {
+        UserNotificationFacilities.notifyUser(user, (task: NotificationTask) => {
+          task.sendOptimalChargeReached(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
+            Logging.logPromiseError(error, tenant?.id);
+          });
+        });
+      }
     }
   }
 
   public static notifyStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction, user: User, alternateUser?: User) {
     // User provided?
-    if (user) {
+    if (user && user.notificationsActive && user.notifications.sendEndOfSession) {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-      // Send Notification (Async)
-      NotificationHandler.sendEndOfTransaction(
-        tenant,
-        transaction.id.toString() + '-EOS',
-        user,
-        chargingStation,
-        {
-          user: user,
-          alternateUser: alternateUser ?? null,
-          transactionId: transaction.id,
-          chargeBoxID: chargingStation.id,
-          siteID: chargingStation.siteID,
-          siteAreaID: chargingStation.siteAreaID,
-          companyID: chargingStation.companyID,
-          connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          totalConsumption: i18nManager.formatNumber(Math.round(transaction.stop.totalConsumptionWh / 10) / 100),
-          totalDuration: Utils.transactionDurationToString(transaction),
-          totalInactivity: NotificationHelper.transactionInactivityToString(transaction, user),
-          stateOfCharge: transaction.stop.stateOfCharge,
-          evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
-          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-        }
-      ).catch((error) => {
-        Logging.logPromiseError(error, tenant?.id);
+      // Notification Data
+      const data: EndOfSessionNotification = {
+        user: user,
+        alternateUser: alternateUser ?? null,
+        transactionId: transaction.id,
+        chargeBoxID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+        totalConsumption: i18nManager.formatNumber(Math.round(transaction.stop.totalConsumptionWh / 10) / 100),
+        totalDuration: Utils.transactionDurationToString(transaction),
+        totalInactivity: NotificationHelper.transactionInactivityToString(transaction, user),
+        stateOfCharge: transaction.stop.stateOfCharge,
+        evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
+        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
+      };
+      // Do it
+      UserNotificationFacilities.notifyUser(user, (task: NotificationTask) => {
+        task.sendEndOfSession(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
+          Logging.logPromiseError(error, tenant?.id);
+        });
       });
       // Notify Signed Data
       if (transaction.stop.signedData !== '') {
-        // Send Notification (Async)
         const locale = user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-');
-        NotificationHandler.sendEndOfSignedTransaction(
-          tenant,
-          transaction.id.toString() + '-EOSS',
+        // Signed session data
+        const signedData: EndOfSignedSessionNotification = {
           user,
-          chargingStation,
-          {
-            user: user,
-            alternateUser: (alternateUser ? alternateUser : null),
-            transactionId: transaction.id,
-            chargeBoxID: chargingStation.id,
-            connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-            tagId: transaction.tagID,
-            startDate: transaction.timestamp.toLocaleString(locale),
-            endDate: transaction.stop.timestamp.toLocaleString(locale),
-            meterStart: (transaction.meterStart / 1000).toLocaleString(locale, {
-              minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-            meterStop: (transaction.stop.meterStop / 1000).toLocaleString(locale, {
-              minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-            totalConsumption: (transaction.stop.totalConsumptionWh / 1000).toLocaleString(locale,{
-              minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-            price: transaction.stop.price,
-            relativeCost: (transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000)),
-            startSignedData: transaction.signedData,
-            endSignedData: transaction.stop.signedData,
-            evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
-            evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-          }
-        ).catch((error) => {
-          Logging.logPromiseError(error, tenant?.id);
+          alternateUser: alternateUser || null,
+          transactionId: transaction.id,
+          chargeBoxID: chargingStation.id,
+          connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+          tagId: transaction.tagID,
+          startDate: transaction.timestamp.toLocaleString(locale),
+          endDate: transaction.stop.timestamp.toLocaleString(locale),
+          meterStart: (transaction.meterStart / 1000).toLocaleString(locale, {
+            minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+          meterStop: (transaction.stop.meterStop / 1000).toLocaleString(locale, {
+            minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+          totalConsumption: (transaction.stop.totalConsumptionWh / 1000).toLocaleString(locale,{
+            minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+          price: transaction.stop.price,
+          relativeCost: (transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000)),
+          startSignedData: transaction.signedData,
+          endSignedData: transaction.stop.signedData,
+          evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
+          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
+        };
+        // Do it
+        UserNotificationFacilities.notifyUser(user, (task: NotificationTask) => {
+          task.sendEndOfSignedSession(signedData, user, tenant, NotificationSeverity.INFO).catch((error) => {
+            Logging.logPromiseError(error, tenant?.id);
+          });
         });
       }
     }
