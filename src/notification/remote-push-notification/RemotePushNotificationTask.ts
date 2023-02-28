@@ -119,11 +119,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // TODO - old stuff - to be removed asap
-    data.chargeBoxIDs = data.chargingStationIDs.join(", ");
+    data.chargeBoxIDs = data.chargingStationIDs.join(', ');
     // Populate the context to have a human-readable message
     data.nbChargingStationIDs = data.chargingStationIDs?.length || 0;
     // Show only the ten first charging stations
-    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(", ") + "...";
+    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(', ') + '...';
     // Get Message Text
     const title = i18nManager.translate('notifications.offlineChargingStation.title');
     const body = i18nManager.translate('notifications.offlineChargingStation.body',
@@ -487,7 +487,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
           module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
           message: `'${notificationType}': No mobile token found for this User`,
           actionOnUser: user.id,
-          detailedMessages: { title, body }
         });
         // Send nothing
         return Promise.resolve();
@@ -521,7 +520,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
               module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
               message: `Error when sending Notification: '${notificationType}' - Error code: '${response.results[0]?.error?.code}'`,
               actionOnUser: user.id,
-              detailedMessages: { message, response }
+              detailedMessages: { response }
             });
           // Success
           } else {
@@ -537,7 +536,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
               module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
               message: `Notification Sent: '${notificationType}' - '${title}'`,
               actionOnUser: user.id,
-              detailedMessages: { message, response }
             });
           }
         } catch (error) {
@@ -551,7 +549,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
             message: `Error when sending Notification: '${notificationType}' - '${error.message as string}'`,
             actionOnUser: user.id,
-            detailedMessages: { error: error.stack, message }
+            detailedMessages: { error: error.stack }
           });
         }
       }
