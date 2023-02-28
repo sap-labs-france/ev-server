@@ -1,7 +1,6 @@
 import Configuration from '../utils/Configuration';
 import EMailNotificationTask from './email/EMailNotificationTask';
 import { NotificationSource } from '../types/UserNotifications';
-import NotificationTask from './NotificationTask';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
 import User from '../types/User';
 
@@ -22,9 +21,9 @@ export default class UserNotificationFacilities {
     }
   ];
 
-  public static notifyUser(user: User, doIt: (task: NotificationTask) => void): void {
+  public static notifyUser(user: User, doIt: (channel: NotificationSource) => void): void {
     for (const channel of UserNotificationFacilities.notificationSources.filter((_channel) => _channel.enabled)) {
-      doIt(channel.notificationTask);
+      doIt(channel);
     }
   }
 }

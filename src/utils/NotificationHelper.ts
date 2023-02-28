@@ -1,10 +1,9 @@
-import { EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NotificationSeverity, OptimalChargeReachedNotification, TransactionStartedNotification } from '../types/UserNotifications';
+import { EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NotificationSeverity, NotificationSource, OptimalChargeReachedNotification, TransactionStartedNotification } from '../types/UserNotifications';
 
 import ChargingStation from '../types/ChargingStation';
 import Constants from './Constants';
 import I18nManager from './I18nManager';
 import Logging from './Logging';
-import NotificationTask from '../notification/NotificationTask';
 import Tenant from '../types/Tenant';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
@@ -31,8 +30,8 @@ export default class NotificationHelper {
       };
       // Do it
       if (user.notificationsActive && user.notifications.sendSessionStarted) {
-        UserNotificationFacilities.notifyUser(user, (task: NotificationTask) => {
-          task.sendSessionStarted(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
+        UserNotificationFacilities.notifyUser(user, (channel: NotificationSource) => {
+          channel.notificationTask.sendSessionStarted(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
             Logging.logPromiseError(error, tenant?.id);
           });
         });
@@ -62,8 +61,8 @@ export default class NotificationHelper {
       // Do it
       const user = transaction.user;
       if (user.notificationsActive && user.notifications.sendEndOfCharge) {
-        UserNotificationFacilities.notifyUser(user, (task: NotificationTask) => {
-          task.sendEndOfCharge(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
+        UserNotificationFacilities.notifyUser(user, (channel: NotificationSource) => {
+          channel.notificationTask.sendEndOfCharge(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
             Logging.logPromiseError(error, tenant?.id);
           });
         });
@@ -92,8 +91,8 @@ export default class NotificationHelper {
       // Do it
       const user = transaction.user;
       if (user.notificationsActive && user.notifications.sendOptimalChargeReached) {
-        UserNotificationFacilities.notifyUser(user, (task: NotificationTask) => {
-          task.sendOptimalChargeReached(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
+        UserNotificationFacilities.notifyUser(user, (channel: NotificationSource) => {
+          channel.notificationTask.sendOptimalChargeReached(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
             Logging.logPromiseError(error, tenant?.id);
           });
         });
@@ -124,8 +123,8 @@ export default class NotificationHelper {
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
       };
       // Do it
-      UserNotificationFacilities.notifyUser(user, (task: NotificationTask) => {
-        task.sendEndOfSession(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
+      UserNotificationFacilities.notifyUser(user, (channel: NotificationSource) => {
+        channel.notificationTask.sendEndOfSession(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
           Logging.logPromiseError(error, tenant?.id);
         });
       });
@@ -156,8 +155,8 @@ export default class NotificationHelper {
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         };
         // Do it
-        UserNotificationFacilities.notifyUser(user, (task: NotificationTask) => {
-          task.sendEndOfSignedSession(signedData, user, tenant, NotificationSeverity.INFO).catch((error) => {
+        UserNotificationFacilities.notifyUser(user, (channel: NotificationSource) => {
+          channel.notificationTask.sendEndOfSignedSession(signedData, user, tenant, NotificationSeverity.INFO).catch((error) => {
             Logging.logPromiseError(error, tenant?.id);
           });
         });
