@@ -56,6 +56,7 @@ export default class NotificationHelper {
 
 export class UserNotificationHelper {
 
+  // TODO - rethink that part! - we should avoid keeping references to these big objects
   private tenant: Tenant;
   private transaction: Transaction;
   private chargingStation: ChargingStation;
