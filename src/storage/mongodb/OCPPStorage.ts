@@ -1,4 +1,4 @@
-import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesRequestExtended, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPRawMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import { DataResult } from '../../types/DataResult';
@@ -381,6 +381,20 @@ export default class OCPPStorage {
     await global.database.getCollection<any>(tenant.id, 'firmwarestatusnotifications')
       .insertOne(firmwareStatusNotificationMDB);
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveFirmwareStatusNotification', startTime, firmwareStatusNotificationMDB);
+  }
+
+  public static async saveRawMeterValues(tenant: Tenant, rawMeterValuesToSave: OCPPRawMeterValues): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Save the meter values raw data
+    const meterValueMDB: any = {
+      _id: Utils.hash(`${JSON.stringify(rawMeterValuesToSave)}`),
+      beginAt: Utils.convertToDate(rawMeterValuesToSave.beginAt),
+      endAt: Utils.convertToDate(rawMeterValuesToSave.endAt),
+      meterValues: rawMeterValuesToSave.meterValues,
+    };
+    await global.database.getCollection<any>(tenant.id, 'rawmetervalues').insertOne(meterValueMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveRawMeterValues', startTime, rawMeterValuesToSave);
   }
 
   public static async saveMeterValues(tenant: Tenant, meterValuesToSave: OCPPNormalizedMeterValues): Promise<void> {

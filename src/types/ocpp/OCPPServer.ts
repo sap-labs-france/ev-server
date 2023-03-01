@@ -115,6 +115,12 @@ export interface OCPPMeterValuesRequest {
 
 export type OCPPMeterValuesRequestExtended = OCPPMeterValuesRequest;
 
+export interface OCPPRawMeterValues {
+  beginAt: Date,
+  endAt: Date,
+  meterValues: OCPPMeterValuesRequestExtended
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface OCPPMeterValuesResponse {}
 

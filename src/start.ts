@@ -3,6 +3,8 @@ import { ServerAction, ServerType } from './types/Server';
 
 import AsyncTaskConfiguration from './types/configuration/AsyncTaskConfiguration';
 import AsyncTaskManager from './async-task/AsyncTaskManager';
+import { Cache } from './cache/Cache';
+import CacheConfiguration from './types/configuration/CacheConfiguration';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
 import Configuration from './utils/Configuration';
@@ -28,6 +30,7 @@ import SchedulerConfiguration from './types/configuration/SchedulerConfiguration
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapOCPPServer from './server/ocpp/soap/SoapOCPPServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
+import TenantStorage from './storage/mongodb/TenantStorage';
 import Utils from './utils/Utils';
 import global from './types/GlobalType';
 
@@ -55,11 +58,13 @@ export default class Bootstrap {
   private static asyncTaskConfig: AsyncTaskConfiguration;
   private static schedulerConfig: SchedulerConfiguration;
   private static monitoringConfig: MonitoringConfiguration;
+  private static cacheConfig: CacheConfiguration;
 
   public static async start(): Promise<void> {
     let serverStarted: ServerType[] = [];
     let startTimeMillis: number;
     const startTimeGlobalMillis = await this.logAndGetStartTimeMillis('e-Mobility Server is starting...');
+
     try {
       // Setup i18n
       I18nManager.initialize();
@@ -76,6 +81,7 @@ export default class Bootstrap {
       Bootstrap.asyncTaskConfig = Configuration.getAsyncTaskConfig();
       Bootstrap.schedulerConfig = Configuration.getSchedulerConfig();
       Bootstrap.monitoringConfig = Configuration.getMonitoringConfig();
+      Bootstrap.cacheConfig = Configuration.getCacheConfig();
 
       // -------------------------------------------------------------------------
       // Listen to promise failure
@@ -91,7 +97,6 @@ export default class Bootstrap {
           detailedMessages: (reason ? reason.stack : null)
         });
       });
-
 
       // -------------------------------------------------------------------------
       // Start Monitoring Server
@@ -114,6 +119,15 @@ export default class Bootstrap {
       }
 
       // -------------------------------------------------------------------------
+      // Create in memory cache
+      // -------------------------------------------------------------------------
+      if (Bootstrap.cacheConfig) {
+        startTimeMillis = await this.logAndGetStartTimeMillis(`Creating memory cache with default TTL '${Bootstrap.cacheConfig.ttlSeconds}' seconds.`);
+        global.cache = new Cache(Bootstrap.cacheConfig);
+        await this.logDuration(startTimeMillis, 'Memory cache created successfully');
+      }
+
+      // -------------------------------------------------------------------------
       // Connect to the DB
       // -------------------------------------------------------------------------
       // Check database implementation
@@ -132,6 +146,17 @@ export default class Bootstrap {
       await this.logDuration(startTimeMillis, 'Connected to the Database successfully');
 
       // -------------------------------------------------------------------------
+      // Tenant cache for subdomains only
+      // -------------------------------------------------------------------------
+      global.tenantIdMap = new Map();
+      await Bootstrap.fillTenantMap();
+      setInterval(() => {
+        Bootstrap.fillTenantMap().catch((error) => {
+          Logging.logPromiseError(error);
+        });
+      }, 10 * 60 * 1000); // 10 min
+
+      // -------------------------------------------------------------------------
       // Start DB Migration
       // -------------------------------------------------------------------------
       if (Bootstrap.migrationConfig?.active) {
@@ -140,8 +165,6 @@ export default class Bootstrap {
         await MigrationHandler.migrate();
         await this.logDuration(startTimeMillis, 'Migration has been run successfully');
       }
-
-
 
       // -------------------------------------------------------------------------
       // Start all the Servers
@@ -316,6 +339,14 @@ export default class Bootstrap {
       serverTypes.push(ServerType.BATCH_SERVER);
     }
     return serverTypes;
+  }
+
+  private static async fillTenantMap() : Promise<void> {
+    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
+    // eslint-disable-next-line no-empty
+    for (const tenant of tenants.result) {
+      global.tenantIdMap.set(tenant.id, tenant.subdomain);
+    }
   }
 }
 

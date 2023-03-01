@@ -100,6 +100,16 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         return;
       }
     }
+    // Check for transactions
+    if (transactionIDs.length === 0) {
+      await Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: ServerAction.SMART_CHARGING,
+        message: `${sourceSiteArea.name} > No ongoing transaction, so no need to call the Smart Charging service`,
+        module: MODULE_NAME, method: 'buildChargingProfiles',
+      });
+      return;
+    }
     // Build site area trees
     const siteAreaTrees = Utils.buildSiteAreasTree(siteAreas.result);
     // Find tree which contains the source site area of smart charging
@@ -109,7 +119,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       this.tenant, { chargingStationIDs: chargingStationIDs, profilePurposeType:  ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
     const currentChargingProfiles = currentChargingProfilesResponse.result;
     // Get all transactions of the site areas
-    const transactions = await TransactionStorage.getTransactions(this.tenant, { transactionIDs: transactionIDs, withCar: true }, Constants.DB_PARAMS_MAX_LIMIT);
+    const transactions = await TransactionStorage.getTransactions(this.tenant, { transactionIDs, withCar: true }, Constants.DB_PARAMS_MAX_LIMIT);
     // Build request
     const request = await this.buildOptimizerRequest(rootSiteArea, excludedChargingStations, false, currentChargingProfiles, transactions.result);
     // Call optimizer

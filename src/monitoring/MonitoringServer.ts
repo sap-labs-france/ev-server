@@ -1,17 +1,23 @@
+import client, { LabelValues } from 'prom-client';
 
-import client from 'prom-client';
-import { ComposedMonitoringMetric } from './ComposedMonitoringMetric';
+import { AvgGaugeClearableMetric } from './AvgGaugeClearableMetric';
+import { CountAvgGaugeClearableMetric } from './CountAvgGaugeClearableMetric';
+import { CounterClearableMetric } from './CounterClearableMetric';
 
 export default abstract class MonitoringServer {
   public abstract start(): void;
 
   public abstract getGauge(name: string): client.Gauge | undefined;
 
-  public abstract getComposedMetric(
+  public abstract getCounterClearableMetric(prefix : string, metricName: string, metricHelp: string, labelValues: LabelValues<string>) : CounterClearableMetric;
+
+  public abstract getCountAvgClearableMetric(prefix : string, metricName: string, suffix: number, metricAvgHelp: string, metricCountHelp: string, labelNames: string[]) : CountAvgGaugeClearableMetric ;
+
+  public abstract getAvgClearableMetric(
     prefix: string,
-    metricname: string,
+    metricName: string,
     suffix: number,
-    metrichelp: string,
+    metricHelp: string,
     labelNames: string[]
-  ): ComposedMonitoringMetric;
+  ): AvgGaugeClearableMetric;
 }

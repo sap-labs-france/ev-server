@@ -91,12 +91,23 @@ export default class LoggingHelper {
     };
   }
 
-  public static getSourceDataProperties(sourceData: any): { siteID: string,  siteAreaID?: string, companyID: string, chargingStationID: string } {
+  public static getSourceDataProperties(sourceData: any): { siteID: string, siteAreaID?: string, companyID: string, chargingStationID: string } {
     return {
       siteID: sourceData?.siteID,
       siteAreaID: sourceData?.siteAreaID,
       companyID: sourceData?.companyID,
       chargingStationID: sourceData?.chargeBoxID,
+    };
+  }
+
+  public static shrinkTransactionProperties(transaction: Transaction) {
+    return {
+      id: transaction?.id,
+      userID: transaction?.userID || transaction?.user?.id,
+      tagID: transaction?.tagID || transaction?.tag?.id,
+      carID: transaction?.carID || transaction?.car?.id,
+      lastConsumptionTimestamp: transaction?.lastConsumption?.timestamp,
+      stopTimestamp: transaction?.stop?.timestamp
     };
   }
 }

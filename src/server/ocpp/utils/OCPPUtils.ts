@@ -488,7 +488,7 @@ export default class OCPPUtils {
             module: MODULE_NAME, method: 'createConsumptionsFromMeterValues',
             action: ServerAction.OCPP_METER_VALUES,
             message: 'Meter Value is in the past and will be ignored',
-            detailedMessages: { meterValue, transaction }
+            detailedMessages: { meterValue, transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
           });
           continue;
         }
@@ -1236,7 +1236,7 @@ export default class OCPPUtils {
     OCPPUtils.checkChargingStationConnectionData(
       ServerAction.WS_SERVER_CONNECTION, tenantID, tokenID, chargingStationID);
     // Get Tenant
-    const tenant = await TenantStorage.getTenant(tenantID);
+    const tenant = await TenantStorage.getTenantFromCache(tenantID);
     if (!tenant) {
       throw new BackendError({
         chargingStationID,
@@ -1453,7 +1453,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static clearChargingStationConnectorRuntimeData(chargingStation: ChargingStation, connectorID: number): void {
+  public static clearChargingStationConnectorRuntimeData(chargingStation: ChargingStation, connectorID: number): Connector {
     // Cleanup connector transaction data
     const connector = Utils.getConnectorFromID(chargingStation, connectorID);
     if (connector) {
@@ -1467,6 +1467,7 @@ export default class OCPPUtils {
       connector.currentTagID = null;
       connector.currentUserID = null;
     }
+    return connector;
   }
 
   public static updateSignedData(transaction: Transaction, meterValue: OCPPNormalizedMeterValue): boolean {

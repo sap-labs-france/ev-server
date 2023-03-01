@@ -108,13 +108,15 @@ export default class ChargingStationStorage {
 
   public static async getChargingStationByOcpiLocationEvseUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
       ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
-      projectFields?: string[]): Promise<ChargingStation> {
+      withSite = true,
+      withSiteArea = true,
+  ): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenant, {
       ocpiLocationID,
       ocpiEvseUid,
-      withSite: true,
-      withSiteArea: true,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+      withSite,
+      withSiteArea,
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
@@ -178,7 +180,7 @@ export default class ChargingStationStorage {
       filters.deleted = { '$ne': true };
     }
     // Public Charging Stations
-    if (Utils.objectHasProperty(params, 'public')) {
+    if (Utils.objectHasProperty(params, 'public') && Utils.isBoolean(params.public)) {
       filters.public = params.public;
     }
     // Charging Stations

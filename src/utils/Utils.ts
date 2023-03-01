@@ -206,9 +206,8 @@ export default class Utils {
     return Promise.race([
       promise,
       timeoutPromise,
-    ]).then((result) => {
+    ]).finally(() => {
       clearTimeout(timeoutHandle);
-      return result;
     });
   }
 
@@ -1773,7 +1772,14 @@ export default class Utils {
     }
   }
 
-  public static positiveHashcode(str :string):number {
+  public static isMonitoringEnabled() : boolean {
+    if (((global.monitoringServer) && (process.env.K8S))) {
+      return true;
+    }
+    return false;
+  }
+
+  public static positiveHashCode(str :string):number {
     return this.hashCode(str) + 2147483647 + 1;
   }
 
