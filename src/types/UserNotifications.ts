@@ -357,6 +357,14 @@ export interface Notification {
   data: any;
 }
 
+export interface RawNotification {
+  id: string;
+  timestamp: Date;
+  discriminator: string;
+  serverAction: string;
+  data: any;
+}
+
 export interface SessionNotStartedNotification extends BaseNotification {
   chargeBoxID: string;
   siteID: string;

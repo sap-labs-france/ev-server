@@ -512,7 +512,7 @@ export default class OCPPService {
       // Save the transaction
       await TransactionStorage.saveTransaction(tenant, transaction);
       // Notify
-      NotificationHelper.notifyStopTransaction(tenant, chargingStation, transaction, user, alternateUser);
+      NotificationHelper.notifyStopTransaction(tenant, transaction, chargingStation, user, alternateUser);
       // Recompute the Smart Charging Plan
       await this.triggerSmartChargingStopTransaction(tenant, chargingStation, transaction);
       // Check Connector Status
@@ -1227,11 +1227,11 @@ export default class OCPPService {
         // Check if battery is full (100%)
         if (transaction.currentStateOfCharge === 100) {
           // Send Notification
-          NotificationHelper.notifyEndOfCharge(tenant, chargingStation, transaction);
+          NotificationHelper.notifyEndOfCharge(tenant, transaction, chargingStation, transaction.user);
           // Check if optimal charge has been reached (85%)
         } else if (transaction.currentStateOfCharge >= this.chargingStationConfig.notifBeforeEndOfChargePercent) {
           // Send Notification
-          NotificationHelper.notifyOptimalChargeReached(tenant, chargingStation, transaction);
+          NotificationHelper.notifyOptimalChargeReached(tenant, transaction, chargingStation, transaction.user);
         }
         // No battery information: check last consumptions
       } else {
@@ -1250,7 +1250,7 @@ export default class OCPPService {
                 consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)));
             // Send Notification
             if (noConsumption) {
-              NotificationHelper.notifyEndOfCharge(tenant, chargingStation, transaction);
+              NotificationHelper.notifyEndOfCharge(tenant, transaction, chargingStation, transaction.user);
             }
           }
         }
