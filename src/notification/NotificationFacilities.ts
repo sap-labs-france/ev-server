@@ -8,7 +8,7 @@ import User from '../types/User';
 
 export default class UserNotificationFacilities {
   private static notificationConfig = Configuration.getNotificationConfig();
-  private static notificationSources: NotificationSource[] = [
+  private static notificationChannels: NotificationSource[] = [
     {
       channel: 'email',
       notificationTask: new EMailNotificationTask(),
@@ -22,7 +22,7 @@ export default class UserNotificationFacilities {
   ];
 
   public static notifyUser(user: User, doIt: (channel: NotificationSource) => void): void {
-    for (const channel of UserNotificationFacilities.notificationSources.filter((_channel) => _channel.enabled)) {
+    for (const channel of UserNotificationFacilities.notificationChannels.filter((_channel) => _channel.enabled)) {
       doIt(channel);
     }
   }

@@ -339,11 +339,13 @@ export interface ComputeAndApplyChargingProfilesFailedNotification extends BaseN
   companyID: string;
   evseDashboardURL: string;
 }
-export interface NotificationSource {
+export interface NotificationChannel {
   channel: 'email' | 'remote-push-notification';
   notificationTask: NotificationTask;
   enabled: boolean;
 }
+
+export type NotificationSource = NotificationChannel;
 
 export interface Notification {
   id: string;
