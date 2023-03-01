@@ -25,6 +25,8 @@ import WSWrapper from './web-socket/WSWrapper';
 import global from '../../../types/GlobalType';
 import sizeof from 'object-sizeof';
 
+// import wtfnode from 'wtfnode';
+
 const MODULE_NAME = 'JsonOCPPServer';
 
 export default class JsonOCPPServer extends OCPPServer {
@@ -683,12 +685,25 @@ export default class JsonOCPPServer extends OCPPServer {
         // }
         if (this.isDebug()) {
           Logging.logConsoleDebug(message);
+          // Dump active handles
+          // this.dumpWtf();
         }
       } catch (error) {
         /* Intentional */
       }
     }, 5 * 60 * 1000); // every minute - TODO - add new configuration for it!
   }
+
+  // private dumpWtf() {
+  // ----------------------------------------------------------------
+  // Dump active handles (I/O devices, signals, timers or processes)
+  // ----------------------------------------------------------------
+  //   wtfnode.setLogger('info', console.info);
+  //   wtfnode.setLogger('warn', console.warn);
+  //   wtfnode.setLogger('error', console.error);
+  //   wtfnode.dump();
+  //   wtfnode.resetLoggers();
+  // }
 
   private checkAndCleanupAllWebSockets() {
     setInterval(() => {
