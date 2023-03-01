@@ -430,6 +430,15 @@ export default class ChargingStationService {
           withSite: true,
           withSiteArea: true,
         }, true);
+    } else if (chargingStation.canUpdateChargingProfile) {
+      chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+        req.tenant, req.user, filteredRequest.ID, Action.UPDATE_CHARGING_PROFILE, action, null, {
+          // TODO: Put back the filters below when the Mobile App would have migrated to new Authorization checks
+          // withSite: filteredRequest.WithSite,
+          // withSiteArea: filteredRequest.WithSiteArea
+          withSite: true,
+          withSiteArea: true,
+        }, true);
     }
     res.json(chargingStation);
     next();
