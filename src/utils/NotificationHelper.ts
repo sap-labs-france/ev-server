@@ -18,35 +18,35 @@ import moment from 'moment';
 export default class NotificationHelper {
 
   public static notifyStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
-    setTimeout(() => {
-      if (user?.notificationsActive && user.notifications.sendSessionStarted) {
+    if (user?.notificationsActive && user.notifications.sendSessionStarted) {
+      setTimeout(() => {
         NotificationHelper.getInstance(tenant, transaction, chargingStation, user).notifyStartTransaction();
-      }
-    }, 500);
+      }, 500);
+    }
   }
 
   public static notifyStopTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User, alternateUser?: User) {
-    setTimeout(() => {
-      if (user?.notificationsActive && user.notifications.sendEndOfSession) {
+    if (user?.notificationsActive && user.notifications.sendEndOfSession) {
+      setTimeout(() => {
         NotificationHelper.getInstance(tenant, transaction, chargingStation, user).notifyStopTransaction(alternateUser);
-      }
-    }, 500);
+      }, 500);
+    }
   }
 
   public static notifyEndOfCharge(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
-    setTimeout(() => {
-      if (user?.notificationsActive && user.notifications.sendEndOfCharge) {
+    if (user?.notificationsActive && user.notifications.sendEndOfCharge) {
+      setTimeout(() => {
         NotificationHelper.getInstance(tenant, transaction, chargingStation, user).notifyEndOfCharge();
-      }
-    }, 500);
+      }, 500);
+    }
   }
 
   public static notifyOptimalChargeReached(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
-    setTimeout(() => {
-      if (user?.notificationsActive && user.notifications.sendOptimalChargeReached) {
+    if (user?.notificationsActive && user.notifications.sendOptimalChargeReached) {
+      setTimeout(() => {
         NotificationHelper.getInstance(tenant, transaction, chargingStation, user).notifyOptimalChargeReached();
-      }
-    }, 500);
+      }, 500);
+    }
   }
 
   private static getInstance(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User): UserNotificationHelper {
