@@ -484,7 +484,7 @@ export default class OCPIUtilsService {
         inactivityStatus: transaction.currentInactivityStatus,
         userID: transaction.userID
       };
-      NotificationHelper.notifyStopTransaction(tenant, chargingStation, transaction, user);
+      NotificationHelper.notifyStopTransaction(tenant, transaction, chargingStation, user);
     }
     await TransactionStorage.saveTransaction(tenant, transaction);
     await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction, true);
