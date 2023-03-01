@@ -128,6 +128,11 @@ export default class MongoDBStorage {
       { fields: { host: 1, timestamp: 1 } },
       { fields: { message: 'text' } },
     ]);
+    // Raw Notifications
+    await this.handleIndexesInCollection(tenantID, 'rawnotifications', [
+      { fields: { timestamp: 1 }, options: { expireAfterSeconds: 1 * 24 * 3600 } }, // To be clarified - too short when checking the user inactivity
+      { fields: { discriminator: 1 } } // Necessary to avoid scanning all documents when checking whether the notification has already been sent
+    ]);
     // Raw MeterValues
     await this.handleIndexesInCollection(tenantID, 'rawmetervalues', [
       { fields: { beginAt: 1 }, options: { expireAfterSeconds: 2 * 24 * 3600 } }

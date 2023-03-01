@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { Application, NextFunction, Request, Response } from 'express';
 import { ServerAction, ServerType } from '../../types/Server';
 import client, { Gauge, LabelValues } from 'prom-client';
@@ -85,20 +86,20 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
       ServerUtils.createHttpServer(this.monitoringConfig, this.expressApplication), MODULE_NAME, ServerType.MONITORING_SERVER);
   }
 
-  public getAvgClearableMetric(prefix : string, metricname: string, suffix: number, metrichelp: string, labelNames: string[]) : AvgGaugeClearableMetric {
-    const keyAvg = this.getKeyAvg(prefix, metricname, suffix);
+  public getAvgClearableMetric(prefix: string, metricName: string, suffix: number, metricHelp: string, labelNames: string[]) : AvgGaugeClearableMetric {
+    const keyAvg = this.getKeyAvg(prefix, metricName, suffix);
     let metric : AvgGaugeClearableMetric = this.mapAvgGaugeClearableMetric.get(keyAvg);
     if (metric) {
       return metric;
     }
-    metric = new AvgGaugeClearableMetric(this.clientRegistry,keyAvg,metrichelp,labelNames);
+    metric = new AvgGaugeClearableMetric(this.clientRegistry, keyAvg, metricHelp, labelNames);
     this.mapAvgGaugeClearableMetric.set(keyAvg, metric);
     return metric;
   }
 
-  public getCountAvgClearableMetric(prefix : string, metricname: string, suffix: number, metricAvgHelp: string, metricCountHelp: string, labelNames: string[]) : CountAvgGaugeClearableMetric {
-    const keyAvg = this.getKeyAvg(prefix, metricname, suffix);
-    const keyCount = this.getKeyCount(prefix, metricname, suffix);
+  public getCountAvgClearableMetric(prefix : string, metricName: string, suffix: number, metricAvgHelp: string, metricCountHelp: string, labelNames: string[]) : CountAvgGaugeClearableMetric {
+    const keyAvg = this.getKeyAvg(prefix, metricName, suffix);
+    const keyCount = this.getKeyCount(prefix, metricName, suffix);
     let metric : CountAvgGaugeClearableMetric = this.mapAvgGaugeClearableMetric.get(keyCount) as CountAvgGaugeClearableMetric;
     if (metric) {
       return metric;
@@ -109,11 +110,11 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
   }
 
 
-  public getCounterClearableMetric(prefix : string, metricname: string, metricHelp: string, labelValues: LabelValues<string>) : CounterClearableMetric {
+  public getCounterClearableMetric(prefix : string, metricName: string, metricHelp: string, labelValues: LabelValues<string>) : CounterClearableMetric {
     // const labelNames = Object.keys(labelValues);
     const values = Object.values(labelValues).toString();
-    const metricSuffix = Utils.positiveHashcode(values);
-    const key = prefix + '_' + metricname + '_' + metricSuffix;
+    const metricSuffix = Utils.positiveHashCode(values);
+    const key = prefix + '_' + metricName + '_' + metricSuffix;
     let metric : CounterClearableMetric = this.mapCounterClearableMetric.get(key) ;
     if (metric) {
       return metric;
@@ -124,32 +125,31 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     return metric;
   }
 
-  private createGaugeMetric(metricname : string, metrichelp : string, labelNames? : string[]) : Gauge {
+  private createGaugeMetric(metricName : string, metricHelp : string, labelNames? : string[]) : Gauge {
     let gaugeMetric : client.Gauge;
     if (Array.isArray(labelNames)) {
       gaugeMetric = new client.Gauge({
-        name: metricname,
-        help: metrichelp,
+        name: metricName,
+        help: metricHelp,
         labelNames: labelNames
       });
     } else {
       gaugeMetric = new client.Gauge({
-        name: metricname,
-        help: metrichelp
+        name: metricName,
+        help: metricHelp
       });
     }
-    this.mapGauge.set(metricname, gaugeMetric);
+    this.mapGauge.set(metricName, gaugeMetric);
     this.clientRegistry.registerMetric(gaugeMetric);
     return gaugeMetric;
   }
 
-  private getKeyAvg(prefix : string, metricname: string, suffix): string {
-    return prefix + '_' + metricname + '_avg_' + suffix;
+  private getKeyAvg(prefix : string, metricName: string, suffix): string {
+    return prefix + '_' + metricName + '_avg_' + suffix;
   }
 
-  private getKeyCount(prefix : string, metricname: string, suffix): string {
-    return prefix + '_' + metricname + '_count_' + suffix;
+  private getKeyCount(prefix : string, metricName: string, suffix): string {
+    return prefix + '_' + metricName + '_count_' + suffix;
   }
-
 }
 

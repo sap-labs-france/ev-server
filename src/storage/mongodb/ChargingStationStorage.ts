@@ -180,7 +180,7 @@ export default class ChargingStationStorage {
       filters.deleted = { '$ne': true };
     }
     // Public Charging Stations
-    if (Utils.objectHasProperty(params, 'public')) {
+    if (Utils.objectHasProperty(params, 'public') && Utils.isBoolean(params.public)) {
       filters.public = params.public;
     }
     // Charging Stations

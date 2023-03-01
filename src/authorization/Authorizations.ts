@@ -821,16 +821,8 @@ export default class Authorizations {
     }
   }
 
-  public static notifyUnknownBadgeHasBeenUsedAndAbort(
+  public static notifyUnknownBadgeHasBeenUsed(
       action: ServerAction, tenant: Tenant, tagID: string, chargingStation: ChargingStation) {
-    const tag: Tag = {
-      id: tagID,
-      description: `Badged on '${chargingStation.id}'`,
-      issuer: true,
-      active: false,
-      createdOn: new Date(),
-      default: false
-    };
     // Notify (Async)
     NotificationHandler.sendUnknownUserBadged(
       tenant,
@@ -846,13 +838,6 @@ export default class Authorizations {
       }
     ).catch((error) => {
       Logging.logPromiseError(error, tenant?.id);
-    });
-    throw new BackendError({
-      ...LoggingHelper.getChargingStationProperties(chargingStation),
-      action: action,
-      module: MODULE_NAME, method: 'notifyUnknownBadgeHasBeenUsedAndAbort',
-      message: `Tag ID '${tagID}' is unknown`,
-      detailedMessages: { tag }
     });
   }
 

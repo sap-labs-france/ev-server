@@ -1773,16 +1773,13 @@ export default class Utils {
   }
 
   public static isMonitoringEnabled() : boolean {
-    let enabled : boolean;
     if (((global.monitoringServer) && (process.env.K8S))) {
-      enabled = true;
-    } else {
-      enabled = false;
+      return true;
     }
-    return enabled;
+    return false;
   }
 
-  public static positiveHashcode(str :string):number {
+  public static positiveHashCode(str :string):number {
     return this.hashCode(str) + 2147483647 + 1;
   }
 

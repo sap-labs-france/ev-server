@@ -487,7 +487,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
           module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
           message: `'${notificationType}': No mobile token found for this User`,
           actionOnUser: user.id,
-          detailedMessages: { title, body }
         });
         // Send nothing
         return Promise.resolve();
@@ -521,7 +520,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
               module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
               message: `Error when sending Notification: '${notificationType}' - Error code: '${response.results[0]?.error?.code}'`,
               actionOnUser: user.id,
-              detailedMessages: { message, response }
+              detailedMessages: { response }
             });
           // Success
           } else {
@@ -537,7 +536,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
               module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
               message: `Notification Sent: '${notificationType}' - '${title}'`,
               actionOnUser: user.id,
-              detailedMessages: { message, response }
             });
           }
         } catch (error) {
@@ -551,7 +549,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
             message: `Error when sending Notification: '${notificationType}' - '${error.message as string}'`,
             actionOnUser: user.id,
-            detailedMessages: { error: error.stack, message }
+            detailedMessages: { error: error.stack }
           });
         }
       }

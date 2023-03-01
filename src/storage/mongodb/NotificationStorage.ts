@@ -122,7 +122,7 @@ export default class NotificationStorage {
   public static async saveNotification(tenant: Tenant, notificationToSave: Partial<Notification>): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    const ocpiEndpointMDB: any = {
+    const notificationsMDB: any = {
       _id: Utils.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
       userID: DatabaseUtils.convertToObjectID(notificationToSave.userID),
       timestamp: Utils.convertToDate(notificationToSave.timestamp),
@@ -134,7 +134,7 @@ export default class NotificationStorage {
     };
     // Create
     await global.database.getCollection<any>(tenant.id, 'notifications')
-      .insertOne(ocpiEndpointMDB);
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveNotification', startTime, ocpiEndpointMDB);
+      .insertOne(notificationsMDB);
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveNotification', startTime, notificationsMDB);
   }
 }
