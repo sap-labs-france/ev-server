@@ -516,7 +516,7 @@ export default class OCPPService {
       await this.triggerSmartChargingStopTransaction(tenant, chargingStation, transaction);
       // Check Connector Status
       await this.checkConnectorStatusOnStopTransaction(tenant, chargingStation, transaction, connector);
-      await Logging.beInfo()?.log({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'handleStopTransaction',
