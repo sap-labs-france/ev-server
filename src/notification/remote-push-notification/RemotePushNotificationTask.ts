@@ -21,7 +21,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
   private static alternativeApp: admin.app.App;
   private static tenantFirebaseApps: Map<string, admin.app.App> = new Map();
   private static initialized = false;
-  private static inconsistentConfiguration = false;
 
   public constructor() {
     if (!RemotePushNotificationTask.initialized) {
@@ -67,7 +66,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
         }
         RemotePushNotificationTask.initialized = true;
       } catch (error) {
-        RemotePushNotificationTask.inconsistentConfiguration = true;
         void Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.REMOTE_PUSH_NOTIFICATION,
@@ -306,10 +304,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return {};
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     return Promise.resolve({});
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     return Promise.resolve({});
   }
@@ -485,7 +485,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     let message = {} as admin.messaging.MessagingPayload;
     try {
       // Checks consistency
-      if (!RemotePushNotificationTask.initialized && RemotePushNotificationTask.inconsistentConfiguration) {
+      if (!RemotePushNotificationTask.initialized) {
         return Promise.resolve();
       }
       // Do it
