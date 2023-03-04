@@ -268,11 +268,11 @@ export class SessionNotificationHelper extends ChargerNotificationHelper {
     };
     // Do it
     this.notifyUserOnlyOnce(ServerAction.END_OF_CHARGE,
-      `tx-${this.transaction.id}`,
+      `tx-${transaction.id}`,
       {
-        userID: this.user.id,
-        transactionID: this.transaction.id,
-        chargeBoxID: this.chargingStation.id,
+        userID: user.id,
+        transactionID: transaction.id,
+        chargeBoxID: chargingStation.id,
       },
       (channel: NotificationSource) => {
         channel.notificationTask.sendEndOfCharge(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
@@ -305,11 +305,11 @@ export class SessionNotificationHelper extends ChargerNotificationHelper {
     };
       // Do it
     this.notifyUserOnlyOnce(ServerAction.OPTIMAL_CHARGE_REACHED,
-      `tx-${this.transaction.id}`,
+      `tx-${transaction.id}`,
       {
-        userID: this.user.id,
-        transactionID: this.transaction.id,
-        chargeBoxID: this.chargingStation.id,
+        userID: user.id,
+        transactionID: transaction.id,
+        chargeBoxID: chargingStation.id,
       },
       (channel: NotificationSource) => {
         channel.notificationTask.sendOptimalChargeReached(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
@@ -345,11 +345,11 @@ export class SessionNotificationHelper extends ChargerNotificationHelper {
     };
       // Do it
     this.notifyUserOnlyOnce(ServerAction.END_OF_SESSION,
-      `tx-${this.transaction.id}`,
+      `tx-${transaction.id}`,
       {
-        userID: this.user.id,
-        transactionID: this.transaction.id,
-        chargeBoxID: this.chargingStation.id,
+        userID: user.id,
+        transactionID: transaction.id,
+        chargeBoxID: chargingStation.id,
       },
       (channel: NotificationSource) => {
         channel.notificationTask.sendEndOfSession(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
