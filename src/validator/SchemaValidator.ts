@@ -46,12 +46,12 @@ export default class SchemaValidator {
   protected constructor(moduleName: string,
       config: Options = {
         strict: false, // When 'true', it fails with anyOf required fields: https://github.com/ajv-validator/ajv/issues/1571
-        allErrors: true,
+        allErrors: false,
         removeAdditional: 'all', // Careful with 'All' and usage of anyOf/oneOf/allOf: https://github.com/ajv-validator/ajv/issues/1784
         allowUnionTypes: true,
         useDefaults: true,
         coerceTypes: true,
-        verbose: true,
+        verbose: false,
       }) {
     this.moduleName = moduleName;
     // Create AJV
