@@ -3,15 +3,15 @@
   "title": "Handle scan and pay stop transaction",
   "type": "object",
   "properties": {
+    "ID": {
+      "$ref": "transaction#/definitions/id"
+    },
     "email": {
       "$ref": "user#/definitions/email"
-    },
-    "transactionId": {
-      "$ref": "transaction#/definitions/id"
     }
   },
   "required": [
     "email",
-    "transactionId"
+    "ID"
   ]
 }

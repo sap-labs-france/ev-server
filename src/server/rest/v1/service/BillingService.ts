@@ -877,7 +877,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-      authorizations.projectFields
+    authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
@@ -920,7 +920,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-      authorizations.projectFields
+    authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
@@ -1051,21 +1051,6 @@ export default class BillingService {
   }
 
   public static async handleUserScanPay(filteredRequest: HttpScanPayVerifyEmailRequest, tenant: Tenant): Promise<Tag> {
-    // Check if the user exist
-    const foundUser = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
-    if (foundUser) {
-      const tag = await TagStorage.getDefaultUserTag(tenant, foundUser.id);
-      if (!tag) {
-        throw new AppError({
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `User '${foundUser.id}' does not have any badge`,
-          module: MODULE_NAME, method: 'handleUserScanPay',
-          user: foundUser
-        });
-      }
-      tag.user = foundUser;
-      return tag;
-    }
     const locale = filteredRequest.locale ?? Constants.DEFAULT_LOCALE;
     // Create
     const newUser = UserStorage.createNewUser();

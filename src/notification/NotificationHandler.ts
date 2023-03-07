@@ -205,7 +205,11 @@ export default class NotificationHandler {
                     }
                   });
                 // Send
-                await notificationSource.notificationTask.sendEndOfSession(sourceData, user, tenant, NotificationSeverity.INFO);
+                if (user.role === UserRole.EXTERNAL) {
+                  await notificationSource.notificationTask.sendScanPayEndOfSession(sourceData, user, tenant, NotificationSeverity.INFO);
+                } else {
+                  await notificationSource.notificationTask.sendEndOfSession(sourceData, user, tenant, NotificationSeverity.INFO);
+                }
               }
             } else {
               await Logging.logDebug({

@@ -3414,6 +3414,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         action: [Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION, Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE]
 
       },
+      {
+        resource: Entity.TRANSACTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+      },
     ]
   },
 };

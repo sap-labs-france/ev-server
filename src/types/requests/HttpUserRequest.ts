@@ -77,6 +77,7 @@ export interface HttpLoginRequest {
   email: string;
   password: string;
   acceptEula: boolean;
+  verificationToken?: string;
 }
 
 export interface HttpResetPasswordRequest {
