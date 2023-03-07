@@ -78,6 +78,12 @@ export default class EMailNotificationTask implements NotificationTask {
     return await this.prepareAndSendEmail('end-of-session', data, user, tenant, severity, optionalComponents);
   }
 
+  public async sendScanPayEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
+    data.buttonUrl = data.evseStopScanPayTransactionURL;
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
+    return await this.prepareAndSendEmail('scan-pay-end-of-session', data, user, tenant, severity, optionalComponents);
+  }
+
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
     const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_EICHRECHT_TABLE)];
@@ -192,8 +198,13 @@ export default class EMailNotificationTask implements NotificationTask {
     const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
     let templateName: string;
     if (data.invoiceStatus === 'paid') {
-      data.buttonUrl = data.invoiceDownloadUrl;
-      templateName = 'billing-new-invoice-paid';
+      if (user.role === UserRole.EXTERNAL) {
+        data.buttonUrl = data.evseScanPayBillingURL;
+        templateName = 'billing-new-scan-pay-invoice-paid';
+      } else {
+        data.buttonUrl = data.invoiceDownloadUrl;
+        templateName = 'billing-new-invoice-paid';
+      }
     } else {
       data.buttonUrl = data.payInvoiceUrl;
       templateName = 'billing-new-invoice-unpaid';

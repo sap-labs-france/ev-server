@@ -200,7 +200,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return {};
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async sendScanPayEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
+    return Promise.resolve({});
+  }
+
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     return Promise.resolve({});
   }

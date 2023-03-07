@@ -54,7 +54,7 @@ export default class NotificationHelper {
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
           'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
-          'evseStopScanPayTransactionURL': Utils.buildEvseScanPayStopTransactionURL(tenant.subdomain, transaction.id, user.verificationToken, encodeURIComponent(user.email))
+          'evseStopScanPayTransactionURL': Utils.buildEvseScanPayStopTransactionURL(tenant.subdomain, transaction.id, user.email, user.verificationToken)
         }
       );
     }

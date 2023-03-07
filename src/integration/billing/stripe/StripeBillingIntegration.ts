@@ -488,9 +488,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
           || stripeInvoice.status === BillingInvoiceStatus.UNCOLLECTIBLE) {
           if (lastPaymentIntentID) {
             const paymentIntent = await this.stripe.paymentIntents.retrieve(lastPaymentIntentID as string);
-            await this.capturePayment(user, stripeInvoice.amount_due < paymentIntent.amount ? stripeInvoice.amount_due : paymentIntent.amount , lastPaymentIntentID as string);
-            // Set the payment options
-            paymentOptions.paid_out_of_band = true;
+            paymentOptions.payment_method = paymentIntent.payment_method as string;
+            if (stripeInvoice.amount_due <= paymentIntent.amount) {
+              await this.capturePayment(user, stripeInvoice.amount_due, lastPaymentIntentID as string);
+              paymentOptions.paid_out_of_band = true;
+            }
           }
           stripeInvoice = await this.stripe.invoices.pay(invoiceID, paymentOptions);
         }
@@ -896,7 +898,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Let's create a paymentIntent for the stripe customer
       const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.create({
         customer: customerID,
-        amount: 10000,
+        amount: 500,
         currency: 'EUR',
         // off_session: true,
         setup_future_usage: 'off_session',

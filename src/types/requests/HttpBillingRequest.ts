@@ -93,12 +93,10 @@ export interface HttpBillingScanPayRequest {
 }
 
 export interface HttpBillingScanPayStopTransactionRequest {
-  transactionId: number;
+  ID: number;
   email: string;
-  subdomain: string;
 }
 
 export interface HttpBillingScanPayTransactionRequest {
-  transactionId: number;
-  subdomain: string;
+  ID: number;
 }

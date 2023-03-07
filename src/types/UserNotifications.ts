@@ -159,6 +159,7 @@ export interface EndOfSessionNotification extends BaseNotification {
   totalDuration: string;
   evseDashboardChargingStationURL: string;
   evseDashboardURL: string;
+  evseStopScanPayTransactionURL?: string;
 }
 
 export interface EndOfSignedSessionNotification extends BaseNotification {
@@ -325,6 +326,7 @@ export interface BillingNewInvoiceNotification extends BaseNotification {
   invoiceNumber: string;
   invoiceAmount: string;
   invoiceStatus: string;
+  evseScanPayBillingURL?: string;
 }
 
 export interface BillingAccountCreationLinkNotification extends BaseNotification {
