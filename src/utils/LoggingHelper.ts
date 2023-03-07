@@ -1,6 +1,7 @@
+import ChargingStation, { ChargingStationTemplate } from '../types/ChargingStation';
+
 import Asset from '../types/Asset';
 import { Car } from '../types/Car';
-import ChargingStation from '../types/ChargingStation';
 import { PricingContext } from '../types/Pricing';
 import RegistrationToken from '../types/RegistrationToken';
 import Site from '../types/Site';
@@ -108,6 +109,24 @@ export default class LoggingHelper {
       carID: transaction?.carID || transaction?.car?.id,
       lastConsumptionTimestamp: transaction?.lastConsumption?.timestamp,
       stopTimestamp: transaction?.stop?.timestamp
+    };
+  }
+
+  public static shrinkChargingStationProperties(chargingStation: ChargingStation) {
+    return {
+      id: chargingStation?.id,
+      chargePointVendor: chargingStation?.chargePointVendor,
+      chargePointModel: chargingStation?.chargePointModel,
+      chargePointSerialNumber: chargingStation?.chargePointSerialNumber,
+      firmwareVersion: chargingStation?.firmwareVersion,
+    };
+  }
+
+  public static shrinkTemplateProperties(templateContainer: ChargingStationTemplate) {
+    return {
+      id: templateContainer?.id,
+      chargePointVendor: templateContainer?.template?.chargePointVendor,
+      extraFilters: templateContainer?.template?.extraFilters,
     };
   }
 }
