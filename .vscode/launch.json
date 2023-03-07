@@ -4,6 +4,7 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
     {
       "type": "node",
       "name": "vscode-jest-tests",
@@ -100,9 +101,26 @@
       ],
       "stopOnEntry": true
     },
-
-
-
+    {
+      "name": "start:dev:debug:batch",
+      "type": "pwa-node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run-script",
+        "start:dev:debug:batch"
+      ],
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "stopOnEntry": true
+    },
     {
       "name": "Debug Tests 'createContext'",
       "type": "pwa-node",
