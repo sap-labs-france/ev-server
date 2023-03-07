@@ -119,7 +119,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       this.tenant, { chargingStationIDs: chargingStationIDs, profilePurposeType:  ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
     const currentChargingProfiles = currentChargingProfilesResponse.result;
     // Get all transactions of the site areas
-    const transactions = await TransactionStorage.getTransactions(this.tenant, { transactionIDs, withCar: true }, Constants.DB_PARAMS_MAX_LIMIT);
+    const transactions = await TransactionStorage.getTransactions(this.tenant, { transactionIDs, withSmartChargingData: true }, Constants.DB_PARAMS_MAX_LIMIT);
     // Build request
     const request = await this.buildOptimizerRequest(rootSiteArea, excludedChargingStations, false, currentChargingProfiles, transactions.result);
     // Call optimizer
