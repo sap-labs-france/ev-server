@@ -517,7 +517,7 @@ export default class OCPPService {
       // Save the transaction
       await TransactionStorage.saveTransaction(tenant, transaction);
       // Notify
-      NotificationHelper.notifyStopTransaction(tenant, chargingStation, transaction, user, alternateUser);
+      NotificationHelper.notifyStopTransaction(tenant, transaction, chargingStation, user, alternateUser);
       // Recompute the Smart Charging Plan
       await this.triggerSmartChargingStopTransaction(tenant, chargingStation, transaction);
       // Check Connector Status
@@ -1232,11 +1232,11 @@ export default class OCPPService {
         // Check if battery is full (100%)
         if (transaction.currentStateOfCharge === 100) {
           // Send Notification
-          NotificationHelper.notifyEndOfCharge(tenant, chargingStation, transaction);
+          NotificationHelper.notifyEndOfCharge(tenant, transaction, chargingStation, transaction.user);
           // Check if optimal charge has been reached (85%)
         } else if (transaction.currentStateOfCharge >= this.chargingStationConfig.notifBeforeEndOfChargePercent) {
           // Send Notification
-          NotificationHelper.notifyOptimalChargeReached(tenant, chargingStation, transaction);
+          NotificationHelper.notifyOptimalChargeReached(tenant, transaction, chargingStation, transaction.user);
         }
         // No battery information: check last consumptions
       } else {
@@ -1255,7 +1255,7 @@ export default class OCPPService {
                 consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)));
             // Send Notification
             if (noConsumption) {
-              NotificationHelper.notifyEndOfCharge(tenant, chargingStation, transaction);
+              NotificationHelper.notifyEndOfCharge(tenant, transaction, chargingStation, transaction.user);
             }
           }
         }
@@ -1728,21 +1728,10 @@ export default class OCPPService {
   }
 
   private notifyBootNotification(tenant: Tenant, chargingStation: ChargingStation) {
-    NotificationHandler.sendChargingStationRegistered(
+    NotificationHelper.sendChargingStationRegistered(
       tenant,
-      Utils.generateUUID(),
       chargingStation,
-      {
-        chargeBoxID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-        evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#all')
-      }
-    ).catch((error) => {
-      Logging.logPromiseError(error, tenant?.id);
-    });
+    );
   }
 
   private enrichAuthorize(user: User, chargingStation: ChargingStation, headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended) {
@@ -1822,10 +1811,8 @@ export default class OCPPService {
       tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
     if (!transaction) {
       // Abort the ongoing Transaction
-      if (meterValues.transactionId) {
-        await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
-      }
-      // Unkown Transaction
+      await this.abortOngoingTransactionInMeterValues(tenant, chargingStation, meterValues);
+      // Unknown Transaction
       throw new BackendError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',

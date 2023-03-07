@@ -72,7 +72,14 @@ export class CommonUtilsService {
         return { user };
       }
       // Notify
-      void Authorizations.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
+      Authorizations.notifyUnknownBadgeHasBeenUsed(action, tenant, tagID, chargingStation);
+      // Abort
+      throw new BackendError({
+        ...LoggingHelper.getChargingStationProperties(chargingStation),
+        action,
+        module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
+        message: `Tag ID '${tagID}' is unknown`
+      });
     }
     // Get Authorized User
     const user = await CommonUtilsService.checkAndGetAuthorizedUserFromTag(action, tenant, chargingStation, transaction, tag, authAction);
