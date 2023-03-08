@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { AccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
 import User, { UserStatus } from '../../types/User';
 
@@ -15,36 +16,42 @@ import admin from 'firebase-admin';
 const MODULE_NAME = 'RemotePushNotificationTask';
 
 export default class RemotePushNotificationTask implements NotificationTask {
-  private firebaseConfig = Configuration.getFirebaseConfig();
-  private defaultApp: admin.app.App;
-  private alternativeApp: admin.app.App;
-  private tenantFirebaseApps: Map<string, admin.app.App> = new Map();
-  private initialized = false;
+  private static firebaseConfig = Configuration.getFirebaseConfig();
+  private static defaultApp: admin.app.App;
+  private static alternativeApp: admin.app.App;
+  private static tenantFirebaseApps: Map<string, admin.app.App> = new Map();
+  private static initialized = false;
 
   public constructor() {
-    if (this.firebaseConfig?.type?.length > 0) {
+    if (!RemotePushNotificationTask.initialized) {
+      RemotePushNotificationTask.initialize();
+    }
+  }
+
+  private static initialize() {
+    if (RemotePushNotificationTask.firebaseConfig?.type?.length > 0) {
       try {
         // Init default conf
-        this.defaultApp = admin.initializeApp({
+        RemotePushNotificationTask.defaultApp = admin.initializeApp({
           credential: admin.credential.cert({
-            projectId: this.firebaseConfig.projectID,
-            clientEmail: this.firebaseConfig.clientEmail,
-            privateKey: this.firebaseConfig.privateKey
+            projectId: RemotePushNotificationTask.firebaseConfig.projectID,
+            clientEmail: RemotePushNotificationTask.firebaseConfig.clientEmail,
+            privateKey: RemotePushNotificationTask.firebaseConfig.privateKey
           })
         });
         // Init alternative conf
-        if (this.firebaseConfig.alternativeConfiguration) {
-          this.alternativeApp = admin.initializeApp({
+        if (RemotePushNotificationTask.firebaseConfig.alternativeConfiguration) {
+          RemotePushNotificationTask.alternativeApp = admin.initializeApp({
             credential: admin.credential.cert({
-              projectId: this.firebaseConfig.alternativeConfiguration.projectID,
-              clientEmail: this.firebaseConfig.alternativeConfiguration.clientEmail,
-              privateKey: this.firebaseConfig.alternativeConfiguration.privateKey
+              projectId: RemotePushNotificationTask.firebaseConfig.alternativeConfiguration.projectID,
+              clientEmail: RemotePushNotificationTask.firebaseConfig.alternativeConfiguration.clientEmail,
+              privateKey: RemotePushNotificationTask.firebaseConfig.alternativeConfiguration.privateKey
             })
           }, 'alternativeApp');
         }
         // Init tenant conf
-        if (!Utils.isEmptyArray(this.firebaseConfig.tenants)) {
-          for (const tenantConfig of this.firebaseConfig.tenants) {
+        if (!Utils.isEmptyArray(RemotePushNotificationTask.firebaseConfig.tenants)) {
+          for (const tenantConfig of RemotePushNotificationTask.firebaseConfig.tenants) {
             // Create the app
             const app = admin.initializeApp({
               credential: admin.credential.cert({
@@ -57,7 +64,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             this.tenantFirebaseApps.set(tenantConfig.tenantID, app);
           }
         }
-        this.initialized = true;
+        RemotePushNotificationTask.initialized = true;
       } catch (error) {
         Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
@@ -133,10 +140,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return {};
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     return Promise.resolve({});
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendRequestPassword(data: RequestPasswordNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     return Promise.resolve({});
   }
@@ -192,10 +201,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return {};
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     return Promise.resolve({});
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendCarCatalogSynchronizationFailed(data: CarCatalogSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     return Promise.resolve({});
   }
@@ -293,10 +304,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return {};
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     return Promise.resolve({});
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     return Promise.resolve({});
   }
@@ -471,11 +484,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
     let startTime: number;
     let message = {} as admin.messaging.MessagingPayload;
     try {
-      startTime = Logging.traceNotificationStart();
-      // Checks
-      if (!this.initialized) {
+      // Checks consistency
+      if (!RemotePushNotificationTask.initialized) {
         return Promise.resolve();
       }
+      // Do it
+      startTime = Logging.traceNotificationStart();
       if (!user?.mobileData?.mobileToken) {
         Logging.beDebug()?.log({
           tenantID: tenant.id,
@@ -582,13 +596,13 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   private getFirebaseAppsFromTenant(tenant: Tenant): Array<admin.app.App> {
-    const apps = [this.defaultApp];
-    const tenantApp = this.tenantFirebaseApps.get(tenant.id);
+    const apps = [RemotePushNotificationTask.defaultApp];
+    const tenantApp = RemotePushNotificationTask.tenantFirebaseApps.get(tenant.id);
     if (tenantApp) {
       return [tenantApp];
     }
-    if (this.alternativeApp) {
-      apps.push(this.alternativeApp);
+    if (RemotePushNotificationTask.alternativeApp) {
+      apps.push(RemotePushNotificationTask.alternativeApp);
     }
     return apps;
   }

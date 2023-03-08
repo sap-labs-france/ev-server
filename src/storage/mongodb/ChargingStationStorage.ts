@@ -135,7 +135,7 @@ export default class ChargingStationStorage {
         connectorStatuses?: ChargePointStatus[]; connectorTypes?: ConnectorType[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
         ocpiEvseUid?: string; ocpiLocationID?: string; oicpEvseID?: string;
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
-        locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean; manualConfiguration?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<ChargingStationDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -180,8 +180,12 @@ export default class ChargingStationStorage {
       filters.deleted = { '$ne': true };
     }
     // Public Charging Stations
-    if (Utils.objectHasProperty(params, 'public') && Utils.isBoolean(params.public)) {
+    if (Utils.isBoolean(params.public)) {
       filters.public = params.public;
+    }
+    // Charging Station
+    if (Utils.isBoolean(params.manualConfiguration)) {
+      filters.manualConfiguration = params.manualConfiguration;
     }
     // Charging Stations
     if (!Utils.isEmptyArray(params.chargingStationIDs)) {

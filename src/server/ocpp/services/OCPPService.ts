@@ -1724,21 +1724,10 @@ export default class OCPPService {
   }
 
   private notifyBootNotification(tenant: Tenant, chargingStation: ChargingStation) {
-    NotificationHandler.sendChargingStationRegistered(
+    NotificationHelper.sendChargingStationRegistered(
       tenant,
-      Utils.generateUUID(),
       chargingStation,
-      {
-        chargeBoxID: chargingStation.id,
-        siteID: chargingStation.siteID,
-        siteAreaID: chargingStation.siteAreaID,
-        companyID: chargingStation.companyID,
-        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-        evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#all')
-      }
-    ).catch((error) => {
-      Logging.logPromiseError(error, tenant?.id);
-    });
+    );
   }
 
   private enrichAuthorize(user: User, chargingStation: ChargingStation, headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended) {
