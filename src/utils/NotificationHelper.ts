@@ -297,7 +297,7 @@ export class SessionNotificationHelper extends ChargerNotificationHelper {
       totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
       stateOfCharge: transaction.currentStateOfCharge,
       totalDuration: Utils.transactionDurationToString(transaction),
-      evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+      evseDashboardChargingStationURL: user.role === UserRole.EXTERNAL ? Utils.buildEvseScanPayStopTransactionURL(tenant.subdomain, transaction.id, user.email, user.verificationToken) : Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
       evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
     };
     // Do it
@@ -334,7 +334,7 @@ export class SessionNotificationHelper extends ChargerNotificationHelper {
       connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
       totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
       stateOfCharge: transaction.currentStateOfCharge,
-      evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+      evseDashboardChargingStationURL: user.role === UserRole.EXTERNAL ? Utils.buildEvseScanPayStopTransactionURL(tenant.subdomain, transaction.id, user.email, user.verificationToken) : Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
       evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
     };
       // Do it
@@ -374,7 +374,7 @@ export class SessionNotificationHelper extends ChargerNotificationHelper {
       totalDuration: Utils.transactionDurationToString(transaction),
       totalInactivity: this.transactionInactivityToString(),
       stateOfCharge: transaction.stop.stateOfCharge,
-      evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
+      evseDashboardChargingStationURL: user.role === UserRole.EXTERNAL ? Utils.buildEvseScanPayStopTransactionURL(tenant.subdomain, transaction.id, user.email, user.verificationToken) : Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
       evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
     };
       // Do it
