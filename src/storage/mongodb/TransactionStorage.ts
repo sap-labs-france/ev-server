@@ -328,7 +328,7 @@ export default class TransactionStorage {
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
         statistics?: TransactionStatisticsType; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
-        transactionsToStop?: boolean; siteOwnerIDs?: string[];
+        transactionsToStop?: boolean; siteOwnerIDs?: string[]; withSmartChargingData?: boolean
       },
       dbParams: DbParams, projectFields?: string[]): Promise<TransactionDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -751,6 +751,17 @@ export default class TransactionStorage {
       DatabaseUtils.pushCarCatalogLookupInAggregation({
         tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
         foreignField: '_id', oneToOneCardinality: true
+      });
+    }
+    // Smart Charging Data
+    if (params.withSmartChargingData) {
+      DatabaseUtils.pushCarLookupInAggregation({
+        tenantID: tenant.id, aggregation: aggregation, asField: 'car', localField: 'carID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false, projectFields:['converter.amperagePerPhase']
+      });
+      DatabaseUtils.pushCarCatalogLookupInAggregation({
+        tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+        foreignField: '_id', oneToOneCardinality: true, projectFields:['fastChargePowerMax', 'batteryCapacityFull']
       });
     }
     // Rename ID

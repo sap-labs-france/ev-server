@@ -1530,13 +1530,12 @@ export default class OCPPUtils {
     if (chargingStationTemplate) {
       // Already updated?
       if (chargingStation.templateHash !== chargingStationTemplate.hash) {
-        await Logging.logInfo({
+        await Logging.logDebug({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-          message: `Template ID '${chargingStationTemplate.id}' is been applied...`,
-          detailedMessages: { chargingStationTemplate, chargingStation }
+          message: `Template ID '${chargingStationTemplate.id}' is being applied...`
         });
         // Check Technical
         templateUpdateResult.technicalUpdated =
@@ -1559,16 +1558,21 @@ export default class OCPPUtils {
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
           message: `Template ID '${chargingStationTemplate.id}' has been applied with success`,
-          detailedMessages: { templateUpdateResult, chargingStationTemplate, chargingStation }
+          detailedMessages: {
+            templateUpdateResult,
+            templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate),
+          }
         });
       } else {
-        await Logging.logInfo({
+        await Logging.logDebug({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
           message: `Template ID '${chargingStationTemplate.id}' has already been applied`,
-          detailedMessages: { chargingStationTemplate, chargingStation }
+          detailedMessages: {
+            templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate)
+          }
         });
       }
       // Master/Slave: always override the charge point
@@ -1583,10 +1587,12 @@ export default class OCPPUtils {
         tenantID: tenant.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-        message: 'No Template has been found for this Charging Station',
-        detailedMessages: { chargingStation }
+        message: 'No template has been found',
+        detailedMessages: {
+          chargingStationData: LoggingHelper.shrinkChargingStationProperties(chargingStation)
+        }
       });
-      chargingStation.manualConfiguration = true;
+      chargingStation.manualConfiguration = true; // To be clarified! - Why is this changed here???
     }
     return templateUpdateResult;
   }
