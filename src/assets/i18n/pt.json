@@ -260,31 +260,6 @@
         }
       ]
     },
-    "scan-pay-end-of-session": {
-      "title": "Session Finished",
-      "buttonText": "View Session",
-      "text": [
-        "Your session on the charging station {{chargeBoxID}}, connector {{connectorId}} has just finished."
-      ],
-      "table": [
-        {
-          "label": "Consumption",
-          "value": "{{totalConsumption}} kW.h"
-        },
-        {
-          "label": "Total Duration",
-          "value": "{{totalDuration}}"
-        },
-        {
-          "label": "Total Inactivity",
-          "value": "{{totalInactivity}}"
-        },
-        {
-          "label": "State of Charge",
-          "value": "{{stateOfCharge}} %"
-        }
-      ]
-    },
     "end-of-signed-session": {
       "title": "Session Finished - Signed Session",
       "buttonText": "View Session",
@@ -330,19 +305,6 @@
       ]
     },
     "billing-new-invoice-paid": {
-      "title": "Billing - Paid Invoice",
-      "buttonText": "Download Invoice",
-      "text": [
-        "Your invoice {{invoiceNumber}} has been paid and the corresponding document can now be downloaded."
-      ],
-      "table": [
-        {
-          "label": "Amount Paid",
-          "value": "{{invoiceAmount}}"
-        }
-      ]
-    },
-    "billing-new-scan-pay-invoice-paid": {
       "title": "Billing - Paid Invoice",
       "buttonText": "Download Invoice",
       "text": [
@@ -575,6 +537,13 @@
         "Your email has been successfully verified.",
         "",
         "An administrator will soon check and activate your account."
+      ]
+    },
+    "scan-pay-account-verification-notification": {
+      "title": "Verify your email and proceed to charging",
+      "buttonText": "Proceed to charging",
+      "text": [
+        "Click on the link below to verify your email and proceed to charging."
       ]
     },
     "admin-account-verification-notification": {

@@ -3619,6 +3619,16 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           }
         },
       },
+      {
+        resource: Entity.INVOICE, action: Action.DOWNLOAD,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+      },
     ]
   },
 };

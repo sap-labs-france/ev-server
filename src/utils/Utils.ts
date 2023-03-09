@@ -984,8 +984,12 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenant.subdomain)}/auth/account-onboarding?TenantID=${tenant.id}&AccountID=${billingAccountID}`;
   }
 
-  public static buildEvseScanPayStopTransactionURL(tenantSubdomain: string, transactionID: number, email: string, password: string,): string {
-    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/stop/${transactionID}/${encodeURIComponent(email)}/${encodeURIComponent(password)}`;
+  public static buildEvseScanPayStopTransactionURL(tenantSubdomain: string, transactionID: number, email: string, verificationToken: string,): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/stop/${transactionID}/${encodeURIComponent(email)}/${encodeURIComponent(verificationToken)}`;
+  }
+
+  public static buildEvseScanPayInvoiceDownloadURL(tenantSubdomain: string, billingInvoiceID: string, user: User): string {
+    return `${Utils.buildEvseURL(tenantSubdomain) + '/auth/scan-pay/' + billingInvoiceID + '/download?VerificationToken=' + encodeURIComponent(user.verificationToken) + '&email=' + encodeURIComponent(user.email)}`;
   }
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {

@@ -195,7 +195,7 @@ export default abstract class BillingIntegration {
             invoiceAmount: invoiceAmount,
             invoiceNumber: billingInvoice.number,
             invoiceStatus: billingInvoice.status,
-            evseScanPayBillingURL: Utils.buildEvseURL(this.tenant.subdomain) + '/invoices/' + billingInvoice.id + '/download?VerificationToken=' + encodeURIComponent(user.password),
+            evseScanPayInvoiceDownloadURL: Utils.buildEvseScanPayInvoiceDownloadURL(this.tenant.subdomain, billingInvoice.id, user),
           }
         ).catch((error) => {
           Logging.logPromiseError(error, this.tenant?.id);
