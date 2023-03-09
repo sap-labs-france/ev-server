@@ -1729,7 +1729,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           // More info at: https://stripe.com/docs/connect/accounts
           type: 'express',
           capabilities: {
-            // card_payments: { requested: true },
+            card_payments: { requested: true },
             transfers: { requested: true }
           }
         });

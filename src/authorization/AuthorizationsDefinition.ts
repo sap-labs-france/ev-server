@@ -3380,6 +3380,97 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
       },
       {
+        resource: Entity.CHARGING_STATION,
+        action: [
+          Action.UPDATE_CHARGING_PROFILE, Action.SET_CHARGING_PROFILE, Action.CLEAR_CHARGING_PROFILE, Action.DELETE_CHARGING_PROFILE, Action.LIMIT_POWER,
+          Action.GET_COMPOSITE_SCHEDULE
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        }
+      },
+      {
+        resource: Entity.CHARGING_PROFILE, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        },
+        attributes: [
+          'id', 'chargingStationID', 'chargePointID', 'connectorID',
+          'chargingStation.id', 'chargingStation.siteID', 'chargingStation.siteAreaID',
+          'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower','chargingStation.siteArea.siteID',
+          'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel', 'profile.chargingSchedule'
+        ]
+      },
+      {
+        resource: Entity.CHARGING_PROFILE, action: [Action.CREATE, Action.UPDATE, Action.DELETE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        }
+      },
+      {
+        resource: Entity.CHARGING_PROFILE, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        },
+      },
+      {
+        resource: Entity.SITE_AREA,
+        action: [
+          Action.UPDATE
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        },
+      },
+      {
+        resource: Entity.LOGGING, action: [Action.LIST, Action.EXPORT],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        },
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'method', 'module',
+        ]
+      },
+      {
+        resource: Entity.LOGGING, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['SitesOwner']
+          }
+        },
+        attributes: [
+          'id', 'level', 'timestamp', 'type', 'source', 'host', 'action', 'message', 'chargingStationID', 'siteID',
+          'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
+        ]
+      },
+      {
         resource: Entity.CONSUMPTION, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizations',

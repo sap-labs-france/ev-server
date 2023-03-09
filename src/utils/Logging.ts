@@ -2,8 +2,8 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Log, LogLevel } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
 import PerformanceRecord, { PerformanceRecordGroup, PerformanceTracingData } from '../types/Performance';
+import global, { ActionsResponse } from '../types/GlobalType';
 
-import { ActionsResponse } from '../types/GlobalType';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
@@ -97,6 +97,7 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
+      const labelValues = { tenant: tenant.subdomain, module: module, method: method };
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -106,7 +107,7 @@ export default class Logging {
           resSizeKb: sizeOfResponseDataKB,
           egress: true,
           action: `${module}.${method}`
-        })
+        }), labelValues
       );
     }
   }
@@ -143,6 +144,7 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
+      const labelValues = { tenant: tenant.subdomain, module: module, method: method, userid:userID, templateName: templateName };
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -153,7 +155,8 @@ export default class Logging {
           egress: true,
           action: `${module}.${method}.${templateName}`,
           userID
-        })
+        }),
+        labelValues
       );
     }
   }
@@ -178,7 +181,16 @@ export default class Logging {
 
   public static async logError(log: Log): Promise<string> {
     log.level = LogLevel.ERROR;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    if ((global.tenantIdMap) && Utils.isMonitoringEnabled()) { // hack for unit test
+      const subDomain = global.tenantIdMap.get(log.tenantID);
+      if (log.tenantID && !subDomain) {
+        // Nothing to do - tenant has just been created - so not yet in the cache
+      } else {
+        const labelValues = { tenant: subDomain, chargingstation: log.chargingStationID, serverAction: log.action };
+        const errorMetric = global.monitoringServer.getCounterClearableMetric('logging', 'error', 'Number of errors', labelValues);
+        errorMetric.inc();
+      }
+    }
     return Logging.log(log);
   }
 
@@ -328,6 +340,7 @@ export default class Logging {
         const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
           sizeof({ headers: req.headers, query: req.query, body: req.body })
         ).div(1024).toNumber(), 2);
+        const labelValues = { tenant: tenantSubdomain };
         const performanceID = await PerformanceStorage.savePerformanceRecord(
           Utils.buildPerformanceRecord({
             tenantSubdomain,
@@ -337,7 +350,8 @@ export default class Logging {
             egress: false,
             reqSizeKb: sizeOfRequestDataKB,
             action: ServerAction.HTTP_REQUEST,
-          })
+          }),
+          labelValues
         );
         const message = `Express HTTP Request - '${Utils.last5Chars(performanceID)}' << Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB << ${req.method} '${req.url}'`;
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
@@ -367,7 +381,7 @@ export default class Logging {
           next();
         }
       }
-    // Express call does not provide action
+      // Express call does not provide action
     } else if (!action) {
       next();
     }
@@ -445,7 +459,7 @@ export default class Logging {
             durationMs: executionDurationMillis,
             resSizeKb: sizeOfResponseDataKB,
           } as PerformanceRecord;
-          await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+          await PerformanceStorage.updatePerformanceRecord(performanceRecord, null);
         }
       });
     }
@@ -469,6 +483,8 @@ export default class Logging {
       // Compute Length
       const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof(request)).div(1024).toNumber(), 2);
+
+      const labelValues = { tenant: tenant.subdomain };
       const performanceID = await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -478,7 +494,8 @@ export default class Logging {
           egress: true,
           reqSizeKb: sizeOfRequestDataKB,
           action: Utils.getAxiosActionFromURL(request.url),
-        })
+        }),
+        labelValues
       );
       const message = `Axios HTTP Request - '${Utils.last5Chars(performanceID)}' >> Req ${(sizeOfRequestDataKB > 0) ? sizeOfRequestDataKB : '?'} KB - ${request.method.toLocaleUpperCase()} '${request.url}'`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
@@ -562,13 +579,14 @@ export default class Logging {
           }
         });
         if (response.config['performanceID']) {
+          const labelValues = { tenant: tenant.subdomain };
           const performanceRecord = {
             id: response.config['performanceID'],
             httpResponseCode: response.status,
             durationMs: executionDurationMillis,
             resSizeKb: sizeOfResponseDataKB,
           } as PerformanceRecord;
-          await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+          await PerformanceStorage.updatePerformanceRecord(performanceRecord, labelValues);
         }
       } catch (error) {
         await Logging.logDebug({
@@ -589,7 +607,7 @@ export default class Logging {
     // Error handling is done outside to get the proper module information
     await Logging.logError({
       tenantID: tenant.id,
-      action: Utils.getAxiosActionFromURL(error.config.url),
+      action: Utils.getAxiosActionFromURL(error.config?.url),
       message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
       module: Constants.MODULE_AXIOS, method: 'interceptor',
       detailedMessages: {
@@ -612,13 +630,14 @@ export default class Logging {
           sizeOfResponseDataKB = Utils.truncTo(
             Utils.createDecimal(sizeof(error.response?.data)).div(1024).toNumber(), 2);
         }
+        const labelValues = { tenant: tenant.subdomain };
         const performanceRecord = {
           id: error.response?.config['performanceID'],
           httpResponseCode: error.response?.status,
           durationMs: executionDurationMillis,
           resSizeKb: sizeOfResponseDataKB,
         } as PerformanceRecord;
-        await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+        await PerformanceStorage.updatePerformanceRecord(performanceRecord, labelValues);
       }
     }
   }
@@ -699,6 +718,7 @@ export default class Logging {
       // Compute size
       const sizeOfRequestDataKB = Utils.truncTo(Utils.createDecimal(
         sizeof(request)).div(1024).toNumber(), 2);
+      const labelValues = { tenant: tenant.subdomain, module: module };
       const performanceID = await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantSubdomain: tenant.subdomain,
@@ -707,7 +727,8 @@ export default class Logging {
           reqSizeKb: sizeOfRequestDataKB,
           egress: direction === '<<' ? true : false,
           action
-        })
+        }),
+        labelValues
       );
       const message = `${direction} OCPP Request '${action}~${Utils.last5Chars(performanceID)}' on '${chargingStationID}' has been ${direction === '>>' ? 'received' : 'sent'} - Req ${sizeOfRequestDataKB} KB`;
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
@@ -754,6 +775,7 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
+      const labelValues = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
       if (response && response['status'] === OCPPStatus.REJECTED) {
         await Logging.logError({
           tenantID: tenant?.id,
@@ -781,9 +803,19 @@ export default class Logging {
           durationMs: executionDurationMillis,
           resSizeKb: sizeOfResponseDataKB,
         } as PerformanceRecord;
-        await PerformanceStorage.updatePerformanceRecord(performanceRecord);
+        await PerformanceStorage.updatePerformanceRecord(performanceRecord, labelValues);
       }
     }
+  }
+
+  public static logPromiseError(error, tenantID?: string): void {
+    Logging.logError({
+      tenantID,
+      action: ServerAction.UNKNOWN_ACTION,
+      module: MODULE_NAME, method: 'logPromiseError',
+      message: 'Unexpected error in floating promise',
+      detailedMessages: { error: error.stack }
+    }).catch(() => { /* Intentional */ });
   }
 
   private static async logActionException(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): Promise<void> {
@@ -898,9 +930,10 @@ export default class Logging {
     // Check Log Level
     const logConfig = Logging.getConfiguration();
     // Default Log Level
-    const logLevel = logConfig.logLevel ? logConfig.logLevel : LogLevel.DEBUG;
+    const logLevelAsString = logConfig.logLevel ? logConfig.logLevel : 'D';
+    const logLevel = logLevelAsString as LogLevel;
     // Log Level
-    switch (LogLevel[logLevel]) {
+    switch (logLevel) {
       // No log at all
       case LogLevel.NONE:
         return;
@@ -943,10 +976,6 @@ export default class Logging {
       }
       // Format
       log.detailedMessages = Logging.format(log.detailedMessages);
-    }
-    // First char always in Uppercase
-    if (typeof log.message === 'string' && log.message && log.message.length > 0) {
-      log.message = log.message[0].toUpperCase() + log.message.substring(1);
     }
     if (!log.tenantID || log.tenantID === '') {
       log.tenantID = Constants.DEFAULT_TENANT_ID;

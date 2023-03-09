@@ -14,7 +14,7 @@ export default class Constants {
   public static readonly CR_LF = '\r\n';
 
   public static readonly PERF_MAX_DATA_VOLUME_KB = 512;
-  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 1000;
+  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 3000;
 
   public static readonly AXIOS_DEFAULT_TIMEOUT_SECS = 30;
 
@@ -38,8 +38,8 @@ export default class Constants {
   public static readonly EXPORT_PAGE_SIZE = 1000;
   public static readonly EXPORT_RECORD_MAX_COUNT = 100000;
   public static readonly IMPORT_PAGE_SIZE = 1000;
-  public static readonly IMPORT_BATCH_INSERT_SIZE = 250;
-  public static readonly BATCH_PAGE_SIZE = 1000;
+  public static readonly IMPORT_BATCH_INSERT_SIZE = 256;
+  public static readonly BATCH_PAGE_SIZE = 256;
 
   public static readonly SFDP_LATTITUDE = 43.585784;
   public static readonly SFDP_LONGITUDE = 7.0377592;
@@ -474,8 +474,10 @@ export default class Constants {
   public static readonly STRIPE_PARTNER_ID = 'TECH-000685';
   public static readonly STRIPE_API_VERSION = '2020-08-27';
 
+  public static readonly WEB_SOCKET_OCPP_NEW_CONNECTIONS_COUNT = 'web_socket_ocpp_new_connections_count';
+  public static readonly WEB_SOCKET_OCPP_CLOSED_CONNECTIONS_COUNT = 'web_socket_ocpp_closed_connections_count';
   public static readonly WEB_SOCKET_OCPP_CONNECTIONS_COUNT = 'web_socket_ocpp_connections_count';
-  public static readonly WEB_SOCKET_CURRRENT_REQUEST = 'web_socket_current_request';
+  public static readonly WEB_SOCKET_CURRENT_REQUEST = 'web_socket_current_request';
   public static readonly WEB_SOCKET_REST_CONNECTIONS_COUNT = 'web_socket_rest_connections_count';
   public static readonly WEB_SOCKET_RUNNING_REQUEST = 'web_socket_running_request';
   public static readonly WEB_SOCKET_RUNNING_REQUEST_RESPONSE = 'web_socket_running_request_response';

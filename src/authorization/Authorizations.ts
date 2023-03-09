@@ -821,18 +821,10 @@ export default class Authorizations {
     }
   }
 
-  public static notifyUnknownBadgeHasBeenUsedAndAbort(
+  public static notifyUnknownBadgeHasBeenUsed(
       action: ServerAction, tenant: Tenant, tagID: string, chargingStation: ChargingStation) {
-    const tag: Tag = {
-      id: tagID,
-      description: `Badged on '${chargingStation.id}'`,
-      issuer: true,
-      active: false,
-      createdOn: new Date(),
-      default: false
-    };
     // Notify (Async)
-    void NotificationHandler.sendUnknownUserBadged(
+    NotificationHandler.sendUnknownUserBadged(
       tenant,
       Utils.generateUUID(),
       chargingStation,
@@ -844,13 +836,8 @@ export default class Authorizations {
         badgeID: tagID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
       }
-    );
-    throw new BackendError({
-      ...LoggingHelper.getChargingStationProperties(chargingStation),
-      action: action,
-      module: MODULE_NAME, method: 'notifyUnknownBadgeHasBeenUsedAndAbort',
-      message: `Tag ID '${tagID}' is unknown`,
-      detailedMessages: { tag }
+    ).catch((error) => {
+      Logging.logPromiseError(error, tenant?.id);
     });
   }
 

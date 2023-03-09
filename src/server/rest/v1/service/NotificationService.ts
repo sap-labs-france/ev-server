@@ -6,6 +6,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import { EndUserErrorNotification } from '../../../../types/UserNotifications';
 import { HTTPAuthError } from '../../../../types/HTTPError';
+import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import NotificationStorage from '../../../../storage/mongodb/NotificationStorage';
 import NotificationValidatorRest from '../validator/NotificationValidatorRest';
@@ -73,7 +74,9 @@ export default class NotificationService {
       evseDashboardURL: Utils.buildEvseURL(req.tenant?.subdomain),
     };
     // Notify
-    void NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification);
+    NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification).catch((error) => {
+      Logging.logPromiseError(error, req?.tenant?.id);
+    });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

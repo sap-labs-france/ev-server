@@ -853,6 +853,17 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // Check that we have a new invoice with an invoiceID and an invoiceNumber
         await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 19.49);
       });
+
+      it('check Status Notification Simulation', async () => {
+        const dateInThePast = moment().add(-5, 'hours').toDate();
+        await billingTestHelper.initChargingStationContext2TestFastCharger('E+PT(STEP)', dateInThePast);
+        await billingTestHelper.makeCurrentUserContextReadyForBilling();
+        const transactionID = await billingTestHelper.generateTransaction('Accepted', dateInThePast, false, true);
+        assert(transactionID, 'transactionID should not be null');
+        // Check that we have a new invoice with an invoiceID and an invoiceNumber
+        await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 19.49);
+      });
+
     });
   });
 

@@ -651,9 +651,9 @@ export default class AuthorizationService {
     // Downcast & enhance filters with values needed in dynamic filters
     siteArea.canRead = true; // Always true as it should be filtered upfront
     siteArea.canUpdate = await AuthorizationService.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITE_AREA, Action.DELETE, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
-    siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.UPDATE, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
+    siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE_AREA, Action.DELETE, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canAssignAssets = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.ASSIGN_ASSETS_TO_SITE_AREA, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canUnassignAssets = await AuthorizationService.canPerformAuthorizationAction(
@@ -1196,6 +1196,10 @@ export default class AuthorizationService {
     // Add Authorizations
     ocpiEndpoints.canCreate = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.OCPI_ENDPOINT, Action.CREATE, authorizationFilter, filteredRequest?.Identifier ? { ID: filteredRequest.Identifier } : {});
+    ocpiEndpoints.canGenerateLocalToken = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.OCPI_ENDPOINT, Action.GENERATE_LOCAL_TOKEN, authorizationFilter, filteredRequest?.Identifier ? { ID: filteredRequest.Identifier } : {});
+    ocpiEndpoints.canPing = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.OCPI_ENDPOINT, Action.PING, authorizationFilter, filteredRequest?.Identifier ? { ID: filteredRequest.Identifier } : {});
     for (const ocpiEndpoint of ocpiEndpoints.result) {
       await AuthorizationService.addOCPIEndpointAuthorizations(tenant, userToken, ocpiEndpoint, authorizationFilter);
     }
