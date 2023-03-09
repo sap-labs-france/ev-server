@@ -326,7 +326,7 @@ export interface BillingNewInvoiceNotification extends BaseNotification {
   invoiceNumber: string;
   invoiceAmount: string;
   invoiceStatus: string;
-  evseScanPayBillingURL?: string;
+  evseScanPayInvoiceDownloadURL?: string;
 }
 
 export interface BillingAccountCreationLinkNotification extends BaseNotification {

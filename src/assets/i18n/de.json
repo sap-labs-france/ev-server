@@ -260,31 +260,6 @@
         }
       ]
     },
-    "scan-pay-end-of-session": {
-      "title": "Session Finished",
-      "buttonText": "View Session",
-      "text": [
-        "Your session on the charging station {{chargeBoxID}}, connector {{connectorId}} has just finished."
-      ],
-      "table": [
-        {
-          "label": "Consumption",
-          "value": "{{totalConsumption}} kW.h"
-        },
-        {
-          "label": "Total Duration",
-          "value": "{{totalDuration}}"
-        },
-        {
-          "label": "Total Inactivity",
-          "value": "{{totalInactivity}}"
-        },
-        {
-          "label": "State of Charge",
-          "value": "{{stateOfCharge}} %"
-        }
-      ]
-    },
     "end-of-signed-session": {
       "title": "Ladevorgang beendet - Signierter Ladevorgang",
       "buttonText": "Ladevorgang anzeigen",
@@ -338,19 +313,6 @@
       "table": [
         {
           "label": "Gezahlter Betrag",
-          "value": "{{invoiceAmount}}"
-        }
-      ]
-    },
-    "billing-new-scan-pay-invoice-paid": {
-      "title": "Billing - Paid Invoice",
-      "buttonText": "Download Invoice",
-      "text": [
-        "Your invoice {{invoiceNumber}} has been paid and the corresponding document can now be downloaded."
-      ],
-      "table": [
-        {
-          "label": "Amount Paid",
           "value": "{{invoiceAmount}}"
         }
       ]
