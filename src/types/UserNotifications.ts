@@ -159,7 +159,6 @@ export interface EndOfSessionNotification extends BaseNotification {
   totalDuration: string;
   evseDashboardChargingStationURL: string;
   evseDashboardURL: string;
-  evseStopScanPayTransactionURL?: string;
 }
 
 export interface EndOfSignedSessionNotification extends BaseNotification {
