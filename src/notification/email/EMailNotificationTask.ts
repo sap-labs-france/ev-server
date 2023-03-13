@@ -73,11 +73,7 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    if (user.role === UserRole.EXTERNAL) {
-      data.buttonUrl = data.evseStopScanPayTransactionURL;
-    } else {
-      data.buttonUrl = data.evseDashboardChargingStationURL;
-    }
+    data.buttonUrl = data.evseDashboardChargingStationURL;
     const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
     return await this.prepareAndSendEmail('end-of-session', data, user, tenant, severity, optionalComponents);
   }
