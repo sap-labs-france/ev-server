@@ -119,7 +119,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       this.tenant, { chargingStationIDs: chargingStationIDs, profilePurposeType:  ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
     const currentChargingProfiles = currentChargingProfilesResponse.result;
     // Get all transactions of the site areas
-    const transactions = await TransactionStorage.getTransactions(this.tenant, { transactionIDs, withCar: true }, Constants.DB_PARAMS_MAX_LIMIT);
+    const transactions = await TransactionStorage.getTransactions(this.tenant, { transactionIDs, withSmartChargingData: true }, Constants.DB_PARAMS_MAX_LIMIT);
     // Build request
     const request = await this.buildOptimizerRequest(rootSiteArea, excludedChargingStations, false, currentChargingProfiles, transactions.result);
     // Call optimizer
@@ -867,8 +867,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       // Get OCPP Parameter for max periods
       const maxScheduleLength = parseInt(await ChargingStationStorage.getOcppParameterValue(this.tenant, chargingStationID, 'ChargingScheduleMaxPeriods'));
       // Start from now up to the third slot
-      for (let i = 0; i < (!isNaN(maxScheduleLength) ? maxScheduleLength : 20) &&
-      i < car.currentPlan.length && (car.currentPlan[i] > 0 || chargingSchedule.chargingSchedulePeriod.length < 3); i++) {
+      for (let i = 0; i < ((!isNaN(maxScheduleLength) && maxScheduleLength < 16) ? maxScheduleLength : 16); i++) {
         chargingSchedule.chargingSchedulePeriod.push({
           startPeriod: currentTimeSlotMins * 15 * 60, // Start period in secs (starts at 0 sec from startSchedule date/time)
           limit: this.calculateCarConsumption(currentChargingStation, connector, numberOfConnectedPhase, car.currentPlan[i])

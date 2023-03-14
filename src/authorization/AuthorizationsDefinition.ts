@@ -3285,7 +3285,10 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CHARGING_STATION,
-        action: [Action.UPDATE_CHARGING_PROFILE, Action.SET_CHARGING_PROFILE, Action.CLEAR_CHARGING_PROFILE, Action.DELETE_CHARGING_PROFILE],
+        action: [
+          Action.UPDATE_CHARGING_PROFILE, Action.SET_CHARGING_PROFILE, Action.CLEAR_CHARGING_PROFILE, Action.DELETE_CHARGING_PROFILE, Action.LIMIT_POWER,
+          Action.GET_COMPOSITE_SCHEDULE
+        ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {

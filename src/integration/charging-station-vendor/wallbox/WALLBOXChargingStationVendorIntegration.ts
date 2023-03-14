@@ -6,7 +6,7 @@ import { OCPPSetChargingProfileResponse } from '../../../types/ocpp/OCPPClient';
 import Tenant from '../../../types/Tenant';
 
 export default class WALLBOXChargingStationVendorIntegration extends ChargingStationVendorIntegration {
-  constructor(chargingStation: ChargingStation) {
+  public constructor(chargingStation: ChargingStation) {
     super(chargingStation);
   }
 
