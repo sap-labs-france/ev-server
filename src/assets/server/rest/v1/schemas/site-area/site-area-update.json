@@ -25,6 +25,9 @@
       "$ref": "site-area#/definitions/smartCharging",
       "default": false
     },
+    "smartChargingSessionParameters": {
+      "$ref": "common#/definitions/smartChargingSessionParameters"
+    },
     "accessControl": {
       "$ref": "site-area#/definitions/accessControl"
     },
