@@ -666,7 +666,7 @@ export default class ChargingStationService {
       res.sendStatus(StatusCodes.NOT_FOUND);
     });
     // End of download
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       bucketStream.on('end', () => {
         void Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT_ID,

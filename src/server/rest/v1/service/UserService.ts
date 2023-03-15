@@ -539,7 +539,7 @@ export default class UserService {
           await LockingManager.release(importUsersLock);
         }
       });
-      await new Promise((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         busboy.on('file', async (fileName: string, fileStream: Readable, fileInfo: FileInfo) => {
           if (fileInfo.filename.slice(-4) === '.csv') {

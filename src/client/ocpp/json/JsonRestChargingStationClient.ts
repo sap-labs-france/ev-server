@@ -115,7 +115,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return this.sendMessage(this.buildRequest(Command.CANCEL_RESERVATION, params));
   }
 
-  private async openConnection(request: OCPPOutgoingRequest): Promise<any> {
+  private async openConnection(request: OCPPOutgoingRequest): Promise<void> {
     // Extract Current Command
     const triggeringCommand: Command = request[2];
     // Log

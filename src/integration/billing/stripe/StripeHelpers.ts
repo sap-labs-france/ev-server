@@ -62,7 +62,7 @@ export default class StripeHelpers {
     };
   }
 
-  public static guessStripeRootCause(error: Stripe.StripeError): { errorType: BillingErrorType, errorCode:BillingErrorCode } {
+  public static guessStripeRootCause(error: Stripe.errors.StripeError): { errorType: BillingErrorType, errorCode:BillingErrorCode } {
     let errorType: BillingErrorType, errorCode: BillingErrorCode;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { statusCode, type, rawType, code, decline_code, } = error ;
@@ -101,17 +101,16 @@ export default class StripeHelpers {
   public static shrinkRootCause(error: Error): unknown {
     // Reduce the size of the data that we save on our side!
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const shrinkError: any = { ...error };
+    const shrinkError: Record<string, any> = { ...error };
     if (error instanceof Stripe.errors.StripeError) {
       // Get rid of some properties
       delete shrinkError.headers;
       delete shrinkError.raw;
     }
-    // Remove null and undefined properties
+    // Remove null properties
     Object.keys(shrinkError).forEach((key) => {
       const value = shrinkError[key];
-      // eslint-disable-next-line no-undefined
-      if (value === undefined || value === null) {
+      if (value === null) {
         delete shrinkError[key];
       }
     });
