@@ -102,7 +102,7 @@ export default class UserService {
     let smartChargingSessionParameters: SmartChargingSessionParameters = null;
     // Handle Smart Charging
     if (chargingStation.siteArea?.smartCharging && !chargingStation.excludeFromSmartCharging
-      && chargingStation.capabilities.supportChargingProfiles && Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING)) {
+      && chargingStation.capabilities?.supportChargingProfiles && Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING)) {
       const smartChargingSettings = await SettingStorage.getSmartChargingSettings(req.tenant);
       if (smartChargingSettings.sapSmartCharging.prioritizationParametersActive) {
         // Default values are hard coded for now
