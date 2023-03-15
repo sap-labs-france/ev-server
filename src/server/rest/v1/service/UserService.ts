@@ -1,41 +1,41 @@
-import {Action, Entity} from '../../../../types/Authorization';
-import {ActionsResponse, ImportStatus} from '../../../../types/GlobalType';
-import {AsyncTasks, AsyncTaskType} from '../../../../types/AsyncTask';
-import Busboy, {FileInfo} from 'busboy';
-import {Car, CarType} from '../../../../types/Car';
-import {DataResult, UserDataResult, UserSiteDataResult} from '../../../../types/DataResult';
-import {HTTPAuthError, HTTPError} from '../../../../types/HTTPError';
-import {NextFunction, Request, Response} from 'express';
-import Tenant, {TenantComponents} from '../../../../types/Tenant';
-import User, {ImportedUser, UserRequiredImportProperties, UserRole} from '../../../../types/User';
+import { Action, Entity } from '../../../../types/Authorization';
+import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
+import Busboy, { FileInfo } from 'busboy';
+import { Car, CarType } from '../../../../types/Car';
+import { DataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
+import User, { ImportedUser, UserRequiredImportProperties, UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
+import { AsyncTasks } from '../../../../types/AsyncTask';
 import AuthorizationService from './AuthorizationService';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
-import {HttpUsersGetRequest} from '../../../../types/requests/HttpUserRequest';
+import { HttpUsersGetRequest } from '../../../../types/requests/HttpUserRequest';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
-import {OCPIRole} from '../../../../types/ocpi/OCPIRole';
-import {OCPITokenWhitelist} from '../../../../types/ocpi/OCPIToken';
+import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
-import {Readable} from 'stream';
-import {ServerAction} from '../../../../types/Server';
+import { Readable } from 'stream';
+import { ServerAction } from '../../../../types/Server';
 import SmartChargingHelper from '../../../../integration/smart-charging/SmartChargingHelper';
-import {StartTransactionErrorCode} from '../../../../types/Transaction';
-import {StatusCodes} from 'http-status-codes';
+import { StartTransactionErrorCode } from '../../../../types/Transaction';
+import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import {UserInErrorType} from '../../../../types/InError';
+import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -64,7 +64,7 @@ export default class UserService {
     if (tagAuthorization.authorized) {
       // Get the tag from the request TagID
       if (filteredRequest.TagID) {
-        const tagFromID = await TagStorage.getTag(req.tenant, filteredRequest.TagID, {issuer: true}, tagAuthorization.projectFields);
+        const tagFromID = await TagStorage.getTag(req.tenant, filteredRequest.TagID, { issuer: true }, tagAuthorization.projectFields);
         if (!tagFromID || tagFromID.userID !== filteredRequest.UserID) {
           throw new AppError({
             errorCode: StatusCodes.BAD_REQUEST,

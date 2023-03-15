@@ -33,7 +33,7 @@ export default class SmartChargingHelper {
     // Check prerequisites
     if (chargingStation.excludeFromSmartCharging
       || !chargingStation.siteArea?.smartCharging
-      || !chargingStation.capabilities.supportChargingProfiles
+      || !chargingStation.capabilities?.supportChargingProfiles
       || !Utils.isComponentActiveFromToken(user, TenantComponents.SMART_CHARGING)) {
       return null;
     }
