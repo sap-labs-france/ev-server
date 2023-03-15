@@ -1,5 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
+import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import Busboy, { FileInfo } from 'busboy';
 import { Car, CarType } from '../../../../types/Car';
 import { DataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
@@ -11,7 +12,6 @@ import User, { ImportedUser, UserRequiredImportProperties, UserRole } from '../.
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AsyncTaskBuilder from '../../../../async-task/AsyncTaskBuilder';
-import { AsyncTasks } from '../../../../types/AsyncTask';
 import AuthorizationService from './AuthorizationService';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import CSVError from 'csvtojson/v2/CSVError';
