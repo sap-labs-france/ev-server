@@ -62,7 +62,7 @@ export default class StripeHelpers {
     };
   }
 
-  public static guessStripeRootCause(error: Stripe.StripeError): { errorType: BillingErrorType, errorCode:BillingErrorCode } {
+  public static guessStripeRootCause(error: Stripe.errors.StripeError): { errorType: BillingErrorType, errorCode:BillingErrorCode } {
     let errorType: BillingErrorType, errorCode: BillingErrorCode;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { statusCode, type, rawType, code, decline_code, } = error ;
