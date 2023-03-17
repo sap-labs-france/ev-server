@@ -320,7 +320,12 @@ const config = convict({
       doc: 'Limit buffer ac',
       format: Number,
       default: ''
-    }
+    },
+    prioritizationParametersActive: {
+      doc: 'Use prioritization parameters',
+      format: Boolean,
+      default: ''
+    },
   },
   assetConnectors: {
     ioThink: {
