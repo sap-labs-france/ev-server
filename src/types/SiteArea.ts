@@ -9,6 +9,7 @@ import { OCPILocation } from './ocpi/OCPILocation';
 import { OpeningTimes } from './OpeningTimes';
 import Site from '../types/Site';
 import { SiteAreaAuthorizationActions } from './Authorization';
+import { SmartChargingSessionParameters } from './Transaction';
 
 export enum SiteAreaValueTypes {
   ASSET_CONSUMPTIONS = 'AssetConsumptions',
@@ -37,6 +38,7 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
   siteID: string;
   site: Site;
   smartCharging: boolean;
+  smartChargingSessionParameters?: SmartChargingSessionParameters;
   accessControl: boolean;
   chargingStations: ChargingStation[];
   assets: Asset[];
