@@ -146,6 +146,15 @@
               "sanitize": "mongo"
             }
           }
+        },
+        "scanPay": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            }
+          }
         }
       }
     }
