@@ -149,7 +149,7 @@
       "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}} est disponible, vérifiez vos emails pour finaliser le paiement"
     },
     "billingAccountCreationLink": {
-      "title": "Création compte de facturation",
+      "title": "Connection d'un compte de facturation",
       "body": "Vous avez été invité à créer un compte de facturation. Veuillez vérifier vos emails pour terminer le processus"
     },
     "billingAccountActivated": {
@@ -195,7 +195,7 @@
   },
   "email": {
     "greetings": "Bonjour {{recipientName}}",
-    "footerText": "Cet e-mail est destiné à {{recipientEmail}}. Il vous a été transmis via un service automatique. Merci de ne pas répondre. Vous pouvez vous déinscrire en modifiant vos paramètres de notification.",
+    "footerText": "Cet e-mail est destiné à {{recipientEmail}}. Il vous a été transmis via un service automatique. Merci de ne pas répondre. Vous pouvez vous désinscrire en modifiant vos paramètres de notification.",
     "new-registered-user": {
       "title": "Compte utilisateur créé",
       "buttonText": "Activer votre compte",
@@ -258,6 +258,25 @@
           "label": "Niveau de la batterie",
           "value": "{{stateOfCharge}} %"
         }
+      ]
+    },
+    "end-of-signed-session": {
+      "title": "Session Finished - Signed Session",
+      "buttonText": "View Session",
+      "text": [
+        "Ladetransaktion abgeschlossen"
+      ],
+      "table": [
+        { "label": "Charger", "value": "{{chargeBoxID}}" },
+        { "label": "Connector", "value": "{{connectorId}}" },
+        { "label": "RFID Card", "value": "{{tagId}}" },
+        { "label": "Start time", "value": "{{startDate}}" },
+        { "label": "End time", "value": "{{endDate}}" },
+        { "label": "Start counter", "value": "{{meterStart}} kWh" },
+        { "label": "Stop counter", "value": "{{meterStop}} kWh" },
+        { "label": "Consumption", "value": "{{totalConsumption}} kWh" },
+        { "label": "Cost", "value": "{{price}}€ {{relativeCost}}€/kWh) (informative)" },
+        { "label": "Contract for", "value":"LOCAL (informative)" }
       ]
     },
     "end-of-charge": {
@@ -343,10 +362,10 @@
       ]
     },
     "charging-station-status-error": {
-      "title": "Borne en erreur",
+      "title": "Erreur sur {{chargeBoxID}}, connecteur {{connectorId}}",
       "buttonText": "Voir l'erreur",
       "text": [
-        "Un erreur est survenue sur la borne {{chargeBoxID}}, connecteur {{connectorId}}",
+        "Une erreur est survenue sur la borne {{chargeBoxID}}, connecteur {{connectorId}}.",
         "Erreur: {{error}}"
       ]
     },
@@ -496,19 +515,19 @@
       ]
     },
     "account-verification-notification-active": {
-      "title": "Compte utilistateur vérifié",
+      "title": "Compte utilisateur vérifié",
       "buttonText": "Naviguer vers {{tenantName}}",
       "text": [
         "Votre e-mail a été vérifié. Votre compte est maintenant actif."
       ]
     },
     "account-verification-notification-inactive": {
-      "title": "Compte utilistateur vérifié",
+      "title": "Compte utilisateur vérifié",
       "buttonText": "Naviguer vers {{tenantName}}",
       "text": [
         "Votre e-mail a été vérifié.",
         "",
-        "Votre compte va être activer par un administrateur. Merci de patienter."
+        "Votre compte va être activé par un administrateur. Merci de patienter."
       ]
     },
     "admin-account-verification-notification": {

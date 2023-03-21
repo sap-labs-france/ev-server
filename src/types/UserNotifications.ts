@@ -176,6 +176,7 @@ export interface EndOfSignedSessionNotification extends BaseNotification {
   relativeCost: number;
   startSignedData: string;
   endSignedData: string;
+  evseDashboardChargingStationURL: string;
   evseDashboardURL: string;
 }
 
@@ -272,7 +273,6 @@ export interface PreparingSessionNotStartedNotification extends BaseNotification
   siteAreaID: string;
   companyID: string;
   connectorId: string;
-  startedOn: string;
   evseDashboardURL: string;
   evseDashboardChargingStationURL: string;
 }
@@ -339,11 +339,13 @@ export interface ComputeAndApplyChargingProfilesFailedNotification extends BaseN
   companyID: string;
   evseDashboardURL: string;
 }
-export interface NotificationSource {
+export interface NotificationChannel {
   channel: 'email' | 'remote-push-notification';
   notificationTask: NotificationTask;
   enabled: boolean;
 }
+
+export type NotificationSource = NotificationChannel;
 
 export interface Notification {
   id: string;
@@ -354,6 +356,14 @@ export interface Notification {
   sourceId: string;
   sourceDescr: string;
   chargeBoxID: string;
+  data: any;
+}
+
+export interface RawNotification {
+  id: string;
+  timestamp: Date;
+  discriminator: string;
+  serverAction: string;
   data: any;
 }
 

@@ -260,6 +260,25 @@
         }
       ]
     },
+    "end-of-signed-session": {
+      "title": "Session Finished - Signed Session",
+      "buttonText": "View Session",
+      "text": [
+        "Ladetransaktion abgeschlossen"
+      ],
+      "table": [
+        { "label": "Charger", "value": "{{chargeBoxID}}" },
+        { "label": "Connector", "value": "{{connectorId}}" },
+        { "label": "RFID Card", "value": "{{tagId}}" },
+        { "label": "Start time", "value": "{{startDate}}" },
+        { "label": "End time", "value": "{{endDate}}" },
+        { "label": "Start counter", "value": "{{meterStart}} kWh" },
+        { "label": "Stop counter", "value": "{{meterStop}} kWh" },
+        { "label": "Consumption", "value": "{{totalConsumption}} kWh" },
+        { "label": "Cost", "value": "{{price}}€ {{relativeCost}}€/kWh) (informative)" },
+        { "label": "Contract for", "value":"LOCAL (informative)" }
+      ]
+    },
     "end-of-charge": {
       "title": "Charge Finished",
       "buttonText": "View Session",
@@ -343,10 +362,10 @@
       ]
     },
     "charging-station-status-error": {
-      "title": "Charging Station Error",
+      "title": "Error on {{chargeBoxID}}, connector {{connectorId}}",
       "buttonText": "View Error",
       "text": [
-        "Error occurred on {{chargeBoxID}}, connector {{connectorId}}",
+        "An error occurred on {{chargeBoxID}}, connector {{connectorId}}",
         "Error: {{error}}"
       ]
     },
@@ -527,7 +546,7 @@
         "An account has just been created on your behalf in '{{tenantName}}' organization.",
         "You will have to log in at least once to be able to charge your car.",
         "",
-        "Click on the link bellow to set your password."
+        "Click on the link below to set your password."
       ]
     }
   }

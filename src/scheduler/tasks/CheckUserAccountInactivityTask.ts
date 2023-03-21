@@ -28,16 +28,17 @@ export default class CheckUserAccountInactivityTask extends TenantSchedulerTask 
         const users = await UserStorage.getUsers(tenant, params, Constants.DB_PARAMS_MAX_LIMIT);
         for (const user of users.result) {
           // Notification
-          moment.locale(user.locale);
-          void NotificationHandler.sendUserAccountInactivity(
+          NotificationHandler.sendUserAccountInactivity(
             tenant,
             user,
             {
-              'user': user,
-              'lastLogin': moment(user.eulaAcceptedOn).format('LL'),
-              'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
+              user,
+              lastLogin: moment(user.eulaAcceptedOn).locale(user.locale).format('LL'),
+              evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
             }
-          );
+          ).catch((error) => {
+            Logging.logPromiseError(error, tenant?.id);
+          });
         }
       } catch (error) {
         // Log error

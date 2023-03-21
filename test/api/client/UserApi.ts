@@ -60,4 +60,9 @@ export default class UserApi extends CrudApi {
     const url = this.buildRestEndpointUrl(RESTServerRoute.REST_USER_DEFAULT_TAG_CAR, { });
     return super.read({ UserID: userID }, url);
   }
+
+  public async getUserSessionContext(params) {
+    const url = this.buildRestEndpointUrl(RESTServerRoute.REST_USER_SESSION_CONTEXT, { id: params.userID });
+    return super.read({ ChargingStationID: params.chargingStationID, ConnectorID: params.connectorID, TagID: params.tagID, CarID: params.carID }, url);
+  }
 }

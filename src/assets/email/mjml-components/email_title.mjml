@@ -1,0 +1,5 @@
+<mj-section background-color="#ffffff" padding-top="20px">
+	<mj-column>
+		<mj-text font-weight="500" font-size="20px">{{i18n:title}}</mj-text>
+	</mj-column>
+</mj-section>

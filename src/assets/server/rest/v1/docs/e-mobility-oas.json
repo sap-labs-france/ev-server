@@ -6811,6 +6811,77 @@
         }
       }
     },
+    "/api/users/{id}/session-context": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get the User's session context",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorID"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved user session context",
+            "content": {
+              "application/json": {
+                "example": {
+                  "tag": {
+                    "active": true,
+                    "description": "###",
+                    "id": "###",
+                    "default": "###"
+                  },
+                  "car": {
+                    "licensePlate": "###",
+                    "default": "###",
+                    "type": "#",
+                    "converter": {
+                      "powerWatts": "###",
+                      "numberOfPhases": "###"
+                    },
+                    "carCatalog": {
+                      "vehicleMake": "###",
+                      "vehicleModel": "###",
+                      "vehicleModelVersion": "###",
+                      "image": "###",
+                      "batteryCapacityFull": "###",
+                      "fastChargePowerMax": "###"
+                    },
+                    "id": "###"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/users/{id}/sites": {
       "get": {
         "security": [
@@ -6979,14 +7050,14 @@
         }
       }
     },
-    "/api/users/{id}/mobile-token": {
+    "/api/users/{id}/mobile-data": {
       "put": {
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "description": "Update user's mobile tokens",
+        "description": "Update user's mobile data",
         "parameters": [
           {
             "$ref": "#/components/parameters/userID"
@@ -7006,8 +7077,21 @@
                   "mobileToken": {
                     "type": "string"
                   },
-                  "mobileOS": {
+                  "mobileBundleID": {
                     "type": "string"
+                  },
+                  "mobileAppName": {
+                    "type": "string"
+                  },
+                  "mobileVersion": {
+                    "type": "string"
+                  },
+                  "mobileOS": {
+                    "type": "string",
+                    "enum": [
+                      "ios",
+                      "android"
+                    ]
                   }
                 }
               }
@@ -9662,12 +9746,6 @@
                       "chargeStandardPower": 16.5,
                       "chargeStandardPhase": 3,
                       "chargeStandardPhaseAmp": 24,
-                      "chargeAlternativePower": 0,
-                      "chargeAlternativePhase": 0,
-                      "chargeAlternativePhaseAmp": 0,
-                      "chargeOptionPower": 0,
-                      "chargeOptionPhase": 0,
-                      "chargeOptionPhaseAmp": 0,
                       "fastChargePlug": "Supercharger",
                       "fastChargePowerMax": 100,
                       "batteryCapacityFull": 75,
@@ -9733,12 +9811,6 @@
                   "chargeStandardPhase": 3,
                   "chargeStandardChargeTime": 315,
                   "chargeStandardChargeSpeed": 73,
-                  "chargeAlternativePower": 0,
-                  "chargeAlternativePhase": 0,
-                  "chargeAlternativePhaseAmp": 0,
-                  "chargeOptionPower": 0,
-                  "chargeOptionPhase": 0,
-                  "chargeOptionPhaseAmp": 0,
                   "fastChargePlug": "Supercharger",
                   "fastChargePowerMax": 100,
                   "batteryCapacityUseable": 72.5,
@@ -10146,12 +10218,6 @@
                     "chargeStandardPower": 11,
                     "chargeStandardPhase": 3,
                     "chargeStandardPhaseAmp": 16,
-                    "chargeAlternativePower": 0,
-                    "chargeAlternativePhase": 0,
-                    "chargeAlternativePhaseAmp": 0,
-                    "chargeOptionPower": 0,
-                    "chargeOptionPhase": 0,
-                    "chargeOptionPhaseAmp": 0,
                     "image": "###"
                   },
                   "user": {
@@ -16482,6 +16548,23 @@
                         "tronityConnection": {
                           "type": "object",
                           "properties": {
+                            "apiUrl": {
+                              "type": "string"
+                            },
+                            "clientId": {
+                              "type": "string"
+                            },
+                            "clientSecret": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "targaTelematicsConnection": {
+                          "type": "object",
+                          "properties": {
+                            "authenticationUrl": {
+                              "type": "string"
+                            },
                             "apiUrl": {
                               "type": "string"
                             },

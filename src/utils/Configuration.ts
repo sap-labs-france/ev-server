@@ -1,6 +1,7 @@
 import AsyncTaskConfiguration from '../types/configuration/AsyncTaskConfiguration';
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AxiosConfiguration from '../types/configuration/AxiosConfiguration';
+import CacheConfiguration from '../types/configuration/CacheConfiguration';
 import CentralSystemConfiguration from '../types/configuration/CentralSystemConfiguration';
 import CentralSystemFrontEndConfiguration from '../types/configuration/CentralSystemFrontEndConfiguration';
 import CentralSystemRestServiceConfiguration from '../types/configuration/CentralSystemRestServiceConfiguration';
@@ -285,19 +286,30 @@ export default class Configuration {
     return trace;
   }
 
+  public static getCacheConfig(): CacheConfiguration {
+    const cache = Configuration.getConfig().Cache;
+    if (!Configuration.isUndefined('Cache', cache)) {
+      return cache;
+    }
+  }
+
   private static getConfig(): ConfigurationData {
     if (!Configuration.config) {
       let configuration: ConfigurationData;
-      // K8s
-      if (fs.existsSync('/config/config.json')) {
+      if (process.env.SERVER_ROLE) {
         configuration = JSON.parse(
-          fs.readFileSync('/config/config.json', 'utf8')) as ConfigurationData;
-      // AWS
+          fs.readFileSync(`${global.appRoot}/assets/config_` + process.env.SERVER_ROLE + '.json', 'utf8')) as ConfigurationData;
       } else {
-        configuration = JSON.parse(
-          fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
+        // K8s
+        if (fs.existsSync('/config/config.json')) {
+          configuration = JSON.parse(
+            fs.readFileSync('/config/config.json', 'utf8')) as ConfigurationData;
+          // AWS
+        } else {
+          configuration = JSON.parse(
+            fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
+        }
       }
-      // Validate
       Configuration.config = ConfigurationValidatorStorage.getInstance().validateConfigurationSave(configuration);
     }
     return Configuration.config;

@@ -488,7 +488,7 @@ export default class OCPPUtils {
             module: MODULE_NAME, method: 'createConsumptionsFromMeterValues',
             action: ServerAction.OCPP_METER_VALUES,
             message: 'Meter Value is in the past and will be ignored',
-            detailedMessages: { meterValue, transaction }
+            detailedMessages: { meterValue, transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
           });
           continue;
         }
@@ -1231,12 +1231,12 @@ export default class OCPPUtils {
   }
 
   public static async checkAndGetChargingStationConnectionData(action: ServerAction, tenantID: string, chargingStationID: string,
-      tokenID: string): Promise<{ tenant: Tenant; chargingStation?: ChargingStation; token?: RegistrationToken }> {
+      tokenID: string, updateChargingStationData = true): Promise<{ tenant: Tenant; chargingStation?: ChargingStation; token?: RegistrationToken }> {
     // Check parameters
     OCPPUtils.checkChargingStationConnectionData(
       ServerAction.WS_SERVER_CONNECTION, tenantID, tokenID, chargingStationID);
     // Get Tenant
-    const tenant = await TenantStorage.getTenant(tenantID);
+    const tenant = await TenantStorage.getTenantFromCache(tenantID);
     if (!tenant) {
       throw new BackendError({
         chargingStationID,
@@ -1294,18 +1294,20 @@ export default class OCPPUtils {
         message: 'Charging Station has been forced as inactive!'
       });
     }
-    // Reassign to the Charging station
-    chargingStation.lastSeen = new Date();
-    chargingStation.tokenID = tokenID;
-    chargingStation.cloudHostIP = Utils.getHostIP();
-    chargingStation.cloudHostName = Utils.getHostName();
-    // Save Charging Station runtime data
-    await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id, {
-      lastSeen: chargingStation.lastSeen,
-      tokenID: chargingStation.tokenID,
-      cloudHostIP: chargingStation.cloudHostIP,
-      cloudHostName: chargingStation.cloudHostName,
-    });
+    if (updateChargingStationData) {
+      // Reassign to the Charging station
+      chargingStation.lastSeen = new Date();
+      chargingStation.tokenID = tokenID;
+      chargingStation.cloudHostIP = Utils.getHostIP();
+      chargingStation.cloudHostName = Utils.getHostName();
+      // Save Charging Station runtime data
+      await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id, {
+        lastSeen: chargingStation.lastSeen,
+        tokenID: chargingStation.tokenID,
+        cloudHostIP: chargingStation.cloudHostIP,
+        cloudHostName: chargingStation.cloudHostName,
+      });
+    }
     return { tenant, chargingStation, token };
   }
 
@@ -1451,7 +1453,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static clearChargingStationConnectorRuntimeData(chargingStation: ChargingStation, connectorID: number): void {
+  public static clearChargingStationConnectorRuntimeData(chargingStation: ChargingStation, connectorID: number): Connector {
     // Cleanup connector transaction data
     const connector = Utils.getConnectorFromID(chargingStation, connectorID);
     if (connector) {
@@ -1465,6 +1467,7 @@ export default class OCPPUtils {
       connector.currentTagID = null;
       connector.currentUserID = null;
     }
+    return connector;
   }
 
   public static updateSignedData(transaction: Transaction, meterValue: OCPPNormalizedMeterValue): boolean {
@@ -1527,13 +1530,12 @@ export default class OCPPUtils {
     if (chargingStationTemplate) {
       // Already updated?
       if (chargingStation.templateHash !== chargingStationTemplate.hash) {
-        await Logging.logInfo({
+        await Logging.logDebug({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-          message: `Template ID '${chargingStationTemplate.id}' is been applied...`,
-          detailedMessages: { chargingStationTemplate, chargingStation }
+          message: `Template ID '${chargingStationTemplate.id}' is being applied...`
         });
         // Check Technical
         templateUpdateResult.technicalUpdated =
@@ -1556,16 +1558,21 @@ export default class OCPPUtils {
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
           message: `Template ID '${chargingStationTemplate.id}' has been applied with success`,
-          detailedMessages: { templateUpdateResult, chargingStationTemplate, chargingStation }
+          detailedMessages: {
+            templateUpdateResult,
+            templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate),
+          }
         });
       } else {
-        await Logging.logInfo({
+        await Logging.logDebug({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           tenantID: tenant.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
           message: `Template ID '${chargingStationTemplate.id}' has already been applied`,
-          detailedMessages: { chargingStationTemplate, chargingStation }
+          detailedMessages: {
+            templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate)
+          }
         });
       }
       // Master/Slave: always override the charge point
@@ -1580,10 +1587,12 @@ export default class OCPPUtils {
         tenantID: tenant.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-        message: 'No Template has been found for this Charging Station',
-        detailedMessages: { chargingStation }
+        message: 'No template has been found',
+        detailedMessages: {
+          chargingStationData: LoggingHelper.shrinkChargingStationProperties(chargingStation)
+        }
       });
-      chargingStation.manualConfiguration = true;
+      chargingStation.manualConfiguration = true; // To be clarified! - Why is this changed here???
     }
     return templateUpdateResult;
   }

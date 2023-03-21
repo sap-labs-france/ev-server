@@ -1,12 +1,12 @@
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
 import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPRequest } from '../../../../types/ocpp/OCPPCommon';
+import { ServerAction, WSServerProtocol } from '../../../../types/Server';
 
 import BackendError from '../../../../exception/BackendError';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import OCPPError from '../../../../exception/OcppError';
 import OCPPUtils from '../../utils/OCPPUtils';
-import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import WSWrapper from './WSWrapper';
@@ -37,9 +37,14 @@ export default abstract class WSConnection {
   }
 
   public async initialize(): Promise<void> {
+    // Do not update the lastSeen when the caller is the REST server!
+    const updateChargingStationData = (this.ws.protocol !== WSServerProtocol.REST);
     // Check and Get Charging Station data
     const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationConnectionData(
-      ServerAction.WS_SERVER_CONNECTION, this.getTenantID(), this.getChargingStationID(), this.getTokenID());
+      ServerAction.WS_SERVER_CONNECTION,
+      this.getTenantID(),
+      this.getChargingStationID(), this.getTokenID(),
+      updateChargingStationData);
     // Set
     this.setTenant(tenant);
     this.setChargingStation(chargingStation);
@@ -323,9 +328,9 @@ export default abstract class WSConnection {
       this.url = this.url.substring(1, this.url.length);
     }
     // Parse URL: should be like /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
-    // We support previous format like for existing charging station without token also /OCPPxx/TENANTID/CHARGEBOXID
+    // Note in order to override the CS name the url would look like /OCPPxx/TENANTID/TOKEN/<DESIRED-CHARGEBOXID>/CHARGEBOXID
     const splittedURL = this.getURL().split('/');
-    if (splittedURL.length !== 4) {
+    if (splittedURL.length < 4) {
       throw new BackendError({
         module: MODULE_NAME, method: 'checkMandatoryFieldsInRequest',
         message: `Wrong number of arguments in URL '/${this.url}'`

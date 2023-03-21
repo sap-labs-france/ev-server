@@ -111,6 +111,7 @@ export enum Entity {
   PAYMENT_METHOD = 'PaymentMethod',
   SOURCE = 'Source',
   CONSUMPTION = 'Consumption',
+  SMART_CHARGING = 'SmartCharging'
 }
 
 export enum Action {
@@ -311,7 +312,7 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canUpdateFirmware?:boolean;
   canRemoteStopTransaction?:boolean;
   canStopTransaction?:boolean;
-  canStarTransaction?:boolean;
+  canStartTransaction?:boolean;
   canChangeAvailability?:boolean;
   canRemoteStartTransaction?:boolean;
   canUnlockConnector?:boolean;
@@ -326,12 +327,14 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canGetConnectorQRCode?:boolean;
   canPushTransactionCDR?: boolean;
   canListCompletedTransactions?: boolean;
+  canAuthorize?: boolean;
 }
 
 export interface ConnectorAuthorizationActions extends AuthorizationActions {
   canRemoteStopTransaction?:boolean;
   canRemoteStartTransaction?:boolean;
   canUnlockConnector?:boolean;
+  canReadTransaction?:boolean;
 }
 
 export interface ChargingProfileAuthorizationActions extends AuthorizationActions {
@@ -359,10 +362,25 @@ export interface TransactionAuthorizationActions extends AuthorizationActions {
   canReadChargingStation?: boolean;
 }
 
+export interface SettingAuthorizationActions extends AuthorizationActions {
+  canSyncRefund?: boolean;
+  canCheckBillingConnection?: boolean;
+  canCheckSmartChargingConnection?: boolean;
+  canCheckAssetConnection?: boolean;
+}
+
+export interface OcpiEndpointAuthorizationActions extends AuthorizationActions {
+  canPing?: boolean;
+  canGenerateLocalToken?: boolean;
+  canRegister?: boolean;
+  canTriggerJob?: boolean;
+}
+
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
   SITES_ADMIN_USERS = 'SitesAdminUsers',
+  SITES_OWNER_USERS = 'SitesOwnerUsers',
   SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
@@ -383,6 +401,7 @@ export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
   SITES_ADMIN_USERS = 'SitesAdminUsers',
+  SITES_OWNER_USERS = 'SitesOwnerUsers',
   SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
@@ -407,7 +426,15 @@ export interface SitesAdminOrOwnerDynamicAuthorizationDataSourceData extends Dyn
 export interface SitesAdminUsersDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
   userID?: string;
+  tagIDs?: string[];
 }
+
+export interface SitesOwnerUsersDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteIDs?: string[];
+  userID?: string;
+  tagIDs?: string[];
+}
+
 export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
@@ -415,10 +442,8 @@ export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAut
 export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
-export interface SiteAdminUsersDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
-  userIDs?: string[];
-}
 
 export interface OwnUserDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   userID?: string;
+  tagIDs?: string[];
 }

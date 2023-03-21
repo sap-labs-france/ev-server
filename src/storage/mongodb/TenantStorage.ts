@@ -13,6 +13,16 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'TenantStorage';
 
 export default class TenantStorage {
+
+  public static async getTenantFromCache(id: string = Constants.UNKNOWN_OBJECT_ID,
+      params: { withLogo?: boolean; } = {}): Promise<Tenant> {
+    // Cache enabled ?
+    if (global?.cache) {
+      return await global.cache.get(id, id, TenantStorage.getTenant.bind(this, id, params, []));
+    }
+    return await TenantStorage.getTenant(id, params, []);
+  }
+
   public static async getTenant(id: string = Constants.UNKNOWN_OBJECT_ID,
       params: { withLogo?: boolean; } = {}, projectFields?: string[]): Promise<Tenant> {
     // Call DB
@@ -47,7 +57,7 @@ export default class TenantStorage {
     // Modify
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT_ID, 'tenants').findOneAndUpdate(
       { _id: tenantMDB['_id'] },
-      { $set: { ...tenantMDB } },
+      { $set: tenantMDB as any },
       { upsert: true, returnDocument: 'after' });
     // Save Logo
     if (saveLogo) {

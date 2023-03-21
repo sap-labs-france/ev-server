@@ -207,3 +207,15 @@ export interface CollectedFundReport {
   totalDurationSecs: number,
   transactionIDs: number[],
 }
+
+export interface SmartChargingSessionParameters {
+  departureTime: string,
+  carStateOfCharge: number,
+  targetStateOfCharge: number,
+}
+
+export interface SmartChargingRuntimeSessionParameters {
+  departureTime?: Date, // Date of the departure time - taking into account the timezone of the charging station
+  carStateOfCharge?: number,
+  targetStateOfCharge?: number,
+}

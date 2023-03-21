@@ -32,10 +32,14 @@
     },
     "tariff-id": {
       "type": "string",
-      "minLength": 1,
       "maxLength": 36,
       "sanitize": "mongo",
       "nullable": true
+    },
+    "owner-name": {
+      "type": "string",
+      "maxLength": 100,
+      "sanitize": "mongo"
     },
     "authSubdomain": {
       "type": "string",
@@ -117,6 +121,25 @@
         },
         "coordinates": {
           "type": "array",
+          "sanitize": "mongo"
+        }
+      }
+    },
+    "smartChargingSessionParameters": {
+      "type": "object",
+      "properties": {
+        "departureTime": {
+          "type": "string",
+          "sanitize": "mongo",
+          "pattern": "^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$",
+          "nullable": true
+        },
+        "carStateOfCharge": {
+          "type": "integer",
+          "sanitize": "mongo"
+        },
+        "targetStateOfCharge": {
+          "type": "integer",
           "sanitize": "mongo"
         }
       }

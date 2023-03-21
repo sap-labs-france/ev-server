@@ -1,14 +1,14 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSetting, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TaskSettings, TaskSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
+import { SettingDBDataResult } from '../../types/DataResult';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SettingStorage';
@@ -279,6 +279,7 @@ export default class SettingStorage {
           stickyLimitation: config.sapSmartCharging.stickyLimitation ? config.sapSmartCharging.stickyLimitation : false,
           limitBufferDC: config.sapSmartCharging.limitBufferDC ? config.sapSmartCharging.limitBufferDC : 0,
           limitBufferAC: config.sapSmartCharging.limitBufferAC ? config.sapSmartCharging.limitBufferAC : 0,
+          prioritizationParametersActive: config.sapSmartCharging.prioritizationParametersActive ?? false,
         };
       }
     }
@@ -333,8 +334,8 @@ export default class SettingStorage {
   }
 
   public static async getSettings(tenant: Tenant,
-      params: {identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date},
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
+      params: { identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date },
+      dbParams: DbParams, projectFields?: string[]): Promise<SettingDBDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -474,7 +475,7 @@ export default class SettingStorage {
             secretKey: content.stripe?.secretKey,
             publicKey: content.stripe?.publicKey,
           };
-          billingSettings.sensitiveData = [ 'stripe.secretKey' ];
+          billingSettings.sensitiveData = ['stripe.secretKey'];
           break;
       }
       return billingSettings;
@@ -495,9 +496,25 @@ export default class SettingStorage {
       category, createdBy, createdOn, lastChangedBy, lastChangedOn,
     };
     if (billingSettings.type === BillingSettingsType.STRIPE) {
-      setting.sensitiveData = [ 'content.stripe.secretKey' ];
+      setting.sensitiveData = ['content.stripe.secretKey'];
       setting.content.stripe = stripe;
     }
     return SettingStorage.saveSettings(tenant, setting);
   }
+
+  public static async getTaskSettings(tenant: Tenant): Promise<TaskSettings> {
+    let taskSettings: TaskSettings;
+    // Get task settings
+    const settings = await SettingStorage.getSettings(tenant, { identifier: TechnicalSettings.TASK }, Constants.DB_PARAMS_SINGLE_RECORD);
+    if (settings.count > 0) {
+      taskSettings = {
+        id: settings.result[0].id,
+        identifier: TechnicalSettings.TASK,
+        type: TaskSettingsType.TASK,
+        task: settings.result[0].content.task,
+      };
+    }
+    return taskSettings;
+  }
+
 }

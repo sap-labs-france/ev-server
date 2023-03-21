@@ -4,9 +4,11 @@ import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import BackendError from '../../../../exception/BackendError';
 import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import { PerformanceRecordGroup } from '../../../../types/Performance';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import JsonChargingStationClient from '../../../../client/ocpp/json/JsonChargingStationClient';
+import Utils from '../../../../utils/Utils';
 import JsonChargingStationService from '../services/JsonChargingStationService';
 import Logging from '../../../../utils/Logging';
 import OCPPError from '../../../../exception/OcppError';
@@ -43,6 +45,11 @@ export default class JsonWSConnection extends WSConnection {
         Address: this.getClientIP()
       }
     };
+    if (Utils.isMonitoringEnabled()) {
+      const labelValues = { tenant: this.getTenant().subdomain };
+      this.getWS().ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OpenedWebSocket', 'Opened web sockets', labelValues);
+      this.getWS().ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'ClosedWebSocket', 'Closed web sockets', labelValues);
+    }
     // Create the Json Client
     this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID());
     // Create the Json Server Service
@@ -86,10 +93,11 @@ export default class JsonWSConnection extends WSConnection {
         // Call it
         result = await this.chargingStationService[methodName](this.headers, commandPayload);
       } finally {
+        // TODO - to be clarified - why should we clear the header here?
         // Clean the header
-        delete this.headers.chargingStation;
-        delete this.headers.tenant;
-        delete this.headers.token;
+        // delete this.headers.chargingStation;
+        // delete this.headers.tenant;
+        // delete this.headers.token;
         // Trace
         await Logging.traceOcppMessageResponse(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenant(), this.getChargingStationID(),
           OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, result, '<<',
@@ -131,7 +139,7 @@ export default class JsonWSConnection extends WSConnection {
   private async updateChargingStationLastSeen(): Promise<void> {
     // Update once every ping interval / 2
     if (!this.lastSeen ||
-        (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
+      (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
       // Update last seen
       this.lastSeen = new Date();
       const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),

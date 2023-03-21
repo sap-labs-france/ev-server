@@ -15,7 +15,7 @@ export default interface AsyncTask extends CreatedUpdatedProps {
   module: string;
   method: string;
   message?: string;
-  parameters?: Record<string, string>;
+  parameters?: Record<string, any>;
 }
 
 export enum AsyncTaskType {
@@ -31,6 +31,7 @@ export enum AsyncTaskStatus {
 }
 
 export enum AsyncTasks {
+  END_TRANSACTION = 'EndTransactionAsyncTask',
   BILL_TRANSACTION = 'BillTransactionAsyncTask',
   TAGS_IMPORT = 'TagsImportAsyncTask',
   USERS_IMPORT = 'UsersImportAsyncTask',

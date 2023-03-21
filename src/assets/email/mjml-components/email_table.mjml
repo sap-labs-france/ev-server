@@ -1,0 +1,7 @@
+<mj-section background-color="#ffffff">
+  <mj-column width="70%">
+    <mj-table>
+    {{_TABLE_CONTENT_}}
+    </mj-table>
+  </mj-column>
+</mj-section>

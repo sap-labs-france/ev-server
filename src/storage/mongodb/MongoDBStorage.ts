@@ -128,6 +128,15 @@ export default class MongoDBStorage {
       { fields: { host: 1, timestamp: 1 } },
       { fields: { message: 'text' } },
     ]);
+    // Raw Notifications
+    await this.handleIndexesInCollection(tenantID, 'rawnotifications', [
+      { fields: { timestamp: 1 }, options: { expireAfterSeconds: 1 * 24 * 3600 } }, // To be clarified - too short when checking the user inactivity
+      { fields: { discriminator: 1 } } // Necessary to avoid scanning all documents when checking whether the notification has already been sent
+    ]);
+    // Raw MeterValues
+    await this.handleIndexesInCollection(tenantID, 'rawmetervalues', [
+      { fields: { beginAt: 1 }, options: { expireAfterSeconds: 2 * 24 * 3600 } }
+    ]);
     // MeterValues
     await this.handleIndexesInCollection(tenantID, 'metervalues', [
       { fields: { transactionId: 1 } }
@@ -184,16 +193,19 @@ export default class MongoDBStorage {
     // Sites
     await this.handleIndexesInCollection(tenantID, 'sites', [
       { fields: { 'address.coordinates': '2dsphere' } },
+      { fields: { 'ocpiData.location.id': 1 }, options: { partialFilterExpression: { ocpiData: { $exists: true } } } }
     ]);
     // Site Area
     await this.handleIndexesInCollection(tenantID, 'siteareas', [
       { fields: { 'address.coordinates': '2dsphere' } },
+      { fields: { 'ocpiData.location.id': 1 }, options: { partialFilterExpression: { ocpiData: { $exists: true } } } }
     ]);
     // Charging Stations
     await this.handleIndexesInCollection(tenantID, 'chargingstations', [
       { fields: { coordinates: '2dsphere' } },
       { fields: { deleted: 1, issuer: 1 } },
       { fields: { 'connectors.status': 1 } },
+      { fields: { 'ocpiData.evses.uid': 1 }, options: { partialFilterExpression: { 'ocpiData.evses': { $exists: true } } } }
     ]);
     await Logging.logDebug({
       tenantID: tenantID,
@@ -267,17 +279,31 @@ export default class MongoDBStorage {
     }
     // Connect to EVSE
     Logging.logConsoleDebug(`Connecting to '${mongoUrl}'`);
-    const mongoDBClient = await MongoClient.connect(
+    // Connection pool size
+    let minPoolSize: number, maxPoolSize: number;
+    if (this.dbConfig.minPoolSize && this.dbConfig.maxPoolSize) {
+      // New configuration (K8S)
+      minPoolSize = this.dbConfig.minPoolSize;
+      maxPoolSize = this.dbConfig.maxPoolSize;
+    } else if (this.dbConfig.poolSize) {
+      // Legacy configuration (AWS FARGATE)
+      minPoolSize = Math.floor(this.dbConfig.poolSize / 2);
+      maxPoolSize = this.dbConfig.poolSize;
+    } else {
+      // Default values
+      minPoolSize = 10;
+      maxPoolSize = 100;
+    }
+    // Mongo Client to EVSE DB
+    this.mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
-        minPoolSize: Math.floor(this.dbConfig.poolSize / 2),
-        maxPoolSize: this.dbConfig.poolSize,
+        minPoolSize,
+        maxPoolSize,
         loggerLevel: this.dbConfig.debug ? 'debug' : null,
         readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
       }
     );
-    // Get the EVSE DB
-    this.mongoDBClient = mongoDBClient;
     this.database = this.mongoDBClient.db();
     // Keep a global reference
     global.database = this;
@@ -350,8 +376,8 @@ export default class MongoDBStorage {
           ]);
           // Performances
           await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'performances', [
-            { fields: { timestamp: 1 }, options: { expireAfterSeconds: 14 * 24 * 3600 } },
-            { fields: { timestamp: 1, group: 1, tenantSubdomain: 1 } },
+            { fields: { timestamp: 1 }, options: { expireAfterSeconds: 2 * 24 * 3600 } },
+            // { fields: { timestamp: 1, group: 1, tenantSubdomain: 1 } }, - this index seems wrong and useless
           ]);
           // Users
           await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'users', [
@@ -469,7 +495,12 @@ export default class MongoDBStorage {
           }
           // Check DB 'expireAfterSeconds' index option
           if (!Utils.areObjectPropertiesEqual(databaseIndex, foundIndex?.options, 'expireAfterSeconds')) {
-            // Force nound: Create
+            // expiration date
+            foundIndex = null;
+          }
+          // Check DB 'expireAfterSeconds' index option
+          if (!Utils.areObjectPropertiesEqual(databaseIndex, foundIndex?.options, 'partialFilterExpression')) {
+            // partial index
             foundIndex = null;
           }
           // Delete the index

@@ -1,7 +1,6 @@
 /* eslint-disable max-len */
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BaseNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
-import EmailComponentManager, { EmailComponent } from './email-component-manager/EmailComponentManager';
-import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import EmailComponentManager, { EmailComponent } from './EmailComponentManager';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
 
 import BackendError from '../../exception/BackendError';
@@ -14,15 +13,11 @@ import Logging from '../../utils/Logging';
 import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationTask from '../NotificationTask';
 import { ServerAction } from '../../types/Server';
-import TemplateManager from '../../utils/TemplateManager';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
-import ejs from 'ejs';
-import fs from 'fs';
-import global from '../../types/GlobalType';
-import mjmlBuilder from './mjml-builder/MjmlBuilder';
+import mjmlBuilder from './EmailMjmlBuilder';
 import rfc2047 from 'rfc2047';
 
 const MODULE_NAME = 'EMailNotificationTask';
@@ -68,27 +63,26 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.TABLE)];
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
     return await this.prepareAndSendEmail('optimal-charge-reached', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.TABLE)];
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
     return await this.prepareAndSendEmail('end-of-charge', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardChargingStationURL;
-    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.TABLE)];
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
     return await this.prepareAndSendEmail('end-of-session', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // TBC - This one is confusing and inconsistent - Users are getting data in German only!
-    return Promise.resolve(null);
-    // data.buttonUrl = data.evseDashboardURL;
-    // return await this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity);
+    data.buttonUrl = data.evseDashboardChargingStationURL;
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_EICHRECHT_TABLE)];
+    return await this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity, optionalComponents);
   }
 
   public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
@@ -161,11 +155,11 @@ export default class EMailNotificationTask implements NotificationTask {
 
   public async sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     // TODO - old stuff - to be removed asap
-    data.chargeBoxIDs = data.chargingStationIDs.join(", ");
+    data.chargeBoxIDs = data.chargingStationIDs.join(', ');
     // Populate the context to have a human-readable message
     data.nbChargingStationIDs = data.chargingStationIDs?.length || 0;
     // Show only the ten first charging stations
-    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(", ") + "...";
+    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(', ') + '...';
     data.buttonUrl = data.evseDashboardURL;
     return await this.prepareAndSendEmail('offline-charging-station', data, user, tenant, severity);
   }
@@ -196,18 +190,14 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.TABLE)];
+    const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
     let templateName: string;
-    if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
-      if (data.invoiceStatus === 'paid') {
-        data.buttonUrl = data.invoiceDownloadUrl;
-        templateName = 'billing-new-invoice-paid';
-      } else {
-        data.buttonUrl = data.payInvoiceUrl;
-        templateName = 'billing-new-invoice-unpaid';
-      }
+    if (data.invoiceStatus === 'paid') {
+      data.buttonUrl = data.invoiceDownloadUrl;
+      templateName = 'billing-new-invoice-paid';
     } else {
-      templateName = 'billing-new-invoice';
+      data.buttonUrl = data.payInvoiceUrl;
+      templateName = 'billing-new-invoice-unpaid';
     }
     return await this.prepareAndSendEmail(templateName, data, user, tenant, severity, optionalComponents);
   }
@@ -230,14 +220,10 @@ export default class EMailNotificationTask implements NotificationTask {
   public async sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
     data.buttonUrl = data.evseDashboardURL;
     let templateName: string;
-    if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
-      if (data.userStatus === 'A') {
-        templateName = 'account-verification-notification-active';
-      } else {
-        templateName = 'account-verification-notification-inactive';
-      }
+    if (data.userStatus === 'A') {
+      templateName = 'account-verification-notification-active';
     } else {
-      templateName = 'account-verification-notification';
+      templateName = 'account-verification-notification-inactive';
     }
     return await this.prepareAndSendEmail(templateName, data, user, tenant, severity);
   }
@@ -309,7 +295,10 @@ export default class EMailNotificationTask implements NotificationTask {
           content: email.html // Only log the email content when running automated tests
         }
       });
-      return ;
+      if (!this.emailConfig.troubleshootingMode) {
+        // Do not send emails when in dev mode or while running automated tests
+        return ;
+      }
     }
     try {
       // Get the SMTP client
@@ -378,22 +367,22 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async sendSmartEmail(prefix: string, context: any, recipient: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents: string[] = []): Promise<EmailNotificationMessage> {
+  private async sendSmartEmail(prefix: string, context: Record<string, unknown>, recipient: User, tenant: Tenant, severity: NotificationSeverity, optionalComponents: string[] = []): Promise<EmailNotificationMessage> {
     // Select the i18n source according to the recipient locale
     const i18nInstance = I18nManager.getInstanceForLocale(recipient.locale);
     // Aggregate the templates
     const template = (await mjmlBuilder.initialize())
-      .addToBody(await EmailComponentManager.getComponent(EmailComponent.TITLE))
-      .addToBody(await EmailComponentManager.getComponent(EmailComponent.TEXT1))
+      .addToBody(await EmailComponentManager.getComponent(EmailComponent.MJML_TITLE))
+      .addToBody(await EmailComponentManager.getComponent(EmailComponent.MJML_MAIN_MESSAGE))
       .addToBody(optionalComponents.join())
-      .addToBody(await EmailComponentManager.getComponent(EmailComponent.BUTTON))
+      .addToBody(await EmailComponentManager.getComponent(EmailComponent.MJML_MAIN_ACTION))
       .buildTemplate();
     template.resolve(i18nInstance, context, prefix);
     // if (Utils.isDevelopmentEnv()) {
     //   fs.writeFileSync('./troubleshoot-email-framework.txt', template.getTemplate(), 'utf-8');
     // }
     const html = template.getHtml();
-    const title = i18nInstance.translate(`email.${prefix}.title`, context as Record<string, unknown>);
+    const title = i18nInstance.translate(`email.${prefix}.title`, context);
     const emailContent: EmailNotificationMessage = {
       to: recipient.email,
       subject: `e-Mobility - ${tenant.name} - ${title}`,
@@ -426,16 +415,12 @@ export default class EMailNotificationTask implements NotificationTask {
           message: `No email is provided for User for '${templateName}'`
         });
       }
-      //----------------------------------------------------------------------------------------------------------
-      //  ACHTUNG - to not alter the original sourceData object (the caller nay need to reuse the initial values)
-      //----------------------------------------------------------------------------------------------------------
-      const context = await this.populateNotificationContext(tenant, recipient, sourceData);
+      // Enrich the sourceData with constant values
+      this.enrichSourceData(tenant, sourceData);
+      // Build the context with recipient data
+      const context: Record<string, unknown> = this.populateNotificationContext(tenant, recipient, sourceData);
       // Send the email
-      if (FeatureToggles.isFeatureActive(Feature.NEW_EMAIL_TEMPLATES)) {
-        emailContent = await this.sendSmartEmail(templateName, context, recipient, tenant, severity, optionalComponents);
-      } else {
-        emailContent = await this.sendLegacyEmail(templateName, context, recipient, tenant, severity);
-      }
+      emailContent = await this.sendSmartEmail(templateName, context, recipient, tenant, severity, optionalComponents);
       return {
         html: emailContent.html,
       };
@@ -457,128 +442,30 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  private async populateNotificationContext(tenant: Tenant, recipient: User, sourceData: any): Promise<any> {
+  private enrichSourceData(tenant: Tenant, sourceData: any): void {
+    // Branding Information
+    sourceData.openEmobilityWebSiteURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL;
+    // Tenant information
+    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
+      sourceData.tenantName = 'Open e-Mobility'; // TBC - Not sure what to show in emails in that case
+    } else {
+      sourceData.tenantName = tenant.name;
+    }
+    // Tenant logo URL
+    sourceData.tenantLogoURL = Utils.buildRestServerTenantEmailLogoURL(tenant.id);
+    if (this.emailConfig.troubleshootingMode && sourceData.tenantLogoURL.startsWith('http://localhost')) {
+      // Dev and test only - for security reasons te browser blocks content from localhost in emails!
+      sourceData.tenantLogoURL = BrandingConstants.OPEN_EMOBILITY_WEBSITE_LOGO_URL;
+    }
+  }
+
+  private populateNotificationContext(tenant: Tenant, recipient: User, sourceData: any): any {
     return {
-      ...sourceData,
-      // Tenant
-      tenantName: (tenant.id === Constants.DEFAULT_TENANT_ID) ? Constants.DEFAULT_TENANT_ID : tenant.name,
+      ...sourceData, // Do not alter the original sourceData object (the caller nay need to reuse the initial values)
       // Recipient
       recipientName: recipient.firstName || recipient.name,
       recipientEmail: recipient.email,
-      // Tenant LOGO
-      tenantLogoURL: await this.getTenantLogo(tenant),
-      // Branding
-      openEMobilityPoweredByLogo: BrandingConstants.OPEN_EMOBILITY_POWERED_BY,
-      openEmobilityWebSiteURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL
     };
-  }
-
-  private async getTenantLogo(tenant: Tenant): Promise<string> {
-    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
-      return BrandingConstants.TENANT_DEFAULT_LOGO_CONTENT;
-    } else if (!tenant.logo) {
-      tenant.logo = (await TenantStorage.getTenantLogo(tenant))?.logo;
-    }
-    return tenant.logo || BrandingConstants.TENANT_DEFAULT_LOGO_CONTENT;
-  }
-
-  private async sendLegacyEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<EmailNotificationMessage> {
-    // Fetch the template
-    const emailTemplate = await TemplateManager.getInstanceForLocale(user.locale).getTemplate(templateName);
-    if (!emailTemplate) {
-      throw new BackendError({
-        action: ServerAction.EMAIL_NOTIFICATION,
-        module: MODULE_NAME, method: 'prepareAndSendEmail',
-        message: `No Email template found for '${templateName}'`
-      });
-    }
-    // Render the subject
-    emailTemplate.subject = ejs.render(emailTemplate.subject, data);
-    // Render the tenant name
-    if (tenant.id === Constants.DEFAULT_TENANT_ID) {
-      emailTemplate.tenant = Constants.DEFAULT_TENANT_ID;
-    } else {
-      emailTemplate.tenant = tenant.name;
-    }
-    // Render Base URL
-    emailTemplate.baseURL = ejs.render(emailTemplate.baseURL, data);
-    emailTemplate.body.template = templateName;
-    if (emailTemplate.body.header) {
-      // Render the title
-      emailTemplate.body.header.title = ejs.render(emailTemplate.body.header.title, data);
-      // Render the left Logo
-      emailTemplate.body.header.image.left.url = ejs.render(emailTemplate.body.header.image.left.url, data);
-      // Render the right Logo
-      emailTemplate.body.header.image.right.url = ejs.render(emailTemplate.body.header.image.right.url, data);
-    }
-    if (emailTemplate.body.beforeActionLines) {
-      // Render Lines Before Action
-      emailTemplate.body.beforeActionLines =
-        emailTemplate.body.beforeActionLines.map((beforeActionLine) => ejs.render(beforeActionLine, data));
-      // Remove extra empty lines
-      Utils.removeExtraEmptyLines(emailTemplate.body.beforeActionLines);
-    }
-    // Render Stats
-    if (emailTemplate.body.stats) {
-      emailTemplate.body.stats =
-        emailTemplate.body.stats.map((stat) => {
-          stat.label = ejs.render(stat.label, data);
-          stat.value = ejs.render(stat.value, data);
-          return stat;
-        });
-    }
-    // Render Action
-    if (emailTemplate.body.actions) {
-      for (const action of emailTemplate.body.actions) {
-        action.title = ejs.render(action.title, data);
-        action.url = ejs.render(action.url, data);
-      }
-    }
-    // Render after Action
-    if (emailTemplate.body.afterActionLines) {
-      emailTemplate.body.afterActionLines =
-        emailTemplate.body.afterActionLines.map((afterActionLine) => ejs.render(afterActionLine, data));
-      // Remove extra empty lines
-      Utils.removeExtraEmptyLines(emailTemplate.body.afterActionLines);
-    }
-    if (emailTemplate.body.startSignedData && emailTemplate.body.endSignedData) {
-      emailTemplate.body.startSignedData = ejs.render(emailTemplate.body.startSignedData, data);
-      emailTemplate.body.endSignedData = ejs.render(emailTemplate.body.endSignedData, data);
-      emailTemplate.body.startSignedData = emailTemplate.body.startSignedData
-        .replace(/</g, '&amp;lt;')
-        .replace(/>/g, '&amp;gt;')
-        .replace(/encoding="base64"/g, '<br> encoding="base64"')
-        .replace(/\\/g, '');
-      emailTemplate.body.endSignedData = emailTemplate.body.endSignedData
-        .replace(/</g, '&amp;lt;')
-        .replace(/>/g, '&amp;gt;')
-        .replace(/encoding="base64"/g, '<br> encoding="base64"')
-        .replace(/\\/g, '');
-    }
-    if (emailTemplate.body.transactionId) {
-      emailTemplate.body.transactionId = ejs.render(emailTemplate.body.transactionId, data);
-    }
-    // Render the final HTML -----------------------------------------------
-    const subject = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/subject.template`, 'utf8'), emailTemplate);
-    let htmlTemp: string;
-    if (templateName === 'end-of-signed-session') {
-      htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-signed-transaction.template`, 'utf8'), emailTemplate);
-    } else if (templateName === 'billing-new-invoice') {
-      htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-invoice.template`, 'utf8'), emailTemplate);
-    } else {
-      htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
-    }
-    const html = htmlTemp;
-    const emailContent: EmailNotificationMessage = {
-      to: user.email,
-      subject: subject,
-      html: html
-    };
-    // We may have a fallback - Not used anymore
-    const useSmtpClientFallback = false;
-    // Send the email
-    await this.sendEmail(emailContent, data, tenant, user, severity, useSmtpClientFallback);
-    return emailContent;
   }
 
   private getSMTPClient(useSmtpClientBackup: boolean): SMTPClient {

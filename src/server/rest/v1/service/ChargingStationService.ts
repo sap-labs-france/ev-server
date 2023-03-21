@@ -430,6 +430,15 @@ export default class ChargingStationService {
           withSite: true,
           withSiteArea: true,
         }, true);
+    } else if (chargingStation.canUpdateChargingProfile) {
+      chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+        req.tenant, req.user, filteredRequest.ID, Action.UPDATE_CHARGING_PROFILE, action, null, {
+          // TODO: Put back the filters below when the Mobile App would have migrated to new Authorization checks
+          // withSite: filteredRequest.WithSite,
+          // withSiteArea: filteredRequest.WithSiteArea
+          withSite: true,
+          withSiteArea: true,
+        }, true);
     }
     res.json(chargingStation);
     next();
@@ -542,7 +551,8 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationNotificationsGetReq(req.query);
     // Check dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(req.tenant, req.user, Action.GET_BOOT_NOTIFICATION);
+    const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(
+      req.tenant, req.user, Action.GET_BOOT_NOTIFICATION, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -609,7 +619,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationNotificationsGetReq(req.query);
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(
-      req.tenant, req.user, Action.GET_BOOT_NOTIFICATION);
+      req.tenant, req.user, Action.GET_BOOT_NOTIFICATION, filteredRequest, false);
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -901,14 +911,7 @@ export default class ChargingStationService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
       Action.CHECK_CONNECTION, Entity.CHARGING_STATION, MODULE_NAME, 'handleCheckSmartChargingConnection');
     // Check auth
-    if (!await Authorizations.canReadSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.SETTING, action: Action.UPDATE,
-        module: MODULE_NAME, method: 'handleCheckSmartChargingConnection'
-      });
-    }
+    await AuthorizationService.checkAndGetSmartChargingAuthorizations(req.tenant, req.user, Action.CHECK_CONNECTION);
     // Get implementation
     const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.tenant);
     if (!smartCharging) {
@@ -957,6 +960,7 @@ export default class ChargingStationService {
         includeDeleted: filteredRequest.IncludeDeleted,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
+        public: filteredRequest.Public,
         ...additionalFilters,
         ...authorizations.filters
       },

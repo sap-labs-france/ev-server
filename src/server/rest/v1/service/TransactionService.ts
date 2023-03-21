@@ -338,7 +338,7 @@ export default class TransactionService {
       });
     }
     // Check consumption dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetConsumptionsAuthorizations(req.tenant, req.user, Action.LIST, null, true);
+    const authorizations = await AuthorizationService.checkAndGetConsumptionsAuthorizations(req.tenant, req.user, Action.LIST);
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
       const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(
@@ -496,13 +496,10 @@ export default class TransactionService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
       Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetRefundReports');
-
     // Filter request
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq(req.query);
     // Check dyna;ic auth
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(req.tenant, req.user, Action.GET_REFUND_REPORT, filteredRequest);
-
-
     // Get Reports
     const reports = await TransactionStorage.getRefundReports(
       req.tenant,
@@ -554,7 +551,7 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionValidatorRest.getInstance().validateTransactionCdrExportReq(req.query);
     // Get Transaction
-    const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, filteredRequest.ID, Action.EXPORT_OCPI_CDR, action);
+    const transaction = await UtilsService.checkAndGetTransactionAuthorization(req.tenant, req.user, filteredRequest.ID, Action.EXPORT_OCPI_CDR, action, null, null, true);
     if (!transaction?.ocpiData) {
       throw new AppError({
         ...LoggingHelper.getTransactionProperties(transaction),
@@ -570,7 +567,6 @@ export default class TransactionService {
   }
 
   public static async handleGetTransactionsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-
     // Check auth
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(req.tenant, req.user, Action.IN_ERROR);
     // Filter
@@ -745,15 +741,13 @@ export default class TransactionService {
   }
 
   private static async getTransactions(req: Request, filteredRequest: HttpTransactionsGetRequest,
-    authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
-
+      authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(
       req.tenant, req.user, authAction, filteredRequest, false);
     if (!authorizations.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
-
     // Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
       const tagIDs = await TagStorage.getTags(req.tenant, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['id']);
@@ -809,7 +803,7 @@ export default class TransactionService {
   }
 
   private static async transactionSoftStop(action: ServerAction, transaction: Transaction, chargingStation: ChargingStation,
-    connector: Connector, req: Request, res: Response, next: NextFunction): Promise<void> {
+      connector: Connector, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if already stopped
     if (transaction.stop) {
       // Clear Connector
@@ -862,7 +856,7 @@ export default class TransactionService {
   }
 
   private static async checkAndGetTransactionChargingStationConnector(action: ServerAction, tenant: Tenant, user: UserToken,
-    transactionID: number, authAction: Action): Promise<{ transaction: Transaction; chargingStation: ChargingStation; connector: Connector; }> {
+      transactionID: number, authAction: Action): Promise<{ transaction: Transaction; chargingStation: ChargingStation; connector: Connector; }> {
     // Check dynamic auth
     const transaction = await UtilsService.checkAndGetTransactionAuthorization(tenant, user, transactionID, authAction, action);
     const { chargingStation, connector } = await TransactionService.checkAndGetChargingStationConnector(action, tenant, user,
@@ -871,7 +865,7 @@ export default class TransactionService {
   }
 
   private static async checkAndGetChargingStationConnector(action: ServerAction, tenant: Tenant, user: UserToken,
-    chargingStationID: string, connectorID: number, authAction: Action): Promise<{ chargingStation: ChargingStation; connector: Connector; }> {
+      chargingStationID: string, connectorID: number, authAction: Action): Promise<{ chargingStation: ChargingStation; connector: Connector; }> {
     // Get the Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(tenant, user, chargingStationID, authAction, action, null, { withSiteArea: true });
     // Check connector

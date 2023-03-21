@@ -1,10 +1,11 @@
-import { AuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { SettingAuthorizationActions } from './Authorization';
 import { TenantComponents } from './Tenant';
 
 export enum TechnicalSettings {
   CRYPTO = 'crypto',
   USER = 'user',
+  TASK = 'task',
 }
 
 export enum IntegrationSettings {
@@ -23,7 +24,7 @@ export enum IntegrationSettings {
   STATISTICS = 'statistics'
 }
 
-export interface Setting extends AuthorizationActions, CreatedUpdatedProps {
+export interface Setting extends SettingAuthorizationActions, CreatedUpdatedProps {
   id?: string;
   identifier: TenantComponents | TechnicalSettings;
   sensitiveData?: string[];
@@ -55,7 +56,8 @@ export interface SettingDBContent {
   | SmartChargingContentType
   | CryptoSettingsType
   | UserSettingsType
-  | CarConnectorSettingsType;
+  | CarConnectorSettingsType
+  | TaskSettingsType;
   ocpi?: OcpiSetting;
   oicp?: OicpSetting;
   // pricing?: PricingSetting;  // TODO - reorg pricing similar to billing
@@ -70,6 +72,7 @@ export interface SettingDBContent {
   carConnector?: CarConnectorSetting;
   crypto?: CryptoSetting;
   user?: UserSetting;
+  task?: TaskSetting;
 }
 
 export enum PricingSettingsType {
@@ -204,6 +207,7 @@ export interface SapSmartChargingSetting extends SmartChargingSetting {
   stickyLimitation: boolean;
   limitBufferDC: number;
   limitBufferAC: number;
+  prioritizationParametersActive?: boolean;
 }
 
 export enum RefundSettingsType {
@@ -344,25 +348,33 @@ export interface CarConnectorConnectionSetting {
   token?: CarConnectorConnectionToken;
   mercedesConnection?: CarConnectorMercedesConnectionType;
   tronityConnection?: CarConnectorTronityConnectionType;
+  targaTelematicsConnection?: CarConnectorTargaTelematicsConnectionType;
 }
 
 export enum CarConnectorConnectionType {
   NONE = '',
   MERCEDES = 'mercedes',
-  TRONITY = 'tronity'
+  TRONITY = 'tronity',
+  TARGA_TELEMATICS = 'targaTelematics'
 }
 
-export interface CarConnectorMercedesConnectionType {
+export interface OAuth2ConnectionType {
+  clientId: string;
+  clientSecret: string;
+}
+
+export interface CarConnectorMercedesConnectionType extends OAuth2ConnectionType {
   authenticationUrl: string;
   apiUrl: string;
-  clientId: string;
-  clientSecret: string;
 }
 
-export interface CarConnectorTronityConnectionType {
+export interface CarConnectorTronityConnectionType extends OAuth2ConnectionType {
   apiUrl: string;
-  clientId: string;
-  clientSecret: string;
+}
+
+export interface CarConnectorTargaTelematicsConnectionType extends OAuth2ConnectionType {
+  authenticationUrl: string;
+  apiUrl: string;
 }
 
 export interface CarConnectorConnectionToken {
@@ -410,4 +422,19 @@ export interface UserSettings extends Setting {
 
 export interface UserSetting {
   autoActivateAccountAfterValidation: boolean;
+}
+
+export enum TaskSettingsType {
+  TASK = 'task',
+}
+
+export interface TaskSettings extends Setting {
+  identifier: TechnicalSettings.TASK;
+  type: TaskSettingsType;
+  task?: TaskSetting;
+}
+
+export interface TaskSetting {
+  disableAllTasks?: boolean;
+  disableTasksInEnv?: string[];
 }

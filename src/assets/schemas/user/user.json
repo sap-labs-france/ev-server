@@ -175,6 +175,27 @@
         }
       }
     },
+    "mobileToken": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "mobileOS": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["ios", "android", "windows", "macos", "web"]
+    },
+    "mobileBundleID": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "mobileAppName": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "mobileVersion": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
     "deleted": {
       "type": "boolean",
       "sanitize": "mongo"

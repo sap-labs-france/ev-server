@@ -5,11 +5,14 @@ import Site, { UserSite } from './Site';
 import Transaction, { TransactionStop } from './Transaction';
 import User, { SiteUser } from './User';
 
+import { Cache } from '../cache/Cache';
 import { ChargingProfile } from './ChargingProfile';
 import Company from './Company';
 import JsonOCPPServer from '../server/ocpp/json/JsonOCPPServer';
 import { Log } from './Log';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
+import MonitoringServer from '../monitoring/MonitoringServer';
+import OCPIEndpoint from './ocpi/OCPIEndpoint';
 import { PerformanceRecordGroup } from './Performance';
 import PricingDefinition from './Pricing';
 import RefundReport from './Refund';
@@ -87,14 +90,17 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting|BillingAccount|ChargingProfile|Connector|Transaction|TransactionStop|BillingTransfer|BillingTax|RefundReport|UserSite|SiteUser|ChargingStationTemplate;
+export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting|BillingAccount|ChargingProfile|Connector|Transaction|TransactionStop|BillingTransfer|BillingTax|RefundReport|UserSite|SiteUser|ChargingStationTemplate|OCPIEndpoint;
 
 interface TSGlobal extends Global {
+  tenantIdMap: Map<string,string>;
   database: MongoDBStorage;
   appRoot: string;
   centralSystemJsonServer: JsonOCPPServer;
   centralSystemSoapServer: SoapOCPPServer;
   serverType: ServerType;
+  monitoringServer : MonitoringServer;
+  cache: Cache;
   Promise: any;
 }
 

@@ -1,0 +1,116 @@
+<mjml>
+  <mj-head>
+    <mj-title>{{i18n:title}}</mj-title>
+    <mj-font name="Roboto" href="https://fonts.googleapis.com/css?family=Roboto:300,500"></mj-font>
+    <mj-attributes>
+      <mj-section padding="0px"></mj-section>
+      <mj-all font-family="Roboto, Helvetica, sans-serif"></mj-all>
+      <mj-text font-weight="300" color="#616161" line-height="20px"></mj-text>
+    </mj-attributes>
+    <mj-raw>
+      <meta name="color-scheme" content="light" />
+      <meta name="supported-color-schemes" content="light" />
+    </mj-raw>
+  </mj-head>
+  <mj-body background-color="#308080">
+
+    <mj-section padding-top="40px">
+      <mj-column width="100%">
+        <mj-image width="140px" href="https://open-e-mobility.io/" src="data:image/jpeg;base64,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"></mj-image>
+      </mj-column>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        <mj-text color="#ffffff" font-size="12px">SLF Test System</mj-text>
+      </mj-column>
+    </mj-section>
+
+
+    <mj-section background-color="#ffffff">
+      <mj-column>
+        <mj-text>
+          <p>Hello Claude,</p>
+          <p>THe charging station has been destroyed by someone and we cannot do anything to repair it!</p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+
+
+    <mj-section background-color="#ffffff">
+      <mj-column>
+        <mj-button background-color="#308080" color="#ffffff" font-size="16px" href="{{buttonUrl}}">
+          Click here to continue
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+
+<mj-section background-color="#ffffff">
+  <mj-column>
+		<mj-text font-size="12px">
+      === Dauerhafter Nachweis des Messergebnisses nach MessEV Anhang 2 Punkt 10.2 des Ladevorgangs ===
+    </mj-text>
+  </mj-column>
+</mj-section>
+<mj-section background-color="#ffffff">
+  <mj-column>
+    <mj-table>
+    {{_TABLE_CONTENT_}}
+    </mj-table>
+  </mj-column>
+</mj-section>
+<mj-section background-color="#ffffff">
+  <mj-column>
+		<mj-text font-size="12px">
+      === Anfang der eichrechtlich gesicherte Daten zur Überprüfung der Vollständigkeit und Integrität ===<br/>
+      Transaktionssignatur für Transparenzsoftware:<br/>
+    	---8&lt;----Signatur ab hier---8&lt;--- <br/>
+      &lt;?xml version="1.0"?&gt;<br/>
+      &lt;values&gt;<br/>
+      &lt;value transactionId="{{transactionId}}" context="Transaction.Begin"&gt;<br/>
+      &lt;signedData&gt;<br/>
+      {{startSignedData}}<br/>
+      &lt;/signedData&gt;<br/>
+      &lt;/value&gt;<br/>
+      &lt;value transactionId="{{transactionId}}" context="Transaction.End"&gt;<br/>
+      &lt;signedData&gt;<br/>
+      {{endSignedData}}><br/>
+      &lt;/signedData&gt;<br/>
+      &lt;/value&gt;<br/>
+      &lt;/values&gt;<br/>
+      ---8&lt;----Signatur bis hier---8&lt;--- <br/>
+    </mj-text>
+  </mj-column>
+</mj-section>
+
+<mj-section background-color="#ffffff" padding-top="20px" padding-bottom="20px">
+	<mj-column>
+    <mj-divider border-width="1px" border-color="#E0E0E0" padding="0px" ></mj-divider>
+		<mj-text font-size="12px">
+			Bitte validieren Sie bei Bedarf mit der Transparenzsoftware von <a href="http://www.transparenz.software">http://www.transparenz.software</a><br/>
+      - den oben angezeigten Zählerstand für Start- und Ende <br/>
+      - den daraus errechneten Verbrauch <br/>
+      - Start- und Endzeit der Ladetransaktion <br/>
+      - das der Paginierungswert in der Endsignatur genau um 1 höher ist als in der Startsignatur <br/>
+      - das der Public Key dem in der Ladeeinrichtung sichtbaren Public Key entspricht <br/>
+      - das die Transparenzsoftware beide Signaturen als korrekt validiert <br/>
+		</mj-text>
+	</mj-column>
+</mj-section>
+
+    <mj-section background-color="#ffffff" padding-top="20px" padding-bottom="20px">
+      <mj-column>
+        <mj-divider border-width="1px" border-color="#E0E0E0" padding="0px" ></mj-divider>
+        <mj-text font-size="12px">
+          <p>This message has been sent by an automated email service to {{recipientEmail}}.
+            Please do not reply. You may unsubscribe by changing your notification settings.</p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section padding-top="40px">
+      <mj-column>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

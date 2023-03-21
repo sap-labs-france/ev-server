@@ -6,6 +6,7 @@ import AsyncTaskConfiguration from '../types/configuration/AsyncTaskConfiguratio
 import AsyncTaskStorage from '../storage/mongodb/AsyncTaskStorage';
 import BillTransactionAsyncTask from './tasks/BillTransactionAsyncTask';
 import Constants from '../utils/Constants';
+import EndTransactionAsyncTask from './tasks/EndTransactionAsyncTask';
 import LockingHelper from '../locking/LockingHelper';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
@@ -36,7 +37,9 @@ export default class AsyncTaskManager {
     // Turn all Running task to Pending
     await AsyncTaskStorage.updateRunningAsyncTaskToPending();
     // First run
-    void AsyncTaskManager.handleAsyncTasks();
+    AsyncTaskManager.handleAsyncTasks().catch((error) => {
+      Logging.logPromiseError(error);
+    });
     // Listen to DB events
     await global.database.watchDatabaseCollection(Constants.DEFAULT_TENANT_OBJECT, 'asynctasks',
       (documentID: unknown, documentChange: DatabaseDocumentChange, document: unknown) => {
@@ -45,7 +48,9 @@ export default class AsyncTaskManager {
           // Check status
           if (document['status'] === AsyncTaskStatus.PENDING) {
             // Trigger the Async Framework
-            void AsyncTaskManager.handleAsyncTasks();
+            AsyncTaskManager.handleAsyncTasks().catch((error) => {
+              Logging.logPromiseError(error);
+            });
           }
         }
       }
@@ -53,6 +58,7 @@ export default class AsyncTaskManager {
   }
 
   public static async handleAsyncTasks(): Promise<void> {
+    let failedToAcquireLock = false;
     await Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT_ID,
       action: ServerAction.ASYNC_TASK,
@@ -140,6 +146,8 @@ export default class AsyncTaskManager {
                 // Release lock
                 await LockingManager.release(asyncTaskLock);
               }
+            } else {
+              failedToAcquireLock = true;
             }
           }
         },
@@ -153,8 +161,13 @@ export default class AsyncTaskManager {
         `{{inSuccess}} asynchronous task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
         'No asynchronous task to process'
       );
-      // Retrigger the Async Framework
-      void AsyncTaskManager.handleAsyncTasks();
+      // Do not retry right away when lock failed to be acquired (infinite loop), wait for the Job
+      if (!failedToAcquireLock) {
+        // Retrigger the Async Framework
+        AsyncTaskManager.handleAsyncTasks().catch((error) => {
+          Logging.logPromiseError(error);
+        });
+      }
     } else {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
@@ -168,6 +181,8 @@ export default class AsyncTaskManager {
   private static async createTask(asyncTask: AsyncTask): Promise<AbstractAsyncTask> {
     const correlationID = Utils.generateShortNonUniqueID();
     switch (asyncTask.name) {
+      case AsyncTasks.END_TRANSACTION:
+        return new EndTransactionAsyncTask(asyncTask, correlationID);
       case AsyncTasks.BILL_TRANSACTION:
         return new BillTransactionAsyncTask(asyncTask, correlationID);
       case AsyncTasks.TAGS_IMPORT:

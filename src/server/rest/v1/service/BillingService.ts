@@ -389,16 +389,16 @@ export default class BillingService {
     res.end(buffer, 'binary');
   }
 
-  public static async handleDownloadTransfer(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleTransferInvoiceDownload(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING_PLATFORM,
-      Action.DOWNLOAD, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleDownloadTransfer');
+      Action.DOWNLOAD, Entity.BILLING_PLATFORM, MODULE_NAME, 'handleTransferInvoiceDownload');
     // Filter
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingTransferGetReq(req.query);
     // Get the Invoice
     const billingTransfer = await BillingStorage.getTransfer(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, billingTransfer, `Transfer ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleDownloadTransfer', req.user);
+      MODULE_NAME, 'handleTransferInvoiceDownload', req.user);
     // Check and get authorizations
     await UtilsService.checkAndGetTransferAuthorization(req.tenant, req.user, filteredRequest.ID, Action.DOWNLOAD, action, null, {}, true);
     // Get the billing impl
@@ -407,17 +407,17 @@ export default class BillingService {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleDownloadTransfer',
+        module: MODULE_NAME, method: 'handleTransferInvoiceDownload',
         action: action,
         user: req.user
       });
     }
-    const buffer = await billingImpl.downloadTransferDocument(billingTransfer);
+    const buffer = await billingImpl.downloadTransferInvoiceDocument(billingTransfer);
     if (!billingTransfer.invoice.invoiceID || !buffer) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Transfer document not found',
-        module: MODULE_NAME, method: 'handleDownloadTransfer',
+        module: MODULE_NAME, method: 'handleTransferInvoiceDownload',
         action: action,
         user: req.user
       });
@@ -574,7 +574,9 @@ export default class BillingService {
       user
     };
     // Send the notification
-    void NotificationHandler.sendBillingAccountCreationLink(req.tenant, Utils.generateUUID(), user, notificationData);
+    NotificationHandler.sendBillingAccountCreationLink(req.tenant, Utils.generateUUID(), user, notificationData).catch((error) => {
+      Logging.logPromiseError(error, req?.tenant?.id);
+    });
     res.json(Object.assign({ id: billingAccount.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -700,8 +702,11 @@ export default class BillingService {
     billingAccount.status = BillingAccountStatus.ACTIVE;
     await BillingStorage.saveAccount(req.tenant, billingAccount);
     // Notify the user
-    void NotificationHandler.sendBillingAccountActivationNotification(
-      req.tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user });
+    NotificationHandler.sendBillingAccountActivationNotification(
+      req.tenant, Utils.generateUUID(), user, { evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain), user }
+    ).catch((error) => {
+      Logging.logPromiseError(error, req?.tenant?.id);
+    });
     res.json(Object.assign({ id: billingAccount.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }

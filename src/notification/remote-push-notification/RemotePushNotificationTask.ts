@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { AccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
 import User, { UserStatus } from '../../types/User';
 
@@ -15,36 +16,42 @@ import admin from 'firebase-admin';
 const MODULE_NAME = 'RemotePushNotificationTask';
 
 export default class RemotePushNotificationTask implements NotificationTask {
-  private firebaseConfig = Configuration.getFirebaseConfig();
-  private defaultApp: admin.app.App;
-  private alternativeApp: admin.app.App;
-  private tenantFirebaseApps: Map<string, admin.app.App> = new Map();
-  private initialized = false;
+  private static firebaseConfig = Configuration.getFirebaseConfig();
+  private static defaultApp: admin.app.App;
+  private static alternativeApp: admin.app.App;
+  private static tenantFirebaseApps: Map<string, admin.app.App> = new Map();
+  private static initialized = false;
 
   public constructor() {
-    if (this.firebaseConfig?.type?.length > 0) {
+    if (!RemotePushNotificationTask.initialized) {
+      RemotePushNotificationTask.initialize();
+    }
+  }
+
+  private static initialize() {
+    if (RemotePushNotificationTask.firebaseConfig?.type?.length > 0) {
       try {
         // Init default conf
-        this.defaultApp = admin.initializeApp({
+        RemotePushNotificationTask.defaultApp = admin.initializeApp({
           credential: admin.credential.cert({
-            projectId: this.firebaseConfig.projectID,
-            clientEmail: this.firebaseConfig.clientEmail,
-            privateKey: this.firebaseConfig.privateKey
+            projectId: RemotePushNotificationTask.firebaseConfig.projectID,
+            clientEmail: RemotePushNotificationTask.firebaseConfig.clientEmail,
+            privateKey: RemotePushNotificationTask.firebaseConfig.privateKey
           })
         });
         // Init alternative conf
-        if (this.firebaseConfig.alternativeConfiguration) {
-          this.alternativeApp = admin.initializeApp({
+        if (RemotePushNotificationTask.firebaseConfig.alternativeConfiguration) {
+          RemotePushNotificationTask.alternativeApp = admin.initializeApp({
             credential: admin.credential.cert({
-              projectId: this.firebaseConfig.alternativeConfiguration.projectID,
-              clientEmail: this.firebaseConfig.alternativeConfiguration.clientEmail,
-              privateKey: this.firebaseConfig.alternativeConfiguration.privateKey
+              projectId: RemotePushNotificationTask.firebaseConfig.alternativeConfiguration.projectID,
+              clientEmail: RemotePushNotificationTask.firebaseConfig.alternativeConfiguration.clientEmail,
+              privateKey: RemotePushNotificationTask.firebaseConfig.alternativeConfiguration.privateKey
             })
           }, 'alternativeApp');
         }
         // Init tenant conf
-        if (!Utils.isEmptyArray(this.firebaseConfig.tenants)) {
-          for (const tenantConfig of this.firebaseConfig.tenants) {
+        if (!Utils.isEmptyArray(RemotePushNotificationTask.firebaseConfig.tenants)) {
+          for (const tenantConfig of RemotePushNotificationTask.firebaseConfig.tenants) {
             // Create the app
             const app = admin.initializeApp({
               credential: admin.credential.cert({
@@ -57,7 +64,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             this.tenantFirebaseApps.set(tenantConfig.tenantID, app);
           }
         }
-        this.initialized = true;
+        RemotePushNotificationTask.initialized = true;
       } catch (error) {
         void Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
@@ -94,7 +101,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.PREPARING_SESSION_NOT_STARTED, title, body, user, {
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -109,6 +117,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_NOT_STARTED_AFTER_AUTHORIZE, title, body, user, {
       chargeBoxID: data.chargeBoxID,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -117,11 +126,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // TODO - old stuff - to be removed asap
-    data.chargeBoxIDs = data.chargingStationIDs.join(", ");
+    data.chargeBoxIDs = data.chargingStationIDs.join(', ');
     // Populate the context to have a human-readable message
     data.nbChargingStationIDs = data.chargingStationIDs?.length || 0;
     // Show only the ten first charging stations
-    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(", ") + "...";
+    data.tenFirstChargingStationIDs = data.chargingStationIDs.slice(0, 10).join(', ') + '...';
     // Get Message Text
     const title = i18nManager.translate('notifications.offlineChargingStation.title');
     const body = i18nManager.translate('notifications.offlineChargingStation.body',
@@ -131,16 +140,14 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return {};
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendRequestPassword(data: RequestPasswordNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
@@ -154,7 +161,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OPTIMAL_CHARGE_REACHED, title, body, user, {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -170,7 +178,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_CHARGE, title, body, user, {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -186,21 +195,20 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_SESSION, title, body, user, {
       transactionId: data.transactionId.toString(),
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendCarCatalogSynchronizationFailed(data: CarCatalogSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   public async sendEndUserErrorNotification(data: EndUserErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
@@ -225,7 +233,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.CHARGING_STATION_STATUS_ERROR, title, body, user, {
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -239,7 +248,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, tenantName: tenant.name });
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.CHARGING_STATION_REGISTERED, title, body, user, {
-      chargeBoxID: data.chargeBoxID
+      chargeBoxID: data.chargeBoxID,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
@@ -288,21 +298,20 @@ export default class RemotePushNotificationTask implements NotificationTask {
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_STARTED, title, body, user, {
       'transactionId': data.transactionId.toString(),
       'chargeBoxID': data.chargeBoxID,
-      'connectorId': data.connectorId
+      'connectorId': data.connectorId,
+      deepLink: data.evseDashboardChargingStationURL
     }, severity);
     return {};
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification,
@@ -442,7 +451,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }
     // Send Notification
     await this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
-      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
+      title, body, user, { 'invoiceNumber': data.invoiceNumber, deepLink: data.evseDashboardInvoiceURL }, severity);
     return {};
   }
 
@@ -463,15 +472,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   public async sendAdminAccountVerificationNotification(): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   public async sendUserCreatePassword(): Promise<NotificationResult> {
-    // Nothing to send
-    await Promise.resolve();
-    return {};
+    return Promise.resolve({});
   }
 
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType,
@@ -479,12 +484,13 @@ export default class RemotePushNotificationTask implements NotificationTask {
     let startTime: number;
     let message = {} as admin.messaging.MessagingPayload;
     try {
-      startTime = Logging.traceNotificationStart();
-      // Checks
-      if (!this.initialized) {
+      // Checks consistency
+      if (!RemotePushNotificationTask.initialized) {
         return Promise.resolve();
       }
-      if (!user || !user.mobileToken || user.mobileToken.length === 0) {
+      // Do it
+      startTime = Logging.traceNotificationStart();
+      if (!user?.mobileData?.mobileToken) {
         await Logging.logDebug({
           tenantID: tenant.id,
           siteID: data?.siteID,
@@ -495,7 +501,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
           module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
           message: `'${notificationType}': No mobile token found for this User`,
           actionOnUser: user.id,
-          detailedMessages: { title, body }
         });
         // Send nothing
         return Promise.resolve();
@@ -513,7 +518,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         try {
           // Send message
           const response = await admin.messaging(app).sendToDevice(
-            user.mobileToken,
+            user.mobileData.mobileToken,
             message,
             { priority: 'high', timeToLive: 60 * 60 * 24 }
           );
@@ -529,7 +534,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
               module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
               message: `Error when sending Notification: '${notificationType}' - Error code: '${response.results[0]?.error?.code}'`,
               actionOnUser: user.id,
-              detailedMessages: { message, response }
+              detailedMessages: { response }
             });
           // Success
           } else {
@@ -545,7 +550,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
               module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
               message: `Notification Sent: '${notificationType}' - '${title}'`,
               actionOnUser: user.id,
-              detailedMessages: { message, response }
             });
           }
         } catch (error) {
@@ -559,7 +563,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
             message: `Error when sending Notification: '${notificationType}' - '${error.message as string}'`,
             actionOnUser: user.id,
-            detailedMessages: { error: error.stack, message }
+            detailedMessages: { error: error.stack }
           });
         }
       }
@@ -585,20 +589,20 @@ export default class RemotePushNotificationTask implements NotificationTask {
         tenantID: tenant.id,
         tenantSubdomain: tenant.subdomain,
         notificationType,
-        ...data
+        ...(data || {})
       }
     };
     return message;
   }
 
   private getFirebaseAppsFromTenant(tenant: Tenant): Array<admin.app.App> {
-    const apps = [this.defaultApp];
-    const tenantApp = this.tenantFirebaseApps.get(tenant.id);
+    const apps = [RemotePushNotificationTask.defaultApp];
+    const tenantApp = RemotePushNotificationTask.tenantFirebaseApps.get(tenant.id);
     if (tenantApp) {
       return [tenantApp];
     }
-    if (this.alternativeApp) {
-      apps.push(this.alternativeApp);
+    if (RemotePushNotificationTask.alternativeApp) {
+      apps.push(RemotePushNotificationTask.alternativeApp);
     }
     return apps;
   }

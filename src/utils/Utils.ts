@@ -206,9 +206,8 @@ export default class Utils {
     return Promise.race([
       promise,
       timeoutPromise,
-    ]).then((result) => {
+    ]).finally(() => {
       clearTimeout(timeoutHandle);
-      return result;
     });
   }
 
@@ -908,9 +907,21 @@ export default class Utils {
     return Utils.getRandomInt(2147483648); // INT32 (signed: issue in Schneider)
   }
 
-  public static buildRestServerURL(): string {
+  public static buildRestServerURL(withPort = true): string {
     const centralSystemRestServer = Configuration.getCentralSystemRestServerConfig();
-    return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}:${centralSystemRestServer.port}`;
+    if (withPort) {
+      return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}:${centralSystemRestServer.port}`;
+    }
+    return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}`;
+  }
+
+  public static buildRestServerTenantEmailLogoURL(tenantID: string): string {
+    if (!tenantID || tenantID === Constants.DEFAULT_TENANT_ID) {
+      // URL to a default eMobility logo
+      return `${Utils.buildRestServerURL(false)}/v1/util/tenants/email-logo?ts=` + new Date().getTime();
+    }
+    // URL to the tenant logo (if any) or the Open -e-mobility logo as a fallback
+    return `${Utils.buildRestServerURL(false)}/v1/util/tenants/email-logo?ID=${tenantID}&ts=` + new Date().getTime();
   }
 
   public static buildEvseURL(subdomain: string = null): string {
@@ -1759,6 +1770,26 @@ export default class Utils {
        !Utils.isNullOrUndefined(extraFilters['BillingData']) && extraFilters['BillingData']) {
       Utils.deleteBillingPropertiesFromEntity(entityData);
     }
+  }
+
+  public static isMonitoringEnabled() : boolean {
+    if (((global.monitoringServer) && (process.env.K8S))) {
+      return true;
+    }
+    return false;
+  }
+
+  public static positiveHashCode(str :string):number {
+    return this.hashCode(str) + 2147483647 + 1;
+  }
+
+  private static hashCode(s:string): number {
+    let hash = 0,i = 0;
+    const len = s.length;
+    while (i < len) {
+      hash = ((hash << 5) - hash + s.charCodeAt(i++)) << 0;
+    }
+    return hash;
   }
 
   private static deleteUserPropertiesFromEntity(entityData?: EntityData): void {

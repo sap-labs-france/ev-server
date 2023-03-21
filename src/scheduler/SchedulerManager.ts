@@ -2,7 +2,6 @@ import SchedulerConfiguration, { SchedulerTaskConfiguration } from '../types/con
 
 import AssetGetConsumptionTask from './tasks/AssetGetConsumptionTask';
 import AsyncTaskCheckTask from './tasks/AsyncTaskCheckTask';
-import BillPendingTransactionTask from './tasks/BillPendingTransactionTask';
 import BillingPeriodicOperationTask from './tasks/BillingPeriodicOperationTask';
 import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
 import CheckChargingStationTemplateTask from './tasks/CheckChargingStationTemplateTask';
@@ -12,6 +11,7 @@ import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotSta
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
 import CloseTransactionsInProgressTask from './tasks/CloseTransactionsInProgressTask';
 import Constants from '../utils/Constants';
+import DispatchCollectedFundsTask from './tasks/DispatchCollectedFundsTask';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
 import MigrateSensitiveDataTask from './tasks/MigrateSensitiveDataTask';
@@ -126,8 +126,6 @@ export default class SchedulerManager {
         return new SynchronizeRefundTransactionsTask();
       case 'BillingPeriodicOperationTask':
         return new BillingPeriodicOperationTask();
-      case 'BillPendingTransactionTask':
-        return new BillPendingTransactionTask();
       case 'SynchronizeCarsTask':
         return new SynchronizeCarsTask();
       case 'CheckSessionNotStartedAfterAuthorizeTask':
@@ -142,6 +140,8 @@ export default class SchedulerManager {
         return new MigrateSensitiveDataTask();
       case 'CloseTransactionsInProgressTask':
         return new CloseTransactionsInProgressTask();
+      case 'DispatchCollectedFundsTask':
+        return new DispatchCollectedFundsTask();
       default:
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,

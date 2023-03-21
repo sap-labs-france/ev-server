@@ -1,64 +1,64 @@
 {
   "billing": {
     "generatedUser": "Utenza generata per '{{email}}'",
-    "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
-    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
-    "header-itemDescription": "Session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} at charging station {{chargeBoxID}}",
-    "flatFee-shortItemDescription": "Flat Fee",
-    "energy-shortItemDescription": "Energy Consumption: {{quantity}} kWh",
-    "chargingTime-shortItemDescription": "Charging Time: {{duration}}",
-    "parkingTime-shortItemDescription": "Parking Time: {{duration}}",
-    "transfer-feeItemDescription": "Fee charged for {{nbSessions}} session(s)"
+    "chargingAtSiteArea": "Sessione di ricarica: {{sessionID}} - Data di inizio: {{startDate}} alle {startTime} - Consumo di Energia: {{totalConsumption}} kWh a {{siteAreaName}}",
+    "chargingAtChargeBox": "Sessione di ricarica: {{sessionID}} - Data di inizio: {{startDate}} alle {{startTime}} - Consumo di Energia: {{totalConsumption}} kWh alla stazione di ricarica {{chargeBoxID}}",
+    "header-itemDescription": "Sessione: {{sessionID}} - Data di inizio: {{startDate}} alle {{startTime}} alla stazione di ricarica {{chargeBoxID}}",
+    "flatFee-shortItemDescription": "Tariffa Fissa",
+    "energy-shortItemDescription": "Consumo di Energia: {{quantity}} kWh",
+    "chargingTime-shortItemDescription": "Tempo di Ricarica: {{duration}}",
+    "parkingTime-shortItemDescription": "Tempo di Parcheggio: {{duration}}",
+    "transfer-feeItemDescription": "Tariffa addebitata per {{nbSessiones}} sessione(i)"
   },
   "chargers": {
-    "chargeBoxSN": "Charge Box S/N",
-    "chargePointSN": "Charge Point S/N",
-    "chargingStation": "Charging Station",
+    "chargeBoxSN": "Box di Ricarica S/N",
+    "chargePointSN": "Punto di Ricarica S/N",
+    "chargingStation": "Stazione di Ricarica",
     "connector": "Presa",
-    "firmwareVersion": "Firmware Version",
-    "lastReboot": "Last Reboot",
-    "lastSeen": "Last Seen",
-    "maxPower": "Maximum Power (Watt)",
-    "model": "Model",
-    "numberOfConnectors": "Number of Connectors",
-    "ocppProtocol": "OCPP Protocol",
-    "ocppVersion": "OCPP Version",
-    "powerLimitUnit": "Power Limit Unit",
-    "timezone": "Charging Station Timezone",
-    "vendor": "Vendor"
+    "firmwareVersion": "Versione del Firmware",
+    "lastReboot": "Ultimo riavvio",
+    "lastSeen": "Visto l'ultima volta",
+    "maxPower": "Potenza Massima (Watt)",
+    "model": "Modello",
+    "numberOfConnectors": "Numero di Connettori",
+    "ocppProtocol": "Protocollo OCPP",
+    "ocppVersion": "Versione OCPP",
+    "powerLimitUnit": "Unità di limitazione della potenza",
+    "timezone": "Fuso Orario della Stazione di Ricarica",
+    "vendor": "Fornitore"
   },
   "general": {
-    "changedBy": "Changed By",
-    "changedOn": "Changed On",
-    "createdOn": "Created On",
-    "date": "Date",
-    "endDate": "End Date",
-    "endTime": "End Time",
-    "invalidDate": "Invalid Date",
-    "invalidTime": "Invalid Time",
+    "changedBy": "Modificato da",
+    "changedOn": "Modificato il",
+    "createdOn": "Creato il",
+    "date": "Data",
+    "endDate": "Data di fine",
+    "endTime": "Ora di fine",
+    "invalidDate": "Data non valida",
+    "invalidTime": "Ora non valida",
     "latitude": "Latitude",
     "longitude": "Longitude",
-    "month": "Month",
-    "name": "Name",
-    "price": "Price",
-    "priceUnit": "Price Unit",
-    "site": "Site",
-    "siteArea": "Site Area",
-    "startDate": "Start Date",
-    "startTime": "Start Time",
-    "time": "Time",
-    "value": "Value",
-    "year": "Year"
+    "month": "Mese",
+    "name": "Nome",
+    "price": "Prezzo",
+    "priceUnit": "Unità di prezzo",
+    "site": "Sito",
+    "siteArea": "Area del sito",
+    "startDate": "Data di inizio",
+    "startTime": "Ora di inizio",
+    "time": "Ora",
+    "value": "Valore",
+    "year": "Anno"
   },
   "loggings": {
-    "action": "Action",
-    "host": "Host",
-    "level": "Level",
-    "message": "Message",
-    "method": "Method",
-    "module": "Module",
-    "process": "Process",
-    "source": "Source",
+    "action": "Azione",
+    "host": "Indirizzo",
+    "level": "Livello",
+    "message": "Messaggio",
+    "method": "Metodo",
+    "module": "Modulo",
+    "process": "Processo",
+    "source": "Fonte",
     "type": "Type"
   },
   "notifications": {
@@ -71,16 +71,16 @@
       "body": "La tua sessione nella stazione di ricarica '{{chargeBoxID}}', presa '{{connectorId}}' è stata avviata con successo nell'organizzazione '{{tenantName}}'"
     },
     "ocpiPatchChargingStationsStatusesError": {
-      "title": "Stati Invio in Roaming",
+      "title": "Stati d'Invio in Roaming",
       "body": "Il trasferimento alla piattaforma di roaming degli stati della stazione di ricarica è fallito nella posizione '{{location}}' nell'organizzazione '{{tenantName}}', controlla i log"
     },
     "oicpPatchChargingStationsStatusesError": {
-      "title": "Hubject Send Statuses",
-      "body": "The transfer to the Hubject roaming platform of the charging station statuses has failed in organization '{{tenantName}}', check the logs"
+      "title": "Hubject - Stato delle stazioni di ricarica",
+      "body": "Il trasferimento alla piattaforma Hubject dello stato delle stazioni di ricarica é fallito nell'organizzazione '{{tenantName}}', controlla i log"
     },
     "oicpPatchChargingStationsError": {
-      "title": "Hubject Send Charging Stations",
-      "body": "The transfer to the Hubject roaming platform of the charging station data has failed in organization '{{tenantName}}', check the logs"
+      "title": "Hubject - Invio errori stazioni di ricarica",
+      "body": "Il trasferimento alla piattaforma Hubject dei dati delle stazioni di ricarica é fallito nell'organizzazione '{{tenantName}}', controlla i log"
     },
     "optimalChargeReached": {
       "title": "Carica Ottimale Raggiunta",
@@ -100,7 +100,7 @@
     },
     "unknownUserBadged": {
       "title": "Utente Sconosciuto",
-      "body": "Un utente sconosciuto si è registrato su '{{chargeBoxID}}' con il RFID '{{badgeID}}' nell'organizzazione '{{tenantName}}'"
+      "body": "Un utente sconosciuto si è registrato su '{{chargeBoxID}}' con il badge RFID '{{badgeID}}' nell'organizzazione '{{tenantName}}'"
     },
     "chargingStationRegistered": {
       "title": "Stazione di Ricarica Connessa",
@@ -126,396 +126,415 @@
     },
     "billingUserSynchronizationFailed": {
       "title": "Sincronizzazione Utente Fallita",
-      "body": "Impossibile sincronizzare {{nbrUsersInError}} utenti con il fornitore di servizi di fatturazione nell'organizzazione '{{tenantName}}'"
+      "body": "Impossibile sincronizzare {{nbrUsersInError}} utenti con il fornitore dei servizi di fatturazione nell'organizzazione '{{tenantName}}'"
     },
     "billingInvoiceSynchronizationFailed": {
       "title": "Sincronizzazione Fattura Fallita",
-      "body": "Impossibile sincronizzare {{nbrInvoicesInError}} fatture con il fornitore di servizi di fatturazione nell'organizzazione '{{tenantName}}'"
+      "body": "Impossibile sincronizzare {{nbrInvoicesInError}} fatture con il fornitore dei servizi di fatturazione nell'organizzazione '{{tenantName}}'"
     },
     "billingPeriodicOperationFailed": {
-      "title": "Periodic Billing Operations",
-      "body": "Failed to process {{nbrInvoicesInError}} invoice(s). Organization '{{tenantName}}'"
+      "title": "Fatturazione periodica",
+      "body": "Non é stato possibile trattare {{nbrInvoicesInError}} fattura(e). Organizzazione '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
       "title": "Profili di ricarica falliti",
       "body": "Impossibile impostare i profili di ricarica per '{{chargeBoxID}}' sull'area del sito '{{siteAreaName}}' nell'organizzazione '{{tenantName}}'"
     },
     "billingNewInvoicePaid": {
-      "title": "New invoice paid",
-      "body": "Your invoice ({{invoiceNumber}}) amounting {{amount}} has been paid and is now available"
+      "title": "Nuova fattura pagata",
+      "body": "Una nuova fattura ({{invoiceNumber}}) dell'ammontare di {{amount}} é stata pagata ed é ora disponibile"
     },
     "billingNewInvoiceOpen": {
-      "title": "New invoice to pay",
-      "body": "A new invoice ({{invoiceNumber}}) amounting {{amount}} is now available. Please check your email to finalize the payment"
+      "title": "Nuova fattura da pagare",
+      "body": "Una nuova fattura ({{invoiceNumber}}) dell'ammontare di {{amount}} é ora disponibile. Si prega di controllare la propria email per finalizzare il pagamento."
     },
     "billingAccountCreationLink": {
-      "title": "Billing account onboarding",
-      "body": "You have been invited to create a billing account. Please check your email to complete the process"
+      "title": "Creazione dell'account per la fatturazione",
+      "body": "L'invito per la creazione di un account per la fatturazione é stato mandato. Si prega di controllare la propria email per finalizzare la creazione."
     },
     "billingAccountActivated": {
-      "title": "Billing account activated",
-      "body": "Your billing account has been activated"
+      "title": "Account per la fatturazione attivato",
+      "body": "L'account per la fatturazione é stato attivato"
     },
     "endUserErrorNotification": {
       "title": "Un utente ha riportato un errore",
       "body": "'{{userName}}' ha riportato: '{{errorTitle}}' - '{{errorDescription}}' nell'organizzazione '{{tenantName}}'"
     },
     "accountVerificationNotification": {
-      "title": "Account verified",
-      "bodyVerified": "Your account has been verified with success. An administrator will check and activate your account.",
-      "bodyVerifiedAndActivated": "Your account has been verified and activated with success."
+      "title": "Account verificato",
+      "bodyVerified": "Il tuo account é stato verificato con successo. Un amministratore controllerà e validerà il tuo account",
+      "bodyVerifiedAndActivated": "Il tuo account é stato verificato e validato con successo"
     }
   },
-  "siteArea": "Site Area",
+  "siteArea": "Area del Sito",
   "statistics": {
-    "consumption": "Consumption (kW.h)",
-    "inactivity": "Inactivity (Hours)",
-    "numberOfSessions": "Number of Sessions",
-    "usage": "Usage (Hours)"
+    "consumption": "Consumo (kW.h)",
+    "inactivity": "Periodo di inattività (Ore)",
+    "numberOfSessions": "Numero di Sessioni",
+    "usage": "Uso (Ore)"
   },
   "tags": {
-    "id": "RFID",
-    "description": "Badge Description",
-    "virtualBadge": "Virtual Badge"
+    "id": "Identificazione del Badge",
+    "description": "Descrizione del Badge",
+    "virtualBadge": "Badge Virtuale"
   },
   "transactions": {
-    "totalConsumption": "Total Consumption (kW.h)",
-    "totalDuration": "Total Duration (Mins)",
-    "totalInactivity": "Total Inactivity (Mins)"
+    "totalConsumption": "Consumo Totale (kW.h)",
+    "totalDuration": "Durata totale (Minuti)",
+    "totalInactivity": "Periodo di inattività totale (Minuti)"
   },
   "users": {
     "email": "Email",
-    "eulaAcceptedOn": "EULA Accepted On",
-    "firstName": "First Name",
+    "eulaAcceptedOn": "Contratto di Licenza accettato il ",
+    "firstName": "Nome",
     "id": "ID",
-    "role": "Role",
-    "status": "Status",
-    "user": "User",
-    "userID": "User ID"
+    "role": "Ruolo",
+    "status": "Stato",
+    "user": "Utilizzatore",
+    "userID": "ID Utilizzatore"
   },
   "email": {
-    "greetings": "Hello {{recipientName}}",
-    "footerText": "This message has been sent by an automated email service to {{recipientEmail}}. Please do not reply. You may unsubscribe by changing your notification settings.",
+    "greetings": "Buongiorno {{recipientName}}",
+    "footerText": "Un messaggio automatico é stato inviato a {{recipientEmail}}. Si prega di non rispondere. Puoi annullare l'iscrizione modificando le impostazioni di notifica.",
     "new-registered-user": {
-      "title": "User Account Created",
-      "buttonText": "Activate your account",
+      "title": "Account creato",
+      "buttonText": "Attivare l'account",
       "text": [
-        "Your account has been created successfully.",
+        "L'account é stato creato con successo",
         "",
-        "Click on the link below to activate it."
+        "Cliccare sur link sottostante per attivarlo"
       ]
     },
     "request-password": {
-      "title": "Reset Password",
-      "buttonText": "Reset Password",
+      "title": "Reimpostare la Password",
+      "buttonText": "Reimpostare la Password",
       "text": [
-        "You have just requested to reset your password.",
+        "E' stata richiesta la reinizializzazione della password",
         "",
-        "Click on the link below to set the new one."
+        "Cliccare sur link sottostante per inserire la nuova password"
       ]
     },
     "optimal-charge-reached": {
-      "title": "Optimal Charge Reached",
-      "buttonText": "View Session",
+      "title": "Carica ottimale raggiunta",
+      "buttonText": "Visualizzare la sessione",
       "text": [
-        "Your vehicle, which is connected to {{chargeBoxID}}, connector {{connectorId}}, reached its optimal charge."
+        "Il veicolo, connesso a {{chargeBoxID}}, presa {{connectorId}}, ha raggiunto la sua carica ottimale."
       ],
       "table": [
         {
-          "label": "Battery Level",
+          "label": "Livello di carica della batteria",
           "value": "{{stateOfCharge}} %"
         }
       ]
     },
     "end-of-session": {
-      "title": "Session Finished",
-      "buttonText": "View Session",
+      "title": "Sessione finita",
+      "buttonText": "Visualizzare la sessione",
       "text": [
-        "Your session on the charging station {{chargeBoxID}}, connector {{connectorId}} has just finished."
+        "La sessione sulla stazione di ricarica {{chargeBoxID}}, presa {{connectorId}} é appena terminata."
       ],
       "table": [
         {
-          "label": "Consumption",
+          "label": "Consumo",
           "value": "{{totalConsumption}} kW.h"
         },
         {
-          "label": "Total Duration",
+          "label": "Durata totale",
           "value": "{{totalDuration}}"
         },
         {
-          "label": "Total Inactivity",
+          "label": "Inattività totale",
           "value": "{{totalInactivity}}"
         },
         {
-          "label": "State of Charge",
+          "label": "Livello di carica",
           "value": "{{stateOfCharge}} %"
         }
       ]
     },
-    "end-of-charge": {
-      "title": "Charge Finished",
+    "end-of-signed-session": {
+      "title": "Session Finished - Signed Session",
       "buttonText": "View Session",
       "text": [
-        "Your vehicle, which is connected to the charging station {{chargeBoxID}}, connector {{connectorId}}, has just finished charging."
+        "Ladetransaktion abgeschlossen"
+      ],
+      "table": [
+        { "label": "Charger", "value": "{{chargeBoxID}}" },
+        { "label": "Connector", "value": "{{connectorId}}" },
+        { "label": "RFID Card", "value": "{{tagId}}" },
+        { "label": "Start time", "value": "{{startDate}}" },
+        { "label": "End time", "value": "{{endDate}}" },
+        { "label": "Start counter", "value": "{{meterStart}} kWh" },
+        { "label": "Stop counter", "value": "{{meterStop}} kWh" },
+        { "label": "Consumption", "value": "{{totalConsumption}} kWh" },
+        { "label": "Cost", "value": "{{price}}€ {{relativeCost}}€/kWh) (informative)" },
+        { "label": "Contract for", "value":"LOCAL (informative)" }
+      ]
+    },
+    "end-of-charge": {
+      "title": "Carica terminata",
+      "buttonText": "Visualizzare la sessione",
+      "text": [
+        "Il veicolo, connesso alla stazione di ricarica {{chargeBoxID}}, presa {{connectorId}}, ha appena finito la ricarica."
       ],
       "table": [
         {
-          "label": "Consumption",
+          "label": "Consumo",
           "value": "{{totalConsumption}} kW.h"
         },
         {
-          "label": "Total Duration",
+          "label": "Durata totale",
           "value": "{{totalDuration}}"
         },
         {
-          "label": "Battery Level",
+          "label": "Livello di carica della batteria",
           "value": "{{stateOfCharge}} %"
         }
       ]
     },
     "billing-new-invoice-paid": {
-      "title": "Billing - Paid Invoice",
-      "buttonText": "Download Invoice",
+      "title": "Fatturazione - Ricevuta pagata",
+      "buttonText": "Scaricare fattura",
       "text": [
-        "Your invoice {{invoiceNumber}} has been paid and the corresponding document can now be downloaded."
+        "La fattura {{invoiceNumber}} é stata pagata e il documento corrispondente può essere scaricato."
       ],
       "table": [
         {
-          "label": "Amount Paid",
+          "label": "Prezzo pagato",
           "value": "{{invoiceAmount}}"
         }
       ]
     },
     "billing-new-invoice-unpaid": {
-      "title": "Billing - New Invoice",
-      "buttonText": "Pay Invoice",
+      "title": "Fatturazione - Nuova Ricevuta",
+      "buttonText": "Pagare la fattura",
       "text": [
-        "The invoice {{invoiceNumber}} has been generated and the corresponding document can now be downloaded.",
+        "La fattura {{invoiceNumber}} é stata generata e il documento corrispondente può essere scaricato.",
         "",
-        "Please follow the link below to finalize the payment"
+        "Cliccare sur link sottostante per finalizzare il pagamento"
       ],
       "table": [
         {
-          "label": "Amount Due",
+          "label": "Importo dovuto",
           "value": "{{invoiceAmount}}"
         }
       ]
     },
     "charging-station-registered": {
-      "title": "Charging Station Connected",
-      "buttonText": "View Charging Station",
+      "title": "Stazione di Ricarica Connessa",
+      "buttonText": "Visualizzare la stazione di ricarica",
       "text": [
-        "The charging station {{chargeBoxID}} just got connected to the central server."
+        "La stazione di ricarica {{chargeBoxID}} é stata connessa al server centrale."
       ]
     },
     "end-user-error-notification": {
-      "title": "A User Reported an Error",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Un utente ha riportato un errore",
+      "buttonText": "Navigare verso {{tenantName}}",
       "text": [
-        "The user {{name}} reported the following error:",
+        "L'utente {{name}} ha riportato l'errore seguente:",
         "",
-        "Error: {{errorTitle}}",
-        "Description: {{errorDescription}}",
+        "Errore: {{errorTitle}}",
+        "Descrzione: {{errorDescription}}",
         "",
         "Email: {{email}}",
-        "Phone: {{phone}}"
+        "Telefono: {{phone}}"
       ]
     },
     "offline-charging-station": {
-      "title": "Offline Charging Stations",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Stazioni di Ricarica Offline",
+      "buttonText": "Navigare verso {{tenantName}}",
       "text": [
-        "Your organization has {{nbChargingStationIDs}} charging station(s) being offline.",
+        "La tua organizzazione ha {{nbChargingStationIDs}} stazione(i) di ricarica offline.",
         "",
-        "Charging Stations: {{tenFirstChargingStationIDs}}"
+        "Stazioni di Ricarica: {{tenFirstChargingStationIDs}}"
       ]
     },
     "charging-station-status-error": {
-      "title": "Charging Station Error",
-      "buttonText": "View Error",
+      "title": "Errore su {{chargeBoxID}}, Presa {{connectorId}}",
+      "buttonText": "Visualizzare l'errore",
       "text": [
-        "Error occurred on {{chargeBoxID}}, connector {{connectorId}}",
+        "Si é verificato un errore su {{chargeBoxID}}, presa {{connectorId}}",
         "Error: {{error}}"
       ]
     },
     "billing-account-created": {
-      "title": "Billing Account Onboarding",
-      "buttonText": "Proceed",
+      "title": "Account di fatturazione creato",
+      "buttonText": "Continua",
       "text": [
-        "A billing account has been created on your behalf by an administrator.",
+        "Un account di fatturazione è stato creato per tuo account da un amministratore.",
         "",
-        "Click the link below to complete the onboarding process"
+        "Cliccare sur link sottostante per finalizzare l'attivazione dell'account"
       ]
     },
     "user-account-status-changed": {
-      "title": "User Account Status Changed",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Stato dell'account utente modificato",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "The status of your account has been modified by an administrator.",
-        "New status: {{accountStatus}}"
+        "Lo stato del tuo account è stato modificato da un amministratore",
+        "Nuovo stato: {{accountStatus}}"
       ]
     },
     "unknown-user-badged": {
-      "title": "Unknown User Badged",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Un utente sconosciuto ha tentato di usare il badge",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "An unknown user has just badged on {{chargeBoxID}} with the RFID Card {{badgeID}}."
+        "Un utente sconosciuto ha usato il badge su {{chargeBoxID}}, numero di badge {{badgeID}}."
       ]
     },
     "session-started": {
-      "title": "Session Started",
-      "buttonText": "View Session",
+      "title": "Sessione iniziata",
+      "buttonText": "Visualizzare la sessione",
       "text": [
-        "Your vehicle has been connected to the charging station {{chargeBoxID}} on connector {{connectorId}}."
+        "Il veicolo é stato connesso alla stazione di ricarica {{chargeBoxID}} sulla presa {{connectorId}}."
       ]
     },
     "verification-email": {
-      "title": "User Account Activation",
-      "buttonText": "Activate your Account",
+      "title": "Attivazione dell'account",
+      "buttonText": "Attivare l'account",
       "text": [
-        "You have initiated a request to activate your account.",
+        "Una richiesta é stata iniziata per attivare un account",
         "",
-        "Click on the link below to complete the activation."
+        "Cliccare sur link sottostante per completare l'attivazione"
       ]
     },
     "verification-email-user-import": {
-      "title": "User Account Created",
-      "buttonText": "Activate your Account",
+      "title": "Account creato",
+      "buttonText": "Attivare l'account",
       "text": [
-        "An account has just been created on your behalf,",
+        "Un account é stato creato",
         "",
-        "Click on the link below to complete the activation."
+        "Cliccare sur link sottostante per completare l'attivazione"
       ]
     },
     "ocpi-patch-status-error": {
-      "title": "Failed to transfer the Charging Station Statuses ",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Impossibile trasmettere lo stato delle stazioni di ricarica",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "The OCPI transfer of the charging station statuses has failed on location {{location}}.",
+        "Il trasferimento dello stato delle stazioni di ricarica del sito {{location}} verso la piattaforma di roaming OCPI é fallito.",
         "",
-        "Check the logs."
+        "Controllare i logs."
       ]
     },
     "oicp-patch-status-error": {
-      "title": "Hubject - Send Statuses",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Hubject - invio degli stati",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "The transfer to the Hubject roaming platform of the charging station statuses has failed in organization '{{tenantName}}'.",
+        "La trasmissione dello stato delle stazioni di ricarica verso la piattaforma roaming Hubject é fallito nell'organizzazione '{{tenantName}}'.",
         "",
-        "Check the logs."
+        "Controllare i logs."
       ]
     },
     "oicp-patch-evses-error": {
-      "title": "Hubject - Send Charging Stations",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Hubject - invio stazioni di ricarica",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "The transfer to the Hubject roaming platform of the charging station data has failed in organization '{{tenantName}}'.",
+        "La trasmissione della lista delle stazioni di ricarica verso la piattaforma roaming Hubject é fallito nell'organizzazione '{{tenantName}}'.",
         "",
-        "Check the logs."
+        "Controllare i logs."
       ]
     },
     "user-account-inactivity": {
-      "title": "User Account Inactivity",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Inattività account utente",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "You haven't logged in to the e-Mobility application since {{lastLogin}}.",
-        "Be aware that in order to comply with the general data protection regulation, your account might be deleted by an administrator.",
+        "Non hai effettuato l'accesso all'applicatione E-Mobility dal {{lastLogin}}.",
+        "Si tenga presente che, per ragioni legali sulla protezione dei dati personali, l'account potrebbe essere eliminato da un amministratore.",
         "",
-        "Please log in and accept the latest end-user license agreement to prevent your account deletion."
+        "Si prega di effettuare il login e accettare l'ultimo contratto di licenza per evitare l'eliminazione dell'account."
       ]
     },
     "session-not-started": {
-      "title": "No Session Started",
-      "buttonText": "View Charging Station",
+      "title": "Nessuna sessione iniziata",
+      "buttonText": "Visualizzare la stazione di ricarica",
       "text": [
-        "You haven't started the session on charging station {{chargeBoxID}}, connector {{connectorId}}."
+        "La sessione sulla stazione di ricarica {{chargeBoxID}}, presa {{connectorId}} non è stata avviata."
       ]
     },
     "session-not-started-after-authorize": {
-      "title": "No Session Started",
-      "buttonText": "View Charging Station",
+      "title": "Nessuna sessione iniziata",
+      "buttonText": "Visualizzare la stazione di ricarica",
       "text": [
-        "You badged on the charging station {{chargeBoxID}} but no session has been started."
+        "Un badge è stato scannerizzato sulla stazione di ricarica {{chargeBoxID}}, ma nessuna session è stata avviata."
       ]
     },
     "billing-user-synchronization-failed": {
-      "title": "Billing - User Synchronization Failed",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Fatturazione - Sincronizzazione utente fallita",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "Unable to synchronize {{nbrUsersInError}} user(s) with the billing service provider."
+        "Impossibile sincronizzare {{nbrUsersInError}} utente(i) con il servizio di fatturazione."
       ]
     },
     "billing-invoice-synchronization-failed": {
-      "title": "Billing - Invoice Synchronization Failed",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Fatturazione - Sincronizzazione fatture fallita",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider."
+        "Impossibile sincronizzare {{nbrInvoicesInError}} fattura(e) con il servizio di fatturazione."
       ]
     },
     "billing-periodic-operation-failed": {
-      "title": "Billing - Periodic Operation Failed",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Fatturazione - Procedura di fatturazione periodica fallita",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "Unable to process {{nbrInvoicesInError}} invoice(s)."
+        "Impossibile trattare {{nbrInvoicesInError}} fattura(e)."
       ]
     },
     "billing-account-activated": {
-      "title": "Billing Account Activated",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Account di Fatturazione attivato",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "Congratulation!",
+        "Congratulazioni!",
         "",
-        "The onboarding process has been successfully completed and your billing account has been activated."
+        "La registrazione è stata completata con successo e l'account di fatturazione è stato attivato."
       ]
     },
     "car-synchronization-failed": {
-      "title": "Car Synchronization Failed",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Sincronizzazione dati del veicolo fallita",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "Unable to synchronize {{nbrCarsInError}} car(s) with the electric vehicles data provider."
+        "Impossibile sincronizzare i dati per {{nbrCarsInError}} veicolo(i)."
       ]
     },
     "compute-and-apply-charging-profiles-failed": {
-      "title": "Failed to apply Charging Profiles",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Procedura di applicazione dei profili di carica fallita",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "The attempt to apply charging profiles to the charging station {{chargeBoxID}} failed.",
-        "The charging station was excluded from this smart charging run automatically."
+        "L'applicazione del profilo di ricarica alla stazione di ricarica {{chargeBoxID}} è fallita.",
+        "La stazione di ricarica è stata esclusa dall'attuale sessione di carica (Ricarica Smart)."
       ]
     },
     "account-verification-notification-active": {
-      "title": "Account Verified",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Account verificato",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "Your account has been verified and activated with success!"
+        "L'account é stato creato e attivato con successo!"
       ]
     },
     "account-verification-notification-inactive": {
-      "title": "Account Verified",
-      "buttonText": "Navigate to {{tenantName}}",
+      "title": "Account verificato",
+      "buttonText": "Accedere a {{tenantName}}",
       "text": [
-        "Your email has been successfully verified.",
+        "L'email è stata verificata con successso.",
         "",
-        "An administrator will soon check and activate your account."
+        "Un amministratore procederà alla validazione e all'attivazione dell'account."
       ]
     },
     "admin-account-verification-notification": {
-      "title": "User Account Verification",
-      "buttonText": "Verify Account",
+      "title": "Verifica dell'account",
+      "buttonText": "Verifica account",
       "text": [
-        "A new user with email {{email}} has just created an account.",
+        "Un nuovo utente ha appena creato un account con email {{email}}",
         "",
-        "Please follow the link below to activate it."
+        "Cliccare sur link sottostante per attivate l'account."
       ]
     },
     "user-create-password": {
-      "title": "User Account Created",
-      "buttonText": "Set your Password",
+      "title": "Account creato",
+      "buttonText": "Impostare una nuova password",
       "text": [
-        "An account has just been created on your behalf in '{{tenantName}}' organization.",
-        "You will have to log in at least once to be able to charge your car.",
+        "Un account é stato creato nell'organizzazione '{{tenantName}}'.",
+        "Si prega di effettuare il login almeno una volta per attivate la possibilità di ricaricare il proprio veicolo.",
         "",
-        "Click on the link bellow to set your password."
+        "Cliccare sur link sottostante per impostare la password."
       ]
     }
   }

@@ -181,7 +181,7 @@ export default abstract class BillingIntegration {
         // Format amount with currency symbol depending on locale
         const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(invoiceAmountAsDecimal.toNumber());
         // Send async notification
-        void NotificationHandler.sendBillingNewInvoiceNotification(
+        NotificationHandler.sendBillingNewInvoiceNotification(
           this.tenant,
           billingInvoice.id,
           user,
@@ -196,7 +196,9 @@ export default abstract class BillingIntegration {
             invoiceNumber: billingInvoice.number,
             invoiceStatus: billingInvoice.status,
           }
-        );
+        ).catch((error) => {
+          Logging.logPromiseError(error, this.tenant?.id);
+        });
         // Needed only for testing
         return true;
       }
@@ -688,15 +690,13 @@ export default abstract class BillingIntegration {
 
   public abstract deleteUser(user: User): Promise<void>;
 
-  public abstract isUserSynchronized(user: User): Promise<boolean>;
-
   public abstract getTaxes(): Promise<BillingTax[]>;
 
   public abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem): Promise<BillingInvoice>;
 
   public abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
 
-  public abstract downloadTransferDocument(transfer: BillingTransfer): Promise<Buffer>;
+  public abstract downloadTransferInvoiceDocument(transfer: BillingTransfer): Promise<Buffer>;
 
   public abstract chargeInvoice(invoice: BillingInvoice): Promise<BillingInvoice>;
 
@@ -718,12 +718,20 @@ export default abstract class BillingIntegration {
 
   public abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
 
+  public async isUserSynchronized(user: User): Promise<boolean> {
+    // Make sure to get fresh data
+    user = await UserStorage.getUser(this.tenant, user.id);
+    const customerID: string = user?.billingData?.customerID;
+    // returns true when the customerID is properly set!
+    return !!customerID;
+  }
+
   public async dispatchCollectedFunds(taskConfig: DispatchFundsTaskConfig): Promise<ActionsResponse> {
     const actionsDone: ActionsResponse = {
       inSuccess: 0,
       inError: 0
     };
-    if (taskConfig.forceOperation && Utils.isDevelopmentEnv()) {
+    if (taskConfig?.forceOperation && Utils.isDevelopmentEnv()) {
       Logging.logConsoleDebug('Funds dispatching is being forced for testing purposes reasons!');
     }
     const collectedFunds = await TransactionStorage.getCollectedFunds(this.tenant);

@@ -1,6 +1,7 @@
 import { OCPPAttribute, OCPPLocation, OCPPMeasurand, OCPPPhase, OCPPReadingContext, OCPPUnitOfMeasure, OCPPValueFormat } from '../types/ocpp/OCPPServer';
 
 import DbParams from '../types/database/DbParams';
+import Logging from './Logging';
 import { OcppParameter } from '../types/ChargingStation';
 import Tenant from '../types/Tenant';
 
@@ -13,7 +14,7 @@ export default class Constants {
   public static readonly CR_LF = '\r\n';
 
   public static readonly PERF_MAX_DATA_VOLUME_KB = 512;
-  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 1000;
+  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 3000;
 
   public static readonly AXIOS_DEFAULT_TIMEOUT_SECS = 30;
 
@@ -37,8 +38,8 @@ export default class Constants {
   public static readonly EXPORT_PAGE_SIZE = 1000;
   public static readonly EXPORT_RECORD_MAX_COUNT = 100000;
   public static readonly IMPORT_PAGE_SIZE = 1000;
-  public static readonly IMPORT_BATCH_INSERT_SIZE = 250;
-  public static readonly BATCH_PAGE_SIZE = 1000;
+  public static readonly IMPORT_BATCH_INSERT_SIZE = 256;
+  public static readonly BATCH_PAGE_SIZE = 256;
 
   public static readonly SFDP_LATTITUDE = 43.585784;
   public static readonly SFDP_LONGITUDE = 7.0377592;
@@ -467,4 +468,30 @@ export default class Constants {
 
   public static readonly AFIREV_MINIMAL_DURATION_THRESHOLD = 120; // Minimal duration - 2 minutes
   public static readonly AFIREV_MINIMAL_CONSUMPTION_THRESHOLD = 500; // Minimal consumption - 0.5 kW.h
+
+  /* App Info for STRIPE */
+  public static readonly STRIPE_APP_NAME = 'Open e-Mobility';
+  public static readonly STRIPE_PARTNER_ID = 'TECH-000685';
+  // public static readonly STRIPE_API_VERSION = '2020-08-27';
+  public static readonly STRIPE_API_VERSION = '2022-11-15';
+
+  public static readonly WEB_SOCKET_OCPP_NEW_CONNECTIONS_COUNT = 'web_socket_ocpp_new_connections_count';
+  public static readonly WEB_SOCKET_OCPP_CLOSED_CONNECTIONS_COUNT = 'web_socket_ocpp_closed_connections_count';
+  public static readonly WEB_SOCKET_OCPP_CONNECTIONS_COUNT = 'web_socket_ocpp_connections_count';
+  public static readonly WEB_SOCKET_CURRENT_REQUEST = 'web_socket_current_request';
+  public static readonly WEB_SOCKET_REST_CONNECTIONS_COUNT = 'web_socket_rest_connections_count';
+  public static readonly WEB_SOCKET_RUNNING_REQUEST = 'web_socket_running_request';
+  public static readonly WEB_SOCKET_RUNNING_REQUEST_RESPONSE = 'web_socket_running_request_response';
+  public static readonly WEB_SOCKET_QUEUED_REQUEST = 'web_socket_queued_request';
+
+  public static readonly MONGODB_CONNECTION_POOL_CREATED = 'mongodb_connectionPoolCreated';
+  public static readonly MONGODB_CONNECTION_POOL_CLOSED = 'mongodb_connectionPoolClosed';
+  public static readonly MONGODB_CONNECTION_CREATED = 'mongodb_connectionCreated';
+  public static readonly MONGODB_CONNECTION_READY = 'mongodb_connectionReady';
+  public static readonly MONGODB_CONNECTION_CLOSED = 'mongodb_connectionClosed';
+  public static readonly MONGODB_CONNECTION_CHECK_OUT_STARTED = 'mongodb_connectionCheckOutStarted';
+  public static readonly MONGODB_CONNECTION_CHECK_OUT_FAILED = 'mongodb_connectionCheckOutFailed';
+  public static readonly MONGODB_CONNECTION_CHECK_OUT = 'mongodb_connectionCheckOut';
+  public static readonly MONGODB_CONNECTION_CHECK_IN = 'mongodb_connectionCheckIn';
+  public static readonly MONGODB_CONNECTION_POOL_CLEARED = 'mongodb_connectionPoolCleared';
 }

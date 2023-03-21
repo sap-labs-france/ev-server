@@ -27,7 +27,10 @@ export interface HttpCreateTransactionInvoiceRequest {
 export interface HttpUserMobileTokenUpdateRequest {
   id: string;
   mobileToken: string;
-  mobileOS: string;
+  mobileOS: 'ios' | 'android' | 'windows' | 'macos' | 'web';
+  mobileBundleID: string;
+  mobileAppName: string;
+  mobileVersion: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -112,4 +115,12 @@ export interface HttpEulaRequest {
 export interface HttpUserDefaultTagCarGetRequest {
   UserID: string;
   ChargingStationID?: string; // TODO: Backward-compatibility issue - This should be mandatory! - change it as soon as possible
+}
+
+export interface HttpUserSessionContextGetRequest {
+  UserID: string;
+  ChargingStationID: string;
+  ConnectorID: number;
+  CarID: string;
+  TagID: string;
 }

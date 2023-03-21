@@ -328,7 +328,7 @@ export default class TransactionStorage {
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
         statistics?: TransactionStatisticsType; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
-        transactionsToStop?: boolean;
+        transactionsToStop?: boolean; siteOwnerIDs?: string[]; withSmartChargingData?: boolean
       },
       dbParams: DbParams, projectFields?: string[]): Promise<TransactionDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -354,6 +354,13 @@ export default class TransactionStorage {
       ownerMatch.$or.push({
         siteID: {
           $in: params.siteAdminIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+        }
+      });
+    }
+    if (params.siteOwnerIDs) {
+      ownerMatch.$or.push({
+        siteID: {
+          $in: params.siteOwnerIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
         }
       });
     }
@@ -670,14 +677,14 @@ export default class TransactionStorage {
       $limit: dbParams.limit
     });
     // Add OCPI data
-    if (projectFields && projectFields.includes('ocpi')) {
+    if (!projectFields || projectFields && projectFields.includes('ocpi')) {
       aggregation.push({
         $addFields: {
           'ocpi': { $gt: ['$ocpiData', null] }
         }
       });
     }
-    if (projectFields && projectFields.includes('ocpiWithCdr')) {
+    if (!projectFields || projectFields && projectFields.includes('ocpiWithCdr')) {
       aggregation.push({
         $addFields: {
           'ocpiWithCdr': {
@@ -744,6 +751,17 @@ export default class TransactionStorage {
       DatabaseUtils.pushCarCatalogLookupInAggregation({
         tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
         foreignField: '_id', oneToOneCardinality: true
+      });
+    }
+    // Smart Charging Data
+    if (params.withSmartChargingData) {
+      DatabaseUtils.pushCarLookupInAggregation({
+        tenantID: tenant.id, aggregation: aggregation, asField: 'car', localField: 'carID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false, projectFields:['converter.amperagePerPhase']
+      });
+      DatabaseUtils.pushCarCatalogLookupInAggregation({
+        tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+        foreignField: '_id', oneToOneCardinality: true, projectFields:['fastChargePowerMax', 'batteryCapacityFull']
       });
     }
     // Rename ID
@@ -1565,7 +1583,7 @@ export default class TransactionStorage {
           $addFields: { status: '$connector.status' }
         });
       }
-      if ( params.transactionsToStop ) {
+      if (params.transactionsToStop) {
         aggregation.push(
           {
             // Make sure we have connectors (to avoid conflicts with a OcppBootNotification where connectors temporarily are cleared)

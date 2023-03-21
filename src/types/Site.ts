@@ -24,6 +24,7 @@ export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActi
   public?: boolean;
   openingTimes?: OpeningTimes;
   tariffID?: string;
+  ownerName?: string;
   accountData?: BillingAccountData;
 }
 

@@ -71,7 +71,7 @@ export default class OCPIUtilsService {
     const sites = await SiteStorage.getSites(tenant,
       { issuer: true, public: true },
       limit === 0 ? Constants.DB_PARAMS_MAX_LIMIT : { limit, skip },
-      ['id', 'name', 'address', 'lastChangedOn', 'createdOn']);
+      ['id', 'name', 'address', 'ownerName', 'lastChangedOn', 'createdOn']);
     // Convert Sites to Locations
     for (const site of sites.result) {
       ocpiLocationsResult.result.push(
@@ -135,6 +135,9 @@ export default class OCPIUtilsService {
       evses: withChargingStations ?
         await OCPIUtilsService.getCpoEvsesFromSite(tenant, site.id, options, null, Constants.DB_PARAMS_MAX_LIMIT, settings) : [],
       operator: OCPIUtilsService.getOperatorBusinessDetails(settings) ?? { name: 'Undefined' },
+      owner: {
+        name: site.ownerName ?? 'Undefined',
+      },
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
       opening_times: this.buildCpoOpeningTimes(tenant, site)
     };
@@ -481,7 +484,7 @@ export default class OCPIUtilsService {
         inactivityStatus: transaction.currentInactivityStatus,
         userID: transaction.userID
       };
-      NotificationHelper.notifyStopTransaction(tenant, chargingStation, transaction, user);
+      NotificationHelper.notifyStopTransaction(tenant, transaction, chargingStation, user);
     }
     await TransactionStorage.saveTransaction(tenant, transaction);
     await OCPPUtils.updateChargingStationConnectorRuntimeDataWithTransaction(tenant, chargingStation, transaction, true);

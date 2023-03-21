@@ -18,10 +18,12 @@ export default class UserRouter {
     this.buildRouteUpdateUser();
     this.buildRouteDeleteUser();
     this.buildRouteUserDefaultCarTag();
+    this.buildRouteUserSessionContext();
     this.buildRouteUserGetSites();
     this.buildRouteUserSiteAssign();
     this.buildRouteUserSiteUnassign();
     this.buildRouteUserUpdateMobileToken();
+    this.buildRouteUserUpdateMobileData();
     this.buildRouteUserGetImage();
     this.buildRouteUsersInError();
     this.buildRouteUserImport();
@@ -73,6 +75,13 @@ export default class UserRouter {
     });
   }
 
+  private buildRouteUserSessionContext(): void {
+    this.router.get(`/${RESTServerRoute.REST_USER_SESSION_CONTEXT}`, (req: Request, res: Response, next: NextFunction) => {
+      req.query.UserID = req.params.id;
+      void RouterUtils.handleRestServerAction(UserService.handleGetUserSessionContext.bind(this), ServerAction.USER_SESSION_CONTEXT, req, res, next);
+    });
+  }
+
   private buildRouteUserGetSites(): void {
     this.router.get(`/${RESTServerRoute.REST_USER_SITES}`, (req: Request, res: Response, next: NextFunction) => {
       req.query.UserID = req.params.id;
@@ -94,9 +103,16 @@ export default class UserRouter {
     });
   }
 
+  // Deprecated
   private buildRouteUserUpdateMobileToken(): void {
     this.router.put(`/${RESTServerRoute.REST_USER_UPDATE_MOBILE_TOKEN}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleRestServerAction(UserService.handleUpdateUserMobileToken.bind(this), ServerAction.USER_UPDATE_MOBILE_TOKEN, req, res, next);
+      void RouterUtils.handleRestServerAction(UserService.handleUpdateUserMobileData.bind(this), ServerAction.USER_UPDATE_MOBILE_DATA, req, res, next);
+    });
+  }
+
+  private buildRouteUserUpdateMobileData(): void {
+    this.router.put(`/${RESTServerRoute.REST_USER_UPDATE_MOBILE_DATA}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(UserService.handleUpdateUserMobileData.bind(this), ServerAction.USER_UPDATE_MOBILE_DATA, req, res, next);
     });
   }
 

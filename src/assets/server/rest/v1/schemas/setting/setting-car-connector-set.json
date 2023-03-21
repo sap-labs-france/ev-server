@@ -67,6 +67,27 @@
                         "sanitize": "mongo"
                       }
                     }
+                  },
+                  "targaTelematicsConnection": {
+                    "type": "object",
+                    "properties": {
+                      "authenticationUrl": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "apiUrl": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "clientId": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      },
+                      "clientSecret": {
+                        "type": "string",
+                        "sanitize": "mongo"
+                      }
+                    }
                   }
                 }
               }

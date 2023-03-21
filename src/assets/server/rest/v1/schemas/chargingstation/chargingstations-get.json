@@ -79,6 +79,10 @@
     "WithAuth": {
       "$ref": "common#/definitions/withAuth",
       "default": true
+    },
+    "Public": {
+      "type": "boolean",
+      "sanitize": "mongo"
     }
   },
   "required": [

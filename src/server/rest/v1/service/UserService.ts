@@ -30,6 +30,7 @@ import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { Readable } from 'stream';
 import { ServerAction } from '../../../../types/Server';
+import SmartChargingHelper from '../../../../integration/smart-charging/SmartChargingHelper';
 import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
@@ -49,6 +50,92 @@ import moment from 'moment';
 const MODULE_NAME = 'UserService';
 
 export default class UserService {
+  public static async handleGetUserSessionContext(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = UserValidatorRest.getInstance().validateUserSessionContextReq(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetUserSessionContext', req.user);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
+    // Handle Tag
+    // We retrieve Tag auth to get the projected fields here to fit with what's in auth definition
+    const tagAuthorization = await AuthorizationService.checkAndGetTagAuthorizations(req.tenant, req.user, {}, Action.READ);
+    let tag: Tag;
+    if (tagAuthorization.authorized) {
+      // Get the tag from the request TagID
+      if (filteredRequest.TagID) {
+        const tagFromID = await TagStorage.getTag(req.tenant, filteredRequest.TagID, { issuer: true }, tagAuthorization.projectFields);
+        if (!tagFromID || tagFromID.userID !== filteredRequest.UserID) {
+          throw new AppError({
+            errorCode: StatusCodes.BAD_REQUEST,
+            message: 'This user has no tag with such TagID',
+            module: MODULE_NAME,
+            method: 'handleGetUserSessionContext',
+            action: action
+          });
+        } else {
+          tag = tagFromID;
+        }
+      }
+      if (!tag) {
+        // Get the default Tag
+        tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, { issuer: true }, tagAuthorization.projectFields);
+        if (!tag) {
+          // Get the first active Tag
+          tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, { issuer: true }, tagAuthorization.projectFields);
+        }
+      }
+    }
+    // Handle Car
+    // We retrieve Car auth to get the projected fields here to fit with what's in auth definition
+    const carAuthorization = await AuthorizationService.checkAndGetCarAuthorizations(req.tenant, req.user, {}, Action.READ);
+    let car: Car;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) && carAuthorization.authorized) {
+      // Get the car from the request CarID
+      if (filteredRequest.CarID) {
+        const carFromID = await CarStorage.getCar(req.tenant, filteredRequest.CarID, {}, carAuthorization.projectFields);
+        if (!carFromID || carFromID.userID !== filteredRequest.UserID) {
+          throw new AppError({
+            errorCode: StatusCodes.BAD_REQUEST,
+            message: 'This user has no car with such CarID',
+            module: MODULE_NAME,
+            method: 'handleGetUserSessionContext',
+            action: action
+          });
+        } else {
+          car = carFromID;
+        }
+      }
+      if (!car) {
+        // Get the default Car
+        car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
+        if (!car) {
+          // Get the first available car
+          car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID, carAuthorization.projectFields);
+        }
+      }
+    }
+    let withBillingChecks = true ;
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ,
+      action, null, { withSiteArea: true });
+    if (!chargingStation.siteArea.accessControl) {
+      // The access control is switched off - so billing checks are useless
+      withBillingChecks = false;
+    }
+    // Check for billing errors
+    const errorCodes: Array<StartTransactionErrorCode> = [];
+    if (withBillingChecks) {
+      // Check for the billing prerequisites (such as the user's payment method)
+      await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    }
+    // Get additional Smart Charging parameters such as the Departure Time
+    const parameters = await SmartChargingHelper.getSessionParameters(req.tenant, req.user, chargingStation, filteredRequest.ConnectorID, car);
+    res.json({
+      tag, car, errorCodes, smartChargingSessionParameters: parameters
+    });
+    next();
+  }
+
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUserDefaultTagCarGetReq(req.query);
@@ -78,7 +165,7 @@ export default class UserService {
     let car: Car;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) && carAuthorization.authorized) {
     // Get the default Car
-    car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
+      car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
       if (!car) {
         // Get the first available car
         car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID, carAuthorization.projectFields);
@@ -237,7 +324,7 @@ export default class UserService {
     // Update User Admin Data
     await UserService.updateUserAdminData(req.tenant, user, user.projectFields);
     // Update Billing
-    await UserService.updateUserBilling(ServerAction.USER_UPDATE, req.tenant, req.user, user);
+    await UserService.syncUserAndUpdateBillingData(ServerAction.USER_UPDATE, req.tenant, req.user, user);
     // Log
     await Logging.logInfo({
       tenantID: req.tenant.id,
@@ -248,51 +335,45 @@ export default class UserService {
     });
     if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Notify
-      void NotificationHandler.sendUserAccountStatusChanged(
+      NotificationHandler.sendUserAccountStatusChanged(
         req.tenant,
         Utils.generateUUID(),
         user,
         {
-          'user': user,
-          'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain)
+          user,
+          evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain)
         }
-      );
+      ).catch((error) => {
+        Logging.logPromiseError(error, req?.tenant?.id);
+      });
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateUserMobileData(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserValidatorRest.getInstance().validateUserMobileTokenUpdateReq({ ...req.params, ...req.body });
-    // Check Mandatory fields
-    if (!filteredRequest.mobileToken) {
-      throw new AppError({
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s mobile token ID must be provided',
-        module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
-        user: req.user,
-        action: action
-      });
-    }
+    const filteredRequest = UserValidatorRest.getInstance().validateUserMobileDataUpdateReq({ ...req.params, ...req.body });
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
-    // Update User (override TagIDs because it's not of the same type as in filteredRequest)
-    await UserStorage.saveUserMobileToken(req.tenant, user.id, {
+    // Update User
+    await UserStorage.saveUserMobileData(req.tenant, user.id, {
       mobileToken: filteredRequest.mobileToken,
-      mobileOs: filteredRequest.mobileOS,
+      mobileOS: filteredRequest.mobileOS,
+      mobileBundleID: filteredRequest.mobileBundleID,
+      mobileAppName: filteredRequest.mobileAppName,
+      mobileVersion: filteredRequest.mobileVersion,
       mobileLastChangedOn: new Date()
     });
     await Logging.logInfo({
       tenantID: req.tenant.id,
       user: user,
-      module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
-      message: 'User\'s mobile token has been updated successfully',
+      module: MODULE_NAME, method: 'handleUpdateUserMobileData',
+      message: 'User\'s mobile data has been updated successfully',
       action: action,
       detailedMessages: {
-        mobileToken: filteredRequest.mobileToken,
-        mobileOS: filteredRequest.mobileOS
+        mobileData: filteredRequest,
       }
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -665,7 +746,7 @@ export default class UserService {
     // Assign Site to new User
     await UtilsService.assignCreatedUserToSites(req.tenant, newUser, authorizations);
     // Update Billing
-    await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
+    await UserService.syncUserAndUpdateBillingData(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
     await Logging.logInfo({
       tenantID: req.tenant.id,
@@ -924,16 +1005,17 @@ export default class UserService {
     }
   }
 
-  private static async updateUserBilling(action: ServerAction, tenant: Tenant, loggedUser: UserToken, user: User) {
+  private static async syncUserAndUpdateBillingData(action: ServerAction, tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
       const billingImpl = await BillingFactory.getBillingImpl(tenant);
       if (billingImpl) {
         try {
+          // For performance reasons, the creation of a customer in the billing system should be done in a LAZY mode
           await billingImpl.synchronizeUser(user);
         } catch (error) {
           await Logging.logError({
             tenantID: tenant.id, action,
-            module: MODULE_NAME, method: 'updateUserBilling',
+            module: MODULE_NAME, method: 'syncUserAndUpdateBillingData',
             user: loggedUser, actionOnUser: user,
             message: 'User cannot be updated in billing system',
             detailedMessages: { error: error.stack }

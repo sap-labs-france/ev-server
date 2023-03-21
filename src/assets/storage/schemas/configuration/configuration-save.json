@@ -308,6 +308,12 @@
         "poolSize": {
           "type": "integer"
         },
+        "minPoolSize": {
+          "type": "integer"
+        },
+        "maxPoolSize": {
+          "type": "integer"
+        },
         "debug": {
           "type": "boolean"
         },
@@ -317,8 +323,7 @@
       },
       "required": [
         "implementation",
-        "uri",
-        "poolSize"
+        "uri"
       ]
     },
     "OCPIService": {
@@ -506,6 +511,9 @@
       "type": "object",
       "properties": {
         "disableBackup": {
+          "type": "boolean"
+        },
+        "troubleshootingMode": {
           "type": "boolean"
         },
         "smtp": {
@@ -725,6 +733,20 @@
       },
       "required": [
         "logLevel"
+      ]
+    },
+    "Cache": {
+      "type": "object",
+      "properties": {
+        "ttlSeconds": {
+          "type": "number"
+        },
+        "debug": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ttlSeconds"
       ]
     }
   }

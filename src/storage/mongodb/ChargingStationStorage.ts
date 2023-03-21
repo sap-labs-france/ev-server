@@ -108,13 +108,15 @@ export default class ChargingStationStorage {
 
   public static async getChargingStationByOcpiLocationEvseUid(tenant: Tenant, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
       ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
-      projectFields?: string[]): Promise<ChargingStation> {
+      withSite = true,
+      withSiteArea = true,
+  ): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenant, {
       ocpiLocationID,
       ocpiEvseUid,
-      withSite: true,
-      withSiteArea: true,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+      withSite,
+      withSiteArea,
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
@@ -133,7 +135,7 @@ export default class ChargingStationStorage {
         connectorStatuses?: ChargePointStatus[]; connectorTypes?: ConnectorType[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
         ocpiEvseUid?: string; ocpiLocationID?: string; oicpEvseID?: string;
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
-        locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean; manualConfiguration?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<ChargingStationDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -178,8 +180,12 @@ export default class ChargingStationStorage {
       filters.deleted = { '$ne': true };
     }
     // Public Charging Stations
-    if (Utils.objectHasProperty(params, 'public')) {
+    if (Utils.isBoolean(params.public)) {
       filters.public = params.public;
+    }
+    // Charging Station
+    if (Utils.isBoolean(params.manualConfiguration)) {
+      filters.manualConfiguration = params.manualConfiguration;
     }
     // Charging Stations
     if (!Utils.isEmptyArray(params.chargingStationIDs)) {

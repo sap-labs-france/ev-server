@@ -18,10 +18,8 @@ export default class ImportHelper {
   public async processImportedUser(tenant: Tenant, importedUser: ImportedUser, existingSites: Map<string, Site>): Promise<User> {
     // Get User
     let user = await UserStorage.getUserByEmail(tenant, importedUser.email);
-    // If one found lets update it else create new User
-    if (user) {
-      await this.updateUser(tenant, user, importedUser);
-    } else {
+    if (!user) {
+      // Create User
       user = await this.createUser(tenant, importedUser);
     }
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && importedUser.siteIDs) {
@@ -166,7 +164,7 @@ export default class ImportHelper {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(tenant.subdomain) +
       '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' + user.email + '&ResetToken=' + resetHash;
     // Send activate account link
-    void NotificationHandler.sendVerificationEmailUserImport(
+    NotificationHandler.sendVerificationEmailUserImport(
       tenant,
       Utils.generateUUID(),
       user,
@@ -175,6 +173,9 @@ export default class ImportHelper {
         'user': user,
         'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-      });
+      }
+    ).catch((error) => {
+      Logging.logPromiseError(error, tenant?.id);
+    });
   }
 }
