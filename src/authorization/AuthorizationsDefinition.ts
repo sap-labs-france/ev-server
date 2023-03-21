@@ -413,7 +413,8 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREA,
         action: [Action.READ, Action.READ_CHARGING_STATIONS_FROM_SITE_AREA],
         attributes: [
-          'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases', 'voltage', 'smartCharging', 'accessControl',
+          'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases', 'voltage', 'smartCharging', 'smartChargingSessionParameters',
+          'smartChargingSessionParameters.departureTime', 'smartChargingSessionParameters.carStateOfCharge', 'smartChargingSessionParameters.targetStateOfCharge', 'accessControl',
           'connectorStats', 'siteID', 'site.name', 'site.public', 'parentSiteAreaID', 'parentSiteArea.name', 'tariffID',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
@@ -1309,6 +1310,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
           'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID',
+          'smartChargingSessionParameters.departureTime', 'smartChargingSessionParameters.carStateOfCharge', 'smartChargingSessionParameters.targetStateOfCharge',
           'parentSiteAreaID', 'site.name', 'parentSiteArea.name',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
@@ -1865,6 +1867,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
           'voltage', 'smartCharging', 'accessControl', 'connectorStats',
+          'smartChargingSessionParameters.departureTime', 'smartChargingSessionParameters.carStateOfCharge', 'smartChargingSessionParameters.targetStateOfCharge',
           'siteID', 'parentSiteAreaID', 'site.name', 'parentSiteArea.name',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
@@ -2336,6 +2339,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'issuer', 'image', 'maximumPower', 'numberOfPhases',
           'voltage', 'smartCharging', 'accessControl', 'connectorStats',
+          'smartChargingSessionParameters.departureTime', 'smartChargingSessionParameters.carStateOfCharge', 'smartChargingSessionParameters.targetStateOfCharge',
           'siteID', 'site.name', 'site.public', 'tariffID',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city',
           'address.department', 'address.region', 'address.country', 'address.coordinates'
