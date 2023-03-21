@@ -993,6 +993,10 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/users/${userId}`;
   } // is it here we need to do something to handle the missing field in the ui to directly validate user ? = status
 
+  public static buildEvseScanPayConnectorURL(tenantSubdomain: string, chargingStation: ChargingStation, connectorID: number): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/${chargingStation.siteAreaID}/${chargingStation.id}/${connectorID}`;
+  }
+
   public static getRequestIP(request: http.IncomingMessage | Partial<Request>): string | string[] {
     if (request['ip']) {
       return request['ip'];

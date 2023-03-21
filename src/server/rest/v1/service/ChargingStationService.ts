@@ -282,6 +282,25 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleGenerateQrCodeForConnectorScanPay(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SCAN_PAY,
+      Action.GET_CONNECTOR_QR_CODE_SCAN_PAY, Entity.CHARGING_STATION, MODULE_NAME, 'handleGenerateQrCodeForConnectorScanPay');
+    // Filter
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationQRCodeGenerateReq(req.query);
+    // Check dynamic auth
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user,
+      filteredRequest.ChargingStationID, Action.GET_CONNECTOR_QR_CODE_SCAN_PAY, action);
+    // Found Connector ?
+    UtilsService.assertObjectExists(action, Utils.getConnectorFromID(chargingStation, filteredRequest.ConnectorID),
+      `Connector ID '${filteredRequest.ConnectorID}' does not exist`,
+      MODULE_NAME, 'handleGenerateQrCodeForConnectorScanPay', req.user);
+    const scanPayConnectorURL = Utils.buildEvseScanPayConnectorURL(req.tenant.subdomain, chargingStation, filteredRequest.ConnectorID);
+    // Generate
+    const generatedQR = await Utils.generateQrCode(scanPayConnectorURL);
+    res.json({ image: generatedQR });
+    next();
+  }
+
   public static async handleCreateChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingProfileCreateReq(req.body);
@@ -496,6 +515,17 @@ export default class ChargingStationService {
     await UtilsService.exportToPDF(req, res, 'exported-charging-stations-qr-code.pdf',
       ChargingStationService.getChargingStations.bind(this, req, filteredRequest, Action.GENERATE_QR),
       ChargingStationService.convertQrCodeToPDF.bind(this));
+  }
+
+  public static async handleDownloadQrCodesScanPayPdf(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SCAN_PAY,
+      Action.GET_CONNECTOR_QR_CODE_SCAN_PAY, Entity.CHARGING_STATION, MODULE_NAME, 'handleDownloadQrCodesScanPayPdf');
+    // Filter
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationQRCodeDownloadReq(req.query);
+    // Export
+    await UtilsService.exportToPDF(req, res, 'exported-charging-stations-qr-code-scan-pay.pdf',
+      ChargingStationService.getChargingStations.bind(this, req, filteredRequest, Action.GENERATE_QR_SCAN_PAY),
+      ChargingStationService.convertQrCodeScanPayToPDF.bind(this));
   }
 
   public static async handleGetChargingStationsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -1099,6 +1129,39 @@ export default class ChargingStationService {
           // Generated QR-Code
           const qrCodeImage = await Utils.generateQrCode(
             Buffer.from(JSON.stringify(chargingStationQRCode)).toString('base64'));
+          // Build title
+          const qrCodeTitle = `${chargingStation.id} / ${i18nManager.translate('chargers.connector')} ${Utils.getConnectorLetterFromConnectorID(connector.connectorId)}`;
+          // Add the QR Codes
+          ChargingStationService.build3SizesPDFQrCode(pdfDocument, qrCodeImage, qrCodeTitle);
+          // Add page (expect the last one)
+          if (!connectorID && (chargingStations[chargingStations.length - 1] !== chargingStation ||
+              chargingStation.connectors[chargingStation.connectors.length - 1] !== connector)) {
+            pdfDocument.addPage();
+          }
+        }
+      }
+    }
+  }
+
+  private static async convertQrCodeScanPayToPDF(req: Request, pdfDocument: PDFKit.PDFDocument, chargingStations: ChargingStation[]): Promise<void> {
+    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
+    // Check for Connector ID
+    let connectorID = null;
+    if (req.query.ConnectorID) {
+      connectorID = Utils.convertToInt(req.query.ConnectorID);
+    }
+    // Content
+    for (const chargingStation of chargingStations) {
+      if (!Utils.isEmptyArray(chargingStation.connectors)) {
+        for (const connector of chargingStation.connectors) {
+          // Filter on connector ID?
+          if (connectorID > 0 && connector.connectorId !== connectorID) {
+            continue;
+          }
+          // Create data
+          const scanPayConnectorURL = Utils.buildEvseScanPayConnectorURL(req.tenant.subdomain, chargingStation, connector.connectorId);
+          // Generated QR-Code
+          const qrCodeImage = await Utils.generateQrCode(scanPayConnectorURL);
           // Build title
           const qrCodeTitle = `${chargingStation.id} / ${i18nManager.translate('chargers.connector')} ${Utils.getConnectorLetterFromConnectorID(connector.connectorId)}`;
           // Add the QR Codes
