@@ -28,6 +28,10 @@
             "platformFeeTaxID": {
               "type": "string",
               "sanitize": "mongo"
+            },
+            "scanPayAmount": {
+              "type": "number",
+              "sanitize": "mongo"
             }
           }
         },

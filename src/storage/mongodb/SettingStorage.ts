@@ -455,6 +455,10 @@ export default class SettingStorage {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
         billing.platformFeeTaxID = content.billing?.platformFeeTaxID;
       }
+      // Insert scanPay only if the scanPay component is enabled
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.SCAN_PAY)) {
+        billing.scanPayAmount = content.billing?.scanPayAmount;
+      }
       const billingSettings: BillingSettings = {
         id,
         identifier: TenantComponents.BILLING,
