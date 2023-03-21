@@ -40,6 +40,7 @@ export enum ServerAction {
   CHARGING_STATION_REQUEST_OCPP_PARAMETERS = 'ChargingStationRequestOcppParameters',
   CHARGING_STATION_CLIENT_INITIALIZATION = 'ChargingStationClientInitialization',
   CHARGING_STATION_DOWNLOAD_QR_CODE_PDF = 'ChargingStationDownloadQrCodePdf',
+  CHARGING_STATION_DOWNLOAD_QR_CODE_SCAN_PAY_PDF = 'ChargingStationDownloadQrCodeScanPayPdf',
   CHARGING_STATIONS_EXPORT = 'ChargingStationsExport',
   CHARGING_STATIONS_OCPP_PARAMS_EXPORT = 'ChargingStationsOcppParamsExport',
   CHARGING_STATION = 'ChargingStation',
@@ -101,6 +102,7 @@ export enum ServerAction {
   CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
   CHARGING_PROFILE_CREATE = 'ChargingProfileCreate',
   GENERATE_QR_CODE_FOR_CONNECTOR = 'GenerateQrCodeForConnector',
+  GENERATE_QR_CODE_FOR_CONNECTOR_SCAN_PAY = 'GenerateQrCodeForConnectorScanPay',
   OCPP_PARAM_UPDATE = 'OcppParamUpdate',
   RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
   END_USER_LICENSE_AGREEMENT = 'EndUserLicenseAgreement',
@@ -541,7 +543,9 @@ export enum RESTServerRoute {
 
   REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'charging-stations/firmware/download',
   REST_CHARGING_STATIONS_QRCODE_GENERATE = 'charging-stations/:id/connectors/:connectorId/qrcode/generate',
+  REST_CHARGING_STATIONS_QRCODE_GENERATE_SCAN_PAY = 'charging-stations/:id/connectors/:connectorId/qrcode/generate/scan-pay',
   REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'charging-stations/qrcode/download',
+  REST_CHARGING_STATIONS_QRCODE_SCAN_PAY_DOWNLOAD = 'charging-stations/qrcode/scan-pay/download',
 
   REST_CHARGING_STATION_GET_OCPP_PARAMETERS = 'charging-stations/:id/ocpp/parameters',
   REST_CHARGING_STATIONS_REQUEST_OCPP_PARAMETERS = 'charging-stations/ocpp/parameters',
