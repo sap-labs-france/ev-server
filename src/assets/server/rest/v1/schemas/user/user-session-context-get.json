@@ -14,6 +14,12 @@
     },
     "ProjectFields": {
       "$ref": "common#/definitions/projectFields"
+    },
+    "CarID": {
+      "$ref": "car#/definitions/id"
+    },
+    "TagID": {
+      "$ref": "tag#/definitions/id"
     }
   },
   "required": [

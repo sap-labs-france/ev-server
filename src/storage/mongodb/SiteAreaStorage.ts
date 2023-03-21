@@ -189,6 +189,15 @@ export default class SiteAreaStorage {
           (coordinate) => Utils.convertToFloat(coordinate)) : [],
       };
     }
+    if (siteAreaToSave.smartChargingSessionParameters) {
+      siteAreaMDB.smartChargingSessionParameters = {
+        departureTime: siteAreaToSave.smartChargingSessionParameters.departureTime ?? null,
+        carStateOfCharge: siteAreaToSave.smartChargingSessionParameters.carStateOfCharge ?
+          Utils.convertToInt(siteAreaToSave.smartChargingSessionParameters.carStateOfCharge) : null,
+        targetStateOfCharge: siteAreaToSave.smartChargingSessionParameters.targetStateOfCharge ?
+          Utils.convertToInt(siteAreaToSave.smartChargingSessionParameters.targetStateOfCharge) : null,
+      };
+    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
     // Modify
