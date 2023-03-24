@@ -906,7 +906,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       if (chargePoint?.efficiency > 0) {
         return Utils.roundTo(currentLimit * chargePoint.efficiency / 100 * numberOfConnectedPhase, 1);
       }
-      return Utils.roundTo(currentLimit * Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT * numberOfConnectedPhase, 1);
+      return Utils.roundTo(currentLimit * Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT / 100 * numberOfConnectedPhase, 1);
     }
     return Utils.roundTo((currentLimit * numberOfConnectedPhase), 1);
   }
