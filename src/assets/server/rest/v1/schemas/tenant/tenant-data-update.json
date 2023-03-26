@@ -10,13 +10,19 @@
       "$ref": "tenant#/definitions/name"
     },
     "email": {
-      "$ref": "user#/definitions/email"
+      "$ref": "common#/definitions/email"
     },
     "logo": {
       "$ref": "common#/definitions/logo"
     },
     "address": {
       "$ref": "common#/definitions/address"
+    },
+    "support": {
+      "$ref": "tenant#/definitions/tenantSupport"
+    },
+    "businessDetails": {
+      "$ref": "tenant#/definitions/businessDetails"
     }
   },
   "required": [

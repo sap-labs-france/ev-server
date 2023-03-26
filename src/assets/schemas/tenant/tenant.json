@@ -37,6 +37,58 @@
     },
     "lastChangedOn": {
       "$ref": "common#/definitions/lastChangedOn"
+    },
+    "tenantSupport": {
+      "type": "object",
+      "nullable": true,
+      "properties": {
+        "supportEmail": {
+          "type": "string",
+          "format": "email",
+          "sanitize": "mongo",
+          "nullable": true,
+          "transform": [
+            "toLowerCase"
+          ]
+        },
+        "supportPhone": {
+          "type": "string",
+          "sanitize": "mongo",
+          "pattern": "^|\\+?([0-9] ?){9,14}[0-9]$",
+          "nullable": true
+        }
+      }
+    },
+    "businessDetails": {
+      "type": "object",
+      "nullable": true,
+      "properties": {
+        "corporateName": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "website": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "rcs": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "capital": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "siret": {
+          "type": "number",
+          "sanitize": "mongo",
+          "pattern": "^[0-9]{14}$"
+        },
+        "legalStatus": {
+          "type": "string",
+          "sanitize": "mongo"
+        }
+      }
     }
   }
 }

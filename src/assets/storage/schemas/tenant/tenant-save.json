@@ -20,6 +20,12 @@
     },
     "components": {
       "$ref": "tenant-components#/definitions/components"
+    },
+    "support": {
+      "$ref": "tenant#/definitions/tenantSupport"
+    },
+    "businessDetails": {
+      "$ref": "tenant#/definitions/businessDetails"
     }
   },
   "required": [

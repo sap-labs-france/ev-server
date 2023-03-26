@@ -165,7 +165,7 @@ export default class TenantService {
       });
     }
     let projectFields = [
-      'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo'
+      'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo', 'support', 'corporateName', 'website', 'rcs', 'capital', 'siret', 'rcs', 'legalStatus',
     ];
     // Check projection
     const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
@@ -448,6 +448,13 @@ export default class TenantService {
     tenant.name = filteredRequest.name;
     tenant.address = filteredRequest.address;
     tenant.email = filteredRequest.email;
+    tenant.support = filteredRequest.support;
+    tenant.legalStatus = filteredRequest.legalStatus;
+    tenant.corporateName = filteredRequest.corporateName;
+    tenant.website = filteredRequest.website;
+    tenant.rcs = filteredRequest.rcs;
+    tenant.capital = filteredRequest.capital;
+    tenant.siret = filteredRequest.siret;
     if (Utils.objectHasProperty(filteredRequest, 'logo')) {
       tenant.logo = filteredRequest.logo;
     }
