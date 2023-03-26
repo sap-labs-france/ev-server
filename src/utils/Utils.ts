@@ -230,12 +230,7 @@ export default class Utils {
   }
 
   public static areObjectPropertiesEqual(objCmp1: any = {}, objCmp2: any = {}, key: string): boolean {
-    // Check DB expireAfterSeconds index
-    if ((Utils.objectHasProperty(objCmp1, key) !== Utils.objectHasProperty(objCmp2, key)) ||
-        (objCmp1[key] !== objCmp2[key])) {
-      return false;
-    }
-    return true;
+    return _.isEqual(objCmp1[key], objCmp2[key]);
   }
 
   public static computeTimeDurationSecs(timeStart: number): number {
