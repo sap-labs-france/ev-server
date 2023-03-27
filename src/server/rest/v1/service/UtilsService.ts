@@ -1064,6 +1064,11 @@ export default class UtilsService {
     next();
   }
 
+  public static sendEmptyArray(res: Response, next: NextFunction): void {
+    res.json([]);
+    next();
+  }
+
   public static async handleUnknownAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Action provided
     if (!action) {
