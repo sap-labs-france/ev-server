@@ -491,17 +491,6 @@ export default class RemotePushNotificationTask implements NotificationTask {
       // Do it
       startTime = Logging.traceNotificationStart();
       if (!user?.mobileData?.mobileToken) {
-        // Logging.beDebug()?.log({
-        //   tenantID: tenant.id,
-        //   siteID: data?.siteID,
-        //   siteAreaID: data?.siteAreaID,
-        //   companyID: data?.companyID,
-        //   chargingStationID: data?.chargeBoxID,
-        //   action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-        //   module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-        //   message: `'${notificationType}': No mobile token found for this User`,
-        //   actionOnUser: user.id,
-        // });
         // Send nothing
         return Promise.resolve();
       }
@@ -544,20 +533,9 @@ export default class RemotePushNotificationTask implements NotificationTask {
           } else {
             // Stop sending notification
             notificationSent = true;
-            // Logging.beDebug()?.log({
-            //   tenantID: tenant.id,
-            //   siteID: data?.siteID,
-            //   siteAreaID: data?.siteAreaID,
-            //   companyID: data?.companyID,
-            //   chargingStationID: data?.chargeBoxID,
-            //   action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-            //   module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-            //   message: `Notification Sent: '${notificationType}' - '${title}'`,
-            //   actionOnUser: user.id,
-            // }).catch((error) => Logging.logPromiseError(error));
           }
         } catch (error) {
-          Logging.logError({
+          Logging.beError()?.log({
             tenantID: tenant.id,
             siteID: data?.siteID,
             siteAreaID: data?.siteAreaID,
@@ -568,7 +546,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             message: `Notification: '${notificationType}' - '${error.message as string}'`,
             actionOnUser: user.id,
             detailedMessages: { error: error.stack }
-          }).catch((error2) => Logging.logPromiseError(error2));
+          });
         }
       }
     } finally {
