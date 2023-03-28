@@ -114,6 +114,7 @@ export enum Entity {
   CONSUMPTION = 'Consumption',
   SMART_CHARGING = 'SmartCharging',
   PAYMENT_INTENT = 'PaymentIntent',
+  STATISTIC = 'Statistic'
 }
 
 export enum Action {
