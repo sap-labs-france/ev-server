@@ -539,7 +539,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
               message: `Notification: '${notificationType}' - Error code: '${response.results[0]?.error?.code}'`,
               actionOnUser: user.id,
               detailedMessages: { response, mobileData: user.mobileData }
-            }).catch((error) => Logging.logPromiseError(error, tenant.id));
+            }).catch((error) => Logging.logPromiseError(error));
           // Success
           } else {
             // Stop sending notification
@@ -554,7 +554,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             //   module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
             //   message: `Notification Sent: '${notificationType}' - '${title}'`,
             //   actionOnUser: user.id,
-            // }).catch((error) => Logging.logPromiseError(error, tenant.id));
+            // }).catch((error) => Logging.logPromiseError(error));
           }
         } catch (error) {
           Logging.logError({
@@ -568,7 +568,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             message: `Notification: '${notificationType}' - '${error.message as string}'`,
             actionOnUser: user.id,
             detailedMessages: { error: error.stack }
-          }).catch((error2) => Logging.logPromiseError(error2, tenant.id));
+          }).catch((error2) => Logging.logPromiseError(error2));
         }
       }
     } finally {
