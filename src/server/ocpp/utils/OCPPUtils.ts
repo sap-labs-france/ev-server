@@ -1573,17 +1573,6 @@ export default class OCPPUtils {
             templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate),
           }
         });
-      } else {
-        await Logging.logDebug({
-          ...LoggingHelper.getChargingStationProperties(chargingStation),
-          tenantID: tenant.id,
-          action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
-          module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-          message: `Template ID '${chargingStationTemplate.id}' has already been applied`,
-          detailedMessages: {
-            templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate)
-          }
-        });
       }
       // Master/Slave: always override the charge point
       if (chargingStationTemplate.template.technical.masterSlave) {
