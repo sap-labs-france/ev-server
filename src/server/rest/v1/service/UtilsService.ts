@@ -128,7 +128,7 @@ export default class UtilsService {
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation ID '${chargingStationID}' does not exist`,
       MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
     // Check deleted
-    if (chargingStation?.deleted) {
+    if (!additionalFilters?.includeDeleted && chargingStation?.deleted) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         errorCode: StatusCodes.NOT_FOUND,
