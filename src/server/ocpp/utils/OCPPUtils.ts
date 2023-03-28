@@ -1560,13 +1560,13 @@ export default class OCPPUtils {
           OCPPUtils.enrichChargingStationWithTemplateTechnicalParams(chargingStation, chargingStationTemplate);
         // Check Capabilities
         templateUpdateResult.capabilitiesUpdated =
-          await OCPPUtils.enrichChargingStationWithTemplateCapabilities(tenant, chargingStation, chargingStationTemplate);
+          OCPPUtils.enrichChargingStationWithTemplateCapabilities(tenant, chargingStation, chargingStationTemplate);
         // Check Ocpp Standard parameters
         templateUpdateResult.ocppStandardUpdated =
-          await OCPPUtils.enrichChargingStationWithTemplateOcppStandardParams(tenant, chargingStation, chargingStationTemplate);
+          OCPPUtils.enrichChargingStationWithTemplateOcppStandardParams(tenant, chargingStation, chargingStationTemplate);
         // Check Ocpp Vendor parameters
         templateUpdateResult.ocppVendorUpdated =
-          await OCPPUtils.enrichChargingStationWithTemplateOcppVendorParams(tenant, chargingStation, chargingStationTemplate);
+          OCPPUtils.enrichChargingStationWithTemplateOcppVendorParams(tenant, chargingStation, chargingStationTemplate);
         // Update
         chargingStation.templateHash = chargingStationTemplate.hash;
         templateUpdateResult.chargingStationUpdated = true;
@@ -1604,8 +1604,8 @@ export default class OCPPUtils {
     return templateUpdateResult;
   }
 
-  private static async enrichChargingStationWithTemplateOcppStandardParams(tenant: Tenant, chargingStation: ChargingStation,
-      chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
+  private static enrichChargingStationWithTemplateOcppStandardParams(tenant: Tenant, chargingStation: ChargingStation,
+      chargingStationTemplate: ChargingStationTemplate): boolean {
     // Already updated?
     if (chargingStation.templateHashOcppStandard !== chargingStationTemplate.hashOcppStandard) {
       chargingStation.templateHashOcppStandard = chargingStationTemplate.hashOcppStandard;
@@ -1613,8 +1613,8 @@ export default class OCPPUtils {
     }
   }
 
-  private static async enrichChargingStationWithTemplateOcppVendorParams(tenant: Tenant, chargingStation: ChargingStation,
-      chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
+  private static enrichChargingStationWithTemplateOcppVendorParams(tenant: Tenant, chargingStation: ChargingStation,
+      chargingStationTemplate: ChargingStationTemplate): boolean {
     // Already updated?
     if (chargingStation.templateHashOcppVendor !== chargingStationTemplate.hashOcppVendor) {
       chargingStation.templateHashOcppVendor = chargingStationTemplate.hashOcppVendor;
@@ -1622,8 +1622,8 @@ export default class OCPPUtils {
     }
   }
 
-  private static async enrichChargingStationWithTemplateOcppParams(tenant: Tenant, chargingStation: ChargingStation, chargingStationTemplate: ChargingStationTemplate,
-      ocppProperty: 'ocppStandardParameters'|'ocppVendorParameters'): Promise<boolean> {
+  private static enrichChargingStationWithTemplateOcppParams(tenant: Tenant, chargingStation: ChargingStation, chargingStationTemplate: ChargingStationTemplate,
+      ocppProperty: 'ocppStandardParameters'|'ocppVendorParameters'): boolean {
     // Handle OCPP Standard Parameters
     chargingStation[ocppProperty] = [];
     if (chargingStationTemplate.template?.[ocppProperty]) {
@@ -1697,8 +1697,8 @@ export default class OCPPUtils {
     }
   }
 
-  private static async enrichChargingStationWithTemplateCapabilities(tenant: Tenant, chargingStation: ChargingStation,
-      chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
+  private static enrichChargingStationWithTemplateCapabilities(tenant: Tenant, chargingStation: ChargingStation,
+      chargingStationTemplate: ChargingStationTemplate): boolean {
     // Already updated?
     if (chargingStation.templateHashCapabilities !== chargingStationTemplate.hashCapabilities) {
       // Handle capabilities
