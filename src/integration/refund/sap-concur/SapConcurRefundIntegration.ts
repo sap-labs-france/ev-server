@@ -193,7 +193,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
           await TransactionStorage.saveTransactionRefundData(this.tenant, transaction.id, transaction.refundData);
           refundedTransactions.push(transaction);
         } catch (error) {
-          await Logging.logException(error, ServerAction.REFUND, MODULE_NAME, 'refund', this.tenant.id, userID);
+          Logging.logException(error, ServerAction.REFUND, MODULE_NAME, 'refund', this.tenant.id, userID);
         }
       },
       { concurrency: 10 });
