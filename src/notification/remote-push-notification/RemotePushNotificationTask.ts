@@ -546,7 +546,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
             message: `Notification: '${notificationType}' - '${error.message as string}'`,
             actionOnUser: user.id,
             detailedMessages: { error: error.stack }
-          });
+          }).catch((error2) => Logging.logPromiseError(error2));
         }
       }
     } finally {
