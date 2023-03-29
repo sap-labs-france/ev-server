@@ -279,6 +279,8 @@ export default class SettingService {
         return SettingValidatorRest.getInstance().validateSettingOrganizationSetReq(req.body);
       case IntegrationSettings.STATISTICS:
         return SettingValidatorRest.getInstance().validateSettingStatisticsSetReq(req.body);
+      case IntegrationSettings.SCAN_PAY:
+        return SettingValidatorRest.getInstance().validateSettingScanPaySetReq(req.body);
       default:
         throw new AppError({
           module: MODULE_NAME,

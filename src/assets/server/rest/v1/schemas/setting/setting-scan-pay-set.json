@@ -1,0 +1,32 @@
+{
+  "$id": "setting-scan-pay-set",
+  "title": "Set Scan & Pay Settings",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "scanPay": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "number",
+              "sanitize": "mongo"
+            }
+          }
+        }
+      }
+    },
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["scanPay"]
+    }
+  },
+  "required": [
+    "identifier"
+  ]
+}

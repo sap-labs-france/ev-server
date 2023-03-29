@@ -6,6 +6,7 @@ import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
+import AppError from '../../../exception/AppError';
 import AsyncTaskBuilder from '../../../async-task/AsyncTaskBuilder';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -17,6 +18,7 @@ import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
+import { HTTPError } from '../../../types/HTTPError';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
@@ -900,7 +902,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.create({
         customer: customerID,
         // Stripe wait for cents amount = x100, ui displays euros as db
-        amount: scanPayAmount ? scanPayAmount * 100 : 1000,
+        amount: scanPayAmount * 100,
         currency: 'EUR',
         // off_session: true,
         setup_future_usage: 'off_session',
@@ -922,17 +924,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
       };
     } catch (error) {
       // catch stripe errors and send the information back to the client
-      await Logging.logError({
-        tenantID: this.tenant.id,
-        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        actionOnUser: user,
+      throw new AppError({
+        errorCode: HTTPError.SCAN_PAY_HOLD_AMOUNT_MISSING,
+        user: user,
         module: MODULE_NAME, method: 'createPaymentIntent',
-        message: `Stripe operation failed - ${error?.message as string}`
+        message: 'Scan & Pay hold amount is not configured'
       });
-      return {
-        succeeded: false,
-        error
-      };
     }
   }
 
