@@ -18,6 +18,7 @@ export default class BillingRouter {
     this.buildRouteBillingSetting();
     this.buildRouteUpdateBillingSetting();
     this.buildRouteCheckBillingConnection();
+    this.buildRouteForceSynchronizeUser();
     this.buildRouteClearTestData();
     // -----------------------------------
     // ROUTES for PAYMENT METHODS
@@ -86,6 +87,12 @@ export default class BillingRouter {
   private buildRouteCheckBillingConnection(): void {
     this.router.post(`/${RESTServerRoute.REST_BILLING_CHECK}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleRestServerAction(BillingService.handleCheckBillingConnection.bind(this), ServerAction.SETTINGS, req, res, next);
+    });
+  }
+
+  private buildRouteForceSynchronizeUser(): void {
+    this.router.post(`/${RESTServerRoute.REST_FORCE_SYNCHRONIZE_USER}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(BillingService.handleForceSynchronizeUser.bind(this), ServerAction.BILLING_FORCE_SYNCHRONIZE_USER, req, res, next);
     });
   }
 
