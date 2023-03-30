@@ -27,6 +27,7 @@ export default class BillingRouter {
     // this.buildRouteBillingCreatePaymentMethod(); - // No use case so far
     // this.buildRouteBillingUpdatePaymentMethod(); - // No use case so far
     this.buildRouteBillingDeletePaymentMethod();
+    this.buildRouteForceSynchronizeUser();
     this.buildRouteBillingPaymentMethodSetup();
     this.buildRouteBillingPaymentMethodAttach();
     this.buildRouteBillingPaymentMethodDetach();
@@ -93,6 +94,12 @@ export default class BillingRouter {
       req.body.userID = req.params.userID;
       req.body.paymentMethodId = req.params.paymentMethodID;
       void RouterUtils.handleRestServerAction(BillingService.handleBillingDeletePaymentMethod.bind(this), ServerAction.BILLING_DELETE_PAYMENT_METHOD, req, res, next);
+    });
+  }
+
+  private buildRouteForceSynchronizeUser(): void {
+    this.router.post(`/${RESTServerRoute.REST_FORCE_SYNCHRONIZE_USER}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(BillingService.handleForceSynchronizeUser.bind(this), ServerAction.BILLING_FORCE_SYNCHRONIZE_USER, req, res, next);
     });
   }
 

@@ -704,6 +704,7 @@ export enum RESTServerRoute {
 
   REST_BILLING_SETTING = 'billing-setting', // GET and PUT
   REST_BILLING_CHECK = 'billing/check',
+  REST_FORCE_SYNCHRONIZE_USER = 'billing/force-synchronize-user',
   REST_BILLING_CLEAR_TEST_DATA = 'billing/clearTestData',
 
   REST_BILLING_TAXES = 'billing/taxes',
