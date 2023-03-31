@@ -588,9 +588,7 @@
         }
       },
       "required": [
-        "disableBackup",
-        "smtp",
-        "smtpBackup"
+        "smtp"
       ]
     },
     "Authorization": {
