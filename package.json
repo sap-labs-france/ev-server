@@ -149,6 +149,7 @@
     "pdfkit": "^0.13.0",
     "prom-client": "^14.1.0",
     "qrcode": "^1.5.1",
+    "rate-limiter-flexible": "^2.4.1",
     "rfc2047": "^4.0.1",
     "role-acl": "^4.5.4",
     "simple-odata-server": "^1.1.2",

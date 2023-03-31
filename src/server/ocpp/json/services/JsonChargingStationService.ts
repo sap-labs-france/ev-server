@@ -1,6 +1,9 @@
+import { RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
 import { OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import { Command } from '../../../../types/ChargingStation';
+import { ServerAction } from '../../../../types/Server';
+import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPService from '../../services/OCPPService';
@@ -9,12 +12,25 @@ import global from '../../../../types/GlobalType';
 
 const MODULE_NAME = 'JsonChargingStationService';
 
+
 export default class JsonChargingStationService {
   private chargingStationService: OCPPService;
+  private limiters = [];
+  private limiter = new RateLimiterMemory({
+    points: 3, // Maximum number of points allowed per interval
+    duration: 60, // Interval duration in seconds
+  });
+
+  private limiterDdos = new RateLimiterMemory({
+    points: 10, // Maximum number of points allowed per interval
+    duration: 60 * 60, // Interval duration in seconds
+  });
 
   public constructor() {
     // Get the OCPP service
     this.chargingStationService = global.centralSystemJsonServer.getChargingStationService(OCPPVersion.VERSION_16);
+    this.limiters.push(this.limiter);
+    this.limiters.push(this.limiterDdos);
   }
 
   public async handleBootNotification(headers: OCPPHeader, payload: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
@@ -62,7 +78,13 @@ export default class JsonChargingStationService {
     return {};
   }
 
+
   public async handleStartTransaction(headers: OCPPHeader, payload: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
+
+    const { chargingStation, tenant } = headers;
+    const key = { connector: payload.connectorId, tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
+    const keyString = `${key.connector}:${key.tenant}:${key.chargingStation}`;
+    await this.checkRateLimiters(keyString);
     const result: OCPPStartTransactionResponse = await this.handle(Command.START_TRANSACTION, headers, payload);
     return {
       transactionId: result.transactionId,
@@ -80,6 +102,10 @@ export default class JsonChargingStationService {
   }
 
   public async handleStopTransaction(headers: OCPPHeader, payload: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
+    const { chargingStation, tenant } = headers;
+    const key = { tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
+    const keyString = `${key.tenant}:${key.chargingStation}`;
+    await this.checkRateLimiters(keyString);
     const result: OCPPStopTransactionResponse = await this.handle(Command.STOP_TRANSACTION, headers, payload);
     return {
       idTagInfo: {
@@ -94,6 +120,20 @@ export default class JsonChargingStationService {
     } catch (error) {
       await Logging.logException(error, OCPPUtils.buildServerActionFromOcppCommand(command), MODULE_NAME, command, headers.tenantID);
       throw error;
+    }
+  }
+
+  private async checkRateLimiters(key: string) {
+
+    for (let i = 0; i < this.limiters.length; i++) {
+      const limiter = this.limiters[i] as RateLimiterMemory;
+      const points = limiter.points;
+      const duration = limiter.duration;
+      try {
+        await this.limiters[i].consume(key);
+      } catch (error) {
+        throw new Error(`Rate limit exceeded: points : ${points} durations:${duration}`);
+      }
     }
   }
 }
