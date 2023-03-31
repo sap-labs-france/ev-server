@@ -1,5 +1,5 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, DynamicAuthorizationsFilter, Entity } from '../../../../types/Authorization';
-import { AssetDataResult, BillingAccountsDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, ChargingStationTemplateDataResult, CompanyDataResult, LogDataResult, OcpiEndpointDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SettingDBDataResult, SiteAreaDataResult, SiteDataResult, SiteUserDataResult, TagDataResult, TransactionDataResult, TransactionInErrorDataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
+import { AssetDataResult, BillingAccountsDataResult, BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult, BillingTransfersDataResult, CarCatalogDataResult, CarDataResult, ChargingProfileDataResult, ChargingStationDataResult, ChargingStationTemplateDataResult, CompanyDataResult, LogDataResult, OcpiEndpointDataResult, PricingDefinitionDataResult, RegistrationTokenDataResult, SettingDBDataResult, SiteAreaDataResult, SiteDataResult, SiteUserDataResult, StatisticDataResult, TagDataResult, TransactionDataResult, TransactionInErrorDataResult, UserDataResult, UserSiteDataResult } from '../../../../types/DataResult';
 import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from '../../../../types/Billing';
 import { Car, CarCatalog } from '../../../../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
@@ -31,6 +31,7 @@ import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpLogGetRequest } from '../../../../types/requests/HttpLogRequest';
 import { HttpOCPIEndpointGetRequest } from '../../../../types/requests/HttpOCPIEndpointRequest';
 import { HttpRegistrationTokenGetRequest } from '../../../../types/requests/HttpRegistrationToken';
+import HttpStatisticsGetRequest from '../../../../types/requests/HttpStatisticRequest';
 import { Log } from '../../../../types/Log';
 import { OCPICapability } from '../../../../types/ocpi/OCPIEvse';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
@@ -483,9 +484,9 @@ export default class AuthorizationService {
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(registrationToken);
     // Build OCPP URLs
-    registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(tenant.id, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
-    registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(tenant.id, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
-    registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(tenant.id, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
+    registrationToken.ocpp15SOAPSecureUrl = Utils.buildOCPPServerSecureURL(tenant, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
+    registrationToken.ocpp16SOAPSecureUrl = Utils.buildOCPPServerSecureURL(tenant, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
+    registrationToken.ocpp16JSONSecureUrl = Utils.buildOCPPServerSecureURL(tenant, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
   }
 
   public static async checkAndGetChargingStationTemplateAuthorizations(tenant: Tenant, userToken: UserToken,
@@ -1504,6 +1505,36 @@ export default class AuthorizationService {
     await this.canPerformAuthorizationAction(tenant, userToken, Entity.SMART_CHARGING, authAction,
       authorizations, {}, null, failsWithException);
     return authorizations;
+  }
+
+  public static async checkAndGetStatisticsAuthorizations(tenant: Tenant, userToken: UserToken, authAction: Action,
+      filteredRequest?: Partial<HttpStatisticsGetRequest>, failsWithException = true): Promise<AuthorizationFilter> {
+    const authorizations: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.STATISTIC, authAction, authorizations, filteredRequest, null, failsWithException);
+    return authorizations;
+  }
+
+  // Do not re-use this function for other authorizations, special case below for statistics
+  public static async addStatisticsAuthorizations(tenant: Tenant, userToken: UserToken,
+      statistics: StatisticDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add Authorizations
+    statistics.canListUsers = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USER, Action.LIST, authorizationFilter);
+    statistics.canListChargingStations = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.LIST, authorizationFilter);
+    statistics.canListSites = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE, Action.LIST, authorizationFilter);
+    statistics.canListSiteAreas = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE_AREA, Action.LIST, authorizationFilter);
+    statistics.canExport = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.STATISTIC, Action.EXPORT, authorizationFilter);
   }
 
   private static filterProjectFields(authFields: string[], httpProjectField: string): string[] {
