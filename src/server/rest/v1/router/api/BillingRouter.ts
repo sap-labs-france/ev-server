@@ -98,7 +98,8 @@ export default class BillingRouter {
   }
 
   private buildRouteForceSynchronizeUser(): void {
-    this.router.post(`/${RESTServerRoute.REST_FORCE_SYNCHRONIZE_USER}`, (req: Request, res: Response, next: NextFunction) => {
+    this.router.patch(`/${RESTServerRoute.REST_BILLING_USER_SYNCHRONIZE}`, (req: Request, res: Response, next: NextFunction) => {
+      req.body.id = req.params.id;
       void RouterUtils.handleRestServerAction(BillingService.handleForceSynchronizeUser.bind(this), ServerAction.BILLING_FORCE_SYNCHRONIZE_USER, req, res, next);
     });
   }
