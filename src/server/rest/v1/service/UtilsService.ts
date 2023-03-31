@@ -1,6 +1,6 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { BillingAccount, BillingInvoice, BillingTransfer } from '../../../../types/Billing';
-import { BillingSettings, SettingDB } from '../../../../types/Setting';
+import { BillingSettings, ScanPaySettings, SettingDB } from '../../../../types/Setting';
 import { Car, CarCatalog } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, ChargingStationTemplate, Command } from '../../../../types/ChargingStation';
 import { EntityData, URLInfo } from '../../../../types/GlobalType';
@@ -929,6 +929,29 @@ export default class UtilsService {
       });
     }
     return billingSetting;
+  }
+
+  public static async checkAndGetScanPaySettingAuthorization(tenant: Tenant, userToken: UserToken, scanPaySettingID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityData): Promise<ScanPaySettings> {
+    // Get dynamic auth
+    const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(tenant, userToken, { ID: scanPaySettingID }, authAction, entityData);
+    // Get the entity from storage
+    const scanPaySetting = await SettingStorage.getScanPaySettings(tenant);
+    // Check it exists
+    UtilsService.assertObjectExists(action, scanPaySetting, `Scan & Pay setting for tenantID '${tenant.id}' does not exist`,
+      MODULE_NAME, 'checkAndGetScanPaySettingAuthorization', userToken);
+    // Add actions
+    await AuthorizationService.addSettingAuthorizations(tenant, userToken, scanPaySetting, authorizations);
+    const authorized = AuthorizationService.canPerformAction(scanPaySetting, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'checkAndGetBillingSettingAuthorization',
+      });
+    }
+    return scanPaySetting;
   }
 
   public static async checkAndGetInvoiceAuthorization(tenant: Tenant, userToken: UserToken, invoiceID: string, authAction: Action,

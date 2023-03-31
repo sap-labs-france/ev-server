@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { BillingAccount, BillingAccountStatus, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTransferStatus } from '../../../../types/Billing';
 import { BillingInvoiceDataResult, BillingPaymentMethodDataResult, BillingTaxDataResult } from '../../../../types/DataResult';
+import { BillingSettings, ScanPaySettings } from '../../../../types/Setting';
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { NextFunction, Request, Response } from 'express';
 import Tenant, { TenantComponents } from '../../../../types/Tenant';
@@ -11,13 +12,9 @@ import AuthorizationService from './AuthorizationService';
 import { BillingAccountCreationLinkNotification } from '../../../../types/UserNotifications';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import BillingSecurity from './security/BillingSecurity';
-import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import BillingValidatorRest from '../validator/BillingValidatorRest';
-import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
-import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationService from './ChargingStationService';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
@@ -32,7 +29,6 @@ import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -282,7 +278,9 @@ export default class BillingService {
   }
 
   public static async handleScanPayPaymentIntentSetup(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayReq(req.body);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayPaymentReq(req.body);
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SCAN_PAY,
+      Action.SETUP, Entity.PAYMENT_INTENT, MODULE_NAME, 'handleScanPayPaymentIntentSetup');
     // Dynamic auth
     await AuthorizationService.checkAndGetPaymentIntentAuthorizations(req.tenant, req.user, filteredRequest, Action.SETUP);
     // Virtual user tag
@@ -334,8 +332,8 @@ export default class BillingService {
         user: req.user
       });
     }
-    const billingSettings: BillingSettings = await UtilsService.checkAndGetBillingSettingAuthorization(req.tenant, req.user, null, Action.READ, action);
-    const operationResult: BillingOperationResult = await billingImpl.setupPaymentIntent(tag.user, filteredRequest.paymentIntentID, billingSettings.billing.scanPayAmount);
+    const scanPaySettings: ScanPaySettings = await UtilsService.checkAndGetScanPaySettingAuthorization(req.tenant, req.user, null, Action.READ, action);
+    const operationResult: BillingOperationResult = await billingImpl.setupPaymentIntent(tag.user, filteredRequest.paymentIntentID, scanPaySettings.scanPay.amount);
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
     }
@@ -344,7 +342,7 @@ export default class BillingService {
   }
 
   public static async handleScanPayPaymentIntentRetrieve(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayReq(req.body);
+    const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayPaymentReq(req.body);
     // Dynamic auth
     await AuthorizationService.checkAndGetPaymentIntentAuthorizations(req.tenant, req.user, filteredRequest, Action.RETRIEVE);
     let tag: Tag;
@@ -585,6 +583,17 @@ export default class BillingService {
     next();
   }
 
+  public static async handleGetScanPaySetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.READ, Entity.SETTING, MODULE_NAME, 'handleGetScanPaySetting');
+    const scanPaySettings: ScanPaySettings = await UtilsService.checkAndGetScanPaySettingAuthorization(req.tenant, req.user, null, Action.READ, action);
+    // Process sensitive data
+    UtilsService.hashSensitiveData(req.tenant.id, scanPaySettings);
+    res.json(scanPaySettings);
+    next();
+  }
+
   public static async handleUpdateBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
@@ -598,7 +607,7 @@ export default class BillingService {
     const { usersLastSynchronizedOn } = billingSettings.billing;
     const previousTransactionBillingState = !!billingSettings.billing.isTransactionBillingActivated;
     // Billing properties to override
-    const { immediateBillingAllowed, periodicBillingAllowed, taxID, platformFeeTaxID, scanPayAmount } = newBillingProperties.billing;
+    const { immediateBillingAllowed, periodicBillingAllowed, taxID, platformFeeTaxID } = newBillingProperties.billing;
     const newTransactionBillingState = !!newBillingProperties.billing.isTransactionBillingActivated;
     if (!newTransactionBillingState && previousTransactionBillingState) {
       // Attempt to switch it OFF
@@ -634,7 +643,6 @@ export default class BillingService {
       periodicBillingAllowed,
       taxID,
       platformFeeTaxID,
-      scanPayAmount
     };
     // Make sure to preserve critical connection properties
     let readOnlyProperties = {};

@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, ScanPaySettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
 import { OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
@@ -1326,6 +1326,16 @@ export default class Utils {
             'carConnector': {
               connections: []
             }
+          } as SettingDBContent;
+        }
+        break;
+      // Scan & Pay
+      case TenantComponents.SCAN_PAY:
+        if (!currentSettingContent) {
+          // Only scanPay
+          return {
+            'type': ScanPaySettingsType.SCAN_PAY,
+            'scanPay': {}
           } as SettingDBContent;
         }
         break;
