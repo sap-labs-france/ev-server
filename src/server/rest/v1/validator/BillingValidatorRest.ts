@@ -24,7 +24,6 @@ export default class BillingValidatorRest extends SchemaValidator {
   private billingTransferSend: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-transfer-send.json`, 'utf8'));
   private billingScanPay: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-scan-pay.json`, 'utf8'));
   private billingScanPayStopTransaction: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-scan-pay-stop-transaction.json`, 'utf8'));
-  private billingScanPayGetTransaction: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-scan-pay-transaction.json`, 'utf8'));
 
   private constructor() {
     super('BillingValidatorRest');
@@ -93,15 +92,11 @@ export default class BillingValidatorRest extends SchemaValidator {
     return this.validate(this.billingTransferSend, data);
   }
 
-  public validateBillingScanPayReq(data: Record<string, unknown>): HttpBillingScanPayRequest {
+  public validateBillingScanPayPaymentReq(data: Record<string, unknown>): HttpBillingScanPayRequest {
     return this.validate(this.billingScanPay, data);
   }
 
   public validateBillingScanPayStopTransactionReq(data: Record<string, unknown>): HttpBillingScanPayStopTransactionRequest {
     return this.validate(this.billingScanPayStopTransaction, data);
-  }
-
-  public validateBillingScanPayTransactionReq(data: Record<string, unknown>): HttpBillingScanPayTransactionRequest {
-    return this.validate(this.billingScanPayGetTransaction, data);
   }
 }

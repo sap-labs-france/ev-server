@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TaskSettings, TaskSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, ScanPaySettings, ScanPaySettingsType, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TaskSettings, TaskSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
 import Tenant, { TenantComponents } from '../../types/Tenant';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
@@ -455,10 +455,6 @@ export default class SettingStorage {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
         billing.platformFeeTaxID = content.billing?.platformFeeTaxID;
       }
-      // Insert scanPay only if the scanPay component is enabled
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.SCAN_PAY)) {
-        billing.scanPayAmount = content.billing?.scanPayAmount;
-      }
       const billingSettings: BillingSettings = {
         id,
         identifier: TenantComponents.BILLING,
@@ -521,4 +517,18 @@ export default class SettingStorage {
     return taskSettings;
   }
 
+  public static async getScanPaySettings(tenant: Tenant): Promise<ScanPaySettings> {
+    let scanPaySettings: ScanPaySettings;
+    // Get Scan & Pay settings
+    const settings = await SettingStorage.getSettings(tenant, { identifier: TenantComponents.SCAN_PAY }, Constants.DB_PARAMS_SINGLE_RECORD);
+    if (settings.count > 0) {
+      scanPaySettings = {
+        id: settings.result[0].id,
+        identifier: TenantComponents.SCAN_PAY,
+        type: ScanPaySettingsType.SCAN_PAY,
+        scanPay: settings.result[0].content.scanPay,
+      };
+    }
+    return scanPaySettings;
+  }
 }

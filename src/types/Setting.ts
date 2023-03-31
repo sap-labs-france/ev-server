@@ -21,7 +21,8 @@ export enum IntegrationSettings {
   BILLING_PLATFORM = 'billingPlatform',
   CAR = 'car',
   ORGANIZATION = 'organization',
-  STATISTICS = 'statistics'
+  STATISTICS = 'statistics',
+  SCAN_PAY = 'scanPay'
 }
 
 export interface Setting extends SettingAuthorizationActions, CreatedUpdatedProps {
@@ -57,7 +58,8 @@ export interface SettingDBContent {
   | CryptoSettingsType
   | UserSettingsType
   | CarConnectorSettingsType
-  | TaskSettingsType;
+  | TaskSettingsType
+  | ScanPaySettingsType;
   ocpi?: OcpiSetting;
   oicp?: OicpSetting;
   // pricing?: PricingSetting;  // TODO - reorg pricing similar to billing
@@ -73,6 +75,7 @@ export interface SettingDBContent {
   crypto?: CryptoSetting;
   user?: UserSetting;
   task?: TaskSetting;
+  scanPay?: ScanPaySetting;
 }
 
 export enum PricingSettingsType {
@@ -254,7 +257,6 @@ export interface BillingSetting {
   taxID: string;
   platformFeeTaxID?: string;
   usersLastSynchronizedOn?: Date;
-  scanPayAmount?: number;
 }
 
 export interface StripeBillingSetting {
@@ -438,4 +440,18 @@ export interface TaskSettings extends Setting {
 export interface TaskSetting {
   disableAllTasks?: boolean;
   disableTasksInEnv?: string[];
+}
+
+export enum ScanPaySettingsType {
+  SCAN_PAY = 'scanPay',
+}
+
+export interface ScanPaySettings extends Setting {
+  identifier: TenantComponents.SCAN_PAY;
+  type: ScanPaySettingsType;
+  scanPay?: ScanPaySetting;
+}
+
+export interface ScanPaySetting {
+  amount: number;
 }
