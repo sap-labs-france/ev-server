@@ -404,9 +404,9 @@
       "title": "Session Started",
       "buttonText": "Stop Session",
       "text": [
-        "Your vehicle has been connected to the charging station {{chargeBoxID}} on connector {{connectorId}}.",
+        "Votre véhicule est connecté sur le connecteur {{connectorId}} de la borne {{chargeBoxID}}.",
         "",
-        "Click on the link below to stop the transaction"
+        "Veuillez suivre le lien ci-dessous pour stopper la session."
       ]
     },
     "verification-email": {
@@ -540,10 +540,10 @@
       ]
     },
     "scan-pay-account-verification-notification": {
-      "title": "Verify your email and proceed to charging",
-      "buttonText": "Proceed to charging",
+      "title": "Vérifier votre compte et procéder au chargement",
+      "buttonText": "Procéder au chargement",
       "text": [
-        "Click on the link below to verify your email and proceed to charging."
+        "Veuillez suivre le lien ci-dessous pour vérifier votre e-mail et procéder au chargement."
       ]
     },
     "admin-account-verification-notification": {

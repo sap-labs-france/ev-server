@@ -12,10 +12,6 @@
     },
     "acceptEula": {
       "$ref": "common#/definitions/acceptEula"
-    },
-    "verificationToken": {
-      "type": "string",
-      "sanitize": "mongo"
     }
   },
   "required": [

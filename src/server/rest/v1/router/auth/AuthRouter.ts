@@ -63,6 +63,7 @@ export default class AuthRouter {
 
   protected buildRouteVerifyScanPayEmail(): void {
     this.router.post(`/${RESTServerRoute.REST_SCAN_PAY_VERIFY_EMAIL}`, (req: Request, res: Response, next: NextFunction) => {
+      // Step #0 - Create user and send verification email
       void RouterUtils.handleRestServerAction(AuthService.handleScanPayVerifyEmail.bind(this), ServerAction.VERIFY_EMAIL, req, res, next);
     });
   }

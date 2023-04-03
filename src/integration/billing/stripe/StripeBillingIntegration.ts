@@ -512,6 +512,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
+  // Called once at step #1 once at step #2 with or without paymentIntentID to know where the call comes from
   public async setupPaymentIntent(user: User, paymentIntentID: string, scanPayAmount?: number): Promise<BillingOperationResult> {
     // Check Stripe
     await this.checkConnection();
@@ -544,9 +545,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingOperationResult;
   }
 
+  // Only called when final amount is less than holded amount
   public async capturePayment(user: User, amount: number, paymentIntentID: string): Promise<BillingOperationResult> {
     try {
-      // Let's capture the paymentIntent for the stripe customer
+      // Let's capture the amount
       const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.capture(paymentIntentID, {
         amount_to_capture: amount
       });
@@ -904,10 +906,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Stripe wait for cents amount = x100, ui displays euros as db
         amount: scanPayAmount * 100,
         currency: 'EUR',
-        // off_session: true,
         setup_future_usage: 'off_session',
         capture_method: 'manual',
-        // confirm: true
         receipt_email: user.email
       });
       await Logging.logInfo({
@@ -1323,7 +1323,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const currency = billingInvoiceItem.currency.toLowerCase();
     // Check whether a DRAFT invoice can be used or not
     let stripeInvoice: Stripe.Invoice = null;
-    if (!this.settings.billing?.immediateBillingAllowed || !lastPaymentIntentID) { // et que on n'est PAS en scan and pay
+    // we are NOT in the immediate billing scenario and we are NOT in the scan & pay flow
+    if (!this.settings.billing?.immediateBillingAllowed && !lastPaymentIntentID) {
       // immediateBillingAllowed is OFF - let's retrieve to the latest DRAFT invoice (if any)
       stripeInvoice = await this.getLatestDraftInvoiceOfTheMonth(this.tenant.id, userID, customerID);
     }

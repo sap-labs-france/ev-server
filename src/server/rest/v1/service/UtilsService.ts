@@ -1677,7 +1677,6 @@ export default class UtilsService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
   public static hashSensitiveData(tenantID: string, properties: object): unknown {
     const sensitivePropertyNames: string [] = _.get(properties, 'sensitiveData');
     if (sensitivePropertyNames) {

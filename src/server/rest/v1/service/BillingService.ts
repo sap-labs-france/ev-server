@@ -277,6 +277,7 @@ export default class BillingService {
     next();
   }
 
+  // Called a Step #1
   public static async handleScanPayPaymentIntentSetup(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayPaymentReq(req.body);
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SCAN_PAY,
@@ -318,8 +319,8 @@ export default class BillingService {
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(req.tenant, foundUser.id,
       { verifiedAt: new Date() });
+    // Generate a password from verification token and save it
     const password = await Utils.hashPasswordBcrypt(filteredRequest.verificationToken);
-    // Generate a password
     await UserStorage.saveUserPassword(req.tenant, foundUser.id, { password });
     // Filter
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
@@ -341,6 +342,7 @@ export default class BillingService {
     next();
   }
 
+  // Called at Step #2
   public static async handleScanPayPaymentIntentRetrieve(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayPaymentReq(req.body);
     // Dynamic auth
@@ -368,8 +370,6 @@ export default class BillingService {
     }
     const match = await Utils.checkPasswordBCrypt(filteredRequest.verificationToken, foundUser.password);
     if (!match) {
-      // TODO : improve this if/else part
-      // case we already have the user registered, the verification has become the password
       throw new AppError({
         errorCode: HTTPError.INVALID_TOKEN_ERROR,
         action: action,
@@ -378,7 +378,6 @@ export default class BillingService {
         message: 'Wrong Verification Token, cannot verify email'
       });
     }
-
     // Filter
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
@@ -588,8 +587,6 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.READ, Entity.SETTING, MODULE_NAME, 'handleGetScanPaySetting');
     const scanPaySettings: ScanPaySettings = await UtilsService.checkAndGetScanPaySettingAuthorization(req.tenant, req.user, null, Action.READ, action);
-    // Process sensitive data
-    UtilsService.hashSensitiveData(req.tenant.id, scanPaySettings);
     res.json(scanPaySettings);
     next();
   }
@@ -1062,7 +1059,7 @@ export default class BillingService {
 
   public static async handleUserScanPay(filteredRequest: HttpScanPayVerifyEmailRequest, tenant: Tenant): Promise<Tag> {
     const locale = filteredRequest.locale ?? Constants.DEFAULT_LOCALE;
-    // Create
+    // Prepare the User
     const newUser = UserStorage.createNewUser();
     const verificationToken = Utils.generateToken(filteredRequest.email);
     const aliasEmail = Utils.buildAliasEmail(filteredRequest.email);
