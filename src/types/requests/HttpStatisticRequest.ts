@@ -16,7 +16,6 @@ export default interface HttpStatisticsGetRequest {
   DataType?: StatsDataType;
   DataCategory?: StatsDataCategory;
   DataScope?: StatsDataScope;
-  WithAuth?: boolean;
 }
 
 export interface HttpMetricsStatisticsGetRequest {

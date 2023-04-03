@@ -191,11 +191,3 @@ export interface OcpiEndpointDataResult extends DataResult<OCPIEndpoint> {
   canPing?: boolean;
   canGenerateLocalToken?: boolean;
 }
-
-export interface StatisticDataResult extends DataResult<any> {
-  canListUsers?: boolean;
-  canListChargingStations?: boolean;
-  canListSites?: boolean;
-  canListSiteAreas?: boolean;
-  canExport?: boolean;
-}

@@ -801,10 +801,7 @@ export default class OCPPUtils {
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
         message: `Template for Connector ID '${connector.connectorId}' cannot be applied on manual configured charging station`,
-        detailedMessages: {
-          chargingStationData: LoggingHelper.shrinkChargingStationProperties(chargingStation),
-          connector
-        }
+        detailedMessages: { chargingStation, connector }
       });
       return false;
     }
@@ -883,6 +880,7 @@ export default class OCPPUtils {
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
           message: `Template ID '${chargingStationTemplate.id}' has been applied on Connector ID '${connector.connectorId}' with success`,
+          detailedMessages: { chargingStationTemplate, chargingStation }
         });
         return true;
       }
@@ -893,10 +891,7 @@ export default class OCPPUtils {
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
         message: `No Connector found in Template ID '${chargingStationTemplate.id}'`,
-        detailedMessages: {
-          templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate),
-          chargingStationData: LoggingHelper.shrinkChargingStationProperties(chargingStation)
-        }
+        detailedMessages: { chargingStationTemplate, chargingStation }
       });
       return false;
     }
@@ -907,10 +902,7 @@ export default class OCPPUtils {
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
       message: 'No Template has been found for this Charging Station',
-      detailedMessages: {
-        chargingStationData: LoggingHelper.shrinkChargingStationProperties(chargingStation),
-        connector
-      }
+      detailedMessages: { chargingStation, connector }
     });
     return false;
   }
@@ -1529,9 +1521,7 @@ export default class OCPPUtils {
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
         message: 'Template cannot be applied on manual configured charging station',
-        detailedMessages: {
-          chargingStationData: LoggingHelper.shrinkChargingStationProperties(chargingStation)
-        }
+        detailedMessages: { chargingStation }
       });
       return templateUpdateResult;
     }
@@ -1571,6 +1561,17 @@ export default class OCPPUtils {
           detailedMessages: {
             templateUpdateResult,
             templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate),
+          }
+        });
+      } else {
+        await Logging.logDebug({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: tenant.id,
+          action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+          module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
+          message: `Template ID '${chargingStationTemplate.id}' has already been applied`,
+          detailedMessages: {
+            templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate)
           }
         });
       }
@@ -1647,9 +1648,7 @@ export default class OCPPUtils {
                 action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                 module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
                 message: `Template contains power limitation key '${parameter}' in OCPP parameters, skipping. Remove it from template!`,
-                detailedMessages: {
-                  templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate)
-                }
+                detailedMessages: { chargingStationTemplate }
               });
               continue;
             }
@@ -1660,9 +1659,7 @@ export default class OCPPUtils {
                 action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                 module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
                 message: `Template contains heartbeat interval key '${parameter}' in OCPP parameters, skipping. Remove it from template`,
-                detailedMessages: {
-                  templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate)
-                }
+                detailedMessages: { chargingStationTemplate }
               });
               continue;
             }
@@ -1681,10 +1678,7 @@ export default class OCPPUtils {
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplateOcppParams',
         message: `Cannot find a matching section named '${ocppProperty}' in Template ID '${chargingStationTemplate.id}'`,
-        detailedMessages: {
-          templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate),
-          chargingStationData: LoggingHelper.shrinkChargingStationProperties(chargingStation)
-        }
+        detailedMessages: { chargingStationTemplate, chargingStation }
       });
     }
   }
@@ -1731,10 +1725,7 @@ export default class OCPPUtils {
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplateCapabilities',
           message: `Cannot find a matching section named 'capabilities' in Template ID '${chargingStationTemplate.id}'`,
-          detailedMessages: {
-            templateData: LoggingHelper.shrinkTemplateProperties(chargingStationTemplate),
-            chargingStationData: LoggingHelper.shrinkChargingStationProperties(chargingStation)
-          }
+          detailedMessages: { chargingStationTemplate, chargingStation }
         });
       }
     }

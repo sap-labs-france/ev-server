@@ -295,15 +295,21 @@ export default class Configuration {
 
   private static getConfig(): ConfigurationData {
     if (!Configuration.config) {
-      let configurationPath: string;
+      let configuration: ConfigurationData;
       if (process.env.SERVER_ROLE) {
-        configurationPath = `${global.appRoot}/assets/config_` + process.env.SERVER_ROLE + '.json'; // Dev environment only
-      } else if (fs.existsSync('/config/config.json')) {
-        configurationPath = '/config/config.json'; // K8s Environment
+        configuration = JSON.parse(
+          fs.readFileSync(`${global.appRoot}/assets/config_` + process.env.SERVER_ROLE + '.json', 'utf8')) as ConfigurationData;
       } else {
-        configurationPath = `${global.appRoot}/assets/config.json`; // AWS ECS environment only
+        // K8s
+        if (fs.existsSync('/config/config.json')) {
+          configuration = JSON.parse(
+            fs.readFileSync('/config/config.json', 'utf8')) as ConfigurationData;
+          // AWS
+        } else {
+          configuration = JSON.parse(
+            fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8')) as ConfigurationData;
+        }
       }
-      const configuration = JSON.parse(fs.readFileSync(configurationPath, 'utf8')) as ConfigurationData;
       Configuration.config = ConfigurationValidatorStorage.getInstance().validateConfigurationSave(configuration);
     }
     return Configuration.config;

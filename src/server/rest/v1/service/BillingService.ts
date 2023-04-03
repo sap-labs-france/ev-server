@@ -347,6 +347,18 @@ export default class BillingService {
     const filteredRequest = BillingValidatorRest.getInstance().validateBillingScanPayPaymentReq(req.body);
     // Dynamic auth
     await AuthorizationService.checkAndGetPaymentIntentAuthorizations(req.tenant, req.user, filteredRequest, Action.RETRIEVE);
+    // Get charging station to check connector availablity
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+      req.tenant, req.user, filteredRequest.chargingStationID, Action.READ, action, null, {}, true);
+    const connector = chargingStation.connectors.find(connector => connector.connectorId === filteredRequest.connectorID);
+    if (!connector.canRemoteStartTransaction) {
+      // catch connector is not available
+      throw new AppError({
+        errorCode: HTTPError.CANNOT_REMOTE_START_CONNECTOR,
+        module: MODULE_NAME, method: 'handleScanPayPaymentIntentRetrieve',
+        message: 'Connector is not available'
+      });
+    }
     let tag: Tag;
     // Check if the user exist
     const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
@@ -587,6 +599,8 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.READ, Entity.SETTING, MODULE_NAME, 'handleGetScanPaySetting');
     const scanPaySettings: ScanPaySettings = await UtilsService.checkAndGetScanPaySettingAuthorization(req.tenant, req.user, null, Action.READ, action);
+    // Process sensitive data
+    UtilsService.hashSensitiveData(req.tenant.id, scanPaySettings);
     res.json(scanPaySettings);
     next();
   }
@@ -884,7 +898,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    authorizations.projectFields
+      authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
@@ -927,7 +941,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-    authorizations.projectFields
+      authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);
@@ -1093,6 +1107,8 @@ export default class BillingService {
       passwordResetHash: null,
       passwordBlockedUntil: null
     });
+    // Assign user to all Sites with auto-assign flag
+    await UtilsService.assignCreatedUserToSites(tenant, newUser as User);
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(locale);
     // Create tag for the user

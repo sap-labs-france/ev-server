@@ -1,16 +1,17 @@
 /* eslint-disable */
-import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
 import StatisticFilter, { ChargingStationStats, StatsDataCategory, StatsDataScope, StatsDataType, StatsGroupBy, UserStats } from '../../../../types/Statistic';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
-import AuthorizationService from './AuthorizationService';
+import AppAuthError from '../../../../exception/AppAuthError';
+import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpStatisticsGetRequest from '../../../../types/requests/HttpStatisticRequest';
 import { ServerAction } from '../../../../types/Server';
-import { StatisticDataResult } from '../../../../types/DataResult';
 import StatisticsStorage from '../../../../storage/mongodb/StatisticsStorage';
 import StatisticsValidatorRest from '../validator/StatisticsValidatorRest';
+import { TenantComponents } from '../../../../types/Tenant';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -22,253 +23,310 @@ export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.READ, Entity.STATISTIC, MODULE_NAME, 'handleGetChargingStationConsumptionStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetChargingStationConsumptionStatistics');
+    // Check auth
+    if (!await Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST, entity: Entity.TRANSACTION,
+        module: MODULE_NAME, method: 'handleGetChargingStationConsumptionStatistics'
+      });
+    }
     // Filter
     const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetStatisticsAuthorizations(req.tenant, req.user, Action.READ, filteredRequest);
-    if (!authorizations.authorized) {
-      StatisticService.buildAndReturnEmptyStatisticData(res, filteredRequest, next);
-      return;
-    }
     // Build filter
-    const filter = await StatisticService.buildFilter(filteredRequest, req.tenant, req.user, authorizations);
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
-    const transactionStats = await StatisticsStorage.getChargingStationStats(req.tenant, filter, StatsGroupBy.CONSUMPTION);
+    const transactionStats = await StatisticsStorage.getChargingStationStats(
+      req.tenant, filter, StatsGroupBy.CONSUMPTION);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
-    // Return data
-    await StatisticService.buildAndReturnStatisticData(req, res, transactions, filteredRequest, authorizations, next);
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
+    res.json(transactions);
+    next();
   }
 
   static async handleGetChargingStationUsageStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.READ, Entity.STATISTIC, MODULE_NAME, 'handleGetChargingStationUsageStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetChargingStationUsageStatistics');
+    // Check auth
+    if (!await Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTION,
+        module: MODULE_NAME,
+        method: 'handleGetChargingStationUsageStatistics'
+      });
+    }
     // Filter
     const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetStatisticsAuthorizations(req.tenant, req.user, Action.READ, filteredRequest);
-    if (!authorizations.authorized) {
-      StatisticService.buildAndReturnEmptyStatisticData(res, filteredRequest, next);
-      return;
-    }
     // Build filter
-    const filter = await StatisticService.buildFilter(filteredRequest, req.tenant, req.user, authorizations);
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getChargingStationStats(
       req.tenant, filter, StatsGroupBy.USAGE);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
-    // Return data
-    await StatisticService.buildAndReturnStatisticData(req, res, transactions, filteredRequest, authorizations, next);
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
+    res.json(transactions);
+    next();
   }
 
   static async handleGetChargingStationInactivityStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.READ, Entity.STATISTIC, MODULE_NAME, 'handleGetChargingStationInactivityStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetChargingStationInactivityStatistics');
+    // Check auth
+    if (!await Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTION,
+        module: MODULE_NAME,
+        method: 'handleGetChargingStationInactivityStatistics'
+      });
+    }
     // Filter
     const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetStatisticsAuthorizations(req.tenant, req.user, Action.READ, filteredRequest);
-    if (!authorizations.authorized) {
-      StatisticService.buildAndReturnEmptyStatisticData(res, filteredRequest, next);
-      return;
-    }
     // Build filter
-    const filter = await StatisticService.buildFilter(filteredRequest, req.tenant, req.user, authorizations);
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getChargingStationStats(
       req.tenant, filter, StatsGroupBy.INACTIVITY);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
-    // Return data
-    await StatisticService.buildAndReturnStatisticData(req, res, transactions, filteredRequest, authorizations, next);
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
+    res.json(transactions);
+    next();
   }
 
   static async handleGetChargingStationTransactionsStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.READ, Entity.STATISTIC, MODULE_NAME, 'handleGetChargingStationTransactionsStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetChargingStationTransactionsStatistics');
+    // Check auth
+    if (!await Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTION,
+        module: MODULE_NAME,
+        method: 'handleGetChargingStationTransactionsStatistics'
+      });
+    }
     // Filter
     const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetStatisticsAuthorizations(req.tenant, req.user, Action.READ, filteredRequest);
-    if (!authorizations.authorized) {
-      StatisticService.buildAndReturnEmptyStatisticData(res, filteredRequest, next);
-      return;
-    }
     // Build filter
-    const filter = await StatisticService.buildFilter(filteredRequest, req.tenant, req.user, authorizations);
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getChargingStationStats(
       req.tenant, filter, StatsGroupBy.TRANSACTIONS);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
-    // Return data
-    await StatisticService.buildAndReturnStatisticData(req, res, transactions, filteredRequest, authorizations, next);
+    res.json(transactions);
+    next();
   }
 
   static async handleGetChargingStationPricingStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.READ, Entity.STATISTIC, MODULE_NAME, 'handleGetChargingStationPricingStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetChargingStationPricingStatistics');
+    // Check auth
+    if (!await Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTION,
+        module: MODULE_NAME,
+        method: 'handleGetChargingStationPricingStatistics'
+      });
+    }
     // Filter
     const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetStatisticsAuthorizations(req.tenant, req.user, Action.READ, filteredRequest);
-    if (!authorizations.authorized) {
-      StatisticService.buildAndReturnEmptyStatisticData(res, filteredRequest, next);
-      return;
-    }
     // Build filter
-    const filter = await StatisticService.buildFilter(filteredRequest, req.tenant, req.user, authorizations);
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getChargingStationStats(
       req.tenant, filter, StatsGroupBy.PRICING);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION, filter.dataScope);
-    // Return data
-    await StatisticService.buildAndReturnStatisticData(req, res, transactions, filteredRequest, authorizations, next);
+    res.json(transactions);
+    next();
   }
 
   static async handleGetUserConsumptionStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.READ, Entity.STATISTIC, MODULE_NAME, 'handleGetUserConsumptionStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetUserConsumptionStatistics');
+    // Check auth
+    if (!await Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTION,
+        module: MODULE_NAME,
+        method: 'handleGetUserConsumptionStatistics'
+      });
+    }
     // Filter
     const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetStatisticsAuthorizations(req.tenant, req.user, Action.READ, filteredRequest);
-    if (!authorizations.authorized) {
-      StatisticService.buildAndReturnEmptyStatisticData(res, filteredRequest, next);
-      return;
-    }
     // Build filter
-    const filter = await StatisticService.buildFilter(filteredRequest, req.tenant, req.user, authorizations);
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getUserStats(
       req.tenant, filter, StatsGroupBy.CONSUMPTION);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return data
-    await StatisticService.buildAndReturnStatisticData(req, res, transactions, filteredRequest, authorizations, next);
+    res.json(transactions);
+    next();
   }
 
   static async handleGetUserUsageStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.READ, Entity.STATISTIC, MODULE_NAME, 'handleGetUserUsageStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetUserUsageStatistics');
+    // Check auth
+    if (!await Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTION,
+        module: MODULE_NAME,
+        method: 'handleGetUserUsageStatistics'
+      });
+    }
     // Filter
     const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetStatisticsAuthorizations(req.tenant, req.user, Action.READ, filteredRequest);
-    if (!authorizations.authorized) {
-      StatisticService.buildAndReturnEmptyStatisticData(res, filteredRequest, next);
-      return;
-    }
     // Build filter
-    const filter = await StatisticService.buildFilter(filteredRequest, req.tenant, req.user, authorizations);
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getUserStats(
       req.tenant, filter, StatsGroupBy.USAGE);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return data
-    await StatisticService.buildAndReturnStatisticData(req, res, transactions, filteredRequest, authorizations, next);
+    res.json(transactions);
+    next();
   }
 
   static async handleGetUserInactivityStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.READ, Entity.STATISTIC, MODULE_NAME, 'handleGetUserInactivityStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetUserInactivityStatistics');
+    // Check auth
+    if (!await Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTION,
+        module: MODULE_NAME,
+        method: 'handleGetUserInactivityStatistics'
+      });
+    }
     // Filter
     const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetStatisticsAuthorizations(req.tenant, req.user, Action.READ, filteredRequest);
-    if (!authorizations.authorized) {
-      StatisticService.buildAndReturnEmptyStatisticData(res, filteredRequest, next);
-      return;
-    }
     // Build filter
-    const filter = await StatisticService.buildFilter(filteredRequest, req.tenant, req.user, authorizations);
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getUserStats(
       req.tenant, filter, StatsGroupBy.INACTIVITY);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return data
-    await StatisticService.buildAndReturnStatisticData(req, res, transactions, filteredRequest, authorizations, next);
+    res.json(transactions);
+    next();
   }
 
   static async handleGetUserTransactionsStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.READ, Entity.STATISTIC, MODULE_NAME, 'handleGetUserTransactionsStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetUserTransactionsStatistics');
+    // Check auth
+    if (!await Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTION,
+        module: MODULE_NAME,
+        method: 'handleGetUserTransactionsStatistics'
+      });
+    }
     // Filter
     const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetStatisticsAuthorizations(req.tenant, req.user, Action.READ, filteredRequest);
-    if (!authorizations.authorized) {
-      StatisticService.buildAndReturnEmptyStatisticData(res, filteredRequest, next);
-      return;
-    }
     // Build filter
-    const filter = await StatisticService.buildFilter(filteredRequest, req.tenant, req.user, authorizations);
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getUserStats(
       req.tenant, filter, StatsGroupBy.TRANSACTIONS);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return data
-    await StatisticService.buildAndReturnStatisticData(req, res, transactions, filteredRequest, authorizations, next);
+    res.json(transactions);
+    next();
   }
 
   static async handleGetUserPricingStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.READ, Entity.STATISTIC, MODULE_NAME, 'handleGetUserPricingStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleGetUserPricingStatistics');
+    // Check auth
+    if (!await Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTION,
+        module: MODULE_NAME,
+        method: 'handleGetUserPricingStatistics'
+      });
+    }
     // Filter
     const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsGet(req.query);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetStatisticsAuthorizations(req.tenant, req.user, Action.READ, filteredRequest);
-    if (!authorizations.authorized) {
-      StatisticService.buildAndReturnEmptyStatisticData(res, filteredRequest, next);
-      return;
-    }
     // Build filter
-    const filter = await StatisticService.buildFilter(filteredRequest, req.tenant, req.user, authorizations);
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getUserStats(
       req.tenant, filter, StatsGroupBy.PRICING);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
-    // Return data
-    await StatisticService.buildAndReturnStatisticData(req, res, transactions, filteredRequest, authorizations, next);
+    res.json(transactions);
+    next();
   }
 
   static async handleExportStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.READ, Entity.STATISTIC, MODULE_NAME, 'handleExportStatistics');
+      Action.LIST, Entity.TRANSACTION, MODULE_NAME, 'handleExportStatistics');
+    // Check auth
+    if (!await Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTION,
+        module: MODULE_NAME,
+        method: 'handleExportStatistics'
+      });
+    }
     // Filter
     const filteredRequest = StatisticsValidatorRest.getInstance().validateStatisticsExport(req.query);
-    // Check auth
-    const authorizations = await AuthorizationService.checkAndGetStatisticsAuthorizations(req.tenant, req.user, Action.READ, filteredRequest);
-    if (!authorizations.authorized) {
-      StatisticService.buildAndReturnEmptyStatisticData(res, filteredRequest, next);
-      return;
-    }
     // Build filter
-    const filter = await StatisticService.buildFilter(filteredRequest, req.tenant, req.user, authorizations);
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Decisions
     let groupBy: string;
     switch (filteredRequest.DataType) {
@@ -308,9 +366,9 @@ export default class StatisticService {
     res.end();
   }
 
-  static async buildFilter(filteredRequest: HttpStatisticsGetRequest, tenant: Tenant, userToken: UserToken, authorizations: AuthorizationFilter): Promise<StatisticFilter> {
-    // Only completed transactions
-    let filter: StatisticFilter = { stop: { $exists: true } };
+  // Only completed transactions
+  static buildFilter(filteredRequest: HttpStatisticsGetRequest, loggedUser: UserToken): StatisticFilter {
+    const filter: StatisticFilter = { stop: { $exists: true } };
     // Date
     if ('Year' in filteredRequest) {
       if (filteredRequest.Year > 0) {
@@ -349,14 +407,22 @@ export default class StatisticService {
       filter.dataScope = filteredRequest.DataScope;
     }
     // User
-    if (filteredRequest.UserID) {
+    if (Authorizations.isBasic(loggedUser)) {
+      if (Authorizations.isSiteAdmin(loggedUser)) {
+        if (filteredRequest.UserID) {
+          filter.userIDs = filteredRequest.UserID.split('|');
+        } else if (filteredRequest.SiteID) {
+          filter.siteIDs = filteredRequest.SiteID.split('|');
+        } else {
+          // Only for current sites
+          filter.siteIDs = loggedUser.sitesAdmin;
+        }
+      } else {
+        // Only for current user
+        filter.userIDs = [loggedUser.id];
+      }
+    } else if (!Authorizations.isBasic(loggedUser) && filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
-    }
-    // Override filter with authorizations
-    filter = { ...filter, ...authorizations.filters };
-    // Remove site filter in case own user search
-    if (!filteredRequest.SiteID && filter.userIDs && filter.userIDs.length === 1 && filter.userIDs[0] === userToken.id) {
-      filter.siteIDs = [];
     }
     return filter;
   }
@@ -598,37 +664,6 @@ export default class StatisticService {
         return row;
       }).join(Constants.CR_LF);
       return [headers, rows].join(Constants.CR_LF);
-    }
-  }
-
-  // Function that allows retrocompatibility: empty array or empty data source
-  private static buildAndReturnEmptyStatisticData(res: Response, filteredRequest: HttpStatisticsGetRequest, next: NextFunction) {
-    // Empty data result
-    if (filteredRequest.WithAuth) {
-      UtilsService.sendEmptyDataResult(res, next);
-      return;
-    }
-    // Empty array
-    UtilsService.sendEmptyArray(res, next);
-    return;
-  }
-
-  // Function that allows retrocompatibility: would either return raw statistic values or convert it into a datasource with auth flags
-  private static async buildAndReturnStatisticData(req: Request, res: Response, data: any, filteredRequest: HttpStatisticsGetRequest, authorizations: AuthorizationFilter, next: NextFunction) {
-    // Check return type and add auth
-    if (filteredRequest.WithAuth) {
-      const transactionsDataResult: StatisticDataResult = {
-        result: data,
-        count: data.length
-      }
-      // Add auth
-      await AuthorizationService.addStatisticsAuthorizations(req.tenant, req.user, transactionsDataResult, authorizations);
-      res.json(transactionsDataResult);
-      next();
-    }
-    else {
-      res.json(data);
-      next();
     }
   }
 }

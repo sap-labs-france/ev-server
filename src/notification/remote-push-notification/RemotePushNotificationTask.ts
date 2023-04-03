@@ -501,22 +501,18 @@ export default class RemotePushNotificationTask implements NotificationTask {
       // Do it
       startTime = Logging.traceNotificationStart();
       if (!user?.mobileData?.mobileToken) {
-        // await Logging.logDebug({
-        //   tenantID: tenant.id,
-        //   siteID: data?.siteID,
-        //   siteAreaID: data?.siteAreaID,
-        //   companyID: data?.companyID,
-        //   chargingStationID: data?.chargeBoxID,
-        //   action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-        //   module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-        //   message: `'${notificationType}': No mobile token found for this User`,
-        //   actionOnUser: user.id,
-        // });
+        await Logging.logDebug({
+          tenantID: tenant.id,
+          siteID: data?.siteID,
+          siteAreaID: data?.siteAreaID,
+          companyID: data?.companyID,
+          chargingStationID: data?.chargeBoxID,
+          action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+          module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+          message: `'${notificationType}': No mobile token found for this User`,
+          actionOnUser: user.id,
+        });
         // Send nothing
-        return Promise.resolve();
-      }
-      if (!user?.mobileData?.mobileVersion) {
-        // Stop sending notifications to old version of the mobile app
         return Promise.resolve();
       }
       // Create message
@@ -538,7 +534,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
           );
           // Error
           if (response.failureCount > 0) {
-            Logging.logError({
+            void Logging.logError({
               tenantID: tenant.id,
               siteID: data?.siteID,
               siteAreaID: data?.siteAreaID,
@@ -546,28 +542,28 @@ export default class RemotePushNotificationTask implements NotificationTask {
               chargingStationID: data?.chargeBoxID,
               action: ServerAction.REMOTE_PUSH_NOTIFICATION,
               module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-              message: `Notification: '${notificationType}' - Error code: '${response.results[0]?.error?.code}'`,
+              message: `Error when sending Notification: '${notificationType}' - Error code: '${response.results[0]?.error?.code}'`,
               actionOnUser: user.id,
-              detailedMessages: { response, mobileData: user.mobileData }
-            }).catch((error) => Logging.logPromiseError(error));
+              detailedMessages: { response }
+            });
           // Success
           } else {
             // Stop sending notification
             notificationSent = true;
-            // Logging.logDebug({
-            //   tenantID: tenant.id,
-            //   siteID: data?.siteID,
-            //   siteAreaID: data?.siteAreaID,
-            //   companyID: data?.companyID,
-            //   chargingStationID: data?.chargeBoxID,
-            //   action: ServerAction.REMOTE_PUSH_NOTIFICATION,
-            //   module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-            //   message: `Notification Sent: '${notificationType}' - '${title}'`,
-            //   actionOnUser: user.id,
-            // }).catch((error) => Logging.logPromiseError(error));
+            void Logging.logDebug({
+              tenantID: tenant.id,
+              siteID: data?.siteID,
+              siteAreaID: data?.siteAreaID,
+              companyID: data?.companyID,
+              chargingStationID: data?.chargeBoxID,
+              action: ServerAction.REMOTE_PUSH_NOTIFICATION,
+              module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
+              message: `Notification Sent: '${notificationType}' - '${title}'`,
+              actionOnUser: user.id,
+            });
           }
         } catch (error) {
-          Logging.logError({
+          void Logging.logError({
             tenantID: tenant.id,
             siteID: data?.siteID,
             siteAreaID: data?.siteAreaID,
@@ -575,10 +571,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
             chargingStationID: data?.chargeBoxID,
             action: ServerAction.REMOTE_PUSH_NOTIFICATION,
             module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
-            message: `Notification: '${notificationType}' - '${error.message as string}'`,
+            message: `Error when sending Notification: '${notificationType}' - '${error.message as string}'`,
             actionOnUser: user.id,
             detailedMessages: { error: error.stack }
-          }).catch((error2) => Logging.logPromiseError(error2));
+          });
         }
       }
     } finally {

@@ -230,7 +230,12 @@ export default class Utils {
   }
 
   public static areObjectPropertiesEqual(objCmp1: any = {}, objCmp2: any = {}, key: string): boolean {
-    return _.isEqual(objCmp1[key], objCmp2[key]);
+    // Check DB expireAfterSeconds index
+    if ((Utils.objectHasProperty(objCmp1, key) !== Utils.objectHasProperty(objCmp2, key)) ||
+        (objCmp1[key] !== objCmp2[key])) {
+      return false;
+    }
+    return true;
   }
 
   public static computeTimeDurationSecs(timeStart: number): number {
@@ -927,21 +932,13 @@ export default class Utils {
     return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
   }
 
-  public static buildOCPPServerSecureURL(tenant: Tenant, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    if (ocppProtocol === OCPPProtocol.SOAP) {
-      const baseSecureUrl = Utils.alterBaseURL(tenant, Configuration.getWSDLEndpointConfig().baseSecureUrl);
-      return `${baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenant.id}%26Token=${token}`;
+  public static buildOCPPServerSecureURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
+    switch (ocppProtocol) {
+      case OCPPProtocol.JSON:
+        return `${Configuration.getJsonEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}/${token}`;
+      case OCPPProtocol.SOAP:
+        return `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}%26Token=${token}`;
     }
-    const baseSecureUrl = Utils.alterBaseURL(tenant, Configuration.getJsonEndpointConfig().baseSecureUrl);
-    return `${baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenant.id}/${token}`;
-  }
-
-  public static alterBaseURL(tenant: Tenant, baseUrl: string) : string {
-    if (tenant.cpmsDomainName) {
-      const protocol = baseUrl.split(':').shift();
-      baseUrl = `${protocol}://${tenant.cpmsDomainName}`;
-    }
-    return baseUrl;
   }
 
   public static getOCPPServerVersionURLPath(ocppVersion: OCPPVersion): string {

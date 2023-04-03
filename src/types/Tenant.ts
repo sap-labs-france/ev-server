@@ -9,10 +9,9 @@ export default interface Tenant extends CreatedUpdatedProps {
   address: Address;
   logo: string;
   components: TenantComponent;
-  cpmsDomainName?: string; // Optional - domain name used to connect chargers
   redirectDomain?: string;
   idleMode?: boolean // Prevents batch and async tasks executions when moving the tenant to a different cloud infrastructure provider
-  taskExecutionEnv?: string; // Environment on which tasks should be executed
+  taskExecutionEnv?: string; // Environement on which tasks should be executed
 }
 
 export interface TenantComponent {
