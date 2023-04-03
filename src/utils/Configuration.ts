@@ -186,9 +186,6 @@ export default class Configuration {
   public static getEmailConfig(): EmailConfiguration {
     const email = Configuration.getConfig().Email;
     if (!Configuration.isUndefined('Email', email)) {
-      if (Configuration.isUndefined('Email.disableBackup', email.disableBackup)) {
-        email.disableBackup = false;
-      }
       return email;
     }
   }
