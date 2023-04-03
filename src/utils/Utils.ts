@@ -21,6 +21,7 @@ import LoggingHelper from './LoggingHelper';
 import OCPPError from '../exception/OcppError';
 import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
 import SiteArea from '../types/SiteArea';
@@ -1784,6 +1785,19 @@ export default class Utils {
 
   public static positiveHashCode(str :string):number {
     return this.hashCode(str) + 2147483647 + 1;
+  }
+
+
+  public static getRateLimiters(): Map<string, RateLimiterMemory> {
+    const shieldConfiguration = Configuration.getShieldConfig();
+    const limiterMap = new Map();
+    if (shieldConfiguration?.active) {
+      shieldConfiguration.rateLimiters.forEach((rateLimiterConfig) => {
+        const limiter = new RateLimiterMemory({ points: rateLimiterConfig.numberOfPoints, duration: rateLimiterConfig.numberOfSeconds });
+        limiterMap.set(rateLimiterConfig.name, limiter);
+      });
+    }
+    return limiterMap;
   }
 
   private static hashCode(s:string): number {
