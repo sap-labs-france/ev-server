@@ -3506,8 +3506,24 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       { resource: Entity.CHARGING_STATION,
-        action: [Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION, Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE]
-
+        action: [Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION, Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE, Action.READ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+      },
+      {
+        resource: Entity.CONNECTOR, action: [Action.REMOTE_START_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
       },
       {
         resource: Entity.TRANSACTION, action: Action.READ,
