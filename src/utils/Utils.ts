@@ -1792,7 +1792,7 @@ export default class Utils {
 
     const shieldConfiguration = Configuration.getShieldConfig();
     const limiterMap = new Map();
-    if (shieldConfiguration.active) {
+    if (shieldConfiguration?.active) {
       shieldConfiguration.rateLimiters.forEach((rateLimiterConfig) => {
         const limiter = new RateLimiterMemory({ points: rateLimiterConfig.numberOfPoints, duration: rateLimiterConfig.numberOfSeconds });
         limiterMap.set(rateLimiterConfig.name, limiter);
