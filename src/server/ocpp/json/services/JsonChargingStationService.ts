@@ -1,14 +1,18 @@
 import { RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
+import Bootstrap from '../../../../start';
+import ShieldConfiguration from '../../../../types/configuration/RateLimiterConfiguration';
 import { OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import { Command } from '../../../../types/ChargingStation';
 import { ServerAction } from '../../../../types/Server';
+import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPService from '../../services/OCPPService';
 import OCPPUtils from '../../utils/OCPPUtils';
 import global from '../../../../types/GlobalType';
+import Utils from '../../../../utils/Utils';
 
 const MODULE_NAME = 'JsonChargingStationService';
 
@@ -16,21 +20,19 @@ const MODULE_NAME = 'JsonChargingStationService';
 export default class JsonChargingStationService {
   private chargingStationService: OCPPService;
   private limiters = [];
-  private limiter = new RateLimiterMemory({
-    points: 3, // Maximum number of points allowed per interval
-    duration: 60, // Interval duration in seconds
-  });
-
-  private limiterDdos = new RateLimiterMemory({
-    points: 10, // Maximum number of points allowed per interval
-    duration: 60 * 60, // Interval duration in seconds
-  });
 
   public constructor() {
     // Get the OCPP service
     this.chargingStationService = global.centralSystemJsonServer.getChargingStationService(OCPPVersion.VERSION_16);
-    this.limiters.push(this.limiter);
-    this.limiters.push(this.limiterDdos);
+    const rateLimitersMap = Utils.getRateLimiters();
+    const startStopTransactionLimiter = rateLimitersMap.get('StartStopTransaction');
+    if (startStopTransactionLimiter) {
+      this.limiters.push(startStopTransactionLimiter);
+    }
+    const startStopTransactionDDosLimiter = rateLimitersMap.get('StartStopTransactionDDOS');
+    if (startStopTransactionDDosLimiter) {
+      this.limiters.push(startStopTransactionDDosLimiter);
+    }
   }
 
   public async handleBootNotification(headers: OCPPHeader, payload: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {

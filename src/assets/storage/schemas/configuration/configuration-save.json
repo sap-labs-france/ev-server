@@ -659,6 +659,31 @@
         "nbrTasksInParallel"
       ]
     },
+    "Shield": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "rateLimiters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "numberOfPoints": {
+                "type": "string"
+              },
+              "numberOfSeconds": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "Scheduler": {
       "type": "object",
       "properties": {
