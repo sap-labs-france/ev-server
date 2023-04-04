@@ -1,21 +1,15 @@
-import { RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
-import Bootstrap from '../../../../start';
-import ShieldConfiguration from '../../../../types/configuration/RateLimiterConfiguration';
 import { OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import { Command } from '../../../../types/ChargingStation';
-import { ServerAction } from '../../../../types/Server';
-import Configuration from '../../../../utils/Configuration';
-import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPService from '../../services/OCPPService';
 import OCPPUtils from '../../utils/OCPPUtils';
-import global from '../../../../types/GlobalType';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 import Utils from '../../../../utils/Utils';
+import global from '../../../../types/GlobalType';
 
 const MODULE_NAME = 'JsonChargingStationService';
-
 
 export default class JsonChargingStationService {
   private chargingStationService: OCPPService;
@@ -82,7 +76,6 @@ export default class JsonChargingStationService {
 
 
   public async handleStartTransaction(headers: OCPPHeader, payload: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
-
     const { chargingStation, tenant } = headers;
     const key = { connector: payload.connectorId, tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
     const keyString = `${key.connector}:${key.tenant}:${key.chargingStation}`;
@@ -126,7 +119,6 @@ export default class JsonChargingStationService {
   }
 
   private async checkRateLimiters(key: string) {
-
     for (let i = 0; i < this.limiters.length; i++) {
       const limiter = this.limiters[i] as RateLimiterMemory;
       const points = limiter.points;
