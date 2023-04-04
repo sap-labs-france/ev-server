@@ -128,7 +128,7 @@ export default class UtilsService {
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation ID '${chargingStationID}' does not exist`,
       MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
     // Check deleted
-    if (chargingStation?.deleted) {
+    if (!additionalFilters?.includeDeleted && chargingStation?.deleted) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         errorCode: StatusCodes.NOT_FOUND,
@@ -1061,6 +1061,11 @@ export default class UtilsService {
 
   public static sendEmptyDataResult(res: Response, next: NextFunction): void {
     res.json(Constants.DB_EMPTY_DATA_RESULT);
+    next();
+  }
+
+  public static sendEmptyArray(res: Response, next: NextFunction): void {
+    res.json([]);
     next();
   }
 

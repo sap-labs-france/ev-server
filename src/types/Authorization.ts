@@ -111,7 +111,8 @@ export enum Entity {
   PAYMENT_METHOD = 'PaymentMethod',
   SOURCE = 'Source',
   CONSUMPTION = 'Consumption',
-  SMART_CHARGING = 'SmartCharging'
+  SMART_CHARGING = 'SmartCharging',
+  STATISTIC = 'Statistic'
 }
 
 export enum Action {

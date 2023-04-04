@@ -9,6 +9,6 @@
       "typescriptreact"
     ],
     "jest.jestCommandLine": "npm run test -- ",
-    "jest.autoRun": "false"
+    "jest.autoRun": { "watch": "false" }
   }
   
