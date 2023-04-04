@@ -77,7 +77,6 @@ export interface HttpBillingTransferSendRequest extends HttpByIDRequest {
   ID: string;
 }
 
-
 export interface HttpBillingScanPayRequest {
   firstName?: string;
   name?: string;

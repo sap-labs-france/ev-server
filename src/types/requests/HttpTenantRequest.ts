@@ -28,7 +28,6 @@ export interface HttpVerifyTenantRequest {
   tenant?: string;
   Tenant?: string;
   Subdomain?: string;
-  subdomain?: string;
   ID?: string;
   TenantID?: string;
 }

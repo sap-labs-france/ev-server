@@ -995,7 +995,7 @@ export default class Utils {
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
     return `${Utils.buildEvseURL(tenantSubdomain)}/users/${userId}`;
-  } // is it here we need to do something to handle the missing field in the ui to directly validate user ? = status
+  }
 
   public static buildEvseScanPayConnectorURL(tenantSubdomain: string, chargingStation: ChargingStation, connectorID: number): string {
     return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/${chargingStation.siteAreaID}/${chargingStation.id}/${connectorID}`;
