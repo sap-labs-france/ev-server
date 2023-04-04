@@ -385,7 +385,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       });
 
       it('Test for two cars charging', async () => {
-        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, new Date);
+        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, moment().add(1, 'seconds').toDate());
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction1 = transactionResponse.data;
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
@@ -423,7 +423,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         'Test for three cars charging with lower site area limit and one car on a single phased station',
         async () => {
           // Start transaction on single phased Charging Station
-          const transactionStartResponse = await testData.chargingStationContext1.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+          const transactionStartResponse = await testData.chargingStationContext1.startTransaction(1, testData.userContext.tags[0].id, 180, moment().add(2, 'seconds').toDate());
           const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
           transaction2 = transactionResponse.data;
           await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector1Charging);
@@ -785,7 +785,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       );
 
       it('Test for two cars charging', async () => {
-        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, new Date);
+        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, moment().add(1,'seconds').toDate());
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction1 = transactionResponse.data;
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
@@ -1032,7 +1032,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       );
 
       it('Test for two cars charging', async () => {
-        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, new Date);
+        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, moment().add(1, 'seconds').toDate());
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction1 = transactionResponse.data;
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
