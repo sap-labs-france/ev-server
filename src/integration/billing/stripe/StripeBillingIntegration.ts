@@ -5,6 +5,7 @@ import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../..
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
+import User, { UserRole } from '../../../types/User';
 
 import AppError from '../../../exception/AppError';
 import AsyncTaskBuilder from '../../../async-task/AsyncTaskBuilder';
@@ -31,7 +32,6 @@ import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Stripe from 'stripe';
 import Tenant from '../../../types/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
@@ -1718,7 +1718,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Check whether the customer exists or not
       const customer = await this.checkStripeCustomer(customerID);
       // Check whether the customer has a default payment method
-      await this.checkStripePaymentMethod(customer, true);
+      await this.checkStripePaymentMethod(customer, user.role === UserRole.EXTERNAL);
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
