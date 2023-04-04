@@ -13,23 +13,37 @@ const MODULE_NAME = 'JsonChargingStationService';
 
 export default class JsonChargingStationService {
   private chargingStationService: OCPPService;
-  private limiters = [];
+  private limitersStartStopTransaction = new Array<RateLimiterMemory>();
+  private limitersBootNotifs = new Array<RateLimiterMemory>();
+
 
   public constructor() {
     // Get the OCPP service
     this.chargingStationService = global.centralSystemJsonServer.getChargingStationService(OCPPVersion.VERSION_16);
     const rateLimitersMap = Utils.getRateLimiters();
-    const startStopTransactionLimiter = rateLimitersMap.get('StartStopTransaction');
-    if (startStopTransactionLimiter) {
-      this.limiters.push(startStopTransactionLimiter);
+    const startStopTransactionLimiterPerMin = rateLimitersMap.get('StartStopTransactionPerMin');
+    if (startStopTransactionLimiterPerMin) {
+      this.limitersStartStopTransaction.push(startStopTransactionLimiterPerMin);
     }
-    const startStopTransactionDDosLimiter = rateLimitersMap.get('StartStopTransactionDDOS');
-    if (startStopTransactionDDosLimiter) {
-      this.limiters.push(startStopTransactionDDosLimiter);
+    const startStopTransactionLimiterPerHour = rateLimitersMap.get('StartStopTransactionPerHour');
+    if (startStopTransactionLimiterPerHour) {
+      this.limitersStartStopTransaction.push(startStopTransactionLimiterPerHour);
+    }
+    const bootNotifRateLimiterPerHour = rateLimitersMap.get('BootNotifPerHour');
+    if (bootNotifRateLimiterPerHour) {
+      this.limitersBootNotifs.push(bootNotifRateLimiterPerHour);
+    }
+    const bootNotifRateLimiterPerDay = rateLimitersMap.get('BootNotifPerDay');
+    if (bootNotifRateLimiterPerDay) {
+      this.limitersBootNotifs.push(bootNotifRateLimiterPerDay);
     }
   }
 
   public async handleBootNotification(headers: OCPPHeader, payload: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
+    const { chargeBoxIdentity, tenant } = headers;
+    const key = { tenant: tenant.subdomain, chargingStation: chargeBoxIdentity} ;
+    const keyString = `${key.tenant}:${key.chargingStation}`;
+    await this.checkRateLimiters(this.limitersBootNotifs, keyString);
     const result = await this.handle(Command.BOOT_NOTIFICATION, headers, payload);
     return {
       currentTime: result.currentTime,
@@ -79,7 +93,7 @@ export default class JsonChargingStationService {
     const { chargingStation, tenant } = headers;
     const key = { connector: payload.connectorId, tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
     const keyString = `${key.connector}:${key.tenant}:${key.chargingStation}`;
-    await this.checkRateLimiters(keyString);
+    await this.checkRateLimiters(this.limitersStartStopTransaction, keyString);
     const result: OCPPStartTransactionResponse = await this.handle(Command.START_TRANSACTION, headers, payload);
     return {
       transactionId: result.transactionId,
@@ -100,7 +114,7 @@ export default class JsonChargingStationService {
     const { chargingStation, tenant } = headers;
     const key = { tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
     const keyString = `${key.tenant}:${key.chargingStation}`;
-    await this.checkRateLimiters(keyString);
+    await this.checkRateLimiters(this.limitersStartStopTransaction, keyString);
     const result: OCPPStopTransactionResponse = await this.handle(Command.STOP_TRANSACTION, headers, payload);
     return {
       idTagInfo: {
@@ -118,13 +132,13 @@ export default class JsonChargingStationService {
     }
   }
 
-  private async checkRateLimiters(key: string) {
-    for (let i = 0; i < this.limiters.length; i++) {
-      const limiter = this.limiters[i] as RateLimiterMemory;
+  private async checkRateLimiters(limiters: Array<RateLimiterMemory>, key: string) {
+    for (let i = 0; i< limiters.length; i++) {
+      const limiter = limiters[i];
       const points = limiter.points;
       const duration = limiter.duration;
       try {
-        await this.limiters[i].consume(key);
+        await this.limitersStartStopTransaction[i].consume(key);
       } catch (error) {
         throw new Error(`Rate limit exceeded: points : ${points} durations:${duration}`);
       }
