@@ -1,4 +1,5 @@
 import { RateLimiterMemory } from 'rate-limiter-flexible';
+import { Log } from '../types/Log';
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
@@ -18,6 +19,7 @@ import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import { Decimal } from 'decimal.js';
+import Logging from './Logging';
 import LoggingHelper from './LoggingHelper';
 import OCPPError from '../exception/OcppError';
 import { Promise } from 'bluebird';
@@ -554,7 +556,7 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.power) {
               totalPower += chargePointOfCS.power;
-            // Connector
+              // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.power) {
               if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
                 // Check Connector ID
@@ -682,7 +684,7 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.currentType) {
               return chargePointOfCS.currentType;
-            // Connector
+              // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.currentType) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
@@ -937,7 +939,7 @@ export default class Utils {
     return `${baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenant.id}/${token}`;
   }
 
-  public static alterBaseURL(tenant: Tenant, baseUrl: string) : string {
+  public static alterBaseURL(tenant: Tenant, baseUrl: string): string {
     if (tenant.cpmsDomainName) {
       const protocol = baseUrl.split(':').shift();
       baseUrl = `${protocol}://${tenant.cpmsDomainName}`;
@@ -1211,11 +1213,11 @@ export default class Utils {
     return false;
   }
 
-  public static getChargingStationEndpoint() : ChargingStationEndpoint {
+  public static getChargingStationEndpoint(): ChargingStationEndpoint {
     return ChargingStationEndpoint.AWS;
   }
 
-  public static async generateQrCode(data: string) :Promise<string> {
+  public static async generateQrCode(data: string): Promise<string> {
     return QRCode.toDataURL(data);
   }
 
@@ -1388,13 +1390,13 @@ export default class Utils {
     }
     // REST API
     if (url.startsWith('/client/api/') ||
-        url.startsWith('/v1/api/')) {
+      url.startsWith('/v1/api/')) {
       return PerformanceRecordGroup.REST_SECURED;
     }
     if (url.startsWith('/client/util/') ||
-        url.startsWith('/client/auth/') ||
-        url.startsWith('/v1/util/') ||
-        url.startsWith('/v1/auth/')) {
+      url.startsWith('/client/auth/') ||
+      url.startsWith('/v1/util/') ||
+      url.startsWith('/v1/auth/')) {
       return PerformanceRecordGroup.REST_PUBLIC;
     }
     // OCPI
@@ -1502,7 +1504,7 @@ export default class Utils {
 
   public static buildPerformanceRecord(params: {
     tenantSubdomain?: string; durationMs?: number; resSizeKb?: number; reqSizeKb?: number;
-    action: ServerAction|string; group?: PerformanceRecordGroup; httpUrl?: string;
+    action: ServerAction | string; group?: PerformanceRecordGroup; httpUrl?: string;
     httpMethod?: string; httpResponseCode?: number; egress?: boolean; chargingStationID?: string, userID?: string
   }): PerformanceRecord {
     const performanceRecord: PerformanceRecord = {
@@ -1637,7 +1639,7 @@ export default class Utils {
         }
         // Push sub site area to parent children array
         siteAreaHashTable[siteAreaOfSite.parentSiteAreaID].childSiteAreas.push(siteAreaHashTable[siteAreaOfSite.id]);
-      // Root Site Area
+        // Root Site Area
       } else {
         // If no parent ID is defined push root site area to array
         rootSiteAreasOfSite.push(siteAreaHashTable[siteAreaOfSite.id]);
@@ -1751,39 +1753,39 @@ export default class Utils {
   public static removeSensibeDataFromEntity(extraFilters: Record<string, any>, entityData?: EntityData): void {
     // User data
     if (Utils.objectHasProperty(extraFilters, 'UserData') &&
-       !Utils.isNullOrUndefined(extraFilters['UserData']) && extraFilters['UserData']) {
+      !Utils.isNullOrUndefined(extraFilters['UserData']) && extraFilters['UserData']) {
       Utils.deleteUserPropertiesFromEntity(entityData);
     }
     // Tag data
     if (Utils.objectHasProperty(extraFilters, 'TagData') &&
-       !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
+      !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
       Utils.deleteTagPropertiesFromEntity(entityData);
     }
     // Car Catalog data
     if (Utils.objectHasProperty(extraFilters, 'CarCatalogData') &&
-       !Utils.isNullOrUndefined(extraFilters['CarCatalogData']) && extraFilters['CarCatalogData']) {
+      !Utils.isNullOrUndefined(extraFilters['CarCatalogData']) && extraFilters['CarCatalogData']) {
       Utils.deleteCarCatalogPropertiesFromEntity(entityData);
     }
     // Car data
     if (Utils.objectHasProperty(extraFilters, 'CarData') &&
-       !Utils.isNullOrUndefined(extraFilters['CarData']) && extraFilters['CarData']) {
+      !Utils.isNullOrUndefined(extraFilters['CarData']) && extraFilters['CarData']) {
       Utils.deleteCarPropertiesFromEntity(entityData);
     }
     // Billing data
     if (Utils.objectHasProperty(extraFilters, 'BillingData') &&
-       !Utils.isNullOrUndefined(extraFilters['BillingData']) && extraFilters['BillingData']) {
+      !Utils.isNullOrUndefined(extraFilters['BillingData']) && extraFilters['BillingData']) {
       Utils.deleteBillingPropertiesFromEntity(entityData);
     }
   }
 
-  public static isMonitoringEnabled() : boolean {
+  public static isMonitoringEnabled(): boolean {
     if (((global.monitoringServer) && (process.env.K8S))) {
       return true;
     }
     return false;
   }
 
-  public static positiveHashCode(str :string):number {
+  public static positiveHashCode(str: string): number {
     return this.hashCode(str) + 2147483647 + 1;
   }
 
@@ -1792,10 +1794,31 @@ export default class Utils {
 
     const shieldConfiguration = Configuration.getShieldConfig();
     const limiterMap = new Map();
+    let mess = '';
+
     if (shieldConfiguration?.active) {
       shieldConfiguration.rateLimiters.forEach((rateLimiterConfig) => {
+        void Logging.logDebug({
+          tenantID: Constants.DEFAULT_TENANT_ID,
+          action: ServerAction.SHIELD,
+          module: MODULE_NAME, method: 'getRateLimiters',
+          message: `rate limiter with name:${rateLimiterConfig.name} numberOfPoints: ${rateLimiterConfig.numberOfPoints}  duration:${rateLimiterConfig.numberOfSeconds} found`
+        }
+        );
         const limiter = new RateLimiterMemory({ points: rateLimiterConfig.numberOfPoints, duration: rateLimiterConfig.numberOfSeconds });
         limiterMap.set(rateLimiterConfig.name, limiter);
+      });
+    } else {
+      if (!shieldConfiguration) {
+        mess = 'Section shield not found';
+      } else if (!shieldConfiguration.active) {
+        mess = 'Section shield is present but not active';
+      }
+      void Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        action: ServerAction.SHIELD,
+        module: MODULE_NAME, method: 'getRateLimiters',
+        message: mess
       });
     }
     return limiterMap;
