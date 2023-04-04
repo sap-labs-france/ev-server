@@ -476,14 +476,10 @@ export enum ServerAction {
   BILLING_TRANSFER_SEND = 'BillingTransferSend',
   BILLING_TRANSFER_DISPATCH_FUNDS = 'BillingTransferDispatchFunds',
 
-  SCAN_PAY_BILLING_SETTING = 'ScanPayBillingSettings',
+  SCAN_PAY_VERIFY_EMAIL = 'ScanPayVerifyEmail',
   SCAN_PAY_PAYMENT_INTENT_SETUP = 'ScanPayPaymentIntentSetup',
   SCAN_PAY_PAYMENT_INTENT_RETRIEVE = 'ScanPayPaymentIntentRetrieve',
-  SCAN_PAY_PAYMENT_INTENT_CAPTURE = 'ScanPayPaymentIntentCapture',
   SCAN_PAY_TRANSACTION_STARTED = 'ScanPayTransactionStarted',
-  SCAN_PAY_TRANSACTION = 'ScanPayGetTransaction',
-
-  SCAN_PAY_VERIFY_EMAIL = 'ScanPayVerifyEmail',
 
   PRICING = 'Pricing',
   PRICING_DEFINITION = 'PricingDefinition',
