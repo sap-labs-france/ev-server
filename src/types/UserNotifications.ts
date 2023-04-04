@@ -27,7 +27,6 @@ export default interface UserNotifications {
   sendEndUserErrorNotification: boolean;
   sendAccountVerificationNotification: boolean;
   sendAdminAccountVerificationNotification: boolean;
-  // sendScanPaySessionStarted: boolean;
 }
 
 export type UserNotificationKeys =
