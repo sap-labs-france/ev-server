@@ -1,4 +1,3 @@
-import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { Log } from '../types/Log';
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
@@ -24,6 +23,7 @@ import LoggingHelper from './LoggingHelper';
 import OCPPError from '../exception/OcppError';
 import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
 import SiteArea from '../types/SiteArea';
@@ -1791,7 +1791,6 @@ export default class Utils {
 
 
   public static getRateLimiters(): Map<string, RateLimiterMemory> {
-
     const shieldConfiguration = Configuration.getShieldConfig();
     const limiterMap = new Map();
     let mess = '';
@@ -1823,7 +1822,6 @@ export default class Utils {
     }
     return limiterMap;
   }
-
 
   private static hashCode(s:string): number {
     let hash = 0,i = 0;
