@@ -40,8 +40,8 @@ export default class JsonChargingStationService {
   }
 
   public async handleBootNotification(headers: OCPPHeader, payload: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
-    const { chargingStation, tenant } = headers;
-    const key = { tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
+    const { chargeBoxIdentity, tenant } = headers;
+    const key = { tenant: tenant.subdomain, chargingStation: chargeBoxIdentity} ;
     const keyString = `${key.tenant}:${key.chargingStation}`;
     await this.checkRateLimiters(this.limitersBootNotifs, keyString);
     const result = await this.handle(Command.BOOT_NOTIFICATION, headers, payload);
