@@ -1794,31 +1794,10 @@ export default class Utils {
 
     const shieldConfiguration = Configuration.getShieldConfig();
     const limiterMap = new Map();
-    let mess = '';
-
     if (shieldConfiguration?.active) {
       shieldConfiguration.rateLimiters.forEach((rateLimiterConfig) => {
-        void Logging.logDebug({
-          tenantID: Constants.DEFAULT_TENANT_ID,
-          action: ServerAction.SHIELD,
-          module: MODULE_NAME, method: 'getRateLimiters',
-          message: `rate limiter with name:${rateLimiterConfig.name} numberOfPoints: ${rateLimiterConfig.numberOfPoints}  duration:${rateLimiterConfig.numberOfSeconds} found`
-        }
-        );
         const limiter = new RateLimiterMemory({ points: rateLimiterConfig.numberOfPoints, duration: rateLimiterConfig.numberOfSeconds });
         limiterMap.set(rateLimiterConfig.name, limiter);
-      });
-    } else {
-      if (!shieldConfiguration) {
-        mess = 'Section shield not found';
-      } else if (!shieldConfiguration.active) {
-        mess = 'Section shield is present but not active';
-      }
-      void Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT_ID,
-        action: ServerAction.SHIELD,
-        module: MODULE_NAME, method: 'getRateLimiters',
-        message: mess
       });
     }
     return limiterMap;

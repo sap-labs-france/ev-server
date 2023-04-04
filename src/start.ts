@@ -1,4 +1,6 @@
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 import CentralSystemConfiguration, { CentralSystemImplementation } from './types/configuration/CentralSystemConfiguration';
+import ShieldConfiguration from './types/configuration/RateLimiterConfiguration';
 import { ServerAction, ServerType } from './types/Server';
 
 import AsyncTaskConfiguration from './types/configuration/AsyncTaskConfiguration';
@@ -83,6 +85,7 @@ export default class Bootstrap {
       Bootstrap.monitoringConfig = Configuration.getMonitoringConfig();
       Bootstrap.cacheConfig = Configuration.getCacheConfig();
 
+
       // -------------------------------------------------------------------------
       // Listen to promise failure
       // -------------------------------------------------------------------------
@@ -97,6 +100,32 @@ export default class Bootstrap {
           detailedMessages: (reason ? reason.stack : null)
         });
       });
+
+      const shieldConfiguration = Configuration.getShieldConfig();
+      let mess = '';
+      if (shieldConfiguration?.active) {
+        shieldConfiguration.rateLimiters.forEach((rateLimiterConfig) => {
+          void Logging.logDebug({
+            tenantID: Constants.DEFAULT_TENANT_ID,
+            action: ServerAction.SHIELD,
+            module: MODULE_NAME, method: 'getRateLimiters',
+            message: `rate limiter with name:${rateLimiterConfig.name} numberOfPoints: ${rateLimiterConfig.numberOfPoints}  duration:${rateLimiterConfig.numberOfSeconds} found`
+          });
+        });
+      } else {
+        if (!shieldConfiguration) {
+          mess = 'Section shield not found';
+        } else if (!shieldConfiguration.active) {
+          mess = 'Section shield is present but not active';
+        }
+        void Logging.logDebug({
+          tenantID: Constants.DEFAULT_TENANT_ID,
+          action: ServerAction.SHIELD,
+          module: MODULE_NAME, method: 'getRateLimiters',
+          message: mess
+        });
+      }
+
 
       // -------------------------------------------------------------------------
       // Start Monitoring Server
