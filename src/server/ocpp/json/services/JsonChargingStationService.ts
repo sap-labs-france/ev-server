@@ -21,19 +21,19 @@ export default class JsonChargingStationService {
     // Get the OCPP service
     this.chargingStationService = global.centralSystemJsonServer.getChargingStationService(OCPPVersion.VERSION_16);
     const rateLimitersMap = Utils.getRateLimiters();
-    const startStopTransactionLimiter = rateLimitersMap.get('StartStopTransaction');
-    if (startStopTransactionLimiter) {
-      this.limitersStartStopTransaction.push(startStopTransactionLimiter);
+    const startStopTransactionLimiterPerMin = rateLimitersMap.get('StartStopTransactionPerMin');
+    if (startStopTransactionLimiterPerMin) {
+      this.limitersStartStopTransaction.push(startStopTransactionLimiterPerMin);
     }
-    const startStopTransactionLimiterPerDay = rateLimitersMap.get('StartStopTransactionPerDay');
-    if (startStopTransactionLimiterPerDay) {
-      this.limitersStartStopTransaction.push(startStopTransactionLimiterPerDay);
+    const startStopTransactionLimiterPerHour = rateLimitersMap.get('StartStopTransactionPerHour');
+    if (startStopTransactionLimiterPerHour) {
+      this.limitersStartStopTransaction.push(startStopTransactionLimiterPerHour);
     }
-    const bootNotifRateLimiter = rateLimitersMap.get('BootNotifRateLimiter');
-    if (bootNotifRateLimiter) {
-      this.limitersBootNotifs.push(bootNotifRateLimiter);
+    const bootNotifRateLimiterPerHour = rateLimitersMap.get('BootNotifPerHour');
+    if (bootNotifRateLimiterPerHour) {
+      this.limitersBootNotifs.push(bootNotifRateLimiterPerHour);
     }
-    const bootNotifRateLimiterPerDay = rateLimitersMap.get('BootNotifRateLimiterPerDay');
+    const bootNotifRateLimiterPerDay = rateLimitersMap.get('BootNotifPerDay');
     if (bootNotifRateLimiterPerDay) {
       this.limitersBootNotifs.push(bootNotifRateLimiterPerDay);
     }
