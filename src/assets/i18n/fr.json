@@ -401,8 +401,8 @@
       ]
     },
     "scan-pay-session-started": {
-      "title": "Session Started",
-      "buttonText": "Stop Session",
+      "title": "Session démarrée",
+      "buttonText": "Stopper la session",
       "text": [
         "Votre véhicule est connecté sur le connecteur {{connectorId}} de la borne {{chargeBoxID}}.",
         "",
