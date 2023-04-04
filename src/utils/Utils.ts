@@ -1,4 +1,3 @@
-import { Log } from '../types/Log';
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
@@ -18,7 +17,6 @@ import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import { Decimal } from 'decimal.js';
-import Logging from './Logging';
 import LoggingHelper from './LoggingHelper';
 import OCPPError from '../exception/OcppError';
 import { Promise } from 'bluebird';
