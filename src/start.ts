@@ -97,7 +97,30 @@ export default class Bootstrap {
           detailedMessages: (reason ? reason.stack : null)
         });
       });
-
+      const shieldConfiguration = Configuration.getShieldConfig();
+      let mess = '';
+      if (shieldConfiguration?.active) {
+        shieldConfiguration.rateLimiters.forEach((rateLimiterConfig) => {
+          Logging.logDebug({
+            tenantID: Constants.DEFAULT_TENANT_ID,
+            action: ServerAction.SHIELD,
+            module: MODULE_NAME, method: 'getRateLimiters',
+            message: `rate limiter with name:${rateLimiterConfig.name} numberOfPoints: ${rateLimiterConfig.numberOfPoints}  duration:${rateLimiterConfig.numberOfSeconds} found`
+          }).catch((error) => Logging.logPromiseError(error));
+        });
+      } else {
+        if (!shieldConfiguration) {
+          mess = 'Section shield not found';
+        } else if (!shieldConfiguration.active) {
+          mess = 'Section shield is present but not active';
+        }
+        await Logging.logDebug({
+          tenantID: Constants.DEFAULT_TENANT_ID,
+          action: ServerAction.SHIELD,
+          module: MODULE_NAME, method: 'getRateLimiters',
+          message: mess
+        });
+      }
       // -------------------------------------------------------------------------
       // Start Monitoring Server
       // -------------------------------------------------------------------------
