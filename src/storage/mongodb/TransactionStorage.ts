@@ -57,7 +57,7 @@ export default class TransactionStorage {
       tagID: transactionToSave.tagID,
       carID: transactionToSave.carID ? DatabaseUtils.convertToObjectID(transactionToSave.carID) : null,
       carCatalogID: transactionToSave.carCatalogID ? Utils.convertToInt(transactionToSave.carCatalogID) : null,
-      carStateOfCharge: transactionToSave.carStateOfCharge ? Utils.convertToInt(transactionToSave.carStateOfCharge) : null,
+      carStateOfCharge: !Utils.isNullOrUndefined(transactionToSave.carStateOfCharge) ? Utils.convertToInt(transactionToSave.carStateOfCharge) : null,
       carOdometer: Utils.convertToInt(transactionToSave.carOdometer),
       departureTime: Utils.convertToDate(transactionToSave.departureTime),
       targetStateOfCharge: transactionToSave.targetStateOfCharge ? Utils.convertToInt(transactionToSave.targetStateOfCharge) : null,
