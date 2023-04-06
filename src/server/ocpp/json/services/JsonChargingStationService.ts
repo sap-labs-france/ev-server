@@ -156,7 +156,8 @@ export default class JsonChargingStationService {
             tenantID: tenant.id,
             action: ServerAction.RATE_LIMITER,
             module: MODULE_NAME, method: 'checkRateLimiters',
-            message: `RateLimiter ${limiterName} First time rate limit is reached for key: ${key} RateLimiterPoints : ${points} RateLimiterDurations:${duration}`
+            message: `RateLimiter ${limiterName} reached first time in windows`,
+            detailedMessages : `key: ${key} RateLimiterPoints : ${points} RateLimiterDurations:${duration}`
           });
         }
         throw new Error(`RateLimiter : ${limiterName} Rate limit exceeded: points : ${points} durations:${duration}`);
