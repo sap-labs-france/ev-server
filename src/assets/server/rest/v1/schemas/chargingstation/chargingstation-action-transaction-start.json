@@ -12,8 +12,9 @@
     "carStateOfCharge": {
       "type": "integer",
       "sanitize": "mongo",
-      "minimum": 1,
-      "maximum": 100
+      "minimum": 0,
+      "maximum": 100,
+      "nullable": true
     },
     "carOdometer": {
       "type": "integer",
@@ -27,13 +28,15 @@
       "type": "string",
       "format": "date-time",
       "customType": "date",
-      "sanitize": "mongo"
+      "sanitize": "mongo",
+      "nullable": true
     },
     "targetStateOfCharge": {
       "type": "integer",
       "sanitize": "mongo",
       "minimum": 1,
-      "maximum": 100
+      "maximum": 100,
+      "nullable": true
     },
     "args": {
       "type": "object",

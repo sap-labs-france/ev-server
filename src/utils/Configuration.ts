@@ -9,6 +9,7 @@ import CentralSystemServerConfiguration from '../types/configuration/CentralSyst
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
 import { Configuration as ConfigurationData } from '../types/configuration/Configuration';
 import ConfigurationValidatorStorage from '../storage/validator/ConfigurationValidatorStorage';
+import ShieldConfiguration from '../types/configuration/RateLimiterConfiguration';
 import Constants from './Constants';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
 import EVDatabaseConfiguration from '../types/configuration/EVDatabaseConfiguration';
@@ -44,6 +45,13 @@ export default class Configuration {
     const crypto = Configuration.getConfig().Crypto;
     if (!Configuration.isUndefined('Crypto', crypto)) {
       return crypto;
+    }
+  }
+
+  public static getShieldConfig(): ShieldConfiguration {
+    const shield = Configuration.getConfig().Shield;
+    if (!Configuration.isUndefined('Shield', shield)) {
+      return shield;
     }
   }
 
@@ -186,9 +194,6 @@ export default class Configuration {
   public static getEmailConfig(): EmailConfiguration {
     const email = Configuration.getConfig().Email;
     if (!Configuration.isUndefined('Email', email)) {
-      if (Configuration.isUndefined('Email.disableBackup', email.disableBackup)) {
-        email.disableBackup = false;
-      }
       return email;
     }
   }
