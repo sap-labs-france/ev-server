@@ -598,7 +598,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     if (transaction.stateOfCharge > 0) {
       customCar.startCapacity = (transaction.stateOfCharge / 100) * customCar.maxCapacity;
     // Check if manual state of charge is available
-    } else if (transaction.carStateOfCharge > 0) {
+    } else if (transaction.carStateOfCharge >= 0) {
       customCar.startCapacity = (transaction.carStateOfCharge / 100) * customCar.maxCapacity;
     // Handle if no state of charge is available
     } else {

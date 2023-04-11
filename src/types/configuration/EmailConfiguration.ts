@@ -8,5 +8,5 @@ export default interface EmailConfiguration {
     user: string;
     password: string;
   };
-  troubleshootingMode?: boolean // DEV only - set to true to dump the email HTML content
+  troubleshootingMode?: boolean // DEV only - set to true to send real mails when running tests
 }
