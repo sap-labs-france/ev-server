@@ -371,12 +371,11 @@ export default class SettingStorage {
     // Rename ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { identifier: 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip

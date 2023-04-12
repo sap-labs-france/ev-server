@@ -68,13 +68,11 @@ export default class OCPPStorage {
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray() as DatabaseCount[];
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { timestamp: -1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    // Sort
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -155,12 +153,11 @@ export default class OCPPStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { _id: 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -324,12 +321,11 @@ export default class OCPPStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { _id: 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -444,12 +440,11 @@ export default class OCPPStorage {
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
       .toArray() as DatabaseCount[];
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { timestamp: 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip

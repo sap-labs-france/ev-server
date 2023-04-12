@@ -163,12 +163,11 @@ export default class LogStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { timestamp: -1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip

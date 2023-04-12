@@ -111,12 +111,11 @@ export default class BillingStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { _id: 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -303,12 +302,12 @@ export default class BillingStorage {
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { _id: 1 };
+    // Sort
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -465,12 +464,11 @@ export default class BillingStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { _id: 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
