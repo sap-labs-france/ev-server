@@ -143,24 +143,23 @@ export default class JsonChargingStationService {
       const limiter = limiters[i].limiter;
       const limiterName = limiters[i].name;
       const points : number = limiter.points;
-      let pointsplusone = points ;
-      pointsplusone++;
-      const rateLimiter = this.limitersStartStopTransaction[i];
+      let pointsPlusOne = points ;
+      pointsPlusOne++;
       const duration = limiter.duration;
       try {
-        const res = await limiter.consume(key);
+        await limiter.consume(key);
       } catch (error) {
         const rateLimiterRes = error as RateLimiterRes;
-        if (rateLimiterRes.consumedPoints === pointsplusone) {
+        if (rateLimiterRes.consumedPoints === pointsPlusOne) {
           await Logging.logError({
             tenantID: tenant.id,
             action: ServerAction.RATE_LIMITER,
             module: MODULE_NAME, method: 'checkRateLimiters',
             message: `RateLimiter ${limiterName} reached first time in windows`,
-            detailedMessages : `key: ${key} RateLimiterPoints : ${points} RateLimiterDurations:${duration}`
+            detailedMessages : `key:${key} RateLimiterPoints:${points} RateLimiterDurations:${duration}`
           });
         }
-        throw new Error(`RateLimiter : ${limiterName} Rate limit exceeded: points : ${points} durations:${duration}`);
+        throw new Error(`RateLimiter:${limiterName} Rate limit exceeded: points:${points} durations:${duration}`);
       }
     }
   }
