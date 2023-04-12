@@ -302,7 +302,6 @@ export default class BillingStorage {
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Sort
-    // Sort
     if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
       aggregation.push({
         $sort: dbParams.sort
