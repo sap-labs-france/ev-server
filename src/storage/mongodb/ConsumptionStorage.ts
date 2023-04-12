@@ -399,10 +399,6 @@ export default class ConsumptionStorage {
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
-    // Sort
-    if (!dbParams.sort) { // TODO - remove implicit sorting - should be specified by the calling layer
-      dbParams.sort = { endedAt: 1 };
-    }
     // Create Aggregation
     const aggregation = [];
     // Create filters
@@ -430,6 +426,10 @@ export default class ConsumptionStorage {
       aggregation.push({
         $match: filters
       });
+    }
+    // Sort
+    if (!dbParams.sort) { // TODO - remove implicit sorting - should be specified by the calling layer
+      dbParams.sort = { endedAt: 1 };
     }
     aggregation.push({
       $sort: dbParams.sort

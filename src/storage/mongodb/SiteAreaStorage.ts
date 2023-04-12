@@ -394,10 +394,6 @@ export default class SiteAreaStorage {
         $sort: dbParams.sort
       });
     }
-    // Position coordinates
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip

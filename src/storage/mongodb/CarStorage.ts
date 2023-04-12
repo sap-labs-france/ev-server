@@ -473,9 +473,6 @@ export default class CarStorage {
         $sort: dbParams.sort
       });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     if (dbParams.skip > 0) {
       aggregation.push({ $skip: dbParams.skip });

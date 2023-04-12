@@ -435,9 +435,6 @@ export default class SiteStorage {
         $sort: dbParams.sort
       });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
