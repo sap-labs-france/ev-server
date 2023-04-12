@@ -1,11 +1,12 @@
 import { OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
-import { Command } from '../../../../types/ChargingStation';
+import ChargingStation, { Command } from '../../../../types/ChargingStation';
 import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPService from '../../services/OCPPService';
 import OCPPUtils from '../../utils/OCPPUtils';
 import { RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
@@ -49,7 +50,7 @@ export default class JsonChargingStationService {
     const { chargeBoxIdentity, tenant } = headers;
     const key = { tenant: tenant.subdomain, chargingStation: chargeBoxIdentity } ;
     const keyString = `${key.tenant}:${key.chargingStation}`;
-    await this.checkRateLimiters(tenant, this.limitersBootNotifs, keyString);
+    await this.checkRateLimiters(chargeBoxIdentity, tenant, this.limitersBootNotifs, keyString);
     const result = await this.handle(Command.BOOT_NOTIFICATION, headers, payload);
     return {
       currentTime: result.currentTime,
@@ -99,7 +100,7 @@ export default class JsonChargingStationService {
     const { chargingStation, tenant } = headers;
     const key = { connector: payload.connectorId, tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
     const keyString = `${key.connector}:${key.tenant}:${key.chargingStation}`;
-    await this.checkRateLimiters(tenant, this.limitersStartStopTransaction, keyString);
+    await this.checkRateLimiters(chargingStation.id, tenant, this.limitersStartStopTransaction, keyString);
     const result: OCPPStartTransactionResponse = await this.handle(Command.START_TRANSACTION, headers, payload);
     return {
       transactionId: result.transactionId,
@@ -120,7 +121,7 @@ export default class JsonChargingStationService {
     const { chargingStation, tenant } = headers;
     const key = { tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
     const keyString = `${key.tenant}:${key.chargingStation}`;
-    await this.checkRateLimiters(tenant,this.limitersStartStopTransaction, keyString);
+    await this.checkRateLimiters(chargingStation.id, tenant,this.limitersStartStopTransaction, keyString);
     const result: OCPPStopTransactionResponse = await this.handle(Command.STOP_TRANSACTION, headers, payload);
     return {
       idTagInfo: {
@@ -138,7 +139,7 @@ export default class JsonChargingStationService {
     }
   }
 
-  private async checkRateLimiters(tenant:Tenant,limiters: Array<RateLimiterMemoryWithName>, key: string) {
+  private async checkRateLimiters(chargingStationId: string, tenant:Tenant,limiters: Array<RateLimiterMemoryWithName>, key: string) {
     for (let i = 0; i < limiters.length; i++) {
       const limiter = limiters[i].limiter;
       const limiterName = limiters[i].name;
@@ -152,6 +153,7 @@ export default class JsonChargingStationService {
         const rateLimiterRes = error as RateLimiterRes;
         if (rateLimiterRes.consumedPoints === pointsPlusOne) {
           await Logging.logError({
+            chargingStationID:chargingStationId,
             tenantID: tenant.id,
             action: ServerAction.RATE_LIMITER,
             module: MODULE_NAME, method: 'checkRateLimiters',
