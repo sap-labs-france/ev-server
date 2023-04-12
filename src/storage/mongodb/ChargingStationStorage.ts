@@ -330,9 +330,11 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Reorder connector ID
     if (!Utils.hasValidGpsCoordinates(params.locCoordinates)) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
+      if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+        aggregation.push({
+          $sort: dbParams.sort
+        });
+      }
     }
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<any>(tenant.id, 'chargingstations')
@@ -819,7 +821,7 @@ export default class ChargingStationStorage {
     // Rename ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
-    if (!dbParams.sort) {
+    if (!dbParams.sort) { // TODO - remove implicit sorting - should be specified by the calling layer
       dbParams.sort = {
         'chargingStationID': 1,
         'connectorID': 1,

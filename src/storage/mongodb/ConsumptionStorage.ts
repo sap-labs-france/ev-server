@@ -400,7 +400,7 @@ export default class ConsumptionStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Sort
-    if (!dbParams.sort) {
+    if (!dbParams.sort) { // TODO - remove implicit sorting - should be specified by the calling layer
       dbParams.sort = { endedAt: 1 };
     }
     // Create Aggregation
@@ -505,7 +505,7 @@ export default class ConsumptionStorage {
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     // Sort
-    if (!dbParams.sort) {
+    if (!dbParams.sort) { // TODO - remove implicit sorting - should be specified by the calling layer
       dbParams.sort = { startedAt: 1 };
     }
     aggregation.push({

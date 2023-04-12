@@ -178,12 +178,11 @@ export default class AssetStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { name: 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     if (dbParams.skip > 0) {
       aggregation.push({ $skip: dbParams.skip });
@@ -311,12 +310,11 @@ export default class AssetStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { name: 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     if (dbParams.skip > 0) {
       aggregation.push({ $skip: dbParams.skip });
