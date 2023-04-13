@@ -502,7 +502,8 @@ export enum ServerAction {
   HTTP_ERROR = 'HttpError',
 
   EXPORT_TO_CSV = 'ExportToCSV',
-  SHIELD ='Shield'
+  SHIELD ='Shield',
+  RATE_LIMITER = 'RateLimiter'
 }
 
 // RESTful API
