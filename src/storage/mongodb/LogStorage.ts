@@ -163,6 +163,11 @@ export default class LogStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
+    if (!dbParams.sort) {
+      dbParams.sort = {
+        timestamp: -1 // Workaround - existing tests may check the logs and they are expecting to get recent logs first!
+      };
+    }
     if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
       aggregation.push({
         $sort: dbParams.sort
