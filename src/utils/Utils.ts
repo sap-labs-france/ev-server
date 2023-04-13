@@ -21,6 +21,7 @@ import LoggingHelper from './LoggingHelper';
 import OCPPError from '../exception/OcppError';
 import { Promise } from 'bluebird';
 import QRCode from 'qrcode';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
 import SiteArea from '../types/SiteArea';
@@ -230,12 +231,7 @@ export default class Utils {
   }
 
   public static areObjectPropertiesEqual(objCmp1: any = {}, objCmp2: any = {}, key: string): boolean {
-    // Check DB expireAfterSeconds index
-    if ((Utils.objectHasProperty(objCmp1, key) !== Utils.objectHasProperty(objCmp2, key)) ||
-        (objCmp1[key] !== objCmp2[key])) {
-      return false;
-    }
-    return true;
+    return _.isEqual(objCmp1[key], objCmp2[key]);
   }
 
   public static computeTimeDurationSecs(timeStart: number): number {
@@ -558,7 +554,7 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.power) {
               totalPower += chargePointOfCS.power;
-            // Connector
+              // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.power) {
               if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
                 // Check Connector ID
@@ -686,7 +682,7 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.currentType) {
               return chargePointOfCS.currentType;
-            // Connector
+              // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.currentType) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
@@ -932,13 +928,21 @@ export default class Utils {
     return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
   }
 
-  public static buildOCPPServerSecureURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
-    switch (ocppProtocol) {
-      case OCPPProtocol.JSON:
-        return `${Configuration.getJsonEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenantID}/${token}`;
-      case OCPPProtocol.SOAP:
-        return `${Configuration.getWSDLEndpointConfig().baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenantID}%26Token=${token}`;
+  public static buildOCPPServerSecureURL(tenant: Tenant, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
+    if (ocppProtocol === OCPPProtocol.SOAP) {
+      const baseSecureUrl = Utils.alterBaseURL(tenant, Configuration.getWSDLEndpointConfig().baseSecureUrl);
+      return `${baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenant.id}%26Token=${token}`;
     }
+    const baseSecureUrl = Utils.alterBaseURL(tenant, Configuration.getJsonEndpointConfig().baseSecureUrl);
+    return `${baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenant.id}/${token}`;
+  }
+
+  public static alterBaseURL(tenant: Tenant, baseUrl: string): string {
+    if (tenant.cpmsDomainName) {
+      const protocol = baseUrl.split(':').shift();
+      baseUrl = `${protocol}://${tenant.cpmsDomainName}`;
+    }
+    return baseUrl;
   }
 
   public static getOCPPServerVersionURLPath(ocppVersion: OCPPVersion): string {
@@ -1207,11 +1211,11 @@ export default class Utils {
     return false;
   }
 
-  public static getChargingStationEndpoint() : ChargingStationEndpoint {
+  public static getChargingStationEndpoint(): ChargingStationEndpoint {
     return ChargingStationEndpoint.AWS;
   }
 
-  public static async generateQrCode(data: string) :Promise<string> {
+  public static async generateQrCode(data: string): Promise<string> {
     return QRCode.toDataURL(data);
   }
 
@@ -1384,13 +1388,13 @@ export default class Utils {
     }
     // REST API
     if (url.startsWith('/client/api/') ||
-        url.startsWith('/v1/api/')) {
+      url.startsWith('/v1/api/')) {
       return PerformanceRecordGroup.REST_SECURED;
     }
     if (url.startsWith('/client/util/') ||
-        url.startsWith('/client/auth/') ||
-        url.startsWith('/v1/util/') ||
-        url.startsWith('/v1/auth/')) {
+      url.startsWith('/client/auth/') ||
+      url.startsWith('/v1/util/') ||
+      url.startsWith('/v1/auth/')) {
       return PerformanceRecordGroup.REST_PUBLIC;
     }
     // OCPI
@@ -1498,7 +1502,7 @@ export default class Utils {
 
   public static buildPerformanceRecord(params: {
     tenantSubdomain?: string; durationMs?: number; resSizeKb?: number; reqSizeKb?: number;
-    action: ServerAction|string; group?: PerformanceRecordGroup; httpUrl?: string;
+    action: ServerAction | string; group?: PerformanceRecordGroup; httpUrl?: string;
     httpMethod?: string; httpResponseCode?: number; egress?: boolean; chargingStationID?: string, userID?: string
   }): PerformanceRecord {
     const performanceRecord: PerformanceRecord = {
@@ -1633,7 +1637,7 @@ export default class Utils {
         }
         // Push sub site area to parent children array
         siteAreaHashTable[siteAreaOfSite.parentSiteAreaID].childSiteAreas.push(siteAreaHashTable[siteAreaOfSite.id]);
-      // Root Site Area
+        // Root Site Area
       } else {
         // If no parent ID is defined push root site area to array
         rootSiteAreasOfSite.push(siteAreaHashTable[siteAreaOfSite.id]);
@@ -1747,40 +1751,53 @@ export default class Utils {
   public static removeSensibeDataFromEntity(extraFilters: Record<string, any>, entityData?: EntityData): void {
     // User data
     if (Utils.objectHasProperty(extraFilters, 'UserData') &&
-       !Utils.isNullOrUndefined(extraFilters['UserData']) && extraFilters['UserData']) {
+      !Utils.isNullOrUndefined(extraFilters['UserData']) && extraFilters['UserData']) {
       Utils.deleteUserPropertiesFromEntity(entityData);
     }
     // Tag data
     if (Utils.objectHasProperty(extraFilters, 'TagData') &&
-       !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
+      !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
       Utils.deleteTagPropertiesFromEntity(entityData);
     }
     // Car Catalog data
     if (Utils.objectHasProperty(extraFilters, 'CarCatalogData') &&
-       !Utils.isNullOrUndefined(extraFilters['CarCatalogData']) && extraFilters['CarCatalogData']) {
+      !Utils.isNullOrUndefined(extraFilters['CarCatalogData']) && extraFilters['CarCatalogData']) {
       Utils.deleteCarCatalogPropertiesFromEntity(entityData);
     }
     // Car data
     if (Utils.objectHasProperty(extraFilters, 'CarData') &&
-       !Utils.isNullOrUndefined(extraFilters['CarData']) && extraFilters['CarData']) {
+      !Utils.isNullOrUndefined(extraFilters['CarData']) && extraFilters['CarData']) {
       Utils.deleteCarPropertiesFromEntity(entityData);
     }
     // Billing data
     if (Utils.objectHasProperty(extraFilters, 'BillingData') &&
-       !Utils.isNullOrUndefined(extraFilters['BillingData']) && extraFilters['BillingData']) {
+      !Utils.isNullOrUndefined(extraFilters['BillingData']) && extraFilters['BillingData']) {
       Utils.deleteBillingPropertiesFromEntity(entityData);
     }
   }
 
-  public static isMonitoringEnabled() : boolean {
+  public static isMonitoringEnabled(): boolean {
     if (((global.monitoringServer) && (process.env.K8S))) {
       return true;
     }
     return false;
   }
 
-  public static positiveHashCode(str :string):number {
+  public static positiveHashCode(str: string): number {
     return this.hashCode(str) + 2147483647 + 1;
+  }
+
+
+  public static getRateLimiters(): Map<string, RateLimiterMemory> {
+    const shieldConfiguration = Configuration.getShieldConfig();
+    const limiterMap = new Map();
+    if (shieldConfiguration?.active) {
+      shieldConfiguration.rateLimiters.forEach((rateLimiterConfig) => {
+        const limiter = new RateLimiterMemory({ points: rateLimiterConfig.numberOfPoints, duration: rateLimiterConfig.numberOfSeconds });
+        limiterMap.set(rateLimiterConfig.name, limiter);
+      });
+    }
+    return limiterMap;
   }
 
   private static hashCode(s:string): number {

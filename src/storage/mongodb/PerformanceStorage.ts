@@ -79,7 +79,7 @@ export default class PerformanceStorage {
     const labels = Object.keys(labelValues);
     try {
       if (performanceRecord.durationMs) {
-        if (performanceRecord.group === PerformanceRecordGroup.MONGO_DB) {
+        if (performanceRecord.group === PerformanceRecordGroup.MONGO_DB || performanceRecord.group === PerformanceRecordGroup.NOTIFICATION) {
           const durationMetric = global.monitoringServer.getCountAvgClearableMetric(grafanaGroup, 'DurationMs', hashCode, 'duration in milliseconds', 'number of invocations', labels);
           durationMetric.setValue(labelValues, performanceRecord.durationMs);
         } else {

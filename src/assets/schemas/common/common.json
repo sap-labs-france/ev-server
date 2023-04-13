@@ -136,11 +136,13 @@
         },
         "carStateOfCharge": {
           "type": "integer",
-          "sanitize": "mongo"
+          "sanitize": "mongo",
+          "nullable": true
         },
         "targetStateOfCharge": {
           "type": "integer",
-          "sanitize": "mongo"
+          "sanitize": "mongo",
+          "nullable": true
         }
       }
     },

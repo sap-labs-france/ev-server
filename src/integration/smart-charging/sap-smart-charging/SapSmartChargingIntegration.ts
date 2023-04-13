@@ -598,7 +598,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     if (transaction.stateOfCharge > 0) {
       customCar.startCapacity = (transaction.stateOfCharge / 100) * customCar.maxCapacity;
     // Check if manual state of charge is available
-    } else if (transaction.carStateOfCharge > 0) {
+    } else if (transaction.carStateOfCharge >= 0) {
       customCar.startCapacity = (transaction.carStateOfCharge / 100) * customCar.maxCapacity;
     // Handle if no state of charge is available
     } else {
@@ -906,7 +906,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       if (chargePoint?.efficiency > 0) {
         return Utils.roundTo(currentLimit * chargePoint.efficiency / 100 * numberOfConnectedPhase, 1);
       }
-      return Utils.roundTo(currentLimit * Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT * numberOfConnectedPhase, 1);
+      return Utils.roundTo(currentLimit * Constants.DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT / 100 * numberOfConnectedPhase, 1);
     }
     return Utils.roundTo((currentLimit * numberOfConnectedPhase), 1);
   }

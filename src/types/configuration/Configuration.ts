@@ -24,6 +24,7 @@ import OCPIServiceConfiguration from './OCPIServiceConfiguration';
 import ODataServiceConfiguration from './ODataServiceConfiguration';
 import OICPEndpointConfiguration from './OICPEndpointConfiguration';
 import OICPServiceConfiguration from './OICPServiceConfiguration';
+import ShieldConfiguration from './RateLimiterConfiguration';
 import SchedulerConfiguration from './SchedulerConfiguration';
 import StorageConfiguration from './StorageConfiguration';
 import TraceConfiguration from './TraceConfiguration';
@@ -50,6 +51,7 @@ export interface Configuration {
   ChargingStation: ChargingStationConfiguration;
   Locales?: LocalesConfiguration;
   Scheduler: SchedulerConfiguration;
+  Shield: ShieldConfiguration;
   AsyncTask: AsyncTaskConfiguration;
   Logging: LogConfiguration;
   HealthCheck?: HealthCheckConfiguration;
@@ -62,4 +64,4 @@ export interface Configuration {
   Cache?: CacheConfiguration;
 }
 
-export type ConfigurationSection = CryptoConfiguration|CentralSystemServerConfiguration|CentralSystemConfiguration|CentralSystemRestServiceConfiguration|CentralSystemFrontEndConfiguration|WSDLEndpointConfiguration|JsonEndpointConfiguration|OCPIEndpointConfiguration|OCPIServiceConfiguration|ODataServiceConfiguration|FirebaseConfiguration|EmailConfiguration|StorageConfiguration|NotificationConfiguration|AuthorizationConfiguration|ChargingStationConfiguration|SchedulerConfiguration|LocalesConfiguration|LogConfiguration|HealthCheckConfiguration|MigrationConfiguration|EVDatabaseConfiguration|ChargingStationTemplatesConfiguration|AxiosConfiguration|CacheConfiguration;
+export type ConfigurationSection = CryptoConfiguration|CentralSystemServerConfiguration|CentralSystemConfiguration|CentralSystemRestServiceConfiguration|CentralSystemFrontEndConfiguration|WSDLEndpointConfiguration|JsonEndpointConfiguration|OCPIEndpointConfiguration|OCPIServiceConfiguration|ODataServiceConfiguration|FirebaseConfiguration|EmailConfiguration|StorageConfiguration|NotificationConfiguration|AuthorizationConfiguration|ChargingStationConfiguration|SchedulerConfiguration|LocalesConfiguration|LogConfiguration|HealthCheckConfiguration|MigrationConfiguration|EVDatabaseConfiguration|ChargingStationTemplatesConfiguration|AxiosConfiguration|CacheConfiguration|ShieldConfiguration;
