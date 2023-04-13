@@ -588,9 +588,7 @@
         }
       },
       "required": [
-        "disableBackup",
-        "smtp",
-        "smtpBackup"
+        "smtp"
       ]
     },
     "Authorization": {
@@ -658,6 +656,31 @@
         "active",
         "nbrTasksInParallel"
       ]
+    },
+    "Shield": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "rateLimiters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "numberOfPoints": {
+                "type": "number"
+              },
+              "numberOfSeconds": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
     },
     "Scheduler": {
       "type": "object",

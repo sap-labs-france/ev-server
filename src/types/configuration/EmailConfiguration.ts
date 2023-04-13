@@ -8,15 +8,5 @@ export default interface EmailConfiguration {
     user: string;
     password: string;
   };
-  disableBackup?: boolean;
-  troubleshootingMode?: boolean
-  smtpBackup?: {
-    from: string;
-    host: string;
-    port: number;
-    secure: boolean;
-    requireTLS: boolean;
-    user: string;
-    password: string;
-  };
+  troubleshootingMode?: boolean // DEV only - set to true to send real mails when running tests
 }
