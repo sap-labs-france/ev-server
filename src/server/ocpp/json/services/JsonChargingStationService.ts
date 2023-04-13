@@ -140,12 +140,11 @@ export default class JsonChargingStationService {
       const limiterName = rateLimiter.name;
       const limiter = rateLimiter.limiter;
       const points = limiter.points;
-      const pointsPlusOne = points + 1;
       const duration = limiter.duration;
       try {
         await limiter.consume(key);
       } catch (rateLimiterRes) {
-        if (rateLimiterRes.consumedPoints === pointsPlusOne) {
+        if (rateLimiterRes.consumedPoints === (points + 1)) {
           // Only log the first time we reach the limit in the current limiter window
           await Logging.logError({
             tenantID: tenant.id,
