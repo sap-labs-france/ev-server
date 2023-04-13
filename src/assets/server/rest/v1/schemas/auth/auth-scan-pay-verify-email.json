@@ -34,6 +34,8 @@
     }
   },
   "required": [
+    "name",
+    "firstName",
     "email",
     "captcha",
     "siteAreaID",

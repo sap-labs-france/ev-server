@@ -28,7 +28,7 @@ import UtilsService from './v1/service/UtilsService';
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
   private paths = new Map<string, number>();
-  private actions = new Array<(action: ServerAction, req: Request, res: Response, next: NextFunction) => void | Promise<void>>();
+  private actions = new Array<(action: ServerAction, req: Request, res: Response, next: NextFunction) => void|Promise<void>>();
 
   private constructor(httpVerb: string) {
     switch (httpVerb) {
@@ -226,20 +226,20 @@ class RequestMapper {
     return RequestMapper.instances.get(method);
   }
 
-  public registerOneActionManyPaths(action: (action: ServerAction, req: Request, res: Response, next: NextFunction) => void | Promise<void>, ...paths: ServerAction[]) {
+  public registerOneActionManyPaths(action: (action: ServerAction, req: Request, res: Response, next: NextFunction) => void|Promise<void>, ...paths: ServerAction[]) {
     const index = this.actions.push(action) - 1;
     for (const path of paths) {
       this.paths.set(path, index);
     }
   }
 
-  public registerJsonActionsPaths(dict: { [key in ServerAction]?: (action: ServerAction, req: Request, res: Response, next: NextFunction) => void | Promise<void>; }) {
+  public registerJsonActionsPaths(dict: { [key in ServerAction]?: (action: ServerAction, req: Request, res: Response, next: NextFunction) => void|Promise<void>; }) {
     for (const key in dict) {
       this.registerOneActionManyPaths(dict[key], key as ServerAction);
     }
   }
 
-  public getActionFromPath(path: string): (action: ServerAction, req: Request, res: Response, next: NextFunction) => void | Promise<void> {
+  public getActionFromPath(path: string): (action: ServerAction, req: Request, res: Response, next: NextFunction) => void|Promise<void> {
     if (!this.paths.has(path)) {
       return UtilsService.handleUnknownAction.bind(this);
     }
