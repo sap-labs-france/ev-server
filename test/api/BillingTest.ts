@@ -874,6 +874,7 @@ describeif(isBillingProperlyConfigured)('Billing', () => {
         // Check that we have a new invoice with an invoiceID and an invoiceNumber
         await billingTestHelper.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID, 17.00);
       });
+    });
   });
 
   describe('Billing Test Data Cleanup (utbilling)', () => {
