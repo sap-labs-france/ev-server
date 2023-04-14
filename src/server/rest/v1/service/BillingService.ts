@@ -732,7 +732,7 @@ export default class BillingService {
     // URL to the DASHBOARD Onboarding Page
     const onboardingURL = Utils.buildEvseBillingAccountOnboardingURL(req.tenant, billingAccount.id);
     // Notify the user
-    const notificationData: BillingAccountCreationLinkNotification = {
+    const notificationData : BillingAccountCreationLinkNotification = {
       onboardingLink: onboardingURL,
       evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain),
       user
@@ -896,7 +896,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-      authorizations.projectFields
+    authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addAccountsAuthorizations(req.tenant, req.user, billingAccounts, authorizations);
@@ -939,7 +939,7 @@ export default class BillingService {
       limit: filteredRequest.Limit,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
-      authorizations.projectFields
+    authorizations.projectFields
     );
     if (filteredRequest.WithAuth) {
       await AuthorizationService.addTransfersAuthorizations(req.tenant, req.user, transfers, authorizations);

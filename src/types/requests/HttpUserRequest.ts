@@ -93,8 +93,8 @@ export interface HttpScanPayVerifyEmailRequest {
   siteAreaID: string;
   locale: string;
   subdomain: string;
-  name?: string;
-  firstName?: string;
+  name: string;
+  firstName: string;
   connectorID: string;
   chargingStationID: string;
 }

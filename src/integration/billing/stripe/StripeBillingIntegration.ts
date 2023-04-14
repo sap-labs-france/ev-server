@@ -168,7 +168,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return newBillingsSettings;
   }
 
-  private convertToBillingUser(customer: Stripe.Customer, user: User): BillingUser {
+  private convertToBillingUser(customer: Stripe.Customer, user: User) : BillingUser {
     if (!user) {
       throw new Error('Unexpected situation - user cannot be null');
     }
@@ -210,10 +210,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async getTaxes(): Promise<BillingTax[]> {
     await this.checkConnection();
-    const taxes: BillingTax[] = [];
+    const taxes : BillingTax[] = [];
     try {
       let request;
-      const requestParams: Stripe.TaxRateListParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST, active: true };
+      const requestParams : Stripe.TaxRateListParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST, active: true };
       do {
         request = await this.stripe.taxRates.list(requestParams);
         for (const tax of request.data) {
@@ -249,7 +249,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async getTaxRate(taxID: string): Promise<BillingTax> {
     await this.checkConnection();
-    let taxRate: BillingTax = null;
+    let taxRate : BillingTax = null;
     try {
       const stripeTaxRate: Stripe.TaxRate = await this.stripe.taxRates.retrieve(taxID);
       if (stripeTaxRate && stripeTaxRate.active) {
@@ -355,13 +355,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // idempotency_key: idempotencyKey?.toString()
       idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property as been renamed!!!
     });
-    // returns the newly created invoice item
+      // returns the newly created invoice item
     return stripeInvoiceItem;
   }
 
   private getTaxRateIds(): Array<string> {
     if (this.settings.billing.taxID) {
-      return [this.settings.billing.taxID];
+      return [this.settings.billing.taxID] ;
     }
     return []; // No tax rates so far!
   }
@@ -739,7 +739,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const customer = await this.getStripeCustomer(customerID);
       if (customer) {
         let response: Stripe.ApiList<Stripe.PaymentMethod>;
-        const requestParams: Stripe.PaymentMethodListParams = {
+        const requestParams : Stripe.PaymentMethodListParams = {
           limit: StripeBillingIntegration.STRIPE_MAX_LIST,
           customer: customerID,
           type: 'card',
@@ -769,7 +769,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async getStripeDefaultPaymentMethod(paymentMethodID: string): Promise<BillingPaymentMethod> {
-    return this.getStripePaymentMethod(paymentMethodID, true);
+    return this.getStripePaymentMethod(paymentMethodID, true) ;
   }
 
   private async getStripePaymentMethod(paymentMethodID: string, asDefault = false): Promise<BillingPaymentMethod> {
@@ -949,7 +949,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private async checkStripePaymentMethod(customer: Stripe.Customer, scanPayTransaction = false): Promise<void> {
     if (Utils.isDevelopmentEnv() && customer.default_source) {
       // Specific situation used only while running tests
-      return;
+      return ;
     }
     if (!scanPayTransaction && !customer.invoice_settings?.default_payment_method) {
       throw new BackendError({
@@ -1197,7 +1197,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  private async getLatestDraftInvoiceOfTheMonth(tenantID: string, userID: string, customerID: string): Promise<Stripe.Invoice> {
+  private async getLatestDraftInvoiceOfTheMonth(tenantID:string, userID: string, customerID: string): Promise<Stripe.Invoice> {
     // Fetch the invoice list - c.f.: https://stripe.com/docs/api/invoices/list
     // The invoices are returned sorted by creation date, with the most recent ones appearing first.
     const list = await this.stripe.invoices.list({
@@ -1238,7 +1238,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return lightInvoiceItem;
   }
 
-  private convertToBillingInvoiceItem(transaction: Transaction, accountData: BillingSessionAccountData): BillingInvoiceItem {
+  private convertToBillingInvoiceItem(transaction: Transaction, accountData: BillingSessionAccountData) : BillingInvoiceItem {
     const transactionID = transaction.id;
     const currency = transaction.stop.priceUnit;
     const pricingData = this.extractTransactionPricingData(transaction);
@@ -1261,15 +1261,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
     billingInvoiceItem.headerDescription = this.buildLineItemDescription(transaction, true);
     // Returns a item representing the complete charging session (energy + parking information)
-    return billingInvoiceItem;
+    return billingInvoiceItem ;
   }
 
-  private extractTransactionPricingData(transaction: Transaction): PricedConsumptionData[] {
+  private extractTransactionPricingData(transaction: Transaction) : PricedConsumptionData[] {
     const pricingModel = Object.freeze(transaction.pricingModel);
     let pricingData: PricedConsumptionData[] = PricingEngine.extractFinalPricingData(pricingModel);
     if (!FeatureToggles.isFeatureActive(Feature.BILLING_SHOW_PRICING_DETAIL)) {
       // Accumulate data per dimensions = less details, less disputes
-      pricingData = [PricingHelper.accumulatePricedConsumption(pricingData)];
+      pricingData = [ PricingHelper.accumulatePricedConsumption(pricingData) ] ;
     }
     pricingData = pricingData.map((pricingConsumptionData) => this.enrichTransactionPricingData(transaction, pricingConsumptionData));
     void Logging.logInfo({
@@ -1284,7 +1284,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return pricingData;
   }
 
-  private enrichTransactionPricingData(transaction: Transaction, pricingConsumptionData: PricedConsumptionData): PricedConsumptionData {
+  private enrichTransactionPricingData(transaction: Transaction, pricingConsumptionData: PricedConsumptionData) : PricedConsumptionData {
     // -------------------------------------------------------------------------------
     // TODO - so far we use the same tax rates for all invoice items!
     // -------------------------------------------------------------------------------
@@ -1601,7 +1601,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     await this.checkIfUserCanBeUpdated(user);
     // Let's check if the STRIPE customer exists
-    const customerID: string = user?.billingData?.customerID;
+    const customerID : string = user?.billingData?.customerID;
     if (!customerID) {
       throw new Error('Unexpected situation - the customerID is NOT set');
     }
@@ -1987,7 +1987,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Generate the invoice item
       const description = this.buildTransferFeeItemDescription(user, billingTransfer.sessionCounter);
       // A single tax rate per session
-      const tax_rates = (taxID) ? [taxID] : [];
+      const tax_rates = (taxID) ? [taxID] : [] ;
       // Prepare item parameters
       const parameters: Stripe.InvoiceItemCreateParams = {
         invoice: stripeInvoice.id,
@@ -2042,7 +2042,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const createdOn = moment.unix(epoch).toDate(); // epoch to Date!
     const userID = metadata.userID;
     // Amount is in cents!
-    const amount = amountCents;
+    const amount = amountCents ;
     const totalAmount = Utils.createDecimal(amountCents).div(100).toNumber();
     const invoice: BillingPlatformInvoice = {
       invoiceID, documentNumber, liveMode, userID,
