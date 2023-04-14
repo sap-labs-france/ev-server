@@ -1,14 +1,13 @@
 import { OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import { Command } from '../../../../types/ChargingStation';
-import { ServerAction } from '../../../../types/Server';
-import Tenant from '../../../../types/Tenant';
-import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPService from '../../services/OCPPService';
 import OCPPUtils from '../../utils/OCPPUtils';
-import { RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
+import { ServerAction } from '../../../../types/Server';
+import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import global from '../../../../types/GlobalType';
 
@@ -26,30 +25,29 @@ export default class JsonChargingStationService {
     name = 'StartStopTransactionPerMin';
     const startStopTransactionLimiterPerMin = rateLimitersMap.get(name);
     if (startStopTransactionLimiterPerMin) {
-      this.limitersStartStopTransaction.push({ name:name, limiter:startStopTransactionLimiterPerMin });
+      this.limitersStartStopTransaction.push({ name, limiter: startStopTransactionLimiterPerMin });
     }
     name = 'StartStopTransactionPerHour';
     const startStopTransactionLimiterPerHour = rateLimitersMap.get(name);
     if (startStopTransactionLimiterPerHour) {
-      this.limitersStartStopTransaction.push({ name:name, limiter:startStopTransactionLimiterPerHour });
+      this.limitersStartStopTransaction.push({ name, limiter: startStopTransactionLimiterPerHour });
     }
     name = 'BootNotifPerHour';
     const bootNotifRateLimiterPerHour = rateLimitersMap.get(name);
     if (bootNotifRateLimiterPerHour) {
-      this.limitersBootNotifs.push({ name:name, limiter: bootNotifRateLimiterPerHour });
+      this.limitersBootNotifs.push({ name, limiter: bootNotifRateLimiterPerHour });
     }
     name = 'BootNotifPerDay';
     const bootNotifRateLimiterPerDay = rateLimitersMap.get(name);
     if (bootNotifRateLimiterPerDay) {
-      this.limitersBootNotifs.push({ name: name, limiter: bootNotifRateLimiterPerDay });
+      this.limitersBootNotifs.push({ name, limiter: bootNotifRateLimiterPerDay });
     }
   }
 
   public async handleBootNotification(headers: OCPPHeader, payload: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
     const { chargeBoxIdentity, tenant } = headers;
-    const key = { tenant: tenant.subdomain, chargingStation: chargeBoxIdentity } ;
-    const keyString = `${key.tenant}:${key.chargingStation}`;
-    await this.checkRateLimiters(tenant, this.limitersBootNotifs, keyString);
+    const keyString = `${tenant.subdomain}:${chargeBoxIdentity}`;
+    await this.checkRateLimiters(tenant, chargeBoxIdentity, this.limitersBootNotifs, keyString);
     const result = await this.handle(Command.BOOT_NOTIFICATION, headers, payload);
     return {
       currentTime: result.currentTime,
@@ -94,12 +92,11 @@ export default class JsonChargingStationService {
     return {};
   }
 
-
   public async handleStartTransaction(headers: OCPPHeader, payload: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
     const { chargingStation, tenant } = headers;
     const key = { connector: payload.connectorId, tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
     const keyString = `${key.connector}:${key.tenant}:${key.chargingStation}`;
-    await this.checkRateLimiters(tenant, this.limitersStartStopTransaction, keyString);
+    await this.checkRateLimiters(tenant, chargingStation.id, this.limitersStartStopTransaction, keyString);
     const result: OCPPStartTransactionResponse = await this.handle(Command.START_TRANSACTION, headers, payload);
     return {
       transactionId: result.transactionId,
@@ -120,7 +117,7 @@ export default class JsonChargingStationService {
     const { chargingStation, tenant } = headers;
     const key = { tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
     const keyString = `${key.tenant}:${key.chargingStation}`;
-    await this.checkRateLimiters(tenant,this.limitersStartStopTransaction, keyString);
+    await this.checkRateLimiters(tenant, chargingStation.id, this.limitersStartStopTransaction, keyString);
     const result: OCPPStopTransactionResponse = await this.handle(Command.STOP_TRANSACTION, headers, payload);
     return {
       idTagInfo: {
@@ -138,29 +135,30 @@ export default class JsonChargingStationService {
     }
   }
 
-  private async checkRateLimiters(tenant:Tenant,limiters: Array<RateLimiterMemoryWithName>, key: string) {
-    for (let i = 0; i < limiters.length; i++) {
-      const limiter = limiters[i].limiter;
-      const limiterName = limiters[i].name;
-      const points : number = limiter.points;
-      let pointsplusone = points ;
-      pointsplusone++;
-      const rateLimiter = this.limitersStartStopTransaction[i];
+  private async checkRateLimiters(tenant:Tenant, chargingStationId: string, limiters: Array<RateLimiterMemoryWithName>, key: string) {
+    for (const rateLimiter of limiters) {
+      const limiterName = rateLimiter.name;
+      const limiter = rateLimiter.limiter;
+      const points = limiter.points;
       const duration = limiter.duration;
       try {
-        const res = await limiter.consume(key);
-      } catch (error) {
-        const rateLimiterRes = error as RateLimiterRes;
-        if (rateLimiterRes.consumedPoints === pointsplusone) {
+        await limiter.consume(key);
+      } catch (rateLimiterRes) {
+        if (rateLimiterRes.consumedPoints === (points + 1)) {
+          // Only log the first time we reach the limit in the current limiter window
           await Logging.logError({
             tenantID: tenant.id,
+            chargingStationID:chargingStationId,
             action: ServerAction.RATE_LIMITER,
             module: MODULE_NAME, method: 'checkRateLimiters',
-            message: `RateLimiter ${limiterName} reached first time in windows`,
-            detailedMessages : `key: ${key} RateLimiterPoints : ${points} RateLimiterDurations:${duration}`
+            message: `RateLimiter ${limiterName} reached for the key: ${key}`,
+            detailedMessages : {
+              rateLimiterPoints: points,
+              rateLimiterDurations: duration
+            }
           });
         }
-        throw new Error(`RateLimiter : ${limiterName} Rate limit exceeded: points : ${points} durations:${duration}`);
+        throw new Error(`RateLimiter: ${limiterName} - Rate limit exceeded - key: ${key} - points: ${points} - durations: ${duration}`);
       }
     }
   }
