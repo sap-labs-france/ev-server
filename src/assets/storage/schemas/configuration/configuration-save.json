@@ -672,10 +672,10 @@
                 "type": "string"
               },
               "numberOfPoints": {
-                "type": "string"
+                "type": "number"
               },
               "numberOfSeconds": {
-                "type": "string"
+                "type": "number"
               }
             }
           }

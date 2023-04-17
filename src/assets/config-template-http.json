@@ -89,10 +89,10 @@
   },
   "Notification": {
     "Email": {
-      "enabled": true
+      "enabled": false
     },
     "RemotePushNotification": {
-      "enabled": true
+      "enabled": false
     }
   },
   "Firebase": {
@@ -112,17 +112,7 @@
     "timeoutSecs": 30
   },
   "Email": {
-    "disableBackup": false,
     "smtp": {
-      "from": "",
-      "host": "",
-      "port": 465,
-      "secure": true,
-      "requireTLS": false,
-      "user": "",
-      "password": ""
-    },
-    "smtpBackup": {
       "from": "",
       "host": "",
       "port": 465,
