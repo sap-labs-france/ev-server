@@ -12,6 +12,7 @@ import TenantSchedulerTask from '../../TenantSchedulerTask';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import Utils from '../../../utils/Utils';
 import global from '../../../types/GlobalType';
+import moment from 'moment';
 
 const MODULE_NAME = 'OCPIPushCdrsTask';
 
@@ -30,9 +31,13 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
               [
                 {
                   $match: {
+                    timestamp: {
+                      $gt: moment().date(0).date(1).startOf('day').toDate() // 1st day of the previous month 00:00:00 (AM)
+                    },
                     issuer: true,
                     stop: { $exists: true },
                     ocpiData: { $exists: true },
+                    'stop.extraInactivityComputed': true, // Do not call processEndTransaction if the extra inactivity is not yet known
                     'ocpiData.cdr': null
                   }
                 },
@@ -126,7 +131,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
         }
       }
     } catch (error) {
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_CDRS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_CDRS, error as Error);
     }
   }
 }
