@@ -76,15 +76,6 @@ export default class PerformanceStorage {
   private static savePrometheusMetric(performanceRecord: PerformanceRecord, labelValues:LabelValues<string>) {
     // const grafanaGroup = performanceRecord.group.replace('-', ''); // ACHTUNG - does not work - only replaces the first occurrence!
 
-
-    Logging.logDebug({
-      tenantID: Constants.DEFAULT_TENANT_ID,
-      action: ServerAction.PERFORMANCES,
-      module: 'NONE', method: 'savePrometheusMetric',
-      message: `savePrometheusMetric`
-    });
-
-
     const grafanaGroup = performanceRecord.group.replace(/-/g, '');
     const values = Object.values(labelValues).toString();
     const hashCode = Utils.positiveHashCode(values);
@@ -109,7 +100,7 @@ export default class PerformanceStorage {
       }
     } catch (error) {
       throw new Error(`Failed to save performance metrics - group: '${grafanaGroup}' - hashCode: '${hashCode}', labels: '${JSON.stringify(labels)}' - message: '${error.message}'`);
-    }}
+    }
   }
 }
 
