@@ -31,6 +31,11 @@
     },
     "connectorID": {
       "$ref": "chargingstation#/definitions/id"
+    },
+    "locale": {
+      "type": "string",
+      "sanitize": "mongo",
+      "maxLength": 5
     }
   },
   "required": [
