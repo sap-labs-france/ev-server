@@ -1,7 +1,9 @@
 import PerformanceRecord, { PerformanceRecordGroup } from '../../types/Performance';
 import global, { FilterParams } from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 
 import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import DatabaseUtils from './DatabaseUtils';
 import { DeletedResult } from '../../types/DataResult';
 import { LabelValues } from 'prom-client';
@@ -9,7 +11,7 @@ import { ObjectId } from 'mongodb';
 import PerformanceValidatorStorage from '../validator/PerformanceValidatorStorage';
 import Utils from '../../utils/Utils';
 
-const PERFS_ENABLED = false;
+const PERFS_ENABLED = true;
 
 // TODO: To remove when switched to k8s with Prometheus
 export default class PerformanceStorage {
@@ -73,6 +75,16 @@ export default class PerformanceStorage {
 
   private static savePrometheusMetric(performanceRecord: PerformanceRecord, labelValues:LabelValues<string>) {
     // const grafanaGroup = performanceRecord.group.replace('-', ''); // ACHTUNG - does not work - only replaces the first occurrence!
+
+
+    Logging.logDebug({
+      tenantID: Constants.DEFAULT_TENANT_ID,
+      action: ServerAction.PERFORMANCES,
+      module: 'NONE', method: 'savePrometheusMetric',
+      message: `savePrometheusMetric`
+    });
+
+
     const grafanaGroup = performanceRecord.group.replace(/-/g, '');
     const values = Object.values(labelValues).toString();
     const hashCode = Utils.positiveHashCode(values);
@@ -97,7 +109,7 @@ export default class PerformanceStorage {
       }
     } catch (error) {
       throw new Error(`Failed to save performance metrics - group: '${grafanaGroup}' - hashCode: '${hashCode}', labels: '${JSON.stringify(labels)}' - message: '${error.message}'`);
-    }
+    }}
   }
 }
 
