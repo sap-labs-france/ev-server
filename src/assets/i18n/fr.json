@@ -332,6 +332,21 @@
         }
       ]
     },
+    "billing-new-invoice-unpaid-scan-pay": {
+      "title": "Facturation - Nouvelle facture émise",
+      "buttonText": "Payer la facture",
+      "text": [
+        "Veuillez suivre le lien ci-dessous pour finaliser le paiement.",
+        "",
+        "La facture numéro {{invoiceNumber}} a été émise et le document correspondant peut être téléchargé en suivant le lien ci-dessous après paiement."
+      ],
+      "table": [
+        {
+          "label": "Montant dû",
+          "value": "{{invoiceAmount}}"
+        }
+      ]
+    },
     "charging-station-registered": {
       "title": "Borne connectée",
       "buttonText": "Voir la borne",
