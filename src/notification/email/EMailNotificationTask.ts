@@ -189,7 +189,7 @@ export default class EMailNotificationTask implements NotificationTask {
       templateName = 'billing-new-invoice-paid';
     } else {
       data.buttonUrl = data.payInvoiceUrl;
-      templateName = 'billing-new-invoice-unpaid';
+      templateName = 'billing-new-invoice-unpaid-scan-pay';
     }
     return await this.prepareAndSendEmail(templateName, data, user, tenant, severity, optionalComponents);
   }
@@ -285,7 +285,7 @@ export default class EMailNotificationTask implements NotificationTask {
       });
       if (!this.emailConfig.troubleshootingMode) {
         // Do not send emails when in dev mode or while running automated tests
-        return ;
+        // return ;
       }
     }
     try {

@@ -332,6 +332,21 @@
         }
       ]
     },
+    "billing-new-invoice-unpaid-scan-pay": {
+      "title": "Billing - New Invoice",
+      "buttonText": "Pay Invoice",
+      "text": [
+        "Please follow the link below to finalize the payment.",
+        "",
+        "The invoice {{invoiceNumber}} has been generated. You can download the corresponding document following the link below once paid"
+      ],
+      "table": [
+        {
+          "label": "Amount Due",
+          "value": "{{invoiceAmount}}"
+        }
+      ]
+    },
     "charging-station-registered": {
       "title": "Estación de carga conectada",
       "buttonText": "Vista de la estación de carga",
