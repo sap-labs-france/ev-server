@@ -1050,7 +1050,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         testData.siteAreaContext.getSiteArea().maximumPower = 100000;
         await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
-        expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
             'limit': 327
@@ -1064,7 +1064,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
             'limit': 327
           }
         ]);
-        expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
             'limit': 86
@@ -1160,7 +1160,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         'Test for sticky limit disabled - two cars charging with lower site area limit',
         async () => {
           const chargingProfiles = await smartChargingIntegrationWithoutStickyLimit.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
-          expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
               'limit': 327
@@ -1174,7 +1174,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
               'limit': 327
             }
           ]);
-          expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
               'limit': 86
