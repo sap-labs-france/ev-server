@@ -1172,7 +1172,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction, accountData);
         const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem, transaction.lastPaymentIntentID);
         // Send a notification to the user
-        void this.sendInvoiceNotification(billingInvoice);
+        await this.sendInvoiceNotification(billingInvoice);
         return {
           status: BillingStatus.BILLED,
           invoiceID: billingInvoice.id,

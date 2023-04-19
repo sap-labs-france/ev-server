@@ -303,7 +303,7 @@ export default class AuthService {
     // Send notification
     const evseDashboardVerifyScanPayEmailURL = Utils.buildEvseURL(req.tenant.subdomain) + '/auth/scan-pay?VerificationToken=' + tag.user.verificationToken + '&email=' + encodeURIComponent(tag.user.email) + '&siteAreaID=' + filteredRequest.siteAreaID + '&chargingStationID=' + filteredRequest.chargingStationID + '&connectorID=' + filteredRequest.connectorID;
     // Notify
-    void NotificationHandler.sendScanPayVerifyEmail(
+    await NotificationHandler.sendScanPayVerifyEmail(
       tenant,
       Utils.generateUUID(),
       tag.user,
