@@ -334,7 +334,22 @@ export default class BillingService {
       });
     }
     const scanPaySettings: ScanPaySettings = await UtilsService.checkAndGetScanPaySettingAuthorization(req.tenant, req.user, null, Action.READ, action);
-    const operationResult: BillingOperationResult = await billingImpl.setupPaymentIntent(tag.user, filteredRequest.paymentIntentID, scanPaySettings.scanPay.amount);
+    const pricingSettings = await SettingStorage.getPricingSettings(req.tenant);
+    if (!scanPaySettings || !pricingSettings) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Scan Pay or Pricing is not configured',
+        module: MODULE_NAME, method: 'handleScanPayPaymentIntent',
+        action: action,
+        user: req.user
+      });
+    }
+    const operationResult: BillingOperationResult = await billingImpl.setupPaymentIntent(
+      tag.user,
+      filteredRequest.paymentIntentID,
+      scanPaySettings.scanPay.amount,
+      pricingSettings.simple.currency
+    );
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
     }
@@ -350,7 +365,7 @@ export default class BillingService {
     // Get charging station to check connector availablity
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.chargingStationID, Action.READ, action, null, {}, true);
-    const connector = chargingStation.connectors.find(connector => connector.connectorId === filteredRequest.connectorID);
+    const connector = chargingStation.connectors.find((connector) => connector.connectorId === filteredRequest.connectorID);
     if (!connector.canRemoteStartTransaction) {
       // catch connector is not available
       throw new AppError({

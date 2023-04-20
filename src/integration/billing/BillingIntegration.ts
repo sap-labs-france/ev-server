@@ -719,7 +719,7 @@ export default abstract class BillingIntegration {
 
   public abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
 
-  public abstract setupPaymentIntent(user: User, paymentIntentID: string, scanPayAmount?: number): Promise<BillingOperationResult>;
+  public abstract setupPaymentIntent(user: User, paymentIntentID: string, scanPayAmount?: number, currency?: string): Promise<BillingOperationResult>;
 
   public abstract capturePayment(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult>;
 
