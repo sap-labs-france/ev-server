@@ -513,7 +513,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   // Called once at step #1 once at step #2 with or without paymentIntentID to know where the call comes from
-  public async setupPaymentIntent(user: User, paymentIntentID: string, scanPayAmount?: number): Promise<BillingOperationResult> {
+  public async setupPaymentIntent(user: User, paymentIntentID: string, scanPayAmount?: number, currency?: string): Promise<BillingOperationResult> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
@@ -537,7 +537,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     let billingOperationResult: BillingOperationResult;
     if (!paymentIntentID) {
       // Let's create a payment intent for the stripe customer
-      billingOperationResult = await this.createPaymentIntent(user, customerID, scanPayAmount);
+      billingOperationResult = await this.createPaymentIntent(user, customerID, scanPayAmount, currency);
     } else {
       // Retrieve payment intent
       billingOperationResult = await this.retrievePaymentIntent(user, paymentIntentID);
@@ -898,14 +898,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private async createPaymentIntent(user: User, customerID: string, scanPayAmount?: number): Promise<BillingOperationResult> {
+  private async createPaymentIntent(user: User, customerID: string, scanPayAmount?: number, currency?: string): Promise<BillingOperationResult> {
     try {
       // Let's create a paymentIntent for the stripe customer
       const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.create({
         customer: customerID,
         // Stripe wait for cents amount = x100, ui displays euros as db
         amount: scanPayAmount * 100,
-        currency: 'EUR',
+        currency: currency.toLowerCase(),
         setup_future_usage: 'off_session',
         capture_method: 'manual',
         receipt_email: user.email
