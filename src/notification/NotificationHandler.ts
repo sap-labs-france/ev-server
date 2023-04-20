@@ -380,7 +380,7 @@ export default class NotificationHandler {
             await NotificationHandler.saveNotification(
               tenant, notificationSource.channel, notificationID, ServerAction.SCAN_PAY_VERIFY_EMAIL, { user });
             // Send
-            void notificationSource.notificationTask.sendScanPayVerifyEmailNotification(
+            await notificationSource.notificationTask.sendScanPayVerifyEmailNotification(
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.SCAN_PAY_VERIFY_EMAIL, error);
@@ -402,7 +402,7 @@ export default class NotificationHandler {
             await NotificationHandler.saveNotification(
               tenant, notificationSource.channel, notificationID, ServerAction.SCAN_PAY_TRANSACTION_STARTED, { user });
             // Send
-            void notificationSource.notificationTask.sendScanPaySessionStarted(
+            await notificationSource.notificationTask.sendScanPaySessionStarted(
               sourceData, user, tenant, NotificationSeverity.INFO);
           } catch (error) {
             await Logging.logActionExceptionMessage(tenant.id, ServerAction.SCAN_PAY_VERIFY_EMAIL, error);
