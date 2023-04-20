@@ -11,8 +11,9 @@ import Tenant from '../../types/Tenant';
 import TenantSchedulerTask from '../TenantSchedulerTask';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
+import moment from 'moment';
 
-const MODULE_NAME = 'CleanTransactionsInProgressTask';
+const MODULE_NAME = 'CloseTransactionsInProgressTask';
 
 export default class CloseTransactionsInProgressTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant): Promise<void> {
@@ -26,9 +27,18 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
         const startTime = new Date().getTime();
         // Instantiate the OCPPService
         const ocppService = new OCPPService(Configuration.getChargingStationConfig());
+        // Filters
+        const startDateTime = moment().date(0).date(1).startOf('day').toDate(); // 1st day of the previous month 00:00:00 (AM)
+        const endDateTime = moment().subtract(1, 'minutes').toDate(); // Do not close sessions that have just been started to prevent dirty read issues
+        const transactionsToStop = true;
         // Get opened transactions to close
         const transactions = await TransactionStorage.getTransactions(
-          tenant, { transactionsToStop: true, issuer: true }, Constants.DB_PARAMS_MAX_LIMIT);
+          tenant, {
+            issuer: true,
+            startDateTime, // Do not close consider very old sessions
+            endDateTime, // Do not close sessions that have just been started
+            transactionsToStop, // Specific flag to make sure the charger connector does not reference the transaction anymore
+          }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const transaction of transactions.result) {
           try {
             // Soft stop transaction
