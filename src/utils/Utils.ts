@@ -998,7 +998,7 @@ export default class Utils {
   }
 
   public static buildEvseScanPayConnectorURL(tenantSubdomain: string, chargingStation: ChargingStation, connectorID: number): string {
-    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/${chargingStation.siteAreaID}/${chargingStation.id}/${connectorID}`;
+    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/${chargingStation.id}/${connectorID}`;
   }
 
   public static getRequestIP(request: http.IncomingMessage | Partial<Request>): string | string[] {
