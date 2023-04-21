@@ -990,7 +990,7 @@ export default class Utils {
   }
 
   public static buildEvseScanPayInvoiceDownloadURL(tenantSubdomain: string, billingInvoiceID: string, user: User): string {
-    return `${Utils.buildEvseURL(tenantSubdomain) + '/auth/scan-pay/' + billingInvoiceID + '/download?VerificationToken=' + encodeURIComponent(user.verificationToken) + '&email=' + encodeURIComponent(user.email)}`;
+    return `${Utils.buildEvseURL(tenantSubdomain) + '/auth/scan-pay/invoice/' + billingInvoiceID + '/download?VerificationToken=' + encodeURIComponent(user.verificationToken) + '&email=' + encodeURIComponent(user.email)}`;
   }
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
