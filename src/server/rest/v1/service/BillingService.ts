@@ -1085,7 +1085,7 @@ export default class BillingService {
   }
 
   public static async handleUserScanPay(filteredRequest: HttpScanPayVerifyEmailRequest, tenant: Tenant): Promise<Tag> {
-    const locale = filteredRequest.locale ?? Constants.DEFAULT_LOCALE;
+    const locale = filteredRequest.locale || Constants.DEFAULT_LOCALE;
     // Prepare the User
     const newUser = UserStorage.createNewUser();
     const verificationToken = Utils.generateToken(filteredRequest.email);
