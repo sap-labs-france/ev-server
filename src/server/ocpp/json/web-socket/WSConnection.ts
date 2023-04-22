@@ -159,26 +159,31 @@ export default abstract class WSConnection {
       } else {
         // Not always an error with uWebSocket: check BackPressure example
         const message = `Error when sending error '${messageToSend}' to Web Socket`;
-        void Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getChargingStationProperties(this.chargingStation),
           tenantID: this.tenantID,
           chargingStationID: this.chargingStationID,
-          module: MODULE_NAME, method: 'sendError',
+          module: MODULE_NAME, method: 'sendMessageInternal',
           action: ServerAction.WS_SERVER_CONNECTION_ERROR,
-          message, detailedMessages: { message: messageToSend }
+          message, detailedMessages: {
+            message: messageToSend
+          }
         });
         Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
       }
     } catch (wsError) {
       // Invalid Web Socket
       const message = `Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`;
-      void Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(this.chargingStation),
         tenantID: this.tenantID,
         chargingStationID: this.chargingStationID,
-        module: MODULE_NAME, method: 'sendPayload',
+        module: MODULE_NAME, method: 'sendMessageInternal',
         action: ServerAction.WS_SERVER_CONNECTION_ERROR,
-        message, detailedMessages: { message: messageToSend, error: wsError?.stack }
+        message, detailedMessages: {
+          message: messageToSend,
+          error: wsError?.stack
+        }
       });
       Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
     }

@@ -59,28 +59,34 @@ export default class WSWrapper {
   }
 
   public send(messageToSend: string, initialCommand: Command, initialCommandPayload?: OCPPPayload, isBinary?: boolean, compress?: boolean): boolean {
-    this.canSendMessage(WebSocketAction.MESSAGE, messageToSend, initialCommand, initialCommandPayload);
-    const returnedCode = this.ws.send(messageToSend, isBinary, compress);
-    // Return a boolean in production
-    if (typeof returnedCode === 'boolean') {
-      return returnedCode;
+    let sent = false ;
+    if (this.canSendMessage(WebSocketAction.MESSAGE, messageToSend, initialCommand, initialCommandPayload)) {
+      // Sends a message.
+      // Returns
+      // - 1 for success,
+      // - 2 for dropped due to backpressure limit,
+      // - 0 for built up backpressure that will drain over time.
+      // Todo: check backpressure before or after sending by calling getBufferedAmount()
+      const returnedCode = this.ws.send(messageToSend, isBinary, compress);
+      // Handle back pressure
+      if (returnedCode === 1) {
+        sent = true;
+      } else {
+        Logging.beWarning()?.log({
+          ...LoggingHelper.getWSWrapperProperties(this),
+          tenantID: Constants.DEFAULT_TENANT_ID,
+          action: ServerAction.WS_SERVER_MESSAGE,
+          module: MODULE_NAME, method: 'send',
+          message: `WS Message returned a backpressure code '${returnedCode}'`,
+          detailedMessages: {
+            message: messageToSend,
+            returnedCode,
+            wsWrapper: this.toJson()
+          }
+        });
+      }
     }
-    // Handle back pressure
-    if (returnedCode !== 1) {
-      Logging.beWarning()?.log({
-        ...LoggingHelper.getWSWrapperProperties(this),
-        tenantID: Constants.DEFAULT_TENANT_ID,
-        action: ServerAction.WS_SERVER_MESSAGE,
-        module: MODULE_NAME, method: 'send',
-        message: `WS Message returned a backpressure code '${returnedCode}'`,
-        detailedMessages: {
-          message: messageToSend,
-          returnedCode,
-          wsWrapper: this.toJson()
-        }
-      });
-    }
-    return true;
+    return sent;
   }
 
   public close(code: number, shortMessage: RecognizedString): void {
@@ -102,7 +108,9 @@ export default class WSWrapper {
   }
 
   public ping(message: RecognizedString) : boolean {
-    this.canSendMessage(WebSocketAction.PING, message as string);
+    if (this.closed) {
+      return false;
+    }
     const returnedCode = this.ws.ping(message);
     // Return a boolean in production
     if (typeof returnedCode === 'boolean') {
@@ -150,13 +158,21 @@ export default class WSWrapper {
     };
   }
 
-  private canSendMessage(wsAction: WebSocketAction, messageToSend: string, initialCommand?: Command, initialCommandPayload?: OCPPPayload): void {
+  private canSendMessage(wsAction: WebSocketAction, messageToSend: string, initialCommand?: Command, initialCommandPayload?: OCPPPayload): boolean {
     if (this.closed) {
-      if (initialCommand && initialCommandPayload) {
-        throw new Error(`'${wsAction}' > Cannot send message '${messageToSend}', initial command '${initialCommand}', command payload '${JSON.stringify(initialCommandPayload)}', WS Connection ID '${this.guid}' is already closed ('${this.url}')`);
-      } else {
-        throw new Error(`'${wsAction}' > Cannot send message '${messageToSend}', WS Connection ID '${this.guid}' is already closed ('${this.url}')`);
-      }
+      Logging.beWarning()?.log({
+        ...LoggingHelper.getWSWrapperProperties(this),
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        action: ServerAction.WS_SERVER_MESSAGE,
+        module: MODULE_NAME, method: 'canSendMessage',
+        message: `'${wsAction}' > Cannot send message '${messageToSend}', WS Connection ID '${this.guid}' is already closed ('${this.url}'`,
+        detailedMessages: {
+          initialCommand,
+          initialCommandPayload
+        }
+      });
+      return false;
     }
+    return true;
   }
 }
