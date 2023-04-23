@@ -51,7 +51,9 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
               module: MODULE_NAME, method: 'processTenant',
               message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
               action: ServerAction.TRANSACTION_SOFT_STOP,
-              detailedMessages: { transaction }
+              detailedMessages: {
+                transactionData: LoggingHelper.shrinkTransactionProperties(transaction)
+              }
             });
           } catch (error) {
             result.inError++;
@@ -61,7 +63,10 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
               action: ServerAction.TRANSACTION_SOFT_STOP,
               module: MODULE_NAME, method: 'processTenant',
               message: `Cannot soft stop Transaction ID '${transaction.id}': ${error.message as string}`,
-              detailedMessages: { transaction, error: error.stack }
+              detailedMessages: {
+                transactionData: LoggingHelper.shrinkTransactionProperties(transaction),
+                error: error.stack
+              }
             });
           }
         }

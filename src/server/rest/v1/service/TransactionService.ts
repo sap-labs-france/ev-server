@@ -691,7 +691,7 @@ export default class TransactionService {
           user: loggedUser,
           action, module: MODULE_NAME, method: 'handleDeleteTransactions',
           message: `Transaction ID '${transaction.id}' has been refunded and cannot be deleted`,
-          detailedMessages: { transaction }
+          detailedMessages: { transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
         });
         continue;
       }
@@ -704,7 +704,7 @@ export default class TransactionService {
           user: loggedUser,
           action, module: MODULE_NAME, method: 'handleDeleteTransactions',
           message: `Transaction ID '${transaction.id}' has been billed and cannot be deleted`,
-          detailedMessages: { transaction }
+          detailedMessages: { transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
         });
         continue;
       }
@@ -839,7 +839,7 @@ export default class TransactionService {
           user: req.user, actionOnUser: transaction.userID,
           module: MODULE_NAME, method: 'transactionSoftStop',
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
-          action, detailedMessages: { transaction }
+          action, detailedMessages: { transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
         });
       } catch (error) {
         throw new AppError({
