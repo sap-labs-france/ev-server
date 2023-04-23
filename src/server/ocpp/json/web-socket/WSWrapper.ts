@@ -68,6 +68,10 @@ export default class WSWrapper {
       // - 0 for built up backpressure that will drain over time.
       // Todo: check backpressure before or after sending by calling getBufferedAmount()
       const returnedCode = this.ws.send(messageToSend, isBinary, compress);
+      if (typeof returnedCode === 'boolean') {
+        // Returns a boolean in production - to be clarified
+        return returnedCode;
+      }
       // Handle back pressure
       if (returnedCode === 1) {
         sent = true;
