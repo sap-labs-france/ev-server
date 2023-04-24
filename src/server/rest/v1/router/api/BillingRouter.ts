@@ -123,7 +123,6 @@ export default class BillingRouter {
   private buildRouteBillingPaymentMethodSetup(): void {
     this.router.post(`/${RESTServerRoute.REST_BILLING_PAYMENT_METHOD_SETUP}`, (req: Request, res: Response, next: NextFunction) => {
       // STRIPE prerequisite - ask for a setup intent first!
-      req.body.userID = req.params.userID;
       void RouterUtils.handleRestServerAction(BillingService.handleBillingSetupPaymentMethod.bind(this), ServerAction.BILLING_SETUP_PAYMENT_METHOD, req, res, next);
     });
   }
@@ -131,8 +130,6 @@ export default class BillingRouter {
   private buildRouteBillingPaymentMethodAttach(): void {
     this.router.post(`/${RESTServerRoute.REST_BILLING_PAYMENT_METHOD_ATTACH}`, (req: Request, res: Response, next: NextFunction) => {
       // Creates a new payment method and attach it to the user as its default
-      req.body.userID = req.params.userID;
-      req.body.paymentMethodId = req.params.paymentMethodID;
       void RouterUtils.handleRestServerAction(BillingService.handleBillingSetupPaymentMethod.bind(this), ServerAction.BILLING_SETUP_PAYMENT_METHOD, req, res, next);
     });
   }

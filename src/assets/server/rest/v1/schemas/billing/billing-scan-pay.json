@@ -6,20 +6,6 @@
     "email": {
       "$ref": "user#/definitions/email"
     },
-    "name": {
-      "type": "string",
-      "maxLength": 100,
-      "transform": ["toUpperCase"],
-      "sanitize": "mongo"
-    },
-    "firstName": {
-      "type": "string",
-      "maxLength": 100,
-      "sanitize": "mongo"
-    },
-    "siteAreaID": {
-      "$ref": "asset#/definitions/siteAreaID"
-    },
     "paymentIntentID": {
       "type": "string",
       "sanitize": "mongo"
@@ -30,15 +16,6 @@
     "chargingStationID": {
       "$ref": "chargingstation#/definitions/id"
     },
-    "locale": {
-      "$ref": "user#/definitions/locale"
-    },
-    "subdomain": {
-      "$ref": "common#/definitions/authSubdomain"
-    },
-    "transactionId": {
-      "$ref": "transaction#/definitions/id"
-    },
     "verificationToken": {
       "type": "string",
       "sanitize": "mongo"
@@ -46,6 +23,8 @@
   },
   "required": [
     "email",
-    "siteAreaID"
+    "connectorID",
+    "chargingStationID",
+    "verificationToken"
   ]
 }

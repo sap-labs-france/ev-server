@@ -55,6 +55,7 @@ export default class AuthValidatorRest extends SchemaValidator {
     return this.validate(this.authEula, data);
   }
 
+  // Called at step #0 from unsecured "enter your email" UI
   public validateScanPayVerifyEmailReq(data: Record<string, unknown>): HttpScanPayVerifyEmailRequest {
     return this.validate(this.authScanPayVerifyEmail, data);
   }

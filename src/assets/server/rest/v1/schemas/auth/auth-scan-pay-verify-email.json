@@ -20,12 +20,6 @@
     "captcha": {
       "$ref": "common#/definitions/captcha"
     },
-    "tenant": {
-      "$ref": "common#/definitions/authSubdomain"
-    },
-    "siteAreaID": {
-      "$ref": "asset#/definitions/siteAreaID"
-    },
     "chargingStationID": {
       "$ref": "chargingstation#/definitions/id"
     },
@@ -43,7 +37,6 @@
     "firstName",
     "email",
     "captcha",
-    "siteAreaID",
     "chargingStationID",
     "connectorID"
   ]

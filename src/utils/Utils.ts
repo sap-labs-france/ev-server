@@ -990,7 +990,7 @@ export default class Utils {
   }
 
   public static buildEvseScanPayInvoiceDownloadURL(tenantSubdomain: string, billingInvoiceID: string, user: User): string {
-    return `${Utils.buildEvseURL(tenantSubdomain) + '/auth/scan-pay/' + billingInvoiceID + '/download?VerificationToken=' + encodeURIComponent(user.verificationToken) + '&email=' + encodeURIComponent(user.email)}`;
+    return `${Utils.buildEvseURL(tenantSubdomain) + '/auth/scan-pay/invoice/' + billingInvoiceID + '/download?VerificationToken=' + encodeURIComponent(user.verificationToken) + '&email=' + encodeURIComponent(user.email)}`;
   }
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
@@ -998,7 +998,7 @@ export default class Utils {
   }
 
   public static buildEvseScanPayConnectorURL(tenantSubdomain: string, chargingStation: ChargingStation, connectorID: number): string {
-    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/${chargingStation.siteAreaID}/${chargingStation.id}/${connectorID}`;
+    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/${chargingStation.id}/${connectorID}`;
   }
 
   public static getRequestIP(request: http.IncomingMessage | Partial<Request>): string | string[] {

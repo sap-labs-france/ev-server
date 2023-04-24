@@ -492,6 +492,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
             const paymentIntent = await this.stripe.paymentIntents.retrieve(lastPaymentIntentID as string);
             if (stripeInvoice.amount_due <= paymentIntent.amount) {
               await this.capturePayment(user, stripeInvoice.amount_due, lastPaymentIntentID as string);
+              // Paid out of band tells stripe we captured the invoice amount from the hold amount, invoice is paid outside the stripe's standard flow
               paymentOptions.paid_out_of_band = true;
             } else {
               paymentOptions.payment_method = paymentIntent.payment_method as string;
@@ -581,7 +582,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
-    // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
     let customerID = user?.billingData?.customerID;
@@ -872,13 +872,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     try {
       // Let's retrieve the paymentIntent for the stripe customer
       const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
-      await Logging.logInfo({
-        tenantID: this.tenant.id,
-        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: 'retrievePayment',
-        actionOnUser: user,
-        message: 'payment intent has been retrieve, happy to hear about it ?'
-      });
       // Send some feedback
       return {
         succeeded: true,
@@ -1315,7 +1308,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return pricingConsumptionData;
   }
 
-  public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem, lastPaymentIntentID = null): Promise<BillingInvoice> {
+  public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem, lastPaymentIntentID: string = null): Promise<BillingInvoice> {
     // Let's collect the required information
     let refreshDataRequired = false;
     const userID: string = user.id;
@@ -1331,7 +1324,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (FeatureToggles.isFeatureActive(Feature.BILLING_INVOICES_EXCLUDE_PENDING_ITEMS)) {
       if (!stripeInvoice) {
         // NEW STRIPE API - Invoice can mow be created before its items
-        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'), currency, lastPaymentIntentID as string);
+        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'), currency, lastPaymentIntentID);
       }
       // Let's create an invoice item per dimension
       await this.createStripeInvoiceItems(customerID, billingInvoiceItem, stripeInvoice.id);

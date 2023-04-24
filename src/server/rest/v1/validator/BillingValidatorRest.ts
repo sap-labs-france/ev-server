@@ -91,6 +91,7 @@ export default class BillingValidatorRest extends SchemaValidator {
     return this.validate(this.billingTransferSend, data);
   }
 
+  // Called at step #1 and step #2 when user enter card details to start transaction
   public validateBillingScanPayPaymentReq(data: Record<string, unknown>): HttpBillingScanPayRequest {
     return this.validate(this.billingScanPay, data);
   }
