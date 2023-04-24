@@ -9,10 +9,6 @@
     "paymentMethodID": {
       "type": "string",
       "sanitize": "mongo"
-    },
-    "paymentIntentID": {
-      "type": "string",
-      "sanitize": "mongo"
     }
   },
   "required": [

@@ -268,8 +268,7 @@ export default class BillingService {
     // Check and get user for whom we wish to update the payment method
     const user: User = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Invoke the billing implementation
-    const paymentMethodId: string = filteredRequest.paymentMethodID;
-    const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId);
+    const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, filteredRequest.paymentMethodID);
     if (operationResult) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(operationResult as unknown as string);
     }
