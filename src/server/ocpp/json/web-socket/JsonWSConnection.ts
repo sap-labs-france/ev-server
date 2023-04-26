@@ -25,7 +25,6 @@ const MODULE_NAME = 'JsonWSConnection';
 export default class JsonWSConnection extends WSConnection {
   private chargingStationClient: JsonChargingStationClient;
   private chargingStationService: JsonChargingStationService;
-  private headers: OCPPHeader;
 
   public constructor(ws: WSWrapper) {
     super(ws);
@@ -34,18 +33,6 @@ export default class JsonWSConnection extends WSConnection {
   public async initialize(): Promise<void> {
     // Init parent
     await super.initialize();
-    // Initialize the default Headers
-    this.headers = {
-      chargeBoxIdentity: this.getChargingStationID(),
-      ocppVersion: (this.getWS().protocol.startsWith('ocpp') ? this.getWS().protocol.replace('ocpp', '') : this.getWS().protocol) as OCPPVersion,
-      ocppProtocol: OCPPProtocol.JSON,
-      chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl,
-      tenantID: this.getTenantID(),
-      tokenID: this.getTokenID(),
-      From: {
-        Address: this.getClientIP()
-      }
-    };
     if (Utils.isMonitoringEnabled()) {
       const labelValues = { tenant: this.getTenant().subdomain };
       this.getWS().ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OpenedWebSocket', 'Opened web sockets', labelValues);
@@ -76,9 +63,22 @@ export default class JsonWSConnection extends WSConnection {
     const methodName = `handle${command}`;
     // Check if method exist in the service
     if (typeof this.chargingStationService[methodName] === 'function') {
-      this.headers.currentIPAddress = this.getClientIP();
+    // Initialize the default Headers
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const headers: OCPPHeader = {
+        chargeBoxIdentity: this.getChargingStationID(),
+        ocppVersion: (this.getWS().protocol.startsWith('ocpp') ? this.getWS().protocol.replace('ocpp', '') : this.getWS().protocol) as OCPPVersion,
+        ocppProtocol: OCPPProtocol.JSON,
+        chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl,
+        tenantID: this.getTenantID(),
+        tokenID: this.getTokenID(),
+        From: {
+          Address: this.getClientIP()
+        }
+      };
+      headers.currentIPAddress = this.getClientIP();
       // Set the header
-      this.headers.connectionContext = await OCPPUtils.checkAndGetChargingStationConnectionData(
+      headers.connectionContext = await OCPPUtils.checkAndGetChargingStationConnectionData(
         OCPPUtils.buildServerActionFromOcppCommand(command), this.rawConnectionData);
       // Trace
       const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
@@ -87,13 +87,8 @@ export default class JsonWSConnection extends WSConnection {
       );
       try {
         // Call it
-        result = await this.chargingStationService[methodName](this.headers, commandPayload);
+        result = await this.chargingStationService[methodName](headers, commandPayload);
       } finally {
-        // TODO - to be clarified - why should we clear the header here?
-        // Clean the header
-        // delete this.headers.chargingStation;
-        // delete this.headers.tenant;
-        // delete this.headers.token;
         // Trace
         await Logging.traceOcppMessageResponse(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenant(), this.getChargingStationID(),
           OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, result, '<<',
