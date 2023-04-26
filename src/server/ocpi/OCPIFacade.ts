@@ -99,7 +99,7 @@ export default class OCPIFacade {
       if (ocpiLock) {
         try {
           // Roaming
-          return OCPIFacade.processEndTransaction(
+          return await OCPIFacade.processEndTransaction(
             tenant, transaction, chargingStation, siteArea, transaction.user, action);
         } finally {
           // Release the lock
