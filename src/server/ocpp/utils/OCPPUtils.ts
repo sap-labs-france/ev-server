@@ -1,6 +1,7 @@
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationTemplate, ChargingStationTemplateConnector, Command, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPHeader, OcppConnectionData, OcppRawConnectionData } from '../../../types/ocpp/OCPPHeader';
 import { OCPPLocation, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus } from '../../../types/Transaction';
@@ -17,7 +18,6 @@ import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
 import OCPPCommon from './OCPPCommon';
-import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import PricingFacade from '../../../integration/pricing/PricingFacade';
 import { PricingSettingsType } from '../../../types/Setting';
 import { Promise } from 'bluebird';
@@ -772,7 +772,7 @@ export default class OCPPUtils {
       for (const filter in chargingStationTemplate.template.extraFilters) {
         if (Utils.objectHasProperty(chargingStation, filter)) {
           const filterValue: string = chargingStationTemplate.template.extraFilters[filter];
-          if (!(new RegExp(filterValue).test(chargingStation[filter]))) {
+          if (!(new RegExp(filterValue).test(chargingStation[filter] as string))) {
             foundTemplate = null;
             break;
           }
@@ -1082,9 +1082,13 @@ export default class OCPPUtils {
     const urlParts = url.parse(decodeURIComponent(req.url.toLowerCase()), true);
     headers.tenantID = urlParts.query.tenantid as string;
     headers.tokenID = urlParts.query.token as string;
+    const rawConnectionData: OcppRawConnectionData = {
+      tenantID: headers.tenantID,
+      chargingStationID: headers.chargeBoxIdentity,
+      tokenID: headers.tokenID
+    };
     // Get all the necessary entities
-    const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationConnectionData(
-      OCPPUtils.buildServerActionFromOcppCommand(command), headers.tenantID, headers.chargeBoxIdentity, headers.tokenID);
+    const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationConnectionData(OCPPUtils.buildServerActionFromOcppCommand(command), rawConnectionData);
     // Set
     headers.tenant = tenant;
     headers.chargingStation = chargingStation;
@@ -1197,39 +1201,40 @@ export default class OCPPUtils {
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  public static checkChargingStationConnectionData(action: ServerAction, tenantID: string, tokenID: string, chargingStationID: string): void {
+  public static checkChargingStationConnectionData(action: ServerAction, rawConnectionData: OcppRawConnectionData): void {
     // Check Charging Station
-    if (!chargingStationID) {
+    if (!rawConnectionData.chargingStationID) {
       throw new BackendError({
         action,
         module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
         message: 'The Charging Station ID is mandatory!'
       });
     }
-    if (!Utils.isChargingStationIDValid(chargingStationID)) {
+    const chargingStationID = rawConnectionData.chargingStationID;
+    if (!Utils.isChargingStationIDValid(rawConnectionData.chargingStationID)) {
       throw new BackendError({
         action, chargingStationID,
         module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
-        message: `The Charging Station ID '${chargingStationID}' is invalid!`
+        message: `The Charging Station ID '${rawConnectionData.chargingStationID}' is invalid!`
       });
     }
     // Check Tenant
-    if (!tenantID) {
+    if (!rawConnectionData.tenantID) {
       throw new BackendError({
         action, chargingStationID,
         module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
         message: 'The Tenant ID is mandatory!'
       });
     }
-    if (!DatabaseUtils.isObjectID(tenantID)) {
+    if (!DatabaseUtils.isObjectID(rawConnectionData.tenantID)) {
       throw new BackendError({
         action, chargingStationID,
         module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
-        message: `The Tenant ID '${tenantID}' is invalid!`
+        message: `The Tenant ID '${rawConnectionData.tenantID}' is invalid!`
       });
     }
     // Check Token
-    if (!tokenID) {
+    if (!rawConnectionData.tokenID) {
       throw new BackendError({
         action, chargingStationID,
         module: MODULE_NAME, method: 'checkChargingStationOcppParameters',
@@ -1238,11 +1243,11 @@ export default class OCPPUtils {
     }
   }
 
-  public static async checkAndGetChargingStationConnectionData(action: ServerAction, tenantID: string, chargingStationID: string,
-      tokenID: string, updateChargingStationData = true): Promise<{ tenant: Tenant; chargingStation?: ChargingStation; token?: RegistrationToken }> {
+  public static async checkAndGetChargingStationConnectionData(action: ServerAction, rawConnectionData: OcppRawConnectionData, updateChargingStationData = true): Promise<OcppConnectionData> {
+    const { tenantID, chargingStationID, tokenID = null } = rawConnectionData;
     // Check parameters
     OCPPUtils.checkChargingStationConnectionData(
-      ServerAction.WS_SERVER_CONNECTION, tenantID, tokenID, chargingStationID);
+      ServerAction.WS_SERVER_CONNECTION, rawConnectionData);
     // Get Tenant
     const tenant = await TenantStorage.getTenantFromCache(tenantID);
     if (!tenant) {
@@ -1262,8 +1267,7 @@ export default class OCPPUtils {
     }
     // Get the Charging Station
     let token: RegistrationToken;
-    const chargingStation = await ChargingStationStorage.getChargingStation(
-      tenant, chargingStationID, { withSiteArea: true, issuer: true });
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingStationID, { withSiteArea: true, issuer: true });
     if (!chargingStation) {
       // Must have a valid connection Token
       token = await OCPPUtils.ensureChargingStationHasValidConnectionToken(action, tenant, chargingStationID, tokenID);
@@ -1277,7 +1281,10 @@ export default class OCPPUtils {
           message: 'Charging Station does not exist!'
         });
       }
-      return { tenant, token };
+      const ocppConnectionData = {
+        tenant, token, chargingStation: null
+      };
+      return ocppConnectionData;
     }
     // Same Token?
     if (chargingStation.tokenID !== tokenID) {
@@ -1324,7 +1331,10 @@ export default class OCPPUtils {
         cloudHostName: chargingStation.cloudHostName,
       });
     }
-    return { tenant, chargingStation, token };
+    const ocppConnectionData = {
+      tenant, chargingStation, token
+    };
+    return ocppConnectionData;
   }
 
   public static async updateChargingStationOcppParametersWithTemplate(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationResponse> {

@@ -78,13 +78,12 @@ export default class JsonWSConnection extends WSConnection {
     if (typeof this.chargingStationService[methodName] === 'function') {
       this.headers.currentIPAddress = this.getClientIP();
       // Check the Charging Station
-      const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationConnectionData(
-        OCPPUtils.buildServerActionFromOcppCommand(command),
-        this.getTenantID(), this.getChargingStationID(), this.getTokenID());
+      const connectionData = await OCPPUtils.checkAndGetChargingStationConnectionData(
+        OCPPUtils.buildServerActionFromOcppCommand(command), this.rawConnectionData);
       // Set the header
-      this.headers.tenant = tenant;
-      this.headers.chargingStation = chargingStation;
-      this.headers.token = token;
+      this.headers.tenant = connectionData.tenant;
+      this.headers.chargingStation = connectionData.chargingStation;
+      this.headers.token = connectionData.token;
       // Trace
       const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
         this.getTenant(), this.getChargingStationID(), OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, '>>',

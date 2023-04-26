@@ -22,3 +22,15 @@ export interface OCPPHeader {
     Address: string | string[];
   };
 }
+
+export interface OcppRawConnectionData {
+  tenantID: string,
+  chargingStationID: string,
+  tokenID: string
+}
+
+export interface OcppConnectionData {
+  tenant: Tenant,
+  chargingStation: ChargingStation,
+  token?: RegistrationToken
+}

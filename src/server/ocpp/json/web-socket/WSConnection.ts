@@ -9,6 +9,7 @@ import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPError from '../../../../exception/OcppError';
 import OCPPUtils from '../../utils/OCPPUtils';
+import { OcppRawConnectionData } from '../../../../types/ocpp/OCPPHeader';
 import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import WSWrapper from './WSWrapper';
@@ -52,21 +53,19 @@ export class OcppPendingCommand {
 }
 
 export default abstract class WSConnection {
-  private chargingStationID: string; // Resolved before the Charging Station object
+  protected rawConnectionData: OcppRawConnectionData;
   private chargingStation: ChargingStation;
-  private tenantID: string; // Resolved before the Tenant object
   private tenant: Tenant;
-  private tokenID: string;
   private url: string;
   private wsWrapper: WSWrapper;
   private pendingOcppCommands: Record<string, OcppPendingCommand> = {};
 
   public constructor(wsWrapper: WSWrapper) {
     // Init
-    this.url = wsWrapper.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
     this.wsWrapper = wsWrapper;
+    this.url = wsWrapper.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
     // Check mandatory fields
-    this.checkMandatoryFieldsInRequest();
+    this.rawConnectionData = this.checkMandatoryFieldsInRequest();
   }
 
   public async initialize(): Promise<void> {
@@ -74,10 +73,8 @@ export default abstract class WSConnection {
     const updateChargingStationData = (this.wsWrapper.protocol !== WSServerProtocol.REST);
     // Check and Get Charging Station data
     const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationConnectionData(
-      ServerAction.WS_SERVER_CONNECTION,
-      this.getTenantID(),
-      this.getChargingStationID(), this.getTokenID(),
-      updateChargingStationData);
+      ServerAction.WS_SERVER_CONNECTION, this.rawConnectionData, updateChargingStationData
+    );
     // Set
     this.setTenant(tenant);
     this.setChargingStation(chargingStation);
@@ -149,6 +146,9 @@ export default abstract class WSConnection {
       messageToSend: string,
       initialCommand: Command = null,
       initialCommandPayload: OCPPPayload = null): boolean {
+
+    // Extract raw connection data
+    const { tenantID, chargingStationID } = this.rawConnectionData;
     let sent = false ;
     try {
       // Send Message
@@ -159,8 +159,8 @@ export default abstract class WSConnection {
         const message = `Error when sending error '${messageToSend}' to Web Socket`;
         Logging.beError()?.log({
           ...LoggingHelper.getChargingStationProperties(this.chargingStation),
-          tenantID: this.tenantID,
-          chargingStationID: this.chargingStationID,
+          tenantID,
+          chargingStationID,
           module: MODULE_NAME, method: 'sendMessageInternal',
           action: ServerAction.WS_SERVER_CONNECTION_ERROR,
           message, detailedMessages: {
@@ -174,8 +174,8 @@ export default abstract class WSConnection {
       const message = `Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`;
       Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(this.chargingStation),
-        tenantID: this.tenantID,
-        chargingStationID: this.chargingStationID,
+        tenantID,
+        chargingStationID,
         module: MODULE_NAME, method: 'sendMessageInternal',
         action: ServerAction.WS_SERVER_CONNECTION_ERROR,
         message, detailedMessages: {
@@ -190,6 +190,8 @@ export default abstract class WSConnection {
 
   public async handleIncomingOcppMessage(wsWrapper: WSWrapper, ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse): Promise<void> {
     const ocppMessageType = ocppMessage[0];
+    // Extract raw connection data
+    const { tenantID, chargingStationID } = this.rawConnectionData;
     try {
       if (ocppMessageType === OCPPMessageType.CALL_MESSAGE) {
         await wsWrapper.wsConnection.handleIncomingOcppRequest(wsWrapper, ocppMessage as OCPPIncomingRequest);
@@ -200,8 +202,8 @@ export default abstract class WSConnection {
       } else {
         Logging.beError()?.log({
           ...LoggingHelper.getChargingStationProperties(this.chargingStation),
-          tenantID: this.tenantID,
-          chargingStationID: this.chargingStationID,
+          tenantID,
+          chargingStationID,
           action: ServerAction.UNKNOWN_ACTION,
           message: `Wrong OCPP Message Type in '${JSON.stringify(ocppMessage)}'`,
           module: MODULE_NAME, method: 'handleIncomingOcppMessage',
@@ -210,8 +212,8 @@ export default abstract class WSConnection {
     } catch (error) {
       Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(this.chargingStation),
-        tenantID: this.tenantID,
-        chargingStationID: this.chargingStationID,
+        tenantID,
+        chargingStationID,
         action: ServerAction.UNKNOWN_ACTION,
         message: `${error.message as string}`,
         module: MODULE_NAME, method: 'handleIncomingOcppMessage',
@@ -224,7 +226,8 @@ export default abstract class WSConnection {
     if (wsWrapper.closed || !wsWrapper.isValid) {
       return;
     }
-    // Parse the data
+    // Extract raw connection data
+    const { tenantID, chargingStationID } = this.rawConnectionData;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [messageType, messageID, command, commandPayload] = ocppMessage;
     try {
@@ -237,8 +240,8 @@ export default abstract class WSConnection {
       this.sendError(messageID, command, commandPayload, error);
       Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(this.chargingStation),
-        tenantID: this.tenantID,
-        chargingStationID: this.chargingStationID,
+        tenantID,
+        chargingStationID,
         action: OCPPUtils.buildServerActionFromOcppCommand(command),
         message: `${error.message as string}`,
         module: MODULE_NAME, method: 'handleIncomingOcppRequest',
@@ -342,11 +345,11 @@ export default abstract class WSConnection {
   }
 
   public getChargingStationID(): string {
-    return this.chargingStationID;
+    return this.rawConnectionData.chargingStationID;
   }
 
   public getTenantID(): string {
-    return this.tenantID;
+    return this.rawConnectionData.tenantID;
   }
 
   public getTenantSubDomain(): string {
@@ -362,7 +365,7 @@ export default abstract class WSConnection {
   }
 
   public getTokenID(): string {
-    return this.tokenID;
+    return this.rawConnectionData.tokenID;
   }
 
   public getID(): string {
@@ -373,7 +376,7 @@ export default abstract class WSConnection {
     return this.pendingOcppCommands;
   }
 
-  private checkMandatoryFieldsInRequest() {
+  private checkMandatoryFieldsInRequest(): OcppRawConnectionData {
     // Check URL: remove starting and trailing '/'
     if (this.url.endsWith('/')) {
       // Remove '/'
@@ -383,8 +386,9 @@ export default abstract class WSConnection {
       // Remove '/'
       this.url = this.url.substring(1, this.url.length);
     }
-    // Parse URL: should be like /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
-    // Note in order to override the CS name the url would look like /OCPPxx/TENANTID/TOKEN/<DESIRED-CHARGEBOXID>/CHARGEBOXID
+    // Parse URL - Expected formats:
+    // 1 - /OCPP<version>/<TenantID>/<TokenID>/<ChargerID>
+    // 2 - /OCPP<version>/<TenantID>/<TokenID>/<ChargerID>/<InternalChargerID> - specific use-case for charger forcing a stupid charge name
     const splittedURL = this.getURL().split('/');
     if (splittedURL.length < 4) {
       throw new BackendError({
@@ -392,13 +396,15 @@ export default abstract class WSConnection {
         message: `Wrong number of arguments in URL '/${this.url}'`
       });
     }
-    // URL /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
-    this.tenantID = splittedURL[1];
-    this.tokenID = splittedURL[2];
-    this.chargingStationID = splittedURL[3];
+    const rawConnectionData = {
+      tenantID: splittedURL[1],
+      tokenID: splittedURL[2],
+      chargingStationID: splittedURL[3]
+    };
     // Check parameters
-    OCPPUtils.checkChargingStationConnectionData(
-      ServerAction.WS_SERVER_CONNECTION, this.tenantID, this.tokenID, this.chargingStationID);
+    OCPPUtils.checkChargingStationConnectionData(ServerAction.WS_SERVER_CONNECTION, rawConnectionData);
+    // Return the validated raw data
+    return rawConnectionData;
   }
 
   public abstract handleRequest(command: Command, commandPayload: Record<string, unknown> | string): Promise<any>;
