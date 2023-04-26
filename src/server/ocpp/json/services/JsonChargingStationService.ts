@@ -45,9 +45,9 @@ export default class JsonChargingStationService {
   }
 
   public async handleBootNotification(headers: OCPPHeader, payload: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
-    const { chargeBoxIdentity, tenant } = headers;
-    const keyString = `${tenant.subdomain}:${chargeBoxIdentity}`;
-    await this.checkRateLimiters(tenant, chargeBoxIdentity, this.limitersBootNotifs, keyString);
+    const { chargeBoxIdentity, connectionContext } = headers;
+    const keyString = `${connectionContext.tenant.subdomain}:${chargeBoxIdentity}`;
+    await this.checkRateLimiters(connectionContext.tenant, chargeBoxIdentity, this.limitersBootNotifs, keyString);
     const result = await this.handle(Command.BOOT_NOTIFICATION, headers, payload);
     return {
       currentTime: result.currentTime,
@@ -93,7 +93,8 @@ export default class JsonChargingStationService {
   }
 
   public async handleStartTransaction(headers: OCPPHeader, payload: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
-    const { chargingStation, tenant } = headers;
+    const { connectionContext } = headers;
+    const { chargingStation, tenant } = connectionContext;
     const key = { connector: payload.connectorId, tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
     const keyString = `${key.connector}:${key.tenant}:${key.chargingStation}`;
     await this.checkRateLimiters(tenant, chargingStation.id, this.limitersStartStopTransaction, keyString);
@@ -114,7 +115,8 @@ export default class JsonChargingStationService {
   }
 
   public async handleStopTransaction(headers: OCPPHeader, payload: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
-    const { chargingStation, tenant } = headers;
+    const { connectionContext } = headers;
+    const { chargingStation, tenant } = connectionContext;
     const key = { tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
     const keyString = `${key.tenant}:${key.chargingStation}`;
     await this.checkRateLimiters(tenant, chargingStation.id, this.limitersStartStopTransaction, keyString);
@@ -130,7 +132,7 @@ export default class JsonChargingStationService {
     try {
       return this.chargingStationService[`handle${command}`](headers, payload) as Promise<any>;
     } catch (error) {
-      Logging.logException(error, OCPPUtils.buildServerActionFromOcppCommand(command), MODULE_NAME, command, headers.tenantID);
+      Logging.logException(error as Error, OCPPUtils.buildServerActionFromOcppCommand(command), MODULE_NAME, command, headers.tenantID);
       throw error;
     }
   }

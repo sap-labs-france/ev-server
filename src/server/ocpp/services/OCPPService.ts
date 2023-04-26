@@ -58,8 +58,9 @@ export default class OCPPService {
 
   public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): Promise<OCPPBootNotificationResponse> {
     try {
-      const { tenant } = headers;
-      let { chargingStation } = headers;
+      const { connectionContext } = headers;
+      const { tenant } = connectionContext;
+      let { chargingStation } = connectionContext;
       OCPPValidator.getInstance().validateBootNotification(headers, bootNotification);
       // Enrich Boot Notification
       this.enrichBootNotification(headers, bootNotification);
@@ -105,7 +106,7 @@ export default class OCPPService {
       };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_BOOT_NOTIFICATION, error, { bootNotification });
+      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_BOOT_NOTIFICATION, error as Error, { bootNotification });
       // Reject
       return {
         status: RegistrationStatus.REJECTED,
@@ -118,7 +119,8 @@ export default class OCPPService {
   public async handleHeartbeat(headers: OCPPHeader, heartbeat: OCPPHeartbeatRequestExtended): Promise<OCPPHeartbeatResponse> {
     try {
       // Get the header infos
-      const { chargingStation, tenant } = headers;
+      const { connectionContext } = headers;
+      const { tenant, chargingStation } = connectionContext;
       if (!heartbeat) {
         heartbeat = {} as OCPPHeartbeatRequestExtended;
       }
@@ -141,7 +143,7 @@ export default class OCPPService {
       });
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_HEARTBEAT, error, { heartbeat });
+      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_HEARTBEAT, error as Error, { heartbeat });
     }
     return {
       currentTime: new Date().toISOString()
@@ -151,7 +153,8 @@ export default class OCPPService {
   public async handleStatusNotification(headers: OCPPHeader, statusNotification: OCPPStatusNotificationRequestExtended): Promise<OCPPStatusNotificationResponse> {
     try {
       // Get the header infos
-      const { chargingStation, tenant } = headers;
+      const { connectionContext } = headers;
+      const { tenant, chargingStation } = connectionContext;
       // Check props
       OCPPValidator.getInstance().validateStatusNotification(statusNotification);
       // Set Header
@@ -180,7 +183,8 @@ export default class OCPPService {
   public async handleMeterValues(headers: OCPPHeader, meterValues: OCPPMeterValuesRequestExtended): Promise<OCPPMeterValuesResponse> {
     try {
       // Get the header infos
-      const { chargingStation, tenant } = headers;
+      const { connectionContext } = headers;
+      const { tenant, chargingStation } = connectionContext;
       OCPPValidator.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
       // Normalize Meter Values
       const normalizedMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
@@ -265,7 +269,7 @@ export default class OCPPService {
       });
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_METER_VALUES, error, { meterValues });
+      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_METER_VALUES, error as Error, { meterValues });
     }
     return {};
   }
@@ -273,7 +277,8 @@ export default class OCPPService {
   public async handleAuthorize(headers: OCPPHeader, authorize: OCPPAuthorizeRequestExtended): Promise<OCPPAuthorizeResponse> {
     try {
       // Get the header infos
-      const { chargingStation, tenant } = headers;
+      const { connectionContext } = headers;
+      const { tenant, chargingStation } = connectionContext;
       // Check props
       OCPPValidator.getInstance().validateAuthorize(authorize);
       const { user } = await CommonUtilsService.isAuthorizedOnChargingStation(tenant, chargingStation,
@@ -300,7 +305,7 @@ export default class OCPPService {
       };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_AUTHORIZE, error, { authorize });
+      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_AUTHORIZE, error as Error, { authorize });
       // Rejected
       return {
         idTagInfo: {
@@ -313,7 +318,8 @@ export default class OCPPService {
   public async handleDiagnosticsStatusNotification(headers: OCPPHeader,
       diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
     // Get the header infos
-    const { chargingStation, tenant } = headers;
+    const { connectionContext } = headers;
+    const { tenant, chargingStation } = connectionContext;
     try {
       // Check props
       OCPPValidator.getInstance().validateDiagnosticsStatusNotification(diagnosticsStatusNotification);
@@ -332,7 +338,7 @@ export default class OCPPService {
       return {};
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION, error, { diagnosticsStatusNotification });
+      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION, error as Error, { diagnosticsStatusNotification });
       return {};
     }
   }
@@ -340,7 +346,8 @@ export default class OCPPService {
   public async handleFirmwareStatusNotification(headers: OCPPHeader,
       firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<OCPPFirmwareStatusNotificationResponse> {
     // Get the header infos
-    const { chargingStation, tenant } = headers;
+    const { connectionContext } = headers;
+    const { tenant, chargingStation } = connectionContext;
     try {
       // Check props
       OCPPValidator.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
@@ -361,7 +368,7 @@ export default class OCPPService {
       return {};
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION, error, { firmwareStatusNotification });
+      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION, error as Error, { firmwareStatusNotification });
       return {};
     }
   }
@@ -369,7 +376,8 @@ export default class OCPPService {
   public async handleStartTransaction(headers: OCPPHeader, startTransaction: OCPPStartTransactionRequestExtended): Promise<OCPPStartTransactionResponse> {
     try {
       // Get the header infos
-      const { chargingStation, tenant } = headers;
+      const { connectionContext } = headers;
+      const { tenant, chargingStation } = connectionContext;
       // Check props
       OCPPValidator.getInstance().validateStartTransaction(chargingStation, startTransaction);
       // Enrich
@@ -438,7 +446,8 @@ export default class OCPPService {
   public async handleDataTransfer(headers: OCPPHeader, dataTransfer: OCPPDataTransferRequestExtended): Promise<OCPPDataTransferResponse> {
     try {
       // Get the header infos
-      const { chargingStation, tenant } = headers;
+      const { connectionContext } = headers;
+      const { tenant, chargingStation } = connectionContext;
       // Check props
       OCPPValidator.getInstance().validateDataTransfer(chargingStation, dataTransfer);
       // Enrich
@@ -458,7 +467,7 @@ export default class OCPPService {
       };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_DATA_TRANSFER, error, { dataTransfer });
+      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_DATA_TRANSFER, error as Error, { dataTransfer });
       // Rejected
       return {
         status: OCPPDataTransferStatus.REJECTED
@@ -470,7 +479,8 @@ export default class OCPPService {
       isSoftStop = false, isStoppedByCentralSystem = false): Promise<OCPPStopTransactionResponse> {
     try {
       // Get the header infos
-      const { chargingStation, tenant } = headers;
+      const { connectionContext } = headers;
+      const { tenant, chargingStation } = connectionContext;
       // Check props
       OCPPValidator.getInstance().validateStopTransaction(chargingStation, stopTransaction);
       // Set header
@@ -534,7 +544,7 @@ export default class OCPPService {
       };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_STOP_TRANSACTION, error, { stopTransaction });
+      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_STOP_TRANSACTION, error as Error, { stopTransaction });
       // Invalid
       return {
         idTagInfo: {
@@ -586,13 +596,15 @@ export default class OCPPService {
     // Stop Transaction
     const result = await this.handleStopTransaction(
       { // OCPP Header
-        tenant: tenant,
         tenantID: tenant.id,
-        chargingStation: chargingStation,
         chargeBoxIdentity: chargingStation.id,
         companyID: transaction.companyID,
         siteID: transaction.siteID,
         siteAreaID: transaction.siteAreaID,
+        connectionContext: {
+          tenant,
+          chargingStation
+        }
       },
       { // OCPP Stop Transaction
         transactionId: transaction.id,
@@ -1258,7 +1270,7 @@ export default class OCPPService {
     if (chargingStation.chargePointVendor !== ChargerVendor.ABB ||
       chargingStation.ocppVersion !== OCPPVersion.VERSION_15) {
       // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
-      meterValues.values = meterValues.values.filter(async (meterValue) => {
+      meterValues.values = meterValues.values.filter((meterValue) => {
         // Remove Sample Clock
         if (meterValue.attribute && meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK) {
           Logging.beWarning()?.log({
@@ -1556,13 +1568,15 @@ export default class OCPPService {
     newChargingStation.issuer = true;
     newChargingStation.tokenID = headers.tokenID;
     newChargingStation.powerLimitUnit = ChargingRateUnitType.AMPERE;
+    const { token } = headers.connectionContext;
+
     // Assign to Site Area
-    if (headers.token.siteAreaID) {
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant, headers.token.siteAreaID, { withSite: true });
+    if (token.siteAreaID) {
+      const siteArea = await SiteAreaStorage.getSiteArea(tenant, token.siteAreaID, { withSite: true });
       if (siteArea) {
         newChargingStation.companyID = siteArea.site?.companyID;
         newChargingStation.siteID = siteArea.siteID;
-        newChargingStation.siteAreaID = headers.token.siteAreaID;
+        newChargingStation.siteAreaID = token.siteAreaID;
         // Set coordinates
         if (siteArea.address?.coordinates?.length === 2) {
           newChargingStation.coordinates = siteArea.address.coordinates;

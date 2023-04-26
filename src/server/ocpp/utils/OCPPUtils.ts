@@ -1,7 +1,7 @@
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationTemplate, ChargingStationTemplateConnector, Command, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationResponse, OCPPChargingProfileStatus, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
-import { OCPPHeader, OcppConnectionData, OcppRawConnectionData } from '../../../types/ocpp/OCPPHeader';
+import { OCPPHeader, OcppConnectionContext, OcppRawConnectionData } from '../../../types/ocpp/OCPPHeader';
 import { OCPPLocation, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus } from '../../../types/Transaction';
@@ -1087,12 +1087,8 @@ export default class OCPPUtils {
       chargingStationID: headers.chargeBoxIdentity,
       tokenID: headers.tokenID
     };
-    // Get all the necessary entities
-    const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationConnectionData(OCPPUtils.buildServerActionFromOcppCommand(command), rawConnectionData);
-    // Set
-    headers.tenant = tenant;
-    headers.chargingStation = chargingStation;
-    headers.token = token;
+    // Set connection context
+    headers.connectionContext = await OCPPUtils.checkAndGetChargingStationConnectionData(OCPPUtils.buildServerActionFromOcppCommand(command), rawConnectionData);
     return Promise.resolve();
   }
 
@@ -1243,7 +1239,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static async checkAndGetChargingStationConnectionData(action: ServerAction, rawConnectionData: OcppRawConnectionData, updateChargingStationData = true): Promise<OcppConnectionData> {
+  public static async checkAndGetChargingStationConnectionData(action: ServerAction, rawConnectionData: OcppRawConnectionData, updateChargingStationData = true): Promise<OcppConnectionContext> {
     const { tenantID, chargingStationID, tokenID = null } = rawConnectionData;
     // Check parameters
     OCPPUtils.checkChargingStationConnectionData(
