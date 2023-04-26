@@ -58,14 +58,12 @@ export default abstract class WSConnection {
   private tenant: Tenant;
   private tokenID: string;
   private url: string;
-  private originalURL: string;
   private wsWrapper: WSWrapper;
   private pendingOcppCommands: Record<string, OcppPendingCommand> = {};
 
   public constructor(wsWrapper: WSWrapper) {
     // Init
     this.url = wsWrapper.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
-    this.originalURL = wsWrapper.url;
     this.wsWrapper = wsWrapper;
     // Check mandatory fields
     this.checkMandatoryFieldsInRequest();
@@ -316,7 +314,7 @@ export default abstract class WSConnection {
   }
 
   public getOriginalURL(): string {
-    return this.originalURL;
+    return this.wsWrapper.url;
   }
 
   public getClientIP(): string | string[] {
