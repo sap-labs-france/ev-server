@@ -26,7 +26,6 @@ export default class JsonWSConnection extends WSConnection {
   private chargingStationClient: JsonChargingStationClient;
   private chargingStationService: JsonChargingStationService;
   private headers: OCPPHeader;
-  private lastSeen: Date;
 
   public constructor(ws: WSWrapper) {
     super(ws);
@@ -53,7 +52,7 @@ export default class JsonWSConnection extends WSConnection {
       this.getWS().ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'ClosedWebSocket', 'Closed web sockets', labelValues);
     }
     // Create the Json Client
-    this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID());
+    this.chargingStationClient = new JsonChargingStationClient(this);
     // Create the Json Server Service
     this.chargingStationService = new JsonChargingStationService();
   }

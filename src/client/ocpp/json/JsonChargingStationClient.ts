@@ -5,27 +5,16 @@ import { Command } from '../../../types/ChargingStation';
 import JsonWSConnection from '../../../server/ocpp/json/web-socket/JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
-import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'JsonChargingStationClient';
 
 export default class JsonChargingStationClient extends ChargingStationClient {
-  private chargingStationID: string;
-  private siteID: string;
-  private siteAreaID: string;
-  private companyID: string;
-  private tenant: Tenant;
   private wsConnection: JsonWSConnection;
 
-  public constructor(wsConnection: JsonWSConnection, tenant: Tenant, chargingStationID: string) {
+  public constructor(wsConnection: JsonWSConnection) {
     super();
     this.wsConnection = wsConnection;
-    this.tenant = tenant;
-    this.chargingStationID = chargingStationID;
-    this.companyID = wsConnection.getCompanyID();
-    this.siteID = wsConnection.getSiteID();
-    this.siteAreaID = wsConnection.getSiteAreaID();
   }
 
   public getChargingStationID(): string {
@@ -98,15 +87,31 @@ export default class JsonChargingStationClient extends ChargingStationClient {
 
   private async sendMessage(command: Command, params: any): Promise<any> {
     // Trace
-    const performanceTracingData = await Logging.traceOcppMessageRequest(MODULE_NAME, this.tenant, this.chargingStationID,
-      OCPPUtils.buildServerActionFromOcppCommand(command), params, '<<',
-      { siteAreaID: this.siteAreaID, siteID: this.siteID, companyID: this.companyID });
+    const performanceTracingData = await Logging.traceOcppMessageRequest(
+      MODULE_NAME,
+      this.wsConnection.getTenant(),
+      this.wsConnection.getChargingStationID(),
+      OCPPUtils.buildServerActionFromOcppCommand(command),
+      params, '<<',
+      {
+        siteAreaID: this.wsConnection.getSiteAreaID(),
+        siteID: this.wsConnection.getSiteID(),
+        companyID: this.wsConnection.getCompanyID()
+      }
+    );
     // Execute
     const result = await this.wsConnection.sendMessageAndWaitForResult(Utils.generateUUID(), command, params as Record<string, any>);
     // Trace
-    await Logging.traceOcppMessageResponse(MODULE_NAME, this.tenant, this.chargingStationID,
+    await Logging.traceOcppMessageResponse(
+      MODULE_NAME,
+      this.wsConnection.getTenant(),
+      this.wsConnection.getChargingStationID(),
       OCPPUtils.buildServerActionFromOcppCommand(command), params, result, '>>',
-      { siteAreaID: this.siteAreaID, siteID: this.siteID, companyID: this.companyID },
+      {
+        siteAreaID: this.wsConnection.getSiteAreaID(),
+        siteID: this.wsConnection.getSiteID(),
+        companyID: this.wsConnection.getCompanyID()
+      },
       performanceTracingData
     );
     return result;
