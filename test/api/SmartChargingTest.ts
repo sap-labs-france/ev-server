@@ -1324,7 +1324,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
     it('Check for three cars charging on different site areas if not enough power is available on sub site area', async () => {
       testData.siteAreaContext1.getSiteArea().maximumPower = 30000;
       await testData.userService.siteAreaApi.update(testData.siteAreaContext1.getSiteArea());
-      await TestData.sendMeterValue(Voltage.VOLTAGE_230, 32, transaction2, testData.chargingStationContext2, { csPhase1: true, csPhase2: true, csPhase3: true });
+      await TestData.sendMeterValue(Voltage.VOLTAGE_230, 32, transaction2, testData.chargingStationContext2, { csPhase1: true, csPhase2: false, csPhase3: false });
       const chargingProfiles = await smartChargingIntegrationWithoutPriorities.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
       expect(chargingProfiles.length).to.be.eq(3);
       let chargingProfile = TestData.validateAndReturnChargingProfile(chargingProfiles, transaction);
