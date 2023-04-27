@@ -522,7 +522,7 @@ export default class OCPIUtilsService {
         module: MODULE_NAME, method: 'processEmspCdr', action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Station does not exist',
-        detailedMessages: { transaction, cdr },
+        detailedMessages: { transactionData: LoggingHelper.shrinkTransactionProperties(transaction), cdr },
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
       });
     }

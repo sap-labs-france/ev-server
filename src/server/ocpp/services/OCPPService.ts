@@ -419,7 +419,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'handleStartTransaction',
         action: ServerAction.OCPP_START_TRANSACTION, user: user,
         message: `${Utils.buildConnectorInfo(newTransaction.connectorId, newTransaction.id)} Transaction has been started successfully`,
-        detailedMessages: { transaction: newTransaction, startTransaction }
+        detailedMessages: { transactionData: LoggingHelper.shrinkTransactionProperties(newTransaction), startTransaction }
       });
       // Accepted
       return {
@@ -566,7 +566,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'softStopTransaction',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Charging Station is mandatory`,
         action: ServerAction.OCPP_STOP_TRANSACTION,
-        detailedMessages: { transaction, siteArea }
+        detailedMessages: { transactionData: LoggingHelper.shrinkTransactionProperties(transaction), siteArea }
       });
     }
     if (!transaction) {
@@ -584,7 +584,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'softStopTransaction',
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} The Site Area is mandatory`,
         action: ServerAction.OCPP_STOP_TRANSACTION,
-        detailedMessages: { transaction, chargingStation }
+        detailedMessages: { transactionData: LoggingHelper.shrinkTransactionProperties(transaction), chargingStation }
       });
     }
     // Set
@@ -652,7 +652,7 @@ export default class OCPPService {
         action: ServerAction.OCPP_STOP_TRANSACTION,
         user: (alternateUser ? alternateUser : user),
         actionOnUser: (alternateUser ? user : null),
-        detailedMessages: { transaction }
+        detailedMessages: { transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
       });
     }
     return { user, alternateUser };

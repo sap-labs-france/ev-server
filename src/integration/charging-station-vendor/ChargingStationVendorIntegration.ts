@@ -365,6 +365,10 @@ export default abstract class ChargingStationVendorIntegration {
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
         module: MODULE_NAME, method: 'getCurrentConnectorLimit',
         message: `Cannot get the Connector ID '${connectorID}'`,
+        detailedMessages: {
+          connectors: chargingStation?.connectors,
+          backupConnectors: chargingStation?.backupConnectors,
+        }
       });
     }
     // Default

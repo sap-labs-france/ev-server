@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppError from '../../../../../exception/AppError';
 import { HTTPError } from '../../../../../types/HTTPError';
+import LoggingHelper from '../../../../../utils/LoggingHelper';
 import { OCPICdr } from '../../../../../types/ocpi/OCPICdr';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
@@ -43,7 +44,7 @@ export default class EMSPCdrsService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No CDR found in Transaction ID '${transaction.id}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
-        detailedMessages: { transaction }
+        detailedMessages: { transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
       });
     }
     res.json(OCPIUtils.success(transaction.ocpiData.cdr));
