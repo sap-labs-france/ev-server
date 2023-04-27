@@ -501,7 +501,7 @@ export default class EmspOCPIClient extends OCPIClient {
         action: ServerAction.OCPI_EMSP_START_SESSION,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to a local organization`,
         module: MODULE_NAME, method: 'remoteStopSession',
-        detailedMessages: { transaction }
+        detailedMessages: { transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
       });
     }
     if (!transaction.ocpiData?.session) {
@@ -510,7 +510,7 @@ export default class EmspOCPIClient extends OCPIClient {
         action: ServerAction.OCPI_EMSP_START_SESSION,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} No OCPI Session data`,
         module: MODULE_NAME, method: 'remoteStopSession',
-        detailedMessages: { transaction }
+        detailedMessages: { transactionData: LoggingHelper.shrinkTransactionProperties(transaction) }
       });
     }
     const payload: OCPIStopSession = {
