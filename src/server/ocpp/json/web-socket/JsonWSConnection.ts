@@ -70,8 +70,11 @@ export default class JsonWSConnection extends WSConnection {
         ocppVersion: (this.getWS().protocol.startsWith('ocpp') ? this.getWS().protocol.replace('ocpp', '') : this.getWS().protocol) as OCPPVersion,
         ocppProtocol: OCPPProtocol.JSON,
         chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl,
-        tenantID: this.getTenantID(),
-        tokenID: this.getTokenID(),
+        rawConnectionData: {
+          tenantID: this.getTenantID(),
+          tokenID: this.getTokenID(),
+          chargingStationID: this.getChargingStationID()
+        },
         From: {
           Address: this.getClientIP()
         }

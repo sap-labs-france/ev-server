@@ -132,7 +132,7 @@ export default class JsonChargingStationService {
     try {
       return this.chargingStationService[`handle${command}`](headers, payload) as Promise<any>;
     } catch (error) {
-      Logging.logException(error as Error, OCPPUtils.buildServerActionFromOcppCommand(command), MODULE_NAME, command, headers.tenantID);
+      Logging.logException(error as Error, OCPPUtils.buildServerActionFromOcppCommand(command), MODULE_NAME, command, headers.rawConnectionData?.tenantID);
       throw error;
     }
   }

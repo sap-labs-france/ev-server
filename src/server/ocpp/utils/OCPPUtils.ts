@@ -1069,7 +1069,7 @@ export default class OCPPUtils {
     });
   }
 
-  public static async checkChargingStationAndEnrichSoapOcppHeaders(command: Command, headers: OCPPHeader, req: any): Promise<void> {
+  public static async checkChargingStationAndEnrichSoapOcppHeaders(command: Command, headers: OCPPHeader, req: any): Promise<OCPPHeader> {
     // Normalize
     OCPPUtils.normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
     OCPPUtils.normalizeOneSOAPParam(headers, 'Action');
@@ -1080,16 +1080,14 @@ export default class OCPPUtils {
     headers.currentIPAddress = Utils.getRequestIP(req);
     // Parse the request (lower case for fucking charging station DBT URL registration)
     const urlParts = url.parse(decodeURIComponent(req.url.toLowerCase()), true);
-    headers.tenantID = urlParts.query.tenantid as string;
-    headers.tokenID = urlParts.query.token as string;
-    const rawConnectionData: OcppRawConnectionData = {
-      tenantID: headers.tenantID,
+    headers.rawConnectionData = {
+      tenantID: urlParts.query.tenantid as string,
+      tokenID: urlParts.query.token as string,
       chargingStationID: headers.chargeBoxIdentity,
-      tokenID: headers.tokenID
     };
     // Set connection context
-    headers.connectionContext = await OCPPUtils.checkAndGetChargingStationConnectionData(OCPPUtils.buildServerActionFromOcppCommand(command), rawConnectionData);
-    return Promise.resolve();
+    headers.connectionContext = await OCPPUtils.checkAndGetChargingStationConnectionData(OCPPUtils.buildServerActionFromOcppCommand(command), headers.rawConnectionData);
+    return Promise.resolve(headers);
   }
 
   public static async setAndSaveChargingProfile(tenant: Tenant, chargingProfile: ChargingProfile): Promise<string> {

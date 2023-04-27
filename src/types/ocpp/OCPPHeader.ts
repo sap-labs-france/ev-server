@@ -12,12 +12,13 @@ export interface OCPPHeader {
   siteAreaID?: string;
   companyID?: string;
   currentIPAddress?: string | string[];
-  tenantID: string;
-  tokenID?: string;
+  // tenantID: string;
+  // tokenID?: string;
   chargingStationURL?: string;
   From?: {
     Address: string | string[];
   };
+  rawConnectionData?: OcppRawConnectionData;
   connectionContext?: OcppConnectionContext;
 }
 

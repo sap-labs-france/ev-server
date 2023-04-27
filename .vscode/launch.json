@@ -140,6 +140,26 @@
         "<node_internals>/**"
       ],
       "stopOnEntry": true
+    },
+    {
+      "name": "Debug Tests 'createContext:utbilling'",
+      "type": "pwa-node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run-script",
+        "test:create:utbilling"
+      ],
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "stopOnEntry": true
     }
   ]
 }

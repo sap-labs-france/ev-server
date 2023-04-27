@@ -106,7 +106,7 @@ export default class OCPPService {
       };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_BOOT_NOTIFICATION, error as Error, { bootNotification });
+      Logging.logActionExceptionMessage(headers.rawConnectionData?.tenantID, ServerAction.OCPP_BOOT_NOTIFICATION, error as Error, { bootNotification });
       // Reject
       return {
         status: RegistrationStatus.REJECTED,
@@ -143,7 +143,7 @@ export default class OCPPService {
       });
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_HEARTBEAT, error as Error, { heartbeat });
+      Logging.logActionExceptionMessage(headers.rawConnectionData?.tenantID, ServerAction.OCPP_HEARTBEAT, error as Error, { heartbeat });
     }
     return {
       currentTime: new Date().toISOString()
@@ -175,7 +175,7 @@ export default class OCPPService {
       }
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_STATUS_NOTIFICATION, error, { statusNotification });
+      Logging.logActionExceptionMessage(headers.rawConnectionData?.tenantID, ServerAction.OCPP_STATUS_NOTIFICATION, error, { statusNotification });
     }
     return {};
   }
@@ -269,7 +269,7 @@ export default class OCPPService {
       });
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_METER_VALUES, error as Error, { meterValues });
+      Logging.logActionExceptionMessage(headers.rawConnectionData?.tenantID, ServerAction.OCPP_METER_VALUES, error as Error, { meterValues });
     }
     return {};
   }
@@ -305,7 +305,7 @@ export default class OCPPService {
       };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_AUTHORIZE, error as Error, { authorize });
+      Logging.logActionExceptionMessage(headers.rawConnectionData?.tenantID, ServerAction.OCPP_AUTHORIZE, error as Error, { authorize });
       // Rejected
       return {
         idTagInfo: {
@@ -338,7 +338,7 @@ export default class OCPPService {
       return {};
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION, error as Error, { diagnosticsStatusNotification });
+      Logging.logActionExceptionMessage(headers.rawConnectionData?.tenantID, ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION, error as Error, { diagnosticsStatusNotification });
       return {};
     }
   }
@@ -368,7 +368,7 @@ export default class OCPPService {
       return {};
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION, error as Error, { firmwareStatusNotification });
+      Logging.logActionExceptionMessage(headers.rawConnectionData?.tenantID, ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION, error as Error, { firmwareStatusNotification });
       return {};
     }
   }
@@ -432,7 +432,7 @@ export default class OCPPService {
       };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_START_TRANSACTION, error, { startTransaction });
+      Logging.logActionExceptionMessage(headers.rawConnectionData?.tenantID, ServerAction.OCPP_START_TRANSACTION, error, { startTransaction });
       // Invalid
       return {
         transactionId: 0,
@@ -467,7 +467,7 @@ export default class OCPPService {
       };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_DATA_TRANSFER, error as Error, { dataTransfer });
+      Logging.logActionExceptionMessage(headers.rawConnectionData?.tenantID, ServerAction.CHARGING_STATION_DATA_TRANSFER, error as Error, { dataTransfer });
       // Rejected
       return {
         status: OCPPDataTransferStatus.REJECTED
@@ -544,7 +544,7 @@ export default class OCPPService {
       };
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.OCPP_STOP_TRANSACTION, error as Error, { stopTransaction });
+      Logging.logActionExceptionMessage(headers.rawConnectionData?.tenantID, ServerAction.OCPP_STOP_TRANSACTION, error as Error, { stopTransaction });
       // Invalid
       return {
         idTagInfo: {
@@ -593,20 +593,27 @@ export default class OCPPService {
     }
     // Set
     chargingStation.siteArea = siteArea;
+    // OCPP Header
+    const ocppHeader: OCPPHeader = {
+      chargeBoxIdentity: chargingStation.id,
+      companyID: transaction.companyID,
+      siteID: transaction.siteID,
+      siteAreaID: transaction.siteAreaID,
+      rawConnectionData: {
+        tenantID: tenant.id,
+        chargingStationID: chargingStation.id,
+        tokenID: null,
+      },
+      connectionContext: {
+        tenant,
+        chargingStation
+      }
+    };
     // Stop Transaction
     const result = await this.handleStopTransaction(
-      { // OCPP Header
-        tenantID: tenant.id,
-        chargeBoxIdentity: chargingStation.id,
-        companyID: transaction.companyID,
-        siteID: transaction.siteID,
-        siteAreaID: transaction.siteAreaID,
-        connectionContext: {
-          tenant,
-          chargingStation
-        }
-      },
-      { // OCPP Stop Transaction
+      ocppHeader,
+      {
+        // OCPP Stop Transaction
         transactionId: transaction.id,
         chargeBoxID: transaction.chargeBoxID,
         idTag: transaction.tagID,
@@ -1568,7 +1575,7 @@ export default class OCPPService {
     // Update props
     newChargingStation.createdOn = new Date();
     newChargingStation.issuer = true;
-    newChargingStation.tokenID = headers.tokenID;
+    newChargingStation.tokenID = headers.rawConnectionData.tokenID;
     newChargingStation.powerLimitUnit = ChargingRateUnitType.AMPERE;
     const { token } = headers.connectionContext;
 
