@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
 import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPPayload } from '../../../../types/ocpp/OCPPCommon';
+import { OcppConnectionContext, OcppRawConnectionData } from '../../../../types/ocpp/OCPPHeader';
 import { ServerAction, WSServerProtocol } from '../../../../types/Server';
 
 import BackendError from '../../../../exception/BackendError';
@@ -9,7 +10,6 @@ import Logging from '../../../../utils/Logging';
 import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPError from '../../../../exception/OcppError';
 import OCPPUtils from '../../utils/OCPPUtils';
-import { OcppRawConnectionData } from '../../../../types/ocpp/OCPPHeader';
 import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import WSWrapper from './WSWrapper';
@@ -54,8 +54,9 @@ export class OcppPendingCommand {
 
 export default abstract class WSConnection {
   protected rawConnectionData: OcppRawConnectionData;
-  private chargingStation: ChargingStation;
-  private tenant: Tenant;
+  private connectionContext: OcppConnectionContext;
+  // private chargingStation: ChargingStation;
+  // private tenant: Tenant;
   private url: string;
   private wsWrapper: WSWrapper;
   private pendingOcppCommands: Record<string, OcppPendingCommand> = {};
@@ -72,12 +73,8 @@ export default abstract class WSConnection {
     // Do not update the lastSeen when the caller is the REST server!
     const updateChargingStationData = (this.wsWrapper.protocol !== WSServerProtocol.REST);
     // Check and Get Charging Station data
-    const { tenant, chargingStation } = await OCPPUtils.checkAndGetChargingStationConnectionData(
-      ServerAction.WS_SERVER_CONNECTION, this.rawConnectionData, updateChargingStationData
-    );
-    // Set
-    this.setTenant(tenant);
-    this.setChargingStation(chargingStation);
+    this.connectionContext = await OCPPUtils.checkAndGetChargingStationConnectionData(ServerAction.WS_SERVER_CONNECTION, this.rawConnectionData, updateChargingStationData);
+    // TBC - Avoid this reference
     this.wsWrapper.setConnection(this);
   }
 
@@ -158,7 +155,7 @@ export default abstract class WSConnection {
         // Not always an error with uWebSocket: check BackPressure example
         const message = `Error when sending error '${messageToSend}' to Web Socket`;
         Logging.beError()?.log({
-          ...LoggingHelper.getChargingStationProperties(this.chargingStation),
+          ...LoggingHelper.getChargingStationProperties(this.connectionContext.chargingStation),
           tenantID,
           chargingStationID,
           module: MODULE_NAME, method: 'sendMessageInternal',
@@ -173,7 +170,7 @@ export default abstract class WSConnection {
       // Invalid Web Socket
       const message = `Error when sending message '${messageToSend}' to Web Socket: ${wsError?.message as string}`;
       Logging.beError()?.log({
-        ...LoggingHelper.getChargingStationProperties(this.chargingStation),
+        ...LoggingHelper.getChargingStationProperties(this.connectionContext.chargingStation),
         tenantID,
         chargingStationID,
         module: MODULE_NAME, method: 'sendMessageInternal',
@@ -201,7 +198,7 @@ export default abstract class WSConnection {
         wsWrapper.wsConnection.handleIncomingOcppError(ocppMessage as OCPPIncomingResponse);
       } else {
         Logging.beError()?.log({
-          ...LoggingHelper.getChargingStationProperties(this.chargingStation),
+          ...LoggingHelper.getChargingStationProperties(this.connectionContext.chargingStation),
           tenantID,
           chargingStationID,
           action: ServerAction.UNKNOWN_ACTION,
@@ -211,7 +208,7 @@ export default abstract class WSConnection {
       }
     } catch (error) {
       Logging.beError()?.log({
-        ...LoggingHelper.getChargingStationProperties(this.chargingStation),
+        ...LoggingHelper.getChargingStationProperties(this.connectionContext.chargingStation),
         tenantID,
         chargingStationID,
         action: ServerAction.UNKNOWN_ACTION,
@@ -239,7 +236,7 @@ export default abstract class WSConnection {
       // Send Error Response
       this.sendError(messageID, command, commandPayload, error);
       Logging.beError()?.log({
-        ...LoggingHelper.getChargingStationProperties(this.chargingStation),
+        ...LoggingHelper.getChargingStationProperties(this.connectionContext.chargingStation),
         tenantID,
         chargingStationID,
         action: OCPPUtils.buildServerActionFromOcppCommand(command),
@@ -325,23 +322,19 @@ export default abstract class WSConnection {
   }
 
   public getChargingStation(): ChargingStation {
-    return this.chargingStation;
-  }
-
-  public setChargingStation(chargingStation: ChargingStation): void {
-    this.chargingStation = chargingStation;
+    return this.connectionContext?.chargingStation ;
   }
 
   public getSiteID(): string {
-    return this.chargingStation?.siteID;
+    return this.connectionContext?.chargingStation?.siteID;
   }
 
   public getSiteAreaID(): string {
-    return this.chargingStation?.siteAreaID;
+    return this.connectionContext?.chargingStation?.siteAreaID;
   }
 
   public getCompanyID(): string {
-    return this.chargingStation?.companyID;
+    return this.connectionContext?.chargingStation?.companyID;
   }
 
   public getChargingStationID(): string {
@@ -353,15 +346,11 @@ export default abstract class WSConnection {
   }
 
   public getTenantSubDomain(): string {
-    return this.tenant?.subdomain;
-  }
-
-  public setTenant(tenant: Tenant): void {
-    this.tenant = tenant;
+    return this.connectionContext?.tenant.subdomain;
   }
 
   public getTenant(): Tenant {
-    return this.tenant;
+    return this.connectionContext?.tenant;
   }
 
   public getTokenID(): string {

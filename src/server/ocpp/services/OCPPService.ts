@@ -881,16 +881,18 @@ export default class OCPPService {
       // Enrich Charging Station's Connector
       await OCPPUtils.enrichChargingStationConnectorWithTemplate(tenant, chargingStation, connector);
     // Same Status Notification?
-    } else if (Utils.objectAllPropertiesAreEqual(statusNotification, connector, ['status', 'info', 'errorCode', 'vendorErrorCode'])) {
-      ignoreStatusNotification = true;
-      Logging.beWarning()?.log({
-        ...LoggingHelper.getChargingStationProperties(chargingStation),
-        tenantID: tenant.id,
-        action: ServerAction.OCPP_STATUS_NOTIFICATION,
-        module: MODULE_NAME, method: 'handleStatusNotification',
-        message: `${this.buildStatusNotification(statusNotification)} has not changed and will be ignored`,
-        detailedMessages: { connector, statusNotification }
-      });
+    } else if (FeatureToggles.isFeatureActive(Feature.OCPP_IGNORE_UNCHANGED_STATUS)) {
+      if (Utils.objectAllPropertiesAreEqual(statusNotification, connector, ['status', 'info', 'errorCode', 'vendorErrorCode'])) {
+        ignoreStatusNotification = true;
+        Logging.beWarning()?.log({
+          ...LoggingHelper.getChargingStationProperties(chargingStation),
+          tenantID: tenant.id,
+          action: ServerAction.OCPP_STATUS_NOTIFICATION,
+          module: MODULE_NAME, method: 'handleStatusNotification',
+          message: `${this.buildStatusNotification(statusNotification)} has not changed and will be ignored`,
+          detailedMessages: { connector, statusNotification }
+        });
+      }
     }
     return { connector, ignoreStatusNotification };
   }
