@@ -93,6 +93,24 @@ export default class WSWrapper {
     return sent;
   }
 
+  public forceClose(): void {
+    if (!this.closed) {
+      this.closed = true;
+      // Local ref to the Web Socket
+      const ws = this.ws;
+      if (ws) {
+        try {
+          // Clear the reference to the WebSocket!
+          this.ws = null;
+          // Close WS
+          ws.close();
+        } catch (error) {
+          // Do nothing
+        }
+      }
+    }
+  }
+
   public close(code: number, shortMessage: RecognizedString): void {
     if (!this.closed) {
       this.closed = true;

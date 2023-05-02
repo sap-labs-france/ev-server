@@ -311,6 +311,7 @@ export default class JsonOCPPServer extends OCPPServer {
       wsWrapper.setConnection(wsConnection);
       // Keep WS connection in cache
       if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
+        this.closePreviousWebsocketConnection(wsConnection);
         if (Utils.isMonitoringEnabled()) {
           wsWrapper.ocppOpenWebSocketMetricCounter.inc();
         }
@@ -335,6 +336,37 @@ export default class JsonOCPPServer extends OCPPServer {
         message: `${WebSocketAction.OPEN} > WS ID '${wsWrapper.guid}' is invalid (processed in ${Utils.computeTimeDurationSecs(timeStart)} secs)`,
         detailedMessages: { wsWrapper: wsWrapper.toJson() }
       });
+    }
+  }
+
+  private closePreviousWebsocketConnection(wsConnection: WSConnection) {
+    if (wsConnection.getWS().protocol === WSServerProtocol.OCPP16) {
+      const existingWSConnection = this.jsonWSConnections.get(wsConnection.getID());
+      if (existingWSConnection) {
+        // Still opened WS?
+        const existingWSWrapper = existingWSConnection.getWS();
+        if (!existingWSWrapper.closed) {
+          try {
+            // Forcefully closes this WebSocket. Immediately calls the close handler.
+            existingWSWrapper.closed = true;
+            Logging.beDebug()?.log({
+              tenantID: existingWSConnection.getTenantID(),
+              chargingStationID: existingWSConnection.getChargingStationID(),
+              action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'closePreviousWebsocketConnection',
+              message: `Closing previous WS ID '${existingWSWrapper.guid}'`
+            });
+            existingWSWrapper.forceClose();
+          } catch (error) {
+            // Just log and ignore issue
+            Logging.beError()?.log({
+              tenantID: existingWSConnection.getTenantID(),
+              chargingStationID: existingWSConnection.getChargingStationID(),
+              action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'closePreviousWebsocketConnection',
+              message: `Failed to close WS ID '${existingWSWrapper.guid}' - ${error.message as string}`
+            });
+          }
+        }
+      }
     }
   }
 
