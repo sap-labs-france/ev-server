@@ -123,7 +123,7 @@ export default class JsonWSConnection extends WSConnection {
       tenantID: this.getTenantID(),
       action: ServerAction.WS_CLIENT_CONNECTION_PING,
       module: MODULE_NAME, method: 'onPing',
-      message: `Ping received from WS ID '${this.getWS()?.guid}`
+      message: `Ping received from WS ID '${this.getWS()?.guid}'`
     });
   }
 
@@ -135,7 +135,7 @@ export default class JsonWSConnection extends WSConnection {
       tenantID: this.getTenantID(),
       action: ServerAction.WS_CLIENT_CONNECTION_PONG,
       module: MODULE_NAME, method: 'onPong',
-      message: `Pong received from WS ID '${this.getWS()?.guid}`
+      message: `Pong received from WS ID '${this.getWS()?.guid}'`
     });
   }
 
