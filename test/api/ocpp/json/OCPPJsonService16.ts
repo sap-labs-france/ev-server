@@ -1,7 +1,7 @@
 import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
 import { OCPPIncomingRequest, OCPPMessageType } from '../../../../src/types/ocpp/OCPPCommon';
 
-import { Command } from '../../../types/ChargingStation';
+import { Command } from '../../../../src/types/ChargingStation';
 import OCPPService from '../OCPPService';
 import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
@@ -52,7 +52,7 @@ export default class OCPPJsonService16 extends OCPPService {
         reject(error);
       };
       // Handle Server Message
-      wsConnection.onmessage = async (message) => {
+      wsConnection.onmessage = (message) => {
         const t1 = performance.now();
         try {
           // Parse the message
@@ -67,7 +67,9 @@ export default class OCPPJsonService16 extends OCPPService {
             // Respond to the request
             sentRequests[messageId].resolve(response);
           } else if (messageType === OCPPMessageType.CALL_MESSAGE) {
-            await this.handleRequest(chargeBoxIdentity, messageId, command, commandPayload);
+            this.handleRequest(chargeBoxIdentity, messageId, command, commandPayload).catch((responseError) => {
+              reject(responseError);
+            });
           }
         } catch (error) {
           reject(error);
