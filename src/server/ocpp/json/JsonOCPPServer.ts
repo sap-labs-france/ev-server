@@ -45,10 +45,6 @@ export default class JsonOCPPServer extends OCPPServer {
     }
     // Monitor WS activity
     this.monitorWSConnections();
-    // Monitor Memory Usage
-    if (FeatureToggles.isFeatureActive(Feature.OCPP_MONITOR_MEMORY_USAGE)) {
-      this.monitorMemoryUsage();
-    }
     // Start 15 secs after ping checks
     setTimeout(() => this.massUpdateChargingStationsLastSeen(), 15 * 1000);
   }
@@ -649,95 +645,54 @@ export default class JsonOCPPServer extends OCPPServer {
   }
 
   private monitorWSConnections() {
+    // Do it once at startup
+    Utils.sleep(2000).then(() => {
+      this._monitorWSConnections();
+    }).catch(() => { /* Intentional */ });
+    // Then do it again from time to time
     setInterval(() => {
-      try {
-        // Log size of WS Json Connections (track leak)
-        let sizeOfPendingCommands = 0, numberOfPendingCommands = 0;
-        for (const jsonWSConnection of Array.from(this.jsonWSConnections.values())) {
-          const pendingCommands = jsonWSConnection.getPendingOccpCommands();
-          sizeOfPendingCommands += sizeof(pendingCommands);
-          numberOfPendingCommands += Object.keys(pendingCommands).length;
-        }
-        // Log Stats on number of WS Connections
-        Logging.beDebug()?.log({
-          tenantID: Constants.DEFAULT_TENANT_ID,
-          action: ServerAction.WS_SERVER_CONNECTION, module: MODULE_NAME, method: 'monitorWSConnections',
-          message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages, ${numberOfPendingCommands} pending OCPP commands`,
-          detailedMessages: [
-            `${numberOfPendingCommands} pending OCPP commands - ${sizeOfPendingCommands / 1000} kB`
-          ]
-        });
-        if (Utils.isMonitoringEnabled()) {
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(this.runningWSMessages);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT).set(this.jsonRestWSConnections.size);
-          global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRENT_REQUEST).set(numberOfPendingCommands);
-          // global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(Object.keys(this.runningWSRequestsMessages).length);
-          // global.monitoringServer.getGauge(Constants.WEB_SOCKET_QUEUED_REQUEST).set(this.waitingWSMessages);
-        }
-        if (this.isDebug()) {
-          Logging.logConsoleDebug('=====================================');
-          Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
-          Logging.logConsoleDebug(`** ${numberOfPendingCommands} pending OCPP commands - Size: ${sizeOfPendingCommands / 1000} kB`);
-          Logging.logConsoleDebug(`** ${this.jsonRestWSConnections.size} REST Connection(s)`);
-          Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages (Requests + Responses)`);
-          Logging.logConsoleDebug('=====================================');
-        }
-      } catch (error) {
-        /* Intentional */
-      }
+      this._monitorWSConnections();
     }, Configuration.getChargingStationConfig().monitoringIntervalOCPPJSecs * 1000);
   }
 
-  private monitorMemoryUsage() {
-    setInterval(() => {
-      try {
-        // get Node memory usage
-        const beginDate = new Date().getTime();
-        const memoryUsage = process.memoryUsage();
-        const elapsedTime = new Date().getTime() - beginDate;
-        const memoryUsagePercentage = ((memoryUsage.heapUsed / memoryUsage.rss) * 100);
-        const usagePercentage = memoryUsagePercentage.toFixed(2);
-        const heapTotal = (memoryUsage.heapTotal / 1024 / 1024).toFixed(2);
-        const heapUsed = (memoryUsage.heapUsed / 1024 / 1024).toFixed(2);
-        const external = (memoryUsage.external / 1024 / 1024).toFixed(2);
-        const rss = (memoryUsage.rss / 1024 / 1024).toFixed(2); // total amount of memory allocated to the process - to be clarified!
-        const message = `Memory Usage ${usagePercentage}% - total heap: ${heapTotal} MiB - heap used: ${heapUsed} MiB - rss: ${rss} MiB - external: ${external} MiB - elapsed time: ${elapsedTime}`;
-        const dataToLog = {
-          tenantID: Constants.DEFAULT_TENANT_ID,
-          action: ServerAction.PERFORMANCES, module: MODULE_NAME, method: 'monitorMemoryUsage',
-          message
-        };
-        // TODO - remove it - JUST FOR TROUBLESHOOTING STRESS TESTS
-        Logging.beError()?.log(dataToLog);
-        // if (memoryUsagePercentage > 90) {
-        //   Logging.beError()?.log(dataToLog);
-        // } else if (memoryUsagePercentage > 80) {
-        //   Logging.beWarning()?.log(dataToLog);
-        // } else {
-        //   Logging.beDebug()?.log(dataToLog);
-        // }
-        if (this.isDebug()) {
-          Logging.logConsoleDebug(message);
-          // Dump active handles
-          // this.dumpWtf();
-        }
-      } catch (error) {
-        /* Intentional */
+  private _monitorWSConnections() {
+    try {
+      // Log size of WS Json Connections (track leak)
+      let sizeOfPendingCommands = 0, numberOfPendingCommands = 0;
+      for (const jsonWSConnection of Array.from(this.jsonWSConnections.values())) {
+        const pendingCommands = jsonWSConnection.getPendingOccpCommands();
+        sizeOfPendingCommands += sizeof(pendingCommands);
+        numberOfPendingCommands += Object.keys(pendingCommands).length;
       }
-    }, 5 * 60 * 1000); // every minute - TODO - add new configuration for it!
+      // Log Stats on number of WS Connections
+      Logging.beDebug()?.log({
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        action: ServerAction.WS_SERVER_CONNECTION, module: MODULE_NAME, method: 'monitorWSConnections',
+        message: `${this.jsonWSConnections.size} WS connections, ${this.jsonRestWSConnections.size} REST connections, ${this.runningWSMessages} Messages, ${numberOfPendingCommands} pending OCPP commands`,
+        detailedMessages: [
+          `${numberOfPendingCommands} pending OCPP commands - ${sizeOfPendingCommands / 1000} kB`
+        ]
+      });
+      if (Utils.isMonitoringEnabled()) {
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(this.runningWSMessages);
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT).set(this.jsonWSConnections.size);
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_REST_CONNECTIONS_COUNT).set(this.jsonRestWSConnections.size);
+        global.monitoringServer.getGauge(Constants.WEB_SOCKET_CURRENT_REQUEST).set(numberOfPendingCommands);
+        // global.monitoringServer.getGauge(Constants.WEB_SOCKET_RUNNING_REQUEST).set(Object.keys(this.runningWSRequestsMessages).length);
+        // global.monitoringServer.getGauge(Constants.WEB_SOCKET_QUEUED_REQUEST).set(this.waitingWSMessages);
+      }
+      if (this.isDebug()) {
+        Logging.logConsoleDebug('=====================================');
+        Logging.logConsoleDebug(`** ${this.jsonWSConnections.size} JSON Connection(s)`);
+        Logging.logConsoleDebug(`** ${numberOfPendingCommands} pending OCPP commands - Size: ${sizeOfPendingCommands / 1000} kB`);
+        Logging.logConsoleDebug(`** ${this.jsonRestWSConnections.size} REST Connection(s)`);
+        Logging.logConsoleDebug(`** ${this.runningWSMessages} running WS Messages (Requests + Responses)`);
+        Logging.logConsoleDebug('=====================================');
+      }
+    } catch (error) {
+      /* Intentional */
+    }
   }
-
-  // private dumpWtf() {
-  // ----------------------------------------------------------------
-  // Dump active handles (I/O devices, signals, timers or processes)
-  // ----------------------------------------------------------------
-  //   wtfnode.setLogger('info', console.info);
-  //   wtfnode.setLogger('warn', console.warn);
-  //   wtfnode.setLogger('error', console.error);
-  //   wtfnode.dump();
-  //   wtfnode.resetLoggers();
-  // }
 
   private checkAndCleanupAllWebSockets() {
     setInterval(() => {
