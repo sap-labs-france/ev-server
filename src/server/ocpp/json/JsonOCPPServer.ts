@@ -408,7 +408,7 @@ export default class JsonOCPPServer extends OCPPServer {
         }
       }
       this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_CLOSE, code,
-        `${WebSocketAction.CLOSE} > WS ID '${wsWrapper?.guid}' has been closed - '${code}', reason: '${reason || ''}'`);
+        `${WebSocketAction.CLOSE} > WS ID '${wsWrapper?.guid}' has been closed - code '${code}', reason: '${reason || ''}'`);
     } else {
       Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
