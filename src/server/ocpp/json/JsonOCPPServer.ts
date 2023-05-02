@@ -60,8 +60,8 @@ export default class JsonOCPPServer extends OCPPServer {
     let idleTimeout: number;
     const sendPingsAutomatically = FeatureToggles.isFeatureActive(Feature.WS_SEND_PING_AUTOMATICALLY);
     if (sendPingsAutomatically) {
-      // keep the connection alive - sends ping automatically before reaching the timeout
-      idleTimeout = 5 * 60;
+      idleTimeout = 1 * 60; // 1 minute - Maintains the web socket live - impact visible with the number of pongs!
+      // idleTimeout = 5 * 60; // 5 minutes - too long - some chargers are closing their web socket with error code 1006 - no reason!
     } else {
       // idleTimeout = 3600; // 1 hour of inactivity ==> close
       idleTimeout = 0; // Never close Web Sockets
@@ -72,7 +72,7 @@ export default class JsonOCPPServer extends OCPPServer {
       compression: uWS.SHARED_COMPRESSOR,
       maxPayloadLength: 64 * 1024, // 64 KB per request
       idleTimeout,
-      sendPingsAutomatically, // keep the connection alive
+      sendPingsAutomatically, // keeps the connection alive - uWS sends ping automatically before reaching the idleTimeout
       upgrade: (res: HttpResponse, req: HttpRequest, context: us_socket_context_t) => {
         // Delegate
         this.onUpgrade(res, req, context);
