@@ -408,16 +408,15 @@ export default class JsonOCPPServer extends OCPPServer {
         }
       }
       this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_CLOSE, code,
-        `${WebSocketAction.CLOSE} > WS ID '${wsWrapper?.guid}' closed by charging station with code '${code}', reason: '${!Utils.isNullOrEmptyString(reason) ? reason : '-'}'`);
+        `${WebSocketAction.CLOSE} > WS ID '${wsWrapper?.guid}' has been closed - '${code}', reason: '${reason || ''}'`);
     } else {
-      const message = `${WebSocketAction.CLOSE} > WS ID 'N/A' closed by charging station with code '${code}', reason: '${!Utils.isNullOrEmptyString(reason) ? reason : '-'}'`;
-      Logging.beInfo()?.log({
+      Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.WS_SERVER_CONNECTION_CLOSE,
         module: MODULE_NAME, method: 'onClose',
-        message, detailedMessages: { code, reason }
+        message: `${WebSocketAction.CLOSE} > Unexpected situation - trying to close an unknown connection`,
+        detailedMessages: { code, reason }
       });
-      this.isDebug() && Logging.logConsoleDebug(message);
     }
   }
 

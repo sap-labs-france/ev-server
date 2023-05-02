@@ -347,26 +347,6 @@ export default class Utils {
     }
   }
 
-  public static getWebSocketCloseEventStatusString(code: number): string {
-    if (code >= 0 && code <= 999) {
-      return '(Unused)';
-    } else if (code >= 1016) {
-      if (code <= 1999) {
-        return '(For WebSocket standard)';
-      } else if (code <= 2999) {
-        return '(For WebSocket extensions)';
-      } else if (code <= 3999) {
-        return '(For libraries and frameworks)';
-      } else if (code <= 4999) {
-        return '(For applications)';
-      }
-    }
-    if (!Utils.isUndefined(WebSocketCloseEventStatusString[code])) {
-      return WebSocketCloseEventStatusString[code];
-    }
-    return '(Unknown)';
-  }
-
   public static convertToBoolean(value: any): boolean {
     let result = false;
     // Check boolean

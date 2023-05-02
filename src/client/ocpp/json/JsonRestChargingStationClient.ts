@@ -2,6 +2,7 @@ import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { OCPPCancelReservationRequest, OCPPCancelReservationResponse, OCPPChangeAvailabilityRequest, OCPPChangeAvailabilityResponse, OCPPChangeConfigurationRequest, OCPPChangeConfigurationResponse, OCPPClearCacheResponse, OCPPClearChargingProfileRequest, OCPPClearChargingProfileResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPGetCompositeScheduleRequest, OCPPGetCompositeScheduleResponse, OCPPGetConfigurationRequest, OCPPGetConfigurationResponse, OCPPGetDiagnosticsRequest, OCPPGetDiagnosticsResponse, OCPPRemoteStartTransactionRequest, OCPPRemoteStartTransactionResponse, OCPPRemoteStopTransactionRequest, OCPPRemoteStopTransactionResponse, OCPPReserveNowRequest, OCPPReserveNowResponse, OCPPResetRequest, OCPPResetResponse, OCPPSetChargingProfileRequest, OCPPSetChargingProfileResponse, OCPPStatus, OCPPUnlockConnectorRequest, OCPPUnlockConnectorResponse, OCPPUpdateFirmwareRequest } from '../../../types/ocpp/OCPPClient';
 import { OCPPIncomingRequest, OCPPMessageType, OCPPOutgoingRequest } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
+import { WSClientOptions, WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../ChargingStationClient';
@@ -10,7 +11,6 @@ import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
-import { WSClientOptions } from '../../../types/WebSocket';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 
@@ -125,7 +125,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       chargingStationID: this.chargingStation.id,
       action: ServerAction.WS_CLIENT_CONNECTION,
       module: MODULE_NAME, method: 'onOpen',
-      message: `Try to connect to '${this.serverURL}' - command: ${triggeringCommand}`
+      message: `${triggeringCommand} > Connecting to '${this.serverURL}'`
     });
     // Create Promise
     return new Promise((resolve, reject) => {
@@ -150,7 +150,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             chargingStationID: this.chargingStation.id,
             action: ServerAction.WS_CLIENT_CONNECTION_OPEN,
             module: MODULE_NAME, method: 'onOpen',
-            message: `Connection opened to '${this.serverURL}' - command: ${triggeringCommand}`
+            message: `${triggeringCommand} > Now connected to '${this.serverURL}'`
           });
           // Connection is opened and ready to use
           resolve();
@@ -165,8 +165,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             chargingStationID: this.chargingStation.id,
             action: ServerAction.WS_CLIENT_CONNECTION_CLOSE,
             module: MODULE_NAME, method: 'onClose',
-            message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`,
-            detailedMessages: { code }
+            message: `${triggeringCommand} > Connection has been closed - Code: '${code}'`,
           });
         };
         // Handle Error Message
@@ -179,8 +178,11 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             chargingStationID: this.chargingStation.id,
             action: ServerAction.WS_CLIENT_CONNECTION_ERROR,
             module: MODULE_NAME, method: 'onError',
-            message: `Connection error to '${this.serverURL}: ${error?.message}`,
-            detailedMessages: { error: error.stack }
+            message: `${triggeringCommand} > Connection failed - ${error?.message}`,
+            detailedMessages: {
+              url: this.serverURL,
+              error: error.stack
+            }
           });
           // Terminate WS in error
           this.terminateConnection();
@@ -215,7 +217,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                 this.requests[messageId].resolve(command);
               }
               // Close WS
-              this.closeConnection();
+              this.endConnection();
             } else {
               // Error message
               Logging.beError()?.log({
@@ -240,10 +242,10 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     });
   }
 
-  private closeConnection() {
-    // Close
+  private endConnection() {
     if (this.wsConnection) {
-      this.wsConnection.close();
+      // Gracefully Close Web Socket - WS Code 1000
+      this.wsConnection.close(WebSocketCloseEventStatusCode.CLOSE_NORMAL, 'Operation completed');
     }
     this.wsConnection = null;
   }
