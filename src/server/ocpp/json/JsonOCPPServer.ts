@@ -311,7 +311,7 @@ export default class JsonOCPPServer extends OCPPServer {
       wsWrapper.setConnection(wsConnection);
       // Keep WS connection in cache
       if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
-        this.closePreviousWebsocketConnection(wsConnection);
+        this.closePreviousWebSocketConnection(wsConnection);
         if (Utils.isMonitoringEnabled()) {
           wsWrapper.ocppOpenWebSocketMetricCounter.inc();
         }
@@ -339,7 +339,7 @@ export default class JsonOCPPServer extends OCPPServer {
     }
   }
 
-  private closePreviousWebsocketConnection(wsConnection: WSConnection) {
+  private closePreviousWebSocketConnection(wsConnection: WSConnection) {
     if (wsConnection.getWS().protocol === WSServerProtocol.OCPP16) {
       const existingWSConnection = this.jsonWSConnections.get(wsConnection.getID());
       if (existingWSConnection) {
@@ -352,8 +352,8 @@ export default class JsonOCPPServer extends OCPPServer {
             Logging.beDebug()?.log({
               tenantID: existingWSConnection.getTenantID(),
               chargingStationID: existingWSConnection.getChargingStationID(),
-              action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'closePreviousWebsocketConnection',
-              message: `Closing previous WS ID '${existingWSWrapper.guid}'`
+              action: ServerAction.WS_SERVER_CONNECTION_CLOSE, module: MODULE_NAME, method: 'closePreviousWebSocketConnection',
+              message: `Forcefully close previous WS ID '${existingWSWrapper.guid}'`
             });
             existingWSWrapper.forceClose();
           } catch (error) {
@@ -361,7 +361,7 @@ export default class JsonOCPPServer extends OCPPServer {
             Logging.beError()?.log({
               tenantID: existingWSConnection.getTenantID(),
               chargingStationID: existingWSConnection.getChargingStationID(),
-              action: ServerAction.WS_SERVER_CONNECTION_OPEN, module: MODULE_NAME, method: 'closePreviousWebsocketConnection',
+              action: ServerAction.WS_SERVER_CONNECTION_CLOSE, module: MODULE_NAME, method: 'closePreviousWebSocketConnection',
               message: `Failed to close WS ID '${existingWSWrapper.guid}' - ${error.message as string}`
             });
           }
