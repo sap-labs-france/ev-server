@@ -365,6 +365,10 @@ export default class JsonOCPPServer extends OCPPServer {
     if (wsWrapper) {
       // Force close
       wsWrapper.closed = true;
+      // Increment counter
+      if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
+        wsWrapper.ocppClosedWebSocketMetricCounter?.inc();
+      }
       // Cleanup WS Connection map
       if (wsWrapper.wsConnection) {
         if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
@@ -576,9 +580,6 @@ export default class JsonOCPPServer extends OCPPServer {
         // Check id same WS Connection
         if (existingWsWrapper.guid === wsWrapper.guid) {
           // Remove from WS Cache
-          if ((Utils.isMonitoringEnabled()) && (wsWrapper.protocol === WSServerProtocol.OCPP16)) {
-            wsWrapper.ocppClosedWebSocketMetricCounter.inc();
-          }
           wsConnections.delete(wsConnection.getID());
           Logging.beDebug()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
