@@ -223,7 +223,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         action: ServerAction.WS_CLIENT_ERROR,
         module: MODULE_NAME, method: 'onMessage',
         message: 'Unexpected OCPP Response',
-        detailedMessages: { messageType, messageId, command }
+        detailedMessages: { messageType, messageId, payload }
       });
     }
     // Close WS
