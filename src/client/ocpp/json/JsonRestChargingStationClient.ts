@@ -1,8 +1,7 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { OCPPCancelReservationRequest, OCPPCancelReservationResponse, OCPPChangeAvailabilityRequest, OCPPChangeAvailabilityResponse, OCPPChangeConfigurationRequest, OCPPChangeConfigurationResponse, OCPPClearCacheResponse, OCPPClearChargingProfileRequest, OCPPClearChargingProfileResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPGetCompositeScheduleRequest, OCPPGetCompositeScheduleResponse, OCPPGetConfigurationRequest, OCPPGetConfigurationResponse, OCPPGetDiagnosticsRequest, OCPPGetDiagnosticsResponse, OCPPRemoteStartTransactionRequest, OCPPRemoteStartTransactionResponse, OCPPRemoteStopTransactionRequest, OCPPRemoteStopTransactionResponse, OCPPReserveNowRequest, OCPPReserveNowResponse, OCPPResetRequest, OCPPResetResponse, OCPPSetChargingProfileRequest, OCPPSetChargingProfileResponse, OCPPStatus, OCPPUnlockConnectorRequest, OCPPUnlockConnectorResponse, OCPPUpdateFirmwareRequest } from '../../../types/ocpp/OCPPClient';
-import { OCPPIncomingRequest, OCPPMessageType, OCPPOutgoingRequest } from '../../../types/ocpp/OCPPCommon';
+import { OCPPIncomingError, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPOutgoingRequest } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
-import { WSClientOptions, WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../ChargingStationClient';
@@ -10,7 +9,8 @@ import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
 import Utils from '../../../utils/Utils';
-import WSClient from '../../websocket/WSClient';
+import WebSocket from 'ws';
+import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 
@@ -19,7 +19,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   private serverURL: string;
   private chargingStation: ChargingStation;
   private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Error|Record<string, unknown>) => void; command: Command } };
-  private wsConnection: WSClient;
+  // private wsConnection: WSClient;
+  private webSocket: WebSocket;
   private tenantID: string;
 
   public constructor(tenantID: string, chargingStation: ChargingStation) {
@@ -130,18 +131,13 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     // Create Promise
     return new Promise((resolve, reject) => {
       try {
-        // Create WS
-        const wsClientOptions: WSClientOptions = {
-          wsOptions: {
-            handshakeTimeout: 5000,
-          },
-          protocols: WSServerProtocol.REST,
-          logTenantID: this.tenantID
-        };
         // Create and Open the WS
-        this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
+        this.webSocket = new WebSocket(this.serverURL, WSServerProtocol.REST, {
+          handshakeTimeout: 5000,
+        });
+
         // Opened
-        this.wsConnection.onopen = () => {
+        this.webSocket.on('open', () => {
           Logging.beInfo()?.log({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
@@ -154,9 +150,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           });
           // Connection is opened and ready to use
           resolve();
-        };
+        });
         // Closed
-        this.wsConnection.onclose = (code: number) => {
+        this.webSocket.on('close', (code) => {
           Logging.beInfo()?.log({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
@@ -167,9 +163,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             module: MODULE_NAME, method: 'onClose',
             message: `${triggeringCommand} > Connection has been closed - Code: '${code}'`,
           });
-        };
+        });
         // Handle Error Message
-        this.wsConnection.onerror = (error: Error) => {
+        this.webSocket.on('error', (error) => {
           Logging.beError()?.log({
             tenantID: this.tenantID,
             siteID: this.chargingStation.siteID,
@@ -186,101 +182,135 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           });
           // Terminate WS in error
           this.terminateConnection();
-          reject(new Error(`Error on opening Web Socket connection: ${error.message}'`));
-        };
+          reject(new Error(`${triggeringCommand} - Web Socket connection: ${error.message}`));
+        });
         // Handle Server Message
-        this.wsConnection.onmessage = (message) => {
+        this.webSocket.on('message', (rawData: WebSocket.RawData) => {
           try {
             // Parse the message
-            const [messageType, messageId, command, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
-            // Check if this corresponds to a request
-            if (this.requests[messageId]) {
-              // Check message type
-              if (messageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
-                // Error message
-                Logging.beError()?.log({
-                  tenantID: this.tenantID,
-                  siteID: this.chargingStation.siteID,
-                  siteAreaID: this.chargingStation.siteAreaID,
-                  companyID: this.chargingStation.companyID,
-                  chargingStationID: this.chargingStation.id,
-                  action: ServerAction.WS_CLIENT_ERROR,
-                  module: MODULE_NAME, method: 'onMessage',
-                  message: `${commandPayload.toString()}`,
-                  detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
-                });
-                // Resolve with error message
-                // this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, command, commandPayload, errorDetails] });
-                this.requests[messageId].reject(new Error(`${message.data as string}`));
-              } else {
-                // Respond to the request
-                this.requests[messageId].resolve(command);
-              }
-              // Close WS
-              this.endConnection();
+            const messageData = rawData.toString();
+            const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse|OCPPIncomingError = JSON.parse(messageData);
+            const [ messageType ] = ocppMessage;
+            if (messageType === OCPPMessageType.CALL_RESULT_MESSAGE) {
+              this.handleOcppResponse(ocppMessage as OCPPIncomingResponse);
+            } else if (messageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
+              this.handleOcppError(ocppMessage as OCPPIncomingError);
             } else {
-              // Error message
-              Logging.beError()?.log({
-                tenantID: this.tenantID,
-                siteID: this.chargingStation.siteID,
-                siteAreaID: this.chargingStation.siteAreaID,
-                companyID: this.chargingStation.companyID,
-                chargingStationID: this.chargingStation.id,
-                action: ServerAction.WS_CLIENT_ERROR,
-                module: MODULE_NAME, method: 'onMessage',
-                message: 'Received unknown message',
-                detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
-              });
+              this.handleOcppRequest(ocppMessage as OCPPIncomingRequest);
             }
           } catch (error) {
             Logging.logException(error as Error, ServerAction.WS_CLIENT_MESSAGE, MODULE_NAME, 'onMessage', this.tenantID);
           }
-        };
+        });
       } catch (error) {
-        reject(new Error(`Unexpected error on opening Web Socket connection: ${error.message as string}'`));
+        reject(new Error(`Failed to open Web Socket connection - ${error.message as string}'`));
       }
     });
   }
 
-  private endConnection() {
-    if (this.wsConnection) {
-      // Gracefully Close Web Socket - WS Code 1000
-      this.wsConnection.close(WebSocketCloseEventStatusCode.CLOSE_NORMAL, 'Operation completed');
+  private handleOcppResponse(occpMessage : OCPPIncomingResponse) {
+    const [messageType, messageId, command] = occpMessage;
+    // Respond to the request
+    if (this.requests[messageId]) {
+      this.requests[messageId].resolve(command);
+    } else {
+      // Error message
+      Logging.beError()?.log({
+        tenantID: this.tenantID,
+        siteID: this.chargingStation.siteID,
+        siteAreaID: this.chargingStation.siteAreaID,
+        companyID: this.chargingStation.companyID,
+        chargingStationID: this.chargingStation.id,
+        action: ServerAction.WS_CLIENT_ERROR,
+        module: MODULE_NAME, method: 'onMessage',
+        message: 'Unexpected OCPP Response',
+        detailedMessages: { messageType, messageId, command }
+      });
     }
-    this.wsConnection = null;
+    // Close WS
+    this.endConnection();
+  }
+
+  private handleOcppError(occpMessage : OCPPIncomingError) {
+    const [messageType, messageId, errorType, errorMessage, errorDetails] = occpMessage;
+    // Respond to the request
+    if (this.requests[messageId]) {
+      this.requests[messageId].reject(new Error(`WS Error Message - type: ${messageType} - ID: ${messageId} - message: ${errorMessage}`));
+    } else {
+      // Error message
+      Logging.beError()?.log({
+        tenantID: this.tenantID,
+        siteID: this.chargingStation.siteID,
+        siteAreaID: this.chargingStation.siteAreaID,
+        companyID: this.chargingStation.companyID,
+        chargingStationID: this.chargingStation.id,
+        action: ServerAction.WS_CLIENT_ERROR,
+        module: MODULE_NAME, method: 'onMessage',
+        message: 'Unexpected OCPP Error',
+        detailedMessages: { messageType, messageId, errorType, errorMessage, errorDetails }
+      });
+    }
+    // Close WS
+    this.endConnection();
+  }
+
+  private handleOcppRequest(occpMessage : OCPPIncomingRequest) {
+    const [messageType, messageId, command, payload] = occpMessage;
+    // Should not happen
+    Logging.beError()?.log({
+      tenantID: this.tenantID,
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+      chargingStationID: this.chargingStation.id,
+      action: ServerAction.WS_CLIENT_ERROR,
+      module: MODULE_NAME, method: 'onMessage',
+      message: 'Unexpected OCPP Request',
+      detailedMessages: { messageType, messageId, command, payload }
+    });
+    // Close WS
+    // this.endConnection();
+  }
+
+  private endConnection() {
+    if (this.webSocket) {
+      // Gracefully Close Web Socket - WS Code 1000
+      this.webSocket.close(WebSocketCloseEventStatusCode.CLOSE_NORMAL, 'Operation completed');
+    }
+    this.webSocket = null;
   }
 
   private terminateConnection() {
     // Terminate
-    if (this.wsConnection) {
-      this.wsConnection.terminate();
+    if (this.webSocket) {
+      this.webSocket.terminate();
     }
-    this.wsConnection = null;
+    this.webSocket = null;
   }
 
   private async sendMessage(request: OCPPOutgoingRequest): Promise<any> {
+    // Extract Current Command
+    const triggeringCommand: Command = request[2];
     // Check for the lastSeen
     if (Date.now() - this.chargingStation.lastSeen.getTime() > Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 * 2) {
       // Charging station is not connected to the server - let's abort the current operation
-      throw new Error(`Charging station is not connected to the server - request '${request[2]}' has been aborted`);
+      throw new Error(`Charging station is not connected to the server - command '${triggeringCommand}' has been aborted`);
     }
-    // Extract Current Command
-    const triggeringCommand: Command = request[2];
     return new Promise((resolve, reject) => {
       // Open WS Connection
       this.openConnection(triggeringCommand).then(() => {
         // Check if wsConnection is ready
-        if (this.wsConnection?.isConnectionOpen()) {
+        if (this.webSocket?.readyState === WebSocket.OPEN) {
           // Send
-          this.wsConnection.send(JSON.stringify(request));
+          this.webSocket.send(JSON.stringify(request));
           // Set the resolve function
-          this.requests[request[1]] = { resolve, reject, command: request[2] };
+          this.requests[request[1]] = { resolve, reject, command: triggeringCommand };
         } else {
           // Reject it
-          reject(new Error(`Socket is closed for message ${request[2]}`));
+          reject(new Error(`Socket is closed for message ${triggeringCommand}`));
         }
       }).catch((error: Error) => {
-        reject(new Error(`Unexpected error on request '${request[2]}': ${error.message}'`));
+        reject(new Error(`Unexpected error on request '${triggeringCommand}': ${error.message}'`));
       });
     });
   }

@@ -2,7 +2,7 @@ import * as uWS from 'uWebSockets.js';
 
 import { App, HttpRequest, HttpResponse, WebSocket, us_socket_context_t } from 'uWebSockets.js';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
-import { OCPPIncomingRequest, OCPPIncomingResponse } from '../../../types/ocpp/OCPPCommon';
+import { OCPPIncomingError, OCPPIncomingRequest, OCPPIncomingResponse } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction, ServerType, WSServerProtocol } from '../../../types/Server';
 import { WebSocketAction, WebSocketCloseEventStatusCode, WebSocketPingResult } from '../../../types/WebSocket';
 
@@ -337,31 +337,34 @@ export default class JsonOCPPServer extends OCPPServer {
   }
 
   private closePreviousWebSocketConnection(wsConnection: WSConnection) {
-    if (wsConnection.getWS().protocol === WSServerProtocol.OCPP16) {
-      const existingWSConnection = this.jsonWSConnections.get(wsConnection.getID());
-      if (existingWSConnection) {
-        // Still opened WS?
-        const existingWSWrapper = existingWSConnection.getWS();
-        if (!existingWSWrapper.closed) {
-          try {
-            // Forcefully closes this WebSocket. Immediately calls the close handler.
-            existingWSWrapper.closed = true;
-            Logging.beDebug()?.log({
-              tenantID: existingWSConnection.getTenantID(),
-              chargingStationID: existingWSConnection.getChargingStationID(),
-              action: ServerAction.WS_SERVER_CONNECTION_CLOSE, module: MODULE_NAME, method: 'closePreviousWebSocketConnection',
-              message: `Forcefully close previous WS ID '${existingWSWrapper.guid}'`
-            });
-            existingWSWrapper.forceClose();
-          } catch (error) {
-            // Just log and ignore issue
-            Logging.beError()?.log({
-              tenantID: existingWSConnection.getTenantID(),
-              chargingStationID: existingWSConnection.getChargingStationID(),
-              action: ServerAction.WS_SERVER_CONNECTION_CLOSE, module: MODULE_NAME, method: 'closePreviousWebSocketConnection',
-              message: `Failed to close WS ID '${existingWSWrapper.guid}' - ${error.message as string}`
-            });
-          }
+    if (wsConnection.getWS().protocol === WSServerProtocol.REST) {
+      // REST WS are closed by the web socket client!
+      return;
+    }
+    // Make sure the charging station does not open tons of web sockets!
+    const existingWSConnection = this.jsonWSConnections.get(wsConnection.getID());
+    if (existingWSConnection) {
+      // Still opened WS?
+      const existingWSWrapper = existingWSConnection.getWS();
+      if (!existingWSWrapper.closed) {
+        try {
+          // Forcefully closes this WebSocket. Immediately calls the close handler.
+          existingWSWrapper.closed = true;
+          Logging.beDebug()?.log({
+            tenantID: existingWSConnection.getTenantID(),
+            chargingStationID: existingWSConnection.getChargingStationID(),
+            action: ServerAction.WS_SERVER_CONNECTION_CLOSE, module: MODULE_NAME, method: 'closePreviousWebSocketConnection',
+            message: `Forcefully close previous WS ID '${existingWSWrapper.guid}'`
+          });
+          existingWSWrapper.forceClose();
+        } catch (error) {
+          // Just log and ignore issue
+          Logging.beError()?.log({
+            tenantID: existingWSConnection.getTenantID(),
+            chargingStationID: existingWSConnection.getChargingStationID(),
+            action: ServerAction.WS_SERVER_CONNECTION_CLOSE, module: MODULE_NAME, method: 'closePreviousWebSocketConnection',
+            message: `Failed to close WS ID '${existingWSWrapper.guid}' - ${error.message as string}`
+          });
         }
       }
     }
@@ -470,7 +473,7 @@ export default class JsonOCPPServer extends OCPPServer {
     // Process Message
     try {
       // Extract the OCPP Message Type
-      const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse = JSON.parse(message);
+      const ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse|OCPPIncomingError = JSON.parse(message);
       try {
         this.runningWSMessages++;
         // OCPP Request?

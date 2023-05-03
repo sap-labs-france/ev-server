@@ -6,7 +6,8 @@ export type FctOCPPReject = (reason?: OCPPError) => void;
 
 export type OCPPPayload = Record<string, unknown>;
 export type OCPPIncomingRequest = [OCPPMessageType, string, Command, OCPPPayload, OCPPPayload];
-export type OCPPIncomingResponse = [OCPPMessageType, string, OCPPPayload, OCPPPayload];
+export type OCPPIncomingResponse = [OCPPMessageType, string, OCPPPayload];
+export type OCPPIncomingError = [OCPPMessageType, string, OCPPErrorType, string, OCPPPayload];
 export type OCPPOutgoingRequest = [OCPPMessageType, string, Command, OCPPPayload];
 
 export enum OCPPMessageType {

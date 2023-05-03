@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import ChargingStation, { Command } from '../../../../types/ChargingStation';
-import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPPayload } from '../../../../types/ocpp/OCPPCommon';
+import { FctOCPPReject, FctOCPPResponse, OCPPErrorType, OCPPIncomingError, OCPPIncomingRequest, OCPPIncomingResponse, OCPPMessageType, OCPPPayload } from '../../../../types/ocpp/OCPPCommon';
 import { OcppConnectionContext, OcppRawConnectionData } from '../../../../types/ocpp/OCPPHeader';
 import { ServerAction, WSServerProtocol } from '../../../../types/Server';
 
@@ -185,7 +185,7 @@ export default abstract class WSConnection {
     return sent;
   }
 
-  public async handleIncomingOcppMessage(wsWrapper: WSWrapper, ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse): Promise<void> {
+  public async handleIncomingOcppMessage(wsWrapper: WSWrapper, ocppMessage: OCPPIncomingRequest|OCPPIncomingResponse|OCPPIncomingError): Promise<void> {
     const ocppMessageType = ocppMessage[0];
     // Extract raw connection data
     const { tenantID, chargingStationID } = this.rawConnectionData;
@@ -195,7 +195,7 @@ export default abstract class WSConnection {
       } else if (ocppMessageType === OCPPMessageType.CALL_RESULT_MESSAGE) {
         wsWrapper.wsConnection.handleIncomingOcppResponse(ocppMessage as OCPPIncomingResponse);
       } else if (ocppMessageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
-        wsWrapper.wsConnection.handleIncomingOcppError(ocppMessage as OCPPIncomingResponse);
+        wsWrapper.wsConnection.handleIncomingOcppError(ocppMessage as OCPPIncomingError);
       } else {
         Logging.beError()?.log({
           ...LoggingHelper.getChargingStationProperties(this.connectionContext.chargingStation),
@@ -279,9 +279,9 @@ export default abstract class WSConnection {
     }
   }
 
-  public handleIncomingOcppError(ocppMessage: OCPPIncomingResponse): void {
+  public handleIncomingOcppError(ocppMessage: OCPPIncomingError): void {
     let done = false;
-    const [messageType, messageID, commandPayload, errorDetails] = ocppMessage;
+    const [messageType, messageID, message, errorDetails] = ocppMessage;
     // Consume the pending OCPP command matching the current OCPP error?
     const ocppPendingCommand = this.consumePendingOcppCommands(messageID);
     if (ocppPendingCommand) {
@@ -300,7 +300,7 @@ export default abstract class WSConnection {
         ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME, method: 'handleIncomingOcppError',
         message: `OCPP Request not found for an error response to messageID: '${messageID}'`,
-        detailedMessages: { messageType, messageID, commandPayload, errorDetails }
+        detailedMessages: { messageType, messageID, message, errorDetails }
       });
     }
   }
