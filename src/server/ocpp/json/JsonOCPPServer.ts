@@ -647,8 +647,8 @@ export default class JsonOCPPServer extends OCPPServer {
   }
 
   private monitorWSConnections() {
-    // Do it once at startup
-    Utils.sleep(2000).then(() => {
+    // Do it once at startup - wait a bit to have some charger already connected
+    Utils.sleep(5000).then(() => {
       this._monitorWSConnections();
     }).catch(() => { /* Intentional */ });
     // Then do it again from time to time
