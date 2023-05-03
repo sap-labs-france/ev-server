@@ -19,7 +19,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   private serverURL: string;
   private chargingStation: ChargingStation;
   private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Error|Record<string, unknown>) => void; command: Command } };
-  // private wsConnection: WSClient;
   private webSocket: WebSocket;
   private tenantID: string;
 
@@ -209,10 +208,10 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   }
 
   private handleOcppResponse(occpMessage : OCPPIncomingResponse) {
-    const [messageType, messageId, command] = occpMessage;
+    const [messageType, messageId, payload] = occpMessage;
     // Respond to the request
     if (this.requests[messageId]) {
-      this.requests[messageId].resolve(command);
+      this.requests[messageId].resolve(payload);
     } else {
       // Error message
       Logging.beError()?.log({
