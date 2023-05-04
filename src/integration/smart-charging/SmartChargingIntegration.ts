@@ -52,11 +52,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         await OCPPUtils.setAndSaveChargingProfile(this.tenant, chargingProfile);
         actionsResponse.inSuccess++;
       } catch (error) {
-        // Retry setting the profile and check if succeeded
-        if (await this.handleRefusedChargingProfile(this.tenant, chargingProfile, siteArea.name)) {
-          actionsResponse.inSuccess++;
-          continue;
-        }
+        this.excludeChargingStationAndNotify(this.tenant, chargingProfile, siteArea.name);
         actionsResponse.inError++;
         Logging.beError()?.log({
           tenantID: this.tenant.id,
@@ -66,7 +62,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
           chargingStationID: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
-          message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed, because of  '${chargingProfile.chargingStationID}'. It has been excluded from this smart charging run automatically`,
+          message: `Applying Charging Profiles failed - Site Area '${siteArea.name}' - '${chargingProfile.chargingStationID}' has been excluded from this smart charging run`,
           detailedMessages: { error: error.stack }
         });
       }
@@ -109,42 +105,8 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     }
   }
 
-  private async handleRefusedChargingProfile(tenant: Tenant, chargingProfile: ChargingProfile, siteAreaName: string): Promise<boolean> {
-    if (FeatureToggles.isFeatureActive(Feature.SMART_CHARGING_RETRY_3_TIMES)) {
-      // Retry setting the cp 2 more times
-      for (let i = 0; i < 2; i++) {
-        try {
-          // Set Charging Profile
-          await OCPPUtils.setAndSaveChargingProfile(this.tenant, chargingProfile);
-          return true;
-        } catch (error) {
-          // Log failed
-          Logging.beError()?.log({
-            tenantID: this.tenant.id,
-            siteID: chargingProfile.chargingStation.siteID,
-            siteAreaID: chargingProfile.chargingStation.siteAreaID,
-            companyID: chargingProfile.chargingStation.companyID,
-            chargingStationID: chargingProfile.chargingStationID,
-            action: ServerAction.CHARGING_PROFILE_UPDATE,
-            module: MODULE_NAME, method: 'handleRefusedChargingProfile',
-            message: 'Setting Charging Profiles failed 3 times.',
-            detailedMessages: { error: error.stack }
-          });
-        }
-      }
-    } else {
-      Logging.beError()?.log({
-        tenantID: this.tenant.id,
-        siteID: chargingProfile.chargingStation.siteID,
-        siteAreaID: chargingProfile.chargingStation.siteAreaID,
-        companyID: chargingProfile.chargingStation.companyID,
-        chargingStationID: chargingProfile.chargingStationID,
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        module: MODULE_NAME, method: 'handleRefusedChargingProfile',
-        message: 'Charging Profile has been rejected by the charging station'
-      });
-    }
-    // Remember Charging Stations which were removed from Smart Charging
+  private excludeChargingStationAndNotify(tenant: Tenant, chargingProfile: ChargingProfile, siteAreaName: string): void {
+    // Exclude Charging Station from this smart charging run!
     this.excludedChargingStations.push(chargingProfile.chargingStationID);
     // Notify Admins
     NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, {
@@ -157,7 +119,6 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     }).catch((error) => {
       Logging.logPromiseError(error, tenant?.id);
     });
-    return false;
   }
 
   public abstract buildChargingProfiles(siteArea: SiteArea, excludedChargingStations?: string[]): Promise<ChargingProfile[]>;

@@ -1,7 +1,6 @@
 
 // Declare here the list of features
 export enum Feature {
-  SMART_CHARGING_RETRY_3_TIMES,
   OCPPJ_PERSIST_RAW_METER_VALUES,
   BILLING_INVOICES_EXCLUDE_PENDING_ITEMS,
   BILLING_PREVENT_CUSTOMER_DELETION,
@@ -17,7 +16,6 @@ export enum Feature {
 export default class FeatureToggles {
   // Comment out the features that you want to switch OFF
   private static activeFeatures: Feature[] = [
-    // Feature.SMART_CHARGING_RETRY_3_TIMES,
     Feature.OCPPJ_PERSIST_RAW_METER_VALUES,
     Feature.BILLING_INVOICES_EXCLUDE_PENDING_ITEMS,
     Feature.BILLING_PREVENT_CUSTOMER_DELETION,
