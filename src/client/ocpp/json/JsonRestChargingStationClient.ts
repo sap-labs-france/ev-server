@@ -152,16 +152,19 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         });
         // Closed
         this.webSocket.on('close', (code) => {
-          Logging.beInfo()?.log({
-            tenantID: this.tenantID,
-            siteID: this.chargingStation.siteID,
-            siteAreaID: this.chargingStation.siteAreaID,
-            companyID: this.chargingStation.companyID,
-            chargingStationID: this.chargingStation.id,
-            action: ServerAction.WS_CLIENT_CONNECTION_CLOSE,
-            module: MODULE_NAME, method: 'onClose',
-            message: `${triggeringCommand} > Connection has been closed - Code: '${code}'`,
-          });
+          // code === 1000
+          if (code !== WebSocketCloseEventStatusCode.CLOSE_NORMAL) {
+            Logging.beWarning()?.log({
+              tenantID: this.tenantID,
+              siteID: this.chargingStation.siteID,
+              siteAreaID: this.chargingStation.siteAreaID,
+              companyID: this.chargingStation.companyID,
+              chargingStationID: this.chargingStation.id,
+              action: ServerAction.WS_CLIENT_CONNECTION_CLOSE,
+              module: MODULE_NAME, method: 'onClose',
+              message: `${triggeringCommand} > Connection has been closed - Code: '${code}'`,
+            });
+          }
         });
         // Handle Error Message
         this.webSocket.on('error', (error) => {
@@ -181,7 +184,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           });
           // Terminate WS in error
           this.terminateConnection();
-          reject(new Error(`${triggeringCommand} - Web Socket connection: ${error.message}`));
+          reject(new Error(`${triggeringCommand} - Web Socket connection failed - ${error.message}`));
         });
         // Handle Server Message
         this.webSocket.on('message', (rawData: WebSocket.RawData) => {
