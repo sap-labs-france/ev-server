@@ -132,21 +132,29 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
           });
         }
       }
+    } else {
+      Logging.beError()?.log({
+        tenantID: this.tenant.id,
+        siteID: chargingProfile.chargingStation.siteID,
+        siteAreaID: chargingProfile.chargingStation.siteAreaID,
+        companyID: chargingProfile.chargingStation.companyID,
+        chargingStationID: chargingProfile.chargingStationID,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
+        module: MODULE_NAME, method: 'handleRefusedChargingProfile',
+        message: 'Charging Profile has been rejected by the charging station'
+      });
     }
-    // Remove Charging Station from Smart Charging
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingProfile.chargingStationID);
     // Remember Charging Stations which were removed from Smart Charging
-    this.excludedChargingStations.push(chargingStation.id);
+    this.excludedChargingStations.push(chargingProfile.chargingStationID);
     // Notify Admins
-    NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
-      { chargeBoxID: chargingProfile.chargingStationID,
-        siteID: chargingProfile.chargingStation?.siteID,
-        siteAreaID: chargingProfile.chargingStation?.siteAreaID,
-        companyID: chargingProfile.chargingStation?.companyID,
-        siteAreaName: siteAreaName,
-        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-      }
-    ).catch((error) => {
+    NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, {
+      chargeBoxID: chargingProfile.chargingStationID,
+      siteID: chargingProfile.chargingStation?.siteID,
+      siteAreaID: chargingProfile.chargingStation?.siteAreaID,
+      companyID: chargingProfile.chargingStation?.companyID,
+      siteAreaName: siteAreaName,
+      evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
+    }).catch((error) => {
       Logging.logPromiseError(error, tenant?.id);
     });
     return false;

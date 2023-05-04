@@ -1042,8 +1042,7 @@ export default class NotificationHandler {
     }
   }
 
-  public static async sendComputeAndApplyChargingProfilesFailed(tenant: Tenant, chargingStation: ChargingStation,
-      sourceData: ComputeAndApplyChargingProfilesFailedNotification): Promise<void> {
+  public static async sendComputeAndApplyChargingProfilesFailed(tenant: Tenant, sourceData: ComputeAndApplyChargingProfilesFailedNotification): Promise<void> {
     if (tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Enrich with admins
       const adminUsers = await NotificationHandler.getAdminUsers(tenant);
@@ -1061,7 +1060,7 @@ export default class NotificationHandler {
               if (!hasBeenNotified) {
                 // Save
                 await NotificationHandler.saveNotification(
-                  tenant, notificationSource.channel, null, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED, { chargingStation: chargingStation });
+                  tenant, notificationSource.channel, null, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED);
                 // Send
                 for (const adminUser of adminUsers) {
                   // Enabled?
@@ -1070,14 +1069,6 @@ export default class NotificationHandler {
                       sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                   }
                 }
-              } else {
-                Logging.beDebug()?.log({
-                  ...LoggingHelper.getChargingStationProperties(chargingStation),
-                  tenantID: tenant.id,
-                  module: MODULE_NAME, method: 'sendComputeAndApplyChargingProfilesFailed',
-                  action: ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED,
-                  message: `Notification via '${notificationSource.channel}' has already been sent`
-                });
               }
             } catch (error) {
               Logging.logActionExceptionMessage(tenant.id, ServerAction.COMPUTE_AND_APPLY_CHARGING_PROFILES_FAILED, error);
