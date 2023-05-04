@@ -1,3 +1,5 @@
+import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
+
 import { ActionsResponse } from '../../types/GlobalType';
 import BackendError from '../../exception/BackendError';
 import { ChargingProfile } from '../../types/ChargingProfile';
@@ -108,25 +110,27 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
   }
 
   private async handleRefusedChargingProfile(tenant: Tenant, chargingProfile: ChargingProfile, siteAreaName: string): Promise<boolean> {
-    // Retry setting the cp 2 more times
-    for (let i = 0; i < 2; i++) {
-      try {
-        // Set Charging Profile
-        await OCPPUtils.setAndSaveChargingProfile(this.tenant, chargingProfile);
-        return true;
-      } catch (error) {
-        // Log failed
-        Logging.beError()?.log({
-          tenantID: this.tenant.id,
-          siteID: chargingProfile.chargingStation.siteID,
-          siteAreaID: chargingProfile.chargingStation.siteAreaID,
-          companyID: chargingProfile.chargingStation.companyID,
-          chargingStationID: chargingProfile.chargingStationID,
-          action: ServerAction.CHARGING_PROFILE_UPDATE,
-          module: MODULE_NAME, method: 'handleRefusedChargingProfile',
-          message: 'Setting Charging Profiles failed 3 times.',
-          detailedMessages: { error: error.stack }
-        });
+    if (FeatureToggles.isFeatureActive(Feature.SMART_CHARGING_RETRY_3_TIMES)) {
+      // Retry setting the cp 2 more times
+      for (let i = 0; i < 2; i++) {
+        try {
+          // Set Charging Profile
+          await OCPPUtils.setAndSaveChargingProfile(this.tenant, chargingProfile);
+          return true;
+        } catch (error) {
+          // Log failed
+          Logging.beError()?.log({
+            tenantID: this.tenant.id,
+            siteID: chargingProfile.chargingStation.siteID,
+            siteAreaID: chargingProfile.chargingStation.siteAreaID,
+            companyID: chargingProfile.chargingStation.companyID,
+            chargingStationID: chargingProfile.chargingStationID,
+            action: ServerAction.CHARGING_PROFILE_UPDATE,
+            module: MODULE_NAME, method: 'handleRefusedChargingProfile',
+            message: 'Setting Charging Profiles failed 3 times.',
+            detailedMessages: { error: error.stack }
+          });
+        }
       }
     }
     // Remove Charging Station from Smart Charging
