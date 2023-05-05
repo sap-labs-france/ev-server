@@ -463,7 +463,7 @@ export default class JsonOCPPServer extends OCPPServer {
       ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Connection rejected by the backend: No WS Wrapper found');
       return;
     }
-    if (!wsWrapper.isClosed()) {
+    if (wsWrapper.isClosed()) {
       Logging.beError()?.log({
         ...LoggingHelper.getWSWrapperProperties(wsWrapper),
         action: ServerAction.WS_SERVER_MESSAGE,
