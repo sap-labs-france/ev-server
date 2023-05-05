@@ -27,14 +27,12 @@ export default class WSWrapper {
   public lastMessageDate: Date;
   public lastPingDate: Date;
   public lastPongDate: Date;
-  public isValid: boolean;
 
   private ws: WebSocket;
   private _closed: boolean;
-  private _isValid: boolean;
-  private ocppOpenWebSocketMetricCounter: CounterClearableMetric;
-  private ocppClosedWebSocketMetricCounter: CounterClearableMetric;
-  private ocppKilledWebSocketMetricCounter: CounterClearableMetric;
+  private _ocppOpenWebSocketMetricCounter: CounterClearableMetric;
+  private _ocppClosedWebSocketMetricCounter: CounterClearableMetric;
+  private _ocppKilledWebSocketMetricCounter: CounterClearableMetric;
 
   public constructor(url: string) {
     this.url = url;
@@ -42,7 +40,6 @@ export default class WSWrapper {
     this.firstConnectionDate = new Date();
     this.nbrPingFailed = 0;
     this._closed = false;
-    this._isValid = false;
     if (this.url.startsWith('/OCPP16')) {
       this.protocol = WSServerProtocol.OCPP16;
     } else if (this.url.startsWith('/REST')) {
@@ -50,29 +47,34 @@ export default class WSWrapper {
     }
   }
 
-  public isClosed() {
+  public isClosed(): boolean {
     return this._closed;
+  }
+
+  public isValid(): boolean {
+    return !!this.wsConnection;
   }
 
   public setWebSocket(ws: WebSocket) {
     this.ws = ws;
     this.remoteAddress = Utils.convertBufferArrayToString(ws.getRemoteAddressAsText()).toString();
-    this._isValid = true;
-    this.ocppOpenWebSocketMetricCounter?.inc();
   }
 
   public setConnection(wsConnection: WSConnection) {
     this.wsConnection = wsConnection;
-    this.isValid = true;
-    // Initialize Metrics
-    if (Utils.isMonitoringEnabled()) {
+    if (this.protocol !== WSServerProtocol.REST && Utils.isMonitoringEnabled()) {
+      // Initialize Metrics
       const labelValues = { tenant: wsConnection.getTenant().subdomain };
-      this.ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OpenedWebSocket', 'Opened web sockets', labelValues);
-      this.ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'ClosedWebSocket', 'Closed web sockets', labelValues);
-      this.ocppKilledWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'KilledWebSocket', 'Killed web sockets', labelValues);
+      this._ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OpenedWebSocket', 'Opened web sockets', labelValues);
+      this._ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'ClosedWebSocket', 'Closed web sockets', labelValues);
+      this._ocppKilledWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'KilledWebSocket', 'Killed web sockets', labelValues);
       // Increment counter
-      this.ocppOpenWebSocketMetricCounter?.inc();
+      this._ocppOpenWebSocketMetricCounter?.inc();
     }
+  }
+
+  public unsetConnection(): void {
+    this.wsConnection = null;
   }
 
   public send(messageToSend: string, initialCommand: Command, initialCommandPayload?: OCPPPayload, isBinary?: boolean, compress?: boolean): boolean {
@@ -125,7 +127,7 @@ export default class WSWrapper {
           // Do nothing
         } finally {
           // Increment specific counter to detect WS forcefully closed
-          this.ocppKilledWebSocketMetricCounter?.inc();
+          this._ocppKilledWebSocketMetricCounter?.inc();
         }
       }
     }
@@ -147,7 +149,7 @@ export default class WSWrapper {
         } finally {
           if (code !== WebSocketCloseEventStatusCode.CLOSE_NORMAL) {
             // Increment counter close counter when code is an error
-            this.ocppClosedWebSocketMetricCounter?.inc();
+            this._ocppClosedWebSocketMetricCounter?.inc();
           }
         }
       }

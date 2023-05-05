@@ -322,7 +322,7 @@ export default class JsonOCPPServer extends OCPPServer {
         detailedMessages: { wsWrapper: wsWrapper.toJson() }
       });
     } catch (error) {
-      wsWrapper.isValid = false;
+      wsWrapper.unsetConnection();
       Logging.beError()?.log({
         ...LoggingHelper.getWSWrapperProperties(wsWrapper),
         tenantID: wsWrapper.wsConnection?.getTenantID(),
@@ -463,7 +463,17 @@ export default class JsonOCPPServer extends OCPPServer {
       ws.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Connection rejected by the backend: No WS Wrapper found');
       return;
     }
-    if (!wsWrapper.isValid) {
+    if (!wsWrapper.isClosed()) {
+      Logging.beError()?.log({
+        ...LoggingHelper.getWSWrapperProperties(wsWrapper),
+        action: ServerAction.WS_SERVER_MESSAGE,
+        module: MODULE_NAME, method: 'onMessage',
+        message: `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' is already closed ('${wsWrapper.url}')`,
+        detailedMessages: { message, isBinary, wsWrapper: wsWrapper.toJson() }
+      });
+      return;
+    }
+    if (!wsWrapper.isValid()) {
       Logging.beError()?.log({
         ...LoggingHelper.getWSWrapperProperties(wsWrapper),
         action: ServerAction.WS_SERVER_MESSAGE,

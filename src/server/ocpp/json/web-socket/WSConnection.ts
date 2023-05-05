@@ -220,9 +220,6 @@ export default abstract class WSConnection {
   }
 
   public async handleIncomingOcppRequest(wsWrapper: WSWrapper, ocppMessage: OCPPIncomingRequest): Promise<void> {
-    if (wsWrapper.isClosed() || !wsWrapper.isValid) {
-      return;
-    }
     // Extract raw connection data
     const { tenantID, chargingStationID } = this.rawConnectionData;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
