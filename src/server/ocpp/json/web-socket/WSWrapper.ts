@@ -112,7 +112,7 @@ export default class WSWrapper {
     return sent;
   }
 
-  public forceClose(): void {
+  public close(): void {
     if (!this._closed) {
       this._closed = true;
       // Local ref to the Web Socket
@@ -133,7 +133,7 @@ export default class WSWrapper {
     }
   }
 
-  public close(code: number, shortMessage: RecognizedString): void {
+  public end(code: number, shortMessage: RecognizedString): void {
     if (!this._closed) {
       this._closed = true;
       // Local ref to the Web Socket

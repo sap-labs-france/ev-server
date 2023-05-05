@@ -352,8 +352,7 @@ export default class JsonOCPPServer extends OCPPServer {
             action: ServerAction.WS_SERVER_CONNECTION_CLOSE, module: MODULE_NAME, method: 'closePreviousWebSocketConnection',
             message: `Forcefully close WS - previous WS ID '${existingWSWrapper.guid}' - new WS ID '${currentWSWrapper.guid}`
           });
-          // Forcefully closes this WebSocket. Immediately calls the close handler.
-          existingWSWrapper.forceClose();
+          existingWSWrapper.end(WebSocketCloseEventStatusCode.CLOSE_PROTOCOL_ERROR, 'WebSocket kicked out by a new one');
         } catch (error) {
           Logging.beError()?.log({
             tenantID: existingWSConnection.getTenantID(),
@@ -481,7 +480,7 @@ export default class JsonOCPPServer extends OCPPServer {
         message: `${WebSocketAction.MESSAGE} > WS Connection ID '${wsWrapper.guid}' is invalid ('${wsWrapper.url}')`,
         detailedMessages: { message, isBinary, wsWrapper: wsWrapper.toJson() }
       });
-      wsWrapper.close(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Connection rejected by the backend');
+      wsWrapper.end(WebSocketCloseEventStatusCode.CLOSE_ABNORMAL, 'Connection rejected by the backend');
       return;
     }
     // Keep last date
@@ -591,7 +590,7 @@ export default class JsonOCPPServer extends OCPPServer {
     // Close WS
     if (!wsWrapper.isClosed()) {
       try {
-        wsWrapper.close(code, message);
+        wsWrapper.end(code, message);
         this.logWSConnectionClosed(wsWrapper, action, code, message);
       } catch (error) {
         // Just log and ignore issue
