@@ -252,7 +252,7 @@ export default class JsonOCPPServer extends OCPPServer {
   private resolveAndGetWSWrapper(ws: WebSocket): WSWrapper {
     const wsWrapper = ws['wsWrapper'] as WSWrapper;
     if (wsWrapper) {
-      if (!wsWrapper.closed) {
+      if (!wsWrapper.isClosed()) {
         return wsWrapper;
       }
       return;
@@ -309,9 +309,6 @@ export default class JsonOCPPServer extends OCPPServer {
       // Keep WS connection in cache
       if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
         this.closePreviousWebSocketConnection(wsConnection);
-        if (Utils.isMonitoringEnabled()) {
-          wsWrapper.ocppOpenWebSocketMetricCounter.inc();
-        }
         await wsConnection.updateChargingStationRuntimeData();
         this.jsonWSConnections.set(wsConnection.getID(), wsConnection as JsonWSConnection);
       } else if (wsWrapper.protocol === WSServerProtocol.REST) {
@@ -337,7 +334,8 @@ export default class JsonOCPPServer extends OCPPServer {
   }
 
   private closePreviousWebSocketConnection(wsConnection: WSConnection) {
-    if (wsConnection.getWS().protocol === WSServerProtocol.REST) {
+    const currentWSWrapper = wsConnection.getWS();
+    if (currentWSWrapper.protocol === WSServerProtocol.REST) {
       // REST WS are closed by the web socket client!
       return;
     }
@@ -346,24 +344,25 @@ export default class JsonOCPPServer extends OCPPServer {
     if (existingWSConnection) {
       // Still opened WS?
       const existingWSWrapper = existingWSConnection.getWS();
-      if (!existingWSWrapper.closed) {
+      if (!existingWSWrapper.isClosed()) {
         try {
-          // Forcefully closes this WebSocket. Immediately calls the close handler.
-          existingWSWrapper.closed = true;
           Logging.beDebug()?.log({
             tenantID: existingWSConnection.getTenantID(),
             chargingStationID: existingWSConnection.getChargingStationID(),
             action: ServerAction.WS_SERVER_CONNECTION_CLOSE, module: MODULE_NAME, method: 'closePreviousWebSocketConnection',
-            message: `Forcefully close previous WS ID '${existingWSWrapper.guid}'`
+            message: `Forcefully close WS - previous WS ID '${existingWSWrapper.guid}' - new WS ID '${currentWSWrapper.guid}`
           });
+          // Forcefully closes this WebSocket. Immediately calls the close handler.
           existingWSWrapper.forceClose();
         } catch (error) {
-          // Just log and ignore issue
           Logging.beError()?.log({
             tenantID: existingWSConnection.getTenantID(),
             chargingStationID: existingWSConnection.getChargingStationID(),
             action: ServerAction.WS_SERVER_CONNECTION_CLOSE, module: MODULE_NAME, method: 'closePreviousWebSocketConnection',
-            message: `Failed to close WS ID '${existingWSWrapper.guid}' - ${error.message as string}`
+            message: `Failed to forcefully close WS - previous WS ID '${existingWSWrapper.guid}' - new WS ID '${currentWSWrapper.guid}`,
+            detailedMessages: {
+              rootCause: error.message
+            }
           });
         }
       }
@@ -395,31 +394,36 @@ export default class JsonOCPPServer extends OCPPServer {
     // Do not try to resolve the WSWrapper, just get it from the uWS
     const wsWrapper = ws['wsWrapper'] as WSWrapper;
     if (wsWrapper) {
-      // Force close
-      wsWrapper.closed = true;
-      // Increment counter
-      if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
-        wsWrapper.ocppClosedWebSocketMetricCounter?.inc();
-      }
-      // Cleanup WS Connection map
       if (wsWrapper.wsConnection) {
-        if (wsWrapper.protocol === WSServerProtocol.OCPP16) {
-          this.jsonWSConnections.delete(wsWrapper.wsConnection.getID());
-        }
         if (wsWrapper.protocol === WSServerProtocol.REST) {
+          // Cleanup WS Connection map
           this.jsonRestWSConnections.delete(wsWrapper.wsConnection.getID());
+        } else {
+          // Cleanup WS Connection map
+          this.jsonWSConnections.delete(wsWrapper.wsConnection.getID());
+          // if (code !== WebSocketCloseEventStatusCode.CLOSE_NORMAL) {
+          //   // Only count abnormal close events
+          //   wsWrapper.ocppClosedWebSocketMetricCounter?.inc();
+          // }
+          // Only log OCPP close events
+          this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_CLOSE, code,
+            `${WebSocketAction.CLOSE} > WS ID '${wsWrapper?.guid}' - onClose - code '${code}', reason: '${reason || ''}'`);
         }
-      }
-      if (code !== WebSocketCloseEventStatusCode.CLOSE_NORMAL) {
-        this.logWSConnectionClosed(wsWrapper, ServerAction.WS_SERVER_CONNECTION_CLOSE, code,
-          `${WebSocketAction.CLOSE} > WS ID '${wsWrapper?.guid}' - onClose - code '${code}', reason: '${reason || ''}'`);
+      } else {
+        Logging.beError()?.log({
+          tenantID: Constants.DEFAULT_TENANT_ID,
+          action: ServerAction.WS_SERVER_CONNECTION_CLOSE,
+          module: MODULE_NAME, method: 'onClose',
+          message: `${WebSocketAction.CLOSE} > Unexpected situation - onClose received for an unknown connection - WS ID '${wsWrapper?.guid}'`,
+          detailedMessages: { code, reason }
+        });
       }
     } else {
       Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.WS_SERVER_CONNECTION_CLOSE,
         module: MODULE_NAME, method: 'onClose',
-        message: `${WebSocketAction.CLOSE} > Unexpected situation - trying to close an unknown connection`,
+        message: `${WebSocketAction.CLOSE} > Unexpected situation - onClose received for an unknown web socket`,
         detailedMessages: { code, reason }
       });
     }
@@ -575,7 +579,7 @@ export default class JsonOCPPServer extends OCPPServer {
 
   private closeWebSocket(wsAction: WebSocketAction, action: ServerAction, wsWrapper: WSWrapper, code: WebSocketCloseEventStatusCode, message: string): void {
     // Close WS
-    if (!wsWrapper.closed) {
+    if (!wsWrapper.isClosed()) {
       try {
         wsWrapper.close(code, message);
         this.logWSConnectionClosed(wsWrapper, action, code, message);
@@ -762,7 +766,7 @@ export default class JsonOCPPServer extends OCPPServer {
       ...LoggingHelper.getWSConnectionProperties(wsWrapper.wsConnection),
       url: wsWrapper.url,
       clientIP: wsWrapper.clientIP,
-      closed: wsWrapper.closed,
+      closed: wsWrapper.isClosed(),
       protocol: wsWrapper.protocol,
       remoteAddress: wsWrapper.remoteAddress,
       firstConnectionDate: wsWrapper.firstConnectionDate,

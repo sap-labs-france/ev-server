@@ -14,7 +14,6 @@ import OCPPError from '../../../../exception/OcppError';
 import { OCPPErrorType } from '../../../../types/ocpp/OCPPCommon';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPUtils from '../../utils/OCPPUtils';
-import { PerformanceRecordGroup } from '../../../../types/Performance';
 import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
 import WSConnection from './WSConnection';
@@ -33,11 +32,6 @@ export default class JsonWSConnection extends WSConnection {
   public async initialize(): Promise<void> {
     // Init parent
     await super.initialize();
-    if (Utils.isMonitoringEnabled()) {
-      const labelValues = { tenant: this.getTenant().subdomain };
-      this.getWS().ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OpenedWebSocket', 'Opened web sockets', labelValues);
-      this.getWS().ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'ClosedWebSocket', 'Closed web sockets', labelValues);
-    }
     // Create the Json Client
     this.chargingStationClient = new JsonChargingStationClient(this);
     // Create the Json Server Service

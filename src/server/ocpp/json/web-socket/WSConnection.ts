@@ -220,7 +220,7 @@ export default abstract class WSConnection {
   }
 
   public async handleIncomingOcppRequest(wsWrapper: WSWrapper, ocppMessage: OCPPIncomingRequest): Promise<void> {
-    if (wsWrapper.closed || !wsWrapper.isValid) {
+    if (wsWrapper.isClosed() || !wsWrapper.isValid) {
       return;
     }
     // Extract raw connection data
