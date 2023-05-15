@@ -1,10 +1,9 @@
 applications:
-- name: ev-mongo-tools
-  memory: 2048M
-  disk_quota: 4096M
-  instances: 1
-  routes:
-  - route: ev-mongo-tools.cfapps.eu10.hana.ondemand.com
-  services:
-  - sap-ev-db
-
+  - name: ev-mongo-tools
+    memory: 2048M
+    disk_quota: 4096M
+    instances: 1
+    routes:
+      - route: ev-mongo-tools.cfapps.eu10.hana.ondemand.com
+    services:
+      - sap-ev-db

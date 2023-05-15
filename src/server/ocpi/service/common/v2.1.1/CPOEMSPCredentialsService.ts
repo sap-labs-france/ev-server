@@ -17,7 +17,12 @@ import { StatusCodes } from 'http-status-codes';
 const MODULE_NAME = 'CPOEMSPCredentialsService';
 
 export default class CPOEMSPCredentialsService {
-  public static async handleDeleteCredentials(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteCredentials(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     const { tenant, ocpiEndpoint } = req;
     // Get token from header
     let token;
@@ -27,17 +32,21 @@ export default class CPOEMSPCredentialsService {
     // Log body
     await Logging.logInfo({
       tenantID: tenant.id,
-      module: MODULE_NAME, method: 'handleDeleteCredentials', action,
+      module: MODULE_NAME,
+      method: 'handleDeleteCredentials',
+      action,
       message: 'Received OCPI unregister endpoint',
-      detailedMessages: { token }
+      detailedMessages: { token },
     });
     // Check if ocpiEndpoint available
     if (ocpiEndpoint.status === OCPIRegistrationStatus.UNREGISTERED) {
       throw new AppError({
-        module: MODULE_NAME, method: 'handleDeleteCredentials', action,
+        module: MODULE_NAME,
+        method: 'handleDeleteCredentials',
+        action,
         errorCode: StatusCodes.METHOD_NOT_ALLOWED,
         message: 'OCPI endpoint is already unregistered',
-        ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+        ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
       });
     }
     // Save ocpi endpoint
@@ -48,23 +57,32 @@ export default class CPOEMSPCredentialsService {
     next();
   }
 
-  public static async handleUpdateCreateCredentials(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateCreateCredentials(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     const { tenant, ocpiEndpoint } = req;
     // Get payload
     const credential = req.body as OCPICredential;
     await Logging.logDebug({
       tenantID: tenant.id,
-      module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+      module: MODULE_NAME,
+      method: 'handleUpdateCreateCredentials',
+      action,
       message: 'Received credential object',
-      detailedMessages: { credential }
+      detailedMessages: { credential },
     });
     // Check if valid
     if (!CPOEMSPCredentialsService.isValidOCPICredential(credential)) {
       throw new AppError({
-        module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+        module: MODULE_NAME,
+        method: 'handleUpdateCreateCredentials',
+        action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Credential Object',
-        ocpiError: OCPIStatusCode.CODE_2000_GENERIC_CLIENT_ERROR
+        ocpiError: OCPIStatusCode.CODE_2000_GENERIC_CLIENT_ERROR,
       });
     }
     // Get token from header
@@ -75,9 +93,11 @@ export default class CPOEMSPCredentialsService {
     // Log body
     await Logging.logDebug({
       tenantID: tenant.id,
-      module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+      module: MODULE_NAME,
+      method: 'handleUpdateCreateCredentials',
+      action,
       message: 'Received token',
-      detailedMessages: { token }
+      detailedMessages: { token },
     });
     // Save information
     ocpiEndpoint.baseUrl = credential.url;
@@ -88,9 +108,11 @@ export default class CPOEMSPCredentialsService {
     // Log updated ocpi endpoint
     await Logging.logDebug({
       tenantID: tenant.id,
-      module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+      module: MODULE_NAME,
+      method: 'handleUpdateCreateCredentials',
+      action,
       message: 'OCPI Server found and updated with credential object',
-      detailedMessages: { ocpiEndpoint }
+      detailedMessages: { ocpiEndpoint },
     });
     // Try to access remote ocpi service versions
     // Any error here should result in a 3001 Ocpi result exception based on the specification
@@ -98,23 +120,27 @@ export default class CPOEMSPCredentialsService {
       // Access versions API
       let response = await AxiosFactory.getAxiosInstance(tenant).get(ocpiEndpoint.baseUrl, {
         headers: {
-          'Authorization': `Token ${ocpiEndpoint.token}`
+          Authorization: `Token ${ocpiEndpoint.token}`,
         },
       });
       // Log available OCPI Versions
       await Logging.logDebug({
         tenantID: tenant.id,
-        module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+        module: MODULE_NAME,
+        method: 'handleUpdateCreateCredentials',
+        action,
         message: 'Available OCPI Versions',
-        detailedMessages: { versions: response.data }
+        detailedMessages: { versions: response.data },
       });
       // Check response
       if (!response.data?.data) {
         throw new AppError({
           errorCode: StatusCodes.NOT_FOUND,
-          module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+          module: MODULE_NAME,
+          method: 'handleUpdateCreateCredentials',
+          action,
           message: `Invalid response from GET ${ocpiEndpoint.baseUrl}`,
-          detailedMessages: { data: response.data }
+          detailedMessages: { data: response.data },
         });
       }
       // Loop through versions and pick the same one
@@ -127,9 +153,11 @@ export default class CPOEMSPCredentialsService {
           // Log correct OCPI service found
           await Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+            module: MODULE_NAME,
+            method: 'handleUpdateCreateCredentials',
+            action,
             message: 'Correct OCPI version found',
-            detailedMessages: `[${ocpiEndpoint.version}]:${ocpiEndpoint.versionUrl}`
+            detailedMessages: `[${ocpiEndpoint.version}]:${ocpiEndpoint.versionUrl}`,
           });
         }
       }
@@ -137,41 +165,49 @@ export default class CPOEMSPCredentialsService {
       if (!versionFound) {
         throw new AppError({
           errorCode: StatusCodes.NOT_FOUND,
-          module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+          module: MODULE_NAME,
+          method: 'handleUpdateCreateCredentials',
+          action,
           message: 'OCPI Endpoint version 2.1.1 not found',
-          detailedMessages: { data: response.data }
+          detailedMessages: { data: response.data },
         });
       }
       // Try to read endpoints
       response = await AxiosFactory.getAxiosInstance(tenant).get(ocpiEndpoint.versionUrl, {
         headers: {
-          'Authorization': `Token ${ocpiEndpoint.token}`
-        }
+          Authorization: `Token ${ocpiEndpoint.token}`,
+        },
       });
       // Log available OCPI services
       await Logging.logDebug({
         tenantID: tenant.id,
-        module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+        module: MODULE_NAME,
+        method: 'handleUpdateCreateCredentials',
+        action,
         message: 'Available OCPI services',
-        detailedMessages: { endpoints: response.data }
+        detailedMessages: { endpoints: response.data },
       });
       // Check response
       if (!response.data?.data) {
         throw new BackendError({
-          module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+          module: MODULE_NAME,
+          method: 'handleUpdateCreateCredentials',
+          action,
           message: `Invalid response from GET ${ocpiEndpoint.versionUrl}`,
-          detailedMessages: { data: response.data }
+          detailedMessages: { data: response.data },
         });
       }
       // Set available endpoints
       ocpiEndpoint.availableEndpoints = OCPIUtils.convertAvailableEndpoints(response.data.data);
     } catch (error) {
       throw new AppError({
-        module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+        module: MODULE_NAME,
+        method: 'handleUpdateCreateCredentials',
+        action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to use client API: ${error.message as string}`,
         ocpiError: OCPIStatusCode.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
     }
     // Generate new token
@@ -180,15 +216,23 @@ export default class CPOEMSPCredentialsService {
     // Save ocpi endpoint
     await OCPIEndpointStorage.saveOcpiEndpoint(tenant, ocpiEndpoint);
     // Get base url
-    const versionUrl = OCPIUtilsService.getServiceUrl(req, ocpiEndpoint.role.toLocaleLowerCase()) + '/versions';
+    const versionUrl =
+      OCPIUtilsService.getServiceUrl(req, ocpiEndpoint.role.toLocaleLowerCase()) + '/versions';
     // Build credential object
-    const respCredential = await OCPIUtils.buildOcpiCredentialObject(tenant, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
+    const respCredential = await OCPIUtils.buildOcpiCredentialObject(
+      tenant,
+      ocpiEndpoint.localToken,
+      ocpiEndpoint.role,
+      versionUrl
+    );
     // Log available OCPI Versions
     await Logging.logDebug({
       tenantID: tenant.id,
-      module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
+      module: MODULE_NAME,
+      method: 'handleUpdateCreateCredentials',
+      action,
       message: 'Response with credential object',
-      detailedMessages: { respCredential }
+      detailedMessages: { respCredential },
     });
     // Respond with credentials
     res.json(OCPIUtils.success(respCredential));
@@ -196,10 +240,12 @@ export default class CPOEMSPCredentialsService {
   }
 
   private static isValidOCPICredential(credential: OCPICredential): boolean {
-    return (!credential ||
+    return !credential ||
       !credential.url ||
       !credential.token ||
       !credential.party_id ||
-      !credential.country_code) ? false : true;
+      !credential.country_code
+      ? false
+      : true;
   }
 }

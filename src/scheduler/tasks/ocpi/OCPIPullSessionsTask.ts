@@ -22,7 +22,11 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         // Get all available endpoints
-        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
+        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(
+          tenant,
+          { role: OCPIRole.EMSP },
+          Constants.DB_PARAMS_MAX_LIMIT
+        );
         for (const ocpiEndpoint of ocpiEndpoints.result) {
           await this.processOCPIEndpoint(tenant, ocpiEndpoint);
         }
@@ -42,26 +46,29 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'processOCPIEndpoint',
+            module: MODULE_NAME,
+            method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_EMSP_GET_SESSION,
-            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`,
           });
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'processOCPIEndpoint',
+            module: MODULE_NAME,
+            method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_EMSP_GET_SESSION,
-            message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`,
           });
           return;
         }
         await Logging.logInfo({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: 'processOCPIEndpoint',
+          module: MODULE_NAME,
+          method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_EMSP_GET_SESSION,
-          message: `Pull of Sessions for endpoint '${ocpiEndpoint.name}' is being processed`
+          message: `Pull of Sessions for endpoint '${ocpiEndpoint.name}' is being processed`,
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
@@ -69,17 +76,21 @@ export default class OCPIPullSessionsTask extends TenantSchedulerTask {
         const result = await ocpiClient.pullSessions(true);
         await Logging.logInfo({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: 'processOCPIEndpoint',
+          module: MODULE_NAME,
+          method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_EMSP_GET_SESSION,
           message: `Pull of Sessions for endpoint '${ocpiEndpoint.name}' is completed`,
-          detailedMessages: { result }
+          detailedMessages: { result },
         });
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_SESSION, error);
+        await Logging.logActionExceptionMessage(
+          tenant.id,
+          ServerAction.OCPI_EMSP_GET_SESSION,
+          error
+        );
       } finally {
         await LockingManager.release(ocpiLock);
       }
     }
   }
 }
-

@@ -10,7 +10,5 @@
       }
     }
   },
-  "required": [
-    "transactionsIDs"
-  ]
+  "required": ["transactionsIDs"]
 }

@@ -1,4 +1,3 @@
-
 export default class TestConstants {
   // Paging
   public static readonly PAGING_SIZE = 100;

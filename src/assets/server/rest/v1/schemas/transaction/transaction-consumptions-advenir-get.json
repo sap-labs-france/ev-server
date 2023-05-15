@@ -11,7 +11,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "TransactionId"
-  ]
+  "required": ["TransactionId"]
 }

@@ -24,11 +24,7 @@
     "type": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": [
-        "P",
-        "C",
-        "PC"
-      ]
+      "enum": ["P", "C", "PC"]
     },
     "userID": {
       "$ref": "user#/definitions/id"
@@ -39,12 +35,7 @@
     },
     "converter": {
       "type": "object",
-      "required": [
-        "amperagePerPhase",
-        "numberOfPhases",
-        "powerWatts",
-        "type"
-      ],
+      "required": ["amperagePerPhase", "numberOfPhases", "powerWatts", "type"],
       "properties": {
         "amperagePerPhase": {
           "type": "number",
@@ -57,11 +48,7 @@
         "type": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": [
-            "S",
-            "O",
-            "A"
-          ]
+          "enum": ["S", "O", "A"]
         },
         "powerWatts": {
           "type": "number",
@@ -71,9 +58,7 @@
     },
     "carConnectorData": {
       "type": "object",
-      "required": [
-        "carConnectorID"
-      ],
+      "required": ["carConnectorID"],
       "properties": {
         "carConnectorID": {
           "type": ["string", "null"],

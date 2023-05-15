@@ -25,9 +25,5 @@
       "$ref": "tenant-components#/definitions/components"
     }
   },
-  "required": [
-    "name",
-    "email",
-    "subdomain"
-  ]
+  "required": ["name", "email", "subdomain"]
 }

@@ -54,9 +54,5 @@
       }
     }
   },
-  "required": [
-    "email",
-    "firstName",
-    "name"
-  ]
+  "required": ["email", "firstName", "name"]
 }

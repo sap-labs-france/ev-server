@@ -48,14 +48,14 @@
                             "type": "array",
                             "items": {
                               "anyOf": [
-                                { 
-                                  "type": "string" 
+                                {
+                                  "type": "string"
                                 },
-                                {  
+                                {
                                   "type": "array",
                                   "items": {
-                                    "type":"string"
-                                  }                        
+                                    "type": "string"
+                                  }
                                 }
                               ]
                             }
@@ -121,10 +121,7 @@
                           }
                         },
                         "additionalProperties": false,
-                        "oneOf": [
-                          { "required": ["sitesOwner"] },
-                          { "required": ["sitesAdmin"] }
-                        ]
+                        "oneOf": [{ "required": ["sitesOwner"] }, { "required": ["sitesAdmin"] }]
                       }
                     ]
                   },
@@ -146,20 +143,14 @@
                         }
                       },
                       "additionalProperties": false,
-                      "required": [
-                        "Fn",
-                        "args"
-                      ]
+                      "required": ["Fn", "args"]
                     }
                   }
                 ]
               }
             },
             "additionalProperties": false,
-            "required": [
-              "Fn",
-              "args"
-            ]
+            "required": ["Fn", "args"]
           },
           "attributes": {
             "type": "array",
@@ -177,15 +168,10 @@
           }
         },
         "additionalProperties": false,
-        "required": [
-          "resource",
-          "action"
-        ]
+        "required": ["resource", "action"]
       }
     }
   },
   "additionalProperties": false,
-  "required": [
-    "grants"
-  ]
+  "required": ["grants"]
 }

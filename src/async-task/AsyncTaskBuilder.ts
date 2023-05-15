@@ -16,7 +16,10 @@ export default class AsyncTaskBuilder {
     if (Utils.isNullOrUndefined(asyncTask.name)) {
       throw new Error('The Name of the asynchronous task is mandatory');
     }
-    if (!Utils.isNullOrUndefined(asyncTask.parameters) && (typeof asyncTask.parameters !== 'object')) {
+    if (
+      !Utils.isNullOrUndefined(asyncTask.parameters) &&
+      typeof asyncTask.parameters !== 'object'
+    ) {
       throw new Error('The Parameters of the asynchronous task must be a Json document');
     }
     // Set
@@ -28,8 +31,9 @@ export default class AsyncTaskBuilder {
     await Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT_ID,
       action: ServerAction.ASYNC_TASK,
-      module: MODULE_NAME, method: 'createAndSaveAsyncTasks',
-      message: `The asynchronous task '${asyncTask.name}' has been saved successfully and will be processed soon`
+      module: MODULE_NAME,
+      method: 'createAndSaveAsyncTasks',
+      message: `The asynchronous task '${asyncTask.name}' has been saved successfully and will be processed soon`,
     });
   }
 }

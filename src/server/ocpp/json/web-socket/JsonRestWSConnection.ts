@@ -18,7 +18,10 @@ export default class JsonRestWSConnection extends WSConnection {
     await super.initialize();
   }
 
-  public async handleRequest(command: Command, commandPayload: Record<string, unknown> | string): Promise<any> {
+  public async handleRequest(
+    command: Command,
+    commandPayload: Record<string, unknown> | string
+  ): Promise<any> {
     let result: any;
     // Check Command
     if (!this.isValidOcppClientCommand(command)) {
@@ -30,11 +33,14 @@ export default class JsonRestWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         message: `Command '${command}' is not allowed from REST server`,
-        action: OCPPUtils.buildServerActionFromOcppCommand(command)
+        action: OCPPUtils.buildServerActionFromOcppCommand(command),
       });
     }
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(), this.getChargingStationID());
+    const chargingStation = await ChargingStationStorage.getChargingStation(
+      this.getTenant(),
+      this.getChargingStationID()
+    );
     if (!chargingStation) {
       throw new BackendError({
         chargingStationID: this.getChargingStationID(),
@@ -44,11 +50,14 @@ export default class JsonRestWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station not found',
-        action: OCPPUtils.buildServerActionFromOcppCommand(command)
+        action: OCPPUtils.buildServerActionFromOcppCommand(command),
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient = await global.centralSystemJsonServer.getChargingStationClient(this.getTenant(), chargingStation);
+    const chargingStationClient = await global.centralSystemJsonServer.getChargingStationClient(
+      this.getTenant(),
+      chargingStation
+    );
     if (!chargingStationClient) {
       throw new BackendError({
         chargingStationID: this.getChargingStationID(),
@@ -58,7 +67,7 @@ export default class JsonRestWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station is not connected to the backend',
-        action: OCPPUtils.buildServerActionFromOcppCommand(command)
+        action: OCPPUtils.buildServerActionFromOcppCommand(command),
       });
     }
     // Call the client
@@ -76,17 +85,15 @@ export default class JsonRestWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         message: `'${actionMethod}' is not implemented`,
-        action: OCPPUtils.buildServerActionFromOcppCommand(command)
+        action: OCPPUtils.buildServerActionFromOcppCommand(command),
       });
     }
     return result;
   }
 
-  public async onPing(message: string): Promise<void> {
-  }
+  public async onPing(message: string): Promise<void> {}
 
-  public async onPong(message: string): Promise<void> {
-  }
+  public async onPong(message: string): Promise<void> {}
 
   private isValidOcppClientCommand(command: Command): boolean {
     // Only client request is allowed

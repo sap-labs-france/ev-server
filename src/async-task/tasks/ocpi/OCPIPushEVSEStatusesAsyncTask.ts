@@ -16,17 +16,29 @@ export default class OCPIPushEVSEStatusesAsyncTask extends AbstractAsyncTask {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       try {
         // Get the OCPI Endpoint
-        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(tenant, this.getAsyncTask().parameters.endpointID);
+        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(
+          tenant,
+          this.getAsyncTask().parameters.endpointID
+        );
         if (!ocpiEndpoint) {
-          throw new Error(`Unknown OCPI Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
+          throw new Error(
+            `Unknown OCPI Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`
+          );
         }
-        const patchStatusesLock = await LockingHelper.createOCPIPatchEVSEStatusesLock(tenant.id, ocpiEndpoint);
+        const patchStatusesLock = await LockingHelper.createOCPIPatchEVSEStatusesLock(
+          tenant.id,
+          ocpiEndpoint
+        );
         if (patchStatusesLock) {
           try {
             // Get the OCPI Client
             const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
             if (!ocpiClient) {
-              throw new Error(`OCPI Client not found in Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
+              throw new Error(
+                `OCPI Client not found in Endpoint ID '${
+                  this.getAsyncTask().parameters.endpointID
+                }'`
+              );
             }
             await ocpiClient.pushChargingStationStatuses();
           } finally {
@@ -35,7 +47,11 @@ export default class OCPIPushEVSEStatusesAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_UPDATE_STATUS, error);
+        await Logging.logActionExceptionMessage(
+          tenant.id,
+          ServerAction.OCPI_CPO_UPDATE_STATUS,
+          error
+        );
       }
     }
   }

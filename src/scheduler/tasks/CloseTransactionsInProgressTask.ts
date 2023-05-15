@@ -17,7 +17,9 @@ const MODULE_NAME = 'CloseTransactionsInProgressTask';
 
 export default class CloseTransactionsInProgressTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant): Promise<void> {
-    const transactionsCloseLock = await LockingHelper.acquireCloseTransactionsInProgressLock(tenant.id);
+    const transactionsCloseLock = await LockingHelper.acquireCloseTransactionsInProgressLock(
+      tenant.id
+    );
     if (transactionsCloseLock) {
       try {
         const result: ActionsResponse = {
@@ -33,27 +35,39 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
         const transactionsToStop = true;
         // Get opened transactions to close
         const transactions = await TransactionStorage.getTransactions(
-          tenant, {
+          tenant,
+          {
             issuer: true,
             startDateTime, // Do not close consider very old sessions
             endDateTime, // Do not close sessions that have just been started
             transactionsToStop, // Specific flag to make sure the charger connector does not reference the transaction anymore
-          }, Constants.DB_PARAMS_MAX_LIMIT);
+          },
+          Constants.DB_PARAMS_MAX_LIMIT
+        );
         for (const transaction of transactions.result) {
           try {
             // Soft stop transaction
-            await ocppService.softStopTransaction(tenant, transaction, transaction.chargeBox, transaction.siteArea);
+            await ocppService.softStopTransaction(
+              tenant,
+              transaction,
+              transaction.chargeBox,
+              transaction.siteArea
+            );
             result.inSuccess++;
             await Logging.logInfo({
               ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
               actionOnUser: transaction.userID,
-              module: MODULE_NAME, method: 'processTenant',
-              message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been soft stopped successfully`,
+              module: MODULE_NAME,
+              method: 'processTenant',
+              message: `${Utils.buildConnectorInfo(
+                transaction.connectorId,
+                transaction.id
+              )} Transaction has been soft stopped successfully`,
               action: ServerAction.TRANSACTION_SOFT_STOP,
               detailedMessages: {
-                transactionData: LoggingHelper.shrinkTransactionProperties(transaction)
-              }
+                transactionData: LoggingHelper.shrinkTransactionProperties(transaction),
+              },
             });
           } catch (error) {
             result.inError++;
@@ -61,25 +75,45 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
               ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
               action: ServerAction.TRANSACTION_SOFT_STOP,
-              module: MODULE_NAME, method: 'processTenant',
-              message: `Cannot soft stop Transaction ID '${transaction.id}': ${error.message as string}`,
+              module: MODULE_NAME,
+              method: 'processTenant',
+              message: `Cannot soft stop Transaction ID '${transaction.id}': ${
+                error.message as string
+              }`,
               detailedMessages: {
                 transactionData: LoggingHelper.shrinkTransactionProperties(transaction),
-                error: error.stack
-              }
+                error: error.stack,
+              },
             });
           }
         }
         // Log final results
         const executionDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
-        await Logging.logActionsResponse(tenant.id, ServerAction.TRANSACTION_SOFT_STOP, MODULE_NAME, 'processTenant', result,
-          `{{inSuccess}} Transaction(s) have been soft stopped successfully in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
-          `{{inError}} Transaction(s) failed to be soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
-          `{{inSuccess}} Transaction(s) have been soft stopped successfully but {{inError}} failed in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
-          `No Transaction have been soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`
+        await Logging.logActionsResponse(
+          tenant.id,
+          ServerAction.TRANSACTION_SOFT_STOP,
+          MODULE_NAME,
+          'processTenant',
+          result,
+          `{{inSuccess}} Transaction(s) have been soft stopped successfully in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(
+            tenant
+          )}`,
+          `{{inError}} Transaction(s) failed to be soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(
+            tenant
+          )}`,
+          `{{inSuccess}} Transaction(s) have been soft stopped successfully but {{inError}} failed in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(
+            tenant
+          )}`,
+          `No Transaction have been soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(
+            tenant
+          )}`
         );
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.TRANSACTION_SOFT_STOP, error);
+        await Logging.logActionExceptionMessage(
+          tenant.id,
+          ServerAction.TRANSACTION_SOFT_STOP,
+          error
+        );
       } finally {
         // Release the lock
         await LockingManager.release(transactionsCloseLock);

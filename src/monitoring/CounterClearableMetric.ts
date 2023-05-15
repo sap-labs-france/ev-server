@@ -4,12 +4,17 @@ import { AvgGaugeClearableMetric } from './AvgGaugeClearableMetric';
 import { Clearable } from './Clearable';
 
 class CounterClearableMetric extends Clearable {
-  private registry : client.Registry;
+  private registry: client.Registry;
   private counterMetricCount: client.Counter;
-  private labelValues : LabelValues<string>;
-  private key : string;
+  private labelValues: LabelValues<string>;
+  private key: string;
 
-  public constructor(registry : client.Registry, key: string, metricHelp: string, labelValues: LabelValues<string>) {
+  public constructor(
+    registry: client.Registry,
+    key: string,
+    metricHelp: string,
+    labelValues: LabelValues<string>
+  ) {
     super();
     this.registry = registry;
     this.key = key;

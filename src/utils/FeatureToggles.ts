@@ -1,4 +1,3 @@
-
 // Declare here the list of features
 export enum Feature {
   OCPPJ_PERSIST_RAW_METER_VALUES,

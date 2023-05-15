@@ -13,9 +13,10 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'TenantStorage';
 
 export default class TenantStorage {
-
-  public static async getTenantFromCache(id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withLogo?: boolean; } = {}): Promise<Tenant> {
+  public static async getTenantFromCache(
+    id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { withLogo?: boolean } = {}
+  ): Promise<Tenant> {
     // Cache enabled ?
     if (global?.cache) {
       return await global.cache.get(id, id, TenantStorage.getTenant.bind(this, id, params, []));
@@ -23,27 +24,45 @@ export default class TenantStorage {
     return await TenantStorage.getTenant(id, params, []);
   }
 
-  public static async getTenant(id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withLogo?: boolean; } = {}, projectFields?: string[]): Promise<Tenant> {
+  public static async getTenant(
+    id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { withLogo?: boolean } = {},
+    projectFields?: string[]
+  ): Promise<Tenant> {
     // Call DB
-    const tenantsMDB = await TenantStorage.getTenants({
-      tenantIDs: [id],
-      withLogo: params.withLogo,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    const tenantsMDB = await TenantStorage.getTenants(
+      {
+        tenantIDs: [id],
+        withLogo: params.withLogo,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return tenantsMDB.count === 1 ? tenantsMDB.result[0] : null;
   }
 
   public static async getTenantByName(name: string, projectFields?: string[]): Promise<Tenant> {
-    const tenantsMDB = await TenantStorage.getTenants({
-      tenantName: name
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    const tenantsMDB = await TenantStorage.getTenants(
+      {
+        tenantName: name,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return tenantsMDB.count === 1 ? tenantsMDB.result[0] : null;
   }
 
-  public static async getTenantBySubdomain(subdomain: string, projectFields?: string[]): Promise<Tenant> {
-    const tenantsMDB = await TenantStorage.getTenants({
-      tenantSubdomain: subdomain
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+  public static async getTenantBySubdomain(
+    subdomain: string,
+    projectFields?: string[]
+  ): Promise<Tenant> {
+    const tenantsMDB = await TenantStorage.getTenants(
+      {
+        tenantSubdomain: subdomain,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return tenantsMDB.count === 1 ? tenantsMDB.result[0] : null;
   }
 
@@ -55,19 +74,31 @@ export default class TenantStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
-    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT_ID, 'tenants').findOneAndUpdate(
-      { _id: tenantMDB['_id'] },
-      { $set: tenantMDB as any },
-      { upsert: true, returnDocument: 'after' });
+    await global.database
+      .getCollection<Tenant>(Constants.DEFAULT_TENANT_ID, 'tenants')
+      .findOneAndUpdate(
+        { _id: tenantMDB['_id'] },
+        { $set: tenantMDB as any },
+        { upsert: true, returnDocument: 'after' }
+      );
     // Save Logo
     if (saveLogo) {
       // Modify
-      await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenantlogos').findOneAndUpdate(
-        { '_id': tenantMDB['_id'] },
-        { $set: { logo: tenantToSave.logo } },
-        { upsert: true });
+      await global.database
+        .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenantlogos')
+        .findOneAndUpdate(
+          { _id: tenantMDB['_id'] },
+          { $set: { logo: tenantToSave.logo } },
+          { upsert: true }
+        );
     }
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveTenant', startTime, { tenant: tenantMDB, logo: tenantMDB.logo });
+    await Logging.traceDatabaseRequestEnd(
+      Constants.DEFAULT_TENANT_OBJECT,
+      MODULE_NAME,
+      'saveTenant',
+      startTime,
+      { tenant: tenantMDB, logo: tenantMDB.logo }
+    );
     return tenantMDB['_id'].toString();
   }
 
@@ -75,13 +106,28 @@ export default class TenantStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     // Create tenant collections
     await global.database.checkAndCreateTenantDatabase(tenantID);
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'createTenantDB', startTime, { tenantID });
+    await Logging.traceDatabaseRequestEnd(
+      Constants.DEFAULT_TENANT_OBJECT,
+      MODULE_NAME,
+      'createTenantDB',
+      startTime,
+      { tenantID }
+    );
   }
 
   // Delegate
   public static async getTenants(
-      params: { tenantIDs?: string[]; tenantName?: string; tenantSubdomain?: string; search?: string, withLogo?: boolean, hideRedirect?: boolean },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
+    params: {
+      tenantIDs?: string[];
+      tenantName?: string;
+      tenantSubdomain?: string;
+      search?: string;
+      withLogo?: boolean;
+      hideRedirect?: boolean;
+    },
+    dbParams: DbParams,
+    projectFields?: string[]
+  ): Promise<DataResult<Tenant>> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -93,8 +139,8 @@ export default class TenantStorage {
     const filters: FilterParams = {};
     if (params.search) {
       filters.$or = [
-        { 'name': { $regex: params.search, $options: 'i' } },
-        { 'subdomain': { $regex: params.search, $options: 'i' } }
+        { name: { $regex: params.search, $options: 'i' } },
+        { subdomain: { $regex: params.search, $options: 'i' } },
       ];
     }
     if (params.hideRedirect) {
@@ -104,7 +150,7 @@ export default class TenantStorage {
     // Tenant
     if (!Utils.isEmptyArray(params.tenantIDs)) {
       filters._id = {
-        $in: params.tenantIDs.map((tenantID) => DatabaseUtils.convertToObjectID(tenantID))
+        $in: params.tenantIDs.map((tenantID) => DatabaseUtils.convertToObjectID(tenantID)),
       };
     }
     // Name
@@ -120,7 +166,7 @@ export default class TenantStorage {
     // Filters
     if (filters) {
       aggregation.push({
-        $match: filters
+        $match: filters,
       });
     }
     // Limit records?
@@ -129,16 +175,24 @@ export default class TenantStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const tenantsCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenants')
+    const tenantsCountMDB = (await global.database
+      .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenants')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray() as DatabaseCount[];
+      .toArray()) as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getTenants', startTime, aggregation, tenantsCountMDB);
+      await Logging.traceDatabaseRequestEnd(
+        Constants.DEFAULT_TENANT_OBJECT,
+        MODULE_NAME,
+        'getTenants',
+        startTime,
+        aggregation,
+        tenantsCountMDB
+      );
       return {
-        count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),
-        result: []
+        count: tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0,
+        result: [],
       };
     }
     // Remove the limit
@@ -148,38 +202,49 @@ export default class TenantStorage {
       dbParams.sort = { name: 1 };
     }
     aggregation.push({
-      $sort: dbParams.sort
+      $sort: dbParams.sort,
     });
     // Skip
     aggregation.push({
-      $skip: dbParams.skip
+      $skip: dbParams.skip,
     });
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Company Logo
     if (params.withLogo) {
       DatabaseUtils.pushTenantLogoLookupInAggregation({
-        tenantID: Constants.DEFAULT_TENANT_ID, aggregation, localField: '_id', foreignField: '_id',
-        asField: 'tenantLogo', oneToOneCardinality: true
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        aggregation,
+        localField: '_id',
+        foreignField: '_id',
+        asField: 'tenantLogo',
+        oneToOneCardinality: true,
       });
       aggregation.push({
         $addFields: {
           logo: {
             $cond: {
-              if: { $and: [{ $gt: ['$tenantLogo.logo', null] }, { $ne: ['$tenantLogo.logo', ''] }] }, then: {
+              if: {
+                $and: [{ $gt: ['$tenantLogo.logo', null] }, { $ne: ['$tenantLogo.logo', ''] }],
+              },
+              then: {
                 $concat: [
                   `${Utils.buildRestServerURL()}/v1/util/tenants/logo?ID=`,
                   { $toString: '$_id' },
                   {
-                    $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
-                  }
-                ]
-              }, else: null
-            }
-          }
-        }
+                    $ifNull: [
+                      { $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] },
+                      '',
+                    ], // Only concat 'lastChangedOn' if not null
+                  },
+                ],
+              },
+              else: null,
+            },
+          },
+        },
       });
     }
     // Handle the ID
@@ -189,36 +254,58 @@ export default class TenantStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const tenantsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenants')
+    const tenantsMDB = (await global.database
+      .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenants')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as Tenant[];
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getTenants', startTime, aggregation, tenantsMDB);
+      .toArray()) as Tenant[];
+    await Logging.traceDatabaseRequestEnd(
+      Constants.DEFAULT_TENANT_OBJECT,
+      MODULE_NAME,
+      'getTenants',
+      startTime,
+      aggregation,
+      tenantsMDB
+    );
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(tenantsCountMDB[0]),
-      result: tenantsMDB
+      result: tenantsMDB,
     };
   }
 
   public static async deleteTenant(id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenants')
+    await global.database
+      .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenants')
       .findOneAndDelete({
-        '_id': DatabaseUtils.convertToObjectID(id)
+        _id: DatabaseUtils.convertToObjectID(id),
       });
     // Delete logo
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenantlogos')
+    await global.database
+      .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenantlogos')
       .findOneAndDelete({
-        '_id': DatabaseUtils.convertToObjectID(id)
+        _id: DatabaseUtils.convertToObjectID(id),
       });
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteTenant', startTime, { id });
+    await Logging.traceDatabaseRequestEnd(
+      Constants.DEFAULT_TENANT_OBJECT,
+      MODULE_NAME,
+      'deleteTenant',
+      startTime,
+      { id }
+    );
   }
 
   public static async deleteTenantDB(id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete
     await global.database.deleteTenantDatabase(id);
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteTenantDB', startTime, { id });
+    await Logging.traceDatabaseRequestEnd(
+      Constants.DEFAULT_TENANT_OBJECT,
+      MODULE_NAME,
+      'deleteTenantDB',
+      startTime,
+      { id }
+    );
   }
 
   public static async getTenantLogo(tenant: Tenant): Promise<TenantLogo> {
@@ -227,13 +314,21 @@ export default class TenantStorage {
     let tenantLogoMDB: { _id: ObjectId; logo: string };
     // Read DB
     if (DatabaseUtils.isObjectID(tenant.id)) {
-      tenantLogoMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenantlogos')
+      tenantLogoMDB = await global.database
+        .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'tenantlogos')
         .findOne({ _id: DatabaseUtils.convertToObjectID(tenant.id) });
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTenantLogo', startTime, { id: tenant.id }, tenantLogoMDB);
+      await Logging.traceDatabaseRequestEnd(
+        tenant,
+        MODULE_NAME,
+        'getTenantLogo',
+        startTime,
+        { id: tenant.id },
+        tenantLogoMDB
+      );
     }
     return {
       id: tenant.id,
-      logo: tenantLogoMDB?.logo ?? null
+      logo: tenantLogoMDB?.logo ?? null,
     };
   }
 }

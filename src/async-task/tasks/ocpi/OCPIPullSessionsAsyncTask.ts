@@ -16,17 +16,29 @@ export default class OCPIPullSessionsAsyncTask extends AbstractAsyncTask {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       try {
         // Get the OCPI Endpoint
-        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(tenant, this.getAsyncTask().parameters.endpointID);
+        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(
+          tenant,
+          this.getAsyncTask().parameters.endpointID
+        );
         if (!ocpiEndpoint) {
-          throw new Error(`Unknown OCPI Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
+          throw new Error(
+            `Unknown OCPI Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`
+          );
         }
-        const pullSessionsLock = await LockingHelper.createOCPIPullSessionsLock(tenant.id, ocpiEndpoint);
+        const pullSessionsLock = await LockingHelper.createOCPIPullSessionsLock(
+          tenant.id,
+          ocpiEndpoint
+        );
         if (pullSessionsLock) {
           try {
             // Get the OCPI Client
             const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
             if (!ocpiClient) {
-              throw new Error(`OCPI Client not found in Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
+              throw new Error(
+                `OCPI Client not found in Endpoint ID '${
+                  this.getAsyncTask().parameters.endpointID
+                }'`
+              );
             }
             await ocpiClient.pullSessions();
           } finally {
@@ -35,7 +47,11 @@ export default class OCPIPullSessionsAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_SESSION, error);
+        await Logging.logActionExceptionMessage(
+          tenant.id,
+          ServerAction.OCPI_EMSP_GET_SESSION,
+          error
+        );
       }
     }
   }

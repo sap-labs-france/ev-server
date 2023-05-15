@@ -27,7 +27,10 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     await this.connect();
   }
 
-  public async retrieveConsumptions(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
+  public async retrieveConsumptions(
+    asset: Asset,
+    manualCall: boolean
+  ): Promise<AbstractCurrentConsumption[]> {
     // Check if refresh interval of connection is exceeded
     if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
       return [];
@@ -37,18 +40,16 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const request = `${this.connection.url}/${asset.meterID}`;
     try {
       // Get consumption
-      const response = await this.axiosInstance.get(
-        request,
-        {
-          headers: this.buildAuthHeader(token)
-        }
-      );
+      const response = await this.axiosInstance.get(request, {
+        headers: this.buildAuthHeader(token),
+      });
       await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > Schneider web service has been called successfully`,
-        module: MODULE_NAME, method: 'retrieveConsumption',
-        detailedMessages: { response: response.data }
+        module: MODULE_NAME,
+        method: 'retrieveConsumption',
+        detailedMessages: { response: response.data },
       });
       return this.filterConsumptionRequest(asset, response.data);
     } catch (error) {
@@ -57,11 +58,10 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
         method: 'retrieveConsumption',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: 'Error while retrieving the asset consumption',
-        detailedMessages: { request, token, error: error.stack, asset }
+        detailedMessages: { request, token, error: error.stack, asset },
       });
     }
   }
-
 
   private filterConsumptionRequest(asset: Asset, data: any[]): AbstractCurrentConsumption[] {
     const consumption = {} as AbstractCurrentConsumption;
@@ -72,24 +72,34 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     }
     consumption.lastConsumption = {
       value: newConsumptionWh,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
     // Amperage
-    consumption.currentInstantAmpsL1 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L1) * energyDirection;
-    consumption.currentInstantAmpsL2 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L2) * energyDirection;
-    consumption.currentInstantAmpsL3 = this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L3) * energyDirection;
-    consumption.currentInstantAmps = consumption.currentInstantAmpsL1 + consumption.currentInstantAmpsL2 + consumption.currentInstantAmpsL3;
+    consumption.currentInstantAmpsL1 =
+      this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L1) * energyDirection;
+    consumption.currentInstantAmpsL2 =
+      this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L2) * energyDirection;
+    consumption.currentInstantAmpsL3 =
+      this.getPropertyValue(data, SchneiderProperty.AMPERAGE_L3) * energyDirection;
+    consumption.currentInstantAmps =
+      consumption.currentInstantAmpsL1 +
+      consumption.currentInstantAmpsL2 +
+      consumption.currentInstantAmpsL3;
     // Voltage
     consumption.currentInstantVolts = this.getPropertyValue(data, SchneiderProperty.VOLTAGE);
     consumption.currentInstantVoltsL1 = this.getPropertyValue(data, SchneiderProperty.VOLTAGE_L1);
     consumption.currentInstantVoltsL2 = this.getPropertyValue(data, SchneiderProperty.VOLTAGE_L2);
     consumption.currentInstantVoltsL3 = this.getPropertyValue(data, SchneiderProperty.VOLTAGE_L3);
     // Power
-    consumption.currentInstantWatts = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE) * 1000 * energyDirection;
-    consumption.currentInstantWattsL1 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L1) * 1000 * energyDirection;
-    consumption.currentInstantWattsL2 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L2) * 1000 * energyDirection;
-    consumption.currentInstantWattsL3 = this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L3) * 1000 * energyDirection;
+    consumption.currentInstantWatts =
+      this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE) * 1000 * energyDirection;
+    consumption.currentInstantWattsL1 =
+      this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L1) * 1000 * energyDirection;
+    consumption.currentInstantWattsL2 =
+      this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L2) * 1000 * energyDirection;
+    consumption.currentInstantWattsL3 =
+      this.getPropertyValue(data, SchneiderProperty.POWER_ACTIVE_L3) * 1000 * energyDirection;
     return [consumption];
   }
 
@@ -108,15 +118,14 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     // Get credential params
     const credentials = await this.getCredentialURLParams();
     // Send credentials to get the token
-    const response = await Utils.executePromiseWithTimeout(5000,
-      this.axiosInstance.post(`${this.connection.url}/GetToken`,
-        credentials,
-        {
-          'axios-retry': {
-            retries: 0
-          },
-          headers: this.buildFormHeaders()
-        }),
+    const response = await Utils.executePromiseWithTimeout(
+      5000,
+      this.axiosInstance.post(`${this.connection.url}/GetToken`, credentials, {
+        'axios-retry': {
+          retries: 0,
+        },
+        headers: this.buildFormHeaders(),
+      }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/GetToken'`
     );
     // Return the Token
@@ -127,7 +136,10 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.schneiderConnection.user);
-    params.append('password', await Cypher.decrypt(this.tenant, this.connection.schneiderConnection.password));
+    params.append(
+      'password',
+      await Cypher.decrypt(this.tenant, this.connection.schneiderConnection.password)
+    );
     return params;
   }
 
@@ -137,20 +149,20 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,
-        message: 'No connection provided'
+        message: 'No connection provided',
       });
     }
   }
 
   private buildFormHeaders(): any {
     return {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     };
   }
 
   private buildAuthHeader(token: string): any {
     return {
-      'Authorization': 'Bearer ' + token
+      Authorization: 'Bearer ' + token,
     };
   }
 }

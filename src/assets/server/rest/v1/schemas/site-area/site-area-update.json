@@ -47,9 +47,5 @@
       "$ref": "site-area#/definitions/subSiteAreasAction"
     }
   },
-  "required": [
-    "id",
-    "name",
-    "siteID"
-  ]
+  "required": ["id", "name", "siteID"]
 }

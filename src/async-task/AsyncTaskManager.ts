@@ -41,10 +41,14 @@ export default class AsyncTaskManager {
       Logging.logPromiseError(error);
     });
     // Listen to DB events
-    await global.database.watchDatabaseCollection(Constants.DEFAULT_TENANT_OBJECT, 'asynctasks',
+    await global.database.watchDatabaseCollection(
+      Constants.DEFAULT_TENANT_OBJECT,
+      'asynctasks',
       (documentID: unknown, documentChange: DatabaseDocumentChange, document: unknown) => {
-        if (documentChange === DatabaseDocumentChange.UPDATE ||
-            documentChange === DatabaseDocumentChange.INSERT) {
+        if (
+          documentChange === DatabaseDocumentChange.UPDATE ||
+          documentChange === DatabaseDocumentChange.INSERT
+        ) {
           // Check status
           if (document['status'] === AsyncTaskStatus.PENDING) {
             // Trigger the Async Framework
@@ -62,8 +66,9 @@ export default class AsyncTaskManager {
     await Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT_ID,
       action: ServerAction.ASYNC_TASK,
-      module: MODULE_NAME, method: 'handleAsyncTasks',
-      message: 'Checking asynchronous task to process...'
+      module: MODULE_NAME,
+      method: 'handleAsyncTasks',
+      message: 'Checking asynchronous task to process...',
     });
     const processedTask: ActionsResponse = {
       inError: 0,
@@ -77,22 +82,29 @@ export default class AsyncTaskManager {
     }
     // Get the tasks
     const asyncTasks = await AsyncTaskStorage.getAsyncTasks(
-      { status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_MAX_LIMIT);
+      { status: AsyncTaskStatus.PENDING },
+      Constants.DB_PARAMS_MAX_LIMIT
+    );
     // Process them
     if (!Utils.isEmptyArray(asyncTasks.result)) {
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.ASYNC_TASK,
-        module: MODULE_NAME, method: 'handleAsyncTasks',
-        message: `${asyncTasks.result.length} asynchronous task(s) are going to be processed...`
+        module: MODULE_NAME,
+        method: 'handleAsyncTasks',
+        message: `${asyncTasks.result.length} asynchronous task(s) are going to be processed...`,
       });
-      await Promise.map(asyncTasks.result,
+      await Promise.map(
+        asyncTasks.result,
         async (asyncTask: AsyncTask) => {
           // Tasks
           const abstractAsyncTask = await AsyncTaskManager.createTask(asyncTask);
           if (abstractAsyncTask) {
             // Get the lock
-            const asyncTaskLock = await LockingHelper.acquireAsyncTaskLock(Constants.DEFAULT_TENANT_ID, asyncTask.id);
+            const asyncTaskLock = await LockingHelper.acquireAsyncTaskLock(
+              Constants.DEFAULT_TENANT_ID,
+              asyncTask.id
+            );
             if (asyncTaskLock) {
               const startAsyncTaskTime = new Date().getTime();
               try {
@@ -106,13 +118,19 @@ export default class AsyncTaskManager {
                 await Logging.logInfo({
                   tenantID: Constants.DEFAULT_TENANT_ID,
                   action: ServerAction.ASYNC_TASK,
-                  module: MODULE_NAME, method: 'handleAsyncTasks',
-                  message: `The Task '${asyncTask.name}~${abstractAsyncTask.getCorrelationID()}' is running...`
+                  module: MODULE_NAME,
+                  method: 'handleAsyncTasks',
+                  message: `The Task '${
+                    asyncTask.name
+                  }~${abstractAsyncTask.getCorrelationID()}' is running...`,
                 });
                 // Run
                 await abstractAsyncTask.run();
                 // Duration
-                const asyncTaskTotalDurationSecs = Utils.truncTo((new Date().getTime() - startAsyncTaskTime) / 1000, 2);
+                const asyncTaskTotalDurationSecs = Utils.truncTo(
+                  (new Date().getTime() - startAsyncTaskTime) / 1000,
+                  2
+                );
                 // Mark the task
                 asyncTask.status = AsyncTaskStatus.SUCCESS;
                 asyncTask.execDurationSecs = asyncTaskTotalDurationSecs;
@@ -123,24 +141,33 @@ export default class AsyncTaskManager {
                 await Logging.logInfo({
                   tenantID: Constants.DEFAULT_TENANT_ID,
                   action: ServerAction.ASYNC_TASK,
-                  module: MODULE_NAME, method: 'handleAsyncTasks',
-                  message: `The Task '${asyncTask.name}~${abstractAsyncTask.getCorrelationID()}' has been processed in ${asyncTaskTotalDurationSecs} secs`
+                  module: MODULE_NAME,
+                  method: 'handleAsyncTasks',
+                  message: `The Task '${
+                    asyncTask.name
+                  }~${abstractAsyncTask.getCorrelationID()}' has been processed in ${asyncTaskTotalDurationSecs} secs`,
                 });
               } catch (error) {
                 processedTask.inError++;
                 // Update the task
                 asyncTask.status = AsyncTaskStatus.ERROR;
                 asyncTask.message = error.message;
-                asyncTask.execDurationSecs = Utils.truncTo((new Date().getTime() - startAsyncTaskTime) / 1000, 2);
+                asyncTask.execDurationSecs = Utils.truncTo(
+                  (new Date().getTime() - startAsyncTaskTime) / 1000,
+                  2
+                );
                 asyncTask.lastChangedOn = new Date();
                 await AsyncTaskStorage.saveAsyncTask(asyncTask);
                 // Log error
                 await Logging.logError({
                   tenantID: Constants.DEFAULT_TENANT_ID,
-                  module: MODULE_NAME, method: 'handleAsyncTasks',
+                  module: MODULE_NAME,
+                  method: 'handleAsyncTasks',
                   action: ServerAction.ASYNC_TASK,
-                  message: `Error while running the Task '${asyncTask.name}~${abstractAsyncTask.getCorrelationID()}': ${error.message as string}`,
-                  detailedMessages: { error: error.stack, asyncTask }
+                  message: `Error while running the Task '${
+                    asyncTask.name
+                  }~${abstractAsyncTask.getCorrelationID()}': ${error.message as string}`,
+                  detailedMessages: { error: error.stack, asyncTask },
                 });
               } finally {
                 // Release lock
@@ -151,11 +178,16 @@ export default class AsyncTaskManager {
             }
           }
         },
-        { concurrency: nbrTasksInParallel });
+        { concurrency: nbrTasksInParallel }
+      );
       // Log result
       const totalDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
-      void Logging.logActionsResponse(Constants.DEFAULT_TENANT_ID, ServerAction.ASYNC_TASK,
-        MODULE_NAME, 'handleAsyncTasks', processedTask,
+      void Logging.logActionsResponse(
+        Constants.DEFAULT_TENANT_ID,
+        ServerAction.ASYNC_TASK,
+        MODULE_NAME,
+        'handleAsyncTasks',
+        processedTask,
         `{{inSuccess}} asynchronous task(s) were successfully processed in ${totalDurationSecs} secs`,
         `{{inError}} asynchronous task(s) failed to be processed in ${totalDurationSecs} secs`,
         `{{inSuccess}} asynchronous task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
@@ -172,8 +204,9 @@ export default class AsyncTaskManager {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.ASYNC_TASK,
-        module: MODULE_NAME, method: 'handleAsyncTasks',
-        message: 'No asynchronous task to process'
+        module: MODULE_NAME,
+        method: 'handleAsyncTasks',
+        message: 'No asynchronous task to process',
       });
     }
   }
@@ -213,8 +246,9 @@ export default class AsyncTaskManager {
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.ASYNC_TASK,
-          module: MODULE_NAME, method: 'handleAsyncTasks',
-          message: `The asynchronous task '${asyncTask.name as string}' is unknown`
+          module: MODULE_NAME,
+          method: 'handleAsyncTasks',
+          message: `The asynchronous task '${asyncTask.name as string}' is unknown`,
         });
     }
   }

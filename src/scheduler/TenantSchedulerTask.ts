@@ -19,15 +19,21 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
     let isTaskExecutionDisabled = false;
     const taskSettings = await SettingStorage.getTaskSettings(Constants.DEFAULT_TENANT_OBJECT);
     // Check if tasks are disabled for this environment
-    if (taskSettings && taskSettings.task &&
-      (taskSettings.task.disableAllTasks || !Utils.isEmptyArray(taskSettings.task.disableTasksInEnv) && taskSettings.task.disableTasksInEnv.includes(currentTaskEnv))) {
+    if (
+      taskSettings &&
+      taskSettings.task &&
+      (taskSettings.task.disableAllTasks ||
+        (!Utils.isEmptyArray(taskSettings.task.disableTasksInEnv) &&
+          taskSettings.task.disableTasksInEnv.includes(currentTaskEnv)))
+    ) {
       // Tasks are disabled for this environment
       isTaskExecutionDisabled = true;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.SCHEDULER,
-        module: MODULE_NAME, method: 'processTask',
-        message: `Tasks on envirnoment: '${currentTaskEnv}' are disabled, '${this.getName()}~${this.getCorrelationID()}' will not run...`
+        module: MODULE_NAME,
+        method: 'processTask',
+        message: `Tasks on envirnoment: '${currentTaskEnv}' are disabled, '${this.getName()}~${this.getCorrelationID()}' will not run...`,
       });
     }
     // Execute tasks only when settings allows it
@@ -46,8 +52,11 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
           await Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SCHEDULER,
-            module: MODULE_NAME, method: 'processTask',
-            message: `The Task '${this.getName()}~${this.getCorrelationID()}' is skipped for Tenant ${Utils.buildTenantName(tenant)}, on environement '${currentTaskEnv}'...`
+            module: MODULE_NAME,
+            method: 'processTask',
+            message: `The Task '${this.getName()}~${this.getCorrelationID()}' is skipped for Tenant ${Utils.buildTenantName(
+              tenant
+            )}, on environement '${currentTaskEnv}'...`,
           });
           // Ignore execution on this environment
           continue;
@@ -57,14 +66,18 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
         await Logging.logDebug({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
-          module: MODULE_NAME, method: 'processTask',
-          message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' is running for Tenant ${Utils.buildTenantName(tenant)}...`
+          module: MODULE_NAME,
+          method: 'processTask',
+          message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' is running for Tenant ${Utils.buildTenantName(
+            tenant
+          )}...`,
         });
         await Logging.logDebug({
           tenantID: tenant.id,
           action: ServerAction.SCHEDULER,
-          module: MODULE_NAME, method: 'processTask',
-          message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' is running...`
+          module: MODULE_NAME,
+          method: 'processTask',
+          message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' is running...`,
         });
         try {
           // Hook
@@ -77,16 +90,22 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
           await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SCHEDULER,
-            module: MODULE_NAME, method: 'processTask',
-            message: `Error while running the Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' for Tenant ${Utils.buildTenantName(tenant)}: ${error.message as string}`,
-            detailedMessages: { error: error.stack }
+            module: MODULE_NAME,
+            method: 'processTask',
+            message: `Error while running the Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' for Tenant ${Utils.buildTenantName(
+              tenant
+            )}: ${error.message as string}`,
+            detailedMessages: { error: error.stack },
           });
           await Logging.logError({
             tenantID: tenant.id,
             action: ServerAction.SCHEDULER,
-            module: MODULE_NAME, method: 'processTask',
-            message: `Error while running the Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}': ${error.message as string}`,
-            detailedMessages: { error: error.stack }
+            module: MODULE_NAME,
+            method: 'processTask',
+            message: `Error while running the Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}': ${
+              error.message as string
+            }`,
+            detailedMessages: { error: error.stack },
           });
         }
         // Log Total Processing Time in Tenant
@@ -94,25 +113,26 @@ export default abstract class TenantSchedulerTask extends SchedulerTask {
         await Logging.logDebug({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
-          module: MODULE_NAME, method: 'processTask',
-          message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(tenant)}`
+          module: MODULE_NAME,
+          method: 'processTask',
+          message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(
+            tenant
+          )}`,
         });
         await Logging.logDebug({
           tenantID: tenant.id,
           action: ServerAction.SCHEDULER,
-          module: MODULE_NAME, method: 'processTask',
-          message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs`
+          module: MODULE_NAME,
+          method: 'processTask',
+          message: `The Task '${this.getName()}~${this.getCorrelationID()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs`,
         });
       }
     }
   }
 
-  protected async beforeProcessTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
-  }
+  protected async beforeProcessTenant(tenant: Tenant, config: TaskConfig): Promise<void> {}
 
-  protected async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
-  }
+  protected async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {}
 
-  protected async afterProcessTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
-  }
+  protected async afterProcessTenant(tenant: Tenant, config: TaskConfig): Promise<void> {}
 }

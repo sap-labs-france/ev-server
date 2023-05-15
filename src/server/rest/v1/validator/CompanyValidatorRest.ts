@@ -1,4 +1,9 @@
-import { HttpCompaniesGetRequest, HttpCompanyDeleteRequest, HttpCompanyGetRequest, HttpCompanyLogoGetRequest } from '../../../../types/requests/HttpCompanyRequest';
+import {
+  HttpCompaniesGetRequest,
+  HttpCompanyDeleteRequest,
+  HttpCompanyGetRequest,
+  HttpCompanyLogoGetRequest,
+} from '../../../../types/requests/HttpCompanyRequest';
 
 import Company from '../../../../types/Company';
 import Schema from '../../../../types/validator/Schema';
@@ -7,13 +12,43 @@ import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class CompanyValidatorRest extends SchemaValidator {
-  private static instance: CompanyValidatorRest|null = null;
-  private companiesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/companies-get.json`, 'utf8'));
-  private companyGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-get.json`, 'utf8'));
-  private companyDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-delete.json`, 'utf8'));
-  private companyCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-create.json`, 'utf8'));
-  private companyUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-update.json`, 'utf8'));
-  private companyLogoGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/company/company-logo-get.json`, 'utf8'));
+  private static instance: CompanyValidatorRest | null = null;
+  private companiesGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/company/companies-get.json`,
+      'utf8'
+    )
+  );
+  private companyGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/company/company-get.json`,
+      'utf8'
+    )
+  );
+  private companyDelete: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/company/company-delete.json`,
+      'utf8'
+    )
+  );
+  private companyCreate: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/company/company-create.json`,
+      'utf8'
+    )
+  );
+  private companyUpdate: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/company/company-update.json`,
+      'utf8'
+    )
+  );
+  private companyLogoGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/company/company-logo-get.json`,
+      'utf8'
+    )
+  );
 
   private constructor() {
     super('CompanyValidatorRest');

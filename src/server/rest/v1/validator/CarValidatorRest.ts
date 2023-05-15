@@ -1,4 +1,14 @@
-import { HttpCarCatalogGetRequest, HttpCarCatalogImagesGetRequest, HttpCarCatalogsGetRequest, HttpCarCreateRequest, HttpCarDeleteRequest, HttpCarGetRequest, HttpCarMakersGetRequest, HttpCarUpdateRequest, HttpCarsGetRequest } from '../../../../types/requests/HttpCarRequest';
+import {
+  HttpCarCatalogGetRequest,
+  HttpCarCatalogImagesGetRequest,
+  HttpCarCatalogsGetRequest,
+  HttpCarCreateRequest,
+  HttpCarDeleteRequest,
+  HttpCarGetRequest,
+  HttpCarMakersGetRequest,
+  HttpCarUpdateRequest,
+  HttpCarsGetRequest,
+} from '../../../../types/requests/HttpCarRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -6,16 +16,46 @@ import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class CarValidatorRest extends SchemaValidator {
-  private static instance: CarValidatorRest|null = null;
-  private carMakersGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/carmakers-get.json`, 'utf8'));
-  private carCatalogsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/carcatalogs-get.json`, 'utf8'));
-  private carCatalogImagesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/carcatalog-images-get.json`, 'utf8'));
-  private carCatalogGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/carcatalog-get.json`, 'utf8'));
-  private carCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-create.json`, 'utf8'));
-  private carUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-update.json`, 'utf8'));
-  private carsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/cars-get.json`, 'utf8'));
-  private carGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-get.json`, 'utf8'));
-  private carDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-delete.json`, 'utf8'));
+  private static instance: CarValidatorRest | null = null;
+  private carMakersGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/car/carmakers-get.json`,
+      'utf8'
+    )
+  );
+  private carCatalogsGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/car/carcatalogs-get.json`,
+      'utf8'
+    )
+  );
+  private carCatalogImagesGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/car/carcatalog-images-get.json`,
+      'utf8'
+    )
+  );
+  private carCatalogGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/car/carcatalog-get.json`,
+      'utf8'
+    )
+  );
+  private carCreate: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-create.json`, 'utf8')
+  );
+  private carUpdate: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-update.json`, 'utf8')
+  );
+  private carsGet: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/cars-get.json`, 'utf8')
+  );
+  private carGet: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-get.json`, 'utf8')
+  );
+  private carDelete: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/car/car-delete.json`, 'utf8')
+  );
 
   private constructor() {
     super('CarValidatorRest');
@@ -36,7 +76,9 @@ export default class CarValidatorRest extends SchemaValidator {
     return this.validate(this.carCatalogsGet, data);
   }
 
-  public validateCarCatalogImagesGetReq(data: Record<string, unknown>): HttpCarCatalogImagesGetRequest {
+  public validateCarCatalogImagesGetReq(
+    data: Record<string, unknown>
+  ): HttpCarCatalogImagesGetRequest {
     return this.validate(this.carCatalogImagesGet, data);
   }
 

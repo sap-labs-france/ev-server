@@ -28,7 +28,7 @@ export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActi
   accountData?: BillingAccountData;
 }
 
-export interface UserSite extends UserSiteAuthorizationActions{
+export interface UserSite extends UserSiteAuthorizationActions {
   site: Site;
   siteID?: string;
   userID: string;

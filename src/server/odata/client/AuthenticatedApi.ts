@@ -56,12 +56,12 @@ export default class AuthenticatedApi extends BaseApi {
       method: 'POST',
       url: '/client/auth/Login',
       'axios-retry': {
-        retries: 0
+        retries: 0,
       },
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      data
+      data,
     });
     return response;
   }
@@ -79,4 +79,3 @@ export default class AuthenticatedApi extends BaseApi {
     return super.send(data);
   }
 }
-

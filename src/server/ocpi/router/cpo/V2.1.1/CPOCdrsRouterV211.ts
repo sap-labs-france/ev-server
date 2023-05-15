@@ -17,8 +17,17 @@ export default class CPOCdrsRouterV211 {
   }
 
   protected buildRouteGetCdrs(): void {
-    this.router.get(`/${OCPIServerRoute.OCPI_CDRS}*`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleOCPIServerAction(CPOCdrsService.handleGetCdrs.bind(this), ServerAction.OCPI_CPO_GET_CDRS, req, res, next);
-    });
+    this.router.get(
+      `/${OCPIServerRoute.OCPI_CDRS}*`,
+      (req: Request, res: Response, next: NextFunction) => {
+        void RouterUtils.handleOCPIServerAction(
+          CPOCdrsService.handleGetCdrs.bind(this),
+          ServerAction.OCPI_CPO_GET_CDRS,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 }

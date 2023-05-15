@@ -23,39 +23,84 @@ export default class ChargingStationTemplateRouter {
 
   // Create
   private buildRouteCreateChargingStationTemplate(): void {
-    this.router.post(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleCreateChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE_CREATE, req, res, next);
-    });
+    this.router.post(
+      `/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        void RouterUtils.handleRestServerAction(
+          ChargingStationTemplateService.handleCreateChargingStationTemplate.bind(this),
+          ServerAction.CHARGING_STATION_TEMPLATE_CREATE,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   // Read all
   private buildRouteChargingStationTemplates(): void {
-    this.router.get(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleGetChargingStationTemplates.bind(this), ServerAction.CHARGING_STATION_TEMPLATES, req, res, next);
-    });
+    this.router.get(
+      `/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATES}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        void RouterUtils.handleRestServerAction(
+          ChargingStationTemplateService.handleGetChargingStationTemplates.bind(this),
+          ServerAction.CHARGING_STATION_TEMPLATES,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   // Read one
   private buildRouteChargingStationTemplate(): void {
-    this.router.get(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`, (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleGetChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE, req, res, next);
-    });
+    this.router.get(
+      `/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        req.query.ID = req.params.id;
+        void RouterUtils.handleRestServerAction(
+          ChargingStationTemplateService.handleGetChargingStationTemplate.bind(this),
+          ServerAction.CHARGING_STATION_TEMPLATE,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   // Update
   private buildRouteUpdateChargingStationTemplate(): void {
-    this.router.put(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`, (req: Request, res: Response, next: NextFunction) => {
-      req.body.id = req.params.id;
-      void RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleUpdateChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE_UPDATE, req, res, next);
-    });
+    this.router.put(
+      `/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        req.body.id = req.params.id;
+        void RouterUtils.handleRestServerAction(
+          ChargingStationTemplateService.handleUpdateChargingStationTemplate.bind(this),
+          ServerAction.CHARGING_STATION_TEMPLATE_UPDATE,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   // Delete
   private buildRouteDeleteChargingStationTemplate(): void {
-    this.router.delete(`/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`, (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(ChargingStationTemplateService.handleDeleteChargingStationTemplate.bind(this), ServerAction.CHARGING_STATION_TEMPLATE_DELETE, req, res, next);
-    });
+    this.router.delete(
+      `/${RESTServerRoute.REST_CHARGING_STATION_TEMPLATE}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        req.query.ID = req.params.id;
+        void RouterUtils.handleRestServerAction(
+          ChargingStationTemplateService.handleDeleteChargingStationTemplate.bind(this),
+          ServerAction.CHARGING_STATION_TEMPLATE_DELETE,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 }

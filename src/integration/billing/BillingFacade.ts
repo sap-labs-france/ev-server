@@ -13,7 +13,13 @@ import User from '../../types/User';
 const MODULE_NAME = 'BillingFacade';
 
 export default class BillingFacade {
-  public static async processStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea, user: User): Promise<void> {
+  public static async processStartTransaction(
+    tenant: Tenant,
+    transaction: Transaction,
+    chargingStation: ChargingStation,
+    siteArea: SiteArea,
+    user: User
+  ): Promise<void> {
     if (!user?.issuer) {
       return;
     }
@@ -30,7 +36,7 @@ export default class BillingFacade {
         // Update Billing Data
         transaction.billingData = {
           withBillingActive, // false when access control is OFF or when the user has free access
-          lastUpdate: new Date()
+          lastUpdate: new Date(),
         };
       } catch (error) {
         const message = `Billing - Start Transaction failed with Transaction ID '${transaction.id}'`;
@@ -38,21 +44,29 @@ export default class BillingFacade {
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
           action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'processStartTransaction',
-          message, detailedMessages: { error: error.stack }
+          module: MODULE_NAME,
+          method: 'processStartTransaction',
+          message,
+          detailedMessages: { error: error.stack },
         });
         // Prevent from starting a transaction when Billing prerequisites are not met
         throw new BackendError({
           ...LoggingHelper.getTransactionProperties(transaction),
           action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'processStartTransaction',
-          message, detailedMessages: { error: error.stack, transaction }
+          module: MODULE_NAME,
+          method: 'processStartTransaction',
+          message,
+          detailedMessages: { error: error.stack, transaction },
         });
       }
     }
   }
 
-  public static async processUpdateTransaction(tenant: Tenant, transaction: Transaction, user: User): Promise<void> {
+  public static async processUpdateTransaction(
+    tenant: Tenant,
+    transaction: Transaction,
+    user: User
+  ): Promise<void> {
     if (!user?.issuer) {
       return;
     }
@@ -70,21 +84,29 @@ export default class BillingFacade {
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
           action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'processUpdateTransaction',
-          message, detailedMessages: { error: error.stack, transaction }
+          module: MODULE_NAME,
+          method: 'processUpdateTransaction',
+          message,
+          detailedMessages: { error: error.stack, transaction },
         });
       }
     }
   }
 
-  public static async processStopTransaction(tenant: Tenant, transaction: Transaction, user: User): Promise<void> {
+  public static async processStopTransaction(
+    tenant: Tenant,
+    transaction: Transaction,
+    user: User
+  ): Promise<void> {
     if (!user?.issuer) {
       return;
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (billingImpl) {
       try {
-        const billingDataStop: BillingDataTransactionStop = await billingImpl.stopTransaction(transaction);
+        const billingDataStop: BillingDataTransactionStop = await billingImpl.stopTransaction(
+          transaction
+        );
         // Update Billing Data
         if (transaction.billingData) {
           transaction.billingData.stop = billingDataStop;
@@ -96,14 +118,20 @@ export default class BillingFacade {
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
           action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'processStopTransaction',
-          message, detailedMessages: { error: error.stack, transaction }
+          module: MODULE_NAME,
+          method: 'processStopTransaction',
+          message,
+          detailedMessages: { error: error.stack, transaction },
         });
       }
     }
   }
 
-  public static async processEndTransaction(tenant: Tenant, transaction: Transaction, user: User): Promise<void> {
+  public static async processEndTransaction(
+    tenant: Tenant,
+    transaction: Transaction,
+    user: User
+  ): Promise<void> {
     if (!user?.issuer) {
       return;
     }
@@ -111,7 +139,9 @@ export default class BillingFacade {
     if (billingImpl) {
       try {
         // Delegate
-        const billingDataStop: BillingDataTransactionStop = await billingImpl.endTransaction(transaction);
+        const billingDataStop: BillingDataTransactionStop = await billingImpl.endTransaction(
+          transaction
+        );
         // Update
         if (transaction.billingData) {
           transaction.billingData.stop = billingDataStop;
@@ -123,8 +153,10 @@ export default class BillingFacade {
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: tenant.id,
           action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'processEndTransaction',
-          message, detailedMessages: { error: error.stack, transaction }
+          module: MODULE_NAME,
+          method: 'processEndTransaction',
+          message,
+          detailedMessages: { error: error.stack, transaction },
         });
       }
     }

@@ -17,8 +17,5 @@
       "$ref": "registration-token#/definitions/expirationDate"
     }
   },
-  "required": [
-    "id",
-    "description"
-  ]
+  "required": ["id", "description"]
 }

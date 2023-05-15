@@ -1,0 +1,14 @@
+{
+  "$id": "reservations-delete",
+  "title": "Delete selected reservations",
+  "type": "object",
+  "properties": {
+    "reservationIDs": {
+      "type": "array",
+      "items": {
+        "$ref": "reservation#/definitions/id"
+      }
+    }
+  },
+  "required": ["reservationIDs"]
+}

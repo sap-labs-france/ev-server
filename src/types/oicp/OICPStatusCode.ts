@@ -35,17 +35,17 @@ export enum OICPStatusCode {
   Code602 = '602', // EVSE already in use/ wrong token. EVSE codes
   Code603 = '603', // Unknown EVSE ID. EVSE codes
   Code604 = '604', // EVSE ID is not Hubject compatible. EVSE codes
-  Code700 = '700' // EVSE out of service. EVSE code
+  Code700 = '700', // EVSE out of service. EVSE code
 }
 
 export enum OICPErrorClass {
   ConnectorError = 'Connector Error', // Charging process cannot be started or stopped. EV driver needs to check if the the Plug is properly inserted or taken out from socket.
-  CriticalError = 'Critical Error' // Charging process stopped abruptly. Reason: Physical check at the station is required. Station cannot be reset online. Or Error with the software or hardware of the station locally. Or Communication failure with the vehicle. Or The error needs to be investigated Or Ground Failure
+  CriticalError = 'Critical Error', // Charging process stopped abruptly. Reason: Physical check at the station is required. Station cannot be reset online. Or Error with the software or hardware of the station locally. Or Communication failure with the vehicle. Or The error needs to be investigated Or Ground Failure
 }
 
 export enum OICPChargingNotification {
   Start = 'Start', // Indicates if the Notification refers to the start of a charging process.
   Progress = 'Progress', // Indicates if the Notification of the progress of the charging session.
   End = 'End', // Indicates if the Notification refers to an end of a charging process.
-  Error = 'Error' // Indicates if the Notification refers to an error.
+  Error = 'Error', // Indicates if the Notification refers to an error.
 }

@@ -20,13 +20,10 @@ export interface HttpOCPIEndpointDeleteRequest extends HttpByIDRequest {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpOCPIEndpointUpdateRequest extends OCPIEndpoint {
-}
+export interface HttpOCPIEndpointUpdateRequest extends OCPIEndpoint {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpOCPIEndpointCreateRequest extends OCPIEndpoint {
-}
+export interface HttpOCPIEndpointCreateRequest extends OCPIEndpoint {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpOCPIEndpointPingRequest extends OCPIEndpoint {
-}
+export interface HttpOCPIEndpointPingRequest extends OCPIEndpoint {}

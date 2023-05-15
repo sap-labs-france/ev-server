@@ -34,12 +34,8 @@
           "sanitize": "mongo"
         }
       },
-      "required": [
-        "location"
-      ]
+      "required": ["location"]
     }
   },
-  "required": [
-    "chargingStationID"
-  ]
+  "required": ["chargingStationID"]
 }

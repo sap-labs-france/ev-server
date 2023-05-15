@@ -14,10 +14,7 @@
     "chargeStandardChargeTime": 0,
     "chargeStandardChargeSpeed": 0,
     "batteryCapacityFull": 8.6,
-    "imageURLs": [
-      "100000-goupil-g5-benne-1.jpg",
-      "100000-goupil-g5-benne-2.jpg"
-    ],
+    "imageURLs": ["100000-goupil-g5-benne-1.jpg", "100000-goupil-g5-benne-2.jpg"],
     "lastChangedOn": "2021-12-06"
   },
   {
@@ -55,10 +52,7 @@
     "chargeStandardPhase": 1,
     "chargeStandardPhaseAmp": 16,
     "batteryCapacityFull": 8.6,
-    "imageURLs": [
-      "100002-tata-nexon-1.jpg",
-      "100002-tata-nexon-2.jpg"
-    ],
+    "imageURLs": ["100002-tata-nexon-1.jpg", "100002-tata-nexon-2.jpg"],
     "lastChangedOn": "2021-12-06"
   }
 ]

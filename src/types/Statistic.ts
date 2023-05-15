@@ -6,7 +6,7 @@ export default interface StatisticFilter {
   endDateTime?: Date;
   siteID?: string;
   siteIDs?: string[];
-  periodInMonth?: string|number;
+  periodInMonth?: string | number;
   siteAreaID?: string;
   siteAreaIDs?: string[];
   chargeBoxID?: string;
@@ -51,12 +51,12 @@ export enum StatsDataScope {
   SUM = 'sum',
   TOTAL = 'total',
   DAY_OF_YEAR = 'dayOfYear',
-  HOUR = 'hour'
+  HOUR = 'hour',
 }
 
 export type StatsAggregationKey = `$${StatsDataScope}`;
 
-type AnyDataScopeValue = {[key in StatsDataScope]?: number | string};
+type AnyDataScopeValue = { [key in StatsDataScope]?: number | string };
 
 export interface ChargingStationStats extends AnyDataScopeValue {
   chargeBox: string;

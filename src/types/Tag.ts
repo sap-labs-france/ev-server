@@ -14,7 +14,7 @@ export default interface Tag extends CreatedUpdatedProps, TagAuthorizationAction
   transactionsCount?: number;
   ocpiToken?: OCPIToken;
   user?: User;
-  default?: boolean
+  default?: boolean;
   importedData?: {
     autoActivateUserAtImport: boolean;
     autoActivateTagAtImport: boolean;
@@ -39,7 +39,4 @@ export interface ImportedTag {
   siteIDs?: string;
 }
 
-export const TagRequiredImportProperties = [
-  'id'
-];
-
+export const TagRequiredImportProperties = ['id'];

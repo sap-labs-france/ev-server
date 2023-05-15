@@ -2,7 +2,6 @@ import ChargingStationContext from './ChargingStationContext';
 import TenantContext from './TenantContext';
 
 export default class SiteAreaContext {
-
   private tenantContext: TenantContext;
   private chargingStations: ChargingStationContext[];
   private siteArea: any;
@@ -39,12 +38,17 @@ export default class SiteAreaContext {
 
   getChargingStation(chargingStationID) {
     // Search in context list
-    return this.chargingStations.find((chargingStationContext) => chargingStationContext.getChargingStation().id === chargingStationID);
+    return this.chargingStations.find(
+      (chargingStationContext) =>
+        chargingStationContext.getChargingStation().id === chargingStationID
+    );
   }
 
   getChargingStationContext(chargingStationContext) {
     // Search in context list
-    return this.chargingStations.find((chargingStation) => chargingStation.getChargingStation().id.startsWith(chargingStationContext));
+    return this.chargingStations.find((chargingStation) =>
+      chargingStation.getChargingStation().id.startsWith(chargingStationContext)
+    );
   }
 
   async addChargingStation(chargingStation) {
@@ -54,10 +58,19 @@ export default class SiteAreaContext {
   }
 
   async assignChargingStation(chargingStation) {
-    const readChargingStation = (await this.tenantContext.getAdminCentralServerService().getEntityById(this.tenantContext.getAdminCentralServerService().chargingStationApi, chargingStation, false)).data;
+    const readChargingStation = (
+      await this.tenantContext
+        .getAdminCentralServerService()
+        .getEntityById(
+          this.tenantContext.getAdminCentralServerService().chargingStationApi,
+          chargingStation,
+          false
+        )
+    ).data;
     readChargingStation.siteArea = this.siteArea;
-    const response = await this.tenantContext.getAdminCentralServerService().chargingStationApi.update(readChargingStation);
+    const response = await this.tenantContext
+      .getAdminCentralServerService()
+      .chargingStationApi.update(readChargingStation);
     return response;
   }
-
 }

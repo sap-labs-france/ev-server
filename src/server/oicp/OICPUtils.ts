@@ -1,6 +1,36 @@
-import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, RemoteAuthorization } from '../../types/ChargingStation';
-import { OICPAccessibility, OICPAddressIso19773, OICPAuthenticationMode, OICPCalibrationLawDataAvailability, OICPChargingFacility, OICPChargingMode, OICPChargingPoolID, OICPCountryCode, OICPDynamicInfoAvailable, OICPEvseDataRecord, OICPEvseID, OICPEvseStatus, OICPEvseStatusRecord, OICPGeoCoordinates, OICPGeoCoordinatesResponseFormat, OICPPaymentOption, OICPPlug, OICPPower, OICPValueAddedService } from '../../types/oicp/OICPEvse';
-import { OICPDefaultTagId, OICPIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
+import ChargingStation, {
+  ChargePoint,
+  Connector,
+  ConnectorType,
+  CurrentType,
+  RemoteAuthorization,
+} from '../../types/ChargingStation';
+import {
+  OICPAccessibility,
+  OICPAddressIso19773,
+  OICPAuthenticationMode,
+  OICPCalibrationLawDataAvailability,
+  OICPChargingFacility,
+  OICPChargingMode,
+  OICPChargingPoolID,
+  OICPCountryCode,
+  OICPDynamicInfoAvailable,
+  OICPEvseDataRecord,
+  OICPEvseID,
+  OICPEvseStatus,
+  OICPEvseStatusRecord,
+  OICPGeoCoordinates,
+  OICPGeoCoordinatesResponseFormat,
+  OICPPaymentOption,
+  OICPPlug,
+  OICPPower,
+  OICPValueAddedService,
+} from '../../types/oicp/OICPEvse';
+import {
+  OICPDefaultTagId,
+  OICPIdentification,
+  OICPSessionID,
+} from '../../types/oicp/OICPIdentification';
 import User, { UserStatus } from '../../types/User';
 
 import Address from '../../types/Address';
@@ -28,36 +58,67 @@ import moment from 'moment';
 const MODULE_NAME = 'OICPUtils';
 
 export default class OICPUtils {
-  public static getEvseByConnectorId(site: Site, siteArea: SiteArea, chargingStation: ChargingStation, connectorId: number,
-      options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
+  public static getEvseByConnectorId(
+    site: Site,
+    siteArea: SiteArea,
+    chargingStation: ChargingStation,
+    connectorId: number,
+    options: { countryID: string; partyID: string; addChargeBoxID?: boolean }
+  ): OICPEvseDataRecord {
     // Loop through connectors and send one evse per connector
     const foundConnector = chargingStation.connectors.find(
-      (connector) => connector?.connectorId === connectorId);
+      (connector) => connector?.connectorId === connectorId
+    );
     if (foundConnector) {
-      return OICPUtils.convertConnector2Evse(site, siteArea, chargingStation, foundConnector, options);
+      return OICPUtils.convertConnector2Evse(
+        site,
+        siteArea,
+        chargingStation,
+        foundConnector,
+        options
+      );
     }
     return null;
   }
 
-  public static convertConnector2EvseStatus(chargingStation: ChargingStation, connector: Connector,
-      options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord {
+  public static convertConnector2EvseStatus(
+    chargingStation: ChargingStation,
+    connector: Connector,
+    options: { countryID: string; partyID: string; addChargeBoxID?: boolean }
+  ): OICPEvseStatusRecord {
     return {
-      EvseID: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector.connectorId),
-      EvseStatus: chargingStation.inactive ? OICPEvseStatus.OutOfService : OICPUtils.convertStatus2OICPEvseStatus(connector.status),
+      EvseID: RoamingUtils.buildEvseID(
+        options.countryID,
+        options.partyID,
+        chargingStation,
+        connector.connectorId
+      ),
+      EvseStatus: chargingStation.inactive
+        ? OICPEvseStatus.OutOfService
+        : OICPUtils.convertStatus2OICPEvseStatus(connector.status),
       ChargingStationID: chargingStation.id,
     };
   }
 
-  public static async convertChargingStationsToEVSEs(tenant: Tenant, site: Site, chargingStations: ChargingStation[],
-      options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseDataRecord[]> {
+  public static async convertChargingStationsToEVSEs(
+    tenant: Tenant,
+    site: Site,
+    chargingStations: ChargingStation[],
+    options: { countryID: string; partyID: string; addChargeBoxID?: boolean }
+  ): Promise<OICPEvseDataRecord[]> {
     const evses: OICPEvseDataRecord[] = [];
     // Convert charging stations to evse(s)
     for (const chargingStation of chargingStations) {
       if (chargingStation.issuer && chargingStation.public) {
-        const chargingStationEvses = OICPUtils.convertChargingStation2MultipleEvses(site, chargingStation.siteArea, chargingStation, options);
+        const chargingStationEvses = OICPUtils.convertChargingStation2MultipleEvses(
+          site,
+          chargingStation.siteArea,
+          chargingStation,
+          options
+        );
         // Update the Charging Station's OICP Data
         await ChargingStationStorage.saveChargingStationOicpData(tenant, chargingStation.id, {
-          evses: chargingStationEvses
+          evses: chargingStationEvses,
         });
         evses.push(...chargingStationEvses);
       }
@@ -65,20 +126,28 @@ export default class OICPUtils {
     return evses;
   }
 
-  public static convertChargingStationsToEvseStatuses(chargingStations: ChargingStation[],
-      options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OICPEvseStatusRecord[] {
+  public static convertChargingStationsToEvseStatuses(
+    chargingStations: ChargingStation[],
+    options: { countryID: string; partyID: string; addChargeBoxID?: boolean }
+  ): OICPEvseStatusRecord[] {
     const evseStatuses: OICPEvseStatusRecord[] = [];
     // Convert charging stations to evse status(es)
     for (const chargingStation of chargingStations) {
       if (chargingStation.issuer && chargingStation.public) {
-        evseStatuses.push(...OICPUtils.convertChargingStation2MultipleEvseStatuses(chargingStation, options));
+        evseStatuses.push(
+          ...OICPUtils.convertChargingStation2MultipleEvseStatuses(chargingStation, options)
+        );
       }
     }
     return evseStatuses;
   }
 
-  public static convertChargingStation2MultipleEvses(site: Site, siteArea: SiteArea, chargingStation: ChargingStation,
-      options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord[] {
+  public static convertChargingStation2MultipleEvses(
+    site: Site,
+    siteArea: SiteArea,
+    chargingStation: ChargingStation,
+    options: { countryID: string; partyID: string; addChargeBoxID?: boolean }
+  ): OICPEvseDataRecord[] {
     let connectors: Connector[] = [];
     if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
       for (const chargePoint of chargingStation.chargePoints) {
@@ -90,8 +159,9 @@ export default class OICPUtils {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
     // Convert Connectors to Chargepoint EVSEs
-    const evses = connectors.map(
-      (connector) => OICPUtils.convertConnector2Evse(site, siteArea, chargingStation, connector, options));
+    const evses = connectors.map((connector) =>
+      OICPUtils.convertConnector2Evse(site, siteArea, chargingStation, connector, options)
+    );
     return evses;
   }
 
@@ -99,10 +169,10 @@ export default class OICPUtils {
     return {
       Result: true,
       StatusCode: {
-        Code: OICPStatusCode.Code000
+        Code: OICPStatusCode.Code000,
       },
       EMPPartnerSessionID: session.empPartnerSessionID,
-      SessionID: session.id
+      SessionID: session.id,
     };
   }
 
@@ -111,10 +181,10 @@ export default class OICPUtils {
       Result: false,
       StatusCode: {
         Code: OICPStatusCode.Code022,
-        Description: data
+        Description: data,
       },
       EMPPartnerSessionID: session.empPartnerSessionID,
-      SessionID: session.id
+      SessionID: session.id,
     };
   }
 
@@ -123,25 +193,39 @@ export default class OICPUtils {
       Result: false,
       StatusCode: {
         Code: OICPStatusCode.Code022,
-        Description: error.message
-      }
+        Description: error.message,
+      },
     };
   }
 
-  public static async getChargingStationConnectorFromEvseID(tenant: Tenant, evseID: OICPEvseID): Promise<{ chargingStation: ChargingStation, connector: Connector }> {
+  public static async getChargingStationConnectorFromEvseID(
+    tenant: Tenant,
+    evseID: OICPEvseID
+  ): Promise<{ chargingStation: ChargingStation; connector: Connector }> {
     const evseIDComponents = RoamingUtils.getEvseIdComponents(evseID);
-    const chargingStation = await ChargingStationStorage.getChargingStationByOicpEvseID(tenant, evseID);
+    const chargingStation = await ChargingStationStorage.getChargingStationByOicpEvseID(
+      tenant,
+      evseID
+    );
     let foundConnector: Connector;
     if (chargingStation) {
       for (const connector of chargingStation.connectors) {
-        if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, chargingStation, connector.connectorId)) {
+        if (
+          evseID ===
+          RoamingUtils.buildEvseID(
+            evseIDComponents.countryCode,
+            evseIDComponents.partyId,
+            chargingStation,
+            connector.connectorId
+          )
+        ) {
           foundConnector = connector;
         }
       }
     }
     return {
       chargingStation: chargingStation,
-      connector: foundConnector
+      connector: foundConnector,
     };
   }
 
@@ -170,50 +254,66 @@ export default class OICPUtils {
     // RFID Mifare Family as default for tag IDs because we get no information about the card type from the charging station over OCPP
     return {
       RFIDMifareFamilyIdentification: {
-        UID: tagID
-      }
+        UID: tagID,
+      },
     };
   }
 
-  public static getOICPIdentificationFromRemoteAuthorization(chargingStation: ChargingStation, connectorId: number,
-      action?: ServerAction): { sessionId: OICPSessionID; identification: OICPIdentification; } {
+  public static getOICPIdentificationFromRemoteAuthorization(
+    chargingStation: ChargingStation,
+    connectorId: number,
+    action?: ServerAction
+  ): { sessionId: OICPSessionID; identification: OICPIdentification } {
     // Check remote auth in Charging Station
     if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
       const existingAuthorization = chargingStation.remoteAuthorizations.find(
-        (authorization) => authorization.connectorId === connectorId && authorization.oicpIdentification);
+        (authorization) =>
+          authorization.connectorId === connectorId && authorization.oicpIdentification
+      );
       if (existingAuthorization) {
         if (action === ServerAction.OCPP_START_TRANSACTION) {
           if (OICPUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
             return {
               sessionId: existingAuthorization.id,
-              identification: existingAuthorization.oicpIdentification
+              identification: existingAuthorization.oicpIdentification,
             };
           }
         } else {
           return {
             sessionId: existingAuthorization.id,
-            identification: existingAuthorization.oicpIdentification
+            identification: existingAuthorization.oicpIdentification,
           };
         }
       }
     }
   }
 
-  public static async getOICPIdentificationFromAuthorization(tenant: Tenant,
-      transaction: Transaction): Promise<{ sessionId: OICPSessionID; identification: OICPIdentification; }> {
+  public static async getOICPIdentificationFromAuthorization(
+    tenant: Tenant,
+    transaction: Transaction
+  ): Promise<{ sessionId: OICPSessionID; identification: OICPIdentification }> {
     // Retrieve Session Id from Authorization ID
     let sessionId: OICPSessionID;
-    const authorizations = await OCPPStorage.getAuthorizes(tenant, {
-      dateFrom: moment(transaction.timestamp).subtract(Constants.ROAMING_AUTHORIZATION_TIMEOUT_MINS, 'minutes').toDate(),
-      chargeBoxID: transaction.chargeBoxID,
-      tagID: transaction.tagID
-    }, Constants.DB_PARAMS_MAX_LIMIT);
+    const authorizations = await OCPPStorage.getAuthorizes(
+      tenant,
+      {
+        dateFrom: moment(transaction.timestamp)
+          .subtract(Constants.ROAMING_AUTHORIZATION_TIMEOUT_MINS, 'minutes')
+          .toDate(),
+        chargeBoxID: transaction.chargeBoxID,
+        tagID: transaction.tagID,
+      },
+      Constants.DB_PARAMS_MAX_LIMIT
+    );
     // Found ID?
     if (!Utils.isEmptyArray(authorizations.result)) {
       // Get the first non used Authorization OICP ID / Session ID
       for (const authorization of authorizations.result) {
         if (authorization.authorizationId) {
-          const oicpTransaction = await TransactionStorage.getOICPTransactionBySessionID(tenant, authorization.authorizationId);
+          const oicpTransaction = await TransactionStorage.getOICPTransactionBySessionID(
+            tenant,
+            authorization.authorizationId
+          );
           // OICP SessionID not used yet
           if (!oicpTransaction) {
             sessionId = authorization.authorizationId;
@@ -223,7 +323,7 @@ export default class OICPUtils {
       }
       return {
         sessionId: sessionId,
-        identification: OICPUtils.convertTagID2OICPIdentification(transaction.tagID)
+        identification: OICPUtils.convertTagID2OICPIdentification(transaction.tagID),
       };
     }
   }
@@ -243,17 +343,36 @@ export default class OICPUtils {
     await UserStorage.saveUserStatus(tenant, newVirtualOICPUser.id, UserStatus.ACTIVE);
   }
 
-  private static convertConnector2OICPChargingFacility(chargingStation: ChargingStation, connector: Connector): OICPChargingFacility {
+  private static convertConnector2OICPChargingFacility(
+    chargingStation: ChargingStation,
+    connector: Connector
+  ): OICPChargingFacility {
     let chargePoint: ChargePoint;
     if (connector.chargePointID) {
       chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
     }
-    const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connector.connectorId);
-    const amperage = Utils.getChargingStationAmperage(chargingStation, chargePoint, connector.connectorId);
+    const voltage = Utils.getChargingStationVoltage(
+      chargingStation,
+      chargePoint,
+      connector.connectorId
+    );
+    const amperage = Utils.getChargingStationAmperage(
+      chargingStation,
+      chargePoint,
+      connector.connectorId
+    );
     let numberOfConnectedPhase = 0;
-    const currentType = Utils.getChargingStationCurrentType(chargingStation, chargePoint, connector.connectorId);
+    const currentType = Utils.getChargingStationCurrentType(
+      chargingStation,
+      chargePoint,
+      connector.connectorId
+    );
     if (currentType === CurrentType.AC) {
-      numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
+      numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(
+        chargingStation,
+        chargePoint,
+        connector.connectorId
+      );
     }
     return {
       Amperage: amperage,
@@ -261,8 +380,8 @@ export default class OICPUtils {
       PowerType: OICPUtils.convertNumberOfConnectedPhase2PowerType(numberOfConnectedPhase),
       Voltage: voltage,
       ChargingModes: [
-        OICPChargingMode.Mode_4 // No mapping yet
-      ]
+        OICPChargingMode.Mode_4, // No mapping yet
+      ],
     };
   }
 
@@ -287,7 +406,9 @@ export default class OICPUtils {
     }
   }
 
-  private static convertNumberOfConnectedPhase2PowerType(numberOfConnectedPhase: number): OICPPower {
+  private static convertNumberOfConnectedPhase2PowerType(
+    numberOfConnectedPhase: number
+  ): OICPPower {
     switch (numberOfConnectedPhase) {
       case 0:
         return OICPPower.DC;
@@ -298,7 +419,11 @@ export default class OICPUtils {
     }
   }
 
-  private static getOICPAddressIso19773FromSiteArea(site: Site, siteArea: SiteArea, countryID: string): OICPAddressIso19773 {
+  private static getOICPAddressIso19773FromSiteArea(
+    site: Site,
+    siteArea: SiteArea,
+    countryID: string
+  ): OICPAddressIso19773 {
     let address: Address;
     if (siteArea.address) {
       address = siteArea.address;
@@ -312,7 +437,7 @@ export default class OICPUtils {
       PostalCode: address.postalCode,
       HouseNum: '', // No separate house number in internal address type. Mandatory field
       Region: address.region,
-      Timezone: Utils.getTimezone(address.coordinates) // Optional
+      Timezone: Utils.getTimezone(address.coordinates), // Optional
     };
   }
 
@@ -323,7 +448,8 @@ export default class OICPUtils {
       throw new BackendError({
         action: ServerAction.OICP_PUSH_EVSE_DATA,
         message: 'Invalid parameters. Country name is empty',
-        module: MODULE_NAME, method: 'convertCountry2CountryCode',
+        module: MODULE_NAME,
+        method: 'convertCountry2CountryCode',
       });
     }
     const countryLanguage = countries[countryID].languages[0] as string;
@@ -333,40 +459,48 @@ export default class OICPUtils {
       throw new BackendError({
         action: ServerAction.OICP_PUSH_EVSE_DATA,
         message: `Invalid parameters. Country name '${country}' might not be in the right language '${countryLanguage}' or misspelled`,
-        module: MODULE_NAME, method: 'convertCountry2CountryCode',
+        module: MODULE_NAME,
+        method: 'convertCountry2CountryCode',
       });
     }
     return countryCode;
   }
 
-  private static convertCoordinates2OICPGeoCoordinates(coordinates: number[], format: OICPGeoCoordinatesResponseFormat): OICPGeoCoordinates {
+  private static convertCoordinates2OICPGeoCoordinates(
+    coordinates: number[],
+    format: OICPGeoCoordinatesResponseFormat
+  ): OICPGeoCoordinates {
     switch (format) {
       case OICPGeoCoordinatesResponseFormat.Google:
         // TODO
         return {
           Google: {
-            Coordinates: 'TODO'
+            Coordinates: 'TODO',
           },
         };
       case OICPGeoCoordinatesResponseFormat.DecimalDegree:
         return {
           DecimalDegree: {
             Longitude: String(Utils.roundTo(coordinates[0], 6)), // Fixed to 6 decimal places according to OICP requirements
-            Latitude: String(Utils.roundTo(coordinates[1],6))
-          }
+            Latitude: String(Utils.roundTo(coordinates[1], 6)),
+          },
         };
       case OICPGeoCoordinatesResponseFormat.DegreeMinuteSeconds:
         // TODO
         return {
           DegreeMinuteSeconds: {
             Longitude: 'TODO',
-            Latitude: 'TODO'
+            Latitude: 'TODO',
           },
         };
     }
   }
 
-  private static buildEChargingPoolID(countryCode: string, partyId: string, siteAreaID: string): OICPChargingPoolID {
+  private static buildEChargingPoolID(
+    countryCode: string,
+    partyId: string,
+    siteAreaID: string
+  ): OICPChargingPoolID {
     const chargingPoolID = `${countryCode}*${partyId}*P${siteAreaID}`;
     return chargingPoolID.replace(/[\W_]+/g, '*').toUpperCase();
   }
@@ -393,7 +527,10 @@ export default class OICPUtils {
     }
   }
 
-  private static convertChargingStation2MultipleEvseStatuses(chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord[] {
+  private static convertChargingStation2MultipleEvseStatuses(
+    chargingStation: ChargingStation,
+    options: { countryID: string; partyID: string; addChargeBoxID?: boolean }
+  ): OICPEvseStatusRecord[] {
     let connectors: Connector[] = [];
     if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
       for (const chargePoint of chargingStation.chargePoints) {
@@ -404,34 +541,54 @@ export default class OICPUtils {
     } else {
       connectors = chargingStation.connectors.filter((connector) => connector !== null);
     }
-    const evseStatuses = connectors.map(
-      (connector) => OICPUtils.convertConnector2EvseStatus(chargingStation, connector, options));
+    const evseStatuses = connectors.map((connector) =>
+      OICPUtils.convertConnector2EvseStatus(chargingStation, connector, options)
+    );
     // Return all EVSE Statuses
     return evseStatuses;
   }
 
-  private static convertConnector2Evse(site: Site, siteArea: SiteArea, chargingStation: ChargingStation, connector: Connector,
-      options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
+  private static convertConnector2Evse(
+    site: Site,
+    siteArea: SiteArea,
+    chargingStation: ChargingStation,
+    connector: Connector,
+    options: { countryID: string; partyID: string; addChargeBoxID?: boolean }
+  ): OICPEvseDataRecord {
     const evse: OICPEvseDataRecord = {} as OICPEvseDataRecord;
     evse.deltaType; // Optional
     evse.lastUpdate; // Optional
-    evse.EvseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector.connectorId);
-    evse.ChargingPoolID = OICPUtils.buildEChargingPoolID(options.countryID, options.partyID, siteArea.id); // Optional
+    evse.EvseID = RoamingUtils.buildEvseID(
+      options.countryID,
+      options.partyID,
+      chargingStation,
+      connector.connectorId
+    );
+    evse.ChargingPoolID = OICPUtils.buildEChargingPoolID(
+      options.countryID,
+      options.partyID,
+      siteArea.id
+    ); // Optional
     evse.ChargingStationID = chargingStation.id; // Optional
     evse.ChargingStationNames = [
       {
         lang: 'en',
-        value: chargingStation.id
-      }
+        value: chargingStation.id,
+      },
     ];
     evse.HardwareManufacturer = chargingStation.chargePointVendor; // Optional
     evse.ChargingStationImage; // Optional
     evse.SubOperatorName; // Optional
     evse.Address = OICPUtils.getOICPAddressIso19773FromSiteArea(site, siteArea, options.countryID);
-    evse.GeoCoordinates = OICPUtils.convertCoordinates2OICPGeoCoordinates(chargingStation.coordinates, OICPGeoCoordinatesResponseFormat.DecimalDegree); // Optional
+    evse.GeoCoordinates = OICPUtils.convertCoordinates2OICPGeoCoordinates(
+      chargingStation.coordinates,
+      OICPGeoCoordinatesResponseFormat.DecimalDegree
+    ); // Optional
     evse.Plugs = [OICPUtils.convertConnector2OICPPlug(connector)];
     evse.DynamicPowerLevel; // Optional
-    evse.ChargingFacilities = [OICPUtils.convertConnector2OICPChargingFacility(chargingStation, connector)];
+    evse.ChargingFacilities = [
+      OICPUtils.convertConnector2OICPChargingFacility(chargingStation, connector),
+    ];
     evse.RenewableEnergy = false; // No information found for mandatory field
     evse.EnergySource; // Optional
     evse.EnvironmentalImpact; // Optional

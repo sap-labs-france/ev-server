@@ -24,31 +24,43 @@ export default abstract class OICPClient {
   protected role: string;
   protected settings: OicpSetting;
 
-  protected constructor(tenant: Tenant, settings: OicpSetting, oicpEndpoint: OICPEndpoint, role: string) {
+  protected constructor(
+    tenant: Tenant,
+    settings: OicpSetting,
+    oicpEndpoint: OICPEndpoint,
+    role: string
+  ) {
     if (role !== OICPRole.CPO && role !== OICPRole.EMSP) {
       throw new BackendError({
         message: `Invalid OICP role '${role}'`,
-        module: MODULE_NAME, method: 'constructor',
+        module: MODULE_NAME,
+        method: 'constructor',
       });
     }
     this.tenant = tenant;
     this.settings = settings;
     this.oicpEndpoint = oicpEndpoint;
     this.role = role.toLowerCase();
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant, { axiosConfig: this.getAxiosConfig() }); // FIXME: 'Converting circular structure to JSON' Error
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant, {
+      axiosConfig: this.getAxiosConfig(),
+    }); // FIXME: 'Converting circular structure to JSON' Error
   }
 
   public getLocalCountryCode(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
-        action, message: `OICP Settings are missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getLocalCountryCode',
+        action,
+        message: `OICP Settings are missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getLocalCountryCode',
       });
     }
     if (!this.settings[this.role].countryCode) {
       throw new BackendError({
-        action, message: `OICP Country Code setting is missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getLocalCountryCode',
+        action,
+        message: `OICP Country Code setting is missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getLocalCountryCode',
       });
     }
     return this.settings[this.role].countryCode;
@@ -57,14 +69,18 @@ export default abstract class OICPClient {
   public getLocalPartyID(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
-        action, message: `OICP Settings are missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getLocalPartyID',
+        action,
+        message: `OICP Settings are missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getLocalPartyID',
       });
     }
     if (!this.settings[this.role].partyID) {
       throw new BackendError({
-        action, message: `OICP Party ID setting is missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getLocalPartyID',
+        action,
+        message: `OICP Party ID setting is missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getLocalPartyID',
       });
     }
     return this.settings[this.role].partyID;
@@ -88,7 +104,9 @@ export default abstract class OICPClient {
       unregisterResult.statusText = ReasonPhrases.OK;
     } catch (error) {
       unregisterResult.message = error.message;
-      unregisterResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
+      unregisterResult.statusCode = error.response
+        ? error.response.status
+        : HTTPError.GENERAL_ERROR;
     }
     // Return result
     return unregisterResult;
@@ -105,7 +123,7 @@ export default abstract class OICPClient {
       registerResult.statusText = ReasonPhrases.OK;
     } catch (error) {
       registerResult.message = error.message;
-      registerResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
+      registerResult.statusCode = error.response ? error.response.status : HTTPError.GENERAL_ERROR;
     }
     // Return result
     return registerResult;
@@ -114,13 +132,18 @@ export default abstract class OICPClient {
   protected getEndpointUrl(service: string, action: ServerAction): string {
     if (this.oicpEndpoint.availableEndpoints) {
       const baseURL = this.oicpEndpoint.baseUrl;
-      const path = this.oicpEndpoint.availableEndpoints[service].replace('{operatorID}', this.getOperatorID(action));
+      const path = this.oicpEndpoint.availableEndpoints[service].replace(
+        '{operatorID}',
+        this.getOperatorID(action)
+      );
       const fullURL = baseURL.concat(path);
       return fullURL;
     }
     throw new BackendError({
-      action, message: `No endpoint URL defined for service ${service}`,
-      module: MODULE_NAME, method: 'getLocalPartyID',
+      action,
+      message: `No endpoint URL defined for service ${service}`,
+      module: MODULE_NAME,
+      method: 'getLocalPartyID',
     });
   }
 
@@ -131,7 +154,7 @@ export default abstract class OICPClient {
       rejectUnauthorized: false,
       cert: publicCert,
       key: privateKey,
-      passphrase: ''
+      passphrase: '',
     });
     return httpsAgent;
   }
@@ -139,14 +162,18 @@ export default abstract class OICPClient {
   private async getPrivateKey(action: ServerAction): Promise<string> {
     if (!this.settings[this.role]) {
       throw new BackendError({
-        action, message: `OICP Settings are missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getPrivateKey',
+        action,
+        message: `OICP Settings are missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getPrivateKey',
       });
     }
     if (!this.settings[this.role].key) {
       throw new BackendError({
-        action, message: `OICP private Key setting is missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getPrivateKey',
+        action,
+        message: `OICP private Key setting is missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getPrivateKey',
       });
     }
     return Cypher.decrypt(this.tenant, this.settings[this.role].key);
@@ -155,14 +182,18 @@ export default abstract class OICPClient {
   private async getClientCertificate(action: ServerAction): Promise<string> {
     if (!this.settings[this.role]) {
       throw new BackendError({
-        action, message: `OICP Settings are missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getClientCertificate',
+        action,
+        message: `OICP Settings are missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getClientCertificate',
       });
     }
     if (!this.settings[this.role].cert) {
       throw new BackendError({
-        action, message: `OICP client certificate setting is missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getClientCertificate',
+        action,
+        message: `OICP client certificate setting is missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getClientCertificate',
       });
     }
     return Cypher.decrypt(this.tenant, this.settings[this.role].cert);
@@ -172,7 +203,7 @@ export default abstract class OICPClient {
     const axiosConfig: AxiosRequestConfig = {} as AxiosRequestConfig;
     // AxiosConfig.httpsAgent = await this.getHttpsAgent(action);
     axiosConfig.headers = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
     return axiosConfig;
   }

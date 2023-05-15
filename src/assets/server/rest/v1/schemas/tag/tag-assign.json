@@ -16,8 +16,5 @@
       "$ref": "tag#/definitions/userID"
     }
   },
-  "required": [
-    "visualID",
-    "userID"
-  ]
+  "required": ["visualID", "userID"]
 }

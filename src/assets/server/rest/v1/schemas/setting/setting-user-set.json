@@ -9,7 +9,7 @@
         "user": {
           "type": "object",
           "properties": {
-            "autoActivateAccountAfterValidation" : {
+            "autoActivateAccountAfterValidation": {
               "type": "boolean",
               "sanitize": "mongo"
             }
@@ -24,10 +24,7 @@
       "links": {
         "$ref": "setting#/definitions/links"
       },
-      "required": [
-        "type",
-        "user"
-      ]
+      "required": ["type", "user"]
     },
     "id": {
       "$ref": "common#/definitions/id"
@@ -41,7 +38,5 @@
       "$ref": "setting#/definitions/sensitiveData"
     }
   },
-  "required": [
-    "identifier"
-  ]
+  "required": ["identifier"]
 }

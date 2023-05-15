@@ -8,23 +8,36 @@ import http from 'http';
 import https from 'https';
 
 export class ServerUtils {
-  public static async defaultListenCb(serverModuleName: string, methodName: string, serverType: ServerType,
-      protocol: ServerProtocol, hostname: string, port: number): Promise<void> {
+  public static async defaultListenCb(
+    serverModuleName: string,
+    methodName: string,
+    serverType: ServerType,
+    protocol: ServerProtocol,
+    hostname: string,
+    port: number
+  ): Promise<void> {
     const logMsg = `${serverType} Server listening on '${protocol}://${hostname}:${port}'`;
     // Log
     await Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT_ID,
-      module: serverModuleName, method: methodName,
+      module: serverModuleName,
+      method: methodName,
       action: ServerAction.STARTUP,
-      message: logMsg
+      message: logMsg,
     });
     Logging.logConsoleDebug(logMsg);
   }
 
-  public static createHttpServer(serverConfig: CentralSystemServerConfiguration, requestListener: http.RequestListener): http.Server {
+  public static createHttpServer(
+    serverConfig: CentralSystemServerConfiguration,
+    requestListener: http.RequestListener
+  ): http.Server {
     let httpServer: http.Server;
     // Create the HTTP server
-    if (serverConfig.protocol === ServerProtocol.HTTPS || serverConfig.protocol === ServerProtocol.WSS) {
+    if (
+      serverConfig.protocol === ServerProtocol.HTTPS ||
+      serverConfig.protocol === ServerProtocol.WSS
+    ) {
       // Create the options
       const options: https.ServerOptions = {};
       // Https server
@@ -36,14 +49,26 @@ export class ServerUtils {
     return httpServer;
   }
 
-  public static startHttpServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server,
-      serverModuleName: string, serverType: ServerType, listenCb?: () => void): void {
+  public static startHttpServer(
+    serverConfig: CentralSystemServerConfiguration,
+    httpServer: http.Server,
+    serverModuleName: string,
+    serverType: ServerType,
+    listenCb?: () => void
+  ): void {
     let cb: () => void;
     if (listenCb && typeof listenCb === 'function') {
       cb = listenCb;
     } else {
       cb = async () => {
-        await ServerUtils.defaultListenCb(serverModuleName, 'startHttpServer', serverType, serverConfig.protocol, ServerUtils.getHttpServerAddress(httpServer), ServerUtils.getHttpServerPort(httpServer));
+        await ServerUtils.defaultListenCb(
+          serverModuleName,
+          'startHttpServer',
+          serverType,
+          serverConfig.protocol,
+          ServerUtils.getHttpServerAddress(httpServer),
+          ServerUtils.getHttpServerPort(httpServer)
+        );
       };
     }
     Logging.logConsoleDebug(`Starting ${serverType} Server...`);
@@ -53,7 +78,9 @@ export class ServerUtils {
     } else if (!serverConfig.host && serverConfig.port) {
       httpServer.listen(serverConfig.port, cb);
     } else {
-      Logging.logConsoleDebug(`Fail to start ${serverType} Server listening, missing required port configuration`);
+      Logging.logConsoleDebug(
+        `Fail to start ${serverType} Server listening, missing required port configuration`
+      );
     }
   }
 

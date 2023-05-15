@@ -11,7 +11,5 @@
       "default": true
     }
   },
-  "required": [
-    "userID"
-  ]
+  "required": ["userID"]
 }

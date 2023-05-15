@@ -77,11 +77,15 @@ export default class Configuration {
       }
       if (!Configuration.isEmptyArray(firebaseConfiguration.tenants)) {
         for (const tenantConfig of firebaseConfiguration.tenants) {
-          tenantConfig.configuration.privateKey = tenantConfig.configuration.privateKey.replace(/\\n/g, '\n');
+          tenantConfig.configuration.privateKey = tenantConfig.configuration.privateKey.replace(
+            /\\n/g,
+            '\n'
+          );
         }
       }
       if (firebaseConfiguration.alternativeConfiguration) {
-        firebaseConfiguration.alternativeConfiguration.privateKey = firebaseConfiguration.alternativeConfiguration.privateKey.replace(/\\n/g, '\n');
+        firebaseConfiguration.alternativeConfiguration.privateKey =
+          firebaseConfiguration.alternativeConfiguration.privateKey.replace(/\\n/g, '\n');
       }
       return firebaseConfiguration;
     }
@@ -111,7 +115,12 @@ export default class Configuration {
   public static getCentralSystemRestServiceConfig(): CentralSystemRestServiceConfiguration {
     const centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
     if (!Configuration.isUndefined('CentralSystemRestService', centralSystemRestService)) {
-      if (Configuration.isUndefined('CentralSystemRestService.captchaScore', centralSystemRestService.captchaScore)) {
+      if (
+        Configuration.isUndefined(
+          'CentralSystemRestService.captchaScore',
+          centralSystemRestService.captchaScore
+        )
+      ) {
         centralSystemRestService.captchaScore = 0.25;
       }
       return centralSystemRestService;
@@ -164,7 +173,7 @@ export default class Configuration {
     const jsonEndpoint = Configuration.getConfig().JsonEndpoint;
     if (!Configuration.isUndefined('JsonEndpoint', jsonEndpoint)) {
       if (Configuration.isUndefined('JsonEndpoint.targetPort', jsonEndpoint.targetPort)) {
-        jsonEndpoint.targetPort = 80;
+        jsonEndpoint.targetPort = 8082;
       }
       return jsonEndpoint;
     }
@@ -214,18 +223,39 @@ export default class Configuration {
 
   public static getChargingStationConfig(): ChargingStationConfiguration {
     // Read conf and set defaults values
-    const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
+    const chargingStationConfiguration: ChargingStationConfiguration =
+      Configuration.getConfig().ChargingStation;
     if (!Configuration.isUndefined('ChargingStation', chargingStationConfiguration)) {
-      if (Configuration.isUndefined('ChargingStation.heartbeatIntervalOCPPSSecs', chargingStationConfiguration.heartbeatIntervalOCPPSSecs)) {
+      if (
+        Configuration.isUndefined(
+          'ChargingStation.heartbeatIntervalOCPPSSecs',
+          chargingStationConfiguration.heartbeatIntervalOCPPSSecs
+        )
+      ) {
         chargingStationConfiguration.heartbeatIntervalOCPPSSecs = 60;
       }
-      if (Configuration.isUndefined('ChargingStation.heartbeatIntervalOCPPJSecs', chargingStationConfiguration.heartbeatIntervalOCPPJSecs)) {
+      if (
+        Configuration.isUndefined(
+          'ChargingStation.heartbeatIntervalOCPPJSecs',
+          chargingStationConfiguration.heartbeatIntervalOCPPJSecs
+        )
+      ) {
         chargingStationConfiguration.heartbeatIntervalOCPPJSecs = 3600;
       }
-      if (Configuration.isUndefined('ChargingStation.pingIntervalOCPPJSecs', chargingStationConfiguration.pingIntervalOCPPJSecs)) {
+      if (
+        Configuration.isUndefined(
+          'ChargingStation.pingIntervalOCPPJSecs',
+          chargingStationConfiguration.pingIntervalOCPPJSecs
+        )
+      ) {
         chargingStationConfiguration.pingIntervalOCPPJSecs = 60;
       }
-      if (Configuration.isUndefined('ChargingStation.monitoringIntervalOCPPJSecs', chargingStationConfiguration.monitoringIntervalOCPPJSecs)) {
+      if (
+        Configuration.isUndefined(
+          'ChargingStation.monitoringIntervalOCPPJSecs',
+          chargingStationConfiguration.monitoringIntervalOCPPJSecs
+        )
+      ) {
         chargingStationConfiguration.monitoringIntervalOCPPJSecs = 600;
       }
     }
@@ -242,7 +272,9 @@ export default class Configuration {
   public static getMigrationConfig(): MigrationConfiguration {
     const migration = Configuration.getConfig().Migration;
     if (!Configuration.isUndefined('Migration', migration)) {
-      if (Configuration.isUndefined('Migration.active', Configuration.getConfig().Migration.active)) {
+      if (
+        Configuration.isUndefined('Migration.active', Configuration.getConfig().Migration.active)
+      ) {
         migration.active = false;
       }
       return migration;
@@ -308,8 +340,11 @@ export default class Configuration {
       } else {
         configurationPath = `${global.appRoot}/assets/config.json`; // AWS ECS environment only
       }
-      const configuration = JSON.parse(fs.readFileSync(configurationPath, 'utf8')) as ConfigurationData;
-      Configuration.config = ConfigurationValidatorStorage.getInstance().validateConfigurationSave(configuration);
+      const configuration = JSON.parse(
+        fs.readFileSync(configurationPath, 'utf8')
+      ) as ConfigurationData;
+      Configuration.config =
+        ConfigurationValidatorStorage.getInstance().validateConfigurationSave(configuration);
     }
     return Configuration.config;
   }

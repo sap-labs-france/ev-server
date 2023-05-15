@@ -28,11 +28,5 @@
       "$ref": "ocpi-endpoint#/definitions/name"
     }
   },
-  "required": [
-    "name",
-    "role",
-    "baseUrl",
-    "localToken",
-    "token"
-  ]
+  "required": ["name", "role", "baseUrl", "localToken", "token"]
 }

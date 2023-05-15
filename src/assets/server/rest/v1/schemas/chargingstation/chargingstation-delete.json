@@ -7,7 +7,5 @@
       "$ref": "chargingstation#/definitions/id"
     }
   },
-  "required": [
-    "ID"
-  ]
+  "required": ["ID"]
 }

@@ -16,10 +16,5 @@
       "$ref": "chargingstation-profile#/definitions/profile"
     }
   },
-  "required": [
-    "connectorID",
-    "chargePointID",
-    "chargingStationID",
-    "profile"
-  ]
+  "required": ["connectorID", "chargePointID", "chargingStationID", "profile"]
 }

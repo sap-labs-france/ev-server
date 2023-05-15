@@ -14,13 +14,24 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'OICPEndpointStorage';
 
 export default class OICPEndpointStorage {
-  public static async getOicpEndpoint(tenant: Tenant, id: string, projectFields?: string[]): Promise<OICPEndpoint> {
+  public static async getOicpEndpoint(
+    tenant: Tenant,
+    id: string,
+    projectFields?: string[]
+  ): Promise<OICPEndpoint> {
     const endpointsMDB = await OICPEndpointStorage.getOicpEndpoints(
-      tenant, { oicpEndpointIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+      tenant,
+      { oicpEndpointIDs: [id] },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
-  public static async saveOicpEndpoint(tenant: Tenant, oicpEndpointToSave: OICPEndpoint): Promise<string> {
+  public static async saveOicpEndpoint(
+    tenant: Tenant,
+    oicpEndpointToSave: OICPEndpoint
+  ): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Check if name is provided
@@ -29,7 +40,7 @@ export default class OICPEndpointStorage {
       throw new BackendError({
         module: MODULE_NAME,
         method: 'saveOicpEndpoint',
-        message: 'OICPEndpoint has no Name'
+        message: 'OICPEndpoint has no Name',
       });
     }
     const oicpEndpointFilter: any = {};
@@ -52,24 +63,32 @@ export default class OICPEndpointStorage {
       availableEndpoints: oicpEndpointToSave.availableEndpoints,
       lastPatchJobOn: Utils.convertToDate(oicpEndpointToSave.lastPatchJobOn),
       lastPatchJobResult: oicpEndpointToSave.lastPatchJobResult,
-      version: oicpEndpointToSave.version
+      version: oicpEndpointToSave.version,
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(oicpEndpointMDB, oicpEndpointToSave);
     // Modify
-    await global.database.getCollection<any>(tenant.id, 'oicpendpoints').findOneAndUpdate(
-      oicpEndpointFilter,
-      { $set: oicpEndpointMDB },
-      { upsert: true, returnDocument: 'after' });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOicpEndpoint', startTime, { oicpEndpointToSave });
+    await global.database
+      .getCollection<any>(tenant.id, 'oicpendpoints')
+      .findOneAndUpdate(
+        oicpEndpointFilter,
+        { $set: oicpEndpointMDB },
+        { upsert: true, returnDocument: 'after' }
+      );
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveOicpEndpoint', startTime, {
+      oicpEndpointToSave,
+    });
     // Create
     return oicpEndpointFilter._id.toString();
   }
 
   // Delegate
-  public static async getOicpEndpoints(tenant: Tenant,
-      params: { search?: string; role?: string; oicpEndpointIDs?: string[]; localToken?: string },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OICPEndpoint>> {
+  public static async getOicpEndpoints(
+    tenant: Tenant,
+    params: { search?: string; role?: string; oicpEndpointIDs?: string[]; localToken?: string },
+    dbParams: DbParams,
+    projectFields?: string[]
+  ): Promise<DataResult<OICPEndpoint>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -84,13 +103,13 @@ export default class OICPEndpointStorage {
     const filters: FilterParams = {};
     // Search
     if (params.search) {
-      filters.$or = [
-        { 'name': { $regex: params.search, $options: 'i' } }
-      ];
+      filters.$or = [{ name: { $regex: params.search, $options: 'i' } }];
     }
     if (params.oicpEndpointIDs) {
       filters._id = {
-        $in: params.oicpEndpointIDs.map((oicpEndpointID) => DatabaseUtils.convertToObjectID(oicpEndpointID))
+        $in: params.oicpEndpointIDs.map((oicpEndpointID) =>
+          DatabaseUtils.convertToObjectID(oicpEndpointID)
+        ),
       };
     }
     if (params.localToken) {
@@ -102,7 +121,7 @@ export default class OICPEndpointStorage {
     // Filters
     if (filters) {
       aggregation.push({
-        $match: filters
+        $match: filters,
       });
     }
     // Limit records?
@@ -110,15 +129,23 @@ export default class OICPEndpointStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const oicpEndpointsCountMDB = await global.database.getCollection<any>(tenant.id, 'oicpendpoints')
+    const oicpEndpointsCountMDB = (await global.database
+      .getCollection<any>(tenant.id, 'oicpendpoints')
       .aggregate([...aggregation, { $count: 'count' }])
-      .toArray() as DatabaseCount[];
+      .toArray()) as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getOicpEndpoints', startTime, aggregation, oicpEndpointsCountMDB);
+      await Logging.traceDatabaseRequestEnd(
+        tenant,
+        MODULE_NAME,
+        'getOicpEndpoints',
+        startTime,
+        aggregation,
+        oicpEndpointsCountMDB
+      );
       return {
-        count: (oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0),
-        result: []
+        count: oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0,
+        result: [],
       };
     }
     // Remove the limit
@@ -132,26 +159,34 @@ export default class OICPEndpointStorage {
       dbParams.sort = { name: 1 };
     }
     aggregation.push({
-      $sort: dbParams.sort
+      $sort: dbParams.sort,
     });
     // Skip
     aggregation.push({
-      $skip: dbParams.skip
+      $skip: dbParams.skip,
     });
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const oicpEndpointsMDB = await global.database.getCollection<any>(tenant.id, 'oicpendpoints')
+    const oicpEndpointsMDB = (await global.database
+      .getCollection<any>(tenant.id, 'oicpendpoints')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as OICPEndpoint[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getOicpEndpoints', startTime, aggregation, oicpEndpointsMDB);
+      .toArray()) as OICPEndpoint[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getOicpEndpoints',
+      startTime,
+      aggregation,
+      oicpEndpointsMDB
+    );
     return {
-      count: (oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0),
-      result: oicpEndpointsMDB
+      count: oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0,
+      result: oicpEndpointsMDB,
     };
   }
 
@@ -159,9 +194,12 @@ export default class OICPEndpointStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Delete OicpEndpoint
-    await global.database.getCollection<any>(tenant.id, 'oicpendpoints')
-      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteOicpEndpoint', startTime, { id });
+    await global.database
+      .getCollection<any>(tenant.id, 'oicpendpoints')
+      .findOneAndDelete({ _id: DatabaseUtils.convertToObjectID(id) });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteOicpEndpoint', startTime, {
+      id,
+    });
   }
 
   public static async deleteOicpEndpoints(tenant: Tenant): Promise<void> {
@@ -169,6 +207,12 @@ export default class OICPEndpointStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Delete OicpEndpoint
     await global.database.getCollection<any>(tenant.id, 'oicpendpoints').deleteMany({});
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteOicpEndpoints', startTime, {});
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'deleteOicpEndpoints',
+      startTime,
+      {}
+    );
   }
 }

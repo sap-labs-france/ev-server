@@ -28,13 +28,8 @@
           "sanitize": "mongo"
         }
       },
-      "required": [
-        "location",
-        "retrieveDate"
-      ]
+      "required": ["location", "retrieveDate"]
     }
   },
-  "required": [
-    "chargingStationID"
-  ]
+  "required": ["chargingStationID"]
 }

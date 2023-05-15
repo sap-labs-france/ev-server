@@ -16,8 +16,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "connectorId",
-    "userId"
-  ]
+  "required": ["connectorId", "userId"]
 }

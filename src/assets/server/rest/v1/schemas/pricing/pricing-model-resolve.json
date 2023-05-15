@@ -19,8 +19,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "ChargingStationID",
-    "ConnectorID"
-  ]
+  "required": ["ChargingStationID", "ConnectorID"]
 }

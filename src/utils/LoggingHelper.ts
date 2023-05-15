@@ -1,19 +1,24 @@
-import ChargingStation, { ChargingStationTemplate } from '../types/ChargingStation';
-
+import WSWrapper from '../server/ocpp/json/web-socket/WSWrapper';
 import Asset from '../types/Asset';
 import { Car } from '../types/Car';
+import ChargingStation, { ChargingStationTemplate } from '../types/ChargingStation';
 import { PricingContext } from '../types/Pricing';
 import RegistrationToken from '../types/RegistrationToken';
+import Reservation from '../types/Reservation';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
-import WSWrapper from '../server/ocpp/json/web-socket/WSWrapper';
 
 export default class LoggingHelper {
-
-  public static getPricingContextProperties(pricingContext: PricingContext): { siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; actionOnUser: string } {
+  public static getPricingContextProperties(pricingContext: PricingContext): {
+    siteID: string;
+    siteAreaID: string;
+    companyID: string;
+    chargingStationID: string;
+    actionOnUser: string;
+  } {
     return {
       siteID: pricingContext?.siteID,
       siteAreaID: pricingContext?.siteAreaID,
@@ -23,7 +28,13 @@ export default class LoggingHelper {
     };
   }
 
-  public static getTransactionProperties(transaction: Transaction): { siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; actionOnUser: User } {
+  public static getTransactionProperties(transaction: Transaction): {
+    siteID: string;
+    siteAreaID: string;
+    companyID: string;
+    chargingStationID: string;
+    actionOnUser: User;
+  } {
     return {
       siteID: transaction?.siteID,
       siteAreaID: transaction?.siteAreaID,
@@ -33,7 +44,12 @@ export default class LoggingHelper {
     };
   }
 
-  public static getChargingStationProperties(chargingStation: ChargingStation): { siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; } {
+  public static getChargingStationProperties(chargingStation: ChargingStation): {
+    siteID: string;
+    siteAreaID: string;
+    companyID: string;
+    chargingStationID: string;
+  } {
     return {
       siteID: chargingStation?.siteID,
       siteAreaID: chargingStation?.siteAreaID,
@@ -42,7 +58,13 @@ export default class LoggingHelper {
     };
   }
 
-  public static getWSWrapperProperties(wsWrapper: WSWrapper): { tenantID: string; siteID: string; siteAreaID: string; companyID: string; chargingStationID: string; } {
+  public static getWSWrapperProperties(wsWrapper: WSWrapper): {
+    tenantID: string;
+    siteID: string;
+    siteAreaID: string;
+    companyID: string;
+    chargingStationID: string;
+  } {
     return {
       tenantID: wsWrapper?.tenantID,
       siteID: wsWrapper?.siteID,
@@ -52,7 +74,11 @@ export default class LoggingHelper {
     };
   }
 
-  public static getAssetProperties(asset: Asset): { siteID: string; siteAreaID: string; companyID: string; } {
+  public static getAssetProperties(asset: Asset): {
+    siteID: string;
+    siteAreaID: string;
+    companyID: string;
+  } {
     return {
       siteID: asset?.siteID,
       siteAreaID: asset?.siteAreaID,
@@ -60,14 +86,14 @@ export default class LoggingHelper {
     };
   }
 
-  public static getSiteProperties(site: Site): { siteID: string; companyID: string; } {
+  public static getSiteProperties(site: Site): { siteID: string; companyID: string } {
     return {
       siteID: site?.id,
       companyID: site?.companyID,
     };
   }
 
-  public static getSiteAreaProperties(siteArea: SiteArea): { siteID: string; siteAreaID: string; } {
+  public static getSiteAreaProperties(siteArea: SiteArea): { siteID: string; siteAreaID: string } {
     return {
       siteAreaID: siteArea?.id,
       siteID: siteArea?.siteID,
@@ -80,19 +106,26 @@ export default class LoggingHelper {
     };
   }
 
-  public static getRegistrationTokenProperties(registrationToken: RegistrationToken): { siteAreaID: string } {
+  public static getRegistrationTokenProperties(registrationToken: RegistrationToken): {
+    siteAreaID: string;
+  } {
     return {
-      siteAreaID: registrationToken?.siteAreaID
+      siteAreaID: registrationToken?.siteAreaID,
     };
   }
 
   public static getTagProperties(tag: Tag): { userID: string } {
     return {
-      userID: tag?.userID
+      userID: tag?.userID,
     };
   }
 
-  public static getSourceDataProperties(sourceData: any): { siteID: string, siteAreaID?: string, companyID: string, chargingStationID: string } {
+  public static getSourceDataProperties(sourceData: any): {
+    siteID: string;
+    siteAreaID?: string;
+    companyID: string;
+    chargingStationID: string;
+  } {
     return {
       siteID: sourceData?.siteID,
       siteAreaID: sourceData?.siteAreaID,
@@ -108,7 +141,7 @@ export default class LoggingHelper {
       tagID: transaction?.tagID || transaction?.tag?.id,
       carID: transaction?.carID || transaction?.car?.id,
       lastConsumptionTimestamp: transaction?.lastConsumption?.timestamp,
-      stopTimestamp: transaction?.stop?.timestamp
+      stopTimestamp: transaction?.stop?.timestamp,
     };
   }
 
@@ -127,6 +160,12 @@ export default class LoggingHelper {
       id: templateContainer?.id,
       chargePointVendor: templateContainer?.template?.chargePointVendor,
       extraFilters: templateContainer?.template?.extraFilters,
+    };
+  }
+
+  public static getReservationProperties(reservation: Reservation): { id: string } {
+    return {
+      id: reservation?.id.toString(),
     };
   }
 }

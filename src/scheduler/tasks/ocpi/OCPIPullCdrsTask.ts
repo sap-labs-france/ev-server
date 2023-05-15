@@ -22,7 +22,11 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         // Get all available endpoints
-        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
+        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(
+          tenant,
+          { role: OCPIRole.EMSP },
+          Constants.DB_PARAMS_MAX_LIMIT
+        );
         for (const ocpiEndpoint of ocpiEndpoints.result) {
           await this.processOCPIEndpoint(tenant, ocpiEndpoint);
         }
@@ -44,8 +48,9 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
           await Logging.logDebug({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_GET_CDRS,
-            module: MODULE_NAME, method: 'processOCPIEndpoint',
-            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
+            module: MODULE_NAME,
+            method: 'processOCPIEndpoint',
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`,
           });
           return;
         }
@@ -53,16 +58,18 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
           await Logging.logDebug({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_GET_CDRS,
-            module: MODULE_NAME, method: 'processOCPIEndpoint',
-            message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
+            module: MODULE_NAME,
+            method: 'processOCPIEndpoint',
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`,
           });
           return;
         }
         await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_GET_CDRS,
-          module: MODULE_NAME, method: 'processOCPIEndpointatch',
-          message: `Pull of CDRs for endpoint '${ocpiEndpoint.name}' is being processed`
+          module: MODULE_NAME,
+          method: 'processOCPIEndpointatch',
+          message: `Pull of CDRs for endpoint '${ocpiEndpoint.name}' is being processed`,
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
@@ -71,9 +78,10 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
         await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_GET_CDRS,
-          module: MODULE_NAME, method: 'processOCPIEndpoint',
+          module: MODULE_NAME,
+          method: 'processOCPIEndpoint',
           message: `Pull of CDRs for endpoint '${ocpiEndpoint.name}' is completed`,
-          detailedMessages: { result }
+          detailedMessages: { result },
         });
       } catch (error) {
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_GET_CDRS, error);
@@ -83,4 +91,3 @@ export default class OCPIPullCdrsTask extends TenantSchedulerTask {
     }
   }
 }
-

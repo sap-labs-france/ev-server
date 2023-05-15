@@ -10,8 +10,5 @@
       "$ref": "common#/definitions/captcha"
     }
   },
-  "required": [
-    "email",
-    "captcha"
-  ]
+  "required": ["email", "captcha"]
 }

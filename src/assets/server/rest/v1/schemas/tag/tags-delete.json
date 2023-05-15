@@ -10,7 +10,5 @@
       }
     }
   },
-  "required": [
-    "tagsIDs"
-  ]
+  "required": ["tagsIDs"]
 }

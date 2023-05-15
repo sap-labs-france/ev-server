@@ -34,7 +34,11 @@ export default class DispatchCollectedFundsTask extends TenantSchedulerTask {
         }
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_TRANSFER_DISPATCH_FUNDS, error as Error);
+        await Logging.logActionExceptionMessage(
+          tenant.id,
+          ServerAction.BILLING_TRANSFER_DISPATCH_FUNDS,
+          error as Error
+        );
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);

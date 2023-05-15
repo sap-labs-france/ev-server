@@ -63,8 +63,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "name",
-    "email"
-  ]
+  "required": ["name", "email"]
 }

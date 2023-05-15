@@ -19,9 +19,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "AssetID",
-    "StartDate",
-    "EndDate"
-  ]
+  "required": ["AssetID", "StartDate", "EndDate"]
 }

@@ -25,12 +25,15 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
       await Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT_ID,
         message: 'No configuration is provided to access the EVDatabase system, skipping',
-        module: MODULE_NAME, method: 'getCarCatalogs',
+        module: MODULE_NAME,
+        method: 'getCarCatalogs',
         action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
       });
       return;
     }
-    const response = await this.axiosInstance.get(evDatabaseConfig.url + '/' + evDatabaseConfig.key);
+    const response = await this.axiosInstance.get(
+      evDatabaseConfig.url + '/' + evDatabaseConfig.key
+    );
     const carCatalogs: CarCatalog[] = [];
     // Build result
     for (const data of response.data) {
@@ -56,9 +59,18 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         chargePlug2OptionalUK: data.Charge_Plug_2_Optional_UK,
         chargeStandardChargeSpeedDE: data.Charge_Standard_ChargeSpeed_DE,
         chargeStandardChargeTimeDE: data.Charge_Standard_ChargeTime_DE,
-        chargeStandardPower: data.Charge_Standard_Power_DE ?? data.Charge_Standard_Power_NL ?? data.Charge_Standard_Power_UK,
-        chargeStandardPhase: data.Charge_Standard_Phase_DE ?? data.Charge_Standard_Phase_NL ?? data.Charge_Standard_Phase_UK,
-        chargeStandardPhaseAmp: data.Charge_Standard_PhaseAmp_DE ?? data.Charge_Standard_PhaseAmp_NL ?? data.Charge_Standard_PhaseAmp_UK,
+        chargeStandardPower:
+          data.Charge_Standard_Power_DE ??
+          data.Charge_Standard_Power_NL ??
+          data.Charge_Standard_Power_UK,
+        chargeStandardPhase:
+          data.Charge_Standard_Phase_DE ??
+          data.Charge_Standard_Phase_NL ??
+          data.Charge_Standard_Phase_UK,
+        chargeStandardPhaseAmp:
+          data.Charge_Standard_PhaseAmp_DE ??
+          data.Charge_Standard_PhaseAmp_NL ??
+          data.Charge_Standard_PhaseAmp_UK,
         chargeStandardChargeTime: data.Charge_Standard_ChargeTime,
         chargeStandardChargeTimeNL: data.Charge_Standard_ChargeTime_NL,
         chargeStandardChargeSpeedNL: data.Charge_Standard_ChargeSpeed_NL,
@@ -76,7 +88,11 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         miscIsofixSeats: data.Misc_Isofix_Seats,
         miscTurningCircle: data.Misc_TurningCircle,
         rangeWLTP: data.Range_WLTP,
-        imageURLs: data.Images ? (!Utils.isEmptyArray(data.Images) ? data.Images : [data.Images]) : [],
+        imageURLs: data.Images
+          ? !Utils.isEmptyArray(data.Images)
+            ? data.Images
+            : [data.Images]
+          : [],
         images: [],
         videos: data.Videos,
       };
@@ -98,9 +114,10 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-          module: MODULE_NAME, method: 'getCarCatalogThumb',
+          module: MODULE_NAME,
+          method: 'getCarCatalogThumb',
           message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${carCatalog.imageURLs[0]}'`,
-          detailedMessages: { error: error.stack }
+          detailedMessages: { error: error.stack },
         });
       }
     }
@@ -117,9 +134,10 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-        module: MODULE_NAME, method: 'getCarCatalogImage',
+        module: MODULE_NAME,
+        method: 'getCarCatalogImage',
         message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${imageURL}'`,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
     }
   }

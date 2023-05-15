@@ -23,23 +23,38 @@ export default class SoapOCPPServer extends OCPPServer {
   public httpServer: http.Server;
   private expressApplication: express.Application;
 
-  public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
+  public constructor(
+    centralSystemConfig: CentralSystemConfiguration,
+    chargingStationConfig: ChargingStationConfiguration
+  ) {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, centralSystemConfig.debug);
     // Initialize the HTTP server
-    this.httpServer = ServerUtils.createHttpServer(this.centralSystemConfig, this.expressApplication);
+    this.httpServer = ServerUtils.createHttpServer(
+      this.centralSystemConfig,
+      this.expressApplication
+    );
   }
 
   public start(): void {
     // Make it global for SOAP Services
     global.centralSystemSoapServer = this;
-    ServerUtils.startHttpServer(this.centralSystemConfig, this.httpServer, MODULE_NAME, ServerType.SOAP_SERVER);
+    ServerUtils.startHttpServer(
+      this.centralSystemConfig,
+      this.httpServer,
+      MODULE_NAME,
+      ServerType.SOAP_SERVER
+    );
     // Create Soap Servers
     // OCPP 1.5 -----------------------------------------
-    const soapServer15 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_15)}`,
-      centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
+    const soapServer15 = soap.listen(
+      this.httpServer,
+      `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_15)}`,
+      centralSystemService15,
+      this.readWsdl('OCPPCentralSystemService15.wsdl')
+    );
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer15.log = async (type, data) => {
@@ -51,8 +66,12 @@ export default class SoapOCPPServer extends OCPPServer {
       });
     }
     // OCPP 1.6 -----------------------------------------
-    const soapServer16 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`,
-      centralSystemService16, this.readWsdl('OCPPCentralSystemService16.wsdl'));
+    const soapServer16 = soap.listen(
+      this.httpServer,
+      `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`,
+      centralSystemService16,
+      this.readWsdl('OCPPCentralSystemService16.wsdl')
+    );
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer16.log = async (type, data) => {
@@ -71,13 +90,18 @@ export default class SoapOCPPServer extends OCPPServer {
     return fs.readFileSync(`${global.appRoot}/assets/server/ocpp/wsdl/${filename}`, 'utf8');
   }
 
-  private async handleSoapServerMessage(ocppVersion: OCPPVersion, request: any, methodName: string) {
+  private async handleSoapServerMessage(
+    ocppVersion: OCPPVersion,
+    request: any,
+    methodName: string
+  ) {
     await Logging.logDebug({
-      tenantID: Constants.DEFAULT_TENANT_ID, module: MODULE_NAME,
+      tenantID: Constants.DEFAULT_TENANT_ID,
+      module: MODULE_NAME,
       method: 'handleSoapServerMessage',
       action: ServerAction.EXPRESS_SERVER,
       message: `>> OCPP ${ocppVersion} Request '${methodName}' Received`,
-      detailedMessages: { request }
+      detailedMessages: { request },
     });
   }
 
@@ -85,13 +109,13 @@ export default class SoapOCPPServer extends OCPPServer {
     // Do not log 'Info'
     if (type === 'replied') {
       await Logging.logDebug({
-        tenantID: Constants.DEFAULT_TENANT_ID, module: MODULE_NAME,
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        module: MODULE_NAME,
         method: 'handleSoapServerLog',
         action: ServerAction.EXPRESS_SERVER,
         message: `<< OCPP ${ocppVersion} Request Sent`,
-        detailedMessages: { data }
+        detailedMessages: { data },
       });
     }
   }
 }
-

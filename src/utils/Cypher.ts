@@ -14,30 +14,51 @@ import _ from 'lodash';
 const MODULE_NAME = 'Cypher';
 
 interface CipherOptions extends TransformOptions {
-  authTagLength?: number
+  authTagLength?: number;
 }
 
 export default class Cypher {
-  public static async encrypt(tenant: Tenant, data: string, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<string> {
+  public static async encrypt(
+    tenant: Tenant,
+    data: string,
+    useFormerKey = false,
+    cryptoSetting?: CryptoSetting
+  ): Promise<string> {
     if (!cryptoSetting) {
       cryptoSetting = (await Cypher.getCryptoSettings(tenant)).crypto;
     }
-    const algo = useFormerKey ? Utils.buildCryptoAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildCryptoAlgorithm(cryptoSetting.keyProperties);
+    const algo = useFormerKey
+      ? Utils.buildCryptoAlgorithm(cryptoSetting.formerKeyProperties)
+      : Utils.buildCryptoAlgorithm(cryptoSetting.keyProperties);
     const iv = crypto.randomBytes(Cypher.getIVLength(algo));
-    const key = useFormerKey ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
-    const cipher: CipherGCM = crypto.createCipheriv(algo, key, iv, Cypher.getCipherOptions(algo)) as CipherGCM;
+    const key = useFormerKey
+      ? Buffer.from(cryptoSetting.formerKey)
+      : Buffer.from(cryptoSetting.key);
+    const cipher: CipherGCM = crypto.createCipheriv(
+      algo,
+      key,
+      iv,
+      Cypher.getCipherOptions(algo)
+    ) as CipherGCM;
     let encryptedData = cipher.update(data);
     encryptedData = Buffer.concat([encryptedData, cipher.final()]);
     if (Cypher.isAuthenticatedEncryptionMode(algo)) {
       const authTag = cipher.getAuthTag();
       if (!Utils.isUndefined(authTag)) {
-        return iv.toString('hex') + ':' + encryptedData.toString('hex') + ':' + authTag.toString('hex');
+        return (
+          iv.toString('hex') + ':' + encryptedData.toString('hex') + ':' + authTag.toString('hex')
+        );
       }
     }
     return iv.toString('hex') + ':' + encryptedData.toString('hex');
   }
 
-  public static async decrypt(tenant: Tenant, data: string, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<string> {
+  public static async decrypt(
+    tenant: Tenant,
+    data: string,
+    useFormerKey = false,
+    cryptoSetting?: CryptoSetting
+  ): Promise<string> {
     const [ivStr, encryptedDataStr, authTagStr] = data.split(':');
     const iv = Buffer.from(ivStr, 'hex');
     const encryptedData = Buffer.from(encryptedDataStr, 'hex');
@@ -48,9 +69,18 @@ export default class Cypher {
     if (!cryptoSetting) {
       cryptoSetting = (await Cypher.getCryptoSettings(tenant)).crypto;
     }
-    const algo: string | CipherGCMTypes = useFormerKey ? Utils.buildCryptoAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildCryptoAlgorithm(cryptoSetting.keyProperties);
-    const key = useFormerKey ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
-    const decipher: DecipherGCM = crypto.createDecipheriv(algo, key, iv, Cypher.getCipherOptions(algo)) as DecipherGCM;
+    const algo: string | CipherGCMTypes = useFormerKey
+      ? Utils.buildCryptoAlgorithm(cryptoSetting.formerKeyProperties)
+      : Utils.buildCryptoAlgorithm(cryptoSetting.keyProperties);
+    const key = useFormerKey
+      ? Buffer.from(cryptoSetting.formerKey)
+      : Buffer.from(cryptoSetting.key);
+    const decipher: DecipherGCM = crypto.createDecipheriv(
+      algo,
+      key,
+      iv,
+      Cypher.getCipherOptions(algo)
+    ) as DecipherGCM;
     if (!Utils.isUndefined(authTag) && Cypher.isAuthenticatedEncryptionMode(algo)) {
       decipher.setAuthTag(authTag);
     }
@@ -68,17 +98,23 @@ export default class Cypher {
     if (decryptedData !== dataToEncrypt) {
       throw new BackendError({
         message: 'Crypto algorithm check failed',
-        module: MODULE_NAME, method: 'checkCryptoSettings',
+        module: MODULE_NAME,
+        method: 'checkCryptoSettings',
       });
     }
   }
 
-  public static async encryptSensitiveDataInJSON(tenant: Tenant, data: Record<string, any>, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<void> {
+  public static async encryptSensitiveDataInJSON(
+    tenant: Tenant,
+    data: Record<string, any>,
+    useFormerKey = false,
+    cryptoSetting?: CryptoSetting
+  ): Promise<void> {
     if (typeof data !== 'object') {
       throw new BackendError({
         module: MODULE_NAME,
         method: 'encryptSensitiveDataInJSON',
-        message: `The parameter ${data} is not an object`
+        message: `The parameter ${data} is not an object`,
       });
     }
     if (Utils.isEmptyArray(data.sensitiveData)) {
@@ -96,12 +132,17 @@ export default class Cypher {
     }
   }
 
-  public static async decryptSensitiveDataInJSON(tenant: Tenant, data: Record<string, any>, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<void> {
+  public static async decryptSensitiveDataInJSON(
+    tenant: Tenant,
+    data: Record<string, any>,
+    useFormerKey = false,
+    cryptoSetting?: CryptoSetting
+  ): Promise<void> {
     if (typeof data !== 'object') {
       throw new BackendError({
         module: MODULE_NAME,
         method: 'decryptSensitiveDataInJSON',
-        message: `The parameter ${data} is not an object`
+        message: `The parameter ${data} is not an object`,
       });
     }
     if (!Utils.isEmptyArray(data.sensitiveData)) {
@@ -123,7 +164,7 @@ export default class Cypher {
       throw new BackendError({
         module: MODULE_NAME,
         method: 'hashSensitiveDataInJSON',
-        message: `The parameter ${obj} is not an object`
+        message: `The parameter ${obj} is not an object`,
       });
     }
     if (obj.sensitiveData) {
@@ -132,7 +173,7 @@ export default class Cypher {
         throw new BackendError({
           module: MODULE_NAME,
           method: 'hashSensitiveDataInJSON',
-          message: 'The property \'sensitiveData\' is not an array'
+          message: "The property 'sensitiveData' is not an array",
         });
       }
       for (const property of obj.sensitiveData as string[]) {
@@ -150,7 +191,11 @@ export default class Cypher {
 
   // This method will be reused in a Scheduler task that resumes migration
   public static async handleCryptoSettingsChange(tenant: Tenant): Promise<void> {
-    const createDatabaseLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.DATABASE, 'migrate-settings-sensitive-data');
+    const createDatabaseLock = LockingManager.createExclusiveLock(
+      tenant.id,
+      LockEntity.DATABASE,
+      'migrate-settings-sensitive-data'
+    );
     if (await LockingManager.acquire(createDatabaseLock)) {
       try {
         // Get the crypto key
@@ -166,7 +211,7 @@ export default class Cypher {
         throw new BackendError({
           module: MODULE_NAME,
           method: 'handleCryptoSettingsChange',
-          message: `Sensitive Data migration for tenant with ID: ${tenant.id} failed.`
+          message: `Sensitive Data migration for tenant with ID: ${tenant.id} failed.`,
         });
       } finally {
         // Release the database Lock
@@ -176,19 +221,22 @@ export default class Cypher {
       throw new BackendError({
         module: MODULE_NAME,
         method: 'handleCryptoSettingsChange',
-        message: `Sensitive Data migration is in progress for tenant with ID: ${tenant.id}.`
+        message: `Sensitive Data migration is in progress for tenant with ID: ${tenant.id}.`,
       });
     }
   }
 
-  public static async saveCryptoSetting(tenant: Tenant, cryptoSettingToSave: CryptoSettings): Promise<void> {
+  public static async saveCryptoSetting(
+    tenant: Tenant,
+    cryptoSettingToSave: CryptoSettings
+  ): Promise<void> {
     // Build internal structure
     const settingsToSave = {
       id: cryptoSettingToSave.id,
       identifier: TechnicalSettings.CRYPTO,
       lastChangedOn: new Date(),
       content: {
-        crypto: cryptoSettingToSave.crypto
+        crypto: cryptoSettingToSave.crypto,
       },
     } as SettingDB;
     // Save
@@ -201,7 +249,7 @@ export default class Cypher {
       throw new BackendError({
         module: MODULE_NAME,
         method: 'getCryptoSetting',
-        message: `Tenant ID '${tenant.id}' does not have crypto settings.`
+        message: `Tenant ID '${tenant.id}' does not have crypto settings.`,
       });
     }
     return cryptoSettings;
@@ -209,8 +257,7 @@ export default class Cypher {
 
   private static async getSettingsWithSensitiveData(tenant: Tenant): Promise<SettingDB[]> {
     // Get all settings per tenant
-    const settings = await SettingStorage.getSettings(tenant, {},
-      Constants.DB_PARAMS_MAX_LIMIT);
+    const settings = await SettingStorage.getSettings(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT);
     // Filter settings with sensitiveData
     return settings.result.filter((value: SettingDB) => {
       if (value?.sensitiveData && !Utils.isEmptyArray(value?.sensitiveData)) {
@@ -219,7 +266,10 @@ export default class Cypher {
     });
   }
 
-  private static async migrateSettings(tenant: Tenant, cryptoSetting: CryptoSetting): Promise<void> {
+  private static async migrateSettings(
+    tenant: Tenant,
+    cryptoSetting: CryptoSetting
+  ): Promise<void> {
     const settingsToMigrate = await Cypher.getSettingsWithSensitiveData(tenant);
     // If tenant has settings with sensitive data, migrate them
     if (!Utils.isEmptyArray(settingsToMigrate)) {
@@ -228,7 +278,8 @@ export default class Cypher {
         // Migration already done?
         if (Utils.isEmptyJSon(settingToMigrate.backupSensitiveData)) {
           // Save former sensitive data in setting
-          settingToMigrate.backupSensitiveData = Cypher.prepareBackupSensitiveData(settingToMigrate);
+          settingToMigrate.backupSensitiveData =
+            Cypher.prepareBackupSensitiveData(settingToMigrate);
           // Decrypt sensitive data with former key and key properties
           await Cypher.decryptSensitiveDataInJSON(tenant, settingToMigrate, true, cryptoSetting);
           // Encrypt sensitive data with new key and key properties
@@ -256,7 +307,13 @@ export default class Cypher {
   }
 
   private static isAuthenticatedEncryptionMode(algo: string): boolean {
-    return algo.includes('gcm') || algo.includes('ccm') || algo.includes('GCM') || algo.includes('CCM') || algo.includes('ocb');
+    return (
+      algo.includes('gcm') ||
+      algo.includes('ccm') ||
+      algo.includes('GCM') ||
+      algo.includes('CCM') ||
+      algo.includes('ocb')
+    );
   }
 
   private static getIVLength(algo: string): number {
@@ -272,7 +329,7 @@ export default class Cypher {
     if (algo.includes('ccm') || algo.includes('ocb')) {
       return {
         // Bytes
-        authTagLength: 16
+        authTagLength: 16,
       };
     }
     return {};

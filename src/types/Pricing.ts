@@ -16,20 +16,20 @@ export enum DimensionType {
   FLAT_FEE = 'flatFee',
   ENERGY = 'energy',
   CHARGING_TIME = 'chargingTime',
-  PARKING_TIME = 'parkingTime'
+  PARKING_TIME = 'parkingTime',
 }
 
 export interface PricingContext {
-  userID: string
-  companyID: string,
-  siteID: string,
-  siteAreaID: string,
-  chargingStationID: string,
-  connectorId: number,
-  connectorType: ConnectorType,
-  connectorPower: number,
-  timezone: string,
-  timestamp: Date,
+  userID: string;
+  companyID: string;
+  siteID: string;
+  siteAreaID: string;
+  chargingStationID: string;
+  connectorId: number;
+  connectorType: ConnectorType;
+  connectorPower: number;
+  timezone: string;
+  timestamp: Date;
 }
 
 export interface ResolvedPricingModel {
@@ -39,11 +39,11 @@ export interface ResolvedPricingModel {
 }
 
 export interface ConsumptionPricerContext {
-  flatFeeAlreadyPriced: boolean,
-  sessionStartDate: Date,
-  lastAbsorbedConsumption?: number, // IMPORTANT - used to price E when stepSize is set!
-  lastAbsorbedChargingTime?: Date // IMPORTANT - used to price CT when stepSize is set!
-  lastAbsorbedParkingTime?: Date, // IMPORTANT - used to price PT when stepSize is set!
+  flatFeeAlreadyPriced: boolean;
+  sessionStartDate: Date;
+  lastAbsorbedConsumption?: number; // IMPORTANT - used to price E when stepSize is set!
+  lastAbsorbedChargingTime?: Date; // IMPORTANT - used to price CT when stepSize is set!
+  lastAbsorbedParkingTime?: Date; // IMPORTANT - used to price PT when stepSize is set!
   timezone: string; // IMPORTANT - time range restrictions must consider the charging station location (and its time zone)
 }
 
@@ -59,10 +59,12 @@ interface PricingDefinitionInternal {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ResolvedPricingDefinition extends PricingDefinitionInternal {
-}
+export interface ResolvedPricingDefinition extends PricingDefinitionInternal {}
 
-export default interface PricingDefinition extends PricingDefinitionInternal, CreatedUpdatedProps, AuthorizationActions {
+export default interface PricingDefinition
+  extends PricingDefinitionInternal,
+    CreatedUpdatedProps,
+    AuthorizationActions {
   id: string;
   entityID: string;
   entityType: PricingEntity;
@@ -91,9 +93,9 @@ export interface PricingStaticRestriction {
 }
 
 export interface PricingRestriction {
-  daysOfWeek?: DayOfWeek[], // Which day(s) of the week this tariff is valid
-  timeFrom?: string, // Valid from this time of the day
-  timeTo?: string, // Valid until this time of the day
+  daysOfWeek?: DayOfWeek[]; // Which day(s) of the week this tariff is valid
+  timeFrom?: string; // Valid from this time of the day
+  timeTo?: string; // Valid until this time of the day
   minEnergyKWh?: number; // Minimum used energy in kWh, for example 20, valid from this amount of energy is used
   maxEnergyKWh?: number; // Maximum used energy in kWh, for example 50, valid until this amount of energy is used
   minDurationSecs?: number; // Minimum duration in seconds, valid for a duration from x seconds
@@ -107,7 +109,7 @@ export enum DayOfWeek {
   THURSDAY = 4,
   FRIDAY = 5,
   SATURDAY = 6,
-  SUNDAY = 7
+  SUNDAY = 7,
 }
 
 // Interface exposed by the pricing integration layer
@@ -139,7 +141,7 @@ export type PricingAmount = Decimal.Value;
 
 export interface PricedDimensionData {
   unitPrice?: number;
-  amountAsDecimal: PricingAmount
+  amountAsDecimal: PricingAmount;
   amount: number;
   roundedAmount: number;
   quantity: number;

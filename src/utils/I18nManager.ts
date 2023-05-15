@@ -41,7 +41,9 @@ export default class I18nManager {
     // Get translation files
     Constants.SUPPORTED_LANGUAGES.forEach((lang) => {
       try {
-        i18n.translations[lang] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/${lang}.json`, 'utf8'));
+        i18n.translations[lang] = JSON.parse(
+          fs.readFileSync(`${global.appRoot}/assets/i18n/${lang}.json`, 'utf8')
+        );
       } catch (error) {
         // Do nothing.
       }

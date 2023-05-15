@@ -16,17 +16,29 @@ export default class OCPICheckLocationsAsyncTask extends AbstractAsyncTask {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       try {
         // Get the OCPI Endpoint
-        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(tenant, this.getAsyncTask().parameters.endpointID);
+        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(
+          tenant,
+          this.getAsyncTask().parameters.endpointID
+        );
         if (!ocpiEndpoint) {
-          throw new Error(`Unknown OCPI Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
+          throw new Error(
+            `Unknown OCPI Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`
+          );
         }
-        const checkLocationsLock = await LockingHelper.createOCPICheckLocationsLock(tenant.id, ocpiEndpoint);
+        const checkLocationsLock = await LockingHelper.createOCPICheckLocationsLock(
+          tenant.id,
+          ocpiEndpoint
+        );
         if (checkLocationsLock) {
           try {
             // Get the OCPI Client
             const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
             if (!ocpiClient) {
-              throw new Error(`OCPI Client not found in Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
+              throw new Error(
+                `OCPI Client not found in Endpoint ID '${
+                  this.getAsyncTask().parameters.endpointID
+                }'`
+              );
             }
             await ocpiClient.checkLocations();
           } finally {
@@ -35,7 +47,11 @@ export default class OCPICheckLocationsAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_LOCATIONS, error);
+        await Logging.logActionExceptionMessage(
+          tenant.id,
+          ServerAction.OCPI_CPO_CHECK_LOCATIONS,
+          error
+        );
       }
     }
   }

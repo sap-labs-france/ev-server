@@ -25,9 +25,15 @@ const testData: TestData = new TestData();
 describe('OICP Endpoint (utoicp)', () => {
   jest.setTimeout(30000);
   beforeAll(async () => {
-    testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_OICP);
-    testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-    testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+    testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(
+      ContextDefinition.TENANT_CONTEXTS.TENANT_OICP
+    );
+    testData.centralUserContext = testData.tenantContext.getUserContext(
+      ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN
+    );
+    testData.userContext = testData.tenantContext.getUserContext(
+      ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN
+    );
     expect(testData.userContext).to.not.be.null;
     testData.centralUserService = new CentralServerService(
       testData.tenantContext.getTenant().subdomain,
@@ -39,27 +45,32 @@ describe('OICP Endpoint (utoicp)', () => {
     it('Should create a new OICP Endpoint', async () => {
       // Create the entity
       testData.newOcpiEndpoint = await testData.centralUserService.createEntity(
-        testData.centralUserService.oicpEndpointApi, Factory.oicpEndpoint.build({}));
+        testData.centralUserService.oicpEndpointApi,
+        Factory.oicpEndpoint.build({})
+      );
     });
 
     it('Should find the created OICP Endpoint by id', async () => {
       // Check if the created entity can be retrieved with its id
       await testData.centralUserService.getEntityById(
-        testData.centralUserService.oicpEndpointApi, testData.newOcpiEndpoint);
+        testData.centralUserService.oicpEndpointApi,
+        testData.newOcpiEndpoint
+      );
     });
 
-    it(
-      'Should find the created OICP Endpoint in the OICP Endpoint list',
-      async () => {
-        // Check if the created entity is in the list
-        await testData.centralUserService.checkEntityInList(
-          testData.centralUserService.oicpEndpointApi, testData.newOcpiEndpoint);
-      }
-    );
+    it('Should find the created OICP Endpoint in the OICP Endpoint list', async () => {
+      // Check if the created entity is in the list
+      await testData.centralUserService.checkEntityInList(
+        testData.centralUserService.oicpEndpointApi,
+        testData.newOcpiEndpoint
+      );
+    });
 
     it('Should register the created OICP Endpoint', async () => {
       // Check if the deleted entity cannot be retrieved with its id
-      const response = await testData.centralUserService.oicpEndpointApi.register(testData.newOcpiEndpoint.id);
+      const response = await testData.centralUserService.oicpEndpointApi.register(
+        testData.newOcpiEndpoint.id
+      );
       expect(response.status).to.be.equal(StatusCodes.OK);
       expect(response.data.statusCode).to.be.equal(StatusCodes.OK);
       expect(response.data.statusText).to.be.equal(ReasonPhrases.OK);
@@ -67,7 +78,9 @@ describe('OICP Endpoint (utoicp)', () => {
 
     it('Should unregister the created OICP Endpoint', async () => {
       // Check if the deleted entity cannot be retrieved with its id
-      const response = await testData.centralUserService.oicpEndpointApi.unregister(testData.newOcpiEndpoint.id);
+      const response = await testData.centralUserService.oicpEndpointApi.unregister(
+        testData.newOcpiEndpoint.id
+      );
       expect(response.status).to.be.equal(StatusCodes.OK);
       expect(response.data.statusCode).to.be.equal(StatusCodes.OK);
       expect(response.data.statusText).to.be.equal(ReasonPhrases.OK);
@@ -75,7 +88,9 @@ describe('OICP Endpoint (utoicp)', () => {
 
     it('Should send EVSEs statuses', async () => {
       // Check if the deleted entity cannot be retrieved with its id
-      const response = await testData.centralUserService.oicpEndpointApi.sendEvseStatuses(testData.newOcpiEndpoint.id);
+      const response = await testData.centralUserService.oicpEndpointApi.sendEvseStatuses(
+        testData.newOcpiEndpoint.id
+      );
       expect(response.status).to.be.equal(StatusCodes.OK);
       expect(response.data.success).to.be.equal(0);
       expect(response.data.failure).to.be.equal(0);
@@ -86,7 +101,9 @@ describe('OICP Endpoint (utoicp)', () => {
 
     it('Should send EVSEs', async () => {
       // Check if the deleted entity cannot be retrieved with its id
-      const response = await testData.centralUserService.oicpEndpointApi.sendEvses(testData.newOcpiEndpoint.id);
+      const response = await testData.centralUserService.oicpEndpointApi.sendEvses(
+        testData.newOcpiEndpoint.id
+      );
       expect(response.status).to.be.equal(StatusCodes.OK);
       expect(response.data.success).to.be.equal(0);
       expect(response.data.failure).to.be.equal(0);
@@ -103,26 +120,34 @@ describe('OICP Endpoint (utoicp)', () => {
       testData.newOcpiEndpoint.partyId = 'AA';
       // Update
       await testData.centralUserService.updateEntity(
-        testData.centralUserService.oicpEndpointApi, testData.newOcpiEndpoint);
+        testData.centralUserService.oicpEndpointApi,
+        testData.newOcpiEndpoint
+      );
     });
 
     it('Should find the updated OICP Endpoint by id', async () => {
       // Check if the updated entity can be retrieved with its id
       const updatedOcpiEndpoint = await testData.centralUserService.getEntityById(
-        testData.centralUserService.oicpEndpointApi, testData.newOcpiEndpoint);
+        testData.centralUserService.oicpEndpointApi,
+        testData.newOcpiEndpoint
+      );
       expect(updatedOcpiEndpoint.name).to.equal(testData.newOcpiEndpoint.name);
     });
 
     it('Should delete the created OICP Endpoint', async () => {
       // Delete the created entity
       await testData.centralUserService.deleteEntity(
-        testData.centralUserService.oicpEndpointApi, testData.newOcpiEndpoint);
+        testData.centralUserService.oicpEndpointApi,
+        testData.newOcpiEndpoint
+      );
     });
 
     it('Should not find the deleted OICP Endpoint with its id', async () => {
       // Check if the deleted entity cannot be retrieved with its id
       await testData.centralUserService.checkDeletedEntityById(
-        testData.centralUserService.oicpEndpointApi, testData.newOcpiEndpoint);
+        testData.centralUserService.oicpEndpointApi,
+        testData.newOcpiEndpoint
+      );
     });
   });
 });

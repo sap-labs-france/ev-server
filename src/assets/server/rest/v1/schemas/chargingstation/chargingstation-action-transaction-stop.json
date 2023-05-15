@@ -13,12 +13,8 @@
           "$ref": "transaction#/definitions/id"
         }
       },
-      "required": [
-        "transactionId"
-      ]
+      "required": ["transactionId"]
     }
   },
-  "required": [
-    "chargingStationID"
-  ]
+  "required": ["chargingStationID"]
 }

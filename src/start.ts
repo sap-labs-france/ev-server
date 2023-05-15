@@ -1,4 +1,6 @@
-import CentralSystemConfiguration, { CentralSystemImplementation } from './types/configuration/CentralSystemConfiguration';
+import CentralSystemConfiguration, {
+  CentralSystemImplementation,
+} from './types/configuration/CentralSystemConfiguration';
 import { ServerAction, ServerType } from './types/Server';
 
 import AsyncTaskConfiguration from './types/configuration/AsyncTaskConfiguration';
@@ -63,12 +65,16 @@ export default class Bootstrap {
   public static async start(): Promise<void> {
     let serverStarted: ServerType[] = [];
     let startTimeMillis: number;
-    const startTimeGlobalMillis = await this.logAndGetStartTimeMillis('e-Mobility Server is starting...');
+    const startTimeGlobalMillis = await this.logAndGetStartTimeMillis(
+      'e-Mobility Server is starting...'
+    );
 
     try {
       // Setup i18n
       I18nManager.initialize();
-      Logging.logConsoleDebug(`NodeJS is started in '${process.env.NODE_ENV || 'development'}' mode`);
+      Logging.logConsoleDebug(
+        `NodeJS is started in '${process.env.NODE_ENV || 'development'}' mode`
+      );
       // Get all configs
       Bootstrap.storageConfig = Configuration.getStorageConfig();
       Bootstrap.centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
@@ -88,13 +94,16 @@ export default class Bootstrap {
       // -------------------------------------------------------------------------
       process.on('unhandledRejection', (reason: any, p: any): void => {
         // eslint-disable-next-line no-console
-        Logging.logConsoleError(`Unhandled Rejection: ${p?.toString()}, reason: ${reason as string}`);
+        Logging.logConsoleError(
+          `Unhandled Rejection: ${p?.toString()}, reason: ${reason as string}`
+        );
         void Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.UNKNOWN_ACTION,
-          module: MODULE_NAME, method: 'start',
-          message: `Unhandled Rejection: ${(reason ? (reason.message ?? reason) : 'Not provided')}`,
-          detailedMessages: (reason ? reason.stack : null)
+          module: MODULE_NAME,
+          method: 'start',
+          message: `Unhandled Rejection: ${reason ? reason.message ?? reason : 'Not provided'}`,
+          detailedMessages: reason ? reason.stack : null,
         });
       });
       // -------------------------------------------------------------------------
@@ -102,7 +111,9 @@ export default class Bootstrap {
       // -------------------------------------------------------------------------
       if (Bootstrap.monitoringConfig) {
         // Create server instance
-        Bootstrap.monitoringServer = MonitoringServerFactory.getMonitoringServerImpl(Bootstrap.monitoringConfig);
+        Bootstrap.monitoringServer = MonitoringServerFactory.getMonitoringServerImpl(
+          Bootstrap.monitoringConfig
+        );
         // Start server instance
         if (Bootstrap.monitoringServer) {
           Bootstrap.monitoringServer.start();
@@ -112,7 +123,9 @@ export default class Bootstrap {
           await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.STARTUP,
-            module: MODULE_NAME, method: 'startServers', message
+            module: MODULE_NAME,
+            method: 'startServers',
+            message,
           });
         }
       }
@@ -121,7 +134,9 @@ export default class Bootstrap {
       // Create in memory cache
       // -------------------------------------------------------------------------
       if (Bootstrap.cacheConfig) {
-        startTimeMillis = await this.logAndGetStartTimeMillis(`Creating memory cache with default TTL '${Bootstrap.cacheConfig.ttlSeconds}' seconds.`);
+        startTimeMillis = await this.logAndGetStartTimeMillis(
+          `Creating memory cache with default TTL '${Bootstrap.cacheConfig.ttlSeconds}' seconds.`
+        );
         global.cache = new Cache(Bootstrap.cacheConfig);
         await this.logDuration(startTimeMillis, 'Memory cache created successfully');
       }
@@ -138,7 +153,9 @@ export default class Bootstrap {
           Bootstrap.database = new MongoDBStorage(Bootstrap.storageConfig);
           break;
         default:
-          Logging.logConsoleError(`Storage Server implementation '${Bootstrap.storageConfig.implementation}' not supported!`);
+          Logging.logConsoleError(
+            `Storage Server implementation '${Bootstrap.storageConfig.implementation}' not supported!`
+          );
       }
       // Connect to the Database
       await Bootstrap.database.start();
@@ -196,10 +213,15 @@ export default class Bootstrap {
         // -------------------------------------------------------------------------
         // Import Local Car Catalogs
         // -------------------------------------------------------------------------
-        startTimeMillis = await this.logAndGetStartTimeMillis('Local car catalogs are being imported...');
+        startTimeMillis = await this.logAndGetStartTimeMillis(
+          'Local car catalogs are being imported...'
+        );
         // Load and Save the Charging Station templates
         await LocalCarCatalogBootstrap.uploadLocalCarCatalogsFromFile();
-        await this.logDuration(startTimeMillis, 'Local car catalogs has been imported successfully');
+        await this.logDuration(
+          startTimeMillis,
+          'Local car catalogs has been imported successfully'
+        );
       }
 
       // Keep the server names globally
@@ -208,16 +230,22 @@ export default class Bootstrap {
       } else {
         global.serverType = ServerType.CENTRAL_SERVER;
       }
-      await this.logDuration(startTimeGlobalMillis, `${serverStarted.join(', ')} server has been started successfully`, ServerAction.BOOTSTRAP_STARTUP);
+      await this.logDuration(
+        startTimeGlobalMillis,
+        `${serverStarted.join(', ')} server has been started successfully`,
+        ServerAction.BOOTSTRAP_STARTUP
+      );
     } catch (error) {
       Logging.logConsoleError(error);
-      global.database && await Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT_ID,
-        action: ServerAction.BOOTSTRAP_STARTUP,
-        module: MODULE_NAME, method: 'start',
-        message: `Unexpected exception in ${serverStarted.join(', ')}`,
-        detailedMessages: { error: error.stack }
-      });
+      global.database &&
+        (await Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT_ID,
+          action: ServerAction.BOOTSTRAP_STARTUP,
+          module: MODULE_NAME,
+          method: 'start',
+          message: `Unexpected exception in ${serverStarted.join(', ')}`,
+          detailedMessages: { error: error.stack },
+        }));
     }
   }
 
@@ -228,23 +256,31 @@ export default class Bootstrap {
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.STARTUP,
-        module: MODULE_NAME, method: 'start',
-        message: logMessage
+        module: MODULE_NAME,
+        method: 'start',
+        message: logMessage,
       });
     }
     return timeStartMillis;
   }
 
-  private static async logDuration(timeStartMillis: number, logMessage: string, action: ServerAction = ServerAction.STARTUP): Promise<void> {
-    const timeDurationSecs = Utils.createDecimal(Date.now() - timeStartMillis).div(1000).toNumber();
+  private static async logDuration(
+    timeStartMillis: number,
+    logMessage: string,
+    action: ServerAction = ServerAction.STARTUP
+  ): Promise<void> {
+    const timeDurationSecs = Utils.createDecimal(Date.now() - timeStartMillis)
+      .div(1000)
+      .toNumber();
     logMessage = `${logMessage} in ${timeDurationSecs} secs`;
     Logging.logConsoleDebug(logMessage);
     if (global.database) {
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action,
-        module: MODULE_NAME, method: 'start',
-        message: logMessage
+        module: MODULE_NAME,
+        method: 'start',
+        message: logMessage,
       });
     }
   }
@@ -275,14 +311,20 @@ export default class Bootstrap {
             // SOAP
             case CentralSystemImplementation.SOAP:
               // Create implementation
-              Bootstrap.SoapCentralSystemServer = new SoapOCPPServer(centralSystemConfig, Bootstrap.chargingStationConfig);
+              Bootstrap.SoapCentralSystemServer = new SoapOCPPServer(
+                centralSystemConfig,
+                Bootstrap.chargingStationConfig
+              );
               // Start
               Bootstrap.SoapCentralSystemServer.start();
               serverTypes.push(ServerType.SOAP_SERVER);
               break;
             case CentralSystemImplementation.JSON:
               // Create implementation
-              Bootstrap.JsonCentralSystemServer = new JsonOCPPServer(centralSystemConfig, Bootstrap.chargingStationConfig);
+              Bootstrap.JsonCentralSystemServer = new JsonOCPPServer(
+                centralSystemConfig,
+                Bootstrap.chargingStationConfig
+              );
               // Start
               Bootstrap.JsonCentralSystemServer.start();
               serverTypes.push(ServerType.JSON_SERVER);
@@ -290,7 +332,11 @@ export default class Bootstrap {
             // Not Found
             default:
               // eslint-disable-next-line no-console
-              Logging.logConsoleError(`Central System Server implementation '${centralSystemConfig.implementation as string}' not found!`);
+              Logging.logConsoleError(
+                `Central System Server implementation '${
+                  centralSystemConfig.implementation as string
+                }' not found!`
+              );
           }
         }
       }
@@ -329,9 +375,10 @@ export default class Bootstrap {
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.STARTUP,
-        module: MODULE_NAME, method: 'startServers',
+        module: MODULE_NAME,
+        method: 'startServers',
         message: `Unexpected exception in ${serverTypes.join(', ')}: ${error?.message as string}`,
-        detailedMessages: { error: error?.stack }
+        detailedMessages: { error: error?.stack },
       });
     }
     // Batch server only
@@ -349,8 +396,9 @@ export default class Bootstrap {
         Logging.logDebug({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SHIELD,
-          module: MODULE_NAME, method: 'getRateLimiters',
-          message: `rate limiter with name:${rateLimiterConfig.name} numberOfPoints: ${rateLimiterConfig.numberOfPoints}  duration:${rateLimiterConfig.numberOfSeconds} found`
+          module: MODULE_NAME,
+          method: 'getRateLimiters',
+          message: `rate limiter with name:${rateLimiterConfig.name} numberOfPoints: ${rateLimiterConfig.numberOfPoints}  duration:${rateLimiterConfig.numberOfSeconds} found`,
         }).catch((error) => Logging.logPromiseError(error));
       });
     } else {
@@ -362,13 +410,14 @@ export default class Bootstrap {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.SHIELD,
-        module: MODULE_NAME, method: 'getRateLimiters',
-        message: mess
+        module: MODULE_NAME,
+        method: 'getRateLimiters',
+        message: mess,
       });
     }
   }
 
-  private static async fillTenantMap() : Promise<void> {
+  private static async fillTenantMap(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     // eslint-disable-next-line no-empty
     for (const tenant of tenants.result) {
@@ -378,8 +427,6 @@ export default class Bootstrap {
 }
 
 // Start
-Bootstrap.start().catch(
-  (error) => {
-    Logging.logConsoleError(error.stack);
-  }
-);
+Bootstrap.start().catch((error) => {
+  Logging.logConsoleError(error.stack);
+});

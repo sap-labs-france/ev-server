@@ -6,19 +6,19 @@ const config = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: [{
-          loader: 'ts-loader',
-          options: {
-              configFile: "tsconfig-prod.json"
-          }
-        }],
-        exclude: [/node_modules/]
-      }
-    ]
+        use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              configFile: 'tsconfig-prod.json',
+            },
+          },
+        ],
+        exclude: [/node_modules/],
+      },
+    ],
   },
-  plugins: [
-    new CleanWebpackPlugin(),
-  ]
+  plugins: [new CleanWebpackPlugin()],
 };
 
 module.exports = config;

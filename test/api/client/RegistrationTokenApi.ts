@@ -10,11 +10,23 @@ export default class RegistrationTokenApi extends CrudApi {
   }
 
   public async readById(id) {
-    return super.readById(id, this.buildRestEndpointUrl(RESTServerRoute.REST_REGISTRATION_TOKEN, { id }));
+    return super.readById(
+      id,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_REGISTRATION_TOKEN, { id })
+    );
   }
 
-  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_REGISTRATION_TOKENS));
+  public async readAll(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_REGISTRATION_TOKENS)
+    );
   }
 
   public async create(data: Partial<RegistrationToken>) {

@@ -22,7 +22,11 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         // Get all available endpoints
-        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant, { role: OCPIRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
+        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(
+          tenant,
+          { role: OCPIRole.CPO },
+          Constants.DB_PARAMS_MAX_LIMIT
+        );
         for (const ocpiEndpoint of ocpiEndpoints.result) {
           await this.processOCPIEndpoint(tenant, ocpiEndpoint, config);
         }
@@ -33,35 +37,48 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
     }
   }
 
-  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIPullTokensTaskConfig): Promise<void> {
+  private async processOCPIEndpoint(
+    tenant: Tenant,
+    ocpiEndpoint: OCPIEndpoint,
+    config: OCPIPullTokensTaskConfig
+  ): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullTokensLock(tenant.id, ocpiEndpoint, config.partial);
+    const ocpiLock = await LockingHelper.createOCPIPullTokensLock(
+      tenant.id,
+      ocpiEndpoint,
+      config.partial
+    );
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'processOCPIEndpoint',
+            module: MODULE_NAME,
+            method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CPO_GET_TOKENS,
-            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`,
           });
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'processOCPIEndpoint',
+            module: MODULE_NAME,
+            method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CPO_GET_TOKENS,
-            message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`,
           });
           return;
         }
         await Logging.logInfo({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: 'processOCPIEndpoint',
+          module: MODULE_NAME,
+          method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CPO_GET_TOKENS,
-          message: `Pull of Tokens for endpoint '${ocpiEndpoint.name}' is being processed${config.partial ? ' (only diff)' : ' (full)'}...`
+          message: `Pull of Tokens for endpoint '${ocpiEndpoint.name}' is being processed${
+            config.partial ? ' (only diff)' : ' (full)'
+          }...`,
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
@@ -69,10 +86,13 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
         const result = await ocpiClient.pullTokens(config.partial);
         await Logging.logInfo({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: 'processOCPIEndpoint',
+          module: MODULE_NAME,
+          method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CPO_GET_TOKENS,
-          message: `Pull of Tokens for endpoint '${ocpiEndpoint.name}' has been completed${config.partial ? ' (only diff)' : ' (full)'}`,
-          detailedMessages: { result }
+          message: `Pull of Tokens for endpoint '${ocpiEndpoint.name}' has been completed${
+            config.partial ? ' (only diff)' : ' (full)'
+          }`,
+          detailedMessages: { result },
         });
       } catch (error) {
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_GET_TOKENS, error);
@@ -82,4 +102,3 @@ export default class OCPIPullTokensTask extends TenantSchedulerTask {
     }
   }
 }
-

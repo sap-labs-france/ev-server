@@ -1,44 +1,64 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import crypto, { CipherGCMTypes, randomUUID } from 'crypto';
+import fs from 'fs';
+import http from 'http';
+import os from 'os';
+import path from 'path';
+
+import { AxiosError } from 'axios';
+import bcrypt from 'bcryptjs';
+import { Promise } from 'bluebird';
+import { Decimal } from 'decimal.js';
+import { Request } from 'express';
+import _ from 'lodash';
+import moment, { Moment } from 'moment';
+import { nanoid } from 'nanoid';
+import passwordGenerator from 'password-generator';
+import QRCode from 'qrcode';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
+import tzlookup from 'tz-lookup';
+import validator from 'validator';
+
+import AppAuthError from '../exception/AppAuthError';
+import AppError from '../exception/AppError';
+import BackendError from '../exception/BackendError';
+import OCPPError from '../exception/OcppError';
+import Address from '../types/Address';
 import { Car, CarCatalog } from '../types/Car';
-import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
+import ChargingStation, {
+  ChargePoint,
+  ChargingStationEndpoint,
+  Connector,
+  ConnectorCurrentLimitSource,
+  CurrentType,
+  Voltage,
+} from '../types/ChargingStation';
+import global, { EntityData } from '../types/GlobalType';
 import { OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
 import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
+import Reservation from '../types/Reservation';
+import { ServerAction } from '../types/Server';
+import {
+  AnalyticsSettingsType,
+  AssetSettingsType,
+  BillingSettingsType,
+  CarConnectorSettingsType,
+  CryptoKeyProperties,
+  PricingSettingsType,
+  RefundSettingsType,
+  RoamingSettingsType,
+  SettingDBContent,
+  SmartChargingContentType,
+} from '../types/Setting';
+import SiteArea from '../types/SiteArea';
+import Tag from '../types/Tag';
 import Tenant, { TenantComponentContent, TenantComponents } from '../types/Tenant';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
-import crypto, { CipherGCMTypes, randomUUID } from 'crypto';
-import global, { EntityData } from '../types/GlobalType';
-
-import Address from '../types/Address';
-import AppAuthError from '../exception/AppAuthError';
-import AppError from '../exception/AppError';
-import { AxiosError } from 'axios';
-import BackendError from '../exception/BackendError';
-import Configuration from './Configuration';
-import Constants from './Constants';
-import { Decimal } from 'decimal.js';
-import LoggingHelper from './LoggingHelper';
-import OCPPError from '../exception/OcppError';
-import { Promise } from 'bluebird';
-import QRCode from 'qrcode';
-import { RateLimiterMemory } from 'rate-limiter-flexible';
-import { Request } from 'express';
-import { ServerAction } from '../types/Server';
-import SiteArea from '../types/SiteArea';
-import Tag from '../types/Tag';
 import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
-import _ from 'lodash';
-import bcrypt from 'bcryptjs';
-import fs from 'fs';
-import http from 'http';
-import moment from 'moment';
-import { nanoid } from 'nanoid';
-import os from 'os';
-import passwordGenerator from 'password-generator';
-import path from 'path';
-import tzlookup from 'tz-lookup';
-import validator from 'validator';
+import Configuration from './Configuration';
+import Constants from './Constants';
+import LoggingHelper from './LoggingHelper';
 
 const MODULE_NAME = 'Utils';
 
@@ -71,7 +91,10 @@ export default class Utils {
     return connectorInfo;
   }
 
-  public static getConnectorsFromChargePoint(chargingStation: ChargingStation, chargePoint: ChargePoint): Connector[] {
+  public static getConnectorsFromChargePoint(
+    chargingStation: ChargingStation,
+    chargePoint: ChargePoint
+  ): Connector[] {
     const connectors: Connector[] = [];
     if (!chargingStation || !chargePoint || Utils.isEmptyArray(chargePoint.connectorIDs)) {
       return connectors;
@@ -96,39 +119,71 @@ export default class Utils {
     return oneLineAddress.join(' ');
   }
 
-  public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
+  public static handleAxiosError(
+    axiosError: AxiosError,
+    urlRequest: string,
+    action: ServerAction,
+    module: string,
+    method: string
+  ): void {
     // Handle Error outside 2xx range
     if (axiosError.response) {
       throw new BackendError({
-        action, module, method,
+        action,
+        module,
+        method,
         message: `HTTP Error '${axiosError.response.status}' while processing the URL '${urlRequest}'`,
       });
     }
     throw new BackendError({
-      action, module, method,
+      action,
+      module,
+      method,
       message: `HTTP error while processing the URL '${urlRequest}'`,
     });
   }
 
-  public static isTransactionInProgressOnThreePhases(chargingStation: ChargingStation, transaction: Transaction): boolean {
-    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
-    if (currentType === CurrentType.AC &&
-      (transaction.currentInstantAmpsL1 > 0 && (transaction.currentInstantAmpsL2 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
-      (transaction.currentInstantAmpsL2 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
-      (transaction.currentInstantAmpsL3 > 0 && (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL2 === 0))) {
+  public static isTransactionInProgressOnThreePhases(
+    chargingStation: ChargingStation,
+    transaction: Transaction
+  ): boolean {
+    const currentType = Utils.getChargingStationCurrentType(
+      chargingStation,
+      null,
+      transaction.connectorId
+    );
+    if (
+      (currentType === CurrentType.AC &&
+        transaction.currentInstantAmpsL1 > 0 &&
+        (transaction.currentInstantAmpsL2 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL2 > 0 &&
+        (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL3 === 0)) ||
+      (transaction.currentInstantAmpsL3 > 0 &&
+        (transaction.currentInstantAmpsL1 === 0 || transaction.currentInstantAmpsL2 === 0))
+    ) {
       return false;
     }
     return true;
   }
 
-  public static getUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): CSPhasesUsed {
-    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+  public static getUsedPhasesInTransactionInProgress(
+    chargingStation: ChargingStation,
+    transaction: Transaction
+  ): CSPhasesUsed {
+    const currentType = Utils.getChargingStationCurrentType(
+      chargingStation,
+      null,
+      transaction.connectorId
+    );
     // AC Chargers
-    if (currentType === CurrentType.AC && Utils.checkIfPhasesProvidedInTransactionInProgress(transaction)) {
+    if (
+      currentType === CurrentType.AC &&
+      Utils.checkIfPhasesProvidedInTransactionInProgress(transaction)
+    ) {
       const cSPhasesUsed: CSPhasesUsed = {
         csPhase1: false,
         csPhase2: false,
-        csPhase3: false
+        csPhase3: false,
       };
       // Check current consumption
       if (transaction.currentInstantAmpsL1 > Constants.AMPERAGE_DETECTION_THRESHOLD) {
@@ -146,19 +201,28 @@ export default class Utils {
     return {
       csPhase1: true,
       csPhase2: true,
-      csPhase3: true
+      csPhase3: true,
     };
   }
 
   public static checkIfPhasesProvidedInTransactionInProgress(transaction: Transaction): boolean {
-    return transaction.currentInstantAmps > Constants.AMPERAGE_DETECTION_THRESHOLD &&
+    return (
+      transaction.currentInstantAmps > Constants.AMPERAGE_DETECTION_THRESHOLD &&
       (transaction.currentInstantAmpsL1 > Constants.AMPERAGE_DETECTION_THRESHOLD ||
         transaction.currentInstantAmpsL2 > Constants.AMPERAGE_DETECTION_THRESHOLD ||
-        transaction.currentInstantAmpsL3 > Constants.AMPERAGE_DETECTION_THRESHOLD);
+        transaction.currentInstantAmpsL3 > Constants.AMPERAGE_DETECTION_THRESHOLD)
+    );
   }
 
-  public static getNumberOfUsedPhasesInTransactionInProgress(chargingStation: ChargingStation, transaction: Transaction): number {
-    const currentType = Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId);
+  public static getNumberOfUsedPhasesInTransactionInProgress(
+    chargingStation: ChargingStation,
+    transaction: Transaction
+  ): number {
+    const currentType = Utils.getChargingStationCurrentType(
+      chargingStation,
+      null,
+      transaction.connectorId
+    );
     let nbrOfPhases = -1;
     if (currentType === CurrentType.AC && transaction.phasesUsed) {
       nbrOfPhases = 0;
@@ -175,7 +239,10 @@ export default class Utils {
     return nbrOfPhases;
   }
 
-  public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number): number {
+  public static getEndOfChargeNotificationIntervalMins(
+    chargingStation: ChargingStation,
+    connectorId: number
+  ): number {
     let intervalMins = 0;
     if (!chargingStation || !chargingStation.connectors) {
       return 0;
@@ -199,15 +266,16 @@ export default class Utils {
     return intervalMins;
   }
 
-  public static async executePromiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string): Promise<T> {
+  public static async executePromiseWithTimeout<T>(
+    timeoutMs: number,
+    promise: Promise<T>,
+    failureMessage: string
+  ): Promise<T> {
     let timeoutHandle: NodeJS.Timeout;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
     });
-    return Promise.race([
-      promise,
-      timeoutPromise,
-    ]).finally(() => {
+    return Promise.race([promise, timeoutPromise]).finally(() => {
       clearTimeout(timeoutHandle);
     });
   }
@@ -216,21 +284,29 @@ export default class Utils {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  public static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatus {
+  public static getInactivityStatusLevel(
+    chargingStation: ChargingStation,
+    connectorId: number,
+    inactivitySecs: number
+  ): InactivityStatus {
     if (!inactivitySecs) {
       return InactivityStatus.INFO;
     }
     // Get Notification Interval
     const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
-    if (inactivitySecs < (intervalMins * 60)) {
+    if (inactivitySecs < intervalMins * 60) {
       return InactivityStatus.INFO;
-    } else if (inactivitySecs < (intervalMins * 60 * 2)) {
+    } else if (inactivitySecs < intervalMins * 60 * 2) {
       return InactivityStatus.WARNING;
     }
     return InactivityStatus.ERROR;
   }
 
-  public static areObjectPropertiesEqual(objCmp1: any = {}, objCmp2: any = {}, key: string): boolean {
+  public static areObjectPropertiesEqual(
+    objCmp1: any = {},
+    objCmp2: any = {},
+    key: string
+  ): boolean {
     return _.isEqual(objCmp1[key], objCmp2[key]);
   }
 
@@ -239,15 +315,24 @@ export default class Utils {
   }
 
   public static computeTimeDurationMins(timeStart: number): number {
-    return Utils.createDecimal(Date.now()).minus(timeStart).div(60 * 1000).toNumber();
+    return Utils.createDecimal(Date.now())
+      .minus(timeStart)
+      .div(60 * 1000)
+      .toNumber();
   }
 
   public static computeTimeDurationHours(timeStart: number): number {
-    return Utils.createDecimal(Date.now()).minus(timeStart).div(60 * 60 * 1000).toNumber();
+    return Utils.createDecimal(Date.now())
+      .minus(timeStart)
+      .div(60 * 60 * 1000)
+      .toNumber();
   }
 
   public static computeTimeDurationDays(timeStart: number): number {
-    return Utils.createDecimal(Date.now()).minus(timeStart).div(24 * 60 * 60 * 1000).toNumber();
+    return Utils.createDecimal(Date.now())
+      .minus(timeStart)
+      .div(24 * 60 * 60 * 1000)
+      .toNumber();
   }
 
   public static objectHasProperty(obj: any, key: string): boolean {
@@ -278,7 +363,10 @@ export default class Utils {
   }
 
   public static generateTagID(size = 8): string {
-    return [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+    return [...Array(size)]
+      .map(() => Math.floor(Math.random() * 16).toString(16))
+      .join('')
+      .toUpperCase();
   }
 
   public static isIterable(obj: any): boolean {
@@ -297,9 +385,16 @@ export default class Utils {
     return obj == null;
   }
 
-  public static objectAllPropertiesAreEqual(doc1: Record<string, any>, doc2: Record<string, any>, properties: string[]): boolean {
+  public static objectAllPropertiesAreEqual(
+    doc1: Record<string, any>,
+    doc2: Record<string, any>,
+    properties: string[]
+  ): boolean {
     for (const property of properties) {
-      if ((doc1[property] !== doc2[property] && (!Utils.isNullOrUndefined(doc1[property]) || !Utils.isNullOrUndefined(doc2[property])))) {
+      if (
+        doc1[property] !== doc2[property] &&
+        (!Utils.isNullOrUndefined(doc1[property]) || !Utils.isNullOrUndefined(doc2[property]))
+      ) {
         return false;
       }
     }
@@ -377,7 +472,7 @@ export default class Utils {
         result = value;
       } else {
         // Convert
-        result = (value === 'true');
+        result = value === 'true';
       }
     }
     return result;
@@ -426,7 +521,10 @@ export default class Utils {
     }
   }
 
-  public static isComponentActiveFromToken(userToken: UserToken, componentName: TenantComponents): boolean {
+  public static isComponentActiveFromToken(
+    userToken: UserToken,
+    componentName: TenantComponents
+  ): boolean {
     return userToken.activeComponents.includes(componentName);
   }
 
@@ -459,10 +557,18 @@ export default class Utils {
   }
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.createDecimal(pricePerkWh).mul(Utils.convertToFloat(consumptionWh)).div(1000).toNumber();
+    return Utils.createDecimal(pricePerkWh)
+      .mul(Utils.convertToFloat(consumptionWh))
+      .div(1000)
+      .toNumber();
   }
 
-  public static convertAmpToWatt(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, ampValue: number): number {
+  public static convertAmpToWatt(
+    chargingStation: ChargingStation,
+    chargePoint: ChargePoint,
+    connectorID = 0,
+    ampValue: number
+  ): number {
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
     if (voltage) {
       return Utils.createDecimal(voltage).mul(ampValue).toNumber();
@@ -470,7 +576,12 @@ export default class Utils {
     return 0;
   }
 
-  public static convertWattToAmp(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, wattValue: number): number {
+  public static convertWattToAmp(
+    chargingStation: ChargingStation,
+    chargePoint: ChargePoint,
+    connectorID = 0,
+    wattValue: number
+  ): number {
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
     if (voltage) {
       return Utils.createDecimal(wattValue).div(voltage).toNumber();
@@ -480,9 +591,9 @@ export default class Utils {
 
   public static convertWattHourToKiloWattHour(wattHours: number, decimalPlaces?: number): number {
     if (decimalPlaces) {
-      return Utils.truncTo((Utils.createDecimal(wattHours).div(1000)).toNumber(), decimalPlaces);
+      return Utils.truncTo(Utils.createDecimal(wattHours).div(1000).toNumber(), decimalPlaces);
     }
-    return Utils.convertToFloat((Utils.createDecimal(wattHours).div(1000)));
+    return Utils.convertToFloat(Utils.createDecimal(wattHours).div(1000));
   }
 
   public static createDecimal(value: Decimal.Value): Decimal {
@@ -500,25 +611,40 @@ export default class Utils {
     return new Decimal(value as Decimal.Value);
   }
 
-  public static getChargePointFromID(chargingStation: ChargingStation, chargePointID: number): ChargePoint {
+  public static getChargePointFromID(
+    chargingStation: ChargingStation,
+    chargePointID: number
+  ): ChargePoint {
     if (!chargingStation.chargePoints) {
       return null;
     }
-    return chargingStation.chargePoints.find((chargePoint) => chargePoint && (chargePoint.chargePointID === chargePointID));
+    return chargingStation.chargePoints.find(
+      (chargePoint) => chargePoint && chargePoint.chargePointID === chargePointID
+    );
   }
 
-  public static getConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
+  public static getConnectorFromID(
+    chargingStation: ChargingStation,
+    connectorID: number
+  ): Connector {
     if (!chargingStation.connectors) {
       return null;
     }
-    return chargingStation.connectors.find((connector) => connector && (connector.connectorId === connectorID));
+    return chargingStation.connectors.find(
+      (connector) => connector && connector.connectorId === connectorID
+    );
   }
 
-  public static getLastSeenConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
+  public static getLastSeenConnectorFromID(
+    chargingStation: ChargingStation,
+    connectorID: number
+  ): Connector {
     if (!chargingStation.backupConnectors) {
       return null;
     }
-    return chargingStation.backupConnectors.find((backupConnector) => backupConnector && (backupConnector.connectorId === connectorID));
+    return chargingStation.backupConnectors.find(
+      (backupConnector) => backupConnector && backupConnector.connectorId === connectorID
+    );
   }
 
   public static computeChargingStationTotalAmps(chargingStation: ChargingStation): number {
@@ -544,7 +670,11 @@ export default class Utils {
     return totalAmps;
   }
 
-  public static getChargingStationPower(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
+  public static getChargingStationPower(
+    chargingStation: ChargingStation,
+    chargePoint: ChargePoint,
+    connectorId = 0
+  ): number {
     let totalPower = 0;
     if (chargingStation) {
       // Check at charge point level
@@ -555,8 +685,14 @@ export default class Utils {
             if (connectorId === 0 && chargePointOfCS.power) {
               totalPower += chargePointOfCS.power;
               // Connector
-            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.power) {
-              if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
+            } else if (
+              chargePointOfCS.connectorIDs.includes(connectorId) &&
+              chargePointOfCS.power
+            ) {
+              if (
+                chargePointOfCS.cannotChargeInParallel ||
+                chargePointOfCS.sharePowerToAllConnectors
+              ) {
                 // Check Connector ID
                 const connector = Utils.getConnectorFromID(chargingStation, connectorId);
                 if (connector?.power) {
@@ -592,7 +728,11 @@ export default class Utils {
     return totalPower;
   }
 
-  public static getNumberOfConnectedPhases(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
+  public static getNumberOfConnectedPhases(
+    chargingStation: ChargingStation,
+    chargePoint?: ChargePoint,
+    connectorId = 0
+  ): number {
     if (chargingStation) {
       // Check at charge point level
       if (chargingStation.chargePoints) {
@@ -603,7 +743,10 @@ export default class Utils {
               return chargePointOfCS.numberOfConnectedPhase;
             }
             // Connector
-            if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.numberOfConnectedPhase) {
+            if (
+              chargePointOfCS.connectorIDs.includes(connectorId) &&
+              chargePointOfCS.numberOfConnectedPhase
+            ) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
               if (connector?.numberOfConnectedPhase) {
@@ -630,7 +773,11 @@ export default class Utils {
     return 1;
   }
 
-  public static getChargingStationVoltage(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): Voltage {
+  public static getChargingStationVoltage(
+    chargingStation: ChargingStation,
+    chargePoint?: ChargePoint,
+    connectorId = 0
+  ): Voltage {
     if (chargingStation) {
       // Check at charging station level
       if (chargingStation.voltage) {
@@ -673,7 +820,11 @@ export default class Utils {
     return Voltage.VOLTAGE_230;
   }
 
-  public static getChargingStationCurrentType(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): CurrentType {
+  public static getChargingStationCurrentType(
+    chargingStation: ChargingStation,
+    chargePoint: ChargePoint,
+    connectorId = 0
+  ): CurrentType {
     if (chargingStation) {
       // Check at charge point level
       if (chargingStation.chargePoints) {
@@ -683,7 +834,10 @@ export default class Utils {
             if (connectorId === 0 && chargePointOfCS.currentType) {
               return chargePointOfCS.currentType;
               // Connector
-            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.currentType) {
+            } else if (
+              chargePointOfCS.connectorIDs.includes(connectorId) &&
+              chargePointOfCS.currentType
+            ) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
               if (connector?.currentType) {
@@ -710,7 +864,11 @@ export default class Utils {
     return null;
   }
 
-  public static getChargingStationAmperage(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
+  public static getChargingStationAmperage(
+    chargingStation: ChargingStation,
+    chargePoint?: ChargePoint,
+    connectorId = 0
+  ): number {
     let totalAmps = 0;
     if (chargingStation) {
       // Check at charge point level
@@ -720,8 +878,14 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.amperage) {
               totalAmps += chargePointOfCS.amperage;
-            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.amperage) {
-              if (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors) {
+            } else if (
+              chargePointOfCS.connectorIDs.includes(connectorId) &&
+              chargePointOfCS.amperage
+            ) {
+              if (
+                chargePointOfCS.cannotChargeInParallel ||
+                chargePointOfCS.sharePowerToAllConnectors
+              ) {
                 // Same power for all connectors
                 // Check Connector ID first
                 const connector = Utils.getConnectorFromID(chargingStation, connectorId);
@@ -751,16 +915,28 @@ export default class Utils {
     return totalAmps;
   }
 
-  public static getChargingStationAmperagePerPhase(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
+  public static getChargingStationAmperagePerPhase(
+    chargingStation: ChargingStation,
+    chargePoint?: ChargePoint,
+    connectorId = 0
+  ): number {
     const totalAmps = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
-    const numberOfConnectedPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId);
+    const numberOfConnectedPhases = Utils.getNumberOfConnectedPhases(
+      chargingStation,
+      chargePoint,
+      connectorId
+    );
     if (totalAmps % numberOfConnectedPhases === 0) {
       return totalAmps / numberOfConnectedPhases;
     }
     return Math.round(totalAmps / numberOfConnectedPhases);
   }
 
-  public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
+  public static getChargingStationAmperageLimit(
+    chargingStation: ChargingStation,
+    chargePoint?: ChargePoint,
+    connectorId = 0
+  ): number {
     let amperageLimit = 0;
     if (chargingStation) {
       if (connectorId > 0) {
@@ -773,14 +949,22 @@ export default class Utils {
             if (chargePointOfCS.excludeFromPowerLimitation) {
               continue;
             }
-            if (chargePointOfCS.cannotChargeInParallel ||
-              chargePointOfCS.sharePowerToAllConnectors) {
+            if (
+              chargePointOfCS.cannotChargeInParallel ||
+              chargePointOfCS.sharePowerToAllConnectors
+            ) {
               // Add limit amp of one connector
-              amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0])?.amperageLimit;
+              amperageLimit += Utils.getConnectorFromID(
+                chargingStation,
+                chargePointOfCS.connectorIDs[0]
+              )?.amperageLimit;
             } else {
               // Add limit amp of all connectors
               for (const connectorID of chargePointOfCS.connectorIDs) {
-                amperageLimit += Utils.getConnectorFromID(chargingStation, connectorID)?.amperageLimit;
+                amperageLimit += Utils.getConnectorFromID(
+                  chargingStation,
+                  connectorID
+                )?.amperageLimit;
               }
             }
           }
@@ -830,7 +1014,11 @@ export default class Utils {
     return results;
   }
 
-  public static buildUserFullName(user: User | UserToken, withID = true, withEmail = false): string {
+  public static buildUserFullName(
+    user: User | UserToken,
+    withID = true,
+    withEmail = false
+  ): string {
     let fullName: string;
     if (!user || !user.name) {
       return '-';
@@ -914,10 +1102,14 @@ export default class Utils {
   public static buildRestServerTenantEmailLogoURL(tenantID: string): string {
     if (!tenantID || tenantID === Constants.DEFAULT_TENANT_ID) {
       // URL to a default eMobility logo
-      return `${Utils.buildRestServerURL(false)}/v1/util/tenants/email-logo?ts=` + new Date().getTime();
+      return `${Utils.buildRestServerURL(
+        false
+      )}/v1/util/tenants/email-logo?ts=${new Date().getTime()}`;
     }
     // URL to the tenant logo (if any) or the Open -e-mobility logo as a fallback
-    return `${Utils.buildRestServerURL(false)}/v1/util/tenants/email-logo?ID=${tenantID}&ts=` + new Date().getTime();
+    return `${Utils.buildRestServerURL(
+      false
+    )}/v1/util/tenants/email-logo?ID=${tenantID}&ts=${new Date().getTime()}`;
   }
 
   public static buildEvseURL(subdomain: string = null): string {
@@ -928,13 +1120,28 @@ export default class Utils {
     return `${centralSystemFrontEndConfig.protocol}://${centralSystemFrontEndConfig.host}:${centralSystemFrontEndConfig.port}`;
   }
 
-  public static buildOCPPServerSecureURL(tenant: Tenant, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
+  public static buildOCPPServerSecureURL(
+    tenant: Tenant,
+    ocppVersion: OCPPVersion,
+    ocppProtocol: OCPPProtocol,
+    token?: string
+  ): string {
     if (ocppProtocol === OCPPProtocol.SOAP) {
-      const baseSecureUrl = Utils.alterBaseURL(tenant, Configuration.getWSDLEndpointConfig().baseSecureUrl);
-      return `${baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${tenant.id}%26Token=${token}`;
+      const baseSecureUrl = Utils.alterBaseURL(
+        tenant,
+        Configuration.getWSDLEndpointConfig().baseSecureUrl
+      );
+      return `${baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}?TenantID=${
+        tenant.id
+      }%26Token=${token}`;
     }
-    const baseSecureUrl = Utils.alterBaseURL(tenant, Configuration.getJsonEndpointConfig().baseSecureUrl);
-    return `${baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${tenant.id}/${token}`;
+    const baseSecureUrl = Utils.alterBaseURL(
+      tenant,
+      Configuration.getJsonEndpointConfig().baseSecureUrl
+    );
+    return `${baseSecureUrl}/${Utils.getOCPPServerVersionURLPath(ocppVersion)}/${
+      tenant.id
+    }/${token}`;
   }
 
   public static alterBaseURL(tenant: Tenant, baseUrl: string): string {
@@ -956,12 +1163,24 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/users#tag?TagID=${tag.id}`;
   }
 
-  public static buildEvseChargingStationURL(tenantSubdomain: string, chargingStation: ChargingStation, hash = ''): string {
-    return `${Utils.buildEvseURL(tenantSubdomain)}/charging-stations?ChargingStationID=${chargingStation.id}${hash}`;
+  public static buildEvseChargingStationURL(
+    tenantSubdomain: string,
+    chargingStation: ChargingStation,
+    hash = ''
+  ): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/charging-stations?ChargingStationID=${
+      chargingStation.id
+    }${hash}`;
   }
 
-  public static buildEvseTransactionURL(tenantSubdomain: string, transactionId: number, hash = ''): string {
-    return `${Utils.buildEvseURL(tenantSubdomain)}/transactions?TransactionID=${transactionId.toString()}${hash}`;
+  public static buildEvseTransactionURL(
+    tenantSubdomain: string,
+    transactionId: number,
+    hash = ''
+  ): string {
+    return `${Utils.buildEvseURL(
+      tenantSubdomain
+    )}/transactions?TransactionID=${transactionId.toString()}${hash}`;
   }
 
   public static buildEvseBillingSettingsURL(tenantSubdomain: string): string {
@@ -972,7 +1191,10 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/invoices`;
   }
 
-  public static buildEvseBillingDownloadInvoicesURL(tenantSubdomain: string, invoiceID: string): string {
+  public static buildEvseBillingDownloadInvoicesURL(
+    tenantSubdomain: string,
+    invoiceID: string
+  ): string {
     return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
@@ -981,8 +1203,13 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
-  public static buildEvseBillingAccountOnboardingURL(tenant: Tenant, billingAccountID: string): string {
-    return `${Utils.buildEvseURL(tenant.subdomain)}/auth/account-onboarding?TenantID=${tenant.id}&AccountID=${billingAccountID}`;
+  public static buildEvseBillingAccountOnboardingURL(
+    tenant: Tenant,
+    billingAccountID: string
+  ): string {
+    return `${Utils.buildEvseURL(tenant.subdomain)}/auth/account-onboarding?TenantID=${
+      tenant.id
+    }&AccountID=${billingAccountID}`;
   }
 
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
@@ -1070,7 +1297,9 @@ export default class Utils {
   }
 
   public static generateToken(email: string): string {
-    return Utils.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
+    return Utils.hash(
+      `${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`
+    );
   }
 
   public static getRoleNameFromRoleID(roleID: string): string {
@@ -1129,7 +1358,12 @@ export default class Utils {
 
   public static hasValidGpsCoordinates(coordinates: number[]): boolean {
     // Check if GPs are available
-    if (!Utils.isEmptyArray(coordinates) && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
+    if (
+      !Utils.isEmptyArray(coordinates) &&
+      coordinates.length === 2 &&
+      coordinates[0] &&
+      coordinates[1]
+    ) {
       // Check Longitude & Latitude
       if (validator.isLatLong(coordinates[1].toString() + ',' + coordinates[0].toString())) {
         return true;
@@ -1215,11 +1449,16 @@ export default class Utils {
     return ChargingStationEndpoint.AWS;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   public static async generateQrCode(data: string): Promise<string> {
     return QRCode.toDataURL(data);
   }
 
-  public static createDefaultSettingContent(componentName: string, activeComponentContent: TenantComponentContent, currentSettingContent: SettingDBContent): SettingDBContent {
+  public static createDefaultSettingContent(
+    componentName: string,
+    activeComponentContent: TenantComponentContent,
+    currentSettingContent: SettingDBContent
+  ): SettingDBContent {
     switch (componentName) {
       // Pricing
       case TenantComponents.PRICING:
@@ -1228,8 +1467,8 @@ export default class Utils {
           if (activeComponentContent.type === PricingSettingsType.SIMPLE) {
             // Simple Pricing
             return {
-              'type': PricingSettingsType.SIMPLE,
-              'simple': {}
+              type: PricingSettingsType.SIMPLE,
+              simple: {},
             } as SettingDBContent;
           }
         }
@@ -1239,8 +1478,8 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only Stripe
           return {
-            'type': BillingSettingsType.STRIPE,
-            'stripe': {}
+            type: BillingSettingsType.STRIPE,
+            stripe: {},
           } as SettingDBContent;
         }
         break;
@@ -1249,8 +1488,8 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only Concur
           return {
-            'type': RefundSettingsType.CONCUR,
-            'concur': {}
+            type: RefundSettingsType.CONCUR,
+            concur: {},
           } as SettingDBContent;
         }
         break;
@@ -1259,8 +1498,8 @@ export default class Utils {
         if (!currentSettingContent) {
           // Only Gireve
           return {
-            'type': RoamingSettingsType.OCPI,
-            'ocpi': {}
+            type: RoamingSettingsType.OCPI,
+            ocpi: {},
           } as SettingDBContent;
         }
         break;
@@ -1269,8 +1508,8 @@ export default class Utils {
         if (!currentSettingContent) {
           // Only Hubject
           return {
-            'type': RoamingSettingsType.OICP,
-            'oicp': {}
+            type: RoamingSettingsType.OICP,
+            oicp: {},
           } as SettingDBContent;
         }
         break;
@@ -1279,8 +1518,8 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only SAP Analytics
           return {
-            'type': AnalyticsSettingsType.SAC,
-            'sac': {}
+            type: AnalyticsSettingsType.SAC,
+            sac: {},
           } as SettingDBContent;
         }
         break;
@@ -1289,8 +1528,8 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponentContent.type) {
           // Only SAP sapSmartCharging
           return {
-            'type': SmartChargingContentType.SAP_SMART_CHARGING,
-            'sapSmartCharging': {}
+            type: SmartChargingContentType.SAP_SMART_CHARGING,
+            sapSmartCharging: {},
           } as SettingDBContent;
         }
         break;
@@ -1299,10 +1538,10 @@ export default class Utils {
         if (!currentSettingContent) {
           // Only Asset
           return {
-            'type': AssetSettingsType.ASSET,
-            'asset': {
-              connections: []
-            }
+            type: AssetSettingsType.ASSET,
+            asset: {
+              connections: [],
+            },
           } as SettingDBContent;
         }
         break;
@@ -1311,10 +1550,10 @@ export default class Utils {
         if (!currentSettingContent) {
           // Only Car Connector
           return {
-            'type': CarConnectorSettingsType.CAR_CONNECTOR,
-            'carConnector': {
-              connections: []
-            }
+            type: CarConnectorSettingsType.CAR_CONNECTOR,
+            carConnector: {
+              connections: [],
+            },
           } as SettingDBContent;
         }
         break;
@@ -1336,7 +1575,9 @@ export default class Utils {
   }
 
   public static isPasswordValid(password: string): boolean {
-    return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,%&=_<>\/'\$\^\*\.\?\-\+\(\)])(?=.{8,})/.test(password);
+    return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,%&=_<>\/'\$\^\*\.\?\-\+\(\)])(?=.{8,})/.test(
+      password
+    );
   }
 
   public static isPhoneValid(phone: string): boolean {
@@ -1360,7 +1601,7 @@ export default class Utils {
     return {
       blockCypher: blockCypher,
       blockSize: Utils.convertToInt(blockSize),
-      operationMode: operationMode
+      operationMode: operationMode,
     };
   }
 
@@ -1378,7 +1619,7 @@ export default class Utils {
     return {
       blockCypher: 'aes',
       blockSize: 256,
-      operationMode: 'gcm'
+      operationMode: 'gcm',
     };
   }
 
@@ -1387,14 +1628,15 @@ export default class Utils {
       return PerformanceRecordGroup.UNKNOWN;
     }
     // REST API
-    if (url.startsWith('/client/api/') ||
-      url.startsWith('/v1/api/')) {
+    if (url.startsWith('/client/api/') || url.startsWith('/v1/api/')) {
       return PerformanceRecordGroup.REST_SECURED;
     }
-    if (url.startsWith('/client/util/') ||
+    if (
+      url.startsWith('/client/util/') ||
       url.startsWith('/client/auth/') ||
       url.startsWith('/v1/util/') ||
-      url.startsWith('/v1/auth/')) {
+      url.startsWith('/v1/auth/')
+    ) {
       return PerformanceRecordGroup.REST_PUBLIC;
     }
     // OCPI
@@ -1501,16 +1743,25 @@ export default class Utils {
   }
 
   public static buildPerformanceRecord(params: {
-    tenantSubdomain?: string; durationMs?: number; resSizeKb?: number; reqSizeKb?: number;
-    action: ServerAction | string; group?: PerformanceRecordGroup; httpUrl?: string;
-    httpMethod?: string; httpResponseCode?: number; egress?: boolean; chargingStationID?: string, userID?: string
+    tenantSubdomain?: string;
+    durationMs?: number;
+    resSizeKb?: number;
+    reqSizeKb?: number;
+    action: ServerAction | string;
+    group?: PerformanceRecordGroup;
+    httpUrl?: string;
+    httpMethod?: string;
+    httpResponseCode?: number;
+    egress?: boolean;
+    chargingStationID?: string;
+    userID?: string;
   }): PerformanceRecord {
     const performanceRecord: PerformanceRecord = {
       tenantSubdomain: params.tenantSubdomain,
       timestamp: new Date(),
       host: Utils.getHostName(),
       action: params.action,
-      group: params.group
+      group: params.group,
     };
     if (params.durationMs) {
       performanceRecord.durationMs = params.durationMs;
@@ -1581,13 +1832,23 @@ export default class Utils {
   }
 
   public static async sanitizeCSVExport(data: any, tenantID: string): Promise<any> {
-    if (!data || typeof data === 'number' || typeof data === 'bigint' || typeof data === 'symbol' || Utils.isBoolean(data) || typeof data === 'function') {
+    if (
+      !data ||
+      typeof data === 'number' ||
+      typeof data === 'bigint' ||
+      typeof data === 'symbol' ||
+      Utils.isBoolean(data) ||
+      typeof data === 'function'
+    ) {
       return data;
     }
     // If the data is a string and starts with the csv characters initiating the formula parsing, then escape
     if (typeof data === 'string') {
       if (!Utils.isNullOrEmptyString(data)) {
-        data = data.replace(Constants.CSV_CHARACTERS_TO_ESCAPE, Constants.CSV_ESCAPING_CHARACTER + data);
+        data = data.replace(
+          Constants.CSV_CHARACTERS_TO_ESCAPE,
+          Constants.CSV_ESCAPING_CHARACTER + data
+        );
       }
       return data;
     }
@@ -1636,7 +1897,9 @@ export default class Utils {
           });
         }
         // Push sub site area to parent children array
-        siteAreaHashTable[siteAreaOfSite.parentSiteAreaID].childSiteAreas.push(siteAreaHashTable[siteAreaOfSite.id]);
+        siteAreaHashTable[siteAreaOfSite.parentSiteAreaID].childSiteAreas.push(
+          siteAreaHashTable[siteAreaOfSite.id]
+        );
         // Root Site Area
       } else {
         // If no parent ID is defined push root site area to array
@@ -1680,7 +1943,10 @@ export default class Utils {
         if (siteArea.id === siteAreaID) {
           return siteArea;
         }
-        const foundSiteArea = Utils.getSiteAreaFromSiteAreasTree(siteAreaID, siteArea.childSiteAreas);
+        const foundSiteArea = Utils.getSiteAreaFromSiteAreasTree(
+          siteAreaID,
+          siteArea.childSiteAreas
+        );
         if (foundSiteArea) {
           return foundSiteArea;
         }
@@ -1688,13 +1954,19 @@ export default class Utils {
     }
   }
 
-  public static getRootSiteAreaFromSiteAreasTree(siteAreaID: string, siteAreas: SiteArea[]): SiteArea {
+  public static getRootSiteAreaFromSiteAreasTree(
+    siteAreaID: string,
+    siteAreas: SiteArea[]
+  ): SiteArea {
     if (!Utils.isEmptyArray(siteAreas)) {
       for (const siteArea of siteAreas) {
         if (siteArea.id === siteAreaID) {
           return siteArea;
         }
-        const foundSiteArea = Utils.getSiteAreaFromSiteAreasTree(siteAreaID, siteArea.childSiteAreas);
+        const foundSiteArea = Utils.getSiteAreaFromSiteAreasTree(
+          siteAreaID,
+          siteArea.childSiteAreas
+        );
         if (foundSiteArea) {
           return siteArea;
         }
@@ -1713,14 +1985,20 @@ export default class Utils {
   public static transactionDurationToString(transaction: Transaction): string {
     let totalDurationSecs;
     if (transaction.stop) {
-      totalDurationSecs = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+      totalDurationSecs = moment
+        .duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp)))
+        .asSeconds();
     } else {
-      totalDurationSecs = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+      totalDurationSecs = moment
+        .duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp)))
+        .asSeconds();
     }
     return moment.duration(totalDurationSecs, 's').format('h[h]mm', { trim: false });
   }
 
-  public static handleExceptionDetailedMessages(exception: AppError | BackendError | AppAuthError | OCPPError): void {
+  public static handleExceptionDetailedMessages(
+    exception: AppError | BackendError | AppAuthError | OCPPError
+  ): void {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       // Error already provided (previous exception)
@@ -1730,8 +2008,8 @@ export default class Utils {
           ...exception.params.detailedMessages,
           error: exception.stack,
           previous: {
-            error: exception.params.detailedMessages.error
-          }
+            error: exception.params.detailedMessages.error,
+          },
         };
       } else {
         // Add error and keep detailed messages
@@ -1748,36 +2026,54 @@ export default class Utils {
     }
   }
 
-  public static removeSensibeDataFromEntity(extraFilters: Record<string, any>, entityData?: EntityData): void {
+  public static removeSensibeDataFromEntity(
+    extraFilters: Record<string, any>,
+    entityData?: EntityData
+  ): void {
     // User data
-    if (Utils.objectHasProperty(extraFilters, 'UserData') &&
-      !Utils.isNullOrUndefined(extraFilters['UserData']) && extraFilters['UserData']) {
+    if (
+      Utils.objectHasProperty(extraFilters, 'UserData') &&
+      !Utils.isNullOrUndefined(extraFilters['UserData']) &&
+      extraFilters['UserData']
+    ) {
       Utils.deleteUserPropertiesFromEntity(entityData);
     }
     // Tag data
-    if (Utils.objectHasProperty(extraFilters, 'TagData') &&
-      !Utils.isNullOrUndefined(extraFilters['TagData']) && extraFilters['TagData']) {
+    if (
+      Utils.objectHasProperty(extraFilters, 'TagData') &&
+      !Utils.isNullOrUndefined(extraFilters['TagData']) &&
+      extraFilters['TagData']
+    ) {
       Utils.deleteTagPropertiesFromEntity(entityData);
     }
     // Car Catalog data
-    if (Utils.objectHasProperty(extraFilters, 'CarCatalogData') &&
-      !Utils.isNullOrUndefined(extraFilters['CarCatalogData']) && extraFilters['CarCatalogData']) {
+    if (
+      Utils.objectHasProperty(extraFilters, 'CarCatalogData') &&
+      !Utils.isNullOrUndefined(extraFilters['CarCatalogData']) &&
+      extraFilters['CarCatalogData']
+    ) {
       Utils.deleteCarCatalogPropertiesFromEntity(entityData);
     }
     // Car data
-    if (Utils.objectHasProperty(extraFilters, 'CarData') &&
-      !Utils.isNullOrUndefined(extraFilters['CarData']) && extraFilters['CarData']) {
+    if (
+      Utils.objectHasProperty(extraFilters, 'CarData') &&
+      !Utils.isNullOrUndefined(extraFilters['CarData']) &&
+      extraFilters['CarData']
+    ) {
       Utils.deleteCarPropertiesFromEntity(entityData);
     }
     // Billing data
-    if (Utils.objectHasProperty(extraFilters, 'BillingData') &&
-      !Utils.isNullOrUndefined(extraFilters['BillingData']) && extraFilters['BillingData']) {
+    if (
+      Utils.objectHasProperty(extraFilters, 'BillingData') &&
+      !Utils.isNullOrUndefined(extraFilters['BillingData']) &&
+      extraFilters['BillingData']
+    ) {
       Utils.deleteBillingPropertiesFromEntity(entityData);
     }
   }
 
   public static isMonitoringEnabled(): boolean {
-    if (((global.monitoringServer) && (process.env.K8S))) {
+    if (global.monitoringServer && process.env.K8S) {
       return true;
     }
     return false;
@@ -1787,21 +2083,69 @@ export default class Utils {
     return this.hashCode(str) + 2147483647 + 1;
   }
 
-
   public static getRateLimiters(): Map<string, RateLimiterMemory> {
     const shieldConfiguration = Configuration.getShieldConfig();
     const limiterMap = new Map();
     if (shieldConfiguration?.active) {
       shieldConfiguration.rateLimiters.forEach((rateLimiterConfig) => {
-        const limiter = new RateLimiterMemory({ points: rateLimiterConfig.numberOfPoints, duration: rateLimiterConfig.numberOfSeconds });
+        const limiter = new RateLimiterMemory({
+          points: rateLimiterConfig.numberOfPoints,
+          duration: rateLimiterConfig.numberOfSeconds,
+        });
         limiterMap.set(rateLimiterConfig.name, limiter);
       });
     }
     return limiterMap;
   }
 
-  private static hashCode(s:string): number {
-    let hash = 0,i = 0;
+  public static buildReservationName(reservation: Reservation, withID = false): string {
+    let reservationName: string;
+    if (!reservation) {
+      return '-';
+    }
+    if (withID && reservation.id) {
+      reservationName = `Reservation (${reservation.id})`;
+    }
+    if (reservationName) {
+      reservationName += ` on CS '${
+        reservation.chargingStationID
+      }' at Connector '${Utils.getConnectorLetterFromConnectorID(reservation.connectorID)}'`;
+      reservationName += `with Expiration Date ${reservation.expiryDate.toDateString()}`;
+    }
+    return reservationName;
+  }
+
+  public static buildEvseReservationURL(tenantSubdomain: string): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/reservations`;
+  }
+
+  public static calculateReservationDuration(reservation: Reservation) {
+    const hours = moment(reservation.toDate).diff(reservation.fromDate, 'hours');
+    const minutes = moment(moment(reservation.toDate).diff(reservation.fromDate));
+    return `${hours} h ${minutes.format('mm')} min`;
+  }
+
+  public static buildDateTimeObject(
+    date: Date,
+    time: Date | string,
+    hours?: number,
+    minutes?: number,
+    format = 'HH:mm'
+  ): Date {
+    let parsedDateTime: Moment;
+    if (time && typeof time === 'string') {
+      parsedDateTime = moment(time, format);
+    } else if (hours && minutes) {
+      parsedDateTime = moment({ hours, minutes });
+    } else {
+      parsedDateTime = moment(time);
+    }
+    return moment(date).hours(parsedDateTime.hours()).minutes(parsedDateTime.minutes()).toDate();
+  }
+
+  private static hashCode(s: string): number {
+    let hash = 0,
+      i = 0;
     const len = s.length;
     while (i < len) {
       hash = ((hash << 5) - hash + s.charCodeAt(i++)) << 0;
@@ -1832,7 +2176,10 @@ export default class Utils {
   private static deletePropertiesFromEntity(entityData?: EntityData, properties?: string[]): void {
     if (!Utils.isNullOrUndefined(entityData) && !Utils.isNullOrUndefined(properties)) {
       for (const propertyName of properties) {
-        if (Utils.objectHasProperty(entityData, propertyName) && !Utils.isNullOrUndefined(entityData[propertyName])) {
+        if (
+          Utils.objectHasProperty(entityData, propertyName) &&
+          !Utils.isNullOrUndefined(entityData[propertyName])
+        ) {
           delete entityData[propertyName];
         }
       }

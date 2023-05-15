@@ -14,4 +14,3 @@ export default class StaticResourceRouter {
     return this.router;
   }
 }
-

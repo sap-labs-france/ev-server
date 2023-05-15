@@ -10,7 +10,5 @@
       "$ref": "chargingstation#/definitions/connector/properties/connectorId"
     }
   },
-  "required": [
-    "ChargingStationID", "ConnectorID"
-  ]
+  "required": ["ChargingStationID", "ConnectorID"]
 }

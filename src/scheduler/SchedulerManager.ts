@@ -1,5 +1,12 @@
-import SchedulerConfiguration, { SchedulerTaskConfiguration } from '../types/configuration/SchedulerConfiguration';
+import cron from 'node-cron';
 
+import SchedulerConfiguration, {
+  SchedulerTaskConfiguration,
+} from '../types/configuration/SchedulerConfiguration';
+import { ServerAction } from '../types/Server';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
+import SchedulerTask from './SchedulerTask';
 import AssetGetConsumptionTask from './tasks/AssetGetConsumptionTask';
 import AsyncTaskCheckTask from './tasks/AsyncTaskCheckTask';
 import BillingPeriodicOperationTask from './tasks/BillingPeriodicOperationTask';
@@ -10,9 +17,7 @@ import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNo
 import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
 import CloseTransactionsInProgressTask from './tasks/CloseTransactionsInProgressTask';
-import Constants from '../utils/Constants';
 import DispatchCollectedFundsTask from './tasks/DispatchCollectedFundsTask';
-import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
 import MigrateSensitiveDataTask from './tasks/MigrateSensitiveDataTask';
 import OCPICheckCdrsTask from './tasks/ocpi/OCPICheckCdrsTask';
@@ -27,11 +32,11 @@ import OCPIPushEVSEStatusesTask from './tasks/ocpi/OCPIPushEVSEStatusesTask';
 import OCPIPushTokensTask from './tasks/ocpi/OCPIPushTokensTask';
 import OICPPushEvseDataTask from './tasks/oicp/OICPPushEvseDataTask';
 import OICPPushEvseStatusTask from './tasks/oicp/OICPPushEvseStatusTask';
-import SchedulerTask from './SchedulerTask';
-import { ServerAction } from '../types/Server';
+import CancelUnmetReservationsTask from './tasks/reservations/CancelUnmetReservationsTask';
+import CheckReservationStatusTask from './tasks/reservations/CheckReservationStatusTask';
+import SynchronizeReservationsTask from './tasks/reservations/SynchronizeReservationsTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
-import cron from 'node-cron';
 
 const MODULE_NAME = 'SchedulerManager';
 
@@ -45,8 +50,9 @@ export default class SchedulerManager {
     await Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT_ID,
       action: ServerAction.SCHEDULER,
-      module: MODULE_NAME, method: 'init',
-      message: 'The Scheduler is active'
+      module: MODULE_NAME,
+      method: 'init',
+      message: 'The Scheduler is active',
     });
     // Yes: init
     for (const task of SchedulerManager.schedulerConfig.tasks) {
@@ -55,8 +61,9 @@ export default class SchedulerManager {
         await Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
-          module: MODULE_NAME, method: 'init',
-          message: `The task '${task.name}' is inactive`
+          module: MODULE_NAME,
+          method: 'init',
+          message: `The task '${task.name}' is inactive`,
         });
         continue;
       }
@@ -67,8 +74,9 @@ export default class SchedulerManager {
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
-          module: MODULE_NAME, method: 'init',
-          message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`
+          module: MODULE_NAME,
+          method: 'init',
+          message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`,
         });
       }
     }
@@ -142,12 +150,19 @@ export default class SchedulerManager {
         return new CloseTransactionsInProgressTask();
       case 'DispatchCollectedFundsTask':
         return new DispatchCollectedFundsTask();
+      case 'CheckReservationStatusTask':
+        return new CheckReservationStatusTask();
+      case 'SynchronizeReservationsTask':
+        return new SynchronizeReservationsTask();
+      case 'CancelUnmetReservationsTask':
+        return new CancelUnmetReservationsTask();
       default:
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
-          module: MODULE_NAME, method: 'createTask',
-          message: `The task '${name}' is unknown`
+          module: MODULE_NAME,
+          method: 'createTask',
+          message: `The task '${name}' is unknown`,
         });
     }
   }

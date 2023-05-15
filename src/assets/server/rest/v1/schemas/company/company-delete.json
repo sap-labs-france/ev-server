@@ -7,7 +7,5 @@
       "$ref": "company#/definitions/id"
     }
   },
-  "required": [
-    "ID"
-  ]
+  "required": ["ID"]
 }

@@ -12,8 +12,17 @@ export default class CompanyApi extends CrudApi {
     return super.readById(id, this.buildRestEndpointUrl(RESTServerRoute.REST_COMPANY, { id }));
   }
 
-  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_COMPANIES));
+  public async readAll(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_COMPANIES)
+    );
   }
 
   public async create(data) {
@@ -21,11 +30,13 @@ export default class CompanyApi extends CrudApi {
   }
 
   public async update(data) {
-    return super.update(data, this.buildRestEndpointUrl(RESTServerRoute.REST_COMPANY, { id: data.id }));
+    return super.update(
+      data,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_COMPANY, { id: data.id })
+    );
   }
 
   public async delete(id) {
     return super.delete(id, this.buildRestEndpointUrl(RESTServerRoute.REST_COMPANY, { id }));
   }
 }
-

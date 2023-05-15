@@ -14,14 +14,20 @@ const MODULE_NAME = 'MigrateSimplePricing';
 
 export default class SimplePricingMigrationTask extends TenantMigrationTask {
   public async migrateTenant(tenant: Tenant): Promise<void> {
-    const pricingSetting = await SettingStorage.getSettingByIdentifier(tenant, TenantComponents.PRICING);
+    const pricingSetting = await SettingStorage.getSettingByIdentifier(
+      tenant,
+      TenantComponents.PRICING
+    );
     if (pricingSetting?.content?.type === PricingSettingsType.SIMPLE) {
       await this.createDefaultPricingDefinition(tenant, pricingSetting.content.simple);
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        module: MODULE_NAME, method: 'migrateTenant',
+        module: MODULE_NAME,
+        method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `Simple pricing definition has been migrated for tenant ${Utils.buildTenantName(tenant)}`
+        message: `Simple pricing definition has been migrated for tenant ${Utils.buildTenantName(
+          tenant
+        )}`,
       });
     }
   }
@@ -38,7 +44,10 @@ export default class SimplePricingMigrationTask extends TenantMigrationTask {
     return true;
   }
 
-  private async createDefaultPricingDefinition(tenant: Tenant, pricingSettings: SimplePricingSetting) {
+  private async createDefaultPricingDefinition(
+    tenant: Tenant,
+    pricingSettings: SimplePricingSetting
+  ) {
     const pricingDefinition: PricingDefinition = {
       entityType: PricingEntity.TENANT,
       entityID: tenant.id,
@@ -49,8 +58,8 @@ export default class SimplePricingMigrationTask extends TenantMigrationTask {
         energy: {
           active: true,
           price: pricingSettings.price,
-        }
-      }
+        },
+      },
     } as PricingDefinition;
     await PricingStorage.savePricingDefinition(tenant, pricingDefinition);
   }

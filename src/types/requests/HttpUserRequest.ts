@@ -34,12 +34,10 @@ export interface HttpUserMobileTokenUpdateRequest {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpUserCreateRequest extends User {
-}
+export interface HttpUserCreateRequest extends User {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpUserUpdateRequest extends User {
-}
+export interface HttpUserUpdateRequest extends User {}
 
 export interface HttpUserSitesAssignRequest extends HttpDatabaseProjectRequest {
   userID: string;

@@ -43,7 +43,7 @@ export enum OCPPVersion {
 export const OCPPVersionURLPath: Record<OCPPVersion, string> = Object.freeze({
   '1.5': 'OCPP15',
   '1.6': 'OCPP16',
-  '2.0': 'OCPP20'
+  '2.0': 'OCPP20',
 });
 
 export enum OCPPGeneralResponse {
@@ -54,7 +54,7 @@ export enum OCPPGeneralResponse {
 export enum RegistrationStatus {
   ACCEPTED = 'Accepted',
   PENDING = 'Pending',
-  REJECTED = 'Rejected'
+  REJECTED = 'Rejected',
 }
 
 export interface OCPPStatusNotificationRequest {
@@ -73,12 +73,10 @@ export interface OCPPStatusNotificationRequestExtended extends OCPPStatusNotific
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface OCPPStatusNotificationResponse {
-}
+export interface OCPPStatusNotificationResponse {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface OCPPHeartbeatRequest {
-}
+export interface OCPPHeartbeatRequest {}
 
 export interface OCPPHeartbeatRequestExtended extends OCPPHeartbeatRequest {
   chargeBoxID: string;
@@ -116,9 +114,9 @@ export interface OCPPMeterValuesRequest {
 export type OCPPMeterValuesRequestExtended = OCPPMeterValuesRequest;
 
 export interface OCPPRawMeterValues {
-  beginAt: Date,
-  endAt: Date,
-  meterValues: OCPPMeterValuesRequestExtended
+  beginAt: Date;
+  endAt: Date;
+  meterValues: OCPPMeterValuesRequestExtended;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -171,7 +169,7 @@ export enum OCPPReadingContext {
   SAMPLE_PERIODIC = 'Sample.Periodic',
   TRANSACTION_BEGIN = 'Transaction.Begin',
   TRANSACTION_END = 'Transaction.End',
-  TRIGGER = 'Trigger'
+  TRIGGER = 'Trigger',
 }
 
 export enum OCPPValueFormat {
@@ -201,7 +199,7 @@ export enum OCPPMeasurand {
   FAN_RPM = 'RPM',
   STATE_OF_CHARGE = 'SoC',
   TEMPERATURE = 'Temperature',
-  VOLTAGE = 'Voltage'
+  VOLTAGE = 'Voltage',
 }
 
 export enum OCPPPhase {
@@ -214,7 +212,7 @@ export enum OCPPPhase {
   L3_N = 'L3-N',
   L1_L2 = 'L1-L2',
   L2_L3 = 'L2-L3',
-  L3_L1 = 'L3-L1'
+  L3_L1 = 'L3-L1',
 }
 
 export enum OCPPLocation {
@@ -222,7 +220,7 @@ export enum OCPPLocation {
   CABLE = 'Cable',
   EV = 'EV',
   INLET = 'Inlet',
-  OUTLET = 'Outlet'
+  OUTLET = 'Outlet',
 }
 
 export enum OCPPUnitOfMeasure {
@@ -241,7 +239,7 @@ export enum OCPPUnitOfMeasure {
   TEMP_CELSIUS = 'Celsius',
   TEMP_FAHRENHEIT = 'Fahrenheit',
   TEMP_KELVIN = 'K',
-  PERCENT = 'Percent'
+  PERCENT = 'Percent',
 }
 
 export enum ChargePointErrorCode {
@@ -260,7 +258,7 @@ export enum ChargePointErrorCode {
   READER_FAILURE = 'ReaderFailure',
   RESET_FAILURE = 'ResetFailure',
   UNDER_VOLTAGE = 'UnderVoltage',
-  WEAK_SIGNAL = 'WeakSignal'
+  WEAK_SIGNAL = 'WeakSignal',
 }
 
 export enum ChargePointStatus {
@@ -303,14 +301,15 @@ export enum OCPPAuthorizationStatus {
   BLOCKED = 'Blocked',
   EXPIRED = 'Expired',
   INVALID = 'Invalid',
-  CONCURRENT_TX = 'ConcurrentTx'
+  CONCURRENT_TX = 'ConcurrentTx',
 }
 
 export interface OCPPDiagnosticsStatusNotificationRequest {
   status: OCPPDiagnosticsStatus;
 }
 
-export interface OCPPDiagnosticsStatusNotificationRequestExtended extends OCPPDiagnosticsStatusNotificationRequest {
+export interface OCPPDiagnosticsStatusNotificationRequestExtended
+  extends OCPPDiagnosticsStatusNotificationRequest {
   chargeBoxID: string;
   timestamp: Date;
   timezone: string;
@@ -320,12 +319,11 @@ export enum OCPPDiagnosticsStatus {
   IDLE = 'Idle',
   UPLOADED = 'Uploaded',
   UPLOAD_FAILED = 'UploadFailed',
-  UPLOADING = 'Uploading'
+  UPLOADING = 'Uploading',
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface OCPPDiagnosticsStatusNotificationResponse {
-}
+export interface OCPPDiagnosticsStatusNotificationResponse {}
 
 export interface OCPPFirmwareStatusNotificationRequest {
   status: OCPPFirmwareStatus;
@@ -338,18 +336,18 @@ export enum OCPPFirmwareStatus {
   IDLE = 'Idle',
   INSTALLATION_FAILED = 'InstallationFailed',
   INSTALLING = 'Installing',
-  INSTALLED = 'Installed'
+  INSTALLED = 'Installed',
 }
 
-export interface OCPPFirmwareStatusNotificationRequestExtended extends OCPPFirmwareStatusNotificationRequest {
+export interface OCPPFirmwareStatusNotificationRequestExtended
+  extends OCPPFirmwareStatusNotificationRequest {
   chargeBoxID: string;
   timestamp: Date;
   timezone: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface OCPPFirmwareStatusNotificationResponse {
-}
+export interface OCPPFirmwareStatusNotificationResponse {}
 
 export interface OCPPStartTransactionRequest {
   connectorId: number;
@@ -395,7 +393,7 @@ export enum OCPPDataTransferStatus {
   ACCEPTED = 'Accepted',
   REJECTED = 'Rejected',
   UNKNOWN_MESSAGE_ID = 'UnknownMessageId',
-  UNKNOWN_VENDOR_ID = 'UnknownVendorId'
+  UNKNOWN_VENDOR_ID = 'UnknownVendorId',
 }
 
 export interface OCPPStopTransactionRequest {
@@ -422,7 +420,7 @@ export enum OCPPReason {
   REMOTE = 'Remote',
   SOFT_RESET = 'SoftReset',
   UNLOCK_COMMAND = 'UnlockCommand',
-  DE_AUTHORIZED = 'DeAuthorized'
+  DE_AUTHORIZED = 'DeAuthorized',
 }
 
 export interface OCPPStopTransactionRequestExtended extends OCPPStopTransactionRequest {

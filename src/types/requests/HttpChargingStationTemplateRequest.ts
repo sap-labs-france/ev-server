@@ -11,11 +11,9 @@ export interface HttpChargingStationTemplatesGetRequest extends HttpDatabaseRequ
   Search?: string;
 }
 
-export interface HttpChargingStationTemplateUpdateRequest extends ChargingStationTemplate {
-}
+export interface HttpChargingStationTemplateUpdateRequest extends ChargingStationTemplate {}
 
-export interface HttpChargingStationTemplateCreateRequest extends ChargingStationTemplate {
-}
+export interface HttpChargingStationTemplateCreateRequest extends ChargingStationTemplate {}
 
 export interface HttpChargingStationTemplateDeleteRequest extends HttpByIDRequest {
   ID: string;

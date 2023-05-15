@@ -8,12 +8,12 @@
     },
     "startedAt": {
       "type": "string",
-      "format":"date-time",
+      "format": "date-time",
       "sanitize": "mongo"
     },
     "endedAt": {
       "type": "string",
-      "format":"date-time",
+      "format": "date-time",
       "sanitize": "mongo"
     },
     "instantWatts": {
@@ -77,10 +77,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "assetID",
-    "startedAt",
-    "endedAt",
-    "instantWatts"
-  ]
+  "required": ["assetID", "startedAt", "endedAt", "instantWatts"]
 }

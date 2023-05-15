@@ -12,21 +12,25 @@ const MODULE_NAME = 'UpdateEmailsToLowercaseTask';
 export default class UpdateEmailsToLowercaseTask extends TenantMigrationTask {
   public async migrateTenant(tenant: Tenant): Promise<void> {
     // Get all the Users
-    const updateResult = await global.database.getCollection<any>(tenant.id, 'users').updateMany(
-      {},
-      [{
-        $set: {
-          email: { $toLower: '$email' },
-        }
-      }]
-    ) as UpdateResult;
+    const updateResult = (await global.database
+      .getCollection<any>(tenant.id, 'users')
+      .updateMany({}, [
+        {
+          $set: {
+            email: { $toLower: '$email' },
+          },
+        },
+      ])) as UpdateResult;
     if (updateResult.modifiedCount > 0) {
-    // Log in the default tenant
+      // Log in the default tenant
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        module: MODULE_NAME, method: 'migrateTenant',
+        module: MODULE_NAME,
+        method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${updateResult.modifiedCount} User(s) mail have been updated in Tenant ${Utils.buildTenantName(tenant)}`
+        message: `${
+          updateResult.modifiedCount
+        } User(s) mail have been updated in Tenant ${Utils.buildTenantName(tenant)}`,
       });
     }
   }

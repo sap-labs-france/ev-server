@@ -62,10 +62,12 @@
     "debug": false
   },
   "WSDLEndpoint": {
-    "baseUrl": "http://server:8000"
+    "baseUrl": "http://server:8000",
+    "baseSecureUrl": ""
   },
   "JsonEndpoint": {
-    "baseUrl": "ws://server:8010"
+    "baseUrl": "ws://server:8010",
+    "baseSecureUrl": ""
   },
   "OCPIEndpoint": {
     "baseUrl": "http://server:9090"
@@ -76,7 +78,7 @@
   },
   "Storage": {
     "implementation": "mongodb",
-    "uri": null,
+    "uri": "mongodb://evse-user:evse-user-pwd@mongodb:27017/evse",
     "host": "mongodb",
     "port": 27017,
     "user": "evse-user",
@@ -257,6 +259,31 @@
         "active": false,
         "periodicity": "0 0 1 * *",
         "config": {}
+      },
+
+      {
+        "name": "CheckReservationStatusTask",
+        "active": false,
+        "periodicity": "*/5 * * * *",
+        "config": {
+          "partial": false
+        }
+      },
+      {
+        "name": "SynchronizeReservationsTask",
+        "active": false,
+        "periodicity": "*/4 * * * *",
+        "config": {
+          "partial": false
+        }
+      },
+      {
+        "name": "CancelUnmetReservationsTask",
+        "active": false,
+        "periodicity": "*/1 * * * *",
+        "config": {
+          "partial": false
+        }
       }
     ]
   },

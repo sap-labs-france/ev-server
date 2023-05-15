@@ -1,0 +1,101 @@
+{
+  "$id": "reservations-get",
+  "title": "Get List of Reservations",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "Search": {
+      "$ref": "common#/definitions/search"
+    },
+    "ReservationID": {
+      "$ref": "common#/definitions/number-ids"
+    },
+    "ChargingStationID": {
+      "$ref": "common#/definitions/string-ids"
+    },
+    "ConnectorID": {
+      "$ref": "common#/definitions/number-ids"
+    },
+    "UserID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "CarID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "SiteID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "SiteAreaID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "CompanyID": {
+      "$ref": "common#/definitions/ids"
+    },
+    "StartDateTime": {
+      "$ref": "reservation#/definitions/fromDate"
+    },
+    "EndDateTime": {
+      "$ref": "reservation#/definitions/toDate"
+    },
+    "ArrivalTime": {
+      "$ref": "reservation#/definitions/arrivalTime"
+    },
+    "DepartureTime": {
+      "$ref": "reservation#/definitions/departureTime"
+    },
+    "Status": {
+      "$ref": "reservation#/definitions/status"
+    },
+    "Type": {
+      "$ref": "reservation#/definitions/type"
+    },
+    "WithUser": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithChargingStation": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithCar": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithTag": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithCompany": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithSite": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "Limit": {
+      "$ref": "common#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    },
+    "WithAuth": {
+      "$ref": "common#/definitions/withAuth",
+      "default": true
+    }
+  },
+  "required": []
+}

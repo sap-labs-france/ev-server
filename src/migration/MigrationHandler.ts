@@ -14,15 +14,23 @@ const MODULE_NAME = 'MigrationHandler';
 export default class MigrationHandler {
   public static async migrate(processAsyncTasksOnly = false): Promise<void> {
     // Create a Lock for migration
-    const migrationLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT_ID, LockEntity.DATABASE, 'migration', 3600);
+    const migrationLock = LockingManager.createExclusiveLock(
+      Constants.DEFAULT_TENANT_ID,
+      LockEntity.DATABASE,
+      'migration',
+      3600
+    );
     if (await LockingManager.acquire(migrationLock)) {
       try {
         const startTime = moment();
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MIGRATION,
-          module: MODULE_NAME, method: 'migrate',
-          message: `Running ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration tasks...`
+          module: MODULE_NAME,
+          method: 'migrate',
+          message: `Running ${
+            processAsyncTasksOnly ? 'asynchronous' : 'synchronous'
+          } migration tasks...`,
         });
         // Create tasks
         const migrationTasks = MigrationHandler.createMigrationTasks();
@@ -30,10 +38,11 @@ export default class MigrationHandler {
         const migrationTasksCompleted = await MigrationStorage.getMigrations();
         for (const migrationTask of migrationTasks) {
           // Check if not already done
-          const foundMigrationTaskCompleted = migrationTasksCompleted.find((migrationTaskCompleted) =>
-            // Same name and version
-            (migrationTask.getName() === migrationTaskCompleted.name &&
-             migrationTask.getVersion() === migrationTaskCompleted.version)
+          const foundMigrationTaskCompleted = migrationTasksCompleted.find(
+            (migrationTaskCompleted) =>
+              // Same name and version
+              migrationTask.getName() === migrationTaskCompleted.name &&
+              migrationTask.getVersion() === migrationTaskCompleted.version
           );
           // Already processed?
           if (foundMigrationTaskCompleted) {
@@ -52,16 +61,20 @@ export default class MigrationHandler {
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MIGRATION,
-          module: MODULE_NAME, method: 'migrate',
-          message: `The ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration has been run in ${totalTimeSecs} secs`
+          module: MODULE_NAME,
+          method: 'migrate',
+          message: `The ${
+            processAsyncTasksOnly ? 'asynchronous' : 'synchronous'
+          } migration has been run in ${totalTimeSecs} secs`,
         });
       } catch (error) {
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MIGRATION,
-          module: MODULE_NAME, method: 'migrate',
+          module: MODULE_NAME,
+          method: 'migrate',
           message: error.message,
-          detailedMessages: { error: error.stack }
+          detailedMessages: { error: error.stack },
         });
       } finally {
         // Release lock
@@ -79,12 +92,15 @@ export default class MigrationHandler {
   private static async executeTask(currentMigrationTask: MigrationTask): Promise<void> {
     try {
       // Log Start Task
-      let logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`;
+      let logMsg = `${
+        currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'
+      } Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'executeTask',
-        message: logMsg
+        module: MODULE_NAME,
+        method: 'executeTask',
+        message: logMsg,
       });
       // Log in the console also
       Utils.isDevelopmentEnv() && Logging.logConsoleDebug(logMsg);
@@ -101,25 +117,33 @@ export default class MigrationHandler {
         name: currentMigrationTask.getName(),
         version: currentMigrationTask.getVersion(),
         timestamp: startDate,
-        durationSecs: totalTaskTimeSecs
+        durationSecs: totalTaskTimeSecs,
       });
-      logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`;
+      logMsg = `${
+        currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'
+      } Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'executeTask',
-        message: logMsg
+        module: MODULE_NAME,
+        method: 'executeTask',
+        message: logMsg,
       });
       // Log in the console also
       Utils.isDevelopmentEnv() && Logging.logConsoleDebug(logMsg);
     } catch (error) {
-      const logMsg = `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.message as string}`;
+      const logMsg = `${
+        currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'
+      } Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${
+        error.message as string
+      }`;
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'executeTask',
+        module: MODULE_NAME,
+        method: 'executeTask',
         message: logMsg,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
       Logging.logConsoleError(logMsg);
     }

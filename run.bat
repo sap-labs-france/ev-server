@@ -1,1 +1,1 @@
-npm run start:dev:nodemon
+pnpm start:dev:nodemon

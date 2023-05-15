@@ -14,7 +14,12 @@ import Utils from '../../../../../utils/Utils';
 const MODULE_NAME = 'EMSPTariffsService';
 
 export default class EMSPTariffsService {
-  public static async handleGetTariff(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTariff(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     const { tenant } = req;
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
@@ -25,10 +30,12 @@ export default class EMSPTariffsService {
     const tariffId = urlSegment.shift();
     if (!countryCode || !partyId || !tariffId) {
       throw new AppError({
-        module: MODULE_NAME, method: 'handleGetTariff', action,
+        module: MODULE_NAME,
+        method: 'handleGetTariff',
+        action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
-        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
       });
     }
     let tariff: OCPITariff = {} as OCPITariff;
@@ -39,10 +46,12 @@ export default class EMSPTariffsService {
         tariff = OCPIUtils.convertSimplePricingSettingToOcpiTariff(pricingSettings.simple);
       } else {
         throw new AppError({
-          module: MODULE_NAME, method: 'handleGetTariff', action,
+          module: MODULE_NAME,
+          method: 'handleGetTariff',
+          action,
           errorCode: StatusCodes.NOT_FOUND,
           message: `Simple Pricing setting not found in Tenant ${Utils.buildTenantName(tenant)}`,
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
         });
       }
     }
@@ -50,4 +59,3 @@ export default class EMSPTariffsService {
     next();
   }
 }
-

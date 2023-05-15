@@ -9,23 +9,43 @@ export default class ChargingStationTemplateApi extends CrudApi {
   }
 
   public async readById(id) {
-    return super.readById(id, this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATE, { id }));
+    return super.readById(
+      id,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATE, { id })
+    );
   }
 
-  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATES));
+  public async readAll(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATES)
+    );
   }
 
   public async create(data: Partial<ChargingStationTemplateApi>) {
-    return super.create(data, this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATES));
+    return super.create(
+      data,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATES)
+    );
   }
 
   public async update(data) {
-    return super.update(data, this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATE, { id: data.id }));
+    return super.update(
+      data,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATE, { id: data.id })
+    );
   }
 
   public async delete(id) {
-    return super.delete(id, this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATE, { id }));
+    return super.delete(
+      id,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_CHARGING_STATION_TEMPLATE, { id })
+    );
   }
-
 }

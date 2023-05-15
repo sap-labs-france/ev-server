@@ -12,7 +12,12 @@ import { StatusCodes } from 'http-status-codes';
 const MODULE_NAME = 'EMSPCommandsService';
 
 export default class EMSPCommandsService {
-  public static async handleCommand(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCommand(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     const { tenant } = req;
     // Split URL Segments
     // /ocpi/cpo/2.0/commands/{command}
@@ -25,10 +30,12 @@ export default class EMSPCommandsService {
     const command = urlSegment.shift();
     if (!command) {
       throw new AppError({
-        module: MODULE_NAME, method: 'handleCommand', action,
+        module: MODULE_NAME,
+        method: 'handleCommand',
+        action,
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'OCPI Command is not provided',
-        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
       });
     }
     // eslint-disable-next-line no-case-declarations
@@ -42,17 +49,23 @@ export default class EMSPCommandsService {
           await Logging.logError({
             tenantID: tenant.id,
             action: EMSPCommandsService.getAction(command),
-            message: `OCPI Callback '${req.body?.result as string}' received for Command '${command}' with ID '${commandId}'`,
-            module: MODULE_NAME, method: 'process',
-            detailedMessages: { response: req.body }
+            message: `OCPI Callback '${
+              req.body?.result as string
+            }' received for Command '${command}' with ID '${commandId}'`,
+            module: MODULE_NAME,
+            method: 'process',
+            detailedMessages: { response: req.body },
           });
         } else {
           await Logging.logInfo({
             tenantID: tenant.id,
             action: EMSPCommandsService.getAction(command),
-            message: `OCPI Callback '${req.body?.result as string}' received for Command '${command}' with ID '${commandId}'`,
-            module: MODULE_NAME, method: 'process',
-            detailedMessages: { response: req.body }
+            message: `OCPI Callback '${
+              req.body?.result as string
+            }' received for Command '${command}' with ID '${commandId}'`,
+            module: MODULE_NAME,
+            method: 'process',
+            detailedMessages: { response: req.body },
           });
         }
         res.json(OCPIUtils.success());
@@ -73,4 +86,3 @@ export default class EMSPCommandsService {
     }
   }
 }
-

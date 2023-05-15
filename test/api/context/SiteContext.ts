@@ -2,7 +2,6 @@ import SiteAreaContext from './SiteAreaContext';
 import TenantContext from './TenantContext';
 
 export default class SiteContext {
-
   private tenantContext: TenantContext;
   private siteAreas: SiteAreaContext[];
   private site: any;
@@ -50,5 +49,4 @@ export default class SiteContext {
     this.siteAreas.push(siteAreaContext);
     return siteAreaContext;
   }
-
 }

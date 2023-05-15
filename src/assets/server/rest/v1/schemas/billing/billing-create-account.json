@@ -15,8 +15,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "businessOwnerID",
-    "companyName"
-  ]
+  "required": ["businessOwnerID", "companyName"]
 }

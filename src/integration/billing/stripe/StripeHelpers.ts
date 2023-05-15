@@ -1,4 +1,11 @@
-import { BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingSessionData } from '../../../types/Billing';
+import {
+  BillingError,
+  BillingErrorCode,
+  BillingErrorType,
+  BillingInvoice,
+  BillingInvoiceItem,
+  BillingSessionData,
+} from '../../../types/Billing';
 
 import Constants from '../../../utils/Constants';
 import Countries from 'i18n-iso-countries';
@@ -8,16 +15,19 @@ import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 
 export interface StripeChargeOperationResult {
-  succeeded: boolean
-  error?: Error
-  invoice?: Stripe.Invoice // the invoice after the payment attempt
+  succeeded: boolean;
+  error?: Error;
+  invoice?: Stripe.Invoice; // the invoice after the payment attempt
 }
 
 export default class StripeHelpers {
-
-  public static enrichInvoiceWithAdditionalData(billingInvoice: BillingInvoice, operationResult: StripeChargeOperationResult, billingInvoiceItem?: BillingInvoiceItem): void {
+  public static enrichInvoiceWithAdditionalData(
+    billingInvoice: BillingInvoice,
+    operationResult: StripeChargeOperationResult,
+    billingInvoiceItem?: BillingInvoiceItem
+  ): void {
     if (operationResult && !operationResult.succeeded) {
-    // The operation failed
+      // The operation failed
       const billingError = StripeHelpers.convertToBillingError(operationResult.error);
       if (billingError) {
         billingInvoice.lastError = billingError;
@@ -32,7 +42,7 @@ export default class StripeHelpers {
       if (billingInvoice.sessions) {
         billingInvoice.sessions.push(session);
       } else {
-        billingInvoice.sessions = [ session ];
+        billingInvoice.sessions = [session];
       }
     }
   }
@@ -51,21 +61,27 @@ export default class StripeHelpers {
     };
   }
 
-  public static guessRootCause(error: Error): { errorType: BillingErrorType, errorCode:BillingErrorCode } {
+  public static guessRootCause(error: Error): {
+    errorType: BillingErrorType;
+    errorCode: BillingErrorCode;
+  } {
     if (error instanceof Stripe.errors.StripeError) {
       return StripeHelpers.guessStripeRootCause(error);
     }
     // Well this is not a STRIPE error
     return {
       errorType: BillingErrorType.APPLICATION_ERROR,
-      errorCode: BillingErrorCode.UNKNOWN_ERROR
+      errorCode: BillingErrorCode.UNKNOWN_ERROR,
     };
   }
 
-  public static guessStripeRootCause(error: Stripe.errors.StripeError): { errorType: BillingErrorType, errorCode:BillingErrorCode } {
+  public static guessStripeRootCause(error: Stripe.errors.StripeError): {
+    errorType: BillingErrorType;
+    errorCode: BillingErrorCode;
+  } {
     let errorType: BillingErrorType, errorCode: BillingErrorCode;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { statusCode, type, rawType, code, decline_code, } = error ;
+    const { statusCode, type, rawType, code, decline_code } = error;
     // ----------------------------------------------------------------------------
     // statusCode potential values: https://stripe.com/docs/api/errors
     // ----------------------------------------------------------------------------
@@ -94,7 +110,7 @@ export default class StripeHelpers {
     // Let's return what we could determine as being the root cause!
     return {
       errorType,
-      errorCode
+      errorCode,
     };
   }
 
@@ -124,13 +140,19 @@ export default class StripeHelpers {
     return !!list.data?.[0]?.livemode;
   }
 
-  public static buildCustomerCommonProperties(user: User): { name: string, description: string, preferred_locales: string[], email: string, address: Stripe.Address } {
+  public static buildCustomerCommonProperties(user: User): {
+    name: string;
+    description: string;
+    preferred_locales: string[];
+    email: string;
+    address: Stripe.Address;
+  } {
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customer: any = {
       name: Utils.buildUserFullName(user, false, false),
       description: i18nManager.translate('billing.generatedUser', { email: user.email }),
-      preferred_locales: [ Utils.getLanguageFromLocale(user.locale) ],
+      preferred_locales: [Utils.getLanguageFromLocale(user.locale)],
       email: user.email,
     };
     // Assign the address (if any)
@@ -158,7 +180,14 @@ export default class StripeHelpers {
       // Stripe does not support addresses where the country is not set!
       return null;
     }
-    const { address1: line1, address2: line2, postalCode: postal_code, city, /* department, */ region, country } = user.address;
+    const {
+      address1: line1,
+      address2: line2,
+      postalCode: postal_code,
+      city,
+      /* department, */ region,
+      country,
+    } = user.address;
     const countryAlpha2Code = StripeHelpers.getAlpha2CountryCode(country, user?.locale);
     const address: Stripe.Address = {
       line1,
@@ -166,7 +195,7 @@ export default class StripeHelpers {
       postal_code,
       city,
       state: region,
-      country: countryAlpha2Code // Stripe may throw exceptions when the country code is inconsistent! - null is supported
+      country: countryAlpha2Code, // Stripe may throw exceptions when the country code is inconsistent! - null is supported
     };
     return address;
   }
@@ -193,6 +222,6 @@ export default class StripeHelpers {
 
   public static isResourceMissingError(error: any): boolean {
     // TODO - Find a better way to handle such specific Stripe Errors
-    return (error.statusCode === 404 && error.code === 'resource_missing');
+    return error.statusCode === 404 && error.code === 'resource_missing';
   }
 }

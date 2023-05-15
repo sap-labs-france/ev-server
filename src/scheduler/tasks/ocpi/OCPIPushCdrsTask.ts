@@ -26,44 +26,54 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
         if (ocpiLock) {
           try {
             // Get all finished Transaction with no CDR
-            const transactionsMDB: {_id: number}[] = await global.database.getCollection<{_id: number}>(tenant.id, 'transactions')
-              .aggregate<{_id: number}>(
-              [
+            const transactionsMDB: { _id: number }[] = await global.database
+              .getCollection<{ _id: number }>(tenant.id, 'transactions')
+              .aggregate<{ _id: number }>([
                 {
                   $match: {
                     timestamp: {
-                      $gt: moment().date(0).date(1).startOf('day').toDate() // 1st day of the previous month 00:00:00 (AM)
+                      $gt: moment().date(0).date(1).startOf('day').toDate(), // 1st day of the previous month 00:00:00 (AM)
                     },
                     issuer: true,
                     stop: { $exists: true },
                     ocpiData: { $exists: true },
                     'stop.extraInactivityComputed': true, // Do not call processEndTransaction if the extra inactivity is not yet known
-                    'ocpiData.cdr': null
-                  }
+                    'ocpiData.cdr': null,
+                  },
                 },
                 {
-                  $project: { '_id': 1 }
-                }
-              ]).toArray();
+                  $project: { _id: 1 },
+                },
+              ])
+              .toArray();
             if (!Utils.isEmptyArray(transactionsMDB)) {
               await Logging.logInfo({
                 tenantID: tenant.id,
                 action: ServerAction.OCPI_CPO_PUSH_CDRS,
-                module: MODULE_NAME, method: 'processTenant',
+                module: MODULE_NAME,
+                method: 'processTenant',
                 message: `${transactionsMDB.length} Transaction's CDRs are going to be pushed to OCPI`,
               });
               for (const transactionMDB of transactionsMDB) {
                 // Get the lock: Used to avoid collision with manual push or end of transaction push
-                const ocpiTransactionLock = await LockingHelper.acquireOCPIPushCdrLock(tenant.id, transactionMDB._id);
+                const ocpiTransactionLock = await LockingHelper.acquireOCPIPushCdrLock(
+                  tenant.id,
+                  transactionMDB._id
+                );
                 if (ocpiTransactionLock) {
                   try {
                     // Get Transaction
-                    const transaction = await TransactionStorage.getTransaction(tenant, transactionMDB._id, { withUser: true });
+                    const transaction = await TransactionStorage.getTransaction(
+                      tenant,
+                      transactionMDB._id,
+                      { withUser: true }
+                    );
                     if (!transaction) {
                       await Logging.logError({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_CPO_PUSH_CDRS,
-                        module: MODULE_NAME, method: 'processTenant',
+                        module: MODULE_NAME,
+                        method: 'processTenant',
                         message: `Transaction ID '${transactionMDB._id}' not found`,
                       });
                       continue;
@@ -72,18 +82,24 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                       await Logging.logInfo({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_CPO_PUSH_CDRS,
-                        module: MODULE_NAME, method: 'processTenant',
+                        module: MODULE_NAME,
+                        method: 'processTenant',
                         message: `Transaction ID '${transactionMDB._id}' already has his CDR pushed`,
                       });
                       continue;
                     }
                     // Get Charging Station
-                    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID, { withSiteArea: true });
+                    const chargingStation = await ChargingStationStorage.getChargingStation(
+                      tenant,
+                      transaction.chargeBoxID,
+                      { withSiteArea: true }
+                    );
                     if (!chargingStation) {
                       await Logging.logError({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_CPO_PUSH_CDRS,
-                        module: MODULE_NAME, method: 'processTenant',
+                        module: MODULE_NAME,
+                        method: 'processTenant',
                         message: `Charging Station ID '${transaction.chargeBoxID}' not found`,
                       });
                       continue;
@@ -94,30 +110,44 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                       await Logging.logError({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_CPO_PUSH_CDRS,
-                        module: MODULE_NAME, method: 'processTenant',
+                        module: MODULE_NAME,
+                        method: 'processTenant',
                         message: `Tag ID '${transaction.tagID}' not found`,
                       });
                       continue;
                     }
                     // Roaming
-                    await OCPIFacade.processEndTransaction(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.user, ServerAction.OCPI_CPO_PUSH_CDRS);
+                    await OCPIFacade.processEndTransaction(
+                      tenant,
+                      transaction,
+                      chargingStation,
+                      chargingStation.siteArea,
+                      transaction.user,
+                      ServerAction.OCPI_CPO_PUSH_CDRS
+                    );
                     // Save
-                    await TransactionStorage.saveTransactionOcpiData(tenant, transaction.id, transaction.ocpiData);
+                    await TransactionStorage.saveTransactionOcpiData(
+                      tenant,
+                      transaction.id,
+                      transaction.ocpiData
+                    );
                     await Logging.logInfo({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_CPO_PUSH_CDRS,
-                      actionOnUser: (transaction.user ? transaction.user : null),
-                      module: MODULE_NAME, method: 'processTenant',
+                      actionOnUser: transaction.user ? transaction.user : null,
+                      module: MODULE_NAME,
+                      method: 'processTenant',
                       message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
-                      detailedMessages: { cdr: transaction.ocpiData.cdr }
+                      detailedMessages: { cdr: transaction.ocpiData.cdr },
                     });
                   } catch (error) {
                     await Logging.logError({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_CPO_PUSH_CDRS,
-                      module: MODULE_NAME, method: 'processTenant',
+                      module: MODULE_NAME,
+                      method: 'processTenant',
                       message: `Failed to pushed the CDR of the Transaction ID '${transactionMDB._id}' to OCPI`,
-                      detailedMessages: { error: error.stack, transaction: transactionMDB }
+                      detailedMessages: { error: error.stack, transaction: transactionMDB },
                     });
                   } finally {
                     await LockingManager.release(ocpiTransactionLock);
@@ -131,8 +161,11 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
         }
       }
     } catch (error) {
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_CDRS, error as Error);
+      await Logging.logActionExceptionMessage(
+        tenant.id,
+        ServerAction.OCPI_CPO_PUSH_CDRS,
+        error as Error
+      );
     }
   }
 }
-

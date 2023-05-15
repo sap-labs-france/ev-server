@@ -11,10 +11,7 @@
     "role": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": [
-        "CPO",
-        "EMSP"
-      ]
+      "enum": ["CPO", "EMSP"]
     },
     "baseUrl": {
       "type": "string",

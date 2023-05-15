@@ -1,7 +1,7 @@
 import ChangeNotification from './ChangeNotification';
 import { Data } from './GlobalType';
 
-export default interface SingleChangeNotification extends ChangeNotification{
+export default interface SingleChangeNotification extends ChangeNotification {
   data: NotificationData;
 }
 

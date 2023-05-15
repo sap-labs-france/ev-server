@@ -15,25 +15,38 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'ImportHelper';
 
 export default class ImportHelper {
-  public async processImportedUser(tenant: Tenant, importedUser: ImportedUser, existingSites: Map<string, Site>): Promise<User> {
+  public async processImportedUser(
+    tenant: Tenant,
+    importedUser: ImportedUser,
+    existingSites: Map<string, Site>
+  ): Promise<User> {
     // Get User
     let user = await UserStorage.getUserByEmail(tenant, importedUser.email);
     if (!user) {
       // Create User
       user = await this.createUser(tenant, importedUser);
     }
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && importedUser.siteIDs) {
+    if (
+      Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) &&
+      importedUser.siteIDs
+    ) {
       await this.processSiteAssignment(tenant, user, importedUser, existingSites);
     }
     return user;
   }
 
-  public async processImportedTag(tenant: Tenant, importedTag: ImportedTag, existingSites: Map<string, Site>): Promise<Tag> {
+  public async processImportedTag(
+    tenant: Tenant,
+    importedTag: ImportedTag,
+    existingSites: Map<string, Site>
+  ): Promise<Tag> {
     // Get Tag
     let tag = await TagStorage.getTag(tenant, importedTag.id, { withNbrTransactions: true });
     // Try to get Tag with Visual ID
     if (!tag && importedTag.visualID) {
-      tag = await TagStorage.getTagByVisualID(tenant, importedTag.visualID, { withNbrTransactions: true });
+      tag = await TagStorage.getTagByVisualID(tenant, importedTag.visualID, {
+        withNbrTransactions: true,
+      });
     }
     // If one found lets update it else create new tag
     if (tag) {
@@ -44,7 +57,11 @@ export default class ImportHelper {
     // Save user if any and get the ID to assign current tag
     if (importedTag.email && importedTag.name && importedTag.firstName) {
       // Check & Import the User
-      const user = await this.processImportedUser(tenant, importedTag as ImportedUser, existingSites);
+      const user = await this.processImportedUser(
+        tenant,
+        importedTag as ImportedUser,
+        existingSites
+      );
       // Assign
       tag.userID = user.id;
       // Make this Tag default
@@ -90,7 +107,7 @@ export default class ImportHelper {
       active: importedTag.importedData?.autoActivateTagAtImport,
       createdBy: { id: importedTag.importedBy },
       createdOn: importedTag.importedOn,
-      importedData: importedTag.importedData
+      importedData: importedTag.importedData,
     };
   }
 
@@ -123,11 +140,19 @@ export default class ImportHelper {
     return newUser;
   }
 
-  private async processSiteAssignment(tenant: Tenant, user: User, importedUser: ImportedUser, existingSites: Map<string, Site>): Promise<void> {
+  private async processSiteAssignment(
+    tenant: Tenant,
+    user: User,
+    importedUser: ImportedUser,
+    existingSites: Map<string, Site>
+  ): Promise<void> {
     // If we never got the sites from db -> construct array of existing sites
     if (existingSites.size === 0) {
       // Init Site collections
-      const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
+      const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, [
+        'id',
+        'name',
+      ]);
       for (const site of sites.result) {
         existingSites.set(site.id, site);
       }
@@ -143,9 +168,10 @@ export default class ImportHelper {
         await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.USERS_IMPORT,
-          module: MODULE_NAME, method: 'executeAsyncTask',
+          module: MODULE_NAME,
+          method: 'executeAsyncTask',
           user,
-          message: `Site ID '${importedSiteID}' does not exist`
+          message: `Site ID '${importedSiteID}' does not exist`,
         });
       }
     }
@@ -161,20 +187,21 @@ export default class ImportHelper {
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(tenant, user.id, { verificationToken });
     // Build account verif email with reset password embeded
-    const evseDashboardVerifyEmailURL = Utils.buildEvseURL(tenant.subdomain) +
-      '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' + user.email + '&ResetToken=' + resetHash;
+    const evseDashboardVerifyEmailURL =
+      Utils.buildEvseURL(tenant.subdomain) +
+      '/auth/verify-email?VerificationToken=' +
+      verificationToken +
+      '&Email=' +
+      user.email +
+      '&ResetToken=' +
+      resetHash;
     // Send activate account link
-    NotificationHandler.sendVerificationEmailUserImport(
-      tenant,
-      Utils.generateUUID(),
-      user,
-      {
-        'tenantName': tenant.name,
-        'user': user,
-        'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
-        'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-      }
-    ).catch((error) => {
+    NotificationHandler.sendVerificationEmailUserImport(tenant, Utils.generateUUID(), user, {
+      tenantName: tenant.name,
+      user: user,
+      evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+      evseDashboardVerifyEmailURL: evseDashboardVerifyEmailURL,
+    }).catch((error) => {
       Logging.logPromiseError(error, tenant?.id);
     });
   }

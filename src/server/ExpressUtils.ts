@@ -25,31 +25,42 @@ export default class ExpressUtils {
     // Cross origin headers
     app.use(cors());
     // Body parser
-    app.use(bodyParser.json({
-      limit: bodyLimit
-    }));
-    app.use(bodyParser.urlencoded({
-      extended: false,
-      limit: bodyLimit
-    }));
+    app.use(
+      bodyParser.json({
+        limit: bodyLimit,
+      })
+    );
+    app.use(
+      bodyParser.urlencoded({
+        extended: false,
+        limit: bodyLimit,
+      })
+    );
     app.use(useragent.express());
     if (debug || Utils.isDevelopmentEnv()) {
-      app.use(morgan((tokens, req: Request, res: Response) =>
-        [
-          tokens.method(req, res),
-          tokens.url(req, res), '-',
-          tokens.status(req, res), '-',
-          tokens['response-time'](req, res) + 'ms', '-',
-          tokens.res(req, res, 'content-length') / 1024 + 'Kb',
-        ].join(' ')
-      ));
+      app.use(
+        morgan((tokens, req: Request, res: Response) =>
+          [
+            tokens.method(req, res),
+            tokens.url(req, res),
+            '-',
+            tokens.status(req, res),
+            '-',
+            tokens['response-time'](req, res) + 'ms',
+            '-',
+            tokens.res(req, res, 'content-length') / 1024 + 'Kb',
+          ].join(' ')
+        )
+      );
     }
     // Mount express-sanitizer middleware
     app.use(sanitize());
     app.use(hpp());
-    app.use(bodyParser['xml']({
-      limit: bodyLimit
-    }));
+    app.use(
+      bodyParser['xml']({
+        limit: bodyLimit,
+      })
+    );
     // Health Check Handling
     app.get(Constants.HEALTH_CHECK_ROUTE, ExpressUtils.healthCheckService.bind(this));
     // Use

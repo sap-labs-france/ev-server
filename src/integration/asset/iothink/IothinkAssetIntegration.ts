@@ -30,7 +30,10 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     await this.connect();
   }
 
-  public async retrieveConsumptions(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
+  public async retrieveConsumptions(
+    asset: Asset,
+    manualCall: boolean
+  ): Promise<AbstractCurrentConsumption[]> {
     // Check if refresh interval of connection is exceeded
     if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
       return [];
@@ -38,22 +41,22 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     // Set new Token
     const token = await this.connect();
     // Calculate timestamp of the last consumption in seconds from 1.1.2000, if not available get start of day
-    const timestampStart = moment(asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment().startOf('day')).diff(this.timestampReference, 'seconds');
+    const timestampStart = moment(
+      asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment().startOf('day')
+    ).diff(this.timestampReference, 'seconds');
     const request = `${this.connection.url}/${asset.meterID}&startTime=${timestampStart}`;
     try {
       // Get consumption
-      const response = await this.axiosInstance.get(
-        request,
-        {
-          headers: this.buildAuthHeader(token)
-        }
-      );
+      const response = await this.axiosInstance.get(request, {
+        headers: this.buildAuthHeader(token),
+      });
       await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > Iothink web service has been called successfully`,
-        module: MODULE_NAME, method: 'retrieveConsumption',
-        detailedMessages: { response: response.data }
+        module: MODULE_NAME,
+        method: 'retrieveConsumption',
+        detailedMessages: { response: response.data },
       });
       return this.filterConsumptionRequest(asset, response.data, manualCall);
     } catch (error) {
@@ -62,12 +65,16 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
         method: 'retrieveConsumption',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: 'Error while retrieving the asset consumption',
-        detailedMessages: { request, token, error: error.stack, asset }
+        detailedMessages: { request, token, error: error.stack, asset },
       });
     }
   }
 
-  private filterConsumptionRequest(asset: Asset, data: any, manualCall: boolean): AbstractCurrentConsumption[] {
+  private filterConsumptionRequest(
+    asset: Asset,
+    data: any,
+    manualCall: boolean
+  ): AbstractCurrentConsumption[] {
     const consumptions: AbstractCurrentConsumption[] = [];
     // Create helper map to merge the arrays to combined objects
     const mergedResponseMap = new Map();
@@ -86,10 +93,12 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
     if (!Utils.isEmptyArray(mergedResponseArray)) {
       for (const mergedConsumption of mergedResponseArray) {
-        if (Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_ACTIVE]) &&
-            Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L1]) &&
-            Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L2]) &&
-            Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L3])) {
+        if (
+          Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_ACTIVE]) &&
+          Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L1]) &&
+          Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L2]) &&
+          Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_L3])
+        ) {
           // Skip if current power is undefined
           continue;
         }
@@ -98,39 +107,73 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
           case AssetType.CONSUMPTION:
           case AssetType.PRODUCTION:
             if (!Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_ACTIVE])) {
-              consumption.currentInstantWatts = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(energyDirection * 1000).toNumber();
+              consumption.currentInstantWatts = Utils.createDecimal(
+                this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)
+              )
+                .mul(energyDirection * 1000)
+                .toNumber();
             } else {
-              consumption.currentInstantWatts = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_L1))
+              consumption.currentInstantWatts = Utils.createDecimal(
+                this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_L1)
+              )
                 .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_L2))
-                .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_L3)).mul(energyDirection * 1000).toNumber();
+                .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_L3))
+                .mul(energyDirection * 1000)
+                .toNumber();
             }
             if (!Utils.isUndefined(mergedConsumption[IothinkProperty.IO_ENERGY_INPUT])) {
-              consumption.currentTotalConsumptionWh = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_INPUT)).mul(1000).toNumber();
+              consumption.currentTotalConsumptionWh = Utils.createDecimal(
+                this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_INPUT)
+              )
+                .mul(1000)
+                .toNumber();
             } else {
-              consumption.currentTotalConsumptionWh =
-                Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L1))
-                  .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L2))
-                  .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L3)).mul(1000).toNumber();
+              consumption.currentTotalConsumptionWh = Utils.createDecimal(
+                this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L1)
+              )
+                .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L2))
+                .plus(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_L3))
+                .mul(1000)
+                .toNumber();
             }
             if (asset.siteArea?.voltage) {
-              consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
+              consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts)
+                .div(asset.siteArea.voltage)
+                .toNumber();
             }
             consumption.lastConsumption = {
-              timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
-              value: consumption.currentTotalConsumptionWh
+              timestamp: moment(this.timestampReference)
+                .add(mergedConsumption.timestamp, 'seconds')
+                .toDate(),
+              value: consumption.currentTotalConsumptionWh,
             };
             break;
           case AssetType.CONSUMPTION_AND_PRODUCTION:
-            consumption.currentInstantWatts = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(1000).toNumber();
-            consumption.currentStateOfCharge = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_SOC);
-            consumption.currentConsumptionWh = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_CHARGE)
-              - this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_DISCHARGE)).mul(1000).toNumber();
+            consumption.currentInstantWatts = Utils.createDecimal(
+              this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)
+            )
+              .mul(1000)
+              .toNumber();
+            consumption.currentStateOfCharge = this.getPropertyValue(
+              mergedConsumption,
+              IothinkProperty.IO_SOC
+            );
+            consumption.currentConsumptionWh = Utils.createDecimal(
+              this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_CHARGE) -
+                this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_DISCHARGE)
+            )
+              .mul(1000)
+              .toNumber();
             if (asset.siteArea?.voltage) {
-              consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
+              consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts)
+                .div(asset.siteArea.voltage)
+                .toNumber();
             }
             consumption.lastConsumption = {
-              timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
-              value: consumption.currentConsumptionWh
+              timestamp: moment(this.timestampReference)
+                .add(mergedConsumption.timestamp, 'seconds')
+                .toDate(),
+              value: consumption.currentConsumptionWh,
             };
             break;
         }
@@ -152,7 +195,10 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
 
   private async connect(): Promise<string> {
     // Get token from cache
-    const key = this.connection.id + this.connection.iothinkConnection.user + this.connection.iothinkConnection.password;
+    const key =
+      this.connection.id +
+      this.connection.iothinkConnection.user +
+      this.connection.iothinkConnection.password;
     let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(key);
     if (!token) {
       this.checkConnectionIsProvided();
@@ -164,16 +210,17 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     return token.accessToken;
   }
 
-  private async fetchAssetProviderToken(credentials: URLSearchParams): Promise<AssetConnectionToken> {
-    const response = await Utils.executePromiseWithTimeout(5000,
-      this.axiosInstance.post(`${this.connection.url}/token`,
-        credentials,
-        {
-          'axios-retry': {
-            retries: 0
-          },
-          headers: this.buildFormHeaders()
-        }),
+  private async fetchAssetProviderToken(
+    credentials: URLSearchParams
+  ): Promise<AssetConnectionToken> {
+    const response = await Utils.executePromiseWithTimeout(
+      5000,
+      this.axiosInstance.post(`${this.connection.url}/token`, credentials, {
+        'axios-retry': {
+          retries: 0,
+        },
+        headers: this.buildFormHeaders(),
+      }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/token'`
     );
     return {
@@ -182,7 +229,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
       expiresIn: response.data.expires_in,
       userName: response.data.userName,
       issued: response.data['.issued'],
-      expires: response.data['.expires']
+      expires: response.data['.expires'],
     };
   }
 
@@ -190,7 +237,10 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.iothinkConnection.user);
-    params.append('password', await Cypher.decrypt(this.tenant, this.connection.iothinkConnection.password));
+    params.append(
+      'password',
+      await Cypher.decrypt(this.tenant, this.connection.iothinkConnection.password)
+    );
     return params;
   }
 
@@ -200,20 +250,20 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,
-        message: 'No connection provided'
+        message: 'No connection provided',
       });
     }
   }
 
   private buildFormHeaders(): any {
     return {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     };
   }
 
   private buildAuthHeader(token: string): any {
     return {
-      'Authorization': 'Bearer ' + token
+      Authorization: 'Bearer ' + token,
     };
   }
 }

@@ -5,7 +5,10 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import Site from './Site';
 import SiteArea from './SiteArea';
 
-export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsumption, AssetAuthorizationActions {
+export default interface Asset
+  extends CreatedUpdatedProps,
+    AbstractCurrentConsumption,
+    AssetAuthorizationActions {
   id: string;
   name: string;
   companyID: string;
@@ -20,19 +23,19 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   issuer: boolean;
   image?: string;
   dynamicAsset: boolean;
-  usesPushAPI:boolean;
+  usesPushAPI: boolean;
   connectionID?: string;
   meterID?: string;
-  values: Consumption[],
-  excludeFromSmartCharging?: boolean,
-  variationThresholdPercent?: number,
-  powerWattsLastSmartChargingRun?: number
+  values: Consumption[];
+  excludeFromSmartCharging?: boolean;
+  variationThresholdPercent?: number;
+  powerWattsLastSmartChargingRun?: number;
 }
 
 export interface WitDataSet {
-  wType: string,
-  T: Date,
-  V: number,
+  wType: string;
+  T: Date;
+  V: number;
 }
 
 export enum AssetType {
@@ -57,7 +60,6 @@ export enum SchneiderProperty {
 }
 
 export enum IothinkProperty {
-
   // Power
   IO_POW_ACTIVE = 'io-pow-active',
   IO_POW_L1 = 'io-pow-l1',
@@ -78,18 +80,18 @@ export enum IothinkProperty {
 
 export interface LacroixResponse {
   userID: string;
-  subscriptionRef: string
+  subscriptionRef: string;
   period: string;
   groupBy: string;
-  data: LacroixDataPoint[]
+  data: LacroixDataPoint[];
 }
 
 export interface LacroixDataPoint {
   date: string;
-  powerApparentConsumedTotal:	number;
-  powerApparentReference:	number;
-  powerApparentConsumed1:	number;
-  powerApparentConsumed2:	number;
+  powerApparentConsumedTotal: number;
+  powerApparentReference: number;
+  powerApparentConsumed1: number;
+  powerApparentConsumed2: number;
   powerApparentConsumed3: number;
 }
 
@@ -101,11 +103,10 @@ export enum LacroixPeriods {
 }
 
 export interface AssetConnectionToken {
-  accessToken: string,
-  tokenType?: string,
-  expiresIn?: number,
-  userName?: string,
-  issued?: Date,
-  expires: Date,
+  accessToken: string;
+  tokenType?: string;
+  expiresIn?: number;
+  userName?: string;
+  issued?: Date;
+  expires: Date;
 }
-

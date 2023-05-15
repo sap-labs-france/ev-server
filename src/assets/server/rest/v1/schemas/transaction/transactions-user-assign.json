@@ -10,8 +10,5 @@
       "$ref": "user#/definitions/id"
     }
   },
-  "required": [
-    "TagID",
-    "UserID"
-  ]
+  "required": ["TagID", "UserID"]
 }

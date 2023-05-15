@@ -255,9 +255,7 @@
     "end-of-signed-session": {
       "title": "Session Finished - Signed Session",
       "buttonText": "View Session",
-      "text": [
-        "Ladetransaktion abgeschlossen"
-      ],
+      "text": ["Ladetransaktion abgeschlossen"],
       "table": [
         { "label": "Charger", "value": "{{chargeBoxID}}" },
         { "label": "Connector", "value": "{{connectorId}}" },
@@ -268,7 +266,7 @@
         { "label": "Stop counter", "value": "{{meterStop}} kWh" },
         { "label": "Consumption", "value": "{{totalConsumption}} kWh" },
         { "label": "Cost", "value": "{{price}}€ {{relativeCost}}€/kWh) (informative)" },
-        { "label": "Contract for", "value":"LOCAL (informative)" }
+        { "label": "Contract for", "value": "LOCAL (informative)" }
       ]
     },
     "end-of-charge": {
@@ -323,9 +321,7 @@
     "charging-station-registered": {
       "title": "Stazione di Ricarica Connessa",
       "buttonText": "Visualizzare la stazione di ricarica",
-      "text": [
-        "La stazione di ricarica {{chargeBoxID}} é stata connessa al server centrale."
-      ]
+      "text": ["La stazione di ricarica {{chargeBoxID}} é stata connessa al server centrale."]
     },
     "end-user-error-notification": {
       "title": "Un utente ha riportato un errore",
@@ -474,9 +470,7 @@
     "billing-periodic-operation-failed": {
       "title": "Fatturazione - Procedura di fatturazione periodica fallita",
       "buttonText": "Accedere a {{tenantName}}",
-      "text": [
-        "Impossibile trattare {{nbrInvoicesInError}} fattura(e)."
-      ]
+      "text": ["Impossibile trattare {{nbrInvoicesInError}} fattura(e)."]
     },
     "billing-account-activated": {
       "title": "Account di Fatturazione attivato",
@@ -490,9 +484,7 @@
     "car-synchronization-failed": {
       "title": "Sincronizzazione dati del veicolo fallita",
       "buttonText": "Accedere a {{tenantName}}",
-      "text": [
-        "Impossibile sincronizzare i dati per {{nbrCarsInError}} veicolo(i)."
-      ]
+      "text": ["Impossibile sincronizzare i dati per {{nbrCarsInError}} veicolo(i)."]
     },
     "compute-and-apply-charging-profiles-failed": {
       "title": "Procedura di applicazione dei profili di carica fallita",
@@ -505,9 +497,7 @@
     "account-verification-notification-active": {
       "title": "Account verificato",
       "buttonText": "Accedere a {{tenantName}}",
-      "text": [
-        "L'account é stato creato e attivato con successo!"
-      ]
+      "text": ["L'account é stato creato e attivato con successo!"]
     },
     "account-verification-notification-inactive": {
       "title": "Account verificato",

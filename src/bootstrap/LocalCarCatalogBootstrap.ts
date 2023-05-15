@@ -11,10 +11,12 @@ import global from '../types/GlobalType';
 const MODULE_NAME = 'LocalCarIntegration';
 
 export default class LocalCarCatalogBootstrap {
-  public static async uploadLocalCarCatalogsFromFile() : Promise<void> {
+  public static async uploadLocalCarCatalogsFromFile(): Promise<void> {
     let created = 0;
     try {
-      const carCatalogs = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/cars/car-catalogs-definition.json`, 'utf8')) as CarCatalog[];
+      const carCatalogs = JSON.parse(
+        fs.readFileSync(`${global.appRoot}/assets/cars/car-catalogs-definition.json`, 'utf8')
+      ) as CarCatalog[];
       if (!Utils.isEmptyArray(carCatalogs)) {
         for (const carCatalog of carCatalogs) {
           try {
@@ -53,12 +55,16 @@ export default class LocalCarCatalogBootstrap {
             await CarStorage.saveCarCatalog(carCatalog);
             created++;
           } catch (error) {
-            const message = `Error while importing the local Car ID '${carCatalog.id}': ${error.message as string}`;
+            const message = `Error while importing the local Car ID '${carCatalog.id}': ${
+              error.message as string
+            }`;
             await Logging.logError({
               tenantID: Constants.DEFAULT_TENANT_ID,
               action: ServerAction.UPDATE_LOCAL_CAR_CATALOGS,
-              module: MODULE_NAME, method: 'uploadLocalCarCatalogsFromFile',
-              message, detailedMessages: { error: error.stack }
+              module: MODULE_NAME,
+              method: 'uploadLocalCarCatalogsFromFile',
+              message,
+              detailedMessages: { error: error.stack },
             });
             Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
           }
@@ -69,8 +75,10 @@ export default class LocalCarCatalogBootstrap {
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.UPDATE_LOCAL_CAR_CATALOGS,
-        module: MODULE_NAME, method: 'uploadLocalCarCatalogsFromFile',
-        message, detailedMessages: { error: error.stack }
+        module: MODULE_NAME,
+        method: 'uploadLocalCarCatalogsFromFile',
+        message,
+        detailedMessages: { error: error.stack },
       });
       Utils.isDevelopmentEnv() && Logging.logConsoleError(message);
     }
@@ -80,7 +88,9 @@ export default class LocalCarCatalogBootstrap {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.UPDATE_LOCAL_CAR_CATALOGS,
-        message, module: MODULE_NAME, method: 'uploadLocalCarCatalogsFromFile',
+        message,
+        module: MODULE_NAME,
+        method: 'uploadLocalCarCatalogsFromFile',
       });
       Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
     }

@@ -26,7 +26,5 @@
       "default": ""
     }
   },
-  "required": [
-    "id"
-  ]
+  "required": ["id"]
 }

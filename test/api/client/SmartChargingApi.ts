@@ -7,15 +7,42 @@ export default class SmartChargingApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public async testConnection(params?, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, `/v1/api/${RESTServerRoute.REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION}`);
+  public async testConnection(
+    params?,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      `/v1/api/${RESTServerRoute.REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION}`
+    );
   }
 
-  public async getChargingProfiles(params?, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, `/v1/api/${RESTServerRoute.REST_CHARGING_PROFILES}`);
+  public async getChargingProfiles(
+    params?,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      `/v1/api/${RESTServerRoute.REST_CHARGING_PROFILES}`
+    );
   }
 
-  public async triggerSmartCharging(params?, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, `/v1/api/${RESTServerRoute.REST_CHARGING_STATION_TRIGGER_SMART_CHARGING}`);
+  public async triggerSmartCharging(
+    params?,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      `/v1/api/${RESTServerRoute.REST_CHARGING_STATION_TRIGGER_SMART_CHARGING}`
+    );
   }
 }

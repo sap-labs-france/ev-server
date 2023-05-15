@@ -1,22 +1,28 @@
-import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from './Billing';
-import { Car, CarCatalog } from './Car';
-import ChargingStation, { ChargingStationTemplate } from './ChargingStation';
-import { ChargingStationInError, TransactionInError } from './InError';
-import Site, { UserSite } from './Site';
-import Transaction, { TransactionStats } from './Transaction';
-import User, { SiteUser } from './User';
-
 import Asset from './Asset';
 import { AuthorizationDefinitionFieldMetadata } from './Authorization';
+import {
+  BillingAccount,
+  BillingInvoice,
+  BillingPaymentMethod,
+  BillingTax,
+  BillingTransfer,
+} from './Billing';
+import { Car, CarCatalog } from './Car';
 import { ChargingProfile } from './ChargingProfile';
+import ChargingStation, { ChargingStationTemplate } from './ChargingStation';
 import Company from './Company';
+import { ChargingStationInError, TransactionInError } from './InError';
 import { Log } from './Log';
 import OCPIEndpoint from './ocpi/OCPIEndpoint';
 import PricingDefinition from './Pricing';
 import RegistrationToken from './RegistrationToken';
+import Reservation from './Reservation';
 import { SettingDB } from './Setting';
+import Site, { UserSite } from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
+import Transaction, { TransactionStats } from './Transaction';
+import User, { SiteUser } from './User';
 
 export interface DeletedResult {
   acknowledged?: boolean;
@@ -165,21 +171,21 @@ export interface AssetDataResult extends DataResult<Asset> {
 }
 export interface ChargingStationDataResult extends DataResult<ChargingStation> {
   canExport?: boolean;
-  canListSites?:boolean;
-  canListSiteAreas?:boolean;
-  canListCompanies?:boolean;
-  canListUsers?:boolean;
+  canListSites?: boolean;
+  canListSiteAreas?: boolean;
+  canListCompanies?: boolean;
+  canListUsers?: boolean;
 }
 
 export interface ChargingStationInErrorDataResult extends DataResult<ChargingStationInError> {
   canExport?: boolean;
-  canListSites?:boolean;
-  canListSiteAreas?:boolean;
-  canListCompanies?:boolean;
-  canListUsers?:boolean;
+  canListSites?: boolean;
+  canListSiteAreas?: boolean;
+  canListCompanies?: boolean;
+  canListUsers?: boolean;
 }
 export interface ChargingProfileDataResult extends DataResult<ChargingProfile> {
-  canListChargingStations?:boolean;
+  canListChargingStations?: boolean;
 }
 
 export interface SettingDBDataResult extends DataResult<SettingDB> {
@@ -198,4 +204,16 @@ export interface StatisticDataResult extends DataResult<any> {
   canListSites?: boolean;
   canListSiteAreas?: boolean;
   canExport?: boolean;
+}
+
+export interface ReservationDataResult extends DataResult<Reservation> {
+  canCreate?: boolean;
+  canExport?: boolean;
+  canDelete?: boolean;
+  canListUsers?: boolean;
+  canListSites?: boolean;
+  canListSiteAreas?: boolean;
+  canListTags?: boolean;
+  canListChargingStations?: boolean;
+  canListCompanies?: boolean;
 }

@@ -9,8 +9,17 @@ import Utils from './Utils';
 
 export default class RouterUtils {
   public static async handleRestServerAction(
-      handleMethod: (serverAction: ServerAction, req: Request, res: Response, next: NextFunction) => Promise<void>,
-      serverAction: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    handleMethod: (
+      serverAction: ServerAction,
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) => Promise<void>,
+    serverAction: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       // Trace Request
       await Logging.traceExpressRequest(req, res, next, serverAction);
@@ -25,8 +34,17 @@ export default class RouterUtils {
   }
 
   public static async handleOCPIServerAction(
-      handleMethod: (serverAction: ServerAction, req: Request, res: Response, next: NextFunction) => Promise<void>,
-      serverAction: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    handleMethod: (
+      serverAction: ServerAction,
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) => Promise<void>,
+    serverAction: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       // Trace Request
       await Logging.traceExpressRequest(req, res, next, serverAction);
@@ -37,8 +55,14 @@ export default class RouterUtils {
       // Trace
     } catch (error) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(error.stack);
-      void Logging.logActionExceptionMessage(req.tenant?.id ?? Constants.DEFAULT_TENANT_ID, error.params?.action ?? ServerAction.OCPI_ENDPOINT, error);
-      res.status(error.params?.errorCode ?? HTTPError.GENERAL_ERROR).json(OCPIUtils.toErrorResponse(error));
+      void Logging.logActionExceptionMessage(
+        req.tenant?.id ?? Constants.DEFAULT_TENANT_ID,
+        error.params?.action ?? ServerAction.OCPI_ENDPOINT,
+        error
+      );
+      res
+        .status(error.params?.errorCode ?? HTTPError.GENERAL_ERROR)
+        .json(OCPIUtils.toErrorResponse(error));
       next();
     }
   }

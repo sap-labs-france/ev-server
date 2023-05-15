@@ -1,24 +1,17 @@
 {
-    "$id": "diagnostics-status-notification-request",
-    "title": "DiagnosticsStatusNotificationRequest",
-    "type": "object",
-    "properties": {
-        "status": {
-            "type": "string",
-            "enum": [
-                "Idle",
-                "Uploaded",
-                "UploadFailed",
-                "Uploading"
-            ]
-        }
-    },
-    "additionalProperties": false,
-    "performanceID": {
-        "type": "string",
-        "description": "performance correlation ID"
-      },
-    "required": [
-        "status"
-    ]
+  "$id": "diagnostics-status-notification-request",
+  "title": "DiagnosticsStatusNotificationRequest",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["Idle", "Uploaded", "UploadFailed", "Uploading"]
+    }
+  },
+  "additionalProperties": false,
+  "performanceID": {
+    "type": "string",
+    "description": "performance correlation ID"
+  },
+  "required": ["status"]
 }

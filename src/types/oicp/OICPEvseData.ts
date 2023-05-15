@@ -5,8 +5,8 @@ import { OICPOperatorEvseData } from './OICPEvse';
 // NOTE: The eRoamingPushEvseData operation MUST always be used sequentially as described in Data Push Operations.
 //
 export interface OICPPushEvseDataCpoSend {
-  ActionType: OICPActionType, // Describes the action that has to be performed by Hubject with the provided data.
-  OperatorEvseData: OICPOperatorEvseData
+  ActionType: OICPActionType; // Describes the action that has to be performed by Hubject with the provided data.
+  OperatorEvseData: OICPOperatorEvseData;
 }
 
 export enum OICPActionType {

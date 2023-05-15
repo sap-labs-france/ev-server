@@ -10,11 +10,23 @@ export default class OCPIEndpointApi extends CrudApi {
   }
 
   public async readById(id: string) {
-    return super.readById(id, this.buildRestEndpointUrl(RESTServerRoute.REST_OCPI_ENDPOINT, { id }));
+    return super.readById(
+      id,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_OCPI_ENDPOINT, { id })
+    );
   }
 
-  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_OCPI_ENDPOINTS));
+  public async readAll(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_OCPI_ENDPOINTS)
+    );
   }
 
   public async create(data: OCPIEndpoint) {
@@ -22,7 +34,10 @@ export default class OCPIEndpointApi extends CrudApi {
   }
 
   public async update(data: OCPIEndpoint) {
-    return super.update(data, this.buildRestEndpointUrl(RESTServerRoute.REST_OCPI_ENDPOINT, { id: data.id }));
+    return super.update(
+      data,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_OCPI_ENDPOINT, { id: data.id })
+    );
   }
 
   public async delete(id: string) {

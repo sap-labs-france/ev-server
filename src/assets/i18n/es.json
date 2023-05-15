@@ -263,9 +263,7 @@
     "end-of-signed-session": {
       "title": "Session Finished - Signed Session",
       "buttonText": "View Session",
-      "text": [
-        "Ladetransaktion abgeschlossen"
-      ],
+      "text": ["Ladetransaktion abgeschlossen"],
       "table": [
         { "label": "Charger", "value": "{{chargeBoxID}}" },
         { "label": "Connector", "value": "{{connectorId}}" },
@@ -276,7 +274,7 @@
         { "label": "Stop counter", "value": "{{meterStop}} kWh" },
         { "label": "Consumption", "value": "{{totalConsumption}} kWh" },
         { "label": "Cost", "value": "{{price}}€ {{relativeCost}}€/kWh) (informative)" },
-        { "label": "Contract for", "value":"LOCAL (informative)" }
+        { "label": "Contract for", "value": "LOCAL (informative)" }
       ]
     },
     "end-of-charge": {
@@ -335,9 +333,7 @@
     "charging-station-registered": {
       "title": "Estación de carga conectada",
       "buttonText": "Vista de la estación de carga",
-      "text": [
-        "La estación de carga {{chargeBoxID}} acaba de conectarse al servidor central."
-      ]
+      "text": ["La estación de carga {{chargeBoxID}} acaba de conectarse al servidor central."]
     },
     "end-user-error-notification": {
       "title": "Error señalado por un usuario",
@@ -486,9 +482,7 @@
     "billing-periodic-operation-failed": {
       "title": "Facturación - Fallo de las operaciones periódicas",
       "buttonText": "Dirigirse a {{tenantName}}",
-      "text": [
-        "Fallo del proceso de {{nbrInvoicesInError}} factura(s)."
-      ]
+      "text": ["Fallo del proceso de {{nbrInvoicesInError}} factura(s)."]
     },
     "billing-account-activated": {
       "title": "Cuenta de facturación activada",
@@ -502,9 +496,7 @@
     "car-synchronization-failed": {
       "title": "Fallo de la sincronización de los vehículos",
       "buttonText": "Dirigirse a {{tenantName}}",
-      "text": [
-        "La sincronización de los datos de {{nbrCarsInError}} vehículo(s) ha fallado."
-      ]
+      "text": ["La sincronización de los datos de {{nbrCarsInError}} vehículo(s) ha fallado."]
     },
     "compute-and-apply-charging-profiles-failed": {
       "title": "Smart Charging - fallo al aplicar perfiles de carga",
@@ -517,9 +509,7 @@
     "account-verification-notification-active": {
       "title": "Cuenta verificada",
       "buttonText": "Dirigirse a {{tenantName}}",
-      "text": [
-        "Su cuenta ha sido verificada y activada con éxito!"
-      ]
+      "text": ["Su cuenta ha sido verificada y activada con éxito!"]
     },
     "account-verification-notification-inactive": {
       "title": "Cuenta verificada",

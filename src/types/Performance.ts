@@ -5,7 +5,7 @@ export default interface PerformanceRecord {
   tenantSubdomain: string;
   timestamp: Date;
   host: string;
-  action: ServerAction|string;
+  action: ServerAction | string;
   group: PerformanceRecordGroup;
   server?: string;
   durationMs?: number;

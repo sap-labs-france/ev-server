@@ -14,8 +14,6 @@ export default class BasicUserDynamicAuthorizationAssert extends DynamicAuthoriz
   }
 
   public getApplicableEntities(): Entity[] {
-    return [
-      Entity.USER
-    ];
+    return [Entity.USER];
   }
 }

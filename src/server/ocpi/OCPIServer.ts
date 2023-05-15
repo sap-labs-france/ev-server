@@ -38,13 +38,18 @@ export default class OCPIServer {
     this.expressApplication.use((req: Request, res: Response, next: NextFunction) => {
       if (!res.headersSent) {
         const error = new AppError({
-          module: MODULE_NAME, method: 'constructor',
+          module: MODULE_NAME,
+          method: 'constructor',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
           message: `Endpoint '${req.path}' not implemented`,
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
         });
-        void Logging.logActionExceptionMessage(req.tenant?.id ?? Constants.DEFAULT_TENANT_ID, error.params?.action ?? ServerAction.OCPI_ENDPOINT, error);
+        void Logging.logActionExceptionMessage(
+          req.tenant?.id ?? Constants.DEFAULT_TENANT_ID,
+          error.params?.action ?? ServerAction.OCPI_ENDPOINT,
+          error
+        );
         res.status(HTTPError.NOT_IMPLEMENTED_ERROR).json(OCPIUtils.toErrorResponse(error));
       }
     });
@@ -54,7 +59,12 @@ export default class OCPIServer {
 
   // Start the server
   public start(): void {
-    ServerUtils.startHttpServer(this.ocpiRestConfig, ServerUtils.createHttpServer(this.ocpiRestConfig, this.expressApplication), MODULE_NAME, ServerType.OCPI_SERVER);
+    ServerUtils.startHttpServer(
+      this.ocpiRestConfig,
+      ServerUtils.createHttpServer(this.ocpiRestConfig, this.expressApplication),
+      MODULE_NAME,
+      ServerType.OCPI_SERVER
+    );
   }
 
   private async initialize(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -63,7 +73,8 @@ export default class OCPIServer {
       // Get Token
       if (!req.headers || !req.headers.authorization) {
         throw new AppError({
-          module: MODULE_NAME, method: 'initialize',
+          module: MODULE_NAME,
+          method: 'initialize',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: 'Missing authorization token',
@@ -77,12 +88,13 @@ export default class OCPIServer {
         decodedToken = JSON.parse(OCPIUtils.atob(token));
       } catch (error) {
         throw new AppError({
-          module: MODULE_NAME, method: 'initialize',
+          module: MODULE_NAME,
+          method: 'initialize',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: 'Invalid authorization token',
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-          detailedMessages: { ...urlInfo, error: error.stack }
+          detailedMessages: { ...urlInfo, error: error.stack },
         });
       }
       const tenantSubdomain = decodedToken.tenant ?? decodedToken.tid;
@@ -90,53 +102,63 @@ export default class OCPIServer {
       const tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
       if (!tenant) {
         throw new AppError({
-          module: MODULE_NAME, method: 'initialize',
+          module: MODULE_NAME,
+          method: 'initialize',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not exist`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-          detailedMessages: { ...urlInfo, token }
+          detailedMessages: { ...urlInfo, token },
         });
       }
       req.tenant = tenant;
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         throw new AppError({
-          module: MODULE_NAME, method: 'initialize',
+          module: MODULE_NAME,
+          method: 'initialize',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not support OCPI`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-          detailedMessages: { ...urlInfo, token }
+          detailedMessages: { ...urlInfo, token },
         });
       }
       // Get Endpoint
       const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant, token);
       if (!ocpiEndpoint) {
         throw new AppError({
-          module: MODULE_NAME, method: 'initialize',
+          module: MODULE_NAME,
+          method: 'initialize',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: 'The OCPI Token does no longer exist in the OCPI endpoints',
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-          detailedMessages: { ...urlInfo, token }
+          detailedMessages: { ...urlInfo, token },
         });
       }
       req.ocpiEndpoint = ocpiEndpoint;
       // Check that the Token belongs to the right role (CPO or EMSP)
       if (!req.url.includes(ocpiEndpoint.role.toLocaleLowerCase())) {
         throw new AppError({
-          module: MODULE_NAME, method: 'initialize',
+          module: MODULE_NAME,
+          method: 'initialize',
           action: ServerAction.OCPI_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `Invalid OCPI Token for URL '${req.url}', OCPI Endpoint role is '${ocpiEndpoint.role}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-          detailedMessages: { ...urlInfo, token }
+          detailedMessages: { ...urlInfo, token },
         });
       }
       next();
     } catch (error) {
-      await Logging.logActionExceptionMessage(req.tenant?.id ?? Constants.DEFAULT_TENANT_ID, error.params?.action ?? ServerAction.OCPI_ENDPOINT, error);
-      res.status(error.params?.errorCode ?? HTTPError.GENERAL_ERROR).json(OCPIUtils.toErrorResponse(error));
+      await Logging.logActionExceptionMessage(
+        req.tenant?.id ?? Constants.DEFAULT_TENANT_ID,
+        error.params?.action ?? ServerAction.OCPI_ENDPOINT,
+        error
+      );
+      res
+        .status(error.params?.errorCode ?? HTTPError.GENERAL_ERROR)
+        .json(OCPIUtils.toErrorResponse(error));
     }
   }
 }

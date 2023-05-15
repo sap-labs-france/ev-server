@@ -24,8 +24,5 @@
       "$ref": "user#/definitions/mobileVersion"
     }
   },
-  "required": [
-    "mobileToken",
-    "mobileLastChangedOn"
-  ]
+  "required": ["mobileToken", "mobileLastChangedOn"]
 }

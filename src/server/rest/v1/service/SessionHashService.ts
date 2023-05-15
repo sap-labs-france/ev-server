@@ -13,7 +13,11 @@ import Utils from '../../../../utils/Utils';
 const MODULE_NAME = 'SessionHashService';
 
 export default class SessionHashService {
-  public static async checkUserAndTenantValidity(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async checkUserAndTenantValidity(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Get tenant id, user id and hash ID
     const userID = req.user.id;
     const tenantID = req.user.tenantID;
@@ -31,12 +35,13 @@ export default class SessionHashService {
         throw new AppError({
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `Tenant ID '${tenant.id}' does not exist`,
-          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          module: MODULE_NAME,
+          method: 'checkUserAndTenantValidity',
           user: req.user,
           detailedMessages: {
             request: req.url,
             headers: res.getHeaders(),
-          }
+          },
         });
       }
       // Get User
@@ -45,24 +50,26 @@ export default class SessionHashService {
         throw new AppError({
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `User ID '${userID}' does not exist`,
-          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          module: MODULE_NAME,
+          method: 'checkUserAndTenantValidity',
           user: req.user,
           detailedMessages: {
             request: req.url,
             headers: res.getHeaders(),
-          }
+          },
         });
       }
       if (user.status !== UserStatus.ACTIVE) {
         throw new AppError({
           errorCode: StatusCodes.UNAUTHORIZED,
           message: 'User is not active',
-          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          module: MODULE_NAME,
+          method: 'checkUserAndTenantValidity',
           user: req.user,
           detailedMessages: {
             request: req.url,
             headers: res.getHeaders(),
-          }
+          },
         });
       }
       // Set in HTTP request
@@ -78,12 +85,13 @@ export default class SessionHashService {
         throw new AppError({
           errorCode: HTTPError.USER_ACCOUNT_CHANGED,
           message: 'Request rejected: User data in token is outdated',
-          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          module: MODULE_NAME,
+          method: 'checkUserAndTenantValidity',
           user: req.user,
           detailedMessages: {
             request: req.url,
             headers: res.getHeaders(),
-          }
+          },
         });
       }
       // Check Tenant's Hash
@@ -91,12 +99,13 @@ export default class SessionHashService {
         throw new AppError({
           errorCode: HTTPError.TENANT_COMPONENT_CHANGED,
           message: 'Request rejected: Tenant data in token is outdated',
-          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          module: MODULE_NAME,
+          method: 'checkUserAndTenantValidity',
           user: req.user,
           detailedMessages: {
             request: req.url,
             headers: res.getHeaders(),
-          }
+          },
         });
       }
       // Check if Tenant URL has changed
@@ -104,14 +113,15 @@ export default class SessionHashService {
         throw new AppError({
           errorCode: StatusCodes.MOVED_TEMPORARILY,
           message: ReasonPhrases.MOVED_TEMPORARILY,
-          module: MODULE_NAME, method: 'checkUserAndTenantValidity',
+          module: MODULE_NAME,
+          method: 'checkUserAndTenantValidity',
           user: req.user,
           detailedMessages: {
-            redirectDomain:tenant.redirectDomain,
+            redirectDomain: tenant.redirectDomain,
             subdomain: tenant.subdomain,
             request: req.url,
             headers: res.getHeaders(),
-          }
+          },
         });
       }
       next();
@@ -123,7 +133,9 @@ export default class SessionHashService {
   public static buildUserHashID(user: User): string {
     // Generate User Hash
     if (user) {
-      return Utils.hash(`${Utils.getLanguageFromLocale(user.locale)}/${user.email}/${user.role}/${user.status}`);
+      return Utils.hash(
+        `${Utils.getLanguageFromLocale(user.locale)}/${user.email}/${user.role}/${user.status}`
+      );
     }
   }
 

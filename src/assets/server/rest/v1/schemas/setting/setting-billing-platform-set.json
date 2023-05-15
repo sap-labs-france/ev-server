@@ -5,8 +5,7 @@
   "properties": {
     "content": {
       "type": "object",
-      "properties": {
-      }
+      "properties": {}
     },
     "id": {
       "$ref": "common#/definitions/id"
@@ -20,7 +19,5 @@
       "$ref": "setting#/definitions/sensitiveData"
     }
   },
-  "required": [
-    "identifier"
-  ]
+  "required": ["identifier"]
 }

@@ -3,5 +3,5 @@ export default interface TraceConfiguration {
   traceEgressHttp: boolean;
   traceOcpp: boolean;
   traceDatabase: boolean;
-  traceNotification: false
+  traceNotification: false;
 }

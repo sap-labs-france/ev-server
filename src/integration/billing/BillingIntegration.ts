@@ -1,8 +1,32 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingAccount, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPlatformFeeStrategy, BillingPlatformInvoice, BillingSessionAccountData, BillingStatus, BillingTax, BillingTransfer, BillingTransferStatus, BillingUser } from '../../types/Billing';
-import { BillingPeriodicOperationTaskConfig, DispatchFundsTaskConfig } from '../../types/TaskConfig';
+import {
+  BillingAccount,
+  BillingDataTransactionStart,
+  BillingDataTransactionStop,
+  BillingDataTransactionUpdate,
+  BillingInvoice,
+  BillingInvoiceItem,
+  BillingInvoiceStatus,
+  BillingOperationResult,
+  BillingPaymentMethod,
+  BillingPlatformFeeStrategy,
+  BillingPlatformInvoice,
+  BillingSessionAccountData,
+  BillingStatus,
+  BillingTax,
+  BillingTransfer,
+  BillingTransferStatus,
+  BillingUser,
+} from '../../types/Billing';
+import {
+  BillingPeriodicOperationTaskConfig,
+  DispatchFundsTaskConfig,
+} from '../../types/TaskConfig';
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import Transaction, { CollectedFundReport, StartTransactionErrorCode } from '../../types/Transaction';
+import Transaction, {
+  CollectedFundReport,
+  StartTransactionErrorCode,
+} from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
 import { ActionsResponse } from '../../types/GlobalType';
@@ -49,7 +73,8 @@ export default abstract class BillingIntegration {
         tenantID: this.tenant.id,
         actionOnUser: user,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
-        module: MODULE_NAME, method: 'synchronizeUser',
+        module: MODULE_NAME,
+        method: 'synchronizeUser',
         message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
       });
       return billingUser;
@@ -58,9 +83,10 @@ export default abstract class BillingIntegration {
         tenantID: this.tenant.id,
         actionOnUser: user,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
-        module: MODULE_NAME, method: 'synchronizeUser',
+        module: MODULE_NAME,
+        method: 'synchronizeUser',
         message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
     }
     return billingUser;
@@ -74,15 +100,17 @@ export default abstract class BillingIntegration {
         await Logging.logWarning({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
-          module: MODULE_NAME, method: 'forceSynchronizeUser',
-          message: `CustomerID has been repaired - old value ${user?.billingData?.customerID} - ${billingUser?.billingData?.customerID}`
+          module: MODULE_NAME,
+          method: 'forceSynchronizeUser',
+          message: `CustomerID has been repaired - old value ${user?.billingData?.customerID} - ${billingUser?.billingData?.customerID}`,
         });
       }
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
         actionOnUser: user,
-        module: MODULE_NAME, method: 'forceSynchronizeUser',
+        module: MODULE_NAME,
+        method: 'forceSynchronizeUser',
         message: `Successfully forced the synchronization of user: '${user.id}' - '${user.email}'`,
       });
     } catch (error) {
@@ -90,23 +118,30 @@ export default abstract class BillingIntegration {
         tenantID: this.tenant.id,
         actionOnUser: user,
         action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
-        module: MODULE_NAME, method: 'forceSynchronizeUser',
+        module: MODULE_NAME,
+        method: 'forceSynchronizeUser',
         message: `Failed to force the synchronization of user: '${user.id}' - '${user.email}'`,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
     }
     return billingUser;
   }
 
-  public async chargeInvoices(taskConfig: BillingPeriodicOperationTaskConfig): Promise<ActionsResponse> {
+  public async chargeInvoices(
+    taskConfig: BillingPeriodicOperationTaskConfig
+  ): Promise<ActionsResponse> {
     const actionsDone: ActionsResponse = {
       inSuccess: 0,
-      inError: 0
+      inError: 0,
     };
     // Check connection
     await this.checkConnection();
     // Prepare filtering and sorting
-    let queryParameters : { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> };
+    let queryParameters: {
+      limit: number;
+      sort: Record<string, unknown>;
+      filter: Record<string, unknown>;
+    };
     if (taskConfig?.onlyProcessUnpaidInvoices) {
       // ACHTUNG - Job configuration is sensitive - Too many payment retries may violate card network rules
       queryParameters = this.prepareRetryPaymentQueryParameters(taskConfig?.forceOperation);
@@ -136,8 +171,9 @@ export default abstract class BillingIntegration {
               tenantID: this.tenant.id,
               action: ServerAction.BILLING_PERFORM_OPERATIONS,
               actionOnUser: invoice.user,
-              module: MODULE_NAME, method: 'chargeInvoices',
-              message: `Invoice is too new - Operation has been skipped - '${invoice.id}'`
+              module: MODULE_NAME,
+              method: 'chargeInvoices',
+              message: `Invoice is too new - Operation has been skipped - '${invoice.id}'`,
             });
             continue;
           }
@@ -150,8 +186,9 @@ export default abstract class BillingIntegration {
             tenantID: this.tenant.id,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
-            module: MODULE_NAME, method: 'chargeInvoices',
-            message: `Successfully charged invoice '${invoice.id}'`
+            module: MODULE_NAME,
+            method: 'chargeInvoices',
+            message: `Successfully charged invoice '${invoice.id}'`,
           });
           actionsDone.inSuccess++;
         } catch (error) {
@@ -160,9 +197,10 @@ export default abstract class BillingIntegration {
             tenantID: this.tenant.id,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
-            module: MODULE_NAME, method: 'chargeInvoices',
+            module: MODULE_NAME,
+            method: 'chargeInvoices',
             message: `Failed to charge invoice '${invoice.id}'`,
-            detailedMessages: { error: error.stack }
+            detailedMessages: { error: error.stack },
           });
         }
       }
@@ -173,13 +211,19 @@ export default abstract class BillingIntegration {
   public async sendInvoiceNotification(billingInvoice: BillingInvoice): Promise<boolean> {
     try {
       // Do not send notifications for invoices that are not yet finalized!
-      if (billingInvoice.status === BillingInvoiceStatus.OPEN || billingInvoice.status === BillingInvoiceStatus.PAID) {
+      if (
+        billingInvoice.status === BillingInvoiceStatus.OPEN ||
+        billingInvoice.status === BillingInvoiceStatus.PAID
+      ) {
         // Send link to the user using our notification framework (link to the front-end + download)
         const user = await UserStorage.getUser(this.tenant, billingInvoice.userID);
         // Stripe saves amount in cents
         const invoiceAmountAsDecimal = new Decimal(billingInvoice.amount).div(100);
         // Format amount with currency symbol depending on locale
-        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(invoiceAmountAsDecimal.toNumber());
+        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(user.locale), {
+          style: 'currency',
+          currency: billingInvoice.currency.toUpperCase(),
+        }).format(invoiceAmountAsDecimal.toNumber());
         // Send async notification
         NotificationHandler.sendBillingNewInvoiceNotification(
           this.tenant,
@@ -189,9 +233,15 @@ export default abstract class BillingIntegration {
             user,
             evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(this.tenant.subdomain),
             evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
-            invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(this.tenant.subdomain, billingInvoice.id),
+            invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(
+              this.tenant.subdomain,
+              billingInvoice.id
+            ),
             // Empty url allows to decide wether to display "pay" button in the email
-            payInvoiceUrl: billingInvoice.status === BillingInvoiceStatus.OPEN ? billingInvoice.payInvoiceUrl : '',
+            payInvoiceUrl:
+              billingInvoice.status === BillingInvoiceStatus.OPEN
+                ? billingInvoice.payInvoiceUrl
+                : '',
             invoiceAmount: invoiceAmount,
             invoiceNumber: billingInvoice.number,
             invoiceStatus: billingInvoice.status,
@@ -207,9 +257,10 @@ export default abstract class BillingIntegration {
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
         actionOnUser: billingInvoice.user,
-        module: MODULE_NAME, method: 'sendInvoiceNotification',
+        module: MODULE_NAME,
+        method: 'sendInvoiceNotification',
         message: `Failed to send notification for invoice '${billingInvoice.id}'`,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
       return false;
     }
@@ -222,7 +273,7 @@ export default abstract class BillingIntegration {
         message: 'User is not provided',
         module: MODULE_NAME,
         method: 'checkBillTransaction',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_TRANSACTION,
       });
     }
     // Check Charging Station
@@ -231,7 +282,7 @@ export default abstract class BillingIntegration {
         message: 'Charging Station is not provided',
         module: MODULE_NAME,
         method: 'checkBillTransaction',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_TRANSACTION,
       });
     }
     // Check Billing Data
@@ -240,12 +291,16 @@ export default abstract class BillingIntegration {
         message: 'User has no Billing Data',
         module: MODULE_NAME,
         method: 'checkBillTransaction',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_TRANSACTION,
       });
     }
   }
 
-  public checkStartTransaction(transaction: Transaction, chargingStation: ChargingStation, siteArea: SiteArea): boolean {
+  public checkStartTransaction(
+    transaction: Transaction,
+    chargingStation: ChargingStation,
+    siteArea: SiteArea
+  ): boolean {
     if (!this.settings.billing.isTransactionBillingActivated) {
       return false;
     }
@@ -255,7 +310,7 @@ export default abstract class BillingIntegration {
         message: 'User ID is not provided',
         module: MODULE_NAME,
         method: 'checkStartTransaction',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_TRANSACTION,
       });
     }
     // Check Free Access
@@ -267,7 +322,7 @@ export default abstract class BillingIntegration {
         message: 'The Charging Station is mandatory to start a Transaction',
         module: MODULE_NAME,
         method: 'checkStartTransaction',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_TRANSACTION,
       });
     }
     if (Utils.isTenantComponentActive(this.tenant, TenantComponents.ORGANIZATION)) {
@@ -277,7 +332,7 @@ export default abstract class BillingIntegration {
           message: 'The Site Area is mandatory to start a Transaction',
           module: MODULE_NAME,
           method: 'checkStartTransaction',
-          action: ServerAction.BILLING_TRANSACTION
+          action: ServerAction.BILLING_TRANSACTION,
         });
       }
       if (!siteArea.accessControl) {
@@ -290,7 +345,7 @@ export default abstract class BillingIntegration {
         message: 'User has no Billing data or no Customer ID',
         module: MODULE_NAME,
         method: 'checkStartTransaction',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_TRANSACTION,
       });
     }
     return true;
@@ -299,32 +354,44 @@ export default abstract class BillingIntegration {
   protected async updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
     if (!billingInvoice.sessions) {
       // This should not happen - but it happened once!
-      throw new Error(`Unexpected situation - Invoice ID '${billingInvoice.id}' has no sessions attached to it`);
+      throw new Error(
+        `Unexpected situation - Invoice ID '${billingInvoice.id}' has no sessions attached to it`
+      );
     }
-    await Promise.all(billingInvoice.sessions.map(async (session) => {
-      const transactionID = session.transactionID;
-      try {
-        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
-        // Update Billing Data
-        if (transaction?.billingData?.stop) {
-          transaction.billingData.stop.invoiceStatus = billingInvoice.status;
-          transaction.billingData.stop.invoiceNumber = billingInvoice.number;
-          transaction.billingData.lastUpdate = new Date();
-          // Save
-          await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
+    await Promise.all(
+      billingInvoice.sessions.map(async (session) => {
+        const transactionID = session.transactionID;
+        try {
+          const transaction = await TransactionStorage.getTransaction(
+            this.tenant,
+            Number(transactionID)
+          );
+          // Update Billing Data
+          if (transaction?.billingData?.stop) {
+            transaction.billingData.stop.invoiceStatus = billingInvoice.status;
+            transaction.billingData.stop.invoiceNumber = billingInvoice.number;
+            transaction.billingData.lastUpdate = new Date();
+            // Save
+            await TransactionStorage.saveTransactionBillingData(
+              this.tenant,
+              transaction.id,
+              transaction.billingData
+            );
+          }
+        } catch (error) {
+          // Catch stripe errors and send the information back to the client
+          await Logging.logError({
+            tenantID: this.tenant.id,
+            action: ServerAction.BILLING_CHARGE_INVOICE,
+            actionOnUser: billingInvoice.user,
+            module: MODULE_NAME,
+            method: 'updateTransactionsBillingData',
+            message: `Failed to update Transaction Billing data of Transaction ID '${transactionID}'`,
+            detailedMessages: { error: error.stack },
+          });
         }
-      } catch (error) {
-        // Catch stripe errors and send the information back to the client
-        await Logging.logError({
-          tenantID: this.tenant.id,
-          action: ServerAction.BILLING_CHARGE_INVOICE,
-          actionOnUser: billingInvoice.user,
-          module: MODULE_NAME, method: 'updateTransactionsBillingData',
-          message: `Failed to update Transaction Billing data of Transaction ID '${transactionID}'`,
-          detailedMessages: { error: error.stack }
-        });
-      }
-    }));
+      })
+    );
   }
 
   protected async checkBillingDataThreshold(transaction: Transaction): Promise<boolean> {
@@ -337,19 +404,24 @@ export default abstract class BillingIntegration {
           tenantID: this.tenant.id,
           user: transaction.userID,
           action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'stopTransaction',
+          module: MODULE_NAME,
+          method: 'stopTransaction',
           message: `Transaction duration is too short - billing operation has been aborted - transaction ID: ${transaction.id}`,
         });
         // Abort the billing process - thresholds are not met!
         return false;
       }
-      if (transaction.stop.totalConsumptionWh < Constants.AFIREV_MINIMAL_CONSUMPTION_THRESHOLD /* 0.5 kW.h */) {
+      if (
+        transaction.stop.totalConsumptionWh <
+        Constants.AFIREV_MINIMAL_CONSUMPTION_THRESHOLD /* 0.5 kW.h */
+      ) {
         await Logging.logWarning({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: this.tenant.id,
           user: transaction.userID,
           action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'stopTransaction',
+          module: MODULE_NAME,
+          method: 'stopTransaction',
           message: `Transaction consumption is too low - billing operation has been aborted - transaction ID: ${transaction.id}`,
         });
         // Abort the billing process - thresholds are not met!
@@ -368,16 +440,24 @@ export default abstract class BillingIntegration {
   protected computeTimeSpentInSeconds(transaction: Transaction): number {
     let totalDuration: number;
     if (!transaction.stop) {
-      totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+      totalDuration = moment
+        .duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp)))
+        .asSeconds();
     } else {
-      totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+      totalDuration = moment
+        .duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp)))
+        .asSeconds();
     }
     return totalDuration;
   }
 
-  protected async retrieveAccountData(transaction: Transaction) : Promise<BillingSessionAccountData> {
+  protected async retrieveAccountData(
+    transaction: Transaction
+  ): Promise<BillingSessionAccountData> {
     if (Utils.isTenantComponentActive(this.tenant, TenantComponents.BILLING_PLATFORM)) {
-      const site = await SiteStorage.getSite(this.tenant, transaction.siteID, { withCompany: true });
+      const site = await SiteStorage.getSite(this.tenant, transaction.siteID, {
+        withCompany: true,
+      });
       let accountData = site.accountData;
       if (!accountData?.accountID) {
         accountData = site.company?.accountData;
@@ -386,7 +466,7 @@ export default abstract class BillingIntegration {
         return {
           withTransferActive: true,
           accountID: accountData.accountID,
-          platformFeeStrategy: accountData.platformFeeStrategy
+          platformFeeStrategy: accountData.platformFeeStrategy,
         };
       }
     }
@@ -432,27 +512,34 @@ export default abstract class BillingIntegration {
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-      module: MODULE_NAME, method: 'clearTestData',
-      message: 'Starting test data cleanup'
+      module: MODULE_NAME,
+      method: 'clearTestData',
+      message: 'Starting test data cleanup',
     });
     await this.clearAllInvoiceTestData();
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-      module: MODULE_NAME, method: 'clearTestData',
-      message: 'Invoice Test data cleanup has been completed'
+      module: MODULE_NAME,
+      method: 'clearTestData',
+      message: 'Invoice Test data cleanup has been completed',
     });
     await this.clearAllUsersTestData();
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-      module: MODULE_NAME, method: 'clearTestData',
-      message: 'User Test data cleanup has been completed'
+      module: MODULE_NAME,
+      method: 'clearTestData',
+      message: 'User Test data cleanup has been completed',
     });
   }
 
   private async clearAllInvoiceTestData(): Promise<void> {
-    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(this.tenant, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
+    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(
+      this.tenant,
+      { liveMode: false },
+      Constants.DB_PARAMS_MAX_LIMIT
+    );
     // Let's now finalize all invoices and attempt to get it paid
     for (const invoice of invoices.result) {
       try {
@@ -461,17 +548,19 @@ export default abstract class BillingIntegration {
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
-          module: MODULE_NAME, method: 'clearAllInvoiceTestData',
-          message: `Successfully clear test data for invoice '${invoice.id}'`
+          module: MODULE_NAME,
+          method: 'clearAllInvoiceTestData',
+          message: `Successfully clear test data for invoice '${invoice.id}'`,
         });
       } catch (error) {
         await Logging.logError({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
-          module: MODULE_NAME, method: 'clearAllInvoiceTestData',
+          module: MODULE_NAME,
+          method: 'clearAllInvoiceTestData',
           message: `Failed to clear invoice test data - Invoice: '${invoice.id}'`,
-          detailedMessages: { error: error.stack }
+          detailedMessages: { error: error.stack },
         });
       }
     }
@@ -483,7 +572,7 @@ export default abstract class BillingIntegration {
         message: 'Unexpected situation - Attempt to clear an invoice with live Billing data',
         module: MODULE_NAME,
         method: 'clearInvoiceTestData',
-        action: ServerAction.BILLING_TEST_DATA_CLEANUP
+        action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       });
     }
     await this.clearTransactionsTestData(billingInvoice);
@@ -491,34 +580,44 @@ export default abstract class BillingIntegration {
   }
 
   private async clearTransactionsTestData(billingInvoice: BillingInvoice): Promise<void> {
-    await Promise.all(billingInvoice.sessions.map(async (session) => {
-      const transactionID = session.transactionID;
-      try {
-        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
-        // Update Billing Data
-        const stop: BillingDataTransactionStop = {
-          status: BillingStatus.UNBILLED,
-          invoiceID: null,
-          invoiceNumber: null,
-          invoiceStatus: null
-        };
-        transaction.billingData = {
-          withBillingActive: false,
-          lastUpdate:new Date(),
-          stop
-        };
-        // Save to clear billing data
-        await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
-      } catch (error) {
-        await Logging.logError({
-          tenantID: this.tenant.id,
-          action: ServerAction.BILLING_TEST_DATA_CLEANUP,
-          module: MODULE_NAME, method: 'clearTransactionsTestData',
-          message: 'Failed to clear transaction Billing data',
-          detailedMessages: { error: error.stack }
-        });
-      }
-    }));
+    await Promise.all(
+      billingInvoice.sessions.map(async (session) => {
+        const transactionID = session.transactionID;
+        try {
+          const transaction = await TransactionStorage.getTransaction(
+            this.tenant,
+            Number(transactionID)
+          );
+          // Update Billing Data
+          const stop: BillingDataTransactionStop = {
+            status: BillingStatus.UNBILLED,
+            invoiceID: null,
+            invoiceNumber: null,
+            invoiceStatus: null,
+          };
+          transaction.billingData = {
+            withBillingActive: false,
+            lastUpdate: new Date(),
+            stop,
+          };
+          // Save to clear billing data
+          await TransactionStorage.saveTransactionBillingData(
+            this.tenant,
+            transaction.id,
+            transaction.billingData
+          );
+        } catch (error) {
+          await Logging.logError({
+            tenantID: this.tenant.id,
+            action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+            module: MODULE_NAME,
+            method: 'clearTransactionsTestData',
+            message: 'Failed to clear transaction Billing data',
+            detailedMessages: { error: error.stack },
+          });
+        }
+      })
+    );
   }
 
   private async clearAllUsersTestData(): Promise<void> {
@@ -531,17 +630,19 @@ export default abstract class BillingIntegration {
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
-          module: MODULE_NAME, method: 'clearAllUsersTestData',
-          message: `Successfully cleared user test data for Invoice of User ID '${user.id}'`
+          module: MODULE_NAME,
+          method: 'clearAllUsersTestData',
+          message: `Successfully cleared user test data for Invoice of User ID '${user.id}'`,
         });
       } catch (error) {
         await Logging.logError({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
-          module: MODULE_NAME, method: 'clearAllUsersTestData',
+          module: MODULE_NAME,
+          method: 'clearAllUsersTestData',
           message: `Failed to clear user test data - User: '${user.id}'`,
-          detailedMessages: { error: error.stack }
+          detailedMessages: { error: error.stack },
         });
       }
     }
@@ -549,11 +650,14 @@ export default abstract class BillingIntegration {
 
   private async getUsersWithTestBillingData(): Promise<User[]> {
     // Get the users where billingData.liveMode is set to false
-    const users = await UserStorage.getUsers(this.tenant,
+    const users = await UserStorage.getUsers(
+      this.tenant,
       {
         statuses: [UserStatus.ACTIVE],
-        withTestBillingData: true
-      }, Constants.DB_PARAMS_MAX_LIMIT);
+        withTestBillingData: true,
+      },
+      Constants.DB_PARAMS_MAX_LIMIT
+    );
     if (users.count > 0) {
       return users.result;
     }
@@ -566,14 +670,17 @@ export default abstract class BillingIntegration {
         message: 'Unexpected situation - Attempt to clear an User with live Billing data',
         module: MODULE_NAME,
         method: 'clearUserTestBillingData',
-        action: ServerAction.BILLING_TEST_DATA_CLEANUP
+        action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       });
     }
     // Let's remove the billingData field
     await UserStorage.saveUserBillingData(this.tenant, user.id, null);
   }
 
-  private isInvoiceInPaginationScope(invoice: BillingInvoice, taskConfig: BillingPeriodicOperationTaskConfig): boolean {
+  private isInvoiceInPaginationScope(
+    invoice: BillingInvoice,
+    taskConfig: BillingPeriodicOperationTaskConfig
+  ): boolean {
     if (taskConfig.onlyProcessUnpaidInvoices) {
       if (invoice.status === BillingInvoiceStatus.OPEN) {
         return true;
@@ -584,11 +691,18 @@ export default abstract class BillingIntegration {
     return false;
   }
 
-  private isInvoiceOutOfPaginationScope(invoice: BillingInvoice, taskConfig: BillingPeriodicOperationTaskConfig): boolean {
+  private isInvoiceOutOfPaginationScope(
+    invoice: BillingInvoice,
+    taskConfig: BillingPeriodicOperationTaskConfig
+  ): boolean {
     return !this.isInvoiceInPaginationScope(invoice, taskConfig);
   }
 
-  private preparePeriodicBillingQueryParameters(forceOperation: boolean): { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> } {
+  private preparePeriodicBillingQueryParameters(forceOperation: boolean): {
+    limit: number;
+    sort: Record<string, unknown>;
+    filter: Record<string, unknown>;
+  } {
     if (!this.settings.billing?.periodicBillingAllowed) {
       // Nothing to do - periodic billing is OFF
       return null;
@@ -607,7 +721,7 @@ export default abstract class BillingIntegration {
       endDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
     }
     // Filter the invoice status based on the billing settings
-    const invoiceStatus = [ BillingInvoiceStatus.DRAFT ];
+    const invoiceStatus = [BillingInvoiceStatus.DRAFT];
     // Now return the query parameters
     return {
       // --------------------------------------------------------------------------------
@@ -617,14 +731,18 @@ export default abstract class BillingIntegration {
       filter: {
         startDateTime,
         endDateTime,
-        invoiceStatus
+        invoiceStatus,
       },
       limit,
-      sort: { createdOn: 1 } // Sort by creation date - process the eldest first!
+      sort: { createdOn: 1 }, // Sort by creation date - process the eldest first!
     };
   }
 
-  private prepareRetryPaymentQueryParameters(forceOperation: boolean): { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> } {
+  private prepareRetryPaymentQueryParameters(forceOperation: boolean): {
+    limit: number;
+    sort: Record<string, unknown>;
+    filter: Record<string, unknown>;
+  } {
     // Prepare filtering to process Invoices of the previous month
     let startDateTime: Date, endDateTime: Date, limit: number;
     if (forceOperation) {
@@ -636,10 +754,10 @@ export default abstract class BillingIntegration {
       // Used once a month
       limit = Constants.BATCH_PAGE_SIZE;
       startDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
-      endDateTime = moment().add(-1,'days').endOf('day').toDate(); // yesterday at midnight
+      endDateTime = moment().add(-1, 'days').endOf('day').toDate(); // yesterday at midnight
     }
     // Filter the invoice status based on the billing settings
-    const invoiceStatus = [ BillingInvoiceStatus.OPEN ];
+    const invoiceStatus = [BillingInvoiceStatus.OPEN];
     // Now return the query parameters
     return {
       // --------------------------------------------------------------------------------
@@ -649,10 +767,10 @@ export default abstract class BillingIntegration {
       filter: {
         startDateTime,
         endDateTime,
-        invoiceStatus
+        invoiceStatus,
       },
       limit,
-      sort: { createdOn: 1 } // Sort by creation date - process the eldest first!
+      sort: { createdOn: 1 }, // Sort by creation date - process the eldest first!
     };
   }
 
@@ -660,13 +778,15 @@ export default abstract class BillingIntegration {
 
   public abstract checkActivationPrerequisites(): Promise<void>;
 
-  public abstract checkTestDataCleanupPrerequisites() : Promise<void>;
+  public abstract checkTestDataCleanupPrerequisites(): Promise<void>;
 
-  public abstract resetConnectionSettings() : Promise<BillingSettings>;
+  public abstract resetConnectionSettings(): Promise<BillingSettings>;
 
   public abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 
-  public abstract updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate>;
+  public abstract updateTransaction(
+    transaction: Transaction
+  ): Promise<BillingDataTransactionUpdate>;
 
   public abstract stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
 
@@ -692,7 +812,10 @@ export default abstract class BillingIntegration {
 
   public abstract getTaxes(): Promise<BillingTax[]>;
 
-  public abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem): Promise<BillingInvoice>;
+  public abstract billInvoiceItem(
+    user: User,
+    billingInvoiceItems: BillingInvoiceItem
+  ): Promise<BillingInvoice>;
 
   public abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
 
@@ -702,19 +825,34 @@ export default abstract class BillingIntegration {
 
   public abstract consumeBillingEvent(req: Request): Promise<boolean>;
 
-  public abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
+  public abstract setupPaymentMethod(
+    user: User,
+    paymentMethodId: string
+  ): Promise<BillingOperationResult>;
 
   public abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
 
-  public abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
+  public abstract deletePaymentMethod(
+    user: User,
+    paymentMethodId: string
+  ): Promise<BillingOperationResult>;
 
-  public abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]>;
+  public abstract precheckStartTransactionPrerequisites(
+    user: User
+  ): Promise<StartTransactionErrorCode[]>;
 
   public abstract createConnectedAccount(): Promise<Partial<BillingAccount>>;
 
-  public abstract refreshConnectedAccount(billingAccount: BillingAccount, url: string): Promise<Partial<BillingAccount>>;
+  public abstract refreshConnectedAccount(
+    billingAccount: BillingAccount,
+    url: string
+  ): Promise<Partial<BillingAccount>>;
 
-  public abstract billPlatformFee(transfer: BillingTransfer, user: User, billingAccount: BillingAccount): Promise<BillingPlatformInvoice>;
+  public abstract billPlatformFee(
+    transfer: BillingTransfer,
+    user: User,
+    billingAccount: BillingAccount
+  ): Promise<BillingPlatformInvoice>;
 
   public abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
 
@@ -726,10 +864,12 @@ export default abstract class BillingIntegration {
     return !!customerID;
   }
 
-  public async dispatchCollectedFunds(taskConfig: DispatchFundsTaskConfig): Promise<ActionsResponse> {
+  public async dispatchCollectedFunds(
+    taskConfig: DispatchFundsTaskConfig
+  ): Promise<ActionsResponse> {
     const actionsDone: ActionsResponse = {
       inSuccess: 0,
-      inError: 0
+      inError: 0,
     };
     if (taskConfig?.forceOperation && Utils.isDevelopmentEnv()) {
       Logging.logConsoleDebug('Funds dispatching is being forced for testing purposes reasons!');
@@ -746,9 +886,10 @@ export default abstract class BillingIntegration {
           await Logging.logError({
             tenantID: this.tenant.id,
             action: ServerAction.BILLING_TRANSFER_DISPATCH_FUNDS,
-            module: MODULE_NAME, method: 'dispatchCollectedFunds',
+            module: MODULE_NAME,
+            method: 'dispatchCollectedFunds',
             message: `Failed to dispatch funds to account ID: '${collectedFundReport.key?.accountID}'`,
-            detailedMessages: { error: error.stack }
+            detailedMessages: { error: error.stack },
           });
         }
       }
@@ -756,18 +897,27 @@ export default abstract class BillingIntegration {
     return actionsDone;
   }
 
-  public async dispatchCollectedFundsToAccount(collectedFundReport: CollectedFundReport): Promise<void> {
+  public async dispatchCollectedFundsToAccount(
+    collectedFundReport: CollectedFundReport
+  ): Promise<void> {
     const accountID = collectedFundReport.key.accountID;
     const currency = collectedFundReport.key.currency;
 
     const nbTransactions = collectedFundReport.transactionIDs.length;
     if (nbTransactions) {
-      const lock = await LockingHelper.acquireDispatchCollectedFundsToAccountLock(this.tenant.id, accountID);
+      const lock = await LockingHelper.acquireDispatchCollectedFundsToAccountLock(
+        this.tenant.id,
+        accountID
+      );
       if (lock) {
         try {
           const transfer = await this.getDraftTransferForAccount(accountID, currency);
-          const collectedFunds = Utils.createDecimal(transfer.collectedFunds).plus(collectedFundReport.collectedFunds).toNumber();
-          const collectedFees = Utils.createDecimal(transfer.collectedFees).plus(collectedFundReport.collectedFees).toNumber();
+          const collectedFunds = Utils.createDecimal(transfer.collectedFunds)
+            .plus(collectedFundReport.collectedFunds)
+            .toNumber();
+          const collectedFees = Utils.createDecimal(transfer.collectedFees)
+            .plus(collectedFundReport.collectedFees)
+            .toNumber();
           const sessionCounter = transfer.sessionCounter + nbTransactions;
           const transferToSave: BillingTransfer = {
             ...transfer,
@@ -776,11 +926,16 @@ export default abstract class BillingIntegration {
             sessionCounter,
           };
           const transferID = await BillingStorage.saveTransfer(this.tenant, transferToSave);
-          await TransactionStorage.updateTransactionsWithTransferData(this.tenant, collectedFundReport.transactionIDs, transferID);
+          await TransactionStorage.updateTransactionsWithTransferData(
+            this.tenant,
+            collectedFundReport.transactionIDs,
+            transferID
+          );
           await Logging.logInfo({
             tenantID: this.tenant.id,
             action: ServerAction.BILLING_TRANSFER_DISPATCH_FUNDS,
-            module: MODULE_NAME, method: 'dispatchCollectedFunds',
+            module: MODULE_NAME,
+            method: 'dispatchCollectedFunds',
             message: `Funds dispatched - account ID: '${collectedFundReport.key?.accountID}' - Collected funds: ${collectedFunds} - Collected fees: ${collectedFees}`,
           });
         } finally {
@@ -794,7 +949,10 @@ export default abstract class BillingIntegration {
     }
   }
 
-  private async getDraftTransferForAccount(accountID: string, currency: string) : Promise<BillingTransfer> {
+  private async getDraftTransferForAccount(
+    accountID: string,
+    currency: string
+  ): Promise<BillingTransfer> {
     const filter = {
       // TODO - add filtering on the dates - we should have a transfer per month !?!
       // TODO - filter on the currency as well?
@@ -802,22 +960,42 @@ export default abstract class BillingIntegration {
       status: [BillingTransferStatus.DRAFT],
     };
     const sort = { createdOn: -1 };
-    const transfers = await BillingStorage.getTransfers(this.tenant, filter, { skip: 0, limit: 1, sort });
+    const transfers = await BillingStorage.getTransfers(this.tenant, filter, {
+      skip: 0,
+      limit: 1,
+      sort,
+    });
     const transfer = transfers.result[0];
     // Return the existing DRAFT transfer or a new one!
-    return (transfer) ? transfer : {
-      accountID, status: BillingTransferStatus.DRAFT, sessionCounter: 0,
-      collectedFunds: 0, collectedFlatFees: 0, collectedFees: 0, totalConsumptionWh: 0, totalDurationSecs: 0, transferAmount: 0,
-      platformFeeData: null, transferExternalID: null,
-      currency: currency,
-      createdBy: null,
-      createdOn: new Date()
-    };
+    return transfer
+      ? transfer
+      : {
+          accountID,
+          status: BillingTransferStatus.DRAFT,
+          sessionCounter: 0,
+          collectedFunds: 0,
+          collectedFlatFees: 0,
+          collectedFees: 0,
+          totalConsumptionWh: 0,
+          totalDurationSecs: 0,
+          transferAmount: 0,
+          platformFeeData: null,
+          transferExternalID: null,
+          currency: currency,
+          createdBy: null,
+          createdOn: new Date(),
+        };
   }
 
-  protected computeAccountSessionFee(platformFeeStrategy: BillingPlatformFeeStrategy, sessionTotalAmount: number): number {
+  protected computeAccountSessionFee(
+    platformFeeStrategy: BillingPlatformFeeStrategy,
+    sessionTotalAmount: number
+  ): number {
     const { percentage, flatFeePerSession } = platformFeeStrategy;
-    const feeAmountAsDecimal = Utils.createDecimal(sessionTotalAmount).mul(percentage).div(100).plus(flatFeePerSession);
+    const feeAmountAsDecimal = Utils.createDecimal(sessionTotalAmount)
+      .mul(percentage)
+      .div(100)
+      .plus(flatFeePerSession);
     const feeAmount = Utils.roundTo(feeAmountAsDecimal, 2);
     return feeAmount;
   }

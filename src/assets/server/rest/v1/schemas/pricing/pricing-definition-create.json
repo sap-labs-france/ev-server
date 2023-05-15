@@ -42,10 +42,5 @@
       }
     }
   },
-  "required": [
-    "entityID",
-    "entityType",
-    "name",
-    "dimensions"
-  ]
+  "required": ["entityID", "entityType", "name", "dimensions"]
 }

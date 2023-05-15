@@ -16,8 +16,17 @@ export default class TenantApi extends CrudApi {
     return super.readById(id, this.buildRestEndpointUrl(RESTServerRoute.REST_TENANT, { id }));
   }
 
-  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_TENANTS));
+  public async readAll(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_TENANTS)
+    );
   }
 
   public async create(data) {
@@ -25,7 +34,10 @@ export default class TenantApi extends CrudApi {
   }
 
   public async update(data) {
-    return super.update(data, this.buildRestEndpointUrl(RESTServerRoute.REST_TENANT, { id: data.id }));
+    return super.update(
+      data,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_TENANT, { id: data.id })
+    );
   }
 
   public async delete(id: string) {
@@ -33,8 +45,8 @@ export default class TenantApi extends CrudApi {
       method: 'DELETE',
       url: this.buildRestEndpointUrl(RESTServerRoute.REST_TENANT, { id }),
       params: {
-        forced: true
-      }
+        forced: true,
+      },
     });
   }
 }

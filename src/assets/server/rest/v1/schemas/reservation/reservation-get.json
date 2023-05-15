@@ -1,0 +1,39 @@
+{
+  "$id": "reservation-get",
+  "title": "Get Reservation",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "reservation#/definitions/id"
+    },
+    "WithUser": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithChargingStation": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithSite": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithCar": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithTag": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "ProjectFields": {
+      "$ref": "common#/definitions/projectFields"
+    }
+  },
+  "required": ["ID"]
+}

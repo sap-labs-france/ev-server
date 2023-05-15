@@ -1,4 +1,8 @@
-import { CarConnectorConnectionSetting, CarConnectorConnectionToken, CarConnectorSettings } from '../../../types/Setting';
+import {
+  CarConnectorConnectionSetting,
+  CarConnectorConnectionToken,
+  CarConnectorSettings,
+} from '../../../types/Setting';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -18,7 +22,11 @@ const MODULE_NAME = 'TronityCarConnectorIntegration';
 export default class TronityCarConnectorIntegration extends CarConnectorIntegration<CarConnectorSettings> {
   private axiosInstance: AxiosInstance;
 
-  public constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
+  public constructor(
+    tenant: Tenant,
+    settings: CarConnectorSettings,
+    connection: CarConnectorConnectionSetting
+  ) {
     super(tenant, settings, connection);
     // Get Axios
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant);
@@ -51,18 +59,16 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
     const request = `${this.connection.tronityConnection.apiUrl}/v1/vehicles/${car.carConnectorData.carConnectorMeterID}/battery`;
     try {
       // Get consumption
-      const response = await this.axiosInstance.get(
-        request,
-        {
-          headers: { 'Authorization': 'Bearer ' + connectionToken }
-        }
-      );
+      const response = await this.axiosInstance.get(request, {
+        headers: { Authorization: 'Bearer ' + connectionToken },
+      });
       await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.CAR_CONNECTOR,
         message: `${car.vin} > Tronity web service has been called successfully`,
-        module: MODULE_NAME, method: 'getCurrentSoC',
-        detailedMessages: { response: response.data }
+        module: MODULE_NAME,
+        method: 'getCurrentSoC',
+        detailedMessages: { response: response.data },
       });
       if (response.data?.level) {
         return response.data.level;
@@ -74,35 +80,39 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
         method: 'getCurrentSoC',
         action: ServerAction.CAR_CONNECTOR,
         message: 'Error while retrieving the SOC',
-        detailedMessages: { request, error: error.stack }
+        detailedMessages: { request, error: error.stack },
       });
     }
   }
 
-
   private async fetchNewToken(credentials: URLSearchParams) {
-    const response = await Utils.executePromiseWithTimeout(5000,
-      this.axiosInstance.post(`${this.connection.tronityConnection.apiUrl}/oauth/authentication`,
+    const response = await Utils.executePromiseWithTimeout(
+      5000,
+      this.axiosInstance.post(
+        `${this.connection.tronityConnection.apiUrl}/oauth/authentication`,
         credentials,
         {
           'axios-retry': {
-            retries: 0
+            retries: 0,
           },
-          headers: this.buildFormHeaders()
-        }),
+          headers: this.buildFormHeaders(),
+        }
+      ),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.tronityConnection.apiUrl}/oauth/authentication'`
     );
     const currentTime = new Date();
-    const token : CarConnectorConnectionToken = {
+    const token: CarConnectorConnectionToken = {
       accessToken: await Cypher.encrypt(this.tenant, response.data.access_token),
       tokenType: response.data.token_type,
       expiresIn: response.data.expires_in,
       issued: currentTime,
-      expires: new Date(currentTime.getTime() + response.data.expires_in * 1000)
+      expires: new Date(currentTime.getTime() + response.data.expires_in * 1000),
     };
     this.connection.token = token;
     // Sensitive data will be handled by helper method in the future
-    const sensitiveData = `content.carConnector.connections[${this.settings.carConnector.connections.indexOf(this.connection)}].token.accessToken`;
+    const sensitiveData = `content.carConnector.connections[${this.settings.carConnector.connections.indexOf(
+      this.connection
+    )}].token.accessToken`;
     if (this.settings.sensitiveData.indexOf(sensitiveData) === -1) {
       this.settings.sensitiveData.push(sensitiveData);
     }
@@ -112,7 +122,7 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
 
   private buildFormHeaders(): any {
     return {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
   }
 
@@ -122,16 +132,19 @@ export default class TronityCarConnectorIntegration extends CarConnectorIntegrat
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,
-        message: 'No connection provided'
+        message: 'No connection provided',
       });
     }
   }
 
   private async getCredentialURLParams(): Promise<any> {
     return {
-      'grant_type': 'app',
-      'client_id': this.connection.tronityConnection.clientId,
-      'client_secret': await Cypher.decrypt(this.tenant, this.connection.tronityConnection.clientSecret)
+      grant_type: 'app',
+      client_id: this.connection.tronityConnection.clientId,
+      client_secret: await Cypher.decrypt(
+        this.tenant,
+        this.connection.tronityConnection.clientSecret
+      ),
     };
   }
 }

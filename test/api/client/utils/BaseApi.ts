@@ -11,10 +11,12 @@ export default class BaseApi {
 
   public constructor(baseURL: string) {
     this.baseURL = baseURL;
-    const axiosInstanceConfiguration: { axiosConfig?: AxiosRequestConfig, axiosRetryConfig?: IAxiosRetryConfig } =
-    {
+    const axiosInstanceConfiguration: {
+      axiosConfig?: AxiosRequestConfig;
+      axiosRetryConfig?: IAxiosRetryConfig;
+    } = {
       axiosConfig: {} as AxiosRequestConfig,
-      axiosRetryConfig: {} as IAxiosRetryConfig
+      axiosRetryConfig: {} as IAxiosRetryConfig,
     };
     axiosInstanceConfiguration.axiosConfig.timeout = config.get('axios.timeout');
     axiosInstanceConfiguration.axiosRetryConfig.retries = config.get('axios.retries');
@@ -26,7 +28,10 @@ export default class BaseApi {
     // Set the base URL
     httpRequest.baseURL = this.baseURL;
     // Set the Query String
-    if (httpRequest.data && httpRequest.headers['Content-Type'] === 'application/x-www-form-urlencoded') {
+    if (
+      httpRequest.data &&
+      httpRequest.headers['Content-Type'] === 'application/x-www-form-urlencoded'
+    ) {
       httpRequest.data = querystring.stringify(httpRequest.data);
     }
     let t0 = 0;
@@ -68,11 +73,11 @@ export default class BaseApi {
     }
     // Set response
     const response = {
-      executionTime: (t1 - t0),
+      executionTime: t1 - t0,
       status: httpResponse.status,
       statusText: httpResponse.statusText,
       headers: httpResponse.headers,
-      data: httpResponse.data
+      data: httpResponse.data,
     };
     return response;
   }

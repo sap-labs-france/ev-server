@@ -41,7 +41,12 @@ export default class AuthenticatedBaseApi extends BaseApi {
     // Already logged?
     if (!this._token || force) {
       // No, try to log in
-      const response = await this._authenticationApi.login(this._user, this._password, true, this._tenant);
+      const response = await this._authenticationApi.login(
+        this._user,
+        this._password,
+        true,
+        this._tenant
+      );
       // Keep the token
       expect(response.status).to.be.eql(StatusCodes.OK);
       expect(response.data).to.have.property('token');
@@ -63,5 +68,4 @@ export default class AuthenticatedBaseApi extends BaseApi {
     // Exec the request
     return super.send(data);
   }
-
 }

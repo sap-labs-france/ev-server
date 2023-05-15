@@ -164,6 +164,42 @@
       "title": "Benutzerkonto verifiziert",
       "bodyVerified": "Ihr Benutzerkonto wurde erfolgreich verifiziert. Ein Administrator wird es prüfen und freischalten",
       "bodyVerifiedAndActivated": "Ihr Benutzerkonto wurde erfolgreich verifiziert und aktiviert"
+    },
+    "reservationCreatedNotification": {
+      "title": "Reservierung erstellt",
+      "body": "Ihre Reservierung für die Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' wurde erfolgreich erstellt."
+    },
+    "reservationCancelledNotification": {
+      "title": "Reservierung storniert",
+      "body": "Sie haben Ihre Reservierung für die Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' erfolgreich storniert."
+    },
+    "reservationUpcomingNotification": {
+      "title": "Anstehende Reservierung",
+      "body": "Ihre Reservierung der Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' steht unmittelbar bevor."
+    },
+    "reservationUpcomingWarning": {
+      "title": "Anstehende Reservierung",
+      "body": "An Ihrer derzeitigen Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' beginnt ab '{{fromDate}}' eine Reservierung für einen anderen Nutzer."
+    },
+    "reservedChargingStationBlockedNotification": {
+      "title": "Reservierte Ladestation blockiert",
+      "body": "An Ihrer derzeitig reservierten Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' wurde eine Ladevorgang gestartet."
+    },
+    "reservationStatusChangedNotification": {
+      "title": "Status der Reservierung geändert",
+      "body": "Der Status Ihrer Reservierung für die Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' hat sich geändert.",
+      "status": {
+        "reservation_done": "Reservierung abgeschlossen",
+        "reservation_scheduled": "Reservierung eingeplant",
+        "reservation_in_progress": "Reservierung laufend",
+        "reservation_cancelled": "Reservierung storniert",
+        "reservation_expired": "Reservierung abgelaufen",
+        "reservation_unmet": "Reservierung nicht wahrgenommen"
+      }
+    },
+    "reservationUnmetNotification": {
+      "title": "Reservierung nicht wahrgenommen",
+      "body": "Die Reservierung an der Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' wurde aufgrund Nichterscheinens innerhalb von 15 Minuten nach Start der Reservierung abgebrochen."
     }
   },
   "siteArea": "Standortbereich",
@@ -263,20 +299,48 @@
     "end-of-signed-session": {
       "title": "Ladevorgang beendet - Signierter Ladevorgang",
       "buttonText": "Ladevorgang anzeigen",
-      "text": [
-        "Ladetransaktion abgeschlossen"
-      ],
+      "text": ["Ladetransaktion abgeschlossen"],
       "table": [
-        { "label": "Ladestation", "value": "{{chargeBoxID}}" },
-        { "label": "Ladepunkt", "value": "{{connectorId}}" },
-        { "label": "RFID", "value": "{{tagId}}" },
-        { "label": "Startzeit", "value": "{{startDate}}" },
-        { "label": "Endzeit", "value": "{{endDate}}" },
-        { "label": "Startzähler", "value": "{{meterStart}} kWh" },
-        { "label": "Endzähler", "value": "{{meterStop}} kWh" },
-        { "label": "Consumption", "value": "{{totalConsumption}} kWh" },
-        { "label": "Kosten", "value": "{{price}}€ {{relativeCost}}€/kWh) (informativ)" },
-        { "label": "Vertrag für", "value":"LOCAL (informativ)" }
+        {
+          "label": "Ladestation",
+          "value": "{{chargeBoxID}}"
+        },
+        {
+          "label": "Ladepunkt",
+          "value": "{{connectorId}}"
+        },
+        {
+          "label": "RFID",
+          "value": "{{tagId}}"
+        },
+        {
+          "label": "Startzeit",
+          "value": "{{startDate}}"
+        },
+        {
+          "label": "Endzeit",
+          "value": "{{endDate}}"
+        },
+        {
+          "label": "Startzähler",
+          "value": "{{meterStart}} kWh"
+        },
+        {
+          "label": "Endzähler",
+          "value": "{{meterStop}} kWh"
+        },
+        {
+          "label": "Consumption",
+          "value": "{{totalConsumption}} kWh"
+        },
+        {
+          "label": "Kosten",
+          "value": "{{price}}€ {{relativeCost}}€/kWh) (informativ)"
+        },
+        {
+          "label": "Vertrag für",
+          "value": "LOCAL (informativ)"
+        }
       ]
     },
     "end-of-charge": {
@@ -335,9 +399,7 @@
     "charging-station-registered": {
       "title": "Ladestation Verbunden",
       "buttonText": "Ladestation anzeigen",
-      "text": [
-        "die Ladestation {{chargeBoxID}} wurde mit dem Server verbunden."
-      ]
+      "text": ["die Ladestation {{chargeBoxID}} wurde mit dem Server verbunden."]
     },
     "end-user-error-notification": {
       "title": "Ein Nutzer hat einen Fehler gemeldet",
@@ -486,9 +548,7 @@
     "billing-periodic-operation-failed": {
       "title": "Abrechnung - Periodische Durchführung Fehlgeschlagen",
       "buttonText": "Zu {{tenantName}} navigieren",
-      "text": [
-        "es war nicht möglich {{nbrInvoicesInError}} Rechnungen zu verarbeiten."
-      ]
+      "text": ["es war nicht möglich {{nbrInvoicesInError}} Rechnungen zu verarbeiten."]
     },
     "billing-account-activated": {
       "title": "Abrechnungskonto aktiviert",
@@ -517,9 +577,7 @@
     "account-verification-notification-active": {
       "title": "Benutzerkonto verifiziert",
       "buttonText": "Zu {{tenantName}} navigieren",
-      "text": [
-        "Ihr Benutzerkonto wurde verifiziert und erfolgreich aktiviert."
-      ]
+      "text": ["Ihr Benutzerkonto wurde verifiziert und erfolgreich aktiviert."]
     },
     "account-verification-notification-inactive": {
       "title": "Benutzerkonto verifiziert",
@@ -547,6 +605,98 @@
         "Um Ihr Fahrzeug laden zu können, müssen Sie sich mindestens einmal anmelden.",
         "",
         "Bitte folgen Sie dem unten stehenden Link, um ein Passwort festzulegen."
+      ]
+    },
+    "reservation-created": {
+      "title": "Reservierung erstellt",
+      "buttonText": "Reservierung anzeigen",
+      "text": [
+        "Ihre Reservierung für die Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' wurde erfolgreich erstellt."
+      ],
+      "table": [
+        {
+          "label": "Ladestation",
+          "value": "{{chargingStationID}}"
+        },
+        {
+          "label": "Anschluss",
+          "value": "{{connectorID}}"
+        },
+        {
+          "label": "Zeitraum",
+          "value": "{{fromDate}} - {{toDate}}"
+        },
+        {
+          "label": "Gesamtdauer",
+          "value": "{{totalDuration}}"
+        },
+        {
+          "label": "Ablaufdatum",
+          "value": "{{expiryDate}}"
+        }
+      ]
+    },
+    "reservation-cancelled": {
+      "title": "Reservierung storniert",
+      "buttonText": "Reservierung anzeigen",
+      "text": [
+        "Sie haben Ihre Reservierung für die Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' erfolgreich storniert.",
+        "",
+        "Für weiterführende Informationen bezüglich Ihrer Reservierung folgen Sie dem unten stehenden Link."
+      ]
+    },
+    "reservation-status-notification": {
+      "title": "Status der Reservierung geändert",
+      "buttonText": "Reservierung anzeigen",
+      "text": [
+        "Der Status Ihrer Reservierung für die Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' hat sich geändert.",
+        "Statusänderung: '{{reservationStatus}}'",
+        "",
+        "Für weiterführende Informationen bezüglich Ihrer Reservierung folgen Sie dem unten stehenden Link."
+      ]
+    },
+    "upcoming-reservation-notification": {
+      "title": "Anstehende Reservierung ('{{fromDate}'} - '{{toDate}}')",
+      "buttonText": "Reservierung anzeigen",
+      "text": [
+        "Ihre Reservierung der Ladestation '{{chargingStationID}}' an Anschliss '{{connectorID}}' steht unmittelbar bevor.",
+        "Geplanter Zeitraum für Ihre Reservierung: {{fromDate}} - {{toDate}}",
+        "",
+        "Bei Abweichungen bezüglich Ihrer Anreise oder bei Verhinderung haben Sie nachfolgende Möglichkeiten:",
+        "- Anpassen des Reservierungszeitraums",
+        "- Stornieren Ihrer Reservierung",
+        "",
+        "Für Änderungen an Ihrer derzeitigen Reservierung, folgen Sie bitte dem nachfolgenden Link."
+      ]
+    },
+    "upcoming-reservation-warning": {
+      "title": "Kollision mit anstehender Reservierung",
+      "buttonText": "Zu {{tenantName}} navigieren",
+      "text": [
+        "An Ihrer derzeitigen Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' beginnt ab '{{fromDate}}' eine Reservierung für einen anderen Nutzer.",
+        "Bei Planung eines längeren Aufenthaltes, nutzen Sie bitte eine andere freie Ladestation oder einen anderen freien Anschluss.",
+        "",
+        "Für weiterführende Informationen bezüglich der Auswahl anderer Ladestationen/Anschlüsse, folgen Sie dem unten stehenden Link."
+      ]
+    },
+    "reserved-chargingstation-blocked": {
+      "title": "Reservierte Ladestation blockiert",
+      "buttonText": "Reservierung anzeigen",
+      "text": [
+        "An Ihrer derzeitig reservierten Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' wurde eine Ladevorgang gestartet.",
+        "Bei Möglichkeit ziehen Sie bitte eine andere Ladestation beziehungsweise einen anderen Anschluss für Ihre Reservierung in Betracht.",
+        "",
+        "Für weiterführende Informationen bezüglich der Auswahl anderer Ladestationen/Anschlüsse, folgen Sie dem unten stehenden Link."
+      ]
+    },
+    "reservation-unmet": {
+      "title": "Reservierung nicht wahrgenommen",
+      "buttonText": "Reservierung anzeigen",
+      "text": [
+        "Die Reservierung der Ladestation '{{chargingStationID}}' an Anschluss '{{connectorID}}' wurde aufgrund Nichterscheinens nach 15 Minuten abgebrochen.",
+        "Wählen Sie für Ihre nächste Reservierung einen passenderen Reservierungszeitraum.",
+        "",
+        "Für weiterführende Informationen bezüglich der Auswahl anderer Ladestationen/Anschlüsse, folgen Sie dem unten stehenden Link."
       ]
     }
   }

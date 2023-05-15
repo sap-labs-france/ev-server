@@ -13,8 +13,5 @@
       }
     }
   },
-  "required": [
-    "siteID",
-    "userIDs"
-  ]
+  "required": ["siteID", "userIDs"]
 }

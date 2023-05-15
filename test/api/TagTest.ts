@@ -20,7 +20,6 @@ import responseHelper from '../helpers/responseHelper';
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
-
 class TestData {
   public tenantContext: TenantContext;
   public centralUserContext: any;
@@ -74,17 +73,26 @@ describe('Tag', () => {
   });
 
   describe('With component Organization (utorg)', () => {
-
     beforeAll(async () => {
-      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
-      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(
+        ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION
+      );
+      testData.centralUserContext = testData.tenantContext.getUserContext(
+        ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN
+      );
+      testData.siteContext = testData.tenantContext.getSiteContext(
+        ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
+      );
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
         testData.centralUserContext
       );
-      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
-      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(
+        ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL
+      );
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(
+        ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16
+      );
     });
 
     afterAll(async () => {
@@ -100,20 +108,20 @@ describe('Tag', () => {
       // Delete any created tag
       for (const tag of testData.createdTags) {
         await testData.centralUserService.tagApi.deleteTag(tag.id);
-
       }
       testData.createdTags = [];
       // Delete any created site
       for (const site of testData.createdSites) {
         await testData.centralUserService.siteApi.delete(site.id);
-
       }
       testData.createdSites = [];
     });
 
     describe('Where admin user', () => {
       beforeAll(async () => {
-        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        testData.userContext = testData.tenantContext.getUserContext(
+          ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN
+        );
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
@@ -128,13 +136,16 @@ describe('Tag', () => {
         // Create a site
         testData.newSite = await testData.userService.createEntity(
           testData.userService.siteApi,
-          Factory.site.build({ companyID: testData.tenantContext.getContext().companies[0].id, autoUserSiteAssignment: true }), true
+          Factory.site.build({
+            companyID: testData.tenantContext.getContext().companies[0].id,
+            autoUserSiteAssignment: true,
+          }),
+          true
         );
         testData.createdSites.push(testData.newSite);
       });
 
       describe('Using various basic APIs', () => {
-
         it('Should be able to create a new user', async () => {
           // Create
           testData.newUser = await testData.userService.createEntity(
@@ -151,7 +162,7 @@ describe('Tag', () => {
           await testData.userService.checkEntityInListWithParams(
             testData.userService.siteApi,
             testData.siteContext.getSite(),
-            { 'UserID': testData.newUser.id }
+            { UserID: testData.newUser.id }
           );
         });
 
@@ -177,19 +188,20 @@ describe('Tag', () => {
           expect(tag.active).to.equal(false);
         });
 
-        it(
-          'Should not be able to start a transaction with a deactivated badge',
-          async () => {
-            const connectorId = 1;
-            const tagId = testData.newTag.id;
-            const meterStart = 180;
-            const startDate = moment();
-            const response = await testData.chargingStationContext.startTransaction(
-              connectorId, tagId, meterStart, startDate.toDate());
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            expect(response).to.be.transactionStatus('Invalid');
-          }
-        );
+        it('Should not be able to start a transaction with a deactivated badge', async () => {
+          const connectorId = 1;
+          const tagId = testData.newTag.id;
+          const meterStart = 180;
+          const startDate = moment();
+          const response = await testData.chargingStationContext.startTransaction(
+            connectorId,
+            tagId,
+            meterStart,
+            startDate.toDate()
+          );
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          expect(response).to.be.transactionStatus('Invalid');
+        });
 
         it('Should be able to delete a badge that has not been used', async () => {
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
@@ -197,7 +209,7 @@ describe('Tag', () => {
           expect(response.status).to.equal(StatusCodes.CREATED);
           response = await testData.userService.tagApi.deleteTag(testData.newTag.id);
           expect(response.status).to.equal(StatusCodes.OK);
-          response = (await testData.userService.tagApi.readTag(testData.newTag.id));
+          response = await testData.userService.tagApi.readTag(testData.newTag.id);
           expect(response.status).to.equal(StatusCodes.NOT_FOUND);
         });
 
@@ -233,7 +245,10 @@ describe('Tag', () => {
           testData.createdTags.push(testData.newTag);
           // Retrieve it
           response = await testData.userService.userApi.getUserSessionContext({
-            userID: testData.newUser.id, chargingStationID: testData.chargingStationContext.getChargingStation().id, connectorID: 1 });
+            userID: testData.newUser.id,
+            chargingStationID: testData.chargingStationContext.getChargingStation().id,
+            connectorID: 1,
+          });
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.tag.visualID).to.be.eq(testData.newTag.visualID);
           expect(response.data.car).to.be.undefined;
@@ -250,12 +265,13 @@ describe('Tag', () => {
           expect(response.data.errorCodes).to.be.not.null;
         });
       });
-
     });
 
     describe('Where basic user', () => {
       beforeAll(() => {
-        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS);
+        testData.userContext = testData.tenantContext.getUserContext(
+          ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS
+        );
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
@@ -270,7 +286,6 @@ describe('Tag', () => {
       });
 
       describe('Using various basic APIs', () => {
-
         it('Should not be able to create a badge for user', async () => {
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
           const response = await testData.userService.tagApi.createTag(testData.newTag);
@@ -285,7 +300,9 @@ describe('Tag', () => {
         });
 
         it('Should be able to read his own badge', async () => {
-          const response = await testData.userService.tagApi.readTagByVisualID(testData.newTagUnassigned.visualID);
+          const response = await testData.userService.tagApi.readTagByVisualID(
+            testData.newTagUnassigned.visualID
+          );
           expect(response.status).to.equal(StatusCodes.OK);
           expect(response.data.visualID).to.equal(testData.newTagUnassigned.visualID);
         });
@@ -294,16 +311,22 @@ describe('Tag', () => {
           testData.newTagUnassigned.description = 'My new description';
           const id = testData.newTagUnassigned.id;
           delete testData.newTagUnassigned.id; // Basic User should not be able to see his ID
-          const response = await testData.userService.tagApi.updateTagByVisualID(testData.newTagUnassigned);
+          const response = await testData.userService.tagApi.updateTagByVisualID(
+            testData.newTagUnassigned
+          );
           expect(response.status).to.equal(StatusCodes.OK);
-          const tag = (await testData.userService.tagApi.readTagByVisualID(testData.newTagUnassigned.visualID)).data;
+          const tag = (
+            await testData.userService.tagApi.readTagByVisualID(testData.newTagUnassigned.visualID)
+          ).data;
           expect(tag.description).to.equal('My new description');
           testData.newTagUnassigned.id = id;
         });
 
         it('Should get the user default car tag with deprecated method', async () => {
           // Retrieve it
-          const response = await testData.userService.userApi.getDefaultTagCar(testData.newTagUnassigned.userID);
+          const response = await testData.userService.userApi.getDefaultTagCar(
+            testData.newTagUnassigned.userID
+          );
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.tag.visualID).to.be.eq(testData.newTagUnassigned.visualID);
           expect(response.data.car).to.be.undefined;
@@ -313,7 +336,10 @@ describe('Tag', () => {
         it('Should get the user default car tag', async () => {
           // Retrieve it
           const response = await testData.userService.userApi.getUserSessionContext({
-            userID: testData.newTagUnassigned.userID, chargingStationID: testData.chargingStationContext.getChargingStation().id, connectorID: 1 });
+            userID: testData.newTagUnassigned.userID,
+            chargingStationID: testData.chargingStationContext.getChargingStation().id,
+            connectorID: 1,
+          });
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.tag.visualID).to.be.eq(testData.newTagUnassigned.visualID);
           expect(response.data.car).to.be.undefined;
@@ -324,19 +350,21 @@ describe('Tag', () => {
         it('Should be able to unassign his own badge', async () => {
           let response = await testData.userService.tagApi.unassignTag(testData.newTagUnassigned);
           expect(response.status).to.equal(StatusCodes.OK);
-          response = await testData.userService.tagApi.readTagByVisualID(testData.newTagUnassigned.visualID);
+          response = await testData.userService.tagApi.readTagByVisualID(
+            testData.newTagUnassigned.visualID
+          );
           expect(response.status).to.equal(StatusCodes.NOT_FOUND);
         });
       });
-
     });
-
 
     // where site admin
 
     describe('Where site admin user', () => {
       beforeAll(async () => {
-        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS);
+        testData.userContext = testData.tenantContext.getUserContext(
+          ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS
+        );
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
@@ -349,54 +377,49 @@ describe('Tag', () => {
         }
         assert(!!testData.userService, 'User service cannot be null');
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-        testData.userContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-        await testData.userService.siteApi.addUsersToSite(testData.newSite.id, [testData.userContext.id]);
-        await testData.userService.siteApi.addUsersToSite(testData.newSite.id, [testData.newUser.id]);
-        await testData.userService.siteApi.assignSiteAdmin(testData.newSite.id, testData.userContext.id);
+        testData.userContext = await testData.tenantContext.getUserContext(
+          ContextDefinition.USER_CONTEXTS.BASIC_USER
+        );
+        await testData.userService.siteApi.addUsersToSite(testData.newSite.id, [
+          testData.userContext.id,
+        ]);
+        await testData.userService.siteApi.addUsersToSite(testData.newSite.id, [
+          testData.newUser.id,
+        ]);
+        await testData.userService.siteApi.assignSiteAdmin(
+          testData.newSite.id,
+          testData.userContext.id
+        );
         login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
       });
 
       describe('Using various basic APIs', () => {
-
         it('Should not be able to create a badge without a user', async () => {
           testData.newTag = Factory.tag.build();
           const response = await testData.userService.tagApi.createTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.FORBIDDEN);
         });
 
-        it(
-          'Should be not be able to read badge of user not assigned to his site',
-          async () => {
-            const response = await testData.userService.tagApi.readTag(testData.newTag.id);
-            expect(response.status).to.equal(StatusCodes.NOT_FOUND);
-          }
-        );
+        it('Should be not be able to read badge of user not assigned to his site', async () => {
+          const response = await testData.userService.tagApi.readTag(testData.newTag.id);
+          expect(response.status).to.equal(StatusCodes.NOT_FOUND);
+        });
 
-        it(
-          'Should be able to create a badge for a user assigned to his site',
-          async () => {
-            testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
-            const response = await testData.userService.tagApi.createTag(testData.newTag);
-            expect(response.status).to.equal(StatusCodes.CREATED);
-            testData.createdTags.push(testData.newTag);
-          }
-        );
+        it('Should be able to create a badge for a user assigned to his site', async () => {
+          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
+          const response = await testData.userService.tagApi.createTag(testData.newTag);
+          expect(response.status).to.equal(StatusCodes.CREATED);
+          testData.createdTags.push(testData.newTag);
+        });
 
-        it(
-          'Should be able to update a badge of a user assigned to his site',
-          async () => {
-            testData.newTag.description = 'My new description for site admin';
-            const response = await testData.userService.tagApi.updateTag(testData.newTag);
-            expect(response.status).to.equal(StatusCodes.OK);
-            const tag = (await testData.userService.tagApi.readTag(testData.newTag.id)).data;
-            expect(tag.description).to.equal('My new description for site admin');
-          }
-        );
+        it('Should be able to update a badge of a user assigned to his site', async () => {
+          testData.newTag.description = 'My new description for site admin';
+          const response = await testData.userService.tagApi.updateTag(testData.newTag);
+          expect(response.status).to.equal(StatusCodes.OK);
+          const tag = (await testData.userService.tagApi.readTag(testData.newTag.id)).data;
+          expect(tag.description).to.equal('My new description for site admin');
+        });
       });
-
     });
-
-
   });
-
 });

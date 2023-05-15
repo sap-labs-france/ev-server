@@ -1,4 +1,3 @@
-
 export default interface Lock {
   id?: string;
   tenantID: string;
@@ -11,7 +10,7 @@ export default interface Lock {
 }
 
 export enum LockType {
-  EXCLUSIVE = 'E'
+  EXCLUSIVE = 'E',
 }
 
 export enum LockEntity {
@@ -33,4 +32,5 @@ export enum LockEntity {
   ASYNC_TASK = 'async-task',
   ASYNC_TASK_MANAGER = 'async-task-manager',
   SCHEDULER_TASK = 'scheduler-task',
+  RESERVATION = 'reservation',
 }

@@ -5,7 +5,8 @@ import { OICPVersion } from '../../../../types/oicp/OICPGeneral';
 
 export default class CPOService extends AbstractOICPService {
   public static readonly VERSION = OICPVersion.V230;
-  public static readonly PATH = '/:protocol/:role/:version/:tenantSubdomain/api/oicp/:module/:endpointVersion/providers/:providerID/:endpoint/:endpointAction?';
+  public static readonly PATH =
+    '/:protocol/:role/:version/:tenantSubdomain/api/oicp/:module/:endpointVersion/providers/:providerID/:endpoint/:endpointAction?';
 
   // Create OICP Service
   constructor(oicpRestConfig: OICPServiceConfiguration) {

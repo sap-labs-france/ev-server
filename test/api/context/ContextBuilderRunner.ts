@@ -5,7 +5,7 @@ import ContextBuilder from './ContextBuilder';
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations
 
-describe('Unit test Context Builder', function() {
+describe('Unit test Context Builder', function () {
   jest.setTimeout(500000); // Not mandatory will automatically stop the unit test after that period of time
 
   beforeAll(async () => {
@@ -43,7 +43,5 @@ describe('Unit test Context Builder', function() {
       // adminUser.tagIDs[0], 0, moment());
       expect(test).to.equal(2);
     });
-
   });
-
 });

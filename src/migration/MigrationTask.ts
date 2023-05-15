@@ -1,4 +1,3 @@
-
 export default abstract class MigrationTask {
   public isAsynchronous(): boolean {
     return false;

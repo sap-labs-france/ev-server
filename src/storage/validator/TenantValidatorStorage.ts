@@ -6,7 +6,9 @@ import global from '../../types/GlobalType';
 
 export default class TenantValidatorStorage extends SchemaValidator {
   private static instance: TenantValidatorStorage | null = null;
-  private tenantSave: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/storage/schemas/tenant/tenant-save.json`, 'utf8'));
+  private tenantSave: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/storage/schemas/tenant/tenant-save.json`, 'utf8')
+  );
 
   private constructor() {
     super('TenantValidatorStorage');

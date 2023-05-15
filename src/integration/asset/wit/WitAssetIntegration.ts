@@ -29,31 +29,38 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
     await this.connect();
   }
 
-  public async retrieveConsumptions(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
+  public async retrieveConsumptions(
+    asset: Asset,
+    manualCall: boolean
+  ): Promise<AbstractCurrentConsumption[]> {
     // Check if refresh interval of connection is exceeded
     if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
       return [];
     }
     // Set new Token
     const token = await this.connect();
-    const request = manualCall ?
-      `${this.connection.url}/${asset.meterID}?From=${moment().subtract(this.connection.refreshIntervalMins, 'minutes').toISOString()}` :
-      // Check if it is first consumption for this asset
-      `${this.connection.url}/${asset.meterID}?From=${(asset.lastConsumption?.timestamp) ? asset.lastConsumption.timestamp.toISOString() : moment().startOf('day').toISOString()}`;
+    const request = manualCall
+      ? `${this.connection.url}/${asset.meterID}?From=${moment()
+          .subtract(this.connection.refreshIntervalMins, 'minutes')
+          .toISOString()}`
+      : // Check if it is first consumption for this asset
+        `${this.connection.url}/${asset.meterID}?From=${
+          asset.lastConsumption?.timestamp
+            ? asset.lastConsumption.timestamp.toISOString()
+            : moment().startOf('day').toISOString()
+        }`;
     try {
       // Get consumption
-      const response = await this.axiosInstance.get(
-        request,
-        {
-          headers: this.buildAuthHeader(token)
-        }
-      );
+      const response = await this.axiosInstance.get(request, {
+        headers: this.buildAuthHeader(token),
+      });
       await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > WIT web service has been called successfully`,
-        module: MODULE_NAME, method: 'retrieveConsumption',
-        detailedMessages: { response: response.data }
+        module: MODULE_NAME,
+        method: 'retrieveConsumption',
+        detailedMessages: { response: response.data },
       });
       return this.filterConsumptionRequest(asset, response.data, manualCall);
     } catch (error) {
@@ -62,18 +69,27 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
         method: 'retrieveConsumption',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: 'Error while retrieving the asset consumption',
-        detailedMessages: { request, token, error: error.stack, asset }
+        detailedMessages: { request, token, error: error.stack, asset },
       });
     }
   }
 
-  private filterConsumptionRequest(asset: Asset, data: WitDataSet[], manualCall: boolean): AbstractCurrentConsumption[] {
+  private filterConsumptionRequest(
+    asset: Asset,
+    data: WitDataSet[],
+    manualCall: boolean
+  ): AbstractCurrentConsumption[] {
     const consumptions: AbstractCurrentConsumption[] = [];
     if (!Utils.isEmptyArray(data)) {
       for (const dataSet of data) {
         const consumption = {} as AbstractCurrentConsumption;
         // Create helper which contains minutes from last consumption.
-        const timePeriod = moment(dataSet.T).diff(consumptions[consumptions.length - 1]?.lastConsumption?.timestamp ?? (asset.lastConsumption?.timestamp ?? dataSet.T), 'minutes');
+        const timePeriod = moment(dataSet.T).diff(
+          consumptions[consumptions.length - 1]?.lastConsumption?.timestamp ??
+            asset.lastConsumption?.timestamp ??
+            dataSet.T,
+          'minutes'
+        );
         switch (asset.assetType) {
           case AssetType.CONSUMPTION:
             consumption.currentInstantWatts = Utils.createDecimal(dataSet.V).mul(1000).toNumber();
@@ -85,13 +101,17 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
             throw new Error('Asset connection does not support producing and consuming assets');
         }
         if (asset.siteArea?.voltage) {
-          consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
+          consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts)
+            .div(asset.siteArea.voltage)
+            .toNumber();
         }
         // Calculate consumption wh with period in minutes from last consumption
-        consumption.currentConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts).mul(Utils.createDecimal(timePeriod / 60)).toNumber();
+        consumption.currentConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts)
+          .mul(Utils.createDecimal(timePeriod / 60))
+          .toNumber();
         consumption.lastConsumption = {
           timestamp: dataSet.T,
-          value: consumption.currentConsumptionWh
+          value: consumption.currentConsumptionWh,
         };
         consumptions.push(consumption);
       }
@@ -103,7 +123,10 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
   }
 
   private async connect(): Promise<string> {
-    const key = this.connection.id + this.connection.witConnection.user + this.connection.witConnection.password;
+    const key =
+      this.connection.id +
+      this.connection.witConnection.user +
+      this.connection.witConnection.password;
     let token = AssetTokenCache.getInstanceForTenant(this.tenant).getToken(key);
     if (!token) {
       // Check if connection is initialized
@@ -115,18 +138,23 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
     return token.accessToken;
   }
 
-  private async fetchAssetProviderToken(credentials: URLSearchParams): Promise<AssetConnectionToken> {
+  private async fetchAssetProviderToken(
+    credentials: URLSearchParams
+  ): Promise<AssetConnectionToken> {
     const now = new Date();
     // Send credentials to get the token
-    const response = await Utils.executePromiseWithTimeout(5000,
-      this.axiosInstance.post(`${this.connection.witConnection.authenticationUrl}/token`,
+    const response = await Utils.executePromiseWithTimeout(
+      5000,
+      this.axiosInstance.post(
+        `${this.connection.witConnection.authenticationUrl}/token`,
         credentials,
         {
           'axios-retry': {
-            retries: 0
+            retries: 0,
           },
-          headers: this.buildFormHeaders()
-        }),
+          headers: this.buildFormHeaders(),
+        }
+      ),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.witConnection.authenticationUrl}/token'`
     );
     const expireTime = moment().add(response.data.expires_in, 'seconds').toDate();
@@ -142,10 +170,16 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
   private async getCredentialURLParams(): Promise<URLSearchParams> {
     const params = new URLSearchParams();
     params.append('client_id', this.connection.witConnection.clientId);
-    params.append('client_secret', await Cypher.decrypt(this.tenant, this.connection.witConnection.clientSecret));
+    params.append(
+      'client_secret',
+      await Cypher.decrypt(this.tenant, this.connection.witConnection.clientSecret)
+    );
     params.append('grant_type', 'password');
     params.append('username', this.connection.witConnection.user);
-    params.append('password', await Cypher.decrypt(this.tenant, this.connection.witConnection.password));
+    params.append(
+      'password',
+      await Cypher.decrypt(this.tenant, this.connection.witConnection.password)
+    );
     params.append('scope', 'https://api.wit-datacenter.com');
     return params;
   }
@@ -156,20 +190,20 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,
-        message: 'No connection provided'
+        message: 'No connection provided',
       });
     }
   }
 
   private buildFormHeaders(): any {
     return {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     };
   }
 
   private buildAuthHeader(token: string): any {
     return {
-      'Authorization': 'Bearer ' + token
+      Authorization: 'Bearer ' + token,
     };
   }
 }

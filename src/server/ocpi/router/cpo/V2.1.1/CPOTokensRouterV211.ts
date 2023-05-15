@@ -20,20 +20,47 @@ export default class CPOTokensRouterV211 {
   }
 
   protected buildRouteGetTokens(): void {
-    this.router.get(`/${OCPIServerRoute.OCPI_TOKENS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleOCPIServerAction(CPOTokensService.handleGetToken.bind(this), ServerAction.OCPI_CPO_GET_TOKEN, req, res, next);
-    });
+    this.router.get(
+      `/${OCPIServerRoute.OCPI_TOKENS}*`,
+      async (req: Request, res: Response, next: NextFunction) => {
+        await RouterUtils.handleOCPIServerAction(
+          CPOTokensService.handleGetToken.bind(this),
+          ServerAction.OCPI_CPO_GET_TOKEN,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   protected buildRoutePutTokens(): void {
-    this.router.put(`/${OCPIServerRoute.OCPI_TOKENS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleOCPIServerAction(CPOTokensService.handlePutToken.bind(this), ServerAction.OCPI_CPO_UPDATE_TOKEN, req, res, next);
-    });
+    this.router.put(
+      `/${OCPIServerRoute.OCPI_TOKENS}*`,
+      async (req: Request, res: Response, next: NextFunction) => {
+        await RouterUtils.handleOCPIServerAction(
+          CPOTokensService.handlePutToken.bind(this),
+          ServerAction.OCPI_CPO_UPDATE_TOKEN,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   protected buildRoutePatchTokens(): void {
-    this.router.patch(`/${OCPIServerRoute.OCPI_TOKENS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleOCPIServerAction(CPOTokensService.handlePatchToken.bind(this), ServerAction.OCPI_CPO_UPDATE_TOKEN, req, res, next);
-    });
+    this.router.patch(
+      `/${OCPIServerRoute.OCPI_TOKENS}*`,
+      async (req: Request, res: Response, next: NextFunction) => {
+        await RouterUtils.handleOCPIServerAction(
+          CPOTokensService.handlePatchToken.bind(this),
+          ServerAction.OCPI_CPO_UPDATE_TOKEN,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 }

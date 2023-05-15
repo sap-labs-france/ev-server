@@ -1,4 +1,9 @@
-import { BillingAccount, BillingInvoice, BillingInvoiceStatus, BillingTransfer } from '../../types/Billing';
+import {
+  BillingAccount,
+  BillingInvoice,
+  BillingInvoiceStatus,
+  BillingTransfer,
+} from '../../types/Billing';
 import global, { DatabaseCount, FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -13,26 +18,50 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'BillingStorage';
 
 export default class BillingStorage {
-  public static async getInvoice(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID, params: { userIDs?: string[] } = {}, projectFields?: string[]): Promise<BillingInvoice> {
-    const invoicesMDB = await BillingStorage.getInvoices(tenant, {
-      invoiceIDs: [id], userIDs: params.userIDs
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+  public static async getInvoice(
+    tenant: Tenant,
+    id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { userIDs?: string[] } = {},
+    projectFields?: string[]
+  ): Promise<BillingInvoice> {
+    const invoicesMDB = await BillingStorage.getInvoices(
+      tenant,
+      {
+        invoiceIDs: [id],
+        userIDs: params.userIDs,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
   public static async getInvoiceByInvoiceID(tenant: Tenant, id: string): Promise<BillingInvoice> {
-    const invoicesMDB = await BillingStorage.getInvoices(tenant, {
-      billingInvoiceID: id
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const invoicesMDB = await BillingStorage.getInvoices(
+      tenant,
+      {
+        billingInvoiceID: id,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD
+    );
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
-  public static async getInvoices(tenant: Tenant,
-      params: {
-        invoiceIDs?: string[]; billingInvoiceID?: string; search?: string; userIDs?: string[]; invoiceStatus?: BillingInvoiceStatus[];
-        startDateTime?: Date; endDateTime?: Date; liveMode?: boolean
-      } = {},
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
+  public static async getInvoices(
+    tenant: Tenant,
+    params: {
+      invoiceIDs?: string[];
+      billingInvoiceID?: string;
+      search?: string;
+      userIDs?: string[];
+      invoiceStatus?: BillingInvoiceStatus[];
+      startDateTime?: Date;
+      endDateTime?: Date;
+      liveMode?: boolean;
+    } = {},
+    dbParams: DbParams,
+    projectFields?: string[]
+  ): Promise<DataResult<BillingInvoice>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -48,18 +77,16 @@ export default class BillingStorage {
     // Search
     // Filter by other properties
     if (params.search) {
-      filters.$or = [
-        { 'number': { $regex: params.search, $options: 'i' } }
-      ];
+      filters.$or = [{ number: { $regex: params.search, $options: 'i' } }];
     }
     if (!Utils.isEmptyArray(params.invoiceIDs)) {
       filters._id = {
-        $in: params.invoiceIDs.map((invoiceID) => DatabaseUtils.convertToObjectID(invoiceID))
+        $in: params.invoiceIDs.map((invoiceID) => DatabaseUtils.convertToObjectID(invoiceID)),
       };
     }
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = {
-        $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
+        $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)),
       };
     }
     if (params.billingInvoiceID) {
@@ -72,7 +99,7 @@ export default class BillingStorage {
     // Status
     if (!Utils.isEmptyArray(params.invoiceStatus)) {
       filters.status = {
-        $in: params.invoiceStatus
+        $in: params.invoiceStatus,
       };
     }
     if (params.startDateTime || params.endDateTime) {
@@ -89,7 +116,7 @@ export default class BillingStorage {
     // Set filters
     if (!Utils.isEmptyJSon(filters)) {
       aggregation.push({
-        $match: filters
+        $match: filters,
       });
     }
     // Limit records?
@@ -97,15 +124,23 @@ export default class BillingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const invoicesCountMDB = await global.database.getCollection<any>(tenant.id, 'invoices')
+    const invoicesCountMDB = (await global.database
+      .getCollection<any>(tenant.id, 'invoices')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray() as DatabaseCount[];
+      .toArray()) as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getInvoices', startTime, aggregation, invoicesCountMDB);
+      await Logging.traceDatabaseRequestEnd(
+        tenant,
+        MODULE_NAME,
+        'getInvoices',
+        startTime,
+        aggregation,
+        invoicesCountMDB
+      );
       return {
-        count: (invoicesCountMDB.length > 0 ? invoicesCountMDB[0].count : 0),
-        result: []
+        count: invoicesCountMDB.length > 0 ? invoicesCountMDB[0].count : 0,
+        result: [],
       };
     }
     // Remove the limit
@@ -115,20 +150,25 @@ export default class BillingStorage {
       dbParams.sort = { _id: 1 };
     }
     aggregation.push({
-      $sort: dbParams.sort
+      $sort: dbParams.sort,
     });
     // Skip
     aggregation.push({
-      $skip: dbParams.skip
+      $skip: dbParams.skip,
     });
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Add Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      tenantID: tenant.id,
+      aggregation: aggregation,
+      asField: 'user',
+      localField: 'userID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false,
     });
     // Add Last Changed / Created
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
@@ -139,13 +179,21 @@ export default class BillingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const invoicesMDB = await global.database.getCollection<any>(tenant.id, 'invoices')
+    const invoicesMDB = (await global.database
+      .getCollection<any>(tenant.id, 'invoices')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as BillingInvoice[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getInvoices', startTime, aggregation, invoicesMDB);
+      .toArray()) as BillingInvoice[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getInvoices',
+      startTime,
+      aggregation,
+      invoicesMDB
+    );
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(invoicesCountMDB[0]),
-      result: invoicesMDB
+      result: invoicesMDB,
     };
   }
 
@@ -168,7 +216,7 @@ export default class BillingStorage {
       createdOn: Utils.convertToDate(invoiceToSave.createdOn),
       downloadable: Utils.convertToBoolean(invoiceToSave.downloadable),
       downloadUrl: invoiceToSave.downloadUrl,
-      payInvoiceUrl: invoiceToSave.payInvoiceUrl
+      payInvoiceUrl: invoiceToSave.payInvoiceUrl,
     };
     if (invoiceToSave.sessions) {
       invoiceMDB.sessions = invoiceToSave.sessions;
@@ -177,12 +225,20 @@ export default class BillingStorage {
       invoiceMDB.lastError = invoiceToSave.lastError;
     }
     // Modify and return the modified document
-    await global.database.getCollection<any>(tenant.id, 'invoices').findOneAndUpdate(
-      { _id: invoiceMDB._id },
-      { $set: invoiceMDB },
-      { upsert: true, returnDocument: 'after' }
+    await global.database
+      .getCollection<any>(tenant.id, 'invoices')
+      .findOneAndUpdate(
+        { _id: invoiceMDB._id },
+        { $set: invoiceMDB },
+        { upsert: true, returnDocument: 'after' }
+      );
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveInvoice',
+      startTime,
+      invoiceMDB
     );
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveInvoice', startTime, invoiceMDB);
     return invoiceMDB._id.toString();
   }
 
@@ -190,8 +246,9 @@ export default class BillingStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Invoice
-    await global.database.getCollection<any>(tenant.id, 'invoices')
-      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
+    await global.database
+      .getCollection<any>(tenant.id, 'invoices')
+      .findOneAndDelete({ _id: DatabaseUtils.convertToObjectID(id) });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteInvoice', startTime, { id });
   }
 
@@ -199,9 +256,16 @@ export default class BillingStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Invoice
-    await global.database.getCollection<any>(tenant.id, 'invoices')
-      .findOneAndDelete({ 'invoiceID': id });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteInvoiceByInvoiceID', startTime, { id });
+    await global.database
+      .getCollection<any>(tenant.id, 'invoices')
+      .findOneAndDelete({ invoiceID: id });
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'deleteInvoiceByInvoiceID',
+      startTime,
+      { id }
+    );
   }
 
   public static async saveAccount(tenant: Tenant, billingAccount: BillingAccount): Promise<string> {
@@ -214,25 +278,40 @@ export default class BillingStorage {
       businessOwnerID: DatabaseUtils.convertToObjectID(billingAccount.businessOwnerID),
       accountExternalID: billingAccount.accountExternalID,
       activationLink: billingAccount.activationLink, // Should not be persisted - added here only for troubleshooting purposes
-      companyName: billingAccount.companyName
+      companyName: billingAccount.companyName,
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(billingAccountMDB, billingAccount);
     // Save
-    await global.database.getCollection<any>(tenant.id, 'billingaccounts').findOneAndUpdate(
-      { _id: billingAccountMDB._id },
-      { $set: billingAccountMDB },
-      { upsert: true, returnDocument: 'after' }
+    await global.database
+      .getCollection<any>(tenant.id, 'billingaccounts')
+      .findOneAndUpdate(
+        { _id: billingAccountMDB._id },
+        { $set: billingAccountMDB },
+        { upsert: true, returnDocument: 'after' }
+      );
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveAccount',
+      startTime,
+      billingAccountMDB
     );
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveAccount', startTime, billingAccountMDB);
     return billingAccountMDB._id.toString();
   }
 
-  public static async getAccounts(tenant: Tenant,
-      params: {
-        IDs?: string[], accountExternalIDs?: string[], search?: string, userIDs?: string[], status?: string[]
-      } = {},
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingAccount>> {
+  public static async getAccounts(
+    tenant: Tenant,
+    params: {
+      IDs?: string[];
+      accountExternalIDs?: string[];
+      search?: string;
+      userIDs?: string[];
+      status?: string[];
+    } = {},
+    dbParams: DbParams,
+    projectFields?: string[]
+  ): Promise<DataResult<BillingAccount>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -248,35 +327,33 @@ export default class BillingStorage {
     // Search
     // Filter by other properties
     if (params.search) {
-      filters.$or = [
-        { 'accountExternalID': { $regex: params.search, $options: 'i' } }
-      ];
+      filters.$or = [{ accountExternalID: { $regex: params.search, $options: 'i' } }];
     }
     if (!Utils.isEmptyArray(params.IDs)) {
       filters._id = {
-        $in: params.IDs.map((id) => DatabaseUtils.convertToObjectID(id))
+        $in: params.IDs.map((id) => DatabaseUtils.convertToObjectID(id)),
       };
     }
     if (!Utils.isEmptyArray(params.accountExternalIDs)) {
       filters.accountExternalID = {
-        $in: params.accountExternalIDs
+        $in: params.accountExternalIDs,
       };
     }
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.businessOwnerID = {
-        $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
+        $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)),
       };
     }
     // Status
     if (!Utils.isEmptyArray(params.status)) {
       filters.status = {
-        $in: params.status
+        $in: params.status,
       };
     }
     // Set filters
     if (!Utils.isEmptyJSon(filters)) {
       aggregation.push({
-        $match: filters
+        $match: filters,
       });
     }
     // Limit records?
@@ -284,38 +361,51 @@ export default class BillingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const billingAccountCountMDB = await global.database.getCollection<any>(tenant.id, 'billingaccounts')
+    const billingAccountCountMDB = (await global.database
+      .getCollection<any>(tenant.id, 'billingaccounts')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray() as DatabaseCount[];
+      .toArray()) as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAccounts', startTime, aggregation, billingAccountCountMDB);
+      await Logging.traceDatabaseRequestEnd(
+        tenant,
+        MODULE_NAME,
+        'getAccounts',
+        startTime,
+        aggregation,
+        billingAccountCountMDB
+      );
       return {
-        count: (billingAccountCountMDB.length > 0 ? billingAccountCountMDB[0].count : 0),
-        result: []
+        count: billingAccountCountMDB.length > 0 ? billingAccountCountMDB[0].count : 0,
+        result: [],
       };
     }
     // Remove the limit
     aggregation.pop();
     // Add Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'businessOwner', localField: 'businessOwnerID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      tenantID: tenant.id,
+      aggregation: aggregation,
+      asField: 'businessOwner',
+      localField: 'businessOwnerID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false,
     });
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = { _id: 1 };
     }
     aggregation.push({
-      $sort: dbParams.sort
+      $sort: dbParams.sort,
     });
     // Skip
     aggregation.push({
-      $skip: dbParams.skip
+      $skip: dbParams.skip,
     });
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Add Last Changed / Created
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
@@ -326,20 +416,37 @@ export default class BillingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const billingAccountMDB = await global.database.getCollection<any>(tenant.id, 'billingaccounts')
+    const billingAccountMDB = (await global.database
+      .getCollection<any>(tenant.id, 'billingaccounts')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as BillingAccount[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getAccounts', startTime, aggregation, billingAccountMDB);
+      .toArray()) as BillingAccount[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getAccounts',
+      startTime,
+      aggregation,
+      billingAccountMDB
+    );
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(billingAccountCountMDB[0]),
-      result: billingAccountMDB
+      result: billingAccountMDB,
     };
   }
 
-  public static async getAccountByID(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingAccount> {
-    const billingAccountMDB = await BillingStorage.getAccounts(tenant, {
-      IDs: [id]
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+  public static async getAccountByID(
+    tenant: Tenant,
+    id: string,
+    projectFields?: string[]
+  ): Promise<BillingAccount> {
+    const billingAccountMDB = await BillingStorage.getAccounts(
+      tenant,
+      {
+        IDs: [id],
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return billingAccountMDB.count === 1 ? billingAccountMDB.result[0] : null;
   }
 
@@ -385,20 +492,35 @@ export default class BillingStorage {
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(transferMDB, transfer);
     // Save
-    await global.database.getCollection<any>(tenant.id, 'billingtransfers').findOneAndUpdate(
-      { _id: transferMDB._id },
-      { $set: transferMDB },
-      { upsert: true, returnDocument: 'after' }
+    await global.database
+      .getCollection<any>(tenant.id, 'billingtransfers')
+      .findOneAndUpdate(
+        { _id: transferMDB._id },
+        { $set: transferMDB },
+        { upsert: true, returnDocument: 'after' }
+      );
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveTransfer',
+      startTime,
+      transferMDB
     );
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransfer', startTime, transferMDB);
     return transferMDB._id.toString();
   }
 
-  public static async getTransfers(tenant: Tenant,
-      params: {
-        IDs?: string[], status?: string[], accountIDs?: string[], search?: string, transferExternalIDs?: string[]
-      } = {},
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingTransfer>> {
+  public static async getTransfers(
+    tenant: Tenant,
+    params: {
+      IDs?: string[];
+      status?: string[];
+      accountIDs?: string[];
+      search?: string;
+      transferExternalIDs?: string[];
+    } = {},
+    dbParams: DbParams,
+    projectFields?: string[]
+  ): Promise<DataResult<BillingTransfer>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -415,35 +537,37 @@ export default class BillingStorage {
     // Filter by other properties
     if (params.search) {
       filters.$or = [
-        { 'id': { $regex: params.search, $options: 'i' } },
-        { 'accountID': { $regex: params.search, $options: 'i' } },
-        { 'transferExternalID': { $regex: params.search, $options: 'i' } },
+        { id: { $regex: params.search, $options: 'i' } },
+        { accountID: { $regex: params.search, $options: 'i' } },
+        { transferExternalID: { $regex: params.search, $options: 'i' } },
       ];
     }
     if (!Utils.isEmptyArray(params.IDs)) {
       filters._id = {
-        $in: params.IDs.map((id) => DatabaseUtils.convertToObjectID(id))
+        $in: params.IDs.map((id) => DatabaseUtils.convertToObjectID(id)),
       };
     }
     if (!Utils.isEmptyArray(params.status)) {
       filters.status = {
-        $in: params.status
+        $in: params.status,
       };
     }
     if (!Utils.isEmptyArray(params.accountIDs)) {
       filters.accountID = {
-        $in: params.accountIDs.map((accountID) => DatabaseUtils.convertToObjectID(accountID))
+        $in: params.accountIDs.map((accountID) => DatabaseUtils.convertToObjectID(accountID)),
       };
     }
     if (!Utils.isEmptyArray(params.transferExternalIDs)) {
       filters.transferExternalID = {
-        $in: params.transferExternalIDs.map((transferExternalID) => DatabaseUtils.convertToObjectID(transferExternalID))
+        $in: params.transferExternalIDs.map((transferExternalID) =>
+          DatabaseUtils.convertToObjectID(transferExternalID)
+        ),
       };
     }
     // Set filters
     if (!Utils.isEmptyJSon(filters)) {
       aggregation.push({
-        $match: filters
+        $match: filters,
       });
     }
     // Limit records?
@@ -451,15 +575,23 @@ export default class BillingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const transferCountMDB = await global.database.getCollection<any>(tenant.id, 'billingtransfers')
+    const transferCountMDB = (await global.database
+      .getCollection<any>(tenant.id, 'billingtransfers')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray() as DatabaseCount[];
+      .toArray()) as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransfers', startTime, aggregation, transferCountMDB);
+      await Logging.traceDatabaseRequestEnd(
+        tenant,
+        MODULE_NAME,
+        'getTransfers',
+        startTime,
+        aggregation,
+        transferCountMDB
+      );
       return {
-        count: (transferCountMDB.length > 0 ? transferCountMDB[0].count : 0),
-        result: []
+        count: transferCountMDB.length > 0 ? transferCountMDB[0].count : 0,
+        result: [],
       };
     }
     // Remove the limit
@@ -469,25 +601,35 @@ export default class BillingStorage {
       dbParams.sort = { _id: 1 };
     }
     aggregation.push({
-      $sort: dbParams.sort
+      $sort: dbParams.sort,
     });
     // Skip
     aggregation.push({
-      $skip: dbParams.skip
+      $skip: dbParams.skip,
     });
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Add connected account information
     DatabaseUtils.pushAccountLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'account', localField: 'accountID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      tenantID: tenant.id,
+      aggregation: aggregation,
+      asField: 'account',
+      localField: 'accountID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false,
     });
     // Add Business Owner
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'businessOwner', localField: 'account.businessOwnerID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      tenantID: tenant.id,
+      aggregation: aggregation,
+      asField: 'businessOwner',
+      localField: 'account.businessOwnerID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false,
     });
     // Convert
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'account.businessOwnerID');
@@ -501,20 +643,37 @@ export default class BillingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const transferMDB = await global.database.getCollection<any>(tenant.id, 'billingtransfers')
+    const transferMDB = (await global.database
+      .getCollection<any>(tenant.id, 'billingtransfers')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as BillingTransfer[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransfers', startTime, aggregation, transferMDB);
+      .toArray()) as BillingTransfer[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getTransfers',
+      startTime,
+      aggregation,
+      transferMDB
+    );
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(transferCountMDB[0]),
-      result: transferMDB
+      result: transferMDB,
     };
   }
 
-  public static async getTransfer(tenant: Tenant, id: string, projectFields?: string[]): Promise<BillingTransfer> {
-    const transferMDB = await BillingStorage.getTransfers(tenant, {
-      IDs: [id]
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+  public static async getTransfer(
+    tenant: Tenant,
+    id: string,
+    projectFields?: string[]
+  ): Promise<BillingTransfer> {
+    const transferMDB = await BillingStorage.getTransfers(
+      tenant,
+      {
+        IDs: [id],
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return transferMDB.count === 1 ? transferMDB.result[0] : null;
   }
 }

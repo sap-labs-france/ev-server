@@ -2,7 +2,7 @@ import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 import OICPEndpoint from '../oicp/OICPEndpoint';
 
-export interface HttpOICPEndpointsGetRequest extends HttpDatabaseRequest{
+export interface HttpOICPEndpointsGetRequest extends HttpDatabaseRequest {
   ID?: string;
   Search?: string;
 }
@@ -16,13 +16,10 @@ export interface HttpOICPEndpointDeleteRequest extends HttpByIDRequest {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpOICPEndpointPingRequest extends OICPEndpoint {
-}
+export interface HttpOICPEndpointPingRequest extends OICPEndpoint {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpOICPEndpointCreateRequest extends OICPEndpoint {
-}
+export interface HttpOICPEndpointCreateRequest extends OICPEndpoint {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpOICPEndpointUpdateRequest extends OICPEndpoint {
-}
+export interface HttpOICPEndpointUpdateRequest extends OICPEndpoint {}

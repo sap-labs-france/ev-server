@@ -263,9 +263,7 @@
     "end-of-signed-session": {
       "title": "Session Finished - Signed Session",
       "buttonText": "View Session",
-      "text": [
-        "Ladetransaktion abgeschlossen"
-      ],
+      "text": ["Ladetransaktion abgeschlossen"],
       "table": [
         { "label": "Charger", "value": "{{chargeBoxID}}" },
         { "label": "Connector", "value": "{{connectorId}}" },
@@ -276,7 +274,7 @@
         { "label": "Stop counter", "value": "{{meterStop}} kWh" },
         { "label": "Consumption", "value": "{{totalConsumption}} kWh" },
         { "label": "Cost", "value": "{{price}}€ {{relativeCost}}€/kWh) (informative)" },
-        { "label": "Contract for", "value":"LOCAL (informative)" }
+        { "label": "Contract for", "value": "LOCAL (informative)" }
       ]
     },
     "end-of-charge": {
@@ -335,9 +333,7 @@
     "charging-station-registered": {
       "title": "Borne connectée",
       "buttonText": "Voir la borne",
-      "text": [
-        "La borne {{chargeBoxID}} vient de se connecter au serveur central."
-      ]
+      "text": ["La borne {{chargeBoxID}} vient de se connecter au serveur central."]
     },
     "end-user-error-notification": {
       "title": "Erreur signalée par un utilisateur",
@@ -465,9 +461,7 @@
     "session-not-started-after-authorize": {
       "title": "Session non démarrée",
       "buttonText": "Voir la borne",
-      "text": [
-        "Vous avez badgé sur la borne {{chargeBoxID}} mais aucune session n'a démarré."
-      ]
+      "text": ["Vous avez badgé sur la borne {{chargeBoxID}} mais aucune session n'a démarré."]
     },
     "billing-user-synchronization-failed": {
       "title": "Facturation - Echec de la synchronisation des utilisateurs",
@@ -486,9 +480,7 @@
     "billing-periodic-operation-failed": {
       "title": "Facturation - Echec de la procédure de facturation périodique",
       "buttonText": "Naviguer vers {{tenantName}}",
-      "text": [
-        "Le traitement de {{nbrInvoicesInError}} facture(s) à échoué."
-      ]
+      "text": ["Le traitement de {{nbrInvoicesInError}} facture(s) à échoué."]
     },
     "billing-account-activated": {
       "title": "Compte de facturation activé",
@@ -517,9 +509,7 @@
     "account-verification-notification-active": {
       "title": "Compte utilisateur vérifié",
       "buttonText": "Naviguer vers {{tenantName}}",
-      "text": [
-        "Votre e-mail a été vérifié. Votre compte est maintenant actif."
-      ]
+      "text": ["Votre e-mail a été vérifié. Votre compte est maintenant actif."]
     },
     "account-verification-notification-inactive": {
       "title": "Compte utilisateur vérifié",

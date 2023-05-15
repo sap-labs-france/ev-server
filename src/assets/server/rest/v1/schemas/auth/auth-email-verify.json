@@ -11,8 +11,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "Email",
-    "VerificationToken"
-  ]
+  "required": ["Email", "VerificationToken"]
 }

@@ -1,18 +1,30 @@
-import { AuthorizationActions, ChargingStationAuthorizationActions, ConnectorAuthorizationActions } from './Authorization';
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
-
+import {
+  AuthorizationActions,
+  ChargingStationAuthorizationActions,
+  ConnectorAuthorizationActions,
+} from './Authorization';
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
+import {
+  ChargePointStatus,
+  OCPPFirmwareStatus,
+  OCPPPhase,
+  OCPPProtocol,
+  OCPPVersion,
+} from './ocpp/OCPPServer';
 import { OICPEvseDataRecord } from './oicp/OICPEvse';
 import { OICPIdentification } from './oicp/OICPIdentification';
+import Reservation from './Reservation';
 import Site from './Site';
 import SiteArea from './SiteArea';
+import { InactivityStatus } from './Transaction';
 import User from './User';
 
-export default interface ChargingStation extends CreatedUpdatedProps, ChargingStationAuthorizationActions {
+export default interface ChargingStation
+  extends CreatedUpdatedProps,
+    ChargingStationAuthorizationActions {
   id?: string;
   templateHash?: string;
   templateHashCapabilities?: string;
@@ -57,7 +69,7 @@ export default interface ChargingStation extends CreatedUpdatedProps, ChargingSt
   connectors: Connector[];
   backupConnectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
-  currentIPAddress?: string|string[];
+  currentIPAddress?: string | string[];
   siteArea?: SiteArea;
   site?: Site;
   capabilities?: ChargingStationCapabilities;
@@ -164,6 +176,8 @@ export interface Connector extends ConnectorAuthorizationActions {
   chargePointID?: number;
   phaseAssignmentToGrid?: PhaseAssignmentToGrid;
   tariffID?: string;
+  reservationID?: number;
+  reservation?: Reservation;
 }
 
 export interface PhaseAssignmentToGrid {
@@ -194,12 +208,12 @@ export enum SiteAreaLimitSource {
 export enum ConnectorCurrentLimitSource {
   CHARGING_PROFILE = 'CP',
   STATIC_LIMITATION = 'SL',
-  CONNECTOR = 'CO'
+  CONNECTOR = 'CO',
 }
 
 export enum CurrentType {
   AC = 'AC',
-  DC = 'DC'
+  DC = 'DC',
 }
 
 export interface ChargePoint {
@@ -259,7 +273,7 @@ export interface ChargingStationTemplate extends CreatedUpdatedProps, Authorizat
       supportedOcppVersions: string[];
       parameters: Record<string, string>;
     }[];
-  }
+  };
 }
 
 export interface ChargingStationTemplateConnector {

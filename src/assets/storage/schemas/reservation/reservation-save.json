@@ -1,0 +1,60 @@
+{
+  "$id": "reservation-template-save",
+  "title": "Validate the Reservation's template",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "reservation#/definitions/id"
+    },
+    "chargingStationID": {
+      "$ref": "reservation#/definitions/chargingStationId"
+    },
+    "connectorID": {
+      "$ref": "reservation#/definitions/connectorId"
+    },
+    "fromDate": {
+      "$ref": "reservation#/definitions/fromDate"
+    },
+    "toDate": {
+      "$ref": "reservation#/definitions/toDate"
+    },
+    "expiryDate": {
+      "$ref": "reservation#/definitions/expiryDate"
+    },
+    "arrivalTime": {
+      "$ref": "reservation#/definitions/arrivalTime"
+    },
+    "departureTime": {
+      "$ref": "reservation#/definitions/departureTime"
+    },
+    "idTag": {
+      "$ref": "reservation#/definitions/idTag"
+    },
+    "carID": {
+      "$ref": "reservation#/definitions/carID"
+    },
+    "userID": {
+      "$ref": "reservation#/definitions/userID"
+    },
+    "parentIdTag": {
+      "$ref": "reservation#/definitions/parentIdTag"
+    },
+    "type": {
+      "$ref": "reservation#/definitions/type"
+    },
+    "status": {
+      "$ref": "reservation#/definitions/status"
+    }
+  },
+  "required": [
+    "id",
+    "chargingStationID",
+    "connectorID",
+    "fromDate",
+    "toDate",
+    "expiryDate",
+    "idTag",
+    "type",
+    "status"
+  ]
+}

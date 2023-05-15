@@ -35,77 +35,170 @@ export default class UtilRouter {
   }
 
   private buildRoutePing(): void {
-    this.router.get(`/${RESTServerRoute.REST_PING}`, (req: Request, res: Response, next: NextFunction) => {
-      res.sendStatus(StatusCodes.OK);
-      next();
-    });
+    this.router.get(
+      `/${RESTServerRoute.REST_PING}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        res.sendStatus(StatusCodes.OK);
+        next();
+      }
+    );
   }
 
   private buildRouteGetTenantLogo(): void {
-    this.router.get(`/${RESTServerRoute.REST_TENANT_LOGO}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleRestServerAction(TenantService.handleGetTenantLogo.bind(this), ServerAction.TENANT_LOGO, req, res, next);
-    });
+    this.router.get(
+      `/${RESTServerRoute.REST_TENANT_LOGO}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        void RouterUtils.handleRestServerAction(
+          TenantService.handleGetTenantLogo.bind(this),
+          ServerAction.TENANT_LOGO,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   private buildRouteGetTenantEmailLogo(): void {
-    this.router.get(`/${RESTServerRoute.REST_TENANT_EMAIL_LOGO}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleRestServerAction(TenantService.handleGetTenantEmailLogo.bind(this), ServerAction.TENANT_LOGO, req, res, next);
-    });
+    this.router.get(
+      `/${RESTServerRoute.REST_TENANT_EMAIL_LOGO}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        void RouterUtils.handleRestServerAction(
+          TenantService.handleGetTenantEmailLogo.bind(this),
+          ServerAction.TENANT_LOGO,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   private buildRouteGetCarCatalogImage(): void {
-    this.router.get(`/${RESTServerRoute.REST_CAR_CATALOG_IMAGE}`, (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(CarService.handleGetCarCatalogImage.bind(this), ServerAction.CAR_CATALOG_IMAGE, req, res, next);
-    });
+    this.router.get(
+      `/${RESTServerRoute.REST_CAR_CATALOG_IMAGE}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        req.query.ID = req.params.id;
+        void RouterUtils.handleRestServerAction(
+          CarService.handleGetCarCatalogImage.bind(this),
+          ServerAction.CAR_CATALOG_IMAGE,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   private buildRouteGetAssetImage(): void {
-    this.router.get(`/${RESTServerRoute.REST_ASSET_IMAGE}`, (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(AssetService.handleGetAssetImage.bind(this), ServerAction.ASSET_IMAGE, req, res, next);
-    });
+    this.router.get(
+      `/${RESTServerRoute.REST_ASSET_IMAGE}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        req.query.ID = req.params.id;
+        void RouterUtils.handleRestServerAction(
+          AssetService.handleGetAssetImage.bind(this),
+          ServerAction.ASSET_IMAGE,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   private buildRouteGetCompanyLogo(): void {
-    this.router.get(`/${RESTServerRoute.REST_COMPANY_LOGO}`, (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(CompanyService.handleGetCompanyLogo.bind(this), ServerAction.COMPANY_LOGO, req, res, next);
-    });
+    this.router.get(
+      `/${RESTServerRoute.REST_COMPANY_LOGO}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        req.query.ID = req.params.id;
+        void RouterUtils.handleRestServerAction(
+          CompanyService.handleGetCompanyLogo.bind(this),
+          ServerAction.COMPANY_LOGO,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   private buildRouteGetSiteAreaImage(): void {
-    this.router.get(`/${RESTServerRoute.REST_SITE_AREA_IMAGE}`, (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(SiteAreaService.handleGetSiteAreaImage.bind(this), ServerAction.SITE_AREA_IMAGE, req, res, next);
-    });
+    this.router.get(
+      `/${RESTServerRoute.REST_SITE_AREA_IMAGE}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        req.query.ID = req.params.id;
+        void RouterUtils.handleRestServerAction(
+          SiteAreaService.handleGetSiteAreaImage.bind(this),
+          ServerAction.SITE_AREA_IMAGE,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   private buildRouteChargingStationDownloadFirmware(): void {
-    this.router.get(`/${RESTServerRoute.REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE}`, (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(ChargingStationService.handleGetFirmware.bind(this), ServerAction.FIRMWARE_DOWNLOAD, req, res, next);
-    });
+    this.router.get(
+      `/${RESTServerRoute.REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        req.query.ID = req.params.id;
+        void RouterUtils.handleRestServerAction(
+          ChargingStationService.handleGetFirmware.bind(this),
+          ServerAction.FIRMWARE_DOWNLOAD,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   private buildRouteGetSiteImage(): void {
-    this.router.get(`/${RESTServerRoute.REST_SITE_IMAGE}`, (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(SiteService.handleGetSiteImage.bind(this), ServerAction.SITE_IMAGE, req, res, next);
-    });
+    this.router.get(
+      `/${RESTServerRoute.REST_SITE_IMAGE}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        req.query.ID = req.params.id;
+        void RouterUtils.handleRestServerAction(
+          SiteService.handleGetSiteImage.bind(this),
+          ServerAction.SITE_IMAGE,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   private buildRouteBillingRefreshAccount(): void {
-    this.router.patch(`/${RESTServerRoute.REST_BILLING_ACCOUNT_REFRESH}`, (req: Request, res: Response, next: NextFunction) => {
-      req.params.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(BillingService.handleRefreshAccount.bind(this), ServerAction.BILLING_ACCOUNT_ACTIVATE, req, res, next);
-    });
+    this.router.patch(
+      `/${RESTServerRoute.REST_BILLING_ACCOUNT_REFRESH}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        req.params.ID = req.params.id;
+        void RouterUtils.handleRestServerAction(
+          BillingService.handleRefreshAccount.bind(this),
+          ServerAction.BILLING_ACCOUNT_ACTIVATE,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 
   private buildRouteBillingActivateAccount(): void {
-    this.router.patch(`/${RESTServerRoute.REST_BILLING_ACCOUNT_ACTIVATE}`, (req: Request, res: Response, next: NextFunction) => {
-      req.params.ID = req.params.id;
-      void RouterUtils.handleRestServerAction(BillingService.handleActivateAccount.bind(this), ServerAction.BILLING_ACCOUNT_ACTIVATE, req, res, next);
-    });
+    this.router.patch(
+      `/${RESTServerRoute.REST_BILLING_ACCOUNT_ACTIVATE}`,
+      (req: Request, res: Response, next: NextFunction) => {
+        req.params.ID = req.params.id;
+        void RouterUtils.handleRestServerAction(
+          BillingService.handleActivateAccount.bind(this),
+          ServerAction.BILLING_ACCOUNT_ACTIVATE,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 }

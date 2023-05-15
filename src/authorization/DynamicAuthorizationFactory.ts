@@ -1,4 +1,9 @@
-import { DynamicAuthorizationAssertName, DynamicAuthorizationDataSourceData, DynamicAuthorizationDataSourceName, DynamicAuthorizationFilterName } from '../types/Authorization';
+import {
+  DynamicAuthorizationAssertName,
+  DynamicAuthorizationDataSourceData,
+  DynamicAuthorizationDataSourceName,
+  DynamicAuthorizationFilterName,
+} from '../types/Authorization';
 
 import AssignedSitesCompaniesDynamicAuthorizationDataSource from './dynamic-data-source/AssignedSitesCompaniesDynamicAuthorizationDataSource';
 import AssignedSitesCompaniesDynamicAuthorizationFilter from './dynamic-filters/AssignedSitesCompaniesDynamicAuthorizationFilter';
@@ -31,10 +36,15 @@ import UserMandatoryDynamicAuthorizationAssert from './dynamic-assert/UserMandat
 import UserToken from '../types/UserToken';
 
 export default class DynamicAuthorizationFactory {
-  public static async getDynamicFilter(tenant: Tenant, userToken: UserToken,
-      filterName: DynamicAuthorizationFilterName,
-      existingDataSources?: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>):
-      Promise<DynamicAuthorizationFilter> {
+  public static async getDynamicFilter(
+    tenant: Tenant,
+    userToken: UserToken,
+    filterName: DynamicAuthorizationFilterName,
+    existingDataSources?: Map<
+      DynamicAuthorizationDataSourceName,
+      DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>
+    >
+  ): Promise<DynamicAuthorizationFilter> {
     // Check invertion of filter
     let negateFilter = false;
     if (filterName?.startsWith('-')) {
@@ -45,44 +55,77 @@ export default class DynamicAuthorizationFactory {
     let dynamicFilter: DynamicAuthorizationFilter;
     switch (filterName) {
       case DynamicAuthorizationFilterName.ASSIGNED_SITES_COMPANIES:
-        dynamicFilter = new AssignedSitesCompaniesDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        dynamicFilter = new AssignedSitesCompaniesDynamicAuthorizationFilter(
+          tenant,
+          userToken,
+          negateFilter
+        );
         break;
       case DynamicAuthorizationFilterName.SITES_ADMIN:
         dynamicFilter = new SitesAdminDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
       case DynamicAuthorizationFilterName.SITES_ADMIN_USERS:
-        dynamicFilter = new SitesAdminUsersDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        dynamicFilter = new SitesAdminUsersDynamicAuthorizationFilter(
+          tenant,
+          userToken,
+          negateFilter
+        );
         break;
       case DynamicAuthorizationFilterName.SITES_OWNER:
         dynamicFilter = new SitesOwnerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
       case DynamicAuthorizationFilterName.ASSIGNED_SITES:
-        dynamicFilter = new AssignedSitesDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        dynamicFilter = new AssignedSitesDynamicAuthorizationFilter(
+          tenant,
+          userToken,
+          negateFilter
+        );
         break;
       case DynamicAuthorizationFilterName.OWN_USER:
         dynamicFilter = new OwnUserDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
       case DynamicAuthorizationFilterName.EXCLUDE_ACTION:
-        dynamicFilter = new ExcludeActionDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        dynamicFilter = new ExcludeActionDynamicAuthorizationFilter(
+          tenant,
+          userToken,
+          negateFilter
+        );
         break;
       case DynamicAuthorizationFilterName.LOCAL_ISSUER:
         dynamicFilter = new LocalIssuerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
       case DynamicAuthorizationFilterName.SITES_ADMIN_OR_OWNER:
-        dynamicFilter = new SitesAdminOrOwnerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        dynamicFilter = new SitesAdminOrOwnerDynamicAuthorizationFilter(
+          tenant,
+          userToken,
+          negateFilter
+        );
         break;
       case DynamicAuthorizationFilterName.SITES_OWNER_USERS:
-        dynamicFilter = new SitesOwnerUsersDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        dynamicFilter = new SitesOwnerUsersDynamicAuthorizationFilter(
+          tenant,
+          userToken,
+          negateFilter
+        );
         break;
     }
     // Init Data Source
     if (dynamicFilter) {
-      await DynamicAuthorizationFactory.initFilterDataSources(tenant, userToken, dynamicFilter, existingDataSources);
+      await DynamicAuthorizationFactory.initFilterDataSources(
+        tenant,
+        userToken,
+        dynamicFilter,
+        existingDataSources
+      );
     }
     return dynamicFilter;
   }
 
-  public static getDynamicAssert(tenant: Tenant, userToken: UserToken, assertName: DynamicAuthorizationAssertName): DynamicAuthorizationAssert {
+  public static getDynamicAssert(
+    tenant: Tenant,
+    userToken: UserToken,
+    assertName: DynamicAuthorizationAssertName
+  ): DynamicAuthorizationAssert {
     // Check invertion of filter
     let negateAssert = false;
     if (assertName?.startsWith('-')) {
@@ -102,17 +145,28 @@ export default class DynamicAuthorizationFactory {
         dynamicAssert = new BasicUserDynamicAuthorizationAssert(tenant, userToken, negateAssert);
         break;
       case DynamicAuthorizationAssertName.USER_MANDATORY:
-        dynamicAssert = new UserMandatoryDynamicAuthorizationAssert(tenant, userToken, negateAssert);
+        dynamicAssert = new UserMandatoryDynamicAuthorizationAssert(
+          tenant,
+          userToken,
+          negateAssert
+        );
         break;
       case DynamicAuthorizationAssertName.SITE_AREA_MANDATORY:
-        dynamicAssert = new SiteAreaMandatoryDynamicAuthorizationAssert(tenant, userToken, negateAssert);
+        dynamicAssert = new SiteAreaMandatoryDynamicAuthorizationAssert(
+          tenant,
+          userToken,
+          negateAssert
+        );
         break;
     }
     return dynamicAssert;
   }
 
-  public static async getDynamicDataSource(tenant: Tenant, user: UserToken,
-      dataSourceName: DynamicAuthorizationDataSourceName): Promise<DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>> {
+  public static async getDynamicDataSource(
+    tenant: Tenant,
+    user: UserToken,
+    dataSourceName: DynamicAuthorizationDataSourceName
+  ): Promise<DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>> {
     let dataSource: DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>;
     switch (dataSourceName) {
       case DynamicAuthorizationDataSourceName.ASSIGNED_SITES_COMPANIES:
@@ -150,15 +204,26 @@ export default class DynamicAuthorizationFactory {
     return dataSource;
   }
 
-  private static async initFilterDataSources(tenant: Tenant, user: UserToken, dynamicFilter: DynamicAuthorizationFilter,
-      existingDataSources?: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>): Promise<void> {
+  private static async initFilterDataSources(
+    tenant: Tenant,
+    user: UserToken,
+    dynamicFilter: DynamicAuthorizationFilter,
+    existingDataSources?: Map<
+      DynamicAuthorizationDataSourceName,
+      DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>
+    >
+  ): Promise<void> {
     // Get Data Source
     const dataSourceNames = dynamicFilter.getApplicableDataSources();
     for (const dataSourceName of dataSourceNames) {
       let dataSource = existingDataSources.get(dataSourceName);
       if (!dataSource) {
         // Create the data source
-        dataSource = await DynamicAuthorizationFactory.getDynamicDataSource(tenant, user, dataSourceName);
+        dataSource = await DynamicAuthorizationFactory.getDynamicDataSource(
+          tenant,
+          user,
+          dataSourceName
+        );
         // Add
         existingDataSources.set(dataSourceName, dataSource);
       }

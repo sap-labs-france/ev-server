@@ -11,13 +11,7 @@
     "entityType": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": [
-        "Tenant",
-        "Company",
-        "Site",
-        "SiteArea",
-        "ChargingStation"
-      ]
+      "enum": ["Tenant", "Company", "Site", "SiteArea", "ChargingStation"]
     },
     "name": {
       "type": "string",
@@ -30,7 +24,7 @@
     "dayOfWeek": {
       "type": "number",
       "sanitize": "mongo",
-      "enum": [ 1, 2, 3, 4, 5, 6, 7]
+      "enum": [1, 2, 3, 4, 5, 6, 7]
     },
     "staticRestrictions": {
       "type": "object",
@@ -53,17 +47,7 @@
         "connectorType": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": [
-            "T2",
-            "CCS",
-            "C",
-            "T1",
-            "T3C",
-            "T1CCS",
-            "D",
-            "U",
-            null
-          ],
+          "enum": ["T2", "CCS", "C", "T1", "T3C", "T1CCS", "D", "U", null],
           "nullable": true
         },
         "connectorPowerkW": {
@@ -80,7 +64,7 @@
           "type": "array",
           "items": {
             "$ref": "pricing-definition#/definitions/dayOfWeek"
-          }          ,
+          },
           "nullable": true
         },
         "timeFrom": {
@@ -113,21 +97,21 @@
     },
     "pricingDimension": {
       "type": "object",
-      "nullable":true,
+      "nullable": true,
       "properties": {
-        "active" : {
+        "active": {
           "type": "boolean",
           "sanitize": "mongo"
         },
-        "price" : {
+        "price": {
           "type": "number",
           "sanitize": "mongo"
         },
-        "stepSize" : {
+        "stepSize": {
           "type": "number",
           "sanitize": "mongo"
         },
-        "pricedData" : {
+        "pricedData": {
           "type": "object",
           "properties": {
             "unitPrice": {
@@ -150,11 +134,11 @@
               "type": "string",
               "sanitize": "mongo"
             },
-            "itemDescription" : {
+            "itemDescription": {
               "type": "string",
               "sanitize": "mongo"
             },
-            "taxes" : {
+            "taxes": {
               "type": "array",
               "items": {
                 "type": "string",
@@ -162,17 +146,10 @@
               }
             }
           },
-          "required" : [
-            "unitPrice",
-            "amount",
-            "roundedAmount",
-            "quantity"
-          ]
+          "required": ["unitPrice", "amount", "roundedAmount", "quantity"]
         }
       },
-      "required" : [
-        "active"
-      ]
+      "required": ["active"]
     }
   }
 }

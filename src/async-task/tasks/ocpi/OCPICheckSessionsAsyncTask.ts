@@ -16,17 +16,29 @@ export default class OCPICheckSessionsAsyncTask extends AbstractAsyncTask {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       try {
         // Get the OCPI Endpoint
-        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(tenant, this.getAsyncTask().parameters.endpointID);
+        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(
+          tenant,
+          this.getAsyncTask().parameters.endpointID
+        );
         if (!ocpiEndpoint) {
-          throw new Error(`Unknown OCPI Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
+          throw new Error(
+            `Unknown OCPI Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`
+          );
         }
-        const checkSessionsLock = await LockingHelper.createOCPICheckSessionsLock(tenant.id, ocpiEndpoint);
+        const checkSessionsLock = await LockingHelper.createOCPICheckSessionsLock(
+          tenant.id,
+          ocpiEndpoint
+        );
         if (checkSessionsLock) {
           try {
             // Get the OCPI Client
             const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
             if (!ocpiClient) {
-              throw new Error(`OCPI Client not found in Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
+              throw new Error(
+                `OCPI Client not found in Endpoint ID '${
+                  this.getAsyncTask().parameters.endpointID
+                }'`
+              );
             }
             await ocpiClient.checkSessions();
           } finally {
@@ -35,7 +47,11 @@ export default class OCPICheckSessionsAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_CHECK_SESSIONS, error);
+        await Logging.logActionExceptionMessage(
+          tenant.id,
+          ServerAction.OCPI_CPO_CHECK_SESSIONS,
+          error
+        );
       }
     }
   }

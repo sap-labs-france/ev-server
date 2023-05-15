@@ -16,7 +16,10 @@ export default class BaseApi {
     // Set the base URL
     httpRequest.baseURL = this.baseURL;
     // Set the Query String
-    if (httpRequest.data && httpRequest.headers['Content-Type'] === 'application/x-www-form-urlencoded') {
+    if (
+      httpRequest.data &&
+      httpRequest.headers['Content-Type'] === 'application/x-www-form-urlencoded'
+    ) {
       // Get the Tenant ID
       const foundTenant = await TenantStorage.getTenantBySubdomain(httpRequest.data.tenant);
       if (foundTenant) {
@@ -43,9 +46,8 @@ export default class BaseApi {
       status: httpResponse.status,
       statusText: httpResponse.statusText,
       headers: httpResponse.headers,
-      data: httpResponse.data
+      data: httpResponse.data,
     };
     return response;
   }
 }
-

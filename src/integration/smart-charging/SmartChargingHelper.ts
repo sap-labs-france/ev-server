@@ -9,8 +9,10 @@ import Utils from '../../utils/Utils';
 import moment from 'moment'; // moment-timezone?
 
 export default class SmartChargingHelper {
-
-  public static getExpectedDepartureTime(chargingStation: ChargingStation, expectedDepartureTime: string): Date {
+  public static getExpectedDepartureTime(
+    chargingStation: ChargingStation,
+    expectedDepartureTime: string
+  ): Date {
     const departureTime = moment(expectedDepartureTime, 'HH:mm');
     let departureDate: moment.Moment;
     const timezone = Utils.getTimezone(chargingStation.coordinates);
@@ -28,13 +30,20 @@ export default class SmartChargingHelper {
     return departureDate.toDate();
   }
 
-  public static async getSessionParameters(tenant: Tenant, user: UserToken, chargingStation: ChargingStation, connectorID: number, car: Car)
-      : Promise<SmartChargingRuntimeSessionParameters> {
+  public static async getSessionParameters(
+    tenant: Tenant,
+    user: UserToken,
+    chargingStation: ChargingStation,
+    connectorID: number,
+    car: Car
+  ): Promise<SmartChargingRuntimeSessionParameters> {
     // Check prerequisites
-    if (chargingStation.excludeFromSmartCharging
-      || !chargingStation.siteArea?.smartCharging
-      || !chargingStation.capabilities?.supportChargingProfiles
-      || !Utils.isComponentActiveFromToken(user, TenantComponents.SMART_CHARGING)) {
+    if (
+      chargingStation.excludeFromSmartCharging ||
+      !chargingStation.siteArea?.smartCharging ||
+      !chargingStation.capabilities?.supportChargingProfiles ||
+      !Utils.isComponentActiveFromToken(user, TenantComponents.SMART_CHARGING)
+    ) {
       return null;
     }
     const smartChargingSettings = await SettingStorage.getSmartChargingSettings(tenant);
@@ -45,8 +54,13 @@ export default class SmartChargingHelper {
       const targetStateOfCharge = parameters?.targetStateOfCharge ?? 70;
       const carStateOfCharge = parameters?.carStateOfCharge ?? 30;
       const expectedDepartureTime: string = parameters?.departureTime || '18:00';
-      const departureTime = SmartChargingHelper.getExpectedDepartureTime(chargingStation, expectedDepartureTime);
-      if (Utils.getChargingStationCurrentType(chargingStation, null, connectorID) === CurrentType.DC) {
+      const departureTime = SmartChargingHelper.getExpectedDepartureTime(
+        chargingStation,
+        expectedDepartureTime
+      );
+      if (
+        Utils.getChargingStationCurrentType(chargingStation, null, connectorID) === CurrentType.DC
+      ) {
         // DC Charger
         return {
           departureTime: null,
@@ -65,7 +79,7 @@ export default class SmartChargingHelper {
       return {
         departureTime,
         carStateOfCharge,
-        targetStateOfCharge
+        targetStateOfCharge,
       };
     }
     return null;

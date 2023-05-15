@@ -7,15 +7,18 @@ export default class OwnUserDynamicAuthorizationAssert extends DynamicAuthorizat
     if (entityData && entityData['userID'] && entityData['userID'] === this.userToken.id) {
       return true;
     }
-    if (entityData && entityData['user'] && entityData['user']['id'] && entityData['user']['id'] === this.userToken.id) {
+    if (
+      entityData &&
+      entityData['user'] &&
+      entityData['user']['id'] &&
+      entityData['user']['id'] === this.userToken.id
+    ) {
       return true;
     }
     return false;
   }
 
   public getApplicableEntities(): Entity[] {
-    return [
-      Entity.CAR
-    ];
+    return [Entity.CAR];
   }
 }

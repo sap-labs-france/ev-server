@@ -7,7 +7,5 @@
       "$ref": "pricing-definition#/definitions/id"
     }
   },
-  "required": [
-    "ID"
-  ]
+  "required": ["ID"]
 }

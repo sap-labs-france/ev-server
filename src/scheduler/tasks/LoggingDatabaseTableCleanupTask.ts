@@ -22,17 +22,26 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
     await this.deletePerformanceRecords(Constants.DEFAULT_TENANT_OBJECT, config);
   }
 
-  public async processTenant(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig): Promise<void> {
+  public async processTenant(
+    tenant: Tenant,
+    config: LoggingDatabaseTableCleanupTaskConfig
+  ): Promise<void> {
     // Delete Tenant Logs
     await this.deleteLogs(tenant, config);
   }
 
   private async deleteLogs(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig) {
     // Get the lock
-    const logsCleanUpLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.LOG, 'cleanup');
+    const logsCleanUpLock = LockingManager.createExclusiveLock(
+      tenant.id,
+      LockEntity.LOG,
+      'cleanup'
+    );
     if (await LockingManager.acquire(logsCleanUpLock)) {
       try {
-        const lastLogMDB = global.database.getCollection<any>(tenant.id, 'logs').find({})
+        const lastLogMDB = global.database
+          .getCollection<any>(tenant.id, 'logs')
+          .find({})
           .sort({ timestamp: -1 })
           .skip(10 * 1000 * 1000)
           .limit(1)
@@ -50,16 +59,22 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
           await Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.LOGS_CLEANUP,
-            module: MODULE_NAME, method: 'deleteLogs',
-            message: `${result.deletedCount} Log(s) have been deleted before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
+            module: MODULE_NAME,
+            method: 'deleteLogs',
+            message: `${result.deletedCount} Log(s) have been deleted before '${moment(
+              deleteUpToDate
+            ).format('DD/MM/YYYY h:mm A')}'`,
           });
         } else {
           await Logging.logError({
             tenantID: tenant.id,
             action: ServerAction.LOGS_CLEANUP,
-            module: MODULE_NAME, method: 'deleteLogs',
-            message: `An error occurred when deleting Logs before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`,
-            detailedMessages: { result }
+            module: MODULE_NAME,
+            method: 'deleteLogs',
+            message: `An error occurred when deleting Logs before '${moment(deleteUpToDate).format(
+              'DD/MM/YYYY h:mm A'
+            )}'`,
+            detailedMessages: { result },
           });
         }
       } catch (error) {
@@ -70,12 +85,21 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
     }
   }
 
-  private async deletePerformanceRecords(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig) {
+  private async deletePerformanceRecords(
+    tenant: Tenant,
+    config: LoggingDatabaseTableCleanupTaskConfig
+  ) {
     // Get the lock
-    const performanceCleanUpLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.PERFORMANCE, 'cleanup');
+    const performanceCleanUpLock = LockingManager.createExclusiveLock(
+      tenant.id,
+      LockEntity.PERFORMANCE,
+      'cleanup'
+    );
     if (await LockingManager.acquire(performanceCleanUpLock)) {
       try {
-        const lastLogMDB = global.database.getCollection<any>(tenant.id, 'performances').find({})
+        const lastLogMDB = global.database
+          .getCollection<any>(tenant.id, 'performances')
+          .find({})
           .sort({ timestamp: -1 })
           .skip(25 * 1000 * 1000)
           .limit(1)
@@ -93,20 +117,32 @@ export default class LoggingDatabaseTableCleanupTask extends TenantSchedulerTask
           await Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.PERFORMANCES_CLEANUP,
-            module: MODULE_NAME, method: 'deletePerformanceRecords',
-            message: `${result.deletedCount} Performance Record(s) have been deleted before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
+            module: MODULE_NAME,
+            method: 'deletePerformanceRecords',
+            message: `${
+              result.deletedCount
+            } Performance Record(s) have been deleted before '${moment(deleteUpToDate).format(
+              'DD/MM/YYYY h:mm A'
+            )}'`,
           });
         } else {
           await Logging.logError({
             tenantID: tenant.id,
             action: ServerAction.PERFORMANCES_CLEANUP,
-            module: MODULE_NAME, method: 'deletePerformanceRecords',
-            message: `An error occurred when deleting Performance Record(s) before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`,
-            detailedMessages: { result }
+            module: MODULE_NAME,
+            method: 'deletePerformanceRecords',
+            message: `An error occurred when deleting Performance Record(s) before '${moment(
+              deleteUpToDate
+            ).format('DD/MM/YYYY h:mm A')}'`,
+            detailedMessages: { result },
           });
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.PERFORMANCES_CLEANUP, error);
+        await Logging.logActionExceptionMessage(
+          tenant.id,
+          ServerAction.PERFORMANCES_CLEANUP,
+          error
+        );
       } finally {
         // Release the lock
         await LockingManager.release(performanceCleanUpLock);

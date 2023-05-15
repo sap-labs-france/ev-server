@@ -1,4 +1,3 @@
-
 export interface OpeningTimes {
   twentyFourBySeven: boolean;
   regularHours: RegularHour[];

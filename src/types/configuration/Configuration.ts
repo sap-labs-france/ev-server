@@ -64,4 +64,30 @@ export interface Configuration {
   Cache?: CacheConfiguration;
 }
 
-export type ConfigurationSection = CryptoConfiguration|CentralSystemServerConfiguration|CentralSystemConfiguration|CentralSystemRestServiceConfiguration|CentralSystemFrontEndConfiguration|WSDLEndpointConfiguration|JsonEndpointConfiguration|OCPIEndpointConfiguration|OCPIServiceConfiguration|ODataServiceConfiguration|FirebaseConfiguration|EmailConfiguration|StorageConfiguration|NotificationConfiguration|AuthorizationConfiguration|ChargingStationConfiguration|SchedulerConfiguration|LocalesConfiguration|LogConfiguration|HealthCheckConfiguration|MigrationConfiguration|EVDatabaseConfiguration|ChargingStationTemplatesConfiguration|AxiosConfiguration|CacheConfiguration|ShieldConfiguration;
+export type ConfigurationSection =
+  | CryptoConfiguration
+  | CentralSystemServerConfiguration
+  | CentralSystemConfiguration
+  | CentralSystemRestServiceConfiguration
+  | CentralSystemFrontEndConfiguration
+  | WSDLEndpointConfiguration
+  | JsonEndpointConfiguration
+  | OCPIEndpointConfiguration
+  | OCPIServiceConfiguration
+  | ODataServiceConfiguration
+  | FirebaseConfiguration
+  | EmailConfiguration
+  | StorageConfiguration
+  | NotificationConfiguration
+  | AuthorizationConfiguration
+  | ChargingStationConfiguration
+  | SchedulerConfiguration
+  | LocalesConfiguration
+  | LogConfiguration
+  | HealthCheckConfiguration
+  | MigrationConfiguration
+  | EVDatabaseConfiguration
+  | ChargingStationTemplatesConfiguration
+  | AxiosConfiguration
+  | CacheConfiguration
+  | ShieldConfiguration;

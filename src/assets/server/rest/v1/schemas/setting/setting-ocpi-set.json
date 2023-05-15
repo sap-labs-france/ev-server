@@ -17,7 +17,7 @@
                   "properties": {
                     "category": {
                       "type": "string",
-                      "sanitize" : "mongo"
+                      "sanitize": "mongo"
                     },
                     "height": {
                       "type": "number",
@@ -97,10 +97,7 @@
           "enum": ["ocpi"]
         }
       },
-      "required": [
-        "type",
-        "ocpi"
-      ]
+      "required": ["type", "ocpi"]
     },
     "id": {
       "$ref": "common#/definitions/id"
@@ -114,7 +111,5 @@
       "$ref": "setting#/definitions/sensitiveData"
     }
   },
-  "required": [
-    "identifier"
-  ]
+  "required": ["identifier"]
 }

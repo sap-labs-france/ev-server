@@ -1,4 +1,15 @@
-import { ChangeStreamDocument, Collection, CollectionOptions, CreateIndexesOptions, Db, GridFSBucket, IndexSpecification, MongoClient, ReadPreference, ReadPreferenceMode } from 'mongodb';
+import {
+  ChangeStreamDocument,
+  Collection,
+  CollectionOptions,
+  CreateIndexesOptions,
+  Db,
+  GridFSBucket,
+  IndexSpecification,
+  MongoClient,
+  ReadPreference,
+  ReadPreferenceMode,
+} from 'mongodb';
 import global, { DatabaseDocumentChange } from '../../types/GlobalType';
 import mongoUriBuilder, { MongoUriConfig } from 'mongo-uri-builder';
 
@@ -41,20 +52,27 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'getCollection',
         message: 'Not supposed to call getCollection before database start',
-        action: ServerAction.MONGO_DB
+        action: ServerAction.MONGO_DB,
       });
     }
     return this.database.collection<T>(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
 
-  public async watchDatabaseCollection(tenant: Tenant, collectionName: string,
-      callback: (documentID: unknown, documentChange: DatabaseDocumentChange, document: unknown) => void): Promise<void> {
+  public async watchDatabaseCollection(
+    tenant: Tenant,
+    collectionName: string,
+    callback: (
+      documentID: unknown,
+      documentChange: DatabaseDocumentChange,
+      document: unknown
+    ) => void
+  ): Promise<void> {
     if (!this.database) {
       throw new BackendError({
         module: MODULE_NAME,
         method: 'watchDatabaseCollection',
         message: 'Database has not yet started',
-        action: ServerAction.MONGO_DB
+        action: ServerAction.MONGO_DB,
       });
     }
     // Get the DB collection
@@ -64,7 +82,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'watchDatabaseCollection',
         message: `Database collection '${tenant.id}.${collectionName}' has not been found!`,
-        action: ServerAction.MONGO_DB
+        action: ServerAction.MONGO_DB,
       });
     }
     // Watch
@@ -74,11 +92,15 @@ export default class MongoDBStorage {
     await Logging.logDebug({
       tenantID: tenant.id,
       action: ServerAction.MONGO_DB,
-      message, module: MODULE_NAME, method: 'watchDatabaseCollection'
+      message,
+      module: MODULE_NAME,
+      method: 'watchDatabaseCollection',
     });
     // Trigger callbacks
     changeStream.on('change', (changeStreamDocument: ChangeStreamDocument) => {
-      const documentID = changeStreamDocument['documentKey'] ? changeStreamDocument['documentKey']['_id'] : null;
+      const documentID = changeStreamDocument['documentKey']
+        ? changeStreamDocument['documentKey']['_id']
+        : null;
       const documentChange = changeStreamDocument.operationType;
       const fullDocument = changeStreamDocument['fullDocument'];
       // Callback
@@ -93,14 +115,15 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'checkAndCreateTenantDatabase',
         message: 'Database has not yet started',
-        action: ServerAction.MONGO_DB
+        action: ServerAction.MONGO_DB,
       });
     }
     await Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
       message: 'Check of MongoDB database...',
-      module: MODULE_NAME, method: 'checkAndCreateTenantDatabase'
+      module: MODULE_NAME,
+      method: 'checkAndCreateTenantDatabase',
     });
     // Users
     await this.handleIndexesInCollection(tenantID, 'users', [
@@ -110,7 +133,7 @@ export default class MongoDBStorage {
     ]);
     // Users Import
     await this.handleIndexesInCollection(tenantID, 'importedusers', [
-      { fields: { email: 1 }, options: { unique: true } }
+      { fields: { email: 1 }, options: { unique: true } },
     ]);
     // Invoices
     await this.handleIndexesInCollection(tenantID, 'invoices', [
@@ -131,19 +154,19 @@ export default class MongoDBStorage {
     // Raw Notifications
     await this.handleIndexesInCollection(tenantID, 'rawnotifications', [
       { fields: { timestamp: 1 }, options: { expireAfterSeconds: 1 * 24 * 3600 } }, // To be clarified - too short when checking the user inactivity
-      { fields: { discriminator: 1 } } // Necessary to avoid scanning all documents when checking whether the notification has already been sent
+      { fields: { discriminator: 1 } }, // Necessary to avoid scanning all documents when checking whether the notification has already been sent
     ]);
     // Raw MeterValues
     await this.handleIndexesInCollection(tenantID, 'rawmetervalues', [
-      { fields: { beginAt: 1 }, options: { expireAfterSeconds: 2 * 24 * 3600 } }
+      { fields: { beginAt: 1 }, options: { expireAfterSeconds: 2 * 24 * 3600 } },
     ]);
     // MeterValues
     await this.handleIndexesInCollection(tenantID, 'metervalues', [
-      { fields: { transactionId: 1 } }
+      { fields: { transactionId: 1 } },
     ]);
     // Status Notifications
     await this.handleIndexesInCollection(tenantID, 'statusnotifications', [
-      { fields: { timestamp: 1 } }
+      { fields: { timestamp: 1 } },
     ]);
     // Tags
     await this.handleIndexesInCollection(tenantID, 'tags', [
@@ -155,12 +178,12 @@ export default class MongoDBStorage {
     ]);
     // Tags Import
     await this.handleIndexesInCollection(tenantID, 'importedtags', [
-      { fields: { visualID: 1 }, options: { unique: true } }
+      { fields: { visualID: 1 }, options: { unique: true } },
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(tenantID, 'siteusers', [
       { fields: { siteID: 1, userID: 1 }, options: { unique: true } },
-      { fields: { userID: 1 } }
+      { fields: { userID: 1 } },
     ]);
     // Cars
     await this.handleIndexesInCollection(tenantID, 'cars', [
@@ -176,15 +199,15 @@ export default class MongoDBStorage {
     ]);
     // Settings
     await this.handleIndexesInCollection(tenantID, 'settings', [
-      { fields: { identifier: 1 }, options: { unique: true } }
+      { fields: { identifier: 1 }, options: { unique: true } },
     ]);
     await this.handleIndexesInCollection(tenantID, 'connections', [
-      { fields: { connectorId: 1, userId: 1 }, options: { unique: true } }
+      { fields: { connectorId: 1, userId: 1 }, options: { unique: true } },
     ]);
     await this.handleIndexesInCollection(tenantID, 'consumptions', [
       { fields: { transactionId: 1 } },
       { fields: { assetID: 1, startedAt: 1 } },
-      { fields: { siteAreaID: 1, startedAt: 1 } }
+      { fields: { siteAreaID: 1, startedAt: 1 } },
     ]);
     // Companies
     await this.handleIndexesInCollection(tenantID, 'companies', [
@@ -193,25 +216,35 @@ export default class MongoDBStorage {
     // Sites
     await this.handleIndexesInCollection(tenantID, 'sites', [
       { fields: { 'address.coordinates': '2dsphere' } },
-      { fields: { 'ocpiData.location.id': 1 }, options: { partialFilterExpression: { ocpiData: { $exists: true } } } }
+      {
+        fields: { 'ocpiData.location.id': 1 },
+        options: { partialFilterExpression: { ocpiData: { $exists: true } } },
+      },
     ]);
     // Site Area
     await this.handleIndexesInCollection(tenantID, 'siteareas', [
       { fields: { 'address.coordinates': '2dsphere' } },
-      { fields: { 'ocpiData.location.id': 1 }, options: { partialFilterExpression: { ocpiData: { $exists: true } } } }
+      {
+        fields: { 'ocpiData.location.id': 1 },
+        options: { partialFilterExpression: { ocpiData: { $exists: true } } },
+      },
     ]);
     // Charging Stations
     await this.handleIndexesInCollection(tenantID, 'chargingstations', [
       { fields: { coordinates: '2dsphere' } },
       { fields: { deleted: 1, issuer: 1 } },
       { fields: { 'connectors.status': 1 } },
-      { fields: { 'ocpiData.evses.uid': 1 }, options: { partialFilterExpression: { 'ocpiData.evses': { $exists: true } } } }
+      {
+        fields: { 'ocpiData.evses.uid': 1 },
+        options: { partialFilterExpression: { 'ocpiData.evses': { $exists: true } } },
+      },
     ]);
     await Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
       message: 'Check of MongoDB database done',
-      module: MODULE_NAME, method: 'checkAndCreateTenantDatabase'
+      module: MODULE_NAME,
+      method: 'checkAndCreateTenantDatabase',
     });
   }
 
@@ -224,7 +257,7 @@ export default class MongoDBStorage {
           module: MODULE_NAME,
           method: 'deleteTenantDatabase',
           message: 'Not supposed to call deleteTenantDatabase before database start',
-          action: ServerAction.MONGO_DB
+          action: ServerAction.MONGO_DB,
         });
       }
       // Get all the collections
@@ -259,7 +292,7 @@ export default class MongoDBStorage {
     if (this.dbConfig.uri) {
       // Yes: use it
       mongoUrl = this.dbConfig.uri;
-    // Build URI without replicaset
+      // Build URI without replicaset
     } else {
       const uri: MongoUriConfig = {
         host: urlencode(this.dbConfig.host),
@@ -268,8 +301,10 @@ export default class MongoDBStorage {
         password: urlencode(this.dbConfig.password),
         database: urlencode(this.dbConfig.database),
         options: {
-          readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
-        }
+          readPreference: this.dbConfig.readPreference
+            ? (this.dbConfig.readPreference as ReadPreferenceMode)
+            : ReadPreferenceMode.secondaryPreferred,
+        },
       };
       // Set the Replica Set
       if (this.dbConfig.replicaSet) {
@@ -295,15 +330,14 @@ export default class MongoDBStorage {
       maxPoolSize = 100;
     }
     // Mongo Client to EVSE DB
-    this.mongoDBClient = await MongoClient.connect(
-      mongoUrl,
-      {
-        minPoolSize,
-        maxPoolSize,
-        loggerLevel: this.dbConfig.debug ? 'debug' : null,
-        readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
-      }
-    );
+    this.mongoDBClient = await MongoClient.connect(mongoUrl, {
+      minPoolSize,
+      maxPoolSize,
+      loggerLevel: this.dbConfig.debug ? 'debug' : null,
+      readPreference: this.dbConfig.readPreference
+        ? (this.dbConfig.readPreference as ReadPreferenceMode)
+        : ReadPreferenceMode.secondaryPreferred,
+    });
     this.database = this.mongoDBClient.db();
     // Keep a global reference
     global.database = this;
@@ -323,10 +357,12 @@ export default class MongoDBStorage {
         // Check time spent
         const totalTime = Date.now() - startTime;
         if (totalTime > Constants.DB_MAX_PING_TIME_MILLIS) {
-          throw new Error(`Database ping took ${totalTime} ms instead of ${Constants.DB_MAX_PING_TIME_MILLIS}`);
+          throw new Error(
+            `Database ping took ${totalTime} ms instead of ${Constants.DB_MAX_PING_TIME_MILLIS}`
+          );
         }
         this.dbPingFailed = 0;
-        return (result.ok === 1);
+        return result.ok === 1;
       } catch (error) {
         this.dbPingFailed++;
         const message = `${this.dbPingFailed} database ping(s) failed: ${error.message as string}`;
@@ -334,12 +370,20 @@ export default class MongoDBStorage {
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MONGO_DB,
-          module: MODULE_NAME, method: 'ping',
-          message, detailedMessages: { error: error.stack }
+          module: MODULE_NAME,
+          method: 'ping',
+          message,
+          detailedMessages: { error: error.stack },
         });
         return false;
       } finally {
-        await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'ping', startTime, {});
+        await Logging.traceDatabaseRequestEnd(
+          Constants.DEFAULT_TENANT_OBJECT,
+          MODULE_NAME,
+          'ping',
+          startTime,
+          {}
+        );
       }
     }
     return true;
@@ -352,7 +396,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'checkDatabase',
         message: 'Not supposed to call checkDatabase before database start',
-        action: ServerAction.MONGO_DB
+        action: ServerAction.MONGO_DB,
       });
     }
     // Handle Default Tenant
@@ -364,7 +408,11 @@ export default class MongoDBStorage {
   private async handleCheckDefaultTenant() {
     try {
       // Database creation Lock
-      const databaseLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT_ID, LockEntity.DATABASE, 'check-database');
+      const databaseLock = LockingManager.createExclusiveLock(
+        Constants.DEFAULT_TENANT_ID,
+        LockEntity.DATABASE,
+        'check-database'
+      );
       if (await LockingManager.acquire(databaseLock)) {
         try {
           // Check only collections with indexes
@@ -381,11 +429,11 @@ export default class MongoDBStorage {
           ]);
           // Users
           await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'users', [
-            { fields: { email: 1 }, options: { unique: true } }
+            { fields: { email: 1 }, options: { unique: true } },
           ]);
           // Car Catalogs
           await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'carcatalogimages', [
-            { fields: { carID: 1 } }
+            { fields: { carID: 1 } },
           ]);
           // Logs
           await this.handleIndexesInCollection(Constants.DEFAULT_TENANT_ID, 'logs', [
@@ -403,26 +451,34 @@ export default class MongoDBStorage {
         }
       }
     } catch (error) {
-      const message = 'Error while checking Database in tenant \'default\'';
+      const message = "Error while checking Database in tenant 'default'";
       Logging.logConsoleError(message);
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MONGO_DB,
-        module: MODULE_NAME, method: 'handleIndexesInCollection',
-        message, detailedMessages: { error: error.stack }
+        module: MODULE_NAME,
+        method: 'handleIndexesInCollection',
+        message,
+        detailedMessages: { error: error.stack },
       });
     }
   }
 
   private async handleCheckTenants() {
     // Get all the Tenants
-    const tenantsMDB = await this.database.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT_ID, 'tenants'))
-      .find({}).toArray();
+    const tenantsMDB = await this.database
+      .collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT_ID, 'tenants'))
+      .find({})
+      .toArray();
     const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
       try {
         // Database creation Lock
-        const databaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, 'check-database');
+        const databaseLock = LockingManager.createExclusiveLock(
+          tenantId,
+          LockEntity.DATABASE,
+          'check-database'
+        );
         if (await LockingManager.acquire(databaseLock)) {
           try {
             // Create tenant collections
@@ -438,22 +494,27 @@ export default class MongoDBStorage {
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MONGO_DB,
-          module: MODULE_NAME, method: 'handleIndexesInCollection',
-          message, detailedMessages: { error: error.stack }
+          module: MODULE_NAME,
+          method: 'handleIndexesInCollection',
+          message,
+          detailedMessages: { error: error.stack },
         });
       }
     }
   }
 
-  private async handleIndexesInCollection(tenantID: string,
-      name: string, indexes?: { fields: IndexSpecification; options?: CreateIndexesOptions }[]): Promise<void> {
+  private async handleIndexesInCollection(
+    tenantID: string,
+    name: string,
+    indexes?: { fields: IndexSpecification; options?: CreateIndexesOptions }[]
+  ): Promise<void> {
     // Safety check
     if (!this.database) {
       throw new BackendError({
         module: MODULE_NAME,
         method: 'handleIndexesInCollection',
         message: 'Not supposed to call handleIndexesInCollection before database start',
-        action: ServerAction.MONGO_DB
+        action: ServerAction.MONGO_DB,
       });
     }
     // We force read preference to target the primary node
@@ -461,114 +522,189 @@ export default class MongoDBStorage {
     try {
       // Get all the collections
       const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
-      const currentCollections = await this.database.listCollections({ name: tenantCollectionName }, collectionOptions).toArray();
-      const foundCollection = currentCollections.find((collection) => collection.name === tenantCollectionName);
+      const currentCollections = await this.database
+        .listCollections({ name: tenantCollectionName }, collectionOptions)
+        .toArray();
+      const foundCollection = currentCollections.find(
+        (collection) => collection.name === tenantCollectionName
+      );
       // Create
       if (!foundCollection) {
         try {
           await this.database.createCollection(tenantCollectionName);
         } catch (error) {
-          const message = `Error in creating collection '${tenantID}.${tenantCollectionName}': ${error.message as string}`;
+          const message = `Error in creating collection '${tenantID}.${tenantCollectionName}': ${
+            error.message as string
+          }`;
           Logging.logConsoleError(message);
           await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.MONGO_DB,
-            module: MODULE_NAME, method: 'handleIndexesInCollection',
-            message, detailedMessages: { error: error.stack, tenantCollectionName, name, indexes }
+            module: MODULE_NAME,
+            method: 'handleIndexesInCollection',
+            message,
+            detailedMessages: { error: error.stack, tenantCollectionName, name, indexes },
           });
         }
       }
       // Indexes?
       if (indexes) {
         // Get current indexes
-        let databaseIndexes = await this.database.collection(tenantCollectionName, collectionOptions).listIndexes().toArray();
+        let databaseIndexes = await this.database
+          .collection(tenantCollectionName, collectionOptions)
+          .listIndexes()
+          .toArray();
         // Drop indexes
         for (const databaseIndex of databaseIndexes) {
           if (databaseIndex.key._id) {
             continue;
           }
-          let foundIndex = indexes.find((index) => this.buildIndexName(index.fields) === databaseIndex.name);
+          let foundIndex = indexes.find(
+            (index) => this.buildIndexName(index.fields) === databaseIndex.name
+          );
           // Check DB 'unique' index option
           if (!Utils.areObjectPropertiesEqual(databaseIndex, foundIndex?.options, 'unique')) {
             // Force not found: Create
             foundIndex = null;
           }
           // Check DB 'expireAfterSeconds' index option
-          if (!Utils.areObjectPropertiesEqual(databaseIndex, foundIndex?.options, 'expireAfterSeconds')) {
+          if (
+            !Utils.areObjectPropertiesEqual(
+              databaseIndex,
+              foundIndex?.options,
+              'expireAfterSeconds'
+            )
+          ) {
             // expiration date
             foundIndex = null;
           }
           // Check DB 'expireAfterSeconds' index option
-          if (!Utils.areObjectPropertiesEqual(databaseIndex, foundIndex?.options, 'partialFilterExpression')) {
+          if (
+            !Utils.areObjectPropertiesEqual(
+              databaseIndex,
+              foundIndex?.options,
+              'partialFilterExpression'
+            )
+          ) {
             // partial index
             foundIndex = null;
           }
           // Delete the index
           if (!foundIndex) {
             if (Utils.isDevelopmentEnv()) {
-              const message = `Drop index '${databaseIndex.name as string}' in collection ${tenantCollectionName}`;
+              const message = `Drop index '${
+                databaseIndex.name as string
+              }' in collection ${tenantCollectionName}`;
               Utils.isDevelopmentEnv() && Logging.logConsoleDebug(message);
               await Logging.logInfo({
                 tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
-                module: MODULE_NAME, method: 'handleIndexesInCollection',
-                message, detailedMessages: { tenantCollectionName, indexes, indexName: databaseIndex.name }
+                module: MODULE_NAME,
+                method: 'handleIndexesInCollection',
+                message,
+                detailedMessages: { tenantCollectionName, indexes, indexName: databaseIndex.name },
               });
             }
             try {
-              await this.database.collection(tenantCollectionName, collectionOptions).dropIndex(databaseIndex.key);
+              await this.database
+                .collection(tenantCollectionName, collectionOptions)
+                .dropIndex(databaseIndex.key);
             } catch (error) {
-              const message = `Error in dropping index '${databaseIndex.name as string}' in '${tenantCollectionName}': ${error.message as string}`;
+              const message = `Error in dropping index '${
+                databaseIndex.name as string
+              }' in '${tenantCollectionName}': ${error.message as string}`;
               Logging.logConsoleError(message);
               await Logging.logError({
                 tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
-                module: MODULE_NAME, method: 'handleIndexesInCollection',
-                message, detailedMessages: { error: error.stack, tenantCollectionName, name, indexes, indexName: databaseIndex.name }
+                module: MODULE_NAME,
+                method: 'handleIndexesInCollection',
+                message,
+                detailedMessages: {
+                  error: error.stack,
+                  tenantCollectionName,
+                  name,
+                  indexes,
+                  indexName: databaseIndex.name,
+                },
               });
             }
           }
         }
         // Get updated indexes
-        databaseIndexes = await this.database.collection(tenantCollectionName, collectionOptions).listIndexes().toArray();
+        databaseIndexes = await this.database
+          .collection(tenantCollectionName, collectionOptions)
+          .listIndexes()
+          .toArray();
         // Create indexes
         for (const index of indexes) {
-          const foundDatabaseIndex = databaseIndexes.find((databaseIndex) => this.buildIndexName(index.fields) === databaseIndex.name);
+          const foundDatabaseIndex = databaseIndexes.find(
+            (databaseIndex) => this.buildIndexName(index.fields) === databaseIndex.name
+          );
           // Create the index
           if (!foundDatabaseIndex) {
             if (Utils.isDevelopmentEnv()) {
-              const message = `Create index ${JSON.stringify(index)} in collection ${tenantCollectionName}`;
+              const message = `Create index ${JSON.stringify(
+                index
+              )} in collection ${tenantCollectionName}`;
               Utils.isDevelopmentEnv() && Logging.logConsoleDebug(message);
               await Logging.logInfo({
                 tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
-                module: MODULE_NAME, method: 'handleIndexesInCollection',
-                message, detailedMessages: { tenantCollectionName, name, indexes, indexFields: index.fields, indexOptions: index.options }
+                module: MODULE_NAME,
+                method: 'handleIndexesInCollection',
+                message,
+                detailedMessages: {
+                  tenantCollectionName,
+                  name,
+                  indexes,
+                  indexFields: index.fields,
+                  indexOptions: index.options,
+                },
               });
             }
             try {
-              await this.database.collection(tenantCollectionName, collectionOptions).createIndex(index.fields, index.options);
+              await this.database
+                .collection(tenantCollectionName, collectionOptions)
+                .createIndex(index.fields, index.options);
             } catch (error) {
-              const message = `Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message as string}`;
+              const message = `Error in creating index '${JSON.stringify(
+                index.fields
+              )}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${
+                error.message as string
+              }`;
               Logging.logConsoleError(message);
               await Logging.logError({
                 tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
-                module: MODULE_NAME, method: 'handleIndexesInCollection',
-                message, detailedMessages: { error: error.stack, tenantCollectionName, name, indexes, indexFields: index.fields, indexOptions: index.options }
+                module: MODULE_NAME,
+                method: 'handleIndexesInCollection',
+                message,
+                detailedMessages: {
+                  error: error.stack,
+                  tenantCollectionName,
+                  name,
+                  indexes,
+                  indexFields: index.fields,
+                  indexOptions: index.options,
+                },
               });
             }
           }
         }
       }
     } catch (error) {
-      const message = `Unexpected error in handling Collection '${tenantID}.${name}': ${error.message as string}`;
+      const message = `Unexpected error in handling Collection '${tenantID}.${name}': ${
+        error.message as string
+      }`;
       Logging.logConsoleError(message);
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MONGO_DB,
-        module: MODULE_NAME, method: 'handleIndexesInCollection',
-        message, detailedMessages: { error: error.stack, tenantID, name, indexes }
+        module: MODULE_NAME,
+        method: 'handleIndexesInCollection',
+        message,
+        detailedMessages: { error: error.stack, tenantID, name, indexes },
       });
     }
   }

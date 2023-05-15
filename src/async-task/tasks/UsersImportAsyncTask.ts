@@ -20,14 +20,21 @@ const MODULE_NAME = 'UsersImportAsyncTask';
 
 export default class UsersImportAsyncTask extends AbstractAsyncTask {
   protected async executeAsyncTask(): Promise<void> {
-    const importUsersLock = await LockingHelper.acquireImportUsersLock(this.getAsyncTask().tenantID);
+    const importUsersLock = await LockingHelper.acquireImportUsersLock(
+      this.getAsyncTask().tenantID
+    );
     const importHelper = new ImportHelper();
     const existingSites: Map<string, Site> = new Map();
     if (importUsersLock) {
       const tenant = await TenantStorage.getTenant(this.getAsyncTask().tenantID);
       try {
         if (existingSites.size === 0) {
-          const sites = await SiteStorage.getSites(tenant, { issuer: true }, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
+          const sites = await SiteStorage.getSites(
+            tenant,
+            { issuer: true },
+            Constants.DB_PARAMS_MAX_LIMIT,
+            ['id', 'name']
+          );
           for (const site of sites.result) {
             existingSites.set(site.id, site);
           }
@@ -45,13 +52,18 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
           await Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.USERS_IMPORT,
-            module: MODULE_NAME, method: 'processTenant',
-            message: `${totalUsersToImport} User(s) are going to be imported...`
+            module: MODULE_NAME,
+            method: 'processTenant',
+            message: `${totalUsersToImport} User(s) are going to be imported...`,
           });
         }
         do {
           // Get the imported users
-          importedUsers = await UserStorage.getImportedUsers(tenant, { status: ImportStatus.READY }, dbParams);
+          importedUsers = await UserStorage.getImportedUsers(
+            tenant,
+            { status: ImportStatus.READY },
+            dbParams
+          );
           for (const importedUser of importedUsers.result) {
             try {
               // Check & Import the User
@@ -69,29 +81,46 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               await Logging.logError({
                 tenantID: tenant.id,
                 action: ServerAction.USERS_IMPORT,
-                module: MODULE_NAME, method: 'executeAsyncTask',
+                module: MODULE_NAME,
+                method: 'executeAsyncTask',
                 message: `Cannot import User with email '${importedUser.email}': ${error.message}`,
-                detailedMessages: { importedUser, error: error.stack }
+                detailedMessages: { importedUser, error: error.stack },
               });
             }
           }
-          if (importedUsers.result.length > 0 && (result.inError + result.inSuccess) > 0) {
+          if (importedUsers.result.length > 0 && result.inError + result.inSuccess > 0) {
             const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
             await Logging.logDebug({
               tenantID: tenant.id,
               action: ServerAction.USERS_IMPORT,
-              module: MODULE_NAME, method: 'processTenant',
-              message: `${result.inError + result.inSuccess}/${totalUsersToImport} User(s) have been processed in ${intermediateDurationSecs}s...`
+              module: MODULE_NAME,
+              method: 'processTenant',
+              message: `${
+                result.inError + result.inSuccess
+              }/${totalUsersToImport} User(s) have been processed in ${intermediateDurationSecs}s...`,
             });
           }
         } while (!Utils.isEmptyArray(importedUsers?.result));
         // Log final results
         const executionDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
-        await Logging.logActionsResponse(tenant.id, ServerAction.USERS_IMPORT, MODULE_NAME, 'processTenant', result,
-          `{{inSuccess}} User(s) have been imported successfully in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
-          `{{inError}} User(s) failed to be imported in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
-          `{{inSuccess}} User(s) have been imported successfully but {{inError}} failed in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
-          `Not User has been imported in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`
+        await Logging.logActionsResponse(
+          tenant.id,
+          ServerAction.USERS_IMPORT,
+          MODULE_NAME,
+          'processTenant',
+          result,
+          `{{inSuccess}} User(s) have been imported successfully in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(
+            tenant
+          )}`,
+          `{{inError}} User(s) failed to be imported in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(
+            tenant
+          )}`,
+          `{{inSuccess}} User(s) have been imported successfully but {{inError}} failed in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(
+            tenant
+          )}`,
+          `Not User has been imported in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(
+            tenant
+          )}`
         );
       } catch (error) {
         // Log error

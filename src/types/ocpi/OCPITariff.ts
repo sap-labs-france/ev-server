@@ -1,9 +1,8 @@
-
 export enum OCPITariffDimensionType {
   ENERGY = 'ENERGY',
   FLAT = 'FLAT',
   PARKING_TIME = 'PARKING_TIME',
-  TIME = 'TIME'
+  TIME = 'TIME',
 }
 
 export interface OCPIPriceComponent {

@@ -62,8 +62,5 @@
       "description": "performance correlation ID"
     }
   },
-  "required": [
-    "chargePointVendor",
-    "chargePointModel"
-  ]
+  "required": ["chargePointVendor", "chargePointModel"]
 }

@@ -136,10 +136,7 @@
       "type": "number"
     },
     "videos": {
-      "type": [
-        "array",
-        "null"
-      ],
+      "type": ["array", "null"],
       "items": {
         "type": "string"
       }
@@ -157,18 +154,10 @@
       }
     },
     "lastChangedOn": {
-      "type": [
-        "string",
-        "object"
-      ],
+      "type": ["string", "object"],
       "format": "date"
     }
   },
-  "required": [
-    "id",
-    "vehicleMake",
-    "vehicleModel",
-    "vehicleModelVersion"
-  ],
+  "required": ["id", "vehicleMake", "vehicleModel", "vehicleModelVersion"],
   "definitions": {}
 }

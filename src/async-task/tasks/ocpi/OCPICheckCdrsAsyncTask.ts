@@ -16,9 +16,14 @@ export default class OCPICheckCdrsAsyncTask extends AbstractAsyncTask {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       try {
         // Get the OCPI Endpoint
-        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(tenant, this.getAsyncTask().parameters.endpointID);
+        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(
+          tenant,
+          this.getAsyncTask().parameters.endpointID
+        );
         if (!ocpiEndpoint) {
-          throw new Error(`Unknown OCPI Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
+          throw new Error(
+            `Unknown OCPI Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`
+          );
         }
         const checkCdrsLock = await LockingHelper.createOCPICheckCdrsLock(tenant.id, ocpiEndpoint);
         if (checkCdrsLock) {
@@ -26,7 +31,11 @@ export default class OCPICheckCdrsAsyncTask extends AbstractAsyncTask {
             // Get the OCPI Client
             const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
             if (!ocpiClient) {
-              throw new Error(`OCPI Client not found in Endpoint ID '${this.getAsyncTask().parameters.endpointID}'`);
+              throw new Error(
+                `OCPI Client not found in Endpoint ID '${
+                  this.getAsyncTask().parameters.endpointID
+                }'`
+              );
             }
             await ocpiClient.checkCdrs();
           } finally {

@@ -20,5 +20,4 @@ export interface HttpCompaniesGetRequest extends HttpDatabaseRequest {
   LocMaxDistanceMeters?: number;
 }
 
-export interface HttpCompanyLogoGetRequest extends HttpCompanyGetRequest {
-}
+export interface HttpCompanyLogoGetRequest extends HttpCompanyGetRequest {}

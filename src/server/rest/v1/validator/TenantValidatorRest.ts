@@ -1,22 +1,68 @@
-import { HttpTenantDeleteRequest, HttpTenantGetRequest, HttpTenantLogoGetRequest, HttpTenantsGetRequest } from '../../../../types/requests/HttpTenantRequest';
+import fs from 'fs';
 
 import AppError from '../../../../exception/AppError';
+import global from '../../../../types/GlobalType';
 import { HTTPError } from '../../../../types/HTTPError';
+import {
+  HttpTenantDeleteRequest,
+  HttpTenantGetRequest,
+  HttpTenantLogoGetRequest,
+  HttpTenantsGetRequest,
+} from '../../../../types/requests/HttpTenantRequest';
+import Tenant from '../../../../types/Tenant';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
-import Tenant from '../../../../types/Tenant';
-import fs from 'fs';
-import global from '../../../../types/GlobalType';
 
 export default class TenantValidatorRest extends SchemaValidator {
-  private static instance: TenantValidatorRest|null = null;
-  private tenantCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create.json`, 'utf8'));
-  private tenantUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update.json`, 'utf8'));
-  private tenantUpdateData: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-data-update.json`, 'utf8'));
-  private tenantLogoGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-logo-get.json`, 'utf8'));
-  private tenantGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get.json`, 'utf8'));
-  private tenantDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete.json`, 'utf8'));
-  private tenantsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenants-get.json`, 'utf8'));
+  private static instance: TenantValidatorRest | null = null;
+  private tenantCreate: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-create.json`,
+      'utf8'
+    )
+  );
+
+  private tenantUpdate: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-update.json`,
+      'utf8'
+    )
+  );
+
+  private tenantUpdateData: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-data-update.json`,
+      'utf8'
+    )
+  );
+
+  private tenantLogoGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-logo-get.json`,
+      'utf8'
+    )
+  );
+
+  private tenantGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-get.json`,
+      'utf8'
+    )
+  );
+
+  private tenantDelete: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-delete.json`,
+      'utf8'
+    )
+  );
+
+  private tenantsGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenants-get.json`,
+      'utf8'
+    )
+  );
 
   private constructor() {
     super('TenantValidatorRest');
@@ -66,57 +112,100 @@ export default class TenantValidatorRest extends SchemaValidator {
   private validateComponentDependencies(tenant: Tenant): void {
     if (tenant.components) {
       // Both OICP and OCPI cannot be active
-      if (tenant.components.oicp && tenant.components.ocpi &&
-          tenant.components.oicp.active && tenant.components.ocpi.active) {
+      if (
+        tenant.components.oicp &&
+        tenant.components.ocpi &&
+        tenant.components.oicp.active &&
+        tenant.components.ocpi.active
+      ) {
         throw new AppError({
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Both OICP and OCPI roaming components cannot be active',
-          module: this.moduleName, method: 'validateComponentDependencies'
+          module: this.moduleName,
+          method: 'validateComponentDependencies',
         });
       }
       // Smart Charging active: Organization must be active
-      if (tenant.components.smartCharging && tenant.components.organization &&
-          tenant.components.smartCharging.active && !tenant.components.organization.active) {
+      if (
+        tenant.components.smartCharging &&
+        tenant.components.organization &&
+        tenant.components.smartCharging.active &&
+        !tenant.components.organization.active
+      ) {
         throw new AppError({
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Organization must be active to use the Smart Charging component',
-          module: this.moduleName, method: 'validateComponentDependencies'
+          module: this.moduleName,
+          method: 'validateComponentDependencies',
         });
       }
       // Asset active: Organization must be active
-      if (tenant.components.asset && tenant.components.organization &&
-        tenant.components.asset.active && !tenant.components.organization.active) {
+      if (
+        tenant.components.asset &&
+        tenant.components.organization &&
+        tenant.components.asset.active &&
+        !tenant.components.organization.active
+      ) {
         throw new AppError({
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Organization must be active to use the Asset component',
-          module: this.moduleName, method: 'validateComponentDependencies'
+          module: this.moduleName,
+          method: 'validateComponentDependencies',
         });
       }
       // Car Connector active: Car must be active
-      if (tenant.components.carConnector && tenant.components.car &&
-        tenant.components.carConnector.active && !tenant.components.car.active) {
+      if (
+        tenant.components.carConnector &&
+        tenant.components.car &&
+        tenant.components.carConnector.active &&
+        !tenant.components.car.active
+      ) {
         throw new AppError({
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Car must be active to use the Car Connector component',
-          module: this.moduleName, method: 'validateComponentDependencies'
+          module: this.moduleName,
+          method: 'validateComponentDependencies',
         });
       }
       // Billing active: Pricing must be active
-      if (tenant.components.billing && tenant.components.pricing &&
-          tenant.components.billing.active && !tenant.components.pricing.active) {
+      if (
+        tenant.components.billing &&
+        tenant.components.pricing &&
+        tenant.components.billing.active &&
+        !tenant.components.pricing.active
+      ) {
         throw new AppError({
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pricing must be active to use the Billing component',
-          module: this.moduleName, method: 'validateComponentDependencies'
+          module: this.moduleName,
+          method: 'validateComponentDependencies',
         });
       }
       // Refund active: Pricing must be active
-      if (tenant.components.refund && tenant.components.pricing &&
-          tenant.components.refund.active && !tenant.components.pricing.active) {
+      if (
+        tenant.components.refund &&
+        tenant.components.pricing &&
+        tenant.components.refund.active &&
+        !tenant.components.pricing.active
+      ) {
         throw new AppError({
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pricing must be active to use the Refund component',
-          module: this.moduleName, method: 'validateComponentDependencies'
+          module: this.moduleName,
+          method: 'validateComponentDependencies',
+        });
+      }
+      if (
+        tenant.components.organization &&
+        tenant.components.reservation &&
+        !tenant.components.organization.active &&
+        tenant.components.reservation.active
+      ) {
+        throw new AppError({
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Organisation must be active to use the Reservation component',
+          module: this.moduleName,
+          method: 'validateComponentDependencies',
         });
       }
     }

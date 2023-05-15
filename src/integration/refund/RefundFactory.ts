@@ -20,7 +20,10 @@ export default class RefundFactory {
         switch (setting.type) {
           // SAP Concur
           case RefundSettingsType.CONCUR:
-            refundIntegrationImpl = new SapConcurRefundIntegration(tenant, setting[RefundSettingsType.CONCUR]);
+            refundIntegrationImpl = new SapConcurRefundIntegration(
+              tenant,
+              setting[RefundSettingsType.CONCUR]
+            );
             break;
         }
         return refundIntegrationImpl;
@@ -30,7 +33,7 @@ export default class RefundFactory {
         action: ServerAction.REFUND,
         module: MODULE_NAME,
         method: 'getRefundImpl',
-        message: 'Refund settings are not configured'
+        message: 'Refund settings are not configured',
       });
     }
     return null;

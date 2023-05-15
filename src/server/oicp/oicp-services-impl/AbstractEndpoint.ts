@@ -5,9 +5,7 @@ import { OICPAcknowledgment } from '../../../types/oicp/OICPAcknowledgment';
 import Tenant from '../../../types/Tenant';
 
 export default abstract class AbstractEndpoint {
-
-  constructor(readonly oicpService: AbstractOICPService, readonly identifier: string = 'default') {
-  }
+  constructor(readonly oicpService: AbstractOICPService, readonly identifier: string = 'default') {}
 
   public getIdentifier(): string {
     return this.identifier;
@@ -25,6 +23,10 @@ export default abstract class AbstractEndpoint {
     return this.oicpService.getServiceUrl(req);
   }
 
-  abstract process(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment>;
+  abstract process(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+    tenant: Tenant
+  ): Promise<OICPAcknowledgment>;
 }
-

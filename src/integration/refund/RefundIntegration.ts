@@ -17,7 +17,10 @@ export default abstract class RefundIntegration<T extends RefundSetting> {
 
   public abstract canBeDeleted(transaction: Transaction): boolean;
 
-  public abstract updateRefundStatus(tenant: Tenant, transaction: Transaction): Promise<RefundStatus>;
+  public abstract updateRefundStatus(
+    tenant: Tenant,
+    transaction: Transaction
+  ): Promise<RefundStatus>;
 
   public abstract createConnection(userID: string, data: unknown): Promise<Connection>;
 

@@ -46,4 +46,3 @@ export enum AsyncTasks {
   OCPI_PUSH_EVSE_STATUSES = 'OCPIPushEVSEStatusesAsyncTask',
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogsAsyncTask',
 }
-

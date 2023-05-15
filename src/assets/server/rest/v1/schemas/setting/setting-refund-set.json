@@ -21,7 +21,7 @@
               "type": "string",
               "sanitize": "mongo"
             },
-            "clientId":  {
+            "clientId": {
               "type": "string",
               "sanitize": "mongo"
             },
@@ -56,10 +56,7 @@
           "enum": ["concur"]
         }
       },
-      "required": [
-        "type",
-        "concur"
-      ]
+      "required": ["type", "concur"]
     },
     "id": {
       "$ref": "common#/definitions/id"
@@ -73,7 +70,5 @@
       "$ref": "setting#/definitions/sensitiveData"
     }
   },
-  "required": [
-    "identifier"
-  ]
+  "required": ["identifier"]
 }

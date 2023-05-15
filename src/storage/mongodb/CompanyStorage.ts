@@ -14,15 +14,22 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'CompanyStorage';
 
 export default class CompanyStorage {
-
-  public static async getCompany(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withLogo?: boolean; issuer?: boolean; } = {},
-      projectFields?: string[]): Promise<Company> {
-    const companiesMDB = await CompanyStorage.getCompanies(tenant, {
-      companyIDs: [id],
-      withLogo: params.withLogo,
-      issuer: params.issuer,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+  public static async getCompany(
+    tenant: Tenant,
+    id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { withLogo?: boolean; issuer?: boolean } = {},
+    projectFields?: string[]
+  ): Promise<Company> {
+    const companiesMDB = await CompanyStorage.getCompanies(
+      tenant,
+      {
+        companyIDs: [id],
+        withLogo: params.withLogo,
+        issuer: params.issuer,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return companiesMDB.count === 1 ? companiesMDB.result[0] : null;
   }
 
@@ -30,16 +37,28 @@ export default class CompanyStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
-    const companyLogoMDB = await global.database.getCollection<any>(tenant.id, 'companylogos')
-      .findOne({ _id: DatabaseUtils.convertToObjectID(id) }) as Logo;
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanyLogo', startTime, { id }, companyLogoMDB);
+    const companyLogoMDB = (await global.database
+      .getCollection<any>(tenant.id, 'companylogos')
+      .findOne({ _id: DatabaseUtils.convertToObjectID(id) })) as Logo;
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getCompanyLogo',
+      startTime,
+      { id },
+      companyLogoMDB
+    );
     return {
       id: id,
-      logo: companyLogoMDB ? companyLogoMDB.logo : null
+      logo: companyLogoMDB ? companyLogoMDB.logo : null,
     };
   }
 
-  public static async saveCompany(tenant: Tenant, companyToSave: Company, saveLogo = true): Promise<string> {
+  public static async saveCompany(
+    tenant: Tenant,
+    companyToSave: Company,
+    saveLogo = true
+  ): Promise<string> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Set
@@ -57,8 +76,9 @@ export default class CompanyStorage {
         department: companyToSave.address.department,
         region: companyToSave.address.region,
         country: companyToSave.address.country,
-        coordinates: Utils.hasValidGpsCoordinates(companyToSave.address.coordinates) ? companyToSave.address.coordinates.map(
-          (coordinate) => Utils.convertToFloat(coordinate)) : [],
+        coordinates: Utils.hasValidGpsCoordinates(companyToSave.address.coordinates)
+          ? companyToSave.address.coordinates.map((coordinate) => Utils.convertToFloat(coordinate))
+          : [],
       };
     }
     if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
@@ -66,9 +86,10 @@ export default class CompanyStorage {
         companyMDB.accountData = {
           accountID: DatabaseUtils.convertToObjectID(companyToSave.accountData.accountID),
           platformFeeStrategy: {
-            flatFeePerSession: companyToSave.accountData.platformFeeStrategy?.flatFeePerSession || 0,
+            flatFeePerSession:
+              companyToSave.accountData.platformFeeStrategy?.flatFeePerSession || 0,
             percentage: companyToSave.accountData.platformFeeStrategy?.percentage || 0,
-          }
+          },
         };
       } else {
         companyMDB.accountData = null;
@@ -77,23 +98,37 @@ export default class CompanyStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(companyMDB, companyToSave);
     // Modify
-    await global.database.getCollection<any>(tenant.id, 'companies').findOneAndUpdate(
-      { _id: companyMDB._id },
-      { $set: companyMDB },
-      { upsert: true }
-    );
+    await global.database
+      .getCollection<any>(tenant.id, 'companies')
+      .findOneAndUpdate({ _id: companyMDB._id }, { $set: companyMDB }, { upsert: true });
     // Save Logo
     if (saveLogo) {
       await CompanyStorage.saveCompanyLogo(tenant, companyMDB._id.toString(), companyToSave.logo);
     }
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveCompany', startTime, companyMDB);
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveCompany',
+      startTime,
+      companyMDB
+    );
     return companyMDB._id.toString();
   }
 
-  public static async getCompanies(tenant: Tenant,
-      params: { search?: string; issuer?: boolean; companyIDs?: string[]; withSite?: boolean; withLogo?: boolean;
-        locCoordinates?: number[]; locMaxDistanceMeters?: number; } = {},
-      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
+  public static async getCompanies(
+    tenant: Tenant,
+    params: {
+      search?: string;
+      issuer?: boolean;
+      companyIDs?: string[];
+      withSite?: boolean;
+      withLogo?: boolean;
+      locCoordinates?: number[];
+      locMaxDistanceMeters?: number;
+    } = {},
+    dbParams?: DbParams,
+    projectFields?: string[]
+  ): Promise<DataResult<Company>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -110,19 +145,22 @@ export default class CompanyStorage {
         $geoNear: {
           near: {
             type: 'Point',
-            coordinates: params.locCoordinates
+            coordinates: params.locCoordinates,
           },
           distanceField: 'distanceMeters',
-          maxDistance: params.locMaxDistanceMeters > 0 ? params.locMaxDistanceMeters : Constants.MAX_GPS_DISTANCE_METERS,
-          spherical: true
-        }
+          maxDistance:
+            params.locMaxDistanceMeters > 0
+              ? params.locMaxDistanceMeters
+              : Constants.MAX_GPS_DISTANCE_METERS,
+          spherical: true,
+        },
       });
     }
     // Set the filters
     const filters: FilterParams = {};
     if (params.search) {
       filters.$or = [
-        { 'name': { $regex: params.search, $options: 'i' } },
+        { name: { $regex: params.search, $options: 'i' } },
         { 'address.address1': { $regex: params.search, $options: 'i' } },
         { 'address.postalCode': { $regex: params.search, $options: 'i' } },
         { 'address.city': { $regex: params.search, $options: 'i' } },
@@ -130,27 +168,27 @@ export default class CompanyStorage {
         { 'address.country': { $regex: params.search, $options: 'i' } },
       ];
       if (DatabaseUtils.isObjectID(params.search)) {
-        filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
+        filters.$or.push({ _id: DatabaseUtils.convertToObjectID(params.search) });
       }
     }
     // Limit on Company for Basic Users
     if (!Utils.isEmptyArray(params.companyIDs)) {
       // Build filter
       filters._id = {
-        $in: params.companyIDs.map((companyID) => DatabaseUtils.convertToObjectID(companyID))
+        $in: params.companyIDs.map((companyID) => DatabaseUtils.convertToObjectID(companyID)),
       };
     }
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       aggregation.push({
         $match: {
-          'issuer': params.issuer
-        }
+          issuer: params.issuer,
+        },
       });
     }
     // Filters
     if (filters) {
       aggregation.push({
-        $match: filters
+        $match: filters,
       });
     }
     // Limit records?
@@ -159,16 +197,24 @@ export default class CompanyStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const companiesCountMDB = await global.database.getCollection<any>(tenant.id, 'companies')
+    const companiesCountMDB = (await global.database
+      .getCollection<any>(tenant.id, 'companies')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray() as DatabaseCount[];
+      .toArray()) as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanies', startTime, aggregation, companiesCountMDB);
+      await Logging.traceDatabaseRequestEnd(
+        tenant,
+        MODULE_NAME,
+        'getCompanies',
+        startTime,
+        aggregation,
+        companiesCountMDB
+      );
       return {
-        count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
-        result: []
+        count: companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0,
+        result: [],
       };
     }
     // Remove the limit
@@ -182,7 +228,7 @@ export default class CompanyStorage {
       dbParams.sort = { distanceMeters: 1 };
     }
     aggregation.push({
-      $sort: dbParams.sort
+      $sort: dbParams.sort,
     });
     // Skip
     if (dbParams.skip > 0) {
@@ -190,27 +236,39 @@ export default class CompanyStorage {
     }
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Site
     if (params.withSite) {
-      DatabaseUtils.pushSiteLookupInAggregation(
-        { tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'companyID', asField: 'sites' });
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID: tenant.id,
+        aggregation,
+        localField: '_id',
+        foreignField: 'companyID',
+        asField: 'sites',
+      });
     }
     // Connected account
     if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING_PLATFORM)) {
       // Account data
       DatabaseUtils.pushAccountLookupInAggregation({
-        tenantID: tenant.id, aggregation,
-        asField: 'accountData.account', localField: 'accountData.accountID',
-        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+        tenantID: tenant.id,
+        aggregation,
+        asField: 'accountData.account',
+        localField: 'accountData.accountID',
+        foreignField: '_id',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false,
       });
       // Business Owner
       DatabaseUtils.pushUserLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation,
+        tenantID: tenant.id,
+        aggregation: aggregation,
         asField: 'accountData.account.businessOwner',
         localField: 'accountData.account.businessOwnerID',
-        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+        foreignField: '_id',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false,
       });
     }
     // Company Logo
@@ -224,11 +282,11 @@ export default class CompanyStorage {
               '/logo',
               `?TenantID=${tenant.id}`,
               {
-                $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''] // Only concat 'lastChangedOn' if not null
-              }
-            ]
-          }
-        }
+                $ifNull: [{ $concat: ['&LastChangedOn=', { $toString: '$lastChangedOn' }] }, ''], // Only concat 'lastChangedOn' if not null
+              },
+            ],
+          },
+        },
       });
     }
     // Add Created By / Last Changed By
@@ -238,14 +296,22 @@ export default class CompanyStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const companiesMDB = await global.database.getCollection<any>(tenant.id, 'companies')
+    const companiesMDB = (await global.database
+      .getCollection<any>(tenant.id, 'companies')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as Company[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCompanies', startTime, aggregation, companiesMDB);
+      .toArray()) as Company[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getCompanies',
+      startTime,
+      aggregation,
+      companiesMDB
+    );
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(companiesCountMDB[0]),
       result: companiesMDB,
-      projectFields: projectFields
+      projectFields: projectFields,
     };
   }
 
@@ -255,22 +321,37 @@ export default class CompanyStorage {
     // Delete sites associated with Company
     await SiteStorage.deleteCompanySites(tenant, id);
     // Delete the Company
-    await global.database.getCollection<any>(tenant.id, 'companies')
-      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
+    await global.database
+      .getCollection<any>(tenant.id, 'companies')
+      .findOneAndDelete({ _id: DatabaseUtils.convertToObjectID(id) });
     // Delete Logo
-    await global.database.getCollection<any>(tenant.id, 'companylogos')
-      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
+    await global.database
+      .getCollection<any>(tenant.id, 'companylogos')
+      .findOneAndDelete({ _id: DatabaseUtils.convertToObjectID(id) });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteCompany', startTime, { id });
   }
 
-  private static async saveCompanyLogo(tenant: Tenant, companyID: string, companyLogoToSave: string): Promise<void> {
+  private static async saveCompanyLogo(
+    tenant: Tenant,
+    companyID: string,
+    companyLogoToSave: string
+  ): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
-    await global.database.getCollection<any>(tenant.id, 'companylogos').findOneAndUpdate(
-      { '_id': DatabaseUtils.convertToObjectID(companyID) },
-      { $set: { logo: companyLogoToSave } },
-      { upsert: true });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveCompanyLogo', startTime, companyLogoToSave);
+    await global.database
+      .getCollection<any>(tenant.id, 'companylogos')
+      .findOneAndUpdate(
+        { _id: DatabaseUtils.convertToObjectID(companyID) },
+        { $set: { logo: companyLogoToSave } },
+        { upsert: true }
+      );
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveCompanyLogo',
+      startTime,
+      companyLogoToSave
+    );
   }
 }

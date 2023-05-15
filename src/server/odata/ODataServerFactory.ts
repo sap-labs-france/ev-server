@@ -13,4 +13,3 @@ export default class ODataServerFactory {
     return this.oDataServer;
   }
 }
-

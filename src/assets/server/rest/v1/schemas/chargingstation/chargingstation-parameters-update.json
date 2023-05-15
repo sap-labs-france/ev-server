@@ -52,7 +52,5 @@
       "$ref": "common#/definitions/tariff-id"
     }
   },
-  "required": [
-    "id"
-  ]
+  "required": ["id"]
 }

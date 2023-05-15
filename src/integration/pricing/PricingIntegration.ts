@@ -19,14 +19,31 @@ export default abstract class PricingIntegration<T extends PricingSetting> {
     return this.setting;
   }
 
-  public abstract startSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
+  public abstract startSession(
+    transaction: Transaction,
+    consumptionData: Consumption,
+    chargingStation?: ChargingStation
+  ): Promise<PricedConsumption>;
 
-  public abstract updateSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
+  public abstract updateSession(
+    transaction: Transaction,
+    consumptionData: Consumption,
+    chargingStation?: ChargingStation
+  ): Promise<PricedConsumption>;
 
-  public abstract stopSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
+  public abstract stopSession(
+    transaction: Transaction,
+    consumptionData: Consumption,
+    chargingStation?: ChargingStation
+  ): Promise<PricedConsumption>;
 
-  public abstract endSession(transaction: Transaction, consumptionData: Consumption, chargingStation?: ChargingStation): Promise<PricedConsumption>;
+  public abstract endSession(
+    transaction: Transaction,
+    consumptionData: Consumption,
+    chargingStation?: ChargingStation
+  ): Promise<PricedConsumption>;
 
-  public abstract resolvePricingContext(pricingContext: PricingContext): Promise<ResolvedPricingModel>;
+  public abstract resolvePricingContext(
+    pricingContext: PricingContext
+  ): Promise<ResolvedPricingModel>;
 }
-

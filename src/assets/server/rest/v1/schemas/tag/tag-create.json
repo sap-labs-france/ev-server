@@ -25,8 +25,5 @@
       "$ref": "tag#/definitions/userID"
     }
   },
-  "required": [
-    "id",
-    "visualID"
-  ]
+  "required": ["id", "visualID"]
 }

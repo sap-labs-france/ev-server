@@ -27,31 +27,40 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     await this.connect();
   }
 
-  public async retrieveConsumptions(asset: Asset, manualCall?: boolean): Promise<AbstractCurrentConsumption[]> {
+  public async retrieveConsumptions(
+    asset: Asset,
+    manualCall?: boolean
+  ): Promise<AbstractCurrentConsumption[]> {
     // Check if refresh interval of connection is exceeded
     if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
       return [];
     }
     // Set new Token
     const token = await this.connect();
-    const request = manualCall ?
-      `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${moment().subtract(1, 'minutes').toISOString()}&to=${moment().toISOString()}&step=PT1M` :
-      // Check if it is first consumption for this asset
-      `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${(asset.lastConsumption?.timestamp) ? asset.lastConsumption.timestamp.toISOString() : moment().subtract(1, 'minutes').toISOString()}&to=${moment().toISOString()}&step=PT1M`;
+    const request = manualCall
+      ? `${this.connection.url}/site-api/${
+          asset.meterID
+        }?withEnergy=true&withPower=true&from=${moment()
+          .subtract(1, 'minutes')
+          .toISOString()}&to=${moment().toISOString()}&step=PT1M`
+      : // Check if it is first consumption for this asset
+        `${this.connection.url}/site-api/${asset.meterID}?withEnergy=true&withPower=true&from=${
+          asset.lastConsumption?.timestamp
+            ? asset.lastConsumption.timestamp.toISOString()
+            : moment().subtract(1, 'minutes').toISOString()
+        }&to=${moment().toISOString()}&step=PT1M`;
     try {
       // Get consumption
-      const response = await this.axiosInstance.get(
-        request,
-        {
-          headers: this.buildAuthHeader(token)
-        }
-      );
+      const response = await this.axiosInstance.get(request, {
+        headers: this.buildAuthHeader(token),
+      });
       await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > GreenCom web service has been called successfully`,
-        module: MODULE_NAME, method: 'retrieveConsumption',
-        detailedMessages: { response: response.data }
+        module: MODULE_NAME,
+        method: 'retrieveConsumption',
+        detailedMessages: { response: response.data },
       });
       return this.filterConsumptionRequest(asset, response.data);
     } catch (error) {
@@ -60,7 +69,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
         method: 'retrieveConsumption',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: 'Error while retrieving the asset consumption',
-        detailedMessages: { request, token, error: error.stack, asset }
+        detailedMessages: { request, token, error: error.stack, asset },
       });
     }
   }
@@ -77,12 +86,13 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
               lastConsumption: {
                 // Timestamp in array is always start date of the one minute interval
                 timestamp: moment(data.energy.data[i].timestamp).add(1, 'minutes').toDate(),
-                value: data.energy.data[i].value
+                value: data.energy.data[i].value,
               },
               currentInstantWatts: data.power.data[i].value,
             } as AbstractCurrentConsumption;
             if (asset.siteArea?.voltage) {
-              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+              consumption.currentInstantAmps =
+                consumption.currentInstantWatts / asset.siteArea.voltage;
             }
             consumptions.push(consumption);
           }
@@ -93,12 +103,13 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
               currentConsumptionWh: data.energy.data[i].value * -1,
               lastConsumption: {
                 timestamp: moment(data.energy.data[i].timestamp).add(1, 'minutes').toDate(),
-                value: data.energy.data[i].value
+                value: data.energy.data[i].value,
               },
               currentInstantWatts: data.power.data[i].value * -1,
             } as AbstractCurrentConsumption;
             if (asset.siteArea?.voltage) {
-              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+              consumption.currentInstantAmps =
+                consumption.currentInstantWatts / asset.siteArea.voltage;
             }
             consumptions.push(consumption);
           }
@@ -106,16 +117,19 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
         case AssetType.CONSUMPTION_AND_PRODUCTION:
           for (let i = 0; i < data.energy.charge.data.length; i++) {
             const consumption = {
-              currentConsumptionWh: data.energy.charge.data[i].value - data.energy.discharge.data[i].value,
-              lastConsumption:{
+              currentConsumptionWh:
+                data.energy.charge.data[i].value - data.energy.discharge.data[i].value,
+              lastConsumption: {
                 timestamp: moment(data.energy.charge.data[i].timestamp).add(1, 'minutes').toDate(),
                 value: data.energy.charge.data[i].value - data.energy.discharge.data[i].value,
               },
-              currentInstantWatts: data.power.charge.data[i].value - data.power.discharge.data[i].value,
+              currentInstantWatts:
+                data.power.charge.data[i].value - data.power.discharge.data[i].value,
               currentStateOfCharge: data.percent?.soc?.data[i].value,
             } as AbstractCurrentConsumption;
             if (asset.siteArea?.voltage) {
-              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+              consumption.currentInstantAmps =
+                consumption.currentInstantWatts / asset.siteArea.voltage;
             }
             consumptions.push(consumption);
           }
@@ -133,7 +147,8 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
           consumption.currentConsumptionWh = data.energy.sum * -1;
           break;
         case AssetType.CONSUMPTION_AND_PRODUCTION:
-          consumption.currentInstantWatts = data.power.charge.average - data.power.discharge.average;
+          consumption.currentInstantWatts =
+            data.power.charge.average - data.power.discharge.average;
           consumption.currentConsumptionWh = data.energy.charge.sum - data.energy.discharge.sum;
           consumption.currentStateOfCharge = data.percent?.soc?.current;
           break;
@@ -145,7 +160,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
       // Set last consumption
       consumption.lastConsumption = {
         value: consumption.currentConsumptionWh,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
       consumptions.push(consumption);
     }
@@ -158,26 +173,32 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     // Get Authentication
     const credentials = await this.getAuthentication();
     // Send credentials to get the token
-    const response = await Utils.executePromiseWithTimeout(5000,
-      this.axiosInstance.post(`${this.connection.url}/authentication-api/tokens`,
-        credentials,
-        {
-          'axios-retry': {
-            retries: 0
-          },
-          headers: this.buildFormHeaders()
-        }),
+    const response = await Utils.executePromiseWithTimeout(
+      5000,
+      this.axiosInstance.post(`${this.connection.url}/authentication-api/tokens`, credentials, {
+        'axios-retry': {
+          retries: 0,
+        },
+        headers: this.buildFormHeaders(),
+      }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/authentication-api/tokens'`
     );
     // Return the Token
     return response.data.access_token;
   }
 
-  private async getAuthentication(): Promise<{grant_type: string; client_id: string; client_secret: string;}> {
+  private async getAuthentication(): Promise<{
+    grant_type: string;
+    client_id: string;
+    client_secret: string;
+  }> {
     return {
-      'grant_type': 'client_credentials',
-      'client_id': this.connection.greencomConnection.clientId,
-      'client_secret': await Cypher.decrypt(this.tenant, this.connection.greencomConnection.clientSecret)
+      grant_type: 'client_credentials',
+      client_id: this.connection.greencomConnection.clientId,
+      client_secret: await Cypher.decrypt(
+        this.tenant,
+        this.connection.greencomConnection.clientSecret
+      ),
     };
   }
 
@@ -187,20 +208,20 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,
-        message: 'No connection provided'
+        message: 'No connection provided',
       });
     }
   }
 
   private buildFormHeaders(): any {
     return {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
   }
 
   private buildAuthHeader(token: string): any {
     return {
-      'Authorization': 'Bearer ' + token
+      Authorization: 'Bearer ' + token,
     };
   }
 }

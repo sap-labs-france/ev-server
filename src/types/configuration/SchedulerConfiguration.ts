@@ -1,3 +1,5 @@
+import { TaskConfig } from '../TaskConfig';
+
 export default interface SchedulerConfiguration {
   active: boolean;
   tasks: SchedulerTaskConfiguration[];
@@ -8,5 +10,5 @@ export interface SchedulerTaskConfiguration {
   active: boolean;
   periodicity: string;
   numberOfInstance?: number;
-  config: any;
+  config: TaskConfig | object;
 }

@@ -1,4 +1,3 @@
-
 export default interface DbLookup {
   tenantID: string;
   aggregation: any[];

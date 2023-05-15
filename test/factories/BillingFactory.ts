@@ -1,9 +1,18 @@
-import { BillingPlatformFeeStrategy, BillingTransfer, BillingTransferStatus } from '../../src/types/Billing';
+import {
+  BillingPlatformFeeStrategy,
+  BillingTransfer,
+  BillingTransferStatus,
+} from '../../src/types/Billing';
 
 import { Factory } from 'rosie';
 import { faker } from '@faker-js/faker';
 
-const BILLING_TRANSFER_STATUS = [BillingTransferStatus.DRAFT, BillingTransferStatus.PENDING, BillingTransferStatus.FINALIZED, BillingTransferStatus.TRANSFERRED];
+const BILLING_TRANSFER_STATUS = [
+  BillingTransferStatus.DRAFT,
+  BillingTransferStatus.PENDING,
+  BillingTransferStatus.FINALIZED,
+  BillingTransferStatus.TRANSFERRED,
+];
 
 export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtransfer')
   .attr('sessionCounter', () => 0)
@@ -14,14 +23,19 @@ export const BillingTransferFactory = Factory.define<BillingTransfer>('billingtr
   .attr('totalConsumptionWh', () => faker.datatype.number({ min: 10000, max: 90000 }))
   .attr('totalDurationSecs', () => faker.datatype.number({ min: 3600, max: 7200 }))
   .attr('accountID', () => faker.datatype.hexadecimal(24).substring(2).toLowerCase())
-  .attr('status', () => BILLING_TRANSFER_STATUS[Math.floor(Math.random() * (BILLING_TRANSFER_STATUS.length - 1))] )
+  .attr(
+    'status',
+    () => BILLING_TRANSFER_STATUS[Math.floor(Math.random() * (BILLING_TRANSFER_STATUS.length - 1))]
+  )
   .attr('transferAmount', null)
   .attr('transferExternalID', () => null)
   .attr('platformFeeData', () => ({
     feeAmount: 0,
-    feeTaxAmount: 0
+    feeTaxAmount: 0,
   }));
 
-export const BillingPlatformFeeStrategyFactory = Factory.define<BillingPlatformFeeStrategy>('billingplatformfeestrategy')
+export const BillingPlatformFeeStrategyFactory = Factory.define<BillingPlatformFeeStrategy>(
+  'billingplatformfeestrategy'
+)
   .attr('flatFeePerSession', () => 0.5)
   .attr('percentage', () => 3);

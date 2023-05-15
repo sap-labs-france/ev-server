@@ -18,8 +18,17 @@ export default class CPOSessionsRouterV211 {
   }
 
   protected buildRouteGetSessions(): void {
-    this.router.get(`/${OCPIServerRoute.OCPI_SESSIONS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleOCPIServerAction(CPOSessionsService.handleGetSessions.bind(this), ServerAction.OCPI_CPO_GET_SESSIONS, req, res, next);
-    });
+    this.router.get(
+      `/${OCPIServerRoute.OCPI_SESSIONS}*`,
+      async (req: Request, res: Response, next: NextFunction) => {
+        await RouterUtils.handleOCPIServerAction(
+          CPOSessionsService.handleGetSessions.bind(this),
+          ServerAction.OCPI_CPO_GET_SESSIONS,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 }

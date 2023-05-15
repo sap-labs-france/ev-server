@@ -57,7 +57,12 @@ export default class ODataRestAdapter {
       }
 
       // Build AuthenticatedApi
-      const centralServiceApi = new CentralServiceApi(ODataRestAdapter.restServerUrl, authentication.name, authentication.pass, subdomain);
+      const centralServiceApi = new CentralServiceApi(
+        ODataRestAdapter.restServerUrl,
+        authentication.name,
+        authentication.pass,
+        subdomain
+      );
       // Set tenant
       req.tenant = subdomain;
       if (!req.user) {
@@ -84,10 +89,20 @@ export default class ODataRestAdapter {
           await new ODataChargingStations().getChargingStations(centralServiceApi, query, req, cb);
           break;
         case 'StatusNotifications':
-          await new ODataStatusNotifications().getStatusNotifications(centralServiceApi, query, req, cb);
+          await new ODataStatusNotifications().getStatusNotifications(
+            centralServiceApi,
+            query,
+            req,
+            cb
+          );
           break;
         case 'BootNotifications':
-          await new ODataBootNotifications().getBootNotifications(centralServiceApi, query, req, cb);
+          await new ODataBootNotifications().getBootNotifications(
+            centralServiceApi,
+            query,
+            req,
+            cb
+          );
           break;
         case 'Users':
           await new ODataUsers().getUsers(centralServiceApi, query, req, cb);
@@ -99,10 +114,11 @@ export default class ODataRestAdapter {
       // Add logging
       await Logging.logError({
         tenantID: req.user.tenantID,
-        module: MODULE_NAME, method: 'query',
+        module: MODULE_NAME,
+        method: 'query',
         action: ServerAction.ODATA_SERVER,
         message: error.message,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
       cb(error);
     }
@@ -115,4 +131,3 @@ export default class ODataRestAdapter {
     oDataServer.model(ODataModel).query(ODataRestAdapter.query.bind(this));
   }
 }
-

@@ -39,9 +39,5 @@
       "$ref": "user#/definitions/firstName"
     }
   },
-  "required": [
-    "id",
-    "visualID",
-    "description"
-  ]
+  "required": ["id", "visualID", "description"]
 }

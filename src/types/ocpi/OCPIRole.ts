@@ -1,4 +1,4 @@
 export enum OCPIRole {
   CPO = 'CPO',
-  EMSP = 'EMSP'
+  EMSP = 'EMSP',
 }

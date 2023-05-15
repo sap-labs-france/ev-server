@@ -19,40 +19,94 @@ import sanitize from 'mongo-sanitize';
 // AJV Custom Keywords: https://github.com/ajv-validator/ajv-keywords
 
 export default class SchemaValidator {
-  private static commonSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/common/common.json`, 'utf8'));
-  private static tenantSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant.json`, 'utf8'));
-  private static tenantComponentSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant-components.json`, 'utf8'));
-  private static chargingStationSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/chargingstation/chargingstation.json`, 'utf8'));
-  private static chargingStationProfileSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/chargingstation/chargingstation-profile.json`, 'utf8'));
-  private static chargingStationTemplateSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/chargingstation/chargingstation-template.json`, 'utf8'));
-  private static tagSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/tag/tag.json`, 'utf8'));
-  private static transactionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/transaction/transaction.json`, 'utf8'));
-  private static userSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/user/user.json`, 'utf8'));
-  private static carSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/car/car.json`, 'utf8'));
-  private static assetSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/asset/asset.json`, 'utf8'));
-  private static companySchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/company/company.json`, 'utf8'));
-  private static ocpiEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/ocpi/ocpi-endpoint.json`, 'utf8'));
-  private static pricingDefinitionSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/pricing/pricing-definition.json`, 'utf8'));
-  private static oicpEndpointSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/oicp/oicp-endpoint.json`, 'utf8'));
-  private static settingSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/setting/setting.json`, 'utf8'));
-  private static registrationTokenSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/registration-token/registration-token.json`, 'utf8'));
-  private static siteAreasSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site-area/site-area.json`, 'utf8'));
-  private static siteSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/site/site.json`, 'utf8'));
-  private static billingAccountSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/schemas/billing/billing-account.json`, 'utf8'));
+  private static commonSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/common/common.json`, 'utf8')
+  );
+  private static tenantSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant.json`, 'utf8')
+  );
+  private static tenantComponentSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/tenant/tenant-components.json`, 'utf8')
+  );
+  private static chargingStationSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/chargingstation/chargingstation.json`, 'utf8')
+  );
+  private static chargingStationProfileSchema: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/schemas/chargingstation/chargingstation-profile.json`,
+      'utf8'
+    )
+  );
+  private static chargingStationTemplateSchema: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/schemas/chargingstation/chargingstation-template.json`,
+      'utf8'
+    )
+  );
+  private static tagSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/tag/tag.json`, 'utf8')
+  );
+  private static transactionSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/transaction/transaction.json`, 'utf8')
+  );
+  private static userSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/user/user.json`, 'utf8')
+  );
+  private static carSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/car/car.json`, 'utf8')
+  );
+  private static assetSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/asset/asset.json`, 'utf8')
+  );
+  private static companySchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/company/company.json`, 'utf8')
+  );
+  private static ocpiEndpointSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/ocpi/ocpi-endpoint.json`, 'utf8')
+  );
+  private static pricingDefinitionSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/pricing/pricing-definition.json`, 'utf8')
+  );
+  private static oicpEndpointSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/oicp/oicp-endpoint.json`, 'utf8')
+  );
+  private static settingSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/setting/setting.json`, 'utf8')
+  );
+  private static registrationTokenSchema: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/schemas/registration-token/registration-token.json`,
+      'utf8'
+    )
+  );
+  private static siteAreasSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/site-area/site-area.json`, 'utf8')
+  );
+  private static siteSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/site/site.json`, 'utf8')
+  );
+  private static billingAccountSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/billing/billing-account.json`, 'utf8')
+  );
+  private static reservationSchema: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/schemas/reservation/reservation.json`, 'utf8')
+  );
 
   protected moduleName: string;
   private readonly ajv: Ajv;
 
-  protected constructor(moduleName: string,
-      config: Options = {
-        strict: false, // When 'true', it fails with anyOf required fields: https://github.com/ajv-validator/ajv/issues/1571
-        allErrors: false,
-        removeAdditional: 'all', // Careful with 'All' and usage of anyOf/oneOf/allOf: https://github.com/ajv-validator/ajv/issues/1784
-        allowUnionTypes: true,
-        useDefaults: true,
-        coerceTypes: true,
-        verbose: false,
-      }) {
+  protected constructor(
+    moduleName: string,
+    config: Options = {
+      strict: false, // When 'true', it fails with anyOf required fields: https://github.com/ajv-validator/ajv/issues/1571
+      allErrors: false,
+      removeAdditional: 'all', // Careful with 'All' and usage of anyOf/oneOf/allOf: https://github.com/ajv-validator/ajv/issues/1784
+      allowUnionTypes: true,
+      useDefaults: true,
+      coerceTypes: true,
+      verbose: false,
+    }
+  ) {
     this.moduleName = moduleName;
     // Create AJV
     this.ajv = new Ajv(config);
@@ -85,7 +139,8 @@ export default class SchemaValidator {
       SchemaValidator.registrationTokenSchema,
       SchemaValidator.siteAreasSchema,
       SchemaValidator.siteSchema,
-      SchemaValidator.billingAccountSchema
+      SchemaValidator.billingAccountSchema,
+      SchemaValidator.reservationSchema,
     ]);
   }
 
@@ -123,7 +178,9 @@ export default class SchemaValidator {
       const concatenatedErrors: string[] = [];
       for (const validationError of fnValidate.errors) {
         if (validationError.instancePath && validationError.instancePath !== '') {
-          concatenatedErrors.push(`Property '${validationError.instancePath}': ${validationError.message}`);
+          concatenatedErrors.push(
+            `Property '${validationError.instancePath}': ${validationError.message}`
+          );
         } else {
           concatenatedErrors.push(`Error: ${validationError.message}`);
         }
@@ -133,7 +190,7 @@ export default class SchemaValidator {
         message: concatenatedErrors.join(', '),
         module: this.moduleName,
         method: 'validate',
-        detailedMessages: { errors: fnValidate.errors, data, schema }
+        detailedMessages: { errors: fnValidate.errors, data, schema },
       });
     }
     // Check for missing fields in Authorization Definition (not possible to make AJV failing on missing fields)
@@ -178,15 +235,15 @@ export default class SchemaValidator {
     // Add custom formats
     this.ajv.addFormat('latitude', {
       type: 'number',
-      validate: (c) => Constants.REGEX_VALIDATION_LATITUDE.test(c.toString())
+      validate: (c) => Constants.REGEX_VALIDATION_LATITUDE.test(c.toString()),
     });
     this.ajv.addFormat('longitude', {
       type: 'number',
-      validate: (c) => Constants.REGEX_VALIDATION_LONGITUDE.test(c.toString())
+      validate: (c) => Constants.REGEX_VALIDATION_LONGITUDE.test(c.toString()),
     });
     this.ajv.addFormat('country', {
       type: 'string',
-      validate: (c) => countries.isValid(c)
+      validate: (c) => countries.isValid(c),
     });
   }
 

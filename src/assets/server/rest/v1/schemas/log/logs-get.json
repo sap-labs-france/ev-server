@@ -31,9 +31,7 @@
     "Type": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": [
-        "R", "S"
-      ]
+      "enum": ["R", "S"]
     },
     "Action": {
       "type": "string",
@@ -71,7 +69,5 @@
       "default": true
     }
   },
-  "required": [
-    "Limit"
-  ]
+  "required": ["Limit"]
 }

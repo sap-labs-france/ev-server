@@ -2,7 +2,6 @@ import { PricedConsumptionData } from '../../types/Pricing';
 import Utils from '../../utils/Utils';
 
 export default class BillingHelpers {
-
   public static getBilledPrice(pricedData: PricedConsumptionData[]): number {
     let price = Utils.createDecimal(0);
     if (pricedData) {

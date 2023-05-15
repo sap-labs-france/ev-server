@@ -4,141 +4,89 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-
     {
       "type": "node",
       "name": "vscode-jest-tests",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/jest",
       "args": [
-        "--i",
+        "--inspect-brk",
+        "${workspaceFolder}/node_modules/jest/bin/jest",
         "--runInBand",
         "--config='./test/jest.config.ts'",
         "--reporters='default'",
-        "--reporters='./JestEvseReporter'",
-        "--watchAll=false",
+        "--reporters='./JestEvseReporter'"
       ],
-      "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "disableOptimisticBPs": false,
-      "windows": {
-        "program": "${workspaceFolder}/node_modules/jest/bin/jest"
-      }
+      "internalConsoleOptions": "neverOpen"
     },
     {
       "name": "Debug",
-      "type": "pwa-node",
+      "type": "node",
+      "runtimeExecutable": "pnpm",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run-script",
-        "start:dev:debug"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "runtimeArgs": ["start:dev:debug"],
+      "skipFiles": ["<node_internals>/**"],
       "stopOnEntry": true
     },
     {
       "name": "Debug (nodemon)",
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run-script",
-        "start:dev:debug:nodemon"
-      ],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["start:dev:debug:nodemon"],
       "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+      "skipFiles": ["<node_internals>/**"],
       "stopOnEntry": true
     },
     {
       "name": "start:dev:debug:rest",
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run-script",
-        "start:dev:debug:rest"
-      ],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["start:dev:debug:rest"],
       "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+      "skipFiles": ["<node_internals>/**"],
       "stopOnEntry": true
     },
     {
       "name": "start:dev:debug:ocppj",
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run-script",
-        "start:dev:debug:ocppj"
-      ],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["start:dev:debug:ocppj"],
       "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+      "skipFiles": ["<node_internals>/**"],
       "stopOnEntry": true
     },
     {
       "name": "start:dev:debug:batch",
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run-script",
-        "start:dev:debug:batch"
-      ],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["start:dev:debug:batch"],
       "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+      "skipFiles": ["<node_internals>/**"],
       "stopOnEntry": true
     },
     {
       "name": "Debug Tests 'createContext'",
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run-script",
-        "test:createContext"
-      ],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["test:createContext"],
       "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+      "skipFiles": ["<node_internals>/**"],
       "stopOnEntry": true
     }
   ]

@@ -22,7 +22,11 @@ export default class OICPPushEvseDataTask extends TenantSchedulerTask {
       // Check if OICP component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
         // Get all available endpoints
-        const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
+        const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(
+          tenant,
+          { role: OICPRole.CPO },
+          Constants.DB_PARAMS_MAX_LIMIT
+        );
         for (const oicpEndpoint of oicpEndpoints.result) {
           await this.processOICPEndpoint(tenant, oicpEndpoint, config);
         }
@@ -33,7 +37,11 @@ export default class OICPPushEvseDataTask extends TenantSchedulerTask {
     }
   }
 
-  private async processOICPEndpoint(tenant: Tenant, oicpEndpoint: OICPEndpoint, config: OICPPushEvseDataTaskConfig): Promise<void> {
+  private async processOICPEndpoint(
+    tenant: Tenant,
+    oicpEndpoint: OICPEndpoint,
+    config: OICPPushEvseDataTaskConfig
+  ): Promise<void> {
     // Get the lock
     const oicpLock = await LockingHelper.createOICPPatchEVSEsLock(tenant.id, oicpEndpoint);
     if (oicpLock) {
@@ -42,36 +50,42 @@ export default class OICPPushEvseDataTask extends TenantSchedulerTask {
         if (oicpEndpoint.status !== OICPRegistrationStatus.REGISTERED) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'processOICPEndpoint',
+            module: MODULE_NAME,
+            method: 'processOICPEndpoint',
             action: ServerAction.OICP_PUSH_EVSE_DATA,
-            message: `The OICP Endpoint ${oicpEndpoint.name} is not registered. Skipping the OICP endpoint.`
+            message: `The OICP Endpoint ${oicpEndpoint.name} is not registered. Skipping the OICP endpoint.`,
           });
           return;
         }
         if (!oicpEndpoint.backgroundPatchJob) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: 'processOICPEndpoint',
+            module: MODULE_NAME,
+            method: 'processOICPEndpoint',
             action: ServerAction.OICP_PUSH_EVSE_DATA,
-            message: `The OICP Background Job for Endpoint ${oicpEndpoint.name} is inactive.`
+            message: `The OICP Background Job for Endpoint ${oicpEndpoint.name} is inactive.`,
           });
           return;
         }
         await Logging.logInfo({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: 'processOICPEndpoint',
+          module: MODULE_NAME,
+          method: 'processOICPEndpoint',
           action: ServerAction.OICP_PUSH_EVSE_DATA,
-          message: `The push EVSEs process for endpoint ${oicpEndpoint.name} is being processed`
+          message: `The push EVSEs process for endpoint ${oicpEndpoint.name} is being processed`,
         });
         // Build OICP Client
         const oicpClient = await OICPClientFactory.getCpoOicpClient(tenant, oicpEndpoint);
         // Send EVSEs
-        const sendEVSEDataResult = await oicpClient.sendEVSEs(!Utils.isUndefined(config.partial) ? config.partial : false);
+        const sendEVSEDataResult = await oicpClient.sendEVSEs(
+          !Utils.isUndefined(config.partial) ? config.partial : false
+        );
         await Logging.logInfo({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: 'processOICPEndpoint',
+          module: MODULE_NAME,
+          method: 'processOICPEndpoint',
           action: ServerAction.OICP_PUSH_EVSE_DATA,
-          message: `The push EVSEs process for endpoint ${oicpEndpoint.name} is completed (Success: ${sendEVSEDataResult.success}/Failure: ${sendEVSEDataResult.failure})`
+          message: `The push EVSEs process for endpoint ${oicpEndpoint.name} is completed (Success: ${sendEVSEDataResult.success}/Failure: ${sendEVSEDataResult.failure})`,
         });
       } catch (error) {
         // Log error
@@ -83,4 +97,3 @@ export default class OICPPushEvseDataTask extends TenantSchedulerTask {
     }
   }
 }
-

@@ -1,4 +1,9 @@
-import { AuthorizationFilter, DynamicAuthorizationDataSourceData, DynamicAuthorizationDataSourceName, Entity } from '../types/Authorization';
+import {
+  AuthorizationFilter,
+  DynamicAuthorizationDataSourceData,
+  DynamicAuthorizationDataSourceName,
+  Entity,
+} from '../types/Authorization';
 
 import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
 import { EntityData } from '../types/GlobalType';
@@ -9,7 +14,10 @@ export default abstract class DynamicAuthorizationFilter {
   protected tenant: Tenant;
   protected userToken: UserToken;
   private negateFilter: boolean;
-  private dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>> = new Map();
+  private dataSources: Map<
+    DynamicAuthorizationDataSourceName,
+    DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>
+  > = new Map();
 
   public constructor(tenant: Tenant, user: UserToken, negateFilter: boolean) {
     this.tenant = tenant;
@@ -25,17 +33,24 @@ export default abstract class DynamicAuthorizationFilter {
     return Array.from(this.dataSources.values());
   }
 
-  public getDataSource(dataSourceName: DynamicAuthorizationDataSourceName): DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData> {
+  public getDataSource(
+    dataSourceName: DynamicAuthorizationDataSourceName
+  ): DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData> {
     return this.dataSources.get(dataSourceName);
   }
 
-  public setDataSource(dataSourceName: DynamicAuthorizationDataSourceName,
-      dataSource: DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>): void {
+  public setDataSource(
+    dataSourceName: DynamicAuthorizationDataSourceName,
+    dataSource: DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>
+  ): void {
     this.dataSources.set(dataSourceName, dataSource);
   }
 
-  public abstract processFilter(authorizationFilters: AuthorizationFilter,
-    extraFilters: Record<string, any>, entityData?: EntityData): void;
+  public abstract processFilter(
+    authorizationFilters: AuthorizationFilter,
+    extraFilters: Record<string, any>,
+    entityData?: EntityData
+  ): void;
 
   public abstract getApplicableEntities(): Entity[];
 

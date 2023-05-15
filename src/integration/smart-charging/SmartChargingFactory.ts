@@ -7,7 +7,9 @@ import SmartChargingIntegration from './SmartChargingIntegration';
 import Utils from '../../utils/Utils';
 
 export default class SmartChargingFactory {
-  public static async getSmartChargingImpl(tenant: Tenant): Promise<SmartChargingIntegration<SmartChargingSetting>> {
+  public static async getSmartChargingImpl(
+    tenant: Tenant
+  ): Promise<SmartChargingIntegration<SmartChargingSetting>> {
     // Check if Smart Charging is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
       // Get the Smart Charging's settings
@@ -17,7 +19,10 @@ export default class SmartChargingFactory {
         switch (smartChargingSetting.type) {
           // SAP Smart Charging
           case SmartChargingSettingsType.SAP_SMART_CHARGING:
-            smartChargingIntegrationImpl = new SapSmartChargingIntegration(tenant, smartChargingSetting.sapSmartCharging);
+            smartChargingIntegrationImpl = new SapSmartChargingIntegration(
+              tenant,
+              smartChargingSetting.sapSmartCharging
+            );
             break;
         }
         return smartChargingIntegrationImpl;

@@ -15,17 +15,13 @@ export interface InError {
   errorMessage?: ErrorMessage;
 }
 
-export interface UserInError extends User, InError {
-}
+export interface UserInError extends User, InError {}
 
-export interface ChargingStationInError extends ChargingStation, InError {
-}
+export interface ChargingStationInError extends ChargingStation, InError {}
 
-export interface TransactionInError extends Transaction, InError {
-}
+export interface TransactionInError extends Transaction, InError {}
 
-export interface AssetInError extends Asset, InError {
-}
+export interface AssetInError extends Asset, InError {}
 
 export enum TransactionInErrorType {
   NO_CONSUMPTION = 'no_consumption',
@@ -38,7 +34,7 @@ export enum TransactionInErrorType {
   INVALID_START_DATE = 'incorrect_starting_date',
   MISSING_PRICE = 'missing_price',
   MISSING_USER = 'missing_user',
-  NO_BILLING_DATA = 'no_billing_data'
+  NO_BILLING_DATA = 'no_billing_data',
 }
 
 export enum ChargingStationInErrorType {

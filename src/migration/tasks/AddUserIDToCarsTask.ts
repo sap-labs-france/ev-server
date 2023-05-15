@@ -12,7 +12,9 @@ export default class AddUserIDToCarsTask extends TenantMigrationTask {
   public async migrateTenant(tenant: Tenant): Promise<void> {
     let updated = 0;
     // Get all the Car Users
-    const carUsers = await global.database.getCollection<any>(tenant.id, 'carusers').find({})
+    const carUsers = await global.database
+      .getCollection<any>(tenant.id, 'carusers')
+      .find({})
       .project({ carID: 1, userID: 1, default: 1 })
       .toArray();
     if (!Utils.isEmptyArray(carUsers)) {
@@ -27,7 +29,7 @@ export default class AddUserIDToCarsTask extends TenantMigrationTask {
             $set: {
               userID: carUser.userID,
               default: carUser.default,
-            }
+            },
           }
         );
         updated++;
@@ -37,9 +39,12 @@ export default class AddUserIDToCarsTask extends TenantMigrationTask {
     if (updated > 0) {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        module: MODULE_NAME, method: 'migrateTenant',
+        module: MODULE_NAME,
+        method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${updated} Car(s) have been updated with User ID in Tenant ${Utils.buildTenantName(tenant)}`
+        message: `${updated} Car(s) have been updated with User ID in Tenant ${Utils.buildTenantName(
+          tenant
+        )}`,
       });
     }
   }

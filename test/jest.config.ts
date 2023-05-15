@@ -92,31 +92,31 @@ const config: Config.InitialOptions = {
   // projects: undefined,
 
   // Use this configuration option to add custom reporters to Jest
-  'reporters': [
+  reporters: [
     'default',
     './JestEvseReporter.js',
     [
       'jest-html-reporter',
       {
-        'pageTitle': 'Unit Tests Report',
-        'append': false,
-        'includeConsoleLog': true,
-        'includeFailureMsg': true,
-        'includeSuiteFailure': true,
-        'outputPath': './test/results/test-report.html',
-      }
+        pageTitle: 'Unit Tests Report',
+        append: false,
+        includeConsoleLog: true,
+        includeFailureMsg: true,
+        includeSuiteFailure: true,
+        outputPath: './test/results/test-report.html',
+      },
     ],
     [
       'jest-stare',
       {
-        'resultDir': 'test/results',
-        'reportTitle': 'Unit Tests Report',
-        'reportHeadline': 'ev-server',
-        'jestStareConfigJson': 'jest-stare.json',
-        'jestGlobalConfigJson': 'globalStuff.json',
-        'log': true
-      }
-    ]
+        resultDir: 'test/results',
+        reportTitle: 'Unit Tests Report',
+        reportHeadline: 'ev-server',
+        jestStareConfigJson: 'jest-stare.json',
+        jestGlobalConfigJson: 'globalStuff.json',
+        log: true,
+      },
+    ],
   ],
   // reporters: ['default', './JestEvseReporter.js'],
 
@@ -165,9 +165,7 @@ const config: Config.InitialOptions = {
   // testLocationInResults: false,
 
   // The glob patterns Jest uses to detect test files
-  testMatch: [
-    '**/test/**/*Test.ts', '**/test/**/*Runner.ts'
-  ],
+  testMatch: ['**/test/**/*Test.ts', '**/test/**/*Runner.ts'],
 
   // testMatch: [
   //   "**/__tests__/**/*.[jt]s?(x)",

@@ -1,6 +1,9 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
-import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
+import {
+  HttpLoginRequest,
+  HttpResetPasswordRequest,
+} from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
@@ -35,13 +38,15 @@ if (centralSystemRestConfig) {
   // Set
   jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: centralSystemRestConfig.userTokenKey
+    secretOrKey: centralSystemRestConfig.userTokenKey,
   };
   // Use
-  passport.use(new Strategy(jwtOptions, (jwtPayload, done) =>
-    // Return the token decoded right away
-    done(null, jwtPayload)
-  ));
+  passport.use(
+    new Strategy(jwtOptions, (jwtPayload, done) =>
+      // Return the token decoded right away
+      done(null, jwtPayload)
+    )
+  );
 }
 
 const MODULE_NAME = 'AuthService';
@@ -55,21 +60,34 @@ export default class AuthService {
     return passport.authenticate('jwt', { session: false });
   }
 
-  public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleLogIn(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Check Tenant
     if (!req.tenant) {
       throw new AppError({
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Tenant must be provided',
-        module: MODULE_NAME, method: 'handleLogIn', action: action,
+        module: MODULE_NAME,
+        method: 'handleLogIn',
+        action: action,
       });
     }
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthSignInReq(req.body);
     req.user = { tenantID: req.tenant.id };
     const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
-    UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
-      MODULE_NAME, 'handleLogIn', req.user);
+    UtilsService.assertObjectExists(
+      action,
+      user,
+      `User with email '${filteredRequest.email}' does not exist`,
+      MODULE_NAME,
+      'handleLogIn',
+      req.user
+    );
     // Check if the number of trials is reached
     if (user.passwordWrongNbrTrials >= centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Check if the user is still locked
@@ -80,25 +98,38 @@ export default class AuthService {
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             actionOnUser: user,
-            module: MODULE_NAME, method: 'handleLogIn', action: action,
-            message: 'User has been unlocked after a period of time can try to login again'
+            module: MODULE_NAME,
+            method: 'handleLogIn',
+            action: action,
+            message: 'User has been unlocked after a period of time can try to login again',
           });
           // Save User Status
           await UserStorage.saveUserStatus(req.tenant, user.id, UserStatus.ACTIVE);
           // Init User Password
-          await UserStorage.saveUserPassword(req.tenant, user.id,
-            { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
+          await UserStorage.saveUserPassword(req.tenant, user.id, {
+            passwordWrongNbrTrials: 0,
+            passwordBlockedUntil: null,
+            passwordResetHash: null,
+          });
           // Read user again
           const updatedUser = await UserStorage.getUser(req.tenant, user.id);
           // Check user
-          await AuthService.checkUserLogin(action, req.tenant, updatedUser, filteredRequest, req, res, next);
+          await AuthService.checkUserLogin(
+            action,
+            req.tenant,
+            updatedUser,
+            filteredRequest,
+            req,
+            res,
+            next
+          );
         } else {
           // Return data
           throw new AppError({
             errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
             message: 'User is locked',
             module: MODULE_NAME,
-            method: 'handleLogIn'
+            method: 'handleLogIn',
           });
         }
       } else {
@@ -114,13 +145,20 @@ export default class AuthService {
     }
   }
 
-  public static async handleRegisterUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRegisterUser(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Check Tenant
     if (!req.tenant) {
       throw new AppError({
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Tenant must be provided',
-        module: MODULE_NAME, method: 'handleRegisterUser', action: action,
+        module: MODULE_NAME,
+        method: 'handleRegisterUser',
+        action: action,
       });
     }
     // Filter
@@ -132,8 +170,14 @@ export default class AuthService {
     }
     req.user = { tenantID: req.tenant.id };
     // Check reCaptcha
-    await UtilsService.checkReCaptcha(req.tenant, action, 'handleRegisterUser',
-      centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
+    await UtilsService.checkReCaptcha(
+      req.tenant,
+      action,
+      'handleRegisterUser',
+      centralSystemRestConfig,
+      filteredRequest.captcha,
+      req.connection.remoteAddress
+    );
     // Check email
     const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     if (user) {
@@ -141,7 +185,7 @@ export default class AuthService {
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: 'Email already exists',
         module: MODULE_NAME,
-        method: 'handleRegisterUser'
+        method: 'handleRegisterUser',
       });
     }
     // Generate a password
@@ -155,7 +199,10 @@ export default class AuthService {
     newUser.mobile = filteredRequest.mobile;
     newUser.createdOn = new Date();
     const verificationToken = Utils.generateToken(filteredRequest.email);
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(req.tenant, Utils.getLanguageFromLocale(newUser.locale));
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(
+      req.tenant,
+      Utils.getLanguageFromLocale(newUser.locale)
+    );
     // Save User
     newUser.id = await UserStorage.saveUser(req.tenant, newUser);
     // Save User Status
@@ -173,7 +220,7 @@ export default class AuthService {
       password: newPasswordHashed,
       passwordWrongNbrTrials: 0,
       passwordResetHash: null,
-      passwordBlockedUntil: null
+      passwordBlockedUntil: null,
     });
     // Save User Account Verification
     await UserStorage.saveUserAccountVerification(req.tenant, newUser.id, { verificationToken });
@@ -181,7 +228,7 @@ export default class AuthService {
     await UserStorage.saveUserEULA(req.tenant, newUser.id, {
       eulaAcceptedOn: new Date(),
       eulaAcceptedVersion: endUserLicenseAgreement.version,
-      eulaAcceptedHash: endUserLicenseAgreement.hash
+      eulaAcceptedHash: endUserLicenseAgreement.hash,
     });
     // Assign user to all Sites with auto-assign flag
     await UtilsService.assignCreatedUserToSites(req.tenant, newUser);
@@ -195,34 +242,34 @@ export default class AuthService {
         createdBy: { id: newUser.id },
         createdOn: new Date(),
         description: i18nManager.translate('tags.virtualBadge'),
-        default: true
+        default: true,
       };
       await TagStorage.saveTag(req.tenant, tag);
     }
     await Logging.logInfo({
       tenantID: req.tenant.id,
-      user: newUser, action: action,
+      user: newUser,
+      action: action,
       module: MODULE_NAME,
       method: 'handleRegisterUser',
       message: `User with Email '${req.body.email as string}' has been created successfully`,
-      detailedMessages: { params: req.body }
+      detailedMessages: { params: req.body },
     });
     if (req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Send notification
-      const evseDashboardVerifyEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
-        '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
+      const evseDashboardVerifyEmailURL =
+        Utils.buildEvseURL(req.tenant.subdomain) +
+        '/auth/verify-email?VerificationToken=' +
+        verificationToken +
+        '&Email=' +
+        newUser.email;
       // Notify (Async)
-      NotificationHandler.sendNewRegisteredUser(
-        req.tenant,
-        Utils.generateUUID(),
-        newUser,
-        {
-          'tenant': filteredRequest.name,
-          'user': newUser,
-          'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
-          'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-        }
-      ).catch((error) => {
+      NotificationHandler.sendNewRegisteredUser(req.tenant, Utils.generateUUID(), newUser, {
+        tenant: filteredRequest.name,
+        user: newUser,
+        evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain),
+        evseDashboardVerifyEmailURL: evseDashboardVerifyEmailURL,
+      }).catch((error) => {
         Logging.logPromiseError(error, req?.tenant?.id);
       });
     }
@@ -230,94 +277,128 @@ export default class AuthService {
     next();
   }
 
-  public static async checkAndSendResetPasswordConfirmationEmail(tenant: Tenant, filteredRequest: Partial<HttpResetPasswordRequest>, action: ServerAction, req: Request,
-      res: Response, next: NextFunction): Promise<void> {
+  public static async checkAndSendResetPasswordConfirmationEmail(
+    tenant: Tenant,
+    filteredRequest: Partial<HttpResetPasswordRequest>,
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // No hash: Send email with init pass hash link
     if (!filteredRequest.captcha) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is mandatory',
         module: MODULE_NAME,
-        method: 'checkAndSendResetPasswordConfirmationEmail'
+        method: 'checkAndSendResetPasswordConfirmationEmail',
       });
     }
     // Check reCaptcha
-    await UtilsService.checkReCaptcha(tenant, action, 'checkAndSendResetPasswordConfirmationEmail',
-      centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
+    await UtilsService.checkReCaptcha(
+      tenant,
+      action,
+      'checkAndSendResetPasswordConfirmationEmail',
+      centralSystemRestConfig,
+      filteredRequest.captcha,
+      req.connection.remoteAddress
+    );
     // Generate a new password
     const user = await UserStorage.getUserByEmail(tenant, filteredRequest.email);
-    UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
-      MODULE_NAME, 'checkAndSendResetPasswordConfirmationEmail', req.user);
+    UtilsService.assertObjectExists(
+      action,
+      user,
+      `User with email '${filteredRequest.email}' does not exist`,
+      MODULE_NAME,
+      'checkAndSendResetPasswordConfirmationEmail',
+      req.user
+    );
     const resetHash = Utils.generateUUID();
     // Init Password info
     await UserStorage.saveUserPassword(tenant, user.id, { passwordResetHash: resetHash });
     await Logging.logInfo({
       tenantID: tenant.id,
-      user: user, action: action,
+      user: user,
+      action: action,
       module: MODULE_NAME,
       method: 'checkAndSendResetPasswordConfirmationEmail',
-      message: `User with Email '${req.body.email as string}' will receive an email to reset his password`
+      message: `User with Email '${
+        req.body.email as string
+      }' will receive an email to reset his password`,
     });
     // Send notification
-    const evseDashboardResetPassURL = Utils.buildEvseURL(req.tenant.subdomain) +
-      '/auth/define-password?hash=' + resetHash;
+    const evseDashboardResetPassURL =
+      Utils.buildEvseURL(req.tenant.subdomain) + '/auth/define-password?hash=' + resetHash;
     // Notify
-    NotificationHandler.sendRequestPassword(
-      tenant,
-      Utils.generateUUID(),
-      user,
-      {
-        'user': user,
-        'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
-        'evseDashboardResetPassURL': evseDashboardResetPassURL
-      }
-    ).catch((error) => {
+    NotificationHandler.sendRequestPassword(tenant, Utils.generateUUID(), user, {
+      user: user,
+      evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain),
+      evseDashboardResetPassURL: evseDashboardResetPassURL,
+    }).catch((error) => {
       Logging.logPromiseError(error, tenant?.id);
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  public static async resetUserPassword(tenant: Tenant, filteredRequest: Partial<HttpResetPasswordRequest>,
-      action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async resetUserPassword(
+    tenant: Tenant,
+    filteredRequest: Partial<HttpResetPasswordRequest>,
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Get the user
     const user = await UserStorage.getUserByPasswordResetHash(tenant, filteredRequest.hash);
-    UtilsService.assertObjectExists(action, user, `User with password reset hash '${filteredRequest.hash}' does not exist`,
-      MODULE_NAME, 'handleUserPasswordReset', req.user);
+    UtilsService.assertObjectExists(
+      action,
+      user,
+      `User with password reset hash '${filteredRequest.hash}' does not exist`,
+      MODULE_NAME,
+      'handleUserPasswordReset',
+      req.user
+    );
     // Hash it
     const newHashedPassword = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Save new password
-    await UserStorage.saveUserPassword(tenant, user.id,
-      {
-        password: newHashedPassword,
-        passwordWrongNbrTrials: 0,
-        passwordResetHash: null,
-        passwordBlockedUntil: null
-      }
-    );
+    await UserStorage.saveUserPassword(tenant, user.id, {
+      password: newHashedPassword,
+      passwordWrongNbrTrials: 0,
+      passwordResetHash: null,
+      passwordBlockedUntil: null,
+    });
     // Unlock
     if (user.status === UserStatus.LOCKED) {
       await UserStorage.saveUserStatus(tenant, user.id, UserStatus.ACTIVE);
     }
     await Logging.logInfo({
       tenantID: tenant.id,
-      user: user, action: action,
+      user: user,
+      action: action,
       module: MODULE_NAME,
       method: 'handleUserPasswordReset',
-      message: 'User\'s password has been reset successfully',
-      detailedMessages: { params: req.body }
+      message: "User's password has been reset successfully",
+      detailedMessages: { params: req.body },
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  public static async handleUserPasswordReset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUserPasswordReset(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Check Tenant
     if (!req.tenant) {
       throw new AppError({
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Tenant must be provided',
-        module: MODULE_NAME, method: 'handleUserPasswordReset', action: action,
+        module: MODULE_NAME,
+        method: 'handleUserPasswordReset',
+        action: action,
       });
     }
     // Filter
@@ -328,17 +409,31 @@ export default class AuthService {
       await AuthService.resetUserPassword(req.tenant, filteredRequest, action, req, res, next);
     } else {
       // Send Confirmation Email for requesting a new password
-      await AuthService.checkAndSendResetPasswordConfirmationEmail(req.tenant, filteredRequest, action, req, res, next);
+      await AuthService.checkAndSendResetPasswordConfirmationEmail(
+        req.tenant,
+        filteredRequest,
+        action,
+        req,
+        res,
+        next
+      );
     }
   }
 
-  public static async handleCheckEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCheckEndUserLicenseAgreement(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Check Tenant
     if (!req.tenant) {
       throw new AppError({
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Tenant must be provided',
-        module: MODULE_NAME, method: 'handleCheckEndUserLicenseAgreement', action: action,
+        module: MODULE_NAME,
+        method: 'handleCheckEndUserLicenseAgreement',
+        action: action,
       });
     }
     // Filter
@@ -352,7 +447,10 @@ export default class AuthService {
       return;
     }
     // Get last Eula version
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(req.tenant, Utils.getLanguageFromLocale(user.locale));
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(
+      req.tenant,
+      Utils.getLanguageFromLocale(user.locale)
+    );
     if (user.eulaAcceptedHash === endUserLicenseAgreement.hash) {
       // Check if version matches
       res.json({ eulaAccepted: true });
@@ -364,34 +462,55 @@ export default class AuthService {
     next();
   }
 
-  public static async handleGetEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetEndUserLicenseAgreement(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthEulaReq(req.query);
     // Get it
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(
-      Constants.DEFAULT_TENANT_OBJECT, filteredRequest.Language);
+      Constants.DEFAULT_TENANT_OBJECT,
+      filteredRequest.Language
+    );
     res.json(endUserLicenseAgreement);
     next();
   }
 
-  public static async handleGetEndUserLicenseAgreementHtml(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetEndUserLicenseAgreementHtml(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthEulaReq(req.query);
     // Get it
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(
-      Constants.DEFAULT_TENANT_OBJECT, filteredRequest.Language);
+      Constants.DEFAULT_TENANT_OBJECT,
+      filteredRequest.Language
+    );
     res.setHeader('Content-Type', 'text/html');
     res.send(endUserLicenseAgreement.text);
     next();
   }
 
-  public static async handleVerifyEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleVerifyEmail(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Check Tenant
     if (!req.tenant) {
       throw new AppError({
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Tenant must be provided',
-        module: MODULE_NAME, method: 'handleVerifyEmail', action: action,
+        module: MODULE_NAME,
+        method: 'handleVerifyEmail',
+        action: action,
       });
     }
     // Filter
@@ -401,22 +520,30 @@ export default class AuthService {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         action: action,
-        module: MODULE_NAME, method: 'handleVerifyEmail',
-        message: 'Cannot verify email in the Super Tenant'
+        module: MODULE_NAME,
+        method: 'handleVerifyEmail',
+        message: 'Cannot verify email in the Super Tenant',
       });
     }
     // Check email
     const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.Email);
-    UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.Email}' does not exist`,
-      MODULE_NAME, 'handleVerifyEmail', req.user);
+    UtilsService.assertObjectExists(
+      action,
+      user,
+      `User with email '${filteredRequest.Email}' does not exist`,
+      MODULE_NAME,
+      'handleVerifyEmail',
+      req.user
+    );
     // Check if account is already active
     if (user.status === UserStatus.ACTIVE) {
       throw new AppError({
         errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         action: action,
         user: user,
-        module: MODULE_NAME, method: 'handleVerifyEmail',
-        message: 'Account is already active'
+        module: MODULE_NAME,
+        method: 'handleVerifyEmail',
+        message: 'Account is already active',
       });
     }
     // Check verificationToken
@@ -425,8 +552,9 @@ export default class AuthService {
         errorCode: HTTPError.INVALID_TOKEN_ERROR,
         action: action,
         user: user,
-        module: MODULE_NAME, method: 'handleVerifyEmail',
-        message: 'Wrong Verification Token'
+        module: MODULE_NAME,
+        method: 'handleVerifyEmail',
+        message: 'Wrong Verification Token',
       });
     }
     // Save User Status
@@ -434,53 +562,66 @@ export default class AuthService {
     // When it's user creation case we take the user settings
     if (!user.importedData) {
       const userSettings = await SettingStorage.getUserSettings(req.tenant);
-      userStatus = userSettings.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
+      userStatus = userSettings.user.autoActivateAccountAfterValidation
+        ? UserStatus.ACTIVE
+        : UserStatus.INACTIVE;
     } else {
       // When it's user import case we take checkbox param saved to db
-      userStatus = user.importedData.autoActivateUserAtImport ? UserStatus.ACTIVE : UserStatus.INACTIVE;
+      userStatus = user.importedData.autoActivateUserAtImport
+        ? UserStatus.ACTIVE
+        : UserStatus.INACTIVE;
     }
     // Save User Status
     await UserStorage.saveUserStatus(req.tenant, user.id, userStatus);
     // Save User Verification Account
-    await UserStorage.saveUserAccountVerification(req.tenant, user.id,
-      { verificationToken: null, verifiedAt: new Date() });
+    await UserStorage.saveUserAccountVerification(req.tenant, user.id, {
+      verificationToken: null,
+      verifiedAt: new Date(),
+    });
     await Logging.logInfo({
       tenantID: req.tenant.id,
-      user: user, action: action,
-      module: MODULE_NAME, method: 'handleVerifyEmail',
-      message: userStatus === UserStatus.ACTIVE ?
-        'User account has been successfully verified and activated' :
-        'User account has been successfully verified but needs an admin to activate it',
-      detailedMessages: { params: req.query }
+      user: user,
+      action: action,
+      module: MODULE_NAME,
+      method: 'handleVerifyEmail',
+      message:
+        userStatus === UserStatus.ACTIVE
+          ? 'User account has been successfully verified and activated'
+          : 'User account has been successfully verified but needs an admin to activate it',
+      detailedMessages: { params: req.query },
     });
     // Notify
-    NotificationHandler.sendAccountVerification(
-      req.tenant,
-      Utils.generateUUID(),
-      user,
-      {
-        'user': user,
-        'userStatus': userStatus,
-        'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
-      }
-    ).catch((error) => {
+    NotificationHandler.sendAccountVerification(req.tenant, Utils.generateUUID(), user, {
+      user: user,
+      userStatus: userStatus,
+      evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain),
+    }).catch((error) => {
       Logging.logPromiseError(error, req?.tenant?.id);
     });
     res.json({ status: 'Success', userStatus });
     next();
   }
 
-  public static async handleResendVerificationEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleResendVerificationEmail(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Check Tenant
     if (!req.tenant) {
       throw new AppError({
         errorCode: StatusCodes.BAD_REQUEST,
         message: 'Tenant must be provided',
-        module: MODULE_NAME, method: 'handleResendVerificationEmail', action: action,
+        module: MODULE_NAME,
+        method: 'handleResendVerificationEmail',
+        action: action,
       });
     }
     // Filter
-    const filteredRequest = AuthValidatorRest.getInstance().validateAuthVerificationEmailResendReq(req.body);
+    const filteredRequest = AuthValidatorRest.getInstance().validateAuthVerificationEmailResendReq(
+      req.body
+    );
     // Check that this is not the super tenant
     if (req.tenant.id === Constants.DEFAULT_TENANT_ID) {
       throw new AppError({
@@ -488,16 +629,28 @@ export default class AuthService {
         message: 'Cannot request a verification Email in the Super Tenant',
         module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
-        action: action
+        action: action,
       });
     }
     // Check reCaptcha
-    await UtilsService.checkReCaptcha(req.tenant, action, 'handleResendVerificationEmail',
-      centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
+    await UtilsService.checkReCaptcha(
+      req.tenant,
+      action,
+      'handleResendVerificationEmail',
+      centralSystemRestConfig,
+      filteredRequest.captcha,
+      req.connection.remoteAddress
+    );
     // Is valid email?
     const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
-    UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
-      MODULE_NAME, 'handleResendVerificationEmail', req.user);
+    UtilsService.assertObjectExists(
+      action,
+      user,
+      `User with email '${filteredRequest.email}' does not exist`,
+      MODULE_NAME,
+      'handleResendVerificationEmail',
+      req.user
+    );
     // Check if account is already active
     if (user.status === UserStatus.ACTIVE) {
       throw new AppError({
@@ -506,7 +659,7 @@ export default class AuthService {
         module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
         action: action,
-        user: user
+        user: user,
       });
     }
     let verificationToken: string;
@@ -530,34 +683,44 @@ export default class AuthService {
       module: MODULE_NAME,
       method: 'handleResendVerificationEmail',
       message: `User with Email '${filteredRequest.email}' has been created successfully`,
-      detailedMessages: { params: req.body }
+      detailedMessages: { params: req.body },
     });
     // Send notification
-    const evseDashboardVerifyEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
-      '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+    const evseDashboardVerifyEmailURL =
+      Utils.buildEvseURL(req.tenant.subdomain) +
+      '/auth/verify-email?VerificationToken=' +
+      verificationToken +
+      '&Email=' +
       user.email;
     // Notify
-    NotificationHandler.sendVerificationEmail(
-      req.tenant,
-      Utils.generateUUID(),
-      user,
-      {
-        'user': user,
-        'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
-        'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-      }
-    ).catch((error) => {
+    NotificationHandler.sendVerificationEmail(req.tenant, Utils.generateUUID(), user, {
+      user: user,
+      evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain),
+      evseDashboardVerifyEmailURL: evseDashboardVerifyEmailURL,
+    }).catch((error) => {
       Logging.logPromiseError(error, req?.tenant?.id);
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  public static handleUserLogOut(action: ServerAction, req: Request, res: Response, next: NextFunction): void {
+  public static handleUserLogOut(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void {
     res.status(StatusCodes.OK).send({});
   }
 
-  public static async userLoginWrongPassword(action: ServerAction, tenant: Tenant, user: User, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async userLoginWrongPassword(
+    action: ServerAction,
+    tenant: Tenant,
+    user: User,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Add wrong trial + 1
     if (isNaN(user.passwordWrongNbrTrials)) {
       user.passwordWrongNbrTrials = 0;
@@ -569,58 +732,78 @@ export default class AuthService {
       // Save User Status
       await UserStorage.saveUserStatus(tenant, user.id, UserStatus.LOCKED);
       // Save User Blocked Date
-      await UserStorage.saveUserPassword(tenant, user.id,
-        {
-          passwordWrongNbrTrials,
-          passwordBlockedUntil: moment().add(centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate()
-        });
+      await UserStorage.saveUserPassword(tenant, user.id, {
+        passwordWrongNbrTrials,
+        passwordBlockedUntil: moment()
+          .add(centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm')
+          .toDate(),
+      });
       throw new AppError({
         errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
         message: 'User is locked',
         module: MODULE_NAME,
         method: 'checkUserLogin',
         action: action,
-        user: user
+        user: user,
       });
     } else {
       // Save User Nbr Password Trials
       await UserStorage.saveUserPassword(tenant, user.id, { passwordWrongNbrTrials });
       throw new AppError({
         errorCode: StatusCodes.NOT_FOUND,
-        message: `User failed to log in, ${centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,
+        message: `User failed to log in, ${
+          centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials
+        } trial(s) remaining`,
         module: MODULE_NAME,
         method: 'checkUserLogin',
         action: action,
-        user: user
+        user: user,
       });
     }
   }
 
-  public static async userLoginSucceeded(action: ServerAction, tenant: Tenant, user: User, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async userLoginSucceeded(
+    action: ServerAction,
+    tenant: Tenant,
+    user: User,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Password / Login OK
     await Logging.logInfo({
       tenantID: tenant.id,
       user: user,
-      module: MODULE_NAME, method: 'checkUserLogin',
-      action: action, message: 'User logged in successfully'
+      module: MODULE_NAME,
+      method: 'checkUserLogin',
+      action: action,
+      message: 'User logged in successfully',
     });
     // Set Eula Info on Login Only
     if (action === ServerAction.LOGIN) {
       // Save EULA
-      const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenant, Utils.getLanguageFromLocale(user.locale));
-      await UserStorage.saveUserEULA(tenant, user.id,
-        {
-          eulaAcceptedOn: new Date(),
-          eulaAcceptedVersion: endUserLicenseAgreement.version,
-          eulaAcceptedHash: endUserLicenseAgreement.hash
-        }
+      const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(
+        tenant,
+        Utils.getLanguageFromLocale(user.locale)
       );
+      await UserStorage.saveUserEULA(tenant, user.id, {
+        eulaAcceptedOn: new Date(),
+        eulaAcceptedVersion: endUserLicenseAgreement.version,
+        eulaAcceptedHash: endUserLicenseAgreement.hash,
+      });
     }
     // Reset wrong number of trial
-    await UserStorage.saveUserPassword(tenant, user.id,
-      { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
+    await UserStorage.saveUserPassword(tenant, user.id, {
+      passwordWrongNbrTrials: 0,
+      passwordBlockedUntil: null,
+      passwordResetHash: null,
+    });
     // Get the tags (limited) to avoid an overweighted token
-    const tags = await TagStorage.getTags(tenant, { userIDs: [user.id] }, Constants.DB_PARAMS_DEFAULT_RECORD);
+    const tags = await TagStorage.getTags(
+      tenant,
+      { userIDs: [user.id] },
+      Constants.DB_PARAMS_DEFAULT_RECORD
+    );
     // Yes: build token
     const payload = await Authorizations.buildUserToken(tenant, user, tags.result);
     // Build token
@@ -628,15 +811,15 @@ export default class AuthService {
     // Role Demo?
     if (Authorizations.isDemo(user)) {
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
-        expiresIn: centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
+        expiresIn: centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600,
       });
     } else if (user.technical) {
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
-        expiresIn: centralSystemRestConfig.userTechnicalTokenLifetimeDays * 24 * 3600
+        expiresIn: centralSystemRestConfig.userTechnicalTokenLifetimeDays * 24 * 3600,
       });
     } else {
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
-        expiresIn: centralSystemRestConfig.userTokenLifetimeHours * 3600
+        expiresIn: centralSystemRestConfig.userTokenLifetimeHours * 3600,
       });
     }
     // Return it
@@ -649,7 +832,7 @@ export default class AuthService {
     }
     // Get it
     const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
-    return (tenant ? tenant.id : null);
+    return tenant ? tenant.id : null;
   }
 
   public static async getTenant(subdomain: string): Promise<Tenant> {
@@ -658,11 +841,18 @@ export default class AuthService {
     }
     // Get it
     const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
-    return (tenant ? tenant : null);
+    return tenant ? tenant : null;
   }
 
-  public static async checkUserLogin(action: ServerAction, tenant: Tenant, user: User,
-      filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async checkUserLogin(
+    action: ServerAction,
+    tenant: Tenant,
+    user: User,
+    filteredRequest: Partial<HttpLoginRequest>,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // User Found?
     if (!user) {
       throw new AppError({
@@ -670,7 +860,7 @@ export default class AuthService {
         message: `Unknown user tried to log in with email '${filteredRequest.email}'`,
         module: MODULE_NAME,
         method: 'checkUserLogin',
-        user: user
+        user: user,
       });
     }
     // Check password
@@ -679,7 +869,7 @@ export default class AuthService {
       match = await Utils.checkPasswordBCrypt(filteredRequest.password, user.password);
     }
     // Check password hash
-    if (match || (user.password === Utils.hashPassword(filteredRequest.password))) {
+    if (match || user.password === Utils.hashPassword(filteredRequest.password)) {
       // Check status
       switch (user.status) {
         case UserStatus.PENDING:
@@ -688,7 +878,7 @@ export default class AuthService {
             message: 'Account is pending! User must activate his account in his email',
             module: MODULE_NAME,
             method: 'checkUserLogin',
-            user: user
+            user: user,
           });
         case UserStatus.LOCKED:
           throw new AppError({
@@ -696,7 +886,7 @@ export default class AuthService {
             message: `Account is locked ('${user.status}')`,
             module: MODULE_NAME,
             method: 'checkUserLogin',
-            user: user
+            user: user,
           });
         case UserStatus.INACTIVE:
           throw new AppError({
@@ -704,7 +894,7 @@ export default class AuthService {
             message: `Account is inactive ('${user.status}')`,
             module: MODULE_NAME,
             method: 'checkUserLogin',
-            user: user
+            user: user,
           });
         case UserStatus.BLOCKED:
           throw new AppError({
@@ -712,7 +902,7 @@ export default class AuthService {
             message: `Account is blocked ('${user.status}')`,
             module: MODULE_NAME,
             method: 'checkUserLogin',
-            user: user
+            user: user,
           });
       }
       // Check Technical users
@@ -723,7 +913,7 @@ export default class AuthService {
           message: 'API User cannot log in to UI but only B2B',
           module: MODULE_NAME,
           method: 'checkUserLogin',
-          user: user
+          user: user,
         });
       }
       // Login OK
@@ -748,10 +938,11 @@ export default class AuthService {
       // Trace API USER login attempts from unknown platform/os - could be POSTMAN or anything else
       void Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        module: MODULE_NAME, method: 'isLoggedFromUserDevice',
+        module: MODULE_NAME,
+        method: 'isLoggedFromUserDevice',
         action: ServerAction.LOGIN,
         message: 'User Agent: ' + userAgent.source,
-        detailedMessages: { userAgent }
+        detailedMessages: { userAgent },
       });
     }
     return false;

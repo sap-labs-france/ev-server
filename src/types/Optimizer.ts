@@ -117,12 +117,23 @@ export interface ExcludedAmperage {
   phase3: number;
 }
 
-export type OptimizerEventType = 'CarArrival' | 'CarDeparture' | 'CarFinished' | 'EnergyPriceChange' | 'Reoptimize';
+export type OptimizerEventType =
+  | 'CarArrival'
+  | 'CarDeparture'
+  | 'CarFinished'
+  | 'EnergyPriceChange'
+  | 'Reoptimize';
 
 export type OptimizerCarType = 'BEV' | 'PHEV' | 'PETROL' | 'DIESEL';
 
 export type OptimizerPhase = 'PHASE_1' | 'PHASE_2' | 'PHASE_3';
 
-export type OptimizerStationStatus = 'Free' | 'Charging' | 'Reserved' | 'Blocked' | 'Maintenance' | 'Disconnected';
+export type OptimizerStationStatus =
+  | 'Free'
+  | 'Charging'
+  | 'Reserved'
+  | 'Blocked'
+  | 'Maintenance'
+  | 'Disconnected';
 
 export type OptimizerFuseTreeNodeUnion = OptimizerFuse | OptimizerChargingStationConnectorFuse;

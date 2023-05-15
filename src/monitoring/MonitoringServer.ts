@@ -9,9 +9,21 @@ export default abstract class MonitoringServer {
 
   public abstract getGauge(name: string): client.Gauge | undefined;
 
-  public abstract getCounterClearableMetric(prefix : string, metricName: string, metricHelp: string, labelValues: LabelValues<string>) : CounterClearableMetric;
+  public abstract getCounterClearableMetric(
+    prefix: string,
+    metricName: string,
+    metricHelp: string,
+    labelValues: LabelValues<string>
+  ): CounterClearableMetric;
 
-  public abstract getCountAvgClearableMetric(prefix : string, metricName: string, suffix: number, metricAvgHelp: string, metricCountHelp: string, labelNames: string[]) : CountAvgGaugeClearableMetric ;
+  public abstract getCountAvgClearableMetric(
+    prefix: string,
+    metricName: string,
+    suffix: number,
+    metricAvgHelp: string,
+    metricCountHelp: string,
+    labelNames: string[]
+  ): CountAvgGaugeClearableMetric;
 
   public abstract getAvgClearableMetric(
     prefix: string,

@@ -48,8 +48,11 @@ export default class ODataServer {
 
   // Start the server
   public start(): void {
-    ServerUtils.startHttpServer(this.oDataServerConfig,
-      ServerUtils.createHttpServer(this.oDataServerConfig, this.expressApplication), MODULE_NAME, ServerType.ODATA_SERVER);
+    ServerUtils.startHttpServer(
+      this.oDataServerConfig,
+      ServerUtils.createHttpServer(this.oDataServerConfig, this.expressApplication),
+      MODULE_NAME,
+      ServerType.ODATA_SERVER
+    );
   }
 }
-

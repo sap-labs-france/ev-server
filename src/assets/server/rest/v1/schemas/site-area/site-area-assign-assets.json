@@ -13,8 +13,5 @@
       }
     }
   },
-  "required": [
-    "siteAreaID",
-    "assetIDs"
-  ]
+  "required": ["siteAreaID", "assetIDs"]
 }

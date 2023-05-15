@@ -1,12 +1,12 @@
 import { OICPIdentification } from './OICPIdentification';
 
 export interface OICPProviderAuthenticationData {
-  ProviderID: OICPProviderID, // The EMP whose data records are listed below.
-  AuthenticationDataRecord: OICPAuthenticationDataRecord[] // 0..n
+  ProviderID: OICPProviderID; // The EMP whose data records are listed below.
+  AuthenticationDataRecord: OICPAuthenticationDataRecord[]; // 0..n
 }
 
 export interface OICPAuthenticationDataRecord {
-  Identification: OICPIdentification // Authentication data
+  Identification: OICPIdentification; // Authentication data
 }
 
 export enum OICPAuthorizationStatus {

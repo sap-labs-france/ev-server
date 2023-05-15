@@ -12,11 +12,18 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'AsyncTaskStorage';
 
 export default class AsyncTaskStorage {
-  public static async getAsyncTask(id: string = Constants.UNKNOWN_OBJECT_ID,
-      params = {}, projectFields?: string[]): Promise<AsyncTask> {
-    const asyncTasksMDB = await AsyncTaskStorage.getAsyncTasks({
-      asyncTaskIDs: [id],
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+  public static async getAsyncTask(
+    id: string = Constants.UNKNOWN_OBJECT_ID,
+    params = {},
+    projectFields?: string[]
+  ): Promise<AsyncTask> {
+    const asyncTasksMDB = await AsyncTaskStorage.getAsyncTasks(
+      {
+        asyncTaskIDs: [id],
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return asyncTasksMDB.count === 1 ? asyncTasksMDB.result[0] : null;
   }
 
@@ -24,7 +31,9 @@ export default class AsyncTaskStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     // Set
     const asyncTaskMDB: any = {
-      _id: asyncTaskToSave.id ? DatabaseUtils.convertToObjectID(asyncTaskToSave.id) : new ObjectId(),
+      _id: asyncTaskToSave.id
+        ? DatabaseUtils.convertToObjectID(asyncTaskToSave.id)
+        : new ObjectId(),
       name: asyncTaskToSave.name,
       action: asyncTaskToSave.action,
       type: asyncTaskToSave.type,
@@ -42,17 +51,24 @@ export default class AsyncTaskStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(asyncTaskMDB, asyncTaskToSave);
     // Modify
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'asynctasks').findOneAndUpdate(
-      { _id: asyncTaskMDB._id },
-      { $set: asyncTaskMDB },
-      { upsert: true }
+    await global.database
+      .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'asynctasks')
+      .findOneAndUpdate({ _id: asyncTaskMDB._id }, { $set: asyncTaskMDB }, { upsert: true });
+    await Logging.traceDatabaseRequestEnd(
+      Constants.DEFAULT_TENANT_OBJECT,
+      MODULE_NAME,
+      'saveAsyncTask',
+      startTime,
+      asyncTaskMDB
     );
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'saveAsyncTask', startTime, asyncTaskMDB);
     return asyncTaskMDB._id;
   }
 
-  public static async getAsyncTasks(params: { status?: AsyncTaskStatus, asyncTaskIDs?: string[] } = {},
-      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<AsyncTask>> {
+  public static async getAsyncTasks(
+    params: { status?: AsyncTaskStatus; asyncTaskIDs?: string[] } = {},
+    dbParams?: DbParams,
+    projectFields?: string[]
+  ): Promise<DataResult<AsyncTask>> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -67,7 +83,7 @@ export default class AsyncTaskStorage {
     // Async task IDs
     if (!Utils.isEmptyArray(params.asyncTaskIDs)) {
       filters._id = {
-        $in: params.asyncTaskIDs
+        $in: params.asyncTaskIDs,
       };
     }
     // Status
@@ -76,7 +92,7 @@ export default class AsyncTaskStorage {
     }
     // Add filters
     aggregation.push({
-      $match: filters
+      $match: filters,
     });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -84,16 +100,24 @@ export default class AsyncTaskStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const asyncTasksCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'asynctasks')
+    const asyncTasksCountMDB = (await global.database
+      .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'asynctasks')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray() as DatabaseCount[];
+      .toArray()) as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getAsyncTasks', startTime, aggregation, asyncTasksCountMDB);
+      await Logging.traceDatabaseRequestEnd(
+        Constants.DEFAULT_TENANT_OBJECT,
+        MODULE_NAME,
+        'getAsyncTasks',
+        startTime,
+        aggregation,
+        asyncTasksCountMDB
+      );
       return {
-        count: (asyncTasksCountMDB.length > 0 ? asyncTasksCountMDB[0].count : 0),
-        result: []
+        count: asyncTasksCountMDB.length > 0 ? asyncTasksCountMDB[0].count : 0,
+        result: [],
       };
     }
     // Remove the limit
@@ -103,7 +127,7 @@ export default class AsyncTaskStorage {
       dbParams.sort = { createdOn: -1 };
     }
     aggregation.push({
-      $sort: dbParams.sort
+      $sort: dbParams.sort,
     });
     // Skip
     if (dbParams.skip > 0) {
@@ -111,7 +135,7 @@ export default class AsyncTaskStorage {
     }
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
@@ -120,32 +144,55 @@ export default class AsyncTaskStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const asyncTasksMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'asynctasks')
+    const asyncTasksMDB = (await global.database
+      .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'asynctasks')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as AsyncTask[];
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'getAsyncTasks', startTime, aggregation, asyncTasksMDB);
+      .toArray()) as AsyncTask[];
+    await Logging.traceDatabaseRequestEnd(
+      Constants.DEFAULT_TENANT_OBJECT,
+      MODULE_NAME,
+      'getAsyncTasks',
+      startTime,
+      aggregation,
+      asyncTasksMDB
+    );
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(asyncTasksCountMDB[0]),
-      result: asyncTasksMDB
+      result: asyncTasksMDB,
     };
   }
 
   public static async updateRunningAsyncTaskToPending(): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete the AsyncTask
-    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'asynctasks').updateMany(
-      { 'status': AsyncTaskStatus.RUNNING },
-      { '$set': { 'status': AsyncTaskStatus.PENDING } }
+    const result = await global.database
+      .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'asynctasks')
+      .updateMany(
+        { status: AsyncTaskStatus.RUNNING },
+        { $set: { status: AsyncTaskStatus.PENDING } }
+      );
+    await Logging.traceDatabaseRequestEnd(
+      Constants.DEFAULT_TENANT_OBJECT,
+      MODULE_NAME,
+      'updateRunningAsyncTaskToPending',
+      startTime,
+      { status: AsyncTaskStatus.PENDING }
     );
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'updateRunningAsyncTaskToPending', startTime, { 'status': AsyncTaskStatus.PENDING });
     return result.modifiedCount;
   }
 
   public static async deleteAsyncTask(id: string): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Delete the AsyncTask
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'asynctasks')
-      .findOneAndDelete({ '_id': id });
-    await Logging.traceDatabaseRequestEnd(Constants.DEFAULT_TENANT_OBJECT, MODULE_NAME, 'deleteAsyncTask', startTime, { id });
+    await global.database
+      .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'asynctasks')
+      .findOneAndDelete({ _id: id });
+    await Logging.traceDatabaseRequestEnd(
+      Constants.DEFAULT_TENANT_OBJECT,
+      MODULE_NAME,
+      'deleteAsyncTask',
+      startTime,
+      { id }
+    );
   }
 }

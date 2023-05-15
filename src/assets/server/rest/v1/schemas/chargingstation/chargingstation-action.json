@@ -111,7 +111,5 @@
       "$ref": "common#/definitions/id"
     }
   },
-  "required": [
-    "chargingStationID"
-  ]
+  "required": ["chargingStationID"]
 }

@@ -177,9 +177,7 @@
       "type": "string",
       "format": "email",
       "sanitize": "mongo",
-      "transform": [
-        "toLowerCase"
-      ]
+      "transform": ["toLowerCase"]
     },
     "createdBy": {
       "type": "object",
@@ -207,6 +205,12 @@
     "lastChangedOn": {
       "type": "object",
       "nullable": true,
+      "sanitize": "mongo"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "customType": "date",
       "sanitize": "mongo"
     }
   }

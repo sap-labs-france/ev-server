@@ -63,9 +63,7 @@
     "port": 8443,
     "sslKey": "**insert key in PEM format**",
     "sslCert": "**insert certificate in PEM format**",
-    "sslCa": [
-      "**insert certificate in PEM format**"
-    ],
+    "sslCa": ["**insert certificate in PEM format**"],
     "debug": false
   },
   "CentralSystemServer": {

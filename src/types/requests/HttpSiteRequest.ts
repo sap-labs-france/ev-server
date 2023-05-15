@@ -38,12 +38,10 @@ export interface HttpSiteAssignUsersRequest extends HttpDatabaseProjectRequest {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpSiteUpdateRequest extends Site {
-}
+export interface HttpSiteUpdateRequest extends Site {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpSiteCreateRequest extends Site {
-}
+export interface HttpSiteCreateRequest extends Site {}
 
 export interface HttpSiteAdminUpdateRequest {
   userID: string;
@@ -61,4 +59,3 @@ export interface HttpSiteUsersRequest extends HttpDatabaseRequest {
   Search: string;
   SiteID: string;
 }
-

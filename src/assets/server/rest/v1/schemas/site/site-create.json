@@ -37,14 +37,8 @@
           "$ref": "billing-account#/definitions/platformFeeStrategy"
         }
       },
-      "required": [
-        "accountID",
-        "platformFeeStrategy"
-      ]
+      "required": ["accountID", "platformFeeStrategy"]
     }
   },
-  "required": [
-    "name",
-    "companyID"
-  ]
+  "required": ["name", "companyID"]
 }

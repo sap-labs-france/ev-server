@@ -28,4 +28,3 @@ export default class ODataSiteAreas extends AbstractODataEntities {
     return this.moveAddressToRoot(super.convert(object, req));
   }
 }
-

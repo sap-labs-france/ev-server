@@ -10,7 +10,5 @@
       "$ref": "common#/definitions/projectFields"
     }
   },
-  "required": [
-    "ID"
-  ]
+  "required": ["ID"]
 }

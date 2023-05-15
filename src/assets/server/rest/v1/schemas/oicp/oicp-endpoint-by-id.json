@@ -8,7 +8,5 @@
       "$ref": "oicp-endpoint#/definitions/id"
     }
   },
-  "required": [
-    "ID"
-  ]
+  "required": ["ID"]
 }

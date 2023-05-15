@@ -20,37 +20,36 @@ jobs:
         node-version: [16.x]
         mongodb-version: [4.4]
     steps:
-    - uses: actions/checkout@v2
-      with:
-        ssh-key: ${{ secrets.ACTION_ACCESS_SUB_MODULES_PRIVATE_REPOS }}
-        submodules: true
-    - name: Start MongoDB ${{ matrix.mongodb-version }}
-      uses: supercharge/mongodb-github-action@1.8.0
-      with:
-        mongodb-version: ${{ matrix.mongodb-version }}
-        mongodb-replica-set: rs0
-    - name: Initialize DB
-      run: |
-        bash docker/initdb/createMongoUsers.sh
-    - name: Install NodeJs ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: npm
-    - name: Install NodeJs Packages
-      run: npm ci
-    - name: Build sources
-      run: |
-        cp src/assets/configs-ci/config.json src/assets
-        npm run build:dev
-    - name: Start Server
-      run: |
-        npm run start:dev & sleep 10
-    - name: Create Test data
-      run: |
-        if [ ! -d test/config ]; then mkdir -p test/config; fi
-        cp src/assets/configs-ci/local.json test/config
-        npm run test:createContext
-    - name: Run Tests
-      run: npm run test
-
+      - uses: actions/checkout@v2
+        with:
+          ssh-key: ${{ secrets.ACTION_ACCESS_SUB_MODULES_PRIVATE_REPOS }}
+          submodules: true
+      - name: Start MongoDB ${{ matrix.mongodb-version }}
+        uses: supercharge/mongodb-github-action@1.8.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
+          mongodb-replica-set: rs0
+      - name: Initialize DB
+        run: |
+          bash docker/initdb/createMongoUsers.sh
+      - name: Install NodeJs ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - name: Install NodeJs Packages
+        run: npm ci
+      - name: Build sources
+        run: |
+          cp src/assets/configs-ci/config.json src/assets
+          pnpm build:dev
+      - name: Start Server
+        run: |
+          pnpm start:dev & sleep 10
+      - name: Create Test data
+        run: |
+          if [ ! -d test/config ]; then mkdir -p test/config; fi
+          cp src/assets/configs-ci/local.json test/config
+          pnpm test:createContext
+      - name: Run Tests
+        run: pnpm test

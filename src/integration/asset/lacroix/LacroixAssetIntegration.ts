@@ -31,7 +31,10 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
     await this.connect();
   }
 
-  public async retrieveConsumptions(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
+  public async retrieveConsumptions(
+    asset: Asset,
+    manualCall: boolean
+  ): Promise<AbstractCurrentConsumption[]> {
     // Check if refresh interval of connection is exceeded
     if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
       return [];
@@ -40,7 +43,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
     if (Utils.isNullOrUndefined(asset.lastConsumption)) {
       asset.lastConsumption = {
         timestamp: moment().startOf('day').toDate(),
-        value: 0
+        value: 0,
       };
     }
     const timeSinceLastConsumption = moment().diff(asset.lastConsumption.timestamp, 'minutes');
@@ -50,26 +53,24 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
     } else if (timeSinceLastConsumption > 60) {
       period = LacroixPeriods.ONE_DAY;
     }
-    const request = manualCall ?
-      `${this.connection.url}/${asset.meterID}/getPowerData?period=${LacroixPeriods.LAST}&group_by=1m` :
-      `${this.connection.url}/${asset.meterID}/getPowerData?period=${period}&group_by=1m`;
+    const request = manualCall
+      ? `${this.connection.url}/${asset.meterID}/getPowerData?period=${LacroixPeriods.LAST}&group_by=1m`
+      : `${this.connection.url}/${asset.meterID}/getPowerData?period=${period}&group_by=1m`;
     try {
       // Get consumption
-      const response = await this.axiosInstance.get(
-        request,
-        {
-          auth: {
-            username: this.connection.lacroixConnection.user,
-            password: await Cypher.decrypt(this.tenant, this.connection.lacroixConnection.password)
-          }
-        }
-      );
+      const response = await this.axiosInstance.get(request, {
+        auth: {
+          username: this.connection.lacroixConnection.user,
+          password: await Cypher.decrypt(this.tenant, this.connection.lacroixConnection.password),
+        },
+      });
       await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > Lacroix web service has been called successfully`,
-        module: MODULE_NAME, method: 'retrieveConsumption',
-        detailedMessages: { response: response.data }
+        module: MODULE_NAME,
+        method: 'retrieveConsumption',
+        detailedMessages: { response: response.data },
       });
       return this.filterConsumptionRequest(asset, response.data, manualCall);
     } catch (error) {
@@ -78,15 +79,21 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
         method: 'retrieveConsumption',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: 'Error while retrieving the asset consumption',
-        detailedMessages: { request, error: error.stack, asset }
+        detailedMessages: { request, error: error.stack, asset },
       });
     }
   }
 
-  private async filterConsumptionRequest(asset: Asset, responseData: LacroixResponse, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
+  private async filterConsumptionRequest(
+    asset: Asset,
+    responseData: LacroixResponse,
+    manualCall: boolean
+  ): Promise<AbstractCurrentConsumption[]> {
     const consumptions: AbstractCurrentConsumption[] = [];
     // Check returned data and delete consumptions before the last saved asset consumption
-    const currentIndex = responseData.data.findIndex((data) => moment(data.date).isSame(asset.lastConsumption.timestamp));
+    const currentIndex = responseData.data.findIndex((data) =>
+      moment(data.date).isSame(asset.lastConsumption.timestamp)
+    );
     if (currentIndex >= 0) {
       responseData.data.splice(0, currentIndex);
     }
@@ -97,26 +104,39 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
       consumption.currentInstantWattsL1 = dataPoint.powerApparentConsumed1;
       consumption.currentInstantWattsL2 = dataPoint.powerApparentConsumed2;
       consumption.currentInstantWattsL3 = dataPoint.powerApparentConsumed3;
-      consumption.currentTotalConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts).mul(60).toNumber();
+      consumption.currentTotalConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts)
+        .mul(60)
+        .toNumber();
       consumption.lastConsumption = {
         timestamp: moment(dataPoint.date).toDate(),
-        value: consumption.currentTotalConsumptionWh
+        value: consumption.currentTotalConsumptionWh,
       };
       consumptions.push(consumption);
     }
     // Check if history needs to be taken into account
-    if ((moment().diff(moment(asset.lastConsumption?.timestamp), 'minutes')) > 1) {
+    if (moment().diff(moment(asset.lastConsumption?.timestamp), 'minutes') > 1) {
       // Get consumptions from charging stations in the missing time period
-      const consumptionsDB = await ConsumptionStorage.getSiteAreaChargingStationConsumptions(this.tenant,
-        { siteAreaID: asset.siteAreaID, startDate: asset.lastConsumption.timestamp, endDate: consumptions[consumptions.length - 1].lastConsumption.timestamp },
-        Constants.DB_PARAMS_MAX_LIMIT, ['instantWatts', 'instantWattsL1','instantWattsL2','instantWattsL3', 'endedAt']);
+      const consumptionsDB = await ConsumptionStorage.getSiteAreaChargingStationConsumptions(
+        this.tenant,
+        {
+          siteAreaID: asset.siteAreaID,
+          startDate: asset.lastConsumption.timestamp,
+          endDate: consumptions[consumptions.length - 1].lastConsumption.timestamp,
+        },
+        Constants.DB_PARAMS_MAX_LIMIT,
+        ['instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3', 'endedAt']
+      );
       for (const consumption of consumptions) {
         const timestamp = consumption.lastConsumption.timestamp;
         // Create consumption with charging station consumption at this time
-        const consumptionToSubtract = consumptionsDB.result.find((consumptionDB) =>
-          consumptionDB.endedAt.getTime() === timestamp.getTime());
+        const consumptionToSubtract = consumptionsDB.result.find(
+          (consumptionDB) => consumptionDB.endedAt.getTime() === timestamp.getTime()
+        );
         // Check if consumption is existing and older than one minute
-        if (!Utils.isNullOrUndefined(consumptionToSubtract) && (moment().diff(moment(consumption.lastConsumption?.timestamp), 'minutes')) > 1) {
+        if (
+          !Utils.isNullOrUndefined(consumptionToSubtract) &&
+          moment().diff(moment(consumption.lastConsumption?.timestamp), 'minutes') > 1
+        ) {
           consumption.currentInstantWatts -= consumptionToSubtract.instantWatts;
           consumption.currentInstantWattsL1 -= consumptionToSubtract.instantWattsL1;
           consumption.currentInstantWattsL2 -= consumptionToSubtract.instantWattsL2;
@@ -125,23 +145,49 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
       }
     }
     // Get transactions to calculate asset consumption of the current minute
-    if (moment().diff(moment(consumptions[consumptions.length - 1].lastConsumption.timestamp), 'minutes') <= 1) {
-      const transactionResponse = await TransactionStorage.getTransactions(this.tenant, { siteAreaIDs:[asset.siteAreaID],
-        stop: { $exists: false } }, Constants.DB_PARAMS_MAX_LIMIT, ['currentInstantWatts', 'currentInstantWattsL1','currentInstantWattsL2','currentInstantWattsL3']);
+    if (
+      moment().diff(
+        moment(consumptions[consumptions.length - 1].lastConsumption.timestamp),
+        'minutes'
+      ) <= 1
+    ) {
+      const transactionResponse = await TransactionStorage.getTransactions(
+        this.tenant,
+        { siteAreaIDs: [asset.siteAreaID], stop: { $exists: false } },
+        Constants.DB_PARAMS_MAX_LIMIT,
+        [
+          'currentInstantWatts',
+          'currentInstantWattsL1',
+          'currentInstantWattsL2',
+          'currentInstantWattsL3',
+        ]
+      );
       for (const transaction of transactionResponse.result) {
-        consumptions[consumptions.length - 1].currentInstantWatts -= transaction.currentInstantWatts;
-        consumptions[consumptions.length - 1].currentInstantWattsL1 -= transaction.currentInstantWattsL1;
-        consumptions[consumptions.length - 1].currentInstantWattsL2 -= transaction.currentInstantWattsL2;
-        consumptions[consumptions.length - 1].currentInstantWattsL3 -= transaction.currentInstantWattsL3;
+        consumptions[consumptions.length - 1].currentInstantWatts -=
+          transaction.currentInstantWatts;
+        consumptions[consumptions.length - 1].currentInstantWattsL1 -=
+          transaction.currentInstantWattsL1;
+        consumptions[consumptions.length - 1].currentInstantWattsL2 -=
+          transaction.currentInstantWattsL2;
+        consumptions[consumptions.length - 1].currentInstantWattsL3 -=
+          transaction.currentInstantWattsL3;
       }
     }
     // Create amperage values
     if (asset.siteArea?.voltage) {
       for (const consumption of consumptions) {
-        consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
-        consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWattsL1).div(asset.siteArea.voltage).toNumber();
-        consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWattsL2).div(asset.siteArea.voltage).toNumber();
-        consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWattsL3).div(asset.siteArea.voltage).toNumber();
+        consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts)
+          .div(asset.siteArea.voltage)
+          .toNumber();
+        consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWattsL1)
+          .div(asset.siteArea.voltage)
+          .toNumber();
+        consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWattsL2)
+          .div(asset.siteArea.voltage)
+          .toNumber();
+        consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWattsL3)
+          .div(asset.siteArea.voltage)
+          .toNumber();
       }
     }
     if (manualCall) {
@@ -156,18 +202,15 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
     // Get credential params
     const credentials = await this.getCredentialParams();
     // Send request to check if credentials are valid
-    await Utils.executePromiseWithTimeout(5000,
-      this.axiosInstance.post(`${this.connection.url}/login`,
-        credentials,
-        {
-          'axios-retry': {
-            retries: 0
-          },
-          transformResponse: [
-            () => ('###')
-          ],
-          headers: this.buildFormHeaders(),
-        }),
+    await Utils.executePromiseWithTimeout(
+      5000,
+      this.axiosInstance.post(`${this.connection.url}/login`, credentials, {
+        'axios-retry': {
+          retries: 0,
+        },
+        transformResponse: [() => '###'],
+        headers: this.buildFormHeaders(),
+      }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.url}'`
     );
   }
@@ -178,21 +221,24 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,
-        message: 'No connection provided'
+        message: 'No connection provided',
       });
     }
   }
 
   private buildFormHeaders(): any {
     return {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     };
   }
 
   private async getCredentialParams(): Promise<URLSearchParams> {
     const params = new URLSearchParams();
     params.append('email', this.connection.lacroixConnection.user);
-    params.append('plainPassword', await Cypher.decrypt(this.tenant, this.connection.lacroixConnection.password));
+    params.append(
+      'plainPassword',
+      await Cypher.decrypt(this.tenant, this.connection.lacroixConnection.password)
+    );
     return params;
   }
 }

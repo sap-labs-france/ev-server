@@ -14,9 +14,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "siteID",
-    "userID",
-    "siteOwner"
-  ]
+  "required": ["siteID", "userID", "siteOwner"]
 }

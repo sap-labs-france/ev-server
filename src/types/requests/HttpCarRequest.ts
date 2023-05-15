@@ -1,5 +1,4 @@
 import { CarConverter, CarType } from '../Car';
-
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
@@ -41,7 +40,7 @@ export interface HttpCarCreateRequest {
   carConnectorData?: {
     carConnectorID: string;
     carConnectorMeterID?: string;
-  }
+  };
 }
 
 export interface HttpCarUpdateRequest {
@@ -57,7 +56,7 @@ export interface HttpCarUpdateRequest {
   carConnectorData?: {
     carConnectorID: string;
     carConnectorMeterID?: string;
-  }
+  };
 }
 
 export interface HttpCarsGetRequest extends HttpDatabaseRequest {

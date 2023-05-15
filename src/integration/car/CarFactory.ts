@@ -7,4 +7,3 @@ export default class CarFactory {
     return new EVDatabaseCarIntegration();
   }
 }
-

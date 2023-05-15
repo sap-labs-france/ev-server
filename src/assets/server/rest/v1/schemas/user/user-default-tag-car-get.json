@@ -13,7 +13,5 @@
       "$ref": "common#/definitions/projectFields"
     }
   },
-  "required": [
-    "UserID"
-  ]
+  "required": ["UserID"]
 }
