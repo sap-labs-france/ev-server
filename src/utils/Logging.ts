@@ -775,7 +775,7 @@ export default class Logging {
           Logging.logConsoleWarning('====================================');
         }
       }
-      const labelValues = { ocppComand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
+      const labelValues = { ocppCommand : action, direction: ((direction === '<<') ? 'in' : 'out'), tenant: tenant.subdomain, siteId: chargingStationDetails.siteID, siteAreaID: chargingStationDetails.siteAreaID, companyID: chargingStationDetails.companyID };
       if (response && response['status'] === OCPPStatus.REJECTED) {
         await Logging.logError({
           tenantID: tenant?.id,
