@@ -212,6 +212,7 @@ export default class TenantService {
       {
         search: filteredRequest.Search,
         withLogo: filteredRequest.WithLogo,
+        hideRedirect: true,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields) },
       projectFields);

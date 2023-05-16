@@ -80,7 +80,7 @@ export default class TenantStorage {
 
   // Delegate
   public static async getTenants(
-      params: { tenantIDs?: string[]; tenantName?: string; tenantSubdomain?: string; search?: string, withLogo?: boolean },
+      params: { tenantIDs?: string[]; tenantName?: string; tenantSubdomain?: string; search?: string, withLogo?: boolean, hideRedirect?: boolean },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
     const startTime = Logging.traceDatabaseRequestStart();
     // Clone before updating the values
@@ -96,6 +96,10 @@ export default class TenantStorage {
         { 'name': { $regex: params.search, $options: 'i' } },
         { 'subdomain': { $regex: params.search, $options: 'i' } }
       ];
+    }
+    if (params.hideRedirect) {
+      // Do not show redirected tenants - to prevent accidental deletion
+      filters.redirectDomain = { $exists: false };
     }
     // Tenant
     if (!Utils.isEmptyArray(params.tenantIDs)) {
