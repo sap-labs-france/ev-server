@@ -17,7 +17,7 @@ export default class AddLevelTemplateToChargingStationTemplateTask extends Migra
       for (const template of templates) {
         if (template.template) {
           // skip this one as it has already ran
-          continue
+          continue;
         }
         // Put _id in id const and get template without id
         const {
@@ -47,7 +47,7 @@ export default class AddLevelTemplateToChargingStationTemplateTask extends Migra
           },
         );
       }
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         module: MODULE_NAME, method: 'migrate',
         action: ServerAction.MIGRATION,

@@ -30,9 +30,9 @@
     "start": "npm version && npm run start:prod",
     "start:dev": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development-build node -r source-map-support/register dist/start.js",
     "start:dev:debug": "npm version && cross-env NODE_ENV=development ts-node-dev --inspect --files --max-old-space-size=4096 -- src/start.ts",
-    "start:dev:debug:ocppj": "npm version && cross-env SERVER_ROLE=ocppj NODE_ENV=development ts-node-dev --inspect --files --max-old-space-size=4096 -- src/start.ts",
-    "start:dev:debug:rest": "npm version && cross-env SERVER_ROLE=rest NODE_ENV=development ts-node-dev --inspect --files --max-old-space-size=4096 -- src/start.ts",
-    "start:dev:debug:batch": "npm version && cross-env SERVER_ROLE=batch NODE_ENV=development ts-node-dev --inspect --files --max-old-space-size=4096 -- src/start.ts",
+    "start:dev:debug:ocppj": "npm version && cross-env SERVER_ROLE=ocppj NODE_ENV=development ts-node-dev --inspect --files -- src/start.ts",
+    "start:dev:debug:rest": "npm version && cross-env SERVER_ROLE=rest NODE_ENV=development ts-node-dev --files -- src/start.ts",
+    "start:dev:debug:batch": "npm version && cross-env SERVER_ROLE=batch NODE_ENV=development ts-node-dev --inspect --files -- src/start.ts",
     "start:dev:debug:nodemon": "npm version && nodemon --exec \"ts-node --files\" src/start.ts 9229",
     "start:dev:nodemon": "npm version && nodemon --exec \"ts-node --files\" src/start.ts",
     "start:dev:prof": "npm version && cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development node -r source-map-support/register --prof -- dist/start.js",
@@ -62,8 +62,8 @@
     "import-sort": "npx import-sort-cli --write 'src/**/*.ts{,x}' 'test/**/*.ts{,x}' 'types/**/*.ts{,x}'",
     "test-jest-pluggin": "npm version && cross-env TS_NODE_FILES=true jest --config='test/jest.config.ts' --reporters='default' --reporters='./JestEvseReporter.js' --runInBand --logHeapUsage --verbose --colors --silent --forceExit --testPathIgnorePatterns='.*Runner.ts$'",
     "test": "npm run test:jest -- test/api/*Test.ts",
-    "test:createContext": "npm run test:jest -- test/api/context/ContextBuilderRunner.ts",
-    "test:create:utbilling": "cross-env TS_NODE_FILES=true TENANT_FILTER=utbilling.* jest --config='test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- test/**/**/ContextBuilderRunner.ts",
+    "test:createContext": "cross-env TS_NODE_FILES=true jest --config='test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- test/api/context/ContextBuilderRunner.ts",
+    "test:create:utbilling": "cross-env TS_NODE_FILES=true TENANT_FILTER=utbilling.* jest --config='test/jest.config.ts' --runInBand --logHeapUsage --verbose --colors --silent --forceExit -- test/api/context/ContextBuilderRunner.ts",
     "test:asset": "npm run test:jest -- test/api/AssetTest.ts",
     "test:authentication": "npm run test:jest -- test/api/AuthenticationTest.ts",
     "test:billing": "npm run test:jest -- test/api/BillingTest.ts",
@@ -160,7 +160,7 @@
     "tslib": "^2.4.0",
     "tz-lookup": "^6.1.25",
     "urlencode": "^1.1.0",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.10.0",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.19.0",
     "validator": "^13.7.0",
     "ws": "^8.10.0"
   },
@@ -248,7 +248,6 @@
     "webpack-cli": "^4.10.0",
     "webpack-merge": "^5.8.0",
     "webpack-node-externals": "^3.0.0",
-    "webpack-shell-plugin-next": "^2.2.2",
-    "xml2json": "^0.12.0"
+    "webpack-shell-plugin-next": "^2.2.2"
   }
 }

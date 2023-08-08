@@ -104,7 +104,7 @@ export default class ConnectionService {
     if (!Utils.isNullOrUndefined(integrationConnector)) {
       // Create
       const connection: Connection = await integrationConnector.createConnection(filteredRequest.userId, filteredRequest.data);
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: req.tenant.id, user: req.user,
         module: MODULE_NAME, method: 'handleCreateConnection',
         message: `Connection to '${connection.connectorId}' has been created successfully`,
@@ -141,7 +141,7 @@ export default class ConnectionService {
     // Delete
     await ConnectionStorage.deleteConnectionById(req.tenant, connection.id);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user,
       actionOnUser: connection.userId,

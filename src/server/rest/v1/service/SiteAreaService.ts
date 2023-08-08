@@ -51,7 +51,7 @@ export default class SiteAreaService {
       await SiteAreaStorage.removeAssetsFromSiteArea(
         req.tenant, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
       tenantID: req.tenant.id,
       user: req.user,
@@ -105,7 +105,7 @@ export default class SiteAreaService {
         req.tenant, filteredRequest.siteAreaID, chargingStations.map((chargingStation) => chargingStation.id));
     }
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
       tenantID: req.tenant.id,
       user: req.user,
@@ -131,7 +131,7 @@ export default class SiteAreaService {
     // Update children
     await SiteAreaStorage.attachSiteAreaChildrenToNewParent(req.tenant, siteArea.id, siteArea.parentSiteAreaID);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSiteArea',
@@ -332,7 +332,7 @@ export default class SiteAreaService {
       req.tenant, rootSiteArea, siteArea, parentSiteArea, subSiteAreasActions);
     // Save
     siteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSiteArea',
@@ -414,7 +414,7 @@ export default class SiteAreaService {
     }
     // Retrigger Smart Charging
     void SiteAreaService.triggerSmartCharging(req.tenant, action, siteArea);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getSiteAreaProperties(siteArea),
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteArea',
@@ -492,7 +492,7 @@ export default class SiteAreaService {
             await smartCharging.computeAndApplyChargingProfiles(siteArea);
           }
         } catch (error) {
-          await Logging.logError({
+          Logging.beError()?.log({
             ...LoggingHelper.getSiteAreaProperties(siteArea),
             tenantID: tenant.id,
             action, module: MODULE_NAME, method: 'triggerSmartCharging',

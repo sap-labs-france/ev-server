@@ -599,6 +599,19 @@ export default class ChargingStationStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationRuntimeData', startTime, runtimeData);
   }
 
+  public static async saveChargingStationsLastSeen(tenant: Tenant, ids: string[] = [], lastSeen: Date): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Modify all
+    if (!Utils.isEmptyArray(ids) && lastSeen) {
+      await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
+        { '_id': { $in: ids } },
+        { $set: { lastSeen } },
+        { upsert: false });
+    }
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveChargingStationsLastSeen', startTime, { ids, lastSeen });
+  }
+
   public static async saveChargingStationOcpiData(tenant: Tenant, id: string, ocpiData: ChargingStationOcpiData): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);

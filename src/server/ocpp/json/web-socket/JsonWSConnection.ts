@@ -1,20 +1,21 @@
-import ChargingStation, { Command } from '../../../../types/ChargingStation';
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import BackendError from '../../../../exception/BackendError';
 import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import { PerformanceRecordGroup } from '../../../../types/Performance';
+import { Command } from '../../../../types/ChargingStation';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import JsonChargingStationClient from '../../../../client/ocpp/json/JsonChargingStationClient';
-import Utils from '../../../../utils/Utils';
 import JsonChargingStationService from '../services/JsonChargingStationService';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPError from '../../../../exception/OcppError';
 import { OCPPErrorType } from '../../../../types/ocpp/OCPPCommon';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPUtils from '../../utils/OCPPUtils';
+import { ServerAction } from '../../../../types/Server';
+import Utils from '../../../../utils/Utils';
 import WSConnection from './WSConnection';
 import WSWrapper from './WSWrapper';
 
@@ -23,8 +24,6 @@ const MODULE_NAME = 'JsonWSConnection';
 export default class JsonWSConnection extends WSConnection {
   private chargingStationClient: JsonChargingStationClient;
   private chargingStationService: JsonChargingStationService;
-  private headers: OCPPHeader;
-  private lastSeen: Date;
 
   public constructor(ws: WSWrapper) {
     super(ws);
@@ -33,25 +32,8 @@ export default class JsonWSConnection extends WSConnection {
   public async initialize(): Promise<void> {
     // Init parent
     await super.initialize();
-    // Initialize the default Headers
-    this.headers = {
-      chargeBoxIdentity: this.getChargingStationID(),
-      ocppVersion: (this.getWS().protocol.startsWith('ocpp') ? this.getWS().protocol.replace('ocpp', '') : this.getWS().protocol) as OCPPVersion,
-      ocppProtocol: OCPPProtocol.JSON,
-      chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl,
-      tenantID: this.getTenantID(),
-      tokenID: this.getTokenID(),
-      From: {
-        Address: this.getClientIP()
-      }
-    };
-    if (Utils.isMonitoringEnabled()) {
-      const labelValues = { tenant: this.getTenant().subdomain };
-      this.getWS().ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OpenedWebSocket', 'Opened web sockets', labelValues);
-      this.getWS().ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'ClosedWebSocket', 'Closed web sockets', labelValues);
-    }
     // Create the Json Client
-    this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID());
+    this.chargingStationClient = new JsonChargingStationClient(this);
     // Create the Json Server Service
     this.chargingStationService = new JsonChargingStationService();
   }
@@ -75,15 +57,26 @@ export default class JsonWSConnection extends WSConnection {
     const methodName = `handle${command}`;
     // Check if method exist in the service
     if (typeof this.chargingStationService[methodName] === 'function') {
-      this.headers.currentIPAddress = this.getClientIP();
-      // Check the Charging Station
-      const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationConnectionData(
-        OCPPUtils.buildServerActionFromOcppCommand(command),
-        this.getTenantID(), this.getChargingStationID(), this.getTokenID());
+    // Initialize the default Headers
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const headers: OCPPHeader = {
+        chargeBoxIdentity: this.getChargingStationID(),
+        ocppVersion: (this.getWS().protocol.startsWith('ocpp') ? this.getWS().protocol.replace('ocpp', '') : this.getWS().protocol) as OCPPVersion,
+        ocppProtocol: OCPPProtocol.JSON,
+        chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl,
+        rawConnectionData: {
+          tenantID: this.getTenantID(),
+          tokenID: this.getTokenID(),
+          chargingStationID: this.getChargingStationID()
+        },
+        From: {
+          Address: this.getClientIP()
+        }
+      };
+      headers.currentIPAddress = this.getClientIP();
       // Set the header
-      this.headers.tenant = tenant;
-      this.headers.chargingStation = chargingStation;
-      this.headers.token = token;
+      headers.connectionContext = await OCPPUtils.checkAndGetChargingStationConnectionData(
+        OCPPUtils.buildServerActionFromOcppCommand(command), this.rawConnectionData);
       // Trace
       const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
         this.getTenant(), this.getChargingStationID(), OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, '>>',
@@ -91,13 +84,8 @@ export default class JsonWSConnection extends WSConnection {
       );
       try {
         // Call it
-        result = await this.chargingStationService[methodName](this.headers, commandPayload);
+        result = await this.chargingStationService[methodName](headers, commandPayload);
       } finally {
-        // TODO - to be clarified - why should we clear the header here?
-        // Clean the header
-        // delete this.headers.chargingStation;
-        // delete this.headers.tenant;
-        // delete this.headers.token;
         // Trace
         await Logging.traceOcppMessageResponse(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenant(), this.getChargingStationID(),
           OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, result, '<<',
@@ -107,10 +95,7 @@ export default class JsonWSConnection extends WSConnection {
     } else {
       // Throw Exception
       throw new OCPPError({
-        chargingStationID: this.getChargingStationID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
+        ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OCPPErrorType.NOT_IMPLEMENTED,
@@ -124,30 +109,46 @@ export default class JsonWSConnection extends WSConnection {
     return this.chargingStationClient;
   }
 
-  public setChargingStation(chargingStation: ChargingStation): void {
-    super.setChargingStation(chargingStation);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onPing(message: string): void {
+    // this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
+    Logging.beDebug()?.log({
+      ...LoggingHelper.getWSConnectionProperties(this),
+      tenantID: this.getTenantID(),
+      action: ServerAction.WS_CLIENT_CONNECTION_PING,
+      module: MODULE_NAME, method: 'onPing',
+      message: `Ping received from WS ID '${this.getWS()?.guid}'`
+    });
   }
 
-  public async onPing(message: string): Promise<void> {
-    await this.updateChargingStationLastSeen();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onPong(message: string): void {
+    // this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
+    Logging.beDebug()?.log({
+      ...LoggingHelper.getWSConnectionProperties(this),
+      tenantID: this.getTenantID(),
+      action: ServerAction.WS_CLIENT_CONNECTION_PONG,
+      module: MODULE_NAME, method: 'onPong',
+      message: `Pong received from WS ID '${this.getWS()?.guid}'`
+    });
   }
 
-  public async onPong(message: string): Promise<void> {
-    await this.updateChargingStationLastSeen();
-  }
-
-  private async updateChargingStationLastSeen(): Promise<void> {
-    // Update once every ping interval / 2
-    if (!this.lastSeen ||
-      (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
-      // Update last seen
-      this.lastSeen = new Date();
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),
-        this.getChargingStationID(), { issuer: true }, ['id']);
-      if (chargingStation) {
-        await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
-          { lastSeen: this.lastSeen });
-      }
+  public async updateChargingStationRuntimeData() {
+    // Update Charging Station info
+    const chargingStation = this.getChargingStation();
+    // First time the charging station connects, it does not yet exist
+    if (chargingStation) {
+      chargingStation.lastSeen = new Date();
+      chargingStation.tokenID = this.getTokenID();
+      chargingStation.cloudHostIP = Utils.getHostIP();
+      chargingStation.cloudHostName = Utils.getHostName();
+      // Save Charging Station runtime data
+      await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), chargingStation.id, {
+        lastSeen: chargingStation.lastSeen,
+        tokenID: chargingStation.tokenID,
+        cloudHostIP: chargingStation.cloudHostIP,
+        cloudHostName: chargingStation.cloudHostName,
+      });
     }
   }
 

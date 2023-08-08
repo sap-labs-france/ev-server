@@ -67,23 +67,27 @@ export default class ContextBuilder {
   }
 
   public async prepareContexts(): Promise<void> {
-    // Connect to the DB
-    await global.database.start();
-    // Populate the DB with some initial templates (that the tests require when creating fake charging stations )
-    await ContextBuilder.populateTemplates();
-    // Destroy all tenants
-    await this.destroyTestTenants();
-    let tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST;
-    if (process.env.TENANT_FILTER) {
-      // Just an optimization allowing to only initialize a single tenant
-      // e.g.: npm run mochatest:create:utbilling
-      tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST.filter((def) => RegExp(process.env.TENANT_FILTER).exec(def.subdomain));
+    try {
+      // Connect to the DB
+      await global.database.start();
+      // Populate the DB with some initial templates (that the tests require when creating fake charging stations )
+      await ContextBuilder.populateTemplates();
+      // Destroy all tenants
+      await this.destroyTestTenants();
+      let tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST;
+      if (process.env.TENANT_FILTER) {
+        // Just an optimization allowing to only initialize a single tenant
+        // e.g.: npm run mochatest:create:utbilling
+        tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST.filter((def) => RegExp(process.env.TENANT_FILTER).exec(def.subdomain));
+      }
+      for (const tenantContextDef of tenantDefinitions) {
+        await this.buildTenantContext(tenantContextDef);
+      }
+      // Close DB connection
+      await global.database.stop();
+    } catch (error) {
+      console.error(`>>>> Failed to prepare test context : ${error.message as string}`);
     }
-    for (const tenantContextDef of tenantDefinitions) {
-      await this.buildTenantContext(tenantContextDef);
-    }
-    // Close DB connection
-    await global.database.stop();
   }
 
   private async destroyTestTenants(): Promise<void> {

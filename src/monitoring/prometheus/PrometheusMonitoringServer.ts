@@ -35,9 +35,9 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
       app: 'e-Mobility'
     });
     if (process.env.K8S) {
-      this.createGaugeMetric(Constants.WEB_SOCKET_QUEUED_REQUEST, 'The number of web sockets that are queued');
+      // this.createGaugeMetric(Constants.WEB_SOCKET_QUEUED_REQUEST, 'The number of web sockets that are queued');
       this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST, 'The number of web sockets that are running');
-      this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE, 'The number of web sockets request + response that are running');
+      // this.createGaugeMetric(Constants.WEB_SOCKET_RUNNING_REQUEST_RESPONSE, 'The number of web sockets request + response that are running');
       this.createGaugeMetric(Constants.WEB_SOCKET_CURRENT_REQUEST, 'JSON WS Requests in cache');
       this.createGaugeMetric(Constants.WEB_SOCKET_OCPP_CONNECTIONS_COUNT, 'number of json web sockets');
       this.createGaugeMetric(Constants.MONGODB_CONNECTION_READY, 'The number of connection that are ready');
@@ -64,9 +64,12 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
             next();
             // Trace Response
             Logging.traceExpressResponse(req, res, next, ServerAction.MONITORING);
-
-          }).catch((error) => { /* */ });
-        }).catch((error) => { /* */ });
+          }).catch((error) => {
+            Logging.logPromiseError(error);
+          });
+        }).catch((error) => {
+          Logging.logPromiseError(error);
+        });
       }
     );
     // Post init
@@ -105,6 +108,7 @@ export default class PrometheusMonitoringServer extends MonitoringServer {
     this.mapAvgGaugeClearableMetric.set(keyCount, metric);
     return metric;
   }
+
 
   public getCounterClearableMetric(prefix : string, metricName: string, metricHelp: string, labelValues: LabelValues<string>) : CounterClearableMetric {
     // const labelNames = Object.keys(labelValues);

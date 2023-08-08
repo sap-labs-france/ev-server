@@ -1126,42 +1126,6 @@ export default class TransactionStorage {
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getActiveTransaction(tenant: Tenant, chargeBoxID: string, connectorId: number): Promise<Transaction> {
-    const startTime = Logging.traceDatabaseRequestStart();
-    DatabaseUtils.checkTenantObject(tenant);
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: {
-        'chargeBoxID': chargeBoxID,
-        'connectorId': Utils.convertToInt(connectorId),
-        'stop': { $exists: false }
-      }
-    });
-    // Add User
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation, localField: 'userID', foreignField: '_id', asField: 'user',
-      oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-    });
-    // Rename ID
-    DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
-    // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
-    // Set to null
-    DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
-    DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
-    // Read DB
-    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
-      .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as Transaction[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getActiveTransaction', startTime, aggregation, transactionsMDB);
-    return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
-  }
-
   public static async getLastTransactionFromChargingStation(tenant: Tenant, chargeBoxID: string, connectorId: number,
       params: { withChargingStation?: boolean; withUser?: boolean; withTag?: boolean; } = {}): Promise<Transaction> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -1234,7 +1198,7 @@ export default class TransactionStorage {
       const id = Utils.getRandomIntSafe();
       existingTransaction = await TransactionStorage.getTransaction(tenant, id);
       if (existingTransaction) {
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'findAvailableID',
           action: ServerAction.TRANSACTION_STARTED,

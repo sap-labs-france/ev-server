@@ -59,7 +59,7 @@ export default class BillingService {
       res.json(operationResult);
     } catch (error) {
       // Ko
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: req.tenant.id,
         user: req.user,
         module: MODULE_NAME, method: 'handleClearBillingTestData',
@@ -96,7 +96,7 @@ export default class BillingService {
       res.json(Object.assign({ connectionIsValid: true }, Constants.REST_RESPONSE_SUCCESS));
     } catch (error) {
       // Ko
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: req.tenant.id,
         user: req.user,
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
@@ -296,7 +296,7 @@ export default class BillingService {
     const user: User = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Invoke the billing implementation
     const paymentMethods: BillingPaymentMethod[] = await billingImpl.getPaymentMethods(user);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user,
       action: ServerAction.BILLING_PAYMENT_METHODS,
@@ -339,7 +339,7 @@ export default class BillingService {
     // Invoke the billing implementation
     const operationResult: BillingOperationResult = await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
       message: `Payment Method '${filteredRequest.paymentMethodId}' has been deleted successfully`,

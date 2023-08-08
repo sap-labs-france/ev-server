@@ -140,7 +140,7 @@ export default class ImportHelper {
         await UserStorage.addSiteToUser(tenant, user.id, importedSiteID);
       } else {
         // Site does not exist
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: tenant.id,
           action: ServerAction.USERS_IMPORT,
           module: MODULE_NAME, method: 'executeAsyncTask',

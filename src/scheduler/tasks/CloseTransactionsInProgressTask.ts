@@ -44,7 +44,7 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
             // Soft stop transaction
             await ocppService.softStopTransaction(tenant, transaction, transaction.chargeBox, transaction.siteArea);
             result.inSuccess++;
-            await Logging.logInfo({
+            Logging.beInfo()?.log({
               ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
               actionOnUser: transaction.userID,
@@ -57,7 +57,7 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
             });
           } catch (error) {
             result.inError++;
-            await Logging.logError({
+            Logging.beError()?.log({
               ...LoggingHelper.getTransactionProperties(transaction),
               tenantID: tenant.id,
               action: ServerAction.TRANSACTION_SOFT_STOP,
@@ -79,7 +79,7 @@ export default class CloseTransactionsInProgressTask extends TenantSchedulerTask
           `No Transaction have been soft stopped in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`
         );
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.TRANSACTION_SOFT_STOP, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.TRANSACTION_SOFT_STOP, error);
       } finally {
         // Release the lock
         await LockingManager.release(transactionsCloseLock);

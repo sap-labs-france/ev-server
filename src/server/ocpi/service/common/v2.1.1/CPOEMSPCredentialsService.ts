@@ -25,7 +25,7 @@ export default class CPOEMSPCredentialsService {
       token = req.headers.authorization.split(' ')[1];
     }
     // Log body
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: tenant.id,
       module: MODULE_NAME, method: 'handleDeleteCredentials', action,
       message: 'Received OCPI unregister endpoint',
@@ -52,7 +52,7 @@ export default class CPOEMSPCredentialsService {
     const { tenant, ocpiEndpoint } = req;
     // Get payload
     const credential = req.body as OCPICredential;
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: tenant.id,
       module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
       message: 'Received credential object',
@@ -73,7 +73,7 @@ export default class CPOEMSPCredentialsService {
       token = req.headers.authorization.split(' ')[1];
     }
     // Log body
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: tenant.id,
       module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
       message: 'Received token',
@@ -86,7 +86,7 @@ export default class CPOEMSPCredentialsService {
     ocpiEndpoint.partyId = credential.party_id;
     ocpiEndpoint.businessDetails = credential.business_details;
     // Log updated ocpi endpoint
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: tenant.id,
       module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
       message: 'OCPI Server found and updated with credential object',
@@ -102,7 +102,7 @@ export default class CPOEMSPCredentialsService {
         },
       });
       // Log available OCPI Versions
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
         message: 'Available OCPI Versions',
@@ -125,7 +125,7 @@ export default class CPOEMSPCredentialsService {
           ocpiEndpoint.version = version.version;
           ocpiEndpoint.versionUrl = version.url;
           // Log correct OCPI service found
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
             message: 'Correct OCPI version found',
@@ -149,7 +149,7 @@ export default class CPOEMSPCredentialsService {
         }
       });
       // Log available OCPI services
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
         message: 'Available OCPI services',
@@ -184,7 +184,7 @@ export default class CPOEMSPCredentialsService {
     // Build credential object
     const respCredential = await OCPIUtils.buildOcpiCredentialObject(tenant, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
     // Log available OCPI Versions
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: tenant.id,
       module: MODULE_NAME, method: 'handleUpdateCreateCredentials', action,
       message: 'Response with credential object',

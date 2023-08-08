@@ -67,8 +67,13 @@ export default class OCPPSoapService15 extends OCPPService {
     const payload = {};
     payload[this.getRequestNameFromAction(request.name)] = request.data;
     // Execute it
-    const { result } = await this.service[request.name](payload);
-    return result || {};
+    let wtf;
+    try {
+      wtf = await this.service[request.name](payload);
+    } catch (error) {
+      console.error(`>>>> Failed to invoke ${request.name} - error: ${error.message as string}`);
+    }
+    return wtf?.result || {};
   }
 
   private buildSOAPRequest(chargeBoxIdentity: string, action: string, payload: any): any {

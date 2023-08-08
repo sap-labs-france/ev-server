@@ -45,7 +45,7 @@ export default abstract class BillingIntegration {
     let billingUser: BillingUser = null;
     try {
       billingUser = await this._synchronizeUser(user);
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         actionOnUser: user,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
@@ -54,7 +54,7 @@ export default abstract class BillingIntegration {
       });
       return billingUser;
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         actionOnUser: user,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
@@ -71,14 +71,14 @@ export default abstract class BillingIntegration {
     try {
       billingUser = await this._synchronizeUser(user, true /* !forceMode */);
       if (user?.billingData?.customerID !== billingUser?.billingData?.customerID) {
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
           module: MODULE_NAME, method: 'forceSynchronizeUser',
           message: `CustomerID has been repaired - old value ${user?.billingData?.customerID} - ${billingUser?.billingData?.customerID}`
         });
       }
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
         actionOnUser: user,
@@ -86,7 +86,7 @@ export default abstract class BillingIntegration {
         message: `Successfully forced the synchronization of user: '${user.id}' - '${user.email}'`,
       });
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         actionOnUser: user,
         action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
@@ -132,7 +132,7 @@ export default abstract class BillingIntegration {
           // Make sure to avoid trying to charge it again too soon
           if (!taskConfig?.forceOperation && moment(invoice.createdOn).isSame(moment(), 'day')) {
             actionsDone.inSuccess++;
-            await Logging.logWarning({
+            Logging.beWarning()?.log({
               tenantID: this.tenant.id,
               action: ServerAction.BILLING_PERFORM_OPERATIONS,
               actionOnUser: invoice.user,
@@ -146,7 +146,7 @@ export default abstract class BillingIntegration {
             // The new invoice may now have a different status - and this impacts the pagination
             skip--; // This is very important!
           }
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: this.tenant.id,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
@@ -156,7 +156,7 @@ export default abstract class BillingIntegration {
           actionsDone.inSuccess++;
         } catch (error) {
           actionsDone.inError++;
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: this.tenant.id,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
@@ -203,7 +203,7 @@ export default abstract class BillingIntegration {
         return true;
       }
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.BILLING_TRANSACTION,
         actionOnUser: billingInvoice.user,
@@ -315,7 +315,7 @@ export default abstract class BillingIntegration {
         }
       } catch (error) {
         // Catch stripe errors and send the information back to the client
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_CHARGE_INVOICE,
           actionOnUser: billingInvoice.user,
@@ -332,7 +332,7 @@ export default abstract class BillingIntegration {
     if (!Utils.isDevelopmentEnv()) {
       const timeSpent = this.computeTimeSpentInSeconds(transaction);
       if (timeSpent < Constants.AFIREV_MINIMAL_DURATION_THRESHOLD /* 2 minutes */) {
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: this.tenant.id,
           user: transaction.userID,
@@ -344,7 +344,7 @@ export default abstract class BillingIntegration {
         return false;
       }
       if (transaction.stop.totalConsumptionWh < Constants.AFIREV_MINIMAL_CONSUMPTION_THRESHOLD /* 0.5 kW.h */) {
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: this.tenant.id,
           user: transaction.userID,
@@ -429,21 +429,21 @@ export default abstract class BillingIntegration {
   // eslint-disable-next-line @typescript-eslint/member-ordering
   public async clearTestData(): Promise<void> {
     // await this.checkConnection(); - stripe connection is useless to cleanup test data
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       module: MODULE_NAME, method: 'clearTestData',
       message: 'Starting test data cleanup'
     });
     await this.clearAllInvoiceTestData();
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       module: MODULE_NAME, method: 'clearTestData',
       message: 'Invoice Test data cleanup has been completed'
     });
     await this.clearAllUsersTestData();
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       module: MODULE_NAME, method: 'clearTestData',
@@ -457,7 +457,7 @@ export default abstract class BillingIntegration {
     for (const invoice of invoices.result) {
       try {
         await this.clearInvoiceTestData(invoice);
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
@@ -465,7 +465,7 @@ export default abstract class BillingIntegration {
           message: `Successfully clear test data for invoice '${invoice.id}'`
         });
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
@@ -510,7 +510,7 @@ export default abstract class BillingIntegration {
         // Save to clear billing data
         await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           module: MODULE_NAME, method: 'clearTransactionsTestData',
@@ -527,7 +527,7 @@ export default abstract class BillingIntegration {
     for (const user of users) {
       try {
         await this.clearUserTestBillingData(user);
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
@@ -535,7 +535,7 @@ export default abstract class BillingIntegration {
           message: `Successfully cleared user test data for Invoice of User ID '${user.id}'`
         });
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
@@ -743,7 +743,7 @@ export default abstract class BillingIntegration {
           actionsDone.inSuccess++;
         } catch (error) {
           actionsDone.inError++;
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: this.tenant.id,
             action: ServerAction.BILLING_TRANSFER_DISPATCH_FUNDS,
             module: MODULE_NAME, method: 'dispatchCollectedFunds',
@@ -777,7 +777,7 @@ export default abstract class BillingIntegration {
           };
           const transferID = await BillingStorage.saveTransfer(this.tenant, transferToSave);
           await TransactionStorage.updateTransactionsWithTransferData(this.tenant, collectedFundReport.transactionIDs, transferID);
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: this.tenant.id,
             action: ServerAction.BILLING_TRANSFER_DISPATCH_FUNDS,
             module: MODULE_NAME, method: 'dispatchCollectedFunds',

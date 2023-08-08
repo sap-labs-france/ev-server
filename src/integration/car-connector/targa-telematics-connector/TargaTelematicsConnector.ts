@@ -46,7 +46,7 @@ export default class TargaTelematicsCarConnectorIntegration extends CarConnector
           headers: { 'Authorization': 'Bearer ' + connectionToken }
         }
       );
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.CAR_CONNECTOR,
         message: `${car.vin} > Targa Telematics web service has been called successfully`,

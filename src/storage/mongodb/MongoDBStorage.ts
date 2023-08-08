@@ -71,7 +71,7 @@ export default class MongoDBStorage {
     const changeStream = dbCollection.watch([], { fullDocument: 'updateLookup' });
     const message = `Database collection '${tenant.id}.${collectionName}' is being watched`;
     Utils.isDevelopmentEnv() && Logging.logConsoleDebug(message);
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: tenant.id,
       action: ServerAction.MONGO_DB,
       message, module: MODULE_NAME, method: 'watchDatabaseCollection'
@@ -96,7 +96,7 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
       message: 'Check of MongoDB database...',
@@ -207,7 +207,7 @@ export default class MongoDBStorage {
       { fields: { 'connectors.status': 1 } },
       { fields: { 'ocpiData.evses.uid': 1 }, options: { partialFilterExpression: { 'ocpiData.evses': { $exists: true } } } }
     ]);
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
       message: 'Check of MongoDB database done',
@@ -331,7 +331,7 @@ export default class MongoDBStorage {
         this.dbPingFailed++;
         const message = `${this.dbPingFailed} database ping(s) failed: ${error.message as string}`;
         Logging.logConsoleError(message);
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MONGO_DB,
           module: MODULE_NAME, method: 'ping',
@@ -405,7 +405,7 @@ export default class MongoDBStorage {
     } catch (error) {
       const message = 'Error while checking Database in tenant \'default\'';
       Logging.logConsoleError(message);
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MONGO_DB,
         module: MODULE_NAME, method: 'handleIndexesInCollection',
@@ -435,7 +435,7 @@ export default class MongoDBStorage {
       } catch (error) {
         const message = `Error while checking Database in tenant '${tenantId}'`;
         Logging.logConsoleError(message);
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MONGO_DB,
           module: MODULE_NAME, method: 'handleIndexesInCollection',
@@ -470,7 +470,7 @@ export default class MongoDBStorage {
         } catch (error) {
           const message = `Error in creating collection '${tenantID}.${tenantCollectionName}': ${error.message as string}`;
           Logging.logConsoleError(message);
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.MONGO_DB,
             module: MODULE_NAME, method: 'handleIndexesInCollection',
@@ -508,7 +508,7 @@ export default class MongoDBStorage {
             if (Utils.isDevelopmentEnv()) {
               const message = `Drop index '${databaseIndex.name as string}' in collection ${tenantCollectionName}`;
               Utils.isDevelopmentEnv() && Logging.logConsoleDebug(message);
-              await Logging.logInfo({
+              Logging.beInfo()?.log({
                 tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
                 module: MODULE_NAME, method: 'handleIndexesInCollection',
@@ -520,7 +520,7 @@ export default class MongoDBStorage {
             } catch (error) {
               const message = `Error in dropping index '${databaseIndex.name as string}' in '${tenantCollectionName}': ${error.message as string}`;
               Logging.logConsoleError(message);
-              await Logging.logError({
+              Logging.beError()?.log({
                 tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
                 module: MODULE_NAME, method: 'handleIndexesInCollection',
@@ -539,7 +539,7 @@ export default class MongoDBStorage {
             if (Utils.isDevelopmentEnv()) {
               const message = `Create index ${JSON.stringify(index)} in collection ${tenantCollectionName}`;
               Utils.isDevelopmentEnv() && Logging.logConsoleDebug(message);
-              await Logging.logInfo({
+              Logging.beInfo()?.log({
                 tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
                 module: MODULE_NAME, method: 'handleIndexesInCollection',
@@ -551,7 +551,7 @@ export default class MongoDBStorage {
             } catch (error) {
               const message = `Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message as string}`;
               Logging.logConsoleError(message);
-              await Logging.logError({
+              Logging.beError()?.log({
                 tenantID: Constants.DEFAULT_TENANT_ID,
                 action: ServerAction.MONGO_DB,
                 module: MODULE_NAME, method: 'handleIndexesInCollection',
@@ -564,7 +564,7 @@ export default class MongoDBStorage {
     } catch (error) {
       const message = `Unexpected error in handling Collection '${tenantID}.${name}': ${error.message as string}`;
       Logging.logConsoleError(message);
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MONGO_DB,
         module: MODULE_NAME, method: 'handleIndexesInCollection',

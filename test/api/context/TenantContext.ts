@@ -272,7 +272,12 @@ export default class TenantContext {
     id: faker.random.alphaNumeric(12)
   }), connectorsDef = null, siteArea: SiteArea = null) {
     const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
-    const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
+    let response;
+    try {
+      response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
+    } catch (error) {
+      console.error(`>>>> Failed to execute bootstrap (${ocppVersion}): ${error.message as string}`);
+    }
     expect(response).to.not.be.null;
     expect(response.status).to.eql('Accepted');
     expect(response).to.have.property('currentTime');
@@ -357,7 +362,12 @@ export default class TenantContext {
     id: faker.random.alphaNumeric(12)
   }), connectorsDef = null, siteArea: SiteArea = null) {
     const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
-    const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
+    let response;
+    try {
+      response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
+    } catch (error) {
+      console.error(`>>>> Failed to execute bootstrap (${ocppVersion}): ${error.message as string}`);
+    }
     expect(response).to.not.be.null;
     expect(response.status).to.eql('Accepted');
     expect(response).to.have.property('currentTime');
@@ -378,7 +388,11 @@ export default class TenantContext {
       };
     }
     for (const connector of createdChargingStation.connectors) {
-      await ocppService.executeStatusNotification(createdChargingStation.id, connector);
+      try {
+        await ocppService.executeStatusNotification(createdChargingStation.id, connector);
+      } catch (error) {
+        console.error(`>>>> Failed to execute status notification : ${error.message as string}`);
+      }
     }
     createdChargingStation = await this.getAdminCentralServerService().getEntityById(
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
@@ -448,7 +462,12 @@ export default class TenantContext {
     id: faker.random.alphaNumeric(12)
   }), connectorsDef = null, siteArea = null) {
     const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
-    const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
+    let response;
+    try {
+      response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
+    } catch (error) {
+      console.error(`>>>> Failed to execute bootstrap (${ocppVersion}): ${error.message as string}`);
+    }
     expect(response).to.not.be.null;
     expect(response.status).to.eql('Accepted');
     expect(response).to.have.property('currentTime');

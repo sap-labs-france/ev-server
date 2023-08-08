@@ -481,8 +481,8 @@ export default class Constants {
   public static readonly WEB_SOCKET_CURRENT_REQUEST = 'web_socket_current_request';
   public static readonly WEB_SOCKET_REST_CONNECTIONS_COUNT = 'web_socket_rest_connections_count';
   public static readonly WEB_SOCKET_RUNNING_REQUEST = 'web_socket_running_request';
-  public static readonly WEB_SOCKET_RUNNING_REQUEST_RESPONSE = 'web_socket_running_request_response';
-  public static readonly WEB_SOCKET_QUEUED_REQUEST = 'web_socket_queued_request';
+  // public static readonly WEB_SOCKET_RUNNING_REQUEST_RESPONSE = 'web_socket_running_request_response';
+  // public static readonly WEB_SOCKET_QUEUED_REQUEST = 'web_socket_queued_request';
 
   public static readonly MONGODB_CONNECTION_POOL_CREATED = 'mongodb_connectionPoolCreated';
   public static readonly MONGODB_CONNECTION_POOL_CLOSED = 'mongodb_connectionPoolClosed';

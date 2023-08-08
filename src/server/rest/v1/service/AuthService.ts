@@ -77,7 +77,7 @@ export default class AuthService {
         // Yes: Check date to reset pass
         if (user.passwordBlockedUntil && moment(user.passwordBlockedUntil).isBefore(moment())) {
           // Time elapsed: activate the account again
-          await Logging.logInfo({
+          Logging.beInfo()?.log({
             tenantID: req.user.tenantID,
             actionOnUser: user,
             module: MODULE_NAME, method: 'handleLogIn', action: action,
@@ -199,7 +199,7 @@ export default class AuthService {
       };
       await TagStorage.saveTag(req.tenant, tag);
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: newUser, action: action,
       module: MODULE_NAME,
@@ -251,7 +251,7 @@ export default class AuthService {
     const resetHash = Utils.generateUUID();
     // Init Password info
     await UserStorage.saveUserPassword(tenant, user.id, { passwordResetHash: resetHash });
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: tenant.id,
       user: user, action: action,
       module: MODULE_NAME,
@@ -299,7 +299,7 @@ export default class AuthService {
     if (user.status === UserStatus.LOCKED) {
       await UserStorage.saveUserStatus(tenant, user.id, UserStatus.ACTIVE);
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: tenant.id,
       user: user, action: action,
       module: MODULE_NAME,
@@ -444,7 +444,7 @@ export default class AuthService {
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(req.tenant, user.id,
       { verificationToken: null, verifiedAt: new Date() });
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: user, action: action,
       module: MODULE_NAME, method: 'handleVerifyEmail',
@@ -523,7 +523,7 @@ export default class AuthService {
       // Get existing verificationToken
       verificationToken = user.verificationToken;
     }
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: user,
       action: action,
@@ -598,7 +598,7 @@ export default class AuthService {
 
   public static async userLoginSucceeded(action: ServerAction, tenant: Tenant, user: User, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Password / Login OK
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: tenant.id,
       user: user,
       module: MODULE_NAME, method: 'checkUserLogin',

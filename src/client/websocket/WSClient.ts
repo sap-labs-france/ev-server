@@ -175,10 +175,10 @@ export default class WSClient {
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'onClose',
             action: ServerAction.WS_CLIENT_CONNECTION_CLOSE,
-            message: `Connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+            message: `Connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Code: '${code}'`
           });
         } else {
-          !Utils.isProductionEnv() && Logging.logConsoleInfo(`WSClient connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
+          !Utils.isProductionEnv() && Logging.logConsoleInfo(`WSClient connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Code: '${code}'`);
         }
         break;
       // Abnormal close
@@ -188,10 +188,10 @@ export default class WSClient {
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'onClose',
             action: ServerAction.WS_CLIENT_ERROR,
-            message: `Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+            message: `Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Code: '${code}'`
           });
         } else {
-          !Utils.isProductionEnv() && Logging.logConsoleError(`WSClient Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
+          !Utils.isProductionEnv() && Logging.logConsoleError(`WSClient Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Code: '${code}'`);
         }
         break;
     }

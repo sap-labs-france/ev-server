@@ -1,3 +1,5 @@
+import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
+
 import { ActionsResponse } from '../../types/GlobalType';
 import BackendError from '../../exception/BackendError';
 import { ChargingProfile } from '../../types/ChargingProfile';
@@ -32,7 +34,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     // Call the charging plans
     const chargingProfiles: ChargingProfile[] = await this.buildChargingProfiles(siteArea, this.excludedChargingStations);
     if (!chargingProfiles) {
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
@@ -50,13 +52,9 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         await OCPPUtils.setAndSaveChargingProfile(this.tenant, chargingProfile);
         actionsResponse.inSuccess++;
       } catch (error) {
-        // Retry setting the profile and check if succeeded
-        if (await this.handleRefusedChargingProfile(this.tenant, chargingProfile, siteArea.name)) {
-          actionsResponse.inSuccess++;
-          continue;
-        }
+        this.excludeChargingStationAndNotify(this.tenant, chargingProfile, siteArea.name);
         actionsResponse.inError++;
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: this.tenant.id,
           siteID: chargingProfile.chargingStation.siteID,
           siteAreaID: chargingProfile.chargingStation.siteAreaID,
@@ -64,7 +62,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
           chargingStationID: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
-          message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed, because of  '${chargingProfile.chargingStationID}'. It has been excluded from this smart charging run automatically`,
+          message: `Applying Charging Profiles failed - Site Area '${siteArea.name}' - '${chargingProfile.chargingStationID}' has been excluded from this smart charging run`,
           detailedMessages: { error: error.stack }
         });
       }
@@ -107,45 +105,20 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     }
   }
 
-  private async handleRefusedChargingProfile(tenant: Tenant, chargingProfile: ChargingProfile, siteAreaName: string): Promise<boolean> {
-    // Retry setting the cp 2 more times
-    for (let i = 0; i < 2; i++) {
-      try {
-        // Set Charging Profile
-        await OCPPUtils.setAndSaveChargingProfile(this.tenant, chargingProfile);
-        return true;
-      } catch (error) {
-        // Log failed
-        await Logging.logError({
-          tenantID: this.tenant.id,
-          siteID: chargingProfile.chargingStation.siteID,
-          siteAreaID: chargingProfile.chargingStation.siteAreaID,
-          companyID: chargingProfile.chargingStation.companyID,
-          chargingStationID: chargingProfile.chargingStationID,
-          action: ServerAction.CHARGING_PROFILE_UPDATE,
-          module: MODULE_NAME, method: 'handleRefusedChargingProfile',
-          message: 'Setting Charging Profiles failed 3 times.',
-          detailedMessages: { error: error.stack }
-        });
-      }
-    }
-    // Remove Charging Station from Smart Charging
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingProfile.chargingStationID);
-    // Remember Charging Stations which were removed from Smart Charging
-    this.excludedChargingStations.push(chargingStation.id);
+  private excludeChargingStationAndNotify(tenant: Tenant, chargingProfile: ChargingProfile, siteAreaName: string): void {
+    // Exclude Charging Station from this smart charging run!
+    this.excludedChargingStations.push(chargingProfile.chargingStationID);
     // Notify Admins
-    NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
-      { chargeBoxID: chargingProfile.chargingStationID,
-        siteID: chargingProfile.chargingStation?.siteID,
-        siteAreaID: chargingProfile.chargingStation?.siteAreaID,
-        companyID: chargingProfile.chargingStation?.companyID,
-        siteAreaName: siteAreaName,
-        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-      }
-    ).catch((error) => {
+    NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, {
+      chargeBoxID: chargingProfile.chargingStationID,
+      siteID: chargingProfile.chargingStation?.siteID,
+      siteAreaID: chargingProfile.chargingStation?.siteAreaID,
+      companyID: chargingProfile.chargingStation?.companyID,
+      siteAreaName: siteAreaName,
+      evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
+    }).catch((error) => {
       Logging.logPromiseError(error, tenant?.id);
     });
-    return false;
   }
 
   public abstract buildChargingProfiles(siteArea: SiteArea, excludedChargingStations?: string[]): Promise<ChargingProfile[]>;

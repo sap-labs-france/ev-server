@@ -54,7 +54,7 @@ export default class LocalCarCatalogBootstrap {
             created++;
           } catch (error) {
             const message = `Error while importing the local Car ID '${carCatalog.id}': ${error.message as string}`;
-            await Logging.logError({
+            Logging.beError()?.log({
               tenantID: Constants.DEFAULT_TENANT_ID,
               action: ServerAction.UPDATE_LOCAL_CAR_CATALOGS,
               module: MODULE_NAME, method: 'uploadLocalCarCatalogsFromFile',
@@ -66,7 +66,7 @@ export default class LocalCarCatalogBootstrap {
       }
     } catch (error) {
       const message = `Error while importing the local Cars: ${error.message as string}`;
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.UPDATE_LOCAL_CAR_CATALOGS,
         module: MODULE_NAME, method: 'uploadLocalCarCatalogsFromFile',
@@ -77,7 +77,7 @@ export default class LocalCarCatalogBootstrap {
     // Log in the default tenant
     if (created > 0) {
       const message = `${created} local Car(s) catalog created in the default tenant`;
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.UPDATE_LOCAL_CAR_CATALOGS,
         message, module: MODULE_NAME, method: 'uploadLocalCarCatalogsFromFile',

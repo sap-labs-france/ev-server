@@ -42,7 +42,7 @@ export default class SchedulerManager {
     // Keep the conf
     SchedulerManager.schedulerConfig = schedulerConfig;
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: Constants.DEFAULT_TENANT_ID,
       action: ServerAction.SCHEDULER,
       module: MODULE_NAME, method: 'init',
@@ -52,7 +52,7 @@ export default class SchedulerManager {
     for (const task of SchedulerManager.schedulerConfig.tasks) {
       // Active?
       if (!task.active) {
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'init',
@@ -64,7 +64,7 @@ export default class SchedulerManager {
       if (schedulerTask) {
         // Register task to cron engine
         cron.schedule(task.periodicity, () => SchedulerManager.runTask(schedulerTask, task));
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'init',
@@ -143,7 +143,7 @@ export default class SchedulerManager {
       case 'DispatchCollectedFundsTask':
         return new DispatchCollectedFundsTask();
       default:
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'createTask',

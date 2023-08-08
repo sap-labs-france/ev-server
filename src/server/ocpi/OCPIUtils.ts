@@ -239,7 +239,7 @@ export default class OCPIUtils {
         try {
           await OCPIUtils.updateCreateChargingStationWithEmspLocation(tenant, location, site, siteArea, evse, action);
         } catch (error) {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: tenant.id,
             action, module: MODULE_NAME, method: 'processEMSPLocationChargingStations',
             message: `Error while processing the EVSE UID '${evse.uid}' (ID '${evse.evse_id}') in Location '${location.name}'`,
@@ -265,7 +265,7 @@ export default class OCPIUtils {
     // Delete Charging Station
     if (currentChargingStation && evse.status === OCPIEvseStatus.REMOVED) {
       await ChargingStationStorage.deleteChargingStation(tenant, currentChargingStation.id);
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         ...LoggingHelper.getChargingStationProperties(currentChargingStation),
         tenantID: tenant.id,
         action, module: MODULE_NAME, method: 'processEMSPLocationChargingStation',
@@ -278,7 +278,7 @@ export default class OCPIUtils {
         currentChargingStation, evse, location, site, siteArea, action);
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       await ChargingStationStorage.saveChargingStationOcpiData(tenant, chargingStation.id, chargingStation.ocpiData);
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
         action, module: MODULE_NAME, method: 'processEMSPLocationChargingStation',

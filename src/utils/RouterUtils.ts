@@ -37,7 +37,7 @@ export default class RouterUtils {
       // Trace
     } catch (error) {
       Utils.isDevelopmentEnv() && Logging.logConsoleError(error.stack);
-      void Logging.logActionExceptionMessage(req.tenant?.id ?? Constants.DEFAULT_TENANT_ID, error.params?.action ?? ServerAction.OCPI_ENDPOINT, error);
+      Logging.logActionExceptionMessage(req.tenant?.id ?? Constants.DEFAULT_TENANT_ID, error.params?.action ?? ServerAction.OCPI_ENDPOINT, error);
       res.status(error.params?.errorCode ?? HTTPError.GENERAL_ERROR).json(OCPIUtils.toErrorResponse(error));
       next();
     }
