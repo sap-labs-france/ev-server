@@ -203,7 +203,7 @@ const config = convict({
     },
     uri: {
       doc: 'connection string URI',
-      default: null
+      default: ''
     },
     host: {
       doc: 'host name',
