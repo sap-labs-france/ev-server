@@ -286,6 +286,7 @@ export enum ServerAction {
   CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
   END_OF_CHARGE = 'EndOfCharge',
   OPTIMAL_CHARGE_REACHED = 'OptimalChargeReached',
+  SESSION_STARTED = 'SessionStarted',
   END_OF_SESSION = 'EndOfSession',
   REQUEST_PASSWORD = 'RequestPassword',
   USER_ACCOUNT_STATUS_CHANGED = 'UserAccountStatusChanged',
