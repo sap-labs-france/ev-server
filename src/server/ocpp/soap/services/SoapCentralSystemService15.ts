@@ -48,7 +48,7 @@ export default { /* Services */
           };
           callback(response);
           // Log
-          await Logging.logException(error, ServerAction.OCPP_AUTHORIZE,
+          Logging.logException(error, ServerAction.OCPP_AUTHORIZE,
             MODULE_NAME, 'Authorize', headers.tenantID ?? Constants.DEFAULT_TENANT_ID);
           // Trace
           await Logging.traceOcppMessageResponse(MODULE_NAME, headers.tenant, headers.chargeBoxIdentity,
@@ -95,7 +95,7 @@ export default { /* Services */
           };
           callback(response);
           // Log
-          await Logging.logException(error, ServerAction.OCPP_START_TRANSACTION,
+          Logging.logException(error, ServerAction.OCPP_START_TRANSACTION,
             MODULE_NAME, 'StartTransaction', headers.tenantID ?? Constants.DEFAULT_TENANT_ID);
           // Trace
           await Logging.traceOcppMessageResponse(MODULE_NAME, headers.tenant, headers.chargeBoxIdentity,
@@ -140,7 +140,7 @@ export default { /* Services */
           };
           callback(response);
           // Log
-          await Logging.logException(error, ServerAction.OCPP_STOP_TRANSACTION,
+          Logging.logException(error, ServerAction.OCPP_STOP_TRANSACTION,
             MODULE_NAME, 'StopTransaction', headers.tenantID ?? Constants.DEFAULT_TENANT_ID);
           // Trace
           await Logging.traceOcppMessageResponse(MODULE_NAME, headers.tenant, headers.chargeBoxIdentity,
@@ -181,7 +181,7 @@ export default { /* Services */
           };
           callback(response);
           // Log
-          await Logging.logException(error, ServerAction.OCPP_HEARTBEAT,
+          Logging.logException(error, ServerAction.OCPP_HEARTBEAT,
             MODULE_NAME, 'Heartbeat', headers.tenantID ?? Constants.DEFAULT_TENANT_ID);
           // Trace
           await Logging.traceOcppMessageResponse(MODULE_NAME, headers.tenant, headers.chargeBoxIdentity,
@@ -218,7 +218,7 @@ export default { /* Services */
           };
           callback(response);
           // Log
-          await Logging.logException(error, ServerAction.OCPP_METER_VALUES,
+          Logging.logException(error, ServerAction.OCPP_METER_VALUES,
             MODULE_NAME, 'MeterValues', headers.tenantID ?? Constants.DEFAULT_TENANT_ID);
           // Trace
           await Logging.traceOcppMessageResponse(MODULE_NAME, headers.tenant, headers.chargeBoxIdentity,
@@ -266,7 +266,7 @@ export default { /* Services */
           };
           callback(response);
           // Log
-          await Logging.logException(error, ServerAction.OCPP_BOOT_NOTIFICATION,
+          Logging.logException(error, ServerAction.OCPP_BOOT_NOTIFICATION,
             MODULE_NAME, 'BootNotification', headers.tenantID ?? Constants.DEFAULT_TENANT_ID);
           // Trace
           await Logging.traceOcppMessageResponse(MODULE_NAME, headers.tenant, headers.chargeBoxIdentity,
@@ -303,7 +303,7 @@ export default { /* Services */
           };
           callback(response);
           // Log
-          await Logging.logException(error, ServerAction.OCPP_STATUS_NOTIFICATION,
+          Logging.logException(error, ServerAction.OCPP_STATUS_NOTIFICATION,
             MODULE_NAME, 'StatusNotification', headers.tenantID ?? Constants.DEFAULT_TENANT_ID);
           // Trace
           await Logging.traceOcppMessageResponse(MODULE_NAME, headers.tenant, headers.chargeBoxIdentity,
@@ -340,7 +340,7 @@ export default { /* Services */
           };
           callback(response);
           // Log
-          await Logging.logException(error, ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION,
+          Logging.logException(error, ServerAction.OCPP_FIRMWARE_STATUS_NOTIFICATION,
             MODULE_NAME, 'FirmwareStatusNotification', headers.tenantID ?? Constants.DEFAULT_TENANT_ID);
           // Trace
           await Logging.traceOcppMessageResponse(MODULE_NAME, headers.tenant, headers.chargeBoxIdentity,
@@ -377,7 +377,7 @@ export default { /* Services */
           };
           callback(response);
           // Log
-          await Logging.logException(error, ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION,
+          Logging.logException(error, ServerAction.OCPP_DIAGNOSTICS_STATUS_NOTIFICATION,
             MODULE_NAME, 'DiagnosticsStatusNotification', headers.tenantID ?? Constants.DEFAULT_TENANT_ID);
           // Trace
           await Logging.traceOcppMessageResponse(MODULE_NAME, headers.tenant, headers.chargeBoxIdentity,
@@ -418,7 +418,7 @@ export default { /* Services */
           };
           callback(response);
           // Log
-          await Logging.logException(error, ServerAction.CHARGING_STATION_DATA_TRANSFER,
+          Logging.logException(error, ServerAction.CHARGING_STATION_DATA_TRANSFER,
             MODULE_NAME, 'DataTransfer', headers.tenantID ?? Constants.DEFAULT_TENANT_ID);
           // Trace
           await Logging.traceOcppMessageResponse(MODULE_NAME, headers.tenant, headers.chargeBoxIdentity,

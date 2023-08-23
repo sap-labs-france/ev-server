@@ -16,7 +16,7 @@ export default class LockingManager {
 
   public static async acquire(lock: Lock, timeoutSecs = 0, retry = true): Promise<boolean> {
     try {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
@@ -36,7 +36,7 @@ export default class LockingManager {
             detailedMessages: { lock, timeoutSecs, retry }
           });
       }
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
@@ -50,7 +50,7 @@ export default class LockingManager {
       if (retry && await LockingManager.checkAndReleaseExpiredLock(lock)) {
         return LockingManager.acquire(lock, timeoutSecs, false);
       }
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
@@ -66,7 +66,7 @@ export default class LockingManager {
     // Delete
     const result = await LockingStorage.deleteLock(lock.id);
     if (!result) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'release',
         action: ServerAction.LOCKING,
@@ -75,7 +75,7 @@ export default class LockingManager {
       });
       return false;
     }
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: lock.tenantID,
       module: MODULE_NAME, method: 'release',
       action: ServerAction.LOCKING,
@@ -156,7 +156,7 @@ export default class LockingManager {
       try {
         // Remove the lock
         await LockingManager.release(lockInDB);
-        await Logging.logWarning({
+        Logging.beWarning()?.log({
           tenantID: lock.tenantID,
           module: MODULE_NAME, method: 'acquire',
           action: ServerAction.LOCKING,
@@ -166,7 +166,7 @@ export default class LockingManager {
         Utils.isDevelopmentEnv() && Logging.logConsoleWarning(`The lock '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID} has expired and was released successfully`);
         return true;
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: lock.tenantID,
           module: MODULE_NAME, method: 'acquire',
           action: ServerAction.LOCKING,

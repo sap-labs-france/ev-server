@@ -22,7 +22,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
   public async getCarCatalogs(): Promise<CarCatalog[]> {
     const evDatabaseConfig = Configuration.getEVDatabaseConfig();
     if (!evDatabaseConfig) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         message: 'No configuration is provided to access the EVDatabase system, skipping',
         module: MODULE_NAME, method: 'getCarCatalogs',
@@ -95,7 +95,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         const base64Image = Buffer.from(response.data).toString('base64');
         image = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
           module: MODULE_NAME, method: 'getCarCatalogThumb',
@@ -114,7 +114,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
       const encodedImage = await response.getBase64Async(imageMIME);
       return encodedImage;
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
         module: MODULE_NAME, method: 'getCarCatalogImage',

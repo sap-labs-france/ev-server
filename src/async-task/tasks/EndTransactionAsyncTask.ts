@@ -37,7 +37,7 @@ export default class EndTransactionAsyncTask extends AbstractAsyncTask {
       // Let's trigger the end of the transaction
       await ocppService.triggerEndTransaction(tenant, chargingStation, transactionID, connectorId);
     } catch (error) {
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPP_STATUS_NOTIFICATION, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPP_STATUS_NOTIFICATION, error);
     }
   }
 }

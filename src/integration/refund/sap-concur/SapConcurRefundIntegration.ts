@@ -106,7 +106,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
 
   public async createConnection(userID: string, data: any): Promise<Connection> {
     try {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         module: MODULE_NAME, method: 'createConnection',
         action: ServerAction.REFUND, message: `Request Concur access token for User ID '${userID}'`
@@ -125,7 +125,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         });
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         module: MODULE_NAME, method: 'createConnection',
         action: ServerAction.REFUND, message: `Concur access token granted for User ID '${userID}'`
@@ -193,11 +193,11 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
           await TransactionStorage.saveTransactionRefundData(this.tenant, transaction.id, transaction.refundData);
           refundedTransactions.push(transaction);
         } catch (error) {
-          await Logging.logException(error, ServerAction.REFUND, MODULE_NAME, 'refund', this.tenant.id, userID);
+          Logging.logException(error, ServerAction.REFUND, MODULE_NAME, 'refund', this.tenant.id, userID);
         }
       },
       { concurrency: 10 });
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: this.tenant.id,
       user: userID,
       action: ServerAction.REFUND,
@@ -216,7 +216,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
         if (report.ApprovalStatusCode === 'A_APPR') {
           transaction.refundData.status = RefundStatus.APPROVED;
           await TransactionStorage.saveTransactionRefundData(tenant, transaction.id, transaction.refundData);
-          await Logging.logDebug({
+          Logging.beDebug()?.log({
             tenantID: tenant.id,
             action: ServerAction.SYNCHRONIZE_REFUND,
             module: MODULE_NAME, method: 'updateRefundStatus',
@@ -225,7 +225,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
           });
           return RefundStatus.APPROVED;
         }
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: tenant.id,
           action: ServerAction.SYNCHRONIZE_REFUND,
           module: MODULE_NAME, method: 'updateRefundStatus',
@@ -236,7 +236,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
         // Cancelled
         transaction.refundData.status = RefundStatus.CANCELLED;
         await TransactionStorage.saveTransactionRefundData(tenant, transaction.id, transaction.refundData);
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: tenant.id,
           action: ServerAction.SYNCHRONIZE_REFUND,
           module: MODULE_NAME, method: 'updateRefundStatus',
@@ -335,7 +335,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
           Authorization: `Bearer ${connection.data.access_token}`
         }
       });
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         user: userID,
         action: ServerAction.REFUND,
@@ -387,7 +387,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
           Authorization: `Bearer ${connection.data.access_token}`
         }
       });
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         user: userID,
         action: ServerAction.REFUND,
@@ -422,7 +422,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
           Authorization: `Bearer ${connection.data.access_token}`
         }
       });
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         user: userID,
         action: ServerAction.REFUND,
@@ -513,7 +513,7 @@ export default class SapConcurRefundIntegration extends RefundIntegration<Concur
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         });
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         user: userID,
         action: ServerAction.REFUND,

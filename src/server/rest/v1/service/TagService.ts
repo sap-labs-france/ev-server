@@ -188,7 +188,7 @@ export default class TagService {
     await TagStorage.saveTag(req.tenant, newTag);
     // OCPI
     void TagService.updateTagRoaming(action, req.tenant, req.user, newTag);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getTagProperties(newTag),
       tenantID: req.tenant.id,
       action: action,
@@ -264,7 +264,7 @@ export default class TagService {
     await TagStorage.saveTag(req.tenant, tag);
     // OCPI
     void TagService.updateTagRoaming(action, req.tenant, req.user, tag);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getTagProperties(tag),
       tenantID: req.tenant.id,
       action: action,
@@ -306,7 +306,7 @@ export default class TagService {
     // Save
     await TagStorage.saveTag(req.tenant, tag);
     void TagService.updateTagRoaming(action, req.tenant, req.user, tag);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getTagProperties(tag),
       tenantID: req.tenant.id,
       action: action,
@@ -382,7 +382,7 @@ export default class TagService {
     }
     // OCPI
     void TagService.updateTagRoaming(action, req.tenant, req.user, tag);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getTagProperties(tag),
       tenantID: req.tenant.id,
       action: action,
@@ -490,7 +490,7 @@ export default class TagService {
             }, async (error: CSVError) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
-              await Logging.logError({
+              Logging.beError()?.log({
                 tenantID: req.tenant.id,
                 module: MODULE_NAME, method: 'handleImportTags',
                 action: action,
@@ -562,7 +562,7 @@ export default class TagService {
             parser.on('error', async (error) => {
               // Release the lock
               await LockingManager.release(importTagsLock);
-              await Logging.logError({
+              Logging.beError()?.log({
                 tenantID: req.tenant.id,
                 module: MODULE_NAME, method: 'handleImportTags',
                 action: action,
@@ -580,7 +580,7 @@ export default class TagService {
           } else {
             // Release the lock
             await LockingManager.release(importTagsLock);
-            await Logging.logError({
+            Logging.beError()?.log({
               tenantID: req.tenant.id,
               module: MODULE_NAME, method: 'handleImportTags',
               action: action,
@@ -629,7 +629,7 @@ export default class TagService {
       // Handle dup keys
       result.inSuccess += error.result.nInserted;
       result.inError += error.writeErrors.length;
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'insertTags',
         action: action,
@@ -663,7 +663,7 @@ export default class TagService {
         }
       } catch (error) {
         result.inError++;
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'deleteTags',
           action: ServerAction.TAG_DELETE,
@@ -708,7 +708,7 @@ export default class TagService {
         }
       } catch (error) {
         result.inError++;
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'unassignTags',
           action: ServerAction.TAG_DELETE,
@@ -833,7 +833,7 @@ export default class TagService {
           UserValidatorRest.getInstance().validateUserImportCreateReq(newImportedUser);
           tagToImport = { ...tagToImport, ...newImportedUser as ImportedTag };
         } catch (error) {
-          await Logging.logWarning({
+          Logging.beWarning()?.log({
             tenantID: req.tenant.id,
             module: MODULE_NAME, method: 'processTag',
             action: action,
@@ -846,7 +846,7 @@ export default class TagService {
       tagsToBeImported.push(tagToImport);
       return true;
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: req.tenant.id,
         module: MODULE_NAME, method: 'importTag',
         action: action,
@@ -875,7 +875,7 @@ export default class TagService {
           });
         }
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'checkAndDeleteTagOCPI',
           action: ServerAction.TAG_DELETE,
@@ -898,7 +898,7 @@ export default class TagService {
           );
         }
       } catch (error) {
-        await Logging.logError({
+        Logging.beError()?.log({
           tenantID: tenant.id,
           action: action,
           module: MODULE_NAME, method: 'updateTagOCPI',

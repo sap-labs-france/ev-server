@@ -91,7 +91,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
             (chargingStation) => chargingStation.siteAreaID === siteArea.id);
         }
       } else {
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: this.tenant.id,
           action: ServerAction.SMART_CHARGING,
           message: `${sourceSiteArea.name} > No charging station used, so no need to call the Smart Charging service`,
@@ -126,7 +126,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     const url = await this.buildOptimizerUrl(sourceSiteArea);
     // Check at least one car
     if (request.state.cars.length === 0) {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.SMART_CHARGING,
         message: `${sourceSiteArea.name} > No car connected so no need to call the SAP Smart Charging service`,
@@ -135,7 +135,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       });
       return;
     }
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.SMART_CHARGING,
       message: `${sourceSiteArea.name} > Call the SAP Smart Charging service...`,
@@ -148,7 +148,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
         Accept: 'application/json',
       }
     });
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.SMART_CHARGING,
       message: `${sourceSiteArea.name} > SAP Smart Charging service has been called successfully`,
@@ -158,7 +158,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     // Build charging profiles from result
     const chargingProfiles = await this.buildChargingProfilesFromOptimizerResponse(
       sourceSiteArea, siteAreas.result, response.data);
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: this.tenant.id,
       action: ServerAction.SMART_CHARGING,
       message: `${sourceSiteArea.name} > Charging Profiles have been built successfully`,
@@ -348,7 +348,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     // Transaction in progress?
     if (!connector.currentTransactionID) {
       // Should not happen
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: this.tenant.id,
         action: ServerAction.SMART_CHARGING,
@@ -362,7 +362,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     const currentTransaction = transactions.find((transaction) => transaction.id === connector.currentTransactionID);
     if (!currentTransaction) {
       // Should not happen
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: this.tenant.id,
         action: ServerAction.SMART_CHARGING,
@@ -380,7 +380,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     // Get Asset consumption
     const assetConsumptionInWatts = await this.getAssetConsumptionInWatts(siteArea);
     if (siteArea.maximumPower !== siteArea.maximumPower - assetConsumptionInWatts) {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.SMART_CHARGING,
         message: `${siteArea.name} > limit of ${siteArea.maximumPower} W has been adjusted to ${Math.round(siteArea.maximumPower - assetConsumptionInWatts)} W due Asset Consumption`,
@@ -492,7 +492,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
     }
     // Found unsupported chargers
     if (siteMaxAmps !== rootFuse.fusePhase1 + rootFuse.fusePhase2 + rootFuse.fusePhase3) {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.SMART_CHARGING,
         message: `${siteArea.name} > limit of ${siteMaxAmps} Amps has been lowered to ${Math.round(rootFuse.fusePhase1 + rootFuse.fusePhase2 + rootFuse.fusePhase3)} Amps due to unsupported charging stations currently being used`,
@@ -1024,7 +1024,7 @@ export default class SapSmartChargingIntegration extends SmartChargingIntegratio
       }
     }
     if (removedChargingProfiles > 0) {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: this.tenant.id,
         action: ServerAction.SMART_CHARGING,
         message: `${siteArea.name} > ${removedChargingProfiles} Charging Profiles have been already applied and will be removed from charging profile schedule`,

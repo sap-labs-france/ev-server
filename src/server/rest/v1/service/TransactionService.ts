@@ -70,7 +70,7 @@ export default class TransactionService {
       res.json(response);
       next();
     } catch (error) {
-      await Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
 
@@ -196,7 +196,7 @@ export default class TransactionService {
       }
       // Save
       await TransactionStorage.saveTransactionOcpiData(req.tenant, transaction.id, transaction.ocpiData);
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: req.tenant.id,
         action, module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -231,7 +231,7 @@ export default class TransactionService {
       }
       // Save
       await TransactionStorage.saveTransactionOicpData(req.tenant, transaction.id, transaction.oicpData);
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: req.tenant.id,
         user: req.user, actionOnUser: (transaction.user ?? null),
@@ -421,7 +421,7 @@ export default class TransactionService {
       };
       res.json(advenirPayload);
     } catch (error) {
-      await Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
 
@@ -685,7 +685,7 @@ export default class TransactionService {
       // Transaction refunded
       if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
         result.inError++;
-        await Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: loggedUser.tenantID,
           user: loggedUser,
@@ -698,7 +698,7 @@ export default class TransactionService {
       // Transaction billed
       if (billingImpl && transaction.billingData?.stop?.status === BillingStatus.BILLED) {
         result.inError++;
-        await Logging.logError({
+        Logging.beError()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: loggedUser.tenantID,
           user: loggedUser,
@@ -811,7 +811,7 @@ export default class TransactionService {
         OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, transaction.connectorId);
         await ChargingStationStorage.saveChargingStationConnectors(req.tenant, chargingStation.id, chargingStation.connectors);
       }
-      await Logging.logInfo({
+      Logging.beInfo()?.log({
         ...LoggingHelper.getTransactionProperties(transaction),
         tenantID: req.tenant.id,
         user: req.user, actionOnUser: transaction.userID,
@@ -833,7 +833,7 @@ export default class TransactionService {
       try {
         await new OCPPService(Configuration.getChargingStationConfig()).softStopTransaction(
           req.tenant, transaction, chargingStation, chargingStation.siteArea);
-        await Logging.logInfo({
+        Logging.beInfo()?.log({
           ...LoggingHelper.getTransactionProperties(transaction),
           tenantID: req.tenant.id,
           user: req.user, actionOnUser: transaction.userID,

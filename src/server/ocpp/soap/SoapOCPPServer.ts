@@ -72,7 +72,7 @@ export default class SoapOCPPServer extends OCPPServer {
   }
 
   private async handleSoapServerMessage(ocppVersion: OCPPVersion, request: any, methodName: string) {
-    await Logging.logDebug({
+    Logging.beDebug()?.log({
       tenantID: Constants.DEFAULT_TENANT_ID, module: MODULE_NAME,
       method: 'handleSoapServerMessage',
       action: ServerAction.EXPRESS_SERVER,
@@ -84,7 +84,7 @@ export default class SoapOCPPServer extends OCPPServer {
   private async handleSoapServerLog(ocppVersion: OCPPVersion, type: string, data: any) {
     // Do not log 'Info'
     if (type === 'replied') {
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: Constants.DEFAULT_TENANT_ID, module: MODULE_NAME,
         method: 'handleSoapServerLog',
         action: ServerAction.EXPRESS_SERVER,

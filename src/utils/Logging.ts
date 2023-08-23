@@ -28,9 +28,93 @@ import sizeof from 'object-sizeof';
 
 const MODULE_NAME = 'Logging';
 
+export abstract class AbstractLightLogger {
+  public abstract log(log: Log): void ;
+}
+
+export class LightLogger extends AbstractLightLogger {
+
+  private logLevel: LogLevel;
+
+  public constructor(logLevel: LogLevel) {
+    super();
+    this.logLevel = logLevel;
+  }
+
+  public log(log: Log): void {
+    log.level = this.logLevel;
+    log.timestamp = new Date();
+    Logging.lightLog(log);
+  }
+}
+
 export default class Logging {
   private static logConfig: LogConfiguration;
   private static traceConfig: TraceConfiguration;
+
+  public static isLevelEnabled(expectedLogLevel: LogLevel): boolean {
+    // Check the configuration for the actual log level being enabled
+    const logConfig = Logging.getConfiguration();
+    const logLevelLetter = logConfig.logLevel ? logConfig.logLevel : 'D';
+    const logLevel = logLevelLetter as LogLevel;
+    switch (logLevel) {
+      case LogLevel.NONE:
+        return false;
+      case LogLevel.INFO:
+        if (expectedLogLevel === LogLevel.DEBUG) {
+          return false;
+        }
+        break;
+      case LogLevel.WARNING:
+        if (expectedLogLevel === LogLevel.INFO || expectedLogLevel === LogLevel.DEBUG) {
+          return false;
+        }
+        break;
+      case LogLevel.ERROR:
+        if (expectedLogLevel === LogLevel.INFO || expectedLogLevel === LogLevel.WARNING || expectedLogLevel === LogLevel.DEBUG) {
+          return false;
+        }
+        break;
+      case LogLevel.DEBUG:
+      default:
+        break;
+    }
+    return true;
+  }
+
+  public static lightLog(log: Log): void {
+    Logging.log(log).catch(() => { /* Intentional */ });
+  }
+
+  public static beError(): AbstractLightLogger {
+    return Logging.beThatLevel(LogLevel.ERROR);
+  }
+
+  public static beWarning(): AbstractLightLogger {
+    return Logging.beThatLevel(LogLevel.WARNING);
+  }
+
+  public static beInfo(): AbstractLightLogger {
+    return Logging.beThatLevel(LogLevel.INFO);
+  }
+
+  public static beDebug(): AbstractLightLogger {
+    return Logging.beThatLevel(LogLevel.DEBUG);
+  }
+
+  public static beThatLevel(expectedLogLevel: LogLevel): AbstractLightLogger {
+    if (Logging.isLevelEnabled(expectedLogLevel)) {
+      return new LightLogger(expectedLogLevel);
+    }
+    // ------------------------------------------------------------------------------
+    // ACHTUNG - returns null when the level is disabled
+    // ------------------------------------------------------------------------------
+    // The purpose here is to avoid evaluating the log parameters and thus
+    // avoid triggering unnecessary garbage collection of log messages
+    // Make sure to use optional chaining operator (?.) when calling the log method
+    // ------------------------------------------------------------------------------
+    return null;
+  }
 
   public static getConfiguration(): LogConfiguration {
     if (!this.logConfig) {
@@ -163,19 +247,16 @@ export default class Logging {
 
   public static async logDebug(log: Log): Promise<string> {
     log.level = LogLevel.DEBUG;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging.log(log);
   }
 
   public static async logInfo(log: Log): Promise<string> {
     log.level = LogLevel.INFO;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging.log(log);
   }
 
   public static async logWarning(log: Log): Promise<string> {
     log.level = LogLevel.WARNING;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     return Logging.log(log);
   }
 
@@ -389,8 +470,7 @@ export default class Logging {
 
   public static traceExpressResponse(req: Request, res: Response, next: NextFunction, action?: ServerAction): void {
     if (Logging.getTraceConfiguration().traceIngressHttp) {
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      res.on('finish', async () => {
+      res.on('finish',() => {
         // Get Tenant info
         const tenantID = req['tenantID'] as string;
         // Compute duration
@@ -407,7 +487,7 @@ export default class Logging {
         Utils.isDevelopmentEnv() && Logging.logConsoleInfo(message);
         if (sizeOfResponseDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
           const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} KB, got ${(sizeOfResponseDataKB > 0) ? sizeOfResponseDataKB : '?'} KB`);
-          await Logging.logWarning({
+          Logging.beWarning()?.log({
             tenantID,
             action: ServerAction.PERFORMANCES,
             module: MODULE_NAME, method: 'logExpressResponse',
@@ -424,7 +504,7 @@ export default class Logging {
         }
         if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
           const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms`);
-          await Logging.logWarning({
+          Logging.beWarning()?.log({
             tenantID,
             action: ServerAction.PERFORMANCES,
             module: MODULE_NAME, method: 'logExpressResponse',
@@ -439,7 +519,7 @@ export default class Logging {
             Logging.logConsoleWarning('====================================');
           }
         }
-        await Logging.logDebug({
+        Logging.beDebug()?.log({
           tenantID: tenantID,
           user: req.user,
           action: action ?? ServerAction.HTTP_RESPONSE,
@@ -459,7 +539,9 @@ export default class Logging {
             durationMs: executionDurationMillis,
             resSizeKb: sizeOfResponseDataKB,
           } as PerformanceRecord;
-          await PerformanceStorage.updatePerformanceRecord(performanceRecord, null);
+          PerformanceStorage.updatePerformanceRecord(performanceRecord).catch((error) => {
+            Logging.logPromiseError(error, tenantID);
+          });
         }
       });
     }
@@ -469,8 +551,8 @@ export default class Logging {
     }
   }
 
-  public static async traceExpressError(error: Error, req: Request, res: Response, next: NextFunction): Promise<void> {
-    await Logging.logActionExceptionMessageAndSendResponse(
+  public static traceExpressError(error: Error, req: Request, res: Response, next: NextFunction): void {
+    Logging.logActionExceptionMessageAndSendResponse(
       error['params'] && error['params']['action'] ? error['params']['action'] : ServerAction.HTTP_ERROR, error, req, res, next);
     if (Logging.getTraceConfiguration().traceIngressHttp) {
       // Nothing done yet
@@ -642,40 +724,40 @@ export default class Logging {
     }
   }
 
-  public static async logException(exception: Error, action: ServerAction,
-      module: string, method: string, tenantID: string, user?: UserToken | User | string): Promise<void> {
+  public static logException(exception: Error, action: ServerAction,
+      module: string, method: string, tenantID: string, user?: UserToken | User | string): void {
     if (exception instanceof AppAuthError) {
-      await Logging.logActionAppAuthException(tenantID, action, exception);
+      Logging.logActionAppAuthException(tenantID, action, exception);
     } else if (exception instanceof AppError) {
-      await Logging.logActionAppException(tenantID, action, exception);
+      Logging.logActionAppException(tenantID, action, exception);
     } else if (exception instanceof OCPPError) {
-      await Logging.logActionOcppException(tenantID, action, exception);
+      Logging.logActionOcppException(tenantID, action, exception);
     } else if (exception instanceof BackendError) {
-      await Logging.logActionBackendException(tenantID, action, exception);
+      Logging.logActionBackendException(tenantID, action, exception);
     } else {
-      await Logging.logError(
+      Logging.beError()?.log(
         Logging.buildLogError(action, module, method, tenantID, user, exception));
     }
   }
 
   // Used to log exception in catch(...) only
-  public static async logActionExceptionMessage(tenantID: string, action: ServerAction, exception: Error, detailedMessages = {}): Promise<void> {
+  public static logActionExceptionMessage(tenantID: string, action: ServerAction, exception: Error, detailedMessages = {}): void {
     if (exception instanceof AppError) {
-      await Logging.logActionAppException(tenantID, action, exception, detailedMessages);
+      Logging.logActionAppException(tenantID, action, exception, detailedMessages);
     } else if (exception instanceof BackendError) {
-      await Logging.logActionBackendException(tenantID, action, exception, detailedMessages);
+      Logging.logActionBackendException(tenantID, action, exception, detailedMessages);
     } else if (exception instanceof AppAuthError) {
-      await Logging.logActionAppAuthException(tenantID, action, exception, detailedMessages);
+      Logging.logActionAppAuthException(tenantID, action, exception, detailedMessages);
     } else if (exception instanceof OCPPError) {
-      await Logging.logActionOcppException(tenantID, action, exception);
+      Logging.logActionOcppException(tenantID, action, exception);
     } else {
-      await Logging.logActionException(tenantID, action, exception, detailedMessages);
+      Logging.logActionException(tenantID, action, exception, detailedMessages);
     }
   }
 
   // Used to log exception in catch(...) only
-  public static async logActionExceptionMessageAndSendResponse(action: ServerAction, exception: Error,
-      req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT_ID): Promise<void> {
+  public static logActionExceptionMessageAndSendResponse(action: ServerAction, exception: Error,
+      req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT_ID): void {
     // Clear password
     if (action === ServerAction.LOGIN && req.body.password) {
       req.body.password = '####';
@@ -687,15 +769,15 @@ export default class Logging {
       tenantID = req.tenant.id;
     }
     if (exception instanceof AppError) {
-      await Logging.logActionAppException(tenantID, action, exception);
+      Logging.logActionAppException(tenantID, action, exception);
     } else if (exception instanceof BackendError) {
-      await Logging.logActionBackendException(tenantID, action, exception);
+      Logging.logActionBackendException(tenantID, action, exception);
     } else if (exception instanceof AppAuthError) {
-      await Logging.logActionAppAuthException(tenantID, action, exception);
+      Logging.logActionAppAuthException(tenantID, action, exception);
     } else if (exception instanceof OCPPError) {
-      await Logging.logActionOcppException(tenantID, action, exception);
+      Logging.logActionOcppException(tenantID, action, exception);
     } else {
-      await Logging.logActionException(tenantID, action, exception);
+      Logging.logActionException(tenantID, action, exception);
     }
     // Send error
     if (!res.headersSent) {
@@ -809,17 +891,17 @@ export default class Logging {
   }
 
   public static logPromiseError(error, tenantID?: string): void {
-    Logging.logError({
+    Logging.beError()?.log({
       tenantID,
       action: ServerAction.UNKNOWN_ACTION,
       module: MODULE_NAME, method: 'logPromiseError',
       message: 'Unexpected error in floating promise',
       detailedMessages: { error: error.stack }
-    }).catch(() => { /* Intentional */ });
+    });
   }
 
-  private static async logActionException(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): Promise<void> {
-    await Logging.logError({
+  private static logActionException(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): void {
+    Logging.beError()?.log({
       tenantID: tenantID,
       user: exception.user,
       module: exception.module,
@@ -830,9 +912,9 @@ export default class Logging {
     });
   }
 
-  private static async logActionAppException(tenantID: string, action: ServerAction, exception: AppError, detailedMessages = {}): Promise<void> {
+  private static logActionAppException(tenantID: string, action: ServerAction, exception: AppError, detailedMessages = {}): void {
     Utils.handleExceptionDetailedMessages(exception);
-    await Logging.logError({
+    Logging.beError()?.log({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
       siteID: exception.params.siteID,
@@ -851,9 +933,9 @@ export default class Logging {
     });
   }
 
-  private static async logActionBackendException(tenantID: string, action: ServerAction, exception: BackendError, detailedMessages = {}): Promise<void> {
+  private static logActionBackendException(tenantID: string, action: ServerAction, exception: BackendError, detailedMessages = {}): void {
     Utils.handleExceptionDetailedMessages(exception);
-    await Logging.logError({
+    Logging.beError()?.log({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
       siteID: exception.params.siteID,
@@ -873,9 +955,9 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static async logActionAppAuthException(tenantID: string, action: ServerAction, exception: AppAuthError, detailedMessages = {}): Promise<void> {
+  private static logActionAppAuthException(tenantID: string, action: ServerAction, exception: AppAuthError, detailedMessages = {}): void {
     Utils.handleExceptionDetailedMessages(exception);
-    await Logging.logError({
+    Logging.beError()?.log({
       tenantID: tenantID,
       user: exception.params.user,
       chargingStationID: exception.params.chargingStationID,
@@ -894,9 +976,9 @@ export default class Logging {
     });
   }
 
-  private static async logActionOcppException(tenantID: string, action: ServerAction, exception: OCPPError, detailedMessages = {}): Promise<void> {
+  private static logActionOcppException(tenantID: string, action: ServerAction, exception: OCPPError, detailedMessages = {}): void {
     Utils.handleExceptionDetailedMessages(exception);
-    await Logging.logError({
+    Logging.beError()?.log({
       tenantID: tenantID,
       chargingStationID: exception.params.chargingStationID,
       siteID: exception.params.siteID,
@@ -961,7 +1043,7 @@ export default class Logging {
         break;
     }
     // Timestamp
-    log.timestamp = new Date();
+    log.timestamp = log.timestamp || new Date();
     // Host
     log.host = Utils.getHostName();
     if (log.detailedMessages) {
@@ -1090,3 +1172,4 @@ export default class Logging {
     };
   }
 }
+

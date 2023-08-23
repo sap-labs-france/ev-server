@@ -130,7 +130,7 @@ export default class PricingService {
     // Save
     newPricingDefinition.id = await PricingStorage.savePricingDefinition(req.tenant, newPricingDefinition);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleCreatePricingDefinition',
       message: `Pricing model '${newPricingDefinition.id}' has been created successfully`,
@@ -172,7 +172,7 @@ export default class PricingService {
     // Update Pricing
     await PricingStorage.savePricingDefinition(req.tenant, pricingDefinition);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleUpdatePricingDefinition',
       message: `Pricing model '${pricingDefinition.id}' has been updated successfully`,
@@ -201,7 +201,7 @@ export default class PricingService {
     // Delete
     await PricingStorage.deletePricingDefinition(req.tenant, pricingDefinition.id);
     // Log
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       tenantID: req.tenant.id,
       user: req.user, module: MODULE_NAME, method: 'handleDeletePricingDefinition',
       message: `Pricing model '${pricingDefinitionID}' has been deleted successfully`,
@@ -249,7 +249,7 @@ export default class PricingService {
       } catch (error) {
         canCreate = false;
         if (!(error instanceof AppAuthError)) {
-          await Logging.logError({
+          Logging.beError()?.log({
             tenantID: req.tenant.id,
             user: req.user, module: MODULE_NAME, method: 'alterCanCreate',
             message: 'Unexpected error while checking site access permissions',

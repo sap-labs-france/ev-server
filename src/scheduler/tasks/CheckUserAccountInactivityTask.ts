@@ -42,7 +42,7 @@ export default class CheckUserAccountInactivityTask extends TenantSchedulerTask 
         }
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.USER_ACCOUNT_INACTIVITY, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.USER_ACCOUNT_INACTIVITY, error);
       } finally {
         // Release the lock
         await LockingManager.release(accountInactivityLock);

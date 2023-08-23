@@ -131,7 +131,7 @@ export default class SiteAreaStorage {
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     // No unique key on OCPI Location (avoid create several Site Area with the same location ID)
     if (siteAreaMDB.count > 1) {
-      await Logging.logWarning({
+      Logging.beWarning()?.log({
         tenantID: tenant.id,
         action: ServerAction.UNKNOWN_ACTION,
         module: MODULE_NAME, method: 'getSiteAreaByOcpiLocationUid',

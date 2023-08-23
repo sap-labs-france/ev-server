@@ -1,20 +1,22 @@
-import ChargingStation, { Command } from '../../../../types/ChargingStation';
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import BackendError from '../../../../exception/BackendError';
 import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import { PerformanceRecordGroup } from '../../../../types/Performance';
+import { Command } from '../../../../types/ChargingStation';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import JsonChargingStationClient from '../../../../client/ocpp/json/JsonChargingStationClient';
-import Utils from '../../../../utils/Utils';
 import JsonChargingStationService from '../services/JsonChargingStationService';
 import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import OCPPError from '../../../../exception/OcppError';
 import { OCPPErrorType } from '../../../../types/ocpp/OCPPCommon';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPUtils from '../../utils/OCPPUtils';
+import { PerformanceRecordGroup } from '../../../../types/Performance';
+import { ServerAction } from '../../../../types/Server';
+import Utils from '../../../../utils/Utils';
 import WSConnection from './WSConnection';
 import WSWrapper from './WSWrapper';
 
@@ -107,10 +109,7 @@ export default class JsonWSConnection extends WSConnection {
     } else {
       // Throw Exception
       throw new OCPPError({
-        chargingStationID: this.getChargingStationID(),
-        siteID: this.getSiteID(),
-        siteAreaID: this.getSiteAreaID(),
-        companyID: this.getCompanyID(),
+        ...LoggingHelper.getWSConnectionProperties(this),
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OCPPErrorType.NOT_IMPLEMENTED,
@@ -124,32 +123,68 @@ export default class JsonWSConnection extends WSConnection {
     return this.chargingStationClient;
   }
 
-  public setChargingStation(chargingStation: ChargingStation): void {
-    super.setChargingStation(chargingStation);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onPing(message: string): void {
+    // this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
+    Logging.beDebug()?.log({
+      ...LoggingHelper.getWSConnectionProperties(this),
+      tenantID: this.getTenantID(),
+      action: ServerAction.WS_CLIENT_CONNECTION_PING,
+      module: MODULE_NAME, method: 'onPing',
+      message: 'Ping received'
+    });
   }
 
-  public async onPing(message: string): Promise<void> {
-    await this.updateChargingStationLastSeen();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onPong(message: string): void {
+    // this.updateChargingStationLastSeen().catch(() => { /* Intentional */ });
+    Logging.beDebug()?.log({
+      ...LoggingHelper.getWSConnectionProperties(this),
+      tenantID: this.getTenantID(),
+      action: ServerAction.WS_CLIENT_CONNECTION_PONG,
+      module: MODULE_NAME, method: 'onPong',
+      message: 'Pong received'
+    });
   }
 
-  public async onPong(message: string): Promise<void> {
-    await this.updateChargingStationLastSeen();
-  }
-
-  private async updateChargingStationLastSeen(): Promise<void> {
-    // Update once every ping interval / 2
-    if (!this.lastSeen ||
-      (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
-      // Update last seen
-      this.lastSeen = new Date();
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),
-        this.getChargingStationID(), { issuer: true }, ['id']);
-      if (chargingStation) {
-        await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
-          { lastSeen: this.lastSeen });
-      }
+  public async updateChargingStationRuntimeData() {
+    // Update Charging Station info
+    const chargingStation = this.getChargingStation();
+    // First time the charging station connects, it does not yet exist
+    if (chargingStation) {
+      chargingStation.lastSeen = new Date();
+      chargingStation.tokenID = this.getTokenID();
+      chargingStation.cloudHostIP = Utils.getHostIP();
+      chargingStation.cloudHostName = Utils.getHostName();
+      // Save Charging Station runtime data
+      await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), chargingStation.id, {
+        lastSeen: chargingStation.lastSeen,
+        tokenID: chargingStation.tokenID,
+        cloudHostIP: chargingStation.cloudHostIP,
+        cloudHostName: chargingStation.cloudHostName,
+      });
     }
   }
+
+  // private async updateChargingStationLastSeen(): Promise<void> {
+  //   // Update once every ping interval / 2
+  //   if (!this.lastSeen ||
+  //     (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
+  //     // Update last seen
+  //     this.lastSeen = new Date();
+  //     if (FeatureToggles.isFeatureActive(Feature.OCPP_OPTIMIZE_LAST_SEEN_UPDATE)) {
+  //       await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
+  //         { lastSeen: this.lastSeen });
+  //     } else {
+  //       const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),
+  //         this.getChargingStationID(), { issuer: true }, ['id']);
+  //       if (chargingStation) {
+  //         await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
+  //           { lastSeen: this.lastSeen });
+  //       }
+  //     }
+  //   }
+  // }
 
   private isValidOcppServerCommand(command: Command): boolean {
     // Only client request is allowed

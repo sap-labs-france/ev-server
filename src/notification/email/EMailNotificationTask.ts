@@ -231,7 +231,7 @@ export default class EMailNotificationTask implements NotificationTask {
     // Email configuration sanity checks
     if (!this.smtpMainClientInstance) {
       // No suitable main SMTP server configuration found to send the email
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: tenant.id,
         siteID: data?.siteID,
         siteAreaID: data?.siteAreaID,
@@ -257,7 +257,7 @@ export default class EMailNotificationTask implements NotificationTask {
     });
     if (Utils.isDevelopmentEnv()) {
       // Do not send mail in Dev mode
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
@@ -278,7 +278,7 @@ export default class EMailNotificationTask implements NotificationTask {
       // Send the message
       const messageSent: Message = await smtpClient.sendAsync(messageToSend);
       // Email sent successfully
-      await Logging.logDebug({
+      Logging.beDebug()?.log({
         tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
         siteID: data?.siteID,
         siteAreaID: data?.siteAreaID,
@@ -295,7 +295,7 @@ export default class EMailNotificationTask implements NotificationTask {
         }
       });
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT_ID,
         siteID: data?.siteID,
         siteAreaID: data?.siteAreaID,
@@ -372,7 +372,7 @@ export default class EMailNotificationTask implements NotificationTask {
         html: emailContent.html,
       };
     } catch (error) {
-      await Logging.logError({
+      Logging.beError()?.log({
         tenantID: tenant.id,
         ...LoggingHelper.getSourceDataProperties(sourceData),
         action: ServerAction.EMAIL_NOTIFICATION,

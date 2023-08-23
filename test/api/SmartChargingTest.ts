@@ -385,7 +385,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       });
 
       it('Test for two cars charging', async () => {
-        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, new Date);
+        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, moment().add(1, 'seconds').toDate());
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction1 = transactionResponse.data;
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
@@ -419,7 +419,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         'Test for three cars charging with lower site area limit and one car on a single phased station',
         async () => {
           // Start transaction on single phased Charging Station
-          const transactionStartResponse = await testData.chargingStationContext1.startTransaction(1, testData.userContext.tags[0].id, 180, new Date);
+          const transactionStartResponse = await testData.chargingStationContext1.startTransaction(1, testData.userContext.tags[0].id, 180, moment().add(2, 'seconds').toDate());
           const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
           transaction2 = transactionResponse.data;
           await testData.chargingStationContext1.setConnectorStatus(chargingStationConnector1Charging);
@@ -488,7 +488,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
 
           const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
           // Charging Profiles should have limits according the sent meter values + buffer
-          let chargingProfile = TestData.validateAndReturnChargingProfile(chargingProfiles, transaction)
+          let chargingProfile = TestData.validateAndReturnChargingProfile(chargingProfiles, transaction);
           expect(chargingProfile.profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
@@ -504,7 +504,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
             }
           ]);
           await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfile);
-          chargingProfile = TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1)
+          chargingProfile = TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1);
           expect(chargingProfile.profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
@@ -759,7 +759,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       );
 
       it('Test for two cars charging', async () => {
-        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, new Date);
+        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, moment().add(1,'seconds').toDate());
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction1 = transactionResponse.data;
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
@@ -993,7 +993,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
       );
 
       it('Test for two cars charging', async () => {
-        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, new Date);
+        const transactionStartResponse = await testData.chargingStationContext.startTransaction(2, testData.userContext.tags[0].id, 180, moment().subtract(1, 'seconds').toDate());
         const transactionResponse = await testData.centralUserService.transactionApi.readById(transactionStartResponse.transactionId);
         transaction1 = transactionResponse.data;
         await testData.chargingStationContext.setConnectorStatus(chargingStationConnector2Charging);
@@ -1050,7 +1050,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         testData.siteAreaContext.getSiteArea().maximumPower = 100000;
         await testData.userService.siteAreaApi.update(testData.siteAreaContext.getSiteArea());
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
-        expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
             'limit': 327
@@ -1064,7 +1064,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
             'limit': 327
           }
         ]);
-        expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+        expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
             'startPeriod': 0,
             'limit': 86
@@ -1086,7 +1086,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
           await TestData.sendMeterValue(Voltage.VOLTAGE_400, 100, transaction, testData.chargingStationContext);
           await TestData.sendMeterValue(Voltage.VOLTAGE_400, 75, transaction1, testData.chargingStationContext);
           const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
-          let chargingProfile = TestData.validateAndReturnChargingProfile(chargingProfiles, transaction)
+          let chargingProfile = TestData.validateAndReturnChargingProfile(chargingProfiles, transaction);
           expect(chargingProfile.profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
@@ -1102,7 +1102,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
             },
           ]);
           await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfile);
-          chargingProfile = TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1)
+          chargingProfile = TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1);
           expect(chargingProfile.profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
@@ -1160,7 +1160,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
         'Test for sticky limit disabled - two cars charging with lower site area limit',
         async () => {
           const chargingProfiles = await smartChargingIntegrationWithoutStickyLimit.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
-          expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
               'limit': 327
@@ -1174,7 +1174,7 @@ describeif(testData.chargingSettingProvided)('Smart Charging Service', () => {
               'limit': 327
             }
           ]);
-          expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction1).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          expect(TestData.validateAndReturnChargingProfile(chargingProfiles, transaction).profile.chargingSchedule.chargingSchedulePeriod).containSubset([
             {
               'startPeriod': 0,
               'limit': 86

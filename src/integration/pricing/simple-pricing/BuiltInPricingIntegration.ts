@@ -23,7 +23,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
 
   public async startSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       module: MODULE_NAME,
@@ -41,7 +41,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
 
   public async stopSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       module: MODULE_NAME,
@@ -55,7 +55,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
 
   public async endSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData, chargingStation);
-    await Logging.logInfo({
+    Logging.beInfo()?.log({
       ...LoggingHelper.getTransactionProperties(transaction),
       tenantID: this.tenant.id,
       module: MODULE_NAME,
@@ -69,7 +69,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
 
   public async resolvePricingContext(pricingContext: PricingContext): Promise<ResolvedPricingModel> {
     if (!PricingHelper.checkContextConsistency(pricingContext)) {
-      await Logging.logError({
+      Logging.beError()?.log({
         ...LoggingHelper.getPricingContextProperties(pricingContext),
         tenantID: this.tenant.id,
         module: MODULE_NAME,

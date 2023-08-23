@@ -46,7 +46,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                 }
               ]).toArray();
             if (!Utils.isEmptyArray(transactionsMDB)) {
-              await Logging.logInfo({
+              Logging.beInfo()?.log({
                 tenantID: tenant.id,
                 action: ServerAction.OCPI_CPO_PUSH_CDRS,
                 module: MODULE_NAME, method: 'processTenant',
@@ -60,7 +60,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                     // Get Transaction
                     const transaction = await TransactionStorage.getTransaction(tenant, transactionMDB._id, { withUser: true });
                     if (!transaction) {
-                      await Logging.logError({
+                      Logging.beError()?.log({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_CPO_PUSH_CDRS,
                         module: MODULE_NAME, method: 'processTenant',
@@ -69,7 +69,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                       continue;
                     }
                     if (transaction.ocpiData?.cdr) {
-                      await Logging.logInfo({
+                      Logging.beInfo()?.log({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_CPO_PUSH_CDRS,
                         module: MODULE_NAME, method: 'processTenant',
@@ -80,7 +80,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                     // Get Charging Station
                     const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID, { withSiteArea: true });
                     if (!chargingStation) {
-                      await Logging.logError({
+                      Logging.beError()?.log({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_CPO_PUSH_CDRS,
                         module: MODULE_NAME, method: 'processTenant',
@@ -91,7 +91,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                     // Get Tag
                     const tag = await TagStorage.getTag(tenant, transaction.tagID);
                     if (!tag) {
-                      await Logging.logError({
+                      Logging.beError()?.log({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_CPO_PUSH_CDRS,
                         module: MODULE_NAME, method: 'processTenant',
@@ -103,7 +103,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                     await OCPIFacade.processEndTransaction(tenant, transaction, chargingStation, chargingStation.siteArea, transaction.user, ServerAction.OCPI_CPO_PUSH_CDRS);
                     // Save
                     await TransactionStorage.saveTransactionOcpiData(tenant, transaction.id, transaction.ocpiData);
-                    await Logging.logInfo({
+                    Logging.beInfo()?.log({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_CPO_PUSH_CDRS,
                       actionOnUser: (transaction.user ? transaction.user : null),
@@ -112,7 +112,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
                       detailedMessages: { cdr: transaction.ocpiData.cdr }
                     });
                   } catch (error) {
-                    await Logging.logError({
+                    Logging.beError()?.log({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_CPO_PUSH_CDRS,
                       module: MODULE_NAME, method: 'processTenant',
@@ -131,7 +131,7 @@ export default class OCPIPushCdrsTask extends TenantSchedulerTask {
         }
       }
     } catch (error) {
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_CDRS, error as Error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_PUSH_CDRS, error as Error);
     }
   }
 }

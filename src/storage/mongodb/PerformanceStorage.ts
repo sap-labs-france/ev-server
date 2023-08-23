@@ -1,7 +1,9 @@
 import PerformanceRecord, { PerformanceRecordGroup } from '../../types/Performance';
 import global, { FilterParams } from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 
 import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import DatabaseUtils from './DatabaseUtils';
 import { DeletedResult } from '../../types/DataResult';
 import { LabelValues } from 'prom-client';
@@ -34,7 +36,7 @@ export default class PerformanceStorage {
     return Promise.resolve(new ObjectId().toString());
   }
 
-  public static async updatePerformanceRecord(performanceRecord: PerformanceRecord, labelValues: LabelValues<string>): Promise<void> {
+  public static async updatePerformanceRecord(performanceRecord: PerformanceRecord, labelValues: LabelValues<string> = null): Promise<void> {
     if (PERFS_ENABLED) {
       // Validate
       const performanceRecordMDB = PerformanceValidatorStorage.getInstance().validatePerformance(performanceRecord);
@@ -73,6 +75,7 @@ export default class PerformanceStorage {
 
   private static savePrometheusMetric(performanceRecord: PerformanceRecord, labelValues:LabelValues<string>) {
     // const grafanaGroup = performanceRecord.group.replace('-', ''); // ACHTUNG - does not work - only replaces the first occurrence!
+
     const grafanaGroup = performanceRecord.group.replace(/-/g, '');
     const values = Object.values(labelValues).toString();
     const hashCode = Utils.positiveHashCode(values);

@@ -35,7 +35,7 @@ export default class OCPIPushEVSEStatusesAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_UPDATE_STATUS, error);
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CPO_UPDATE_STATUS, error);
       }
     }
   }
