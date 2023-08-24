@@ -279,17 +279,19 @@ export default class ChargingStationStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { _id: 1 };
-    }
+    // if (!dbParams.sort) {
+    //   dbParams.sort = { _id: 1 };
+    // }
     // Position coordinates
     if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
       // Override (can have only one sort)
       dbParams.sort = { distanceMeters: 1 };
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
+    if (dbParams.sort) {
+      aggregation.push({
+        $sort: dbParams.sort
+      });
+    }
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -333,9 +335,11 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Reorder connector ID
     if (!Utils.hasValidGpsCoordinates(params.locCoordinates)) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
+      if (dbParams.sort) {
+        aggregation.push({
+          $sort: dbParams.sort
+        });
+      }
     }
     // Read DB
     const chargingStationsMDB = await global.database.getCollection<any>(tenant.id, 'chargingstations')
