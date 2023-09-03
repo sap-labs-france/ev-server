@@ -72,7 +72,7 @@ export default class RawNotificationStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (dbParams.sort) {
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
       aggregation.push({
         $sort: dbParams.sort
       });

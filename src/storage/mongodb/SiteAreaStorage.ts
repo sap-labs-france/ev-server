@@ -385,17 +385,15 @@ export default class SiteAreaStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Add Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { name: 1 };
-    }
-    // Position coordinates
+    // Sort
     if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
-      dbParams.sort = { distanceMeters: 1 };
+      dbParams.sort = { distanceMeters: 1 }; // TBC - This overrides the caller sorting criteria
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
+    }
     // Skip
     aggregation.push({
       $skip: dbParams.skip

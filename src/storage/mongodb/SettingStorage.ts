@@ -371,7 +371,7 @@ export default class SettingStorage {
     // Rename ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
-    if (!dbParams.sort) {
+    if (!dbParams.sort) { // TODO - remove implicit sorting - should be specified by the calling layer
       dbParams.sort = { identifier: 1 };
     }
     aggregation.push({

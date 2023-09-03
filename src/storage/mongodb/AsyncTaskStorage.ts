@@ -99,12 +99,11 @@ export default class AsyncTaskStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { createdOn: -1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     if (dbParams.skip > 0) {
       aggregation.push({ $skip: dbParams.skip });

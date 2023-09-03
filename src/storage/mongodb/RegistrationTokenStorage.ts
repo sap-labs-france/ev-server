@@ -114,12 +114,11 @@ export default class RegistrationTokenStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { expirationDate: -1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     if (dbParams.skip > 0) {
       aggregation.push({ $skip: dbParams.skip });

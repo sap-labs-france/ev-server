@@ -189,12 +189,11 @@ export default class TagStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { status: -1, name: 1, firstName: 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -408,12 +407,12 @@ export default class TagStorage {
     }
     // Remove the limit
     aggregation.pop();
-    if (!dbParams.sort) {
-      dbParams.sort = { createdOn: -1 };
+    // Sort
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip

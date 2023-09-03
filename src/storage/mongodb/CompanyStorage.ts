@@ -174,16 +174,15 @@ export default class CompanyStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { name: 1 };
-    }
-    // Position coordinates
     if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
+      // Position coordinates
       dbParams.sort = { distanceMeters: 1 };
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
+    }
     // Skip
     if (dbParams.skip > 0) {
       aggregation.push({ $skip: dbParams.skip });

@@ -656,17 +656,16 @@ export default class TransactionStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { timestamp: -1 };
-    }
-    if (!dbParams.sort.timestamp) {
-      aggregation.push({
-        $sort: { ...dbParams.sort, timestamp: -1 }
-      });
-    } else {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      if (!dbParams.sort.timestamp) {
+        aggregation.push({
+          $sort: { ...dbParams.sort, timestamp: -1 }
+        });
+      } else {
+        aggregation.push({
+          $sort: dbParams.sort
+        });
+      }
     }
     // Skip
     aggregation.push({
@@ -884,17 +883,16 @@ export default class TransactionStorage {
     // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
     // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { timestamp: -1 };
-    }
-    if (!dbParams.sort.timestamp) {
-      aggregation.push({
-        $sort: { ...dbParams.sort, timestamp: -1 }
-      });
-    } else {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      if (!dbParams.sort.timestamp) {
+        aggregation.push({
+          $sort: { ...dbParams.sort, timestamp: -1 }
+        });
+      } else {
+        aggregation.push({
+          $sort: dbParams.sort
+        });
+      }
     }
     // Skip
     aggregation.push({
@@ -1058,12 +1056,11 @@ export default class TransactionStorage {
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { _id: 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip

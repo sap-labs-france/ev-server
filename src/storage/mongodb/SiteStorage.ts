@@ -169,12 +169,11 @@ export default class SiteStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { 'user.name': 1, 'user.firstName': 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -426,17 +425,16 @@ export default class SiteStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { name: 1 };
-    }
     // Position coordinates
     if (Utils.hasValidGpsCoordinates(params.locCoordinates)) {
-      dbParams.sort = { distanceMeters: 1 };
+      dbParams.sort = { distanceMeters: 1 }; // TBC - this overrides the caller sorting criteria
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
+    // Sort
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
+    }
     // Skip
     aggregation.push({
       $skip: dbParams.skip

@@ -86,12 +86,11 @@ export default class CarStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { name: 1 };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     if (dbParams.skip > 0) {
       aggregation.push({ $skip: dbParams.skip });
@@ -469,17 +468,11 @@ export default class CarStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = {
-        'carCatalog.vehicleMake': 1,
-        'carCatalog.vehicleModel': 1,
-        'carCatalog.vehicleModelVersion': 1,
-        'licensePlate': 1,
-      };
+    if (dbParams.sort) { // No implicit sort - caller MUST provide the sorting criteria
+      aggregation.push({
+        $sort: dbParams.sort
+      });
     }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
     // Skip
     if (dbParams.skip > 0) {
       aggregation.push({ $skip: dbParams.skip });
