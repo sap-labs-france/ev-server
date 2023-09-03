@@ -5,7 +5,9 @@ import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../..
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
+import User, { UserRole } from '../../../types/User';
 
+import AppError from '../../../exception/AppError';
 import AsyncTaskBuilder from '../../../async-task/AsyncTaskBuilder';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -17,6 +19,7 @@ import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
+import { HTTPError } from '../../../types/HTTPError';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import LoggingHelper from '../../../utils/LoggingHelper';
@@ -29,7 +32,6 @@ import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Stripe from 'stripe';
 import Tenant from '../../../types/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
@@ -273,7 +275,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return stripeInvoice;
   }
 
-  private async createStripeInvoice(customerID: string, userID: string, idempotencyKey: string, currency: string): Promise<Stripe.Invoice> {
+  private async createStripeInvoice(customerID: string, userID: string, idempotencyKey: string, currency: string, lastPaymentIntentID?: string): Promise<Stripe.Invoice> {
     const creationParameters: Stripe.InvoiceCreateParams = {
       customer: customerID,
       // collection_method: 'send_invoice', //Default option is 'charge_automatically'
@@ -281,7 +283,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       auto_advance: false, // our integration is responsible for transitioning the invoice between statuses
       metadata: {
         tenantID: this.tenant.id,
-        userID
+        userID,
+        lastPaymentIntentID
       },
       currency
     };
@@ -471,10 +474,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoice;
   }
 
-  private async chargeStripeInvoice(invoiceID: string): Promise<StripeChargeOperationResult> {
+  private async chargeStripeInvoice(invoiceID: string, user?: User, lastPaymentIntentID = null): Promise<StripeChargeOperationResult> {
     try {
       // Fetch the invoice from stripe (do NOT TRUST the local copy)
       let stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(invoiceID);
+      const paymentOptions: Stripe.InvoicePayParams = {};
       // Check the current invoice status
       if (stripeInvoice.status !== BillingInvoiceStatus.PAID) {
         // Finalize the invoice (if necessary)
@@ -484,8 +488,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Once finalized, the invoice is in the "open" state!
         if (stripeInvoice.status === BillingInvoiceStatus.OPEN
           || stripeInvoice.status === BillingInvoiceStatus.UNCOLLECTIBLE) {
-          // Set the payment options
-          const paymentOptions: Stripe.InvoicePayParams = {};
+          if (lastPaymentIntentID) {
+            const paymentIntent = await this.stripe.paymentIntents.retrieve(lastPaymentIntentID as string);
+            if (stripeInvoice.amount_due <= paymentIntent.amount) {
+              await this.capturePayment(user, stripeInvoice.amount_due, lastPaymentIntentID as string);
+              // Paid out of band tells stripe we captured the invoice amount from the hold amount, invoice is paid outside the stripe's standard flow
+              paymentOptions.paid_out_of_band = true;
+            } else {
+              paymentOptions.payment_method = paymentIntent.payment_method as string;
+            }
+          }
           stripeInvoice = await this.stripe.invoices.pay(invoiceID, paymentOptions);
         }
       }
@@ -501,8 +513,75 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  public async setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
+  // Called once at step #1 once at step #2 with or without paymentIntentID to know where the call comes from
+  public async setupPaymentIntent(user: User, paymentIntentID: string, scanPayAmount?: number, currency?: string): Promise<BillingOperationResult> {
     // Check Stripe
+    await this.checkConnection();
+    // Check billing data consistency
+    let customerID = user?.billingData?.customerID;
+    if (!customerID) {
+      // User Sync is now made implicitly - LAZY mode
+      const billingUser = await this.synchronizeUser(user);
+      customerID = billingUser?.billingData?.customerID;
+    }
+    // User should now exist
+    if (!customerID) {
+      throw new BackendError({
+        message: `User is not known in Stripe: '${user.id}')`,
+        module: MODULE_NAME,
+        method: 'setupPaymentIntent',
+        actionOnUser: user,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD
+      });
+    }
+    // Let's do it!
+    let billingOperationResult: BillingOperationResult;
+    if (!paymentIntentID) {
+      // Let's create a payment intent for the stripe customer
+      billingOperationResult = await this.createPaymentIntent(user, customerID, scanPayAmount, currency);
+    } else {
+      // Retrieve payment intent
+      billingOperationResult = await this.retrievePaymentIntent(user, paymentIntentID);
+    }
+    return billingOperationResult;
+  }
+
+  // Only called when final amount is less than holded amount
+  public async capturePayment(user: User, amount: number, paymentIntentID: string): Promise<BillingOperationResult> {
+    try {
+      // Let's capture the amount
+      const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.capture(paymentIntentID, {
+        amount_to_capture: amount
+      });
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        module: MODULE_NAME, method: 'capturePayment',
+        actionOnUser: user,
+        message: 'payment intent has been captured'
+      });
+      // Send some feedback
+      return {
+        succeeded: true,
+        internalData: paymentIntent
+      };
+    } catch (error) {
+      // catch stripe errors and send the information back to the client
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        actionOnUser: user,
+        module: MODULE_NAME, method: 'capturePayment',
+        message: `Stripe operation failed - ${error?.message as string}`
+      });
+      return {
+        succeeded: false,
+        error
+      };
+    }
+  }
+
+  public async setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
     await this.checkConnection();
     // Check billing data consistency
     let customerID = user?.billingData?.customerID;
@@ -770,8 +849,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const customerID: string = transaction.user?.billingData?.customerID;
     // Check whether the customer exists or not
     const customer = await this.checkStripeCustomer(customerID);
-    // Check whether the customer has a default payment method
-    await this.checkStripePaymentMethod(customer);
+    if (!transaction.lastPaymentIntentID) {
+      // Check whether the customer has a default payment method
+      await this.checkStripePaymentMethod(customer);
+    }
     // Well ... when in test mode we may allow to start the transaction
     if (!customerID) {
       // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
@@ -785,6 +866,66 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return {
       withBillingActive: true
     };
+  }
+
+  public async retrievePaymentIntent(user: User, paymentIntentId: string): Promise<BillingOperationResult> {
+    try {
+      // Let's retrieve the paymentIntent for the stripe customer
+      const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+      // Send some feedback
+      return {
+        succeeded: true,
+        internalData: paymentIntent
+      };
+    } catch (error) {
+      // catch stripe errors and send the information back to the client
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        actionOnUser: user,
+        module: MODULE_NAME, method: 'retrievePaymentIntent',
+        message: `Stripe operation failed - ${error?.message as string}`
+      });
+      return {
+        succeeded: false,
+        error
+      };
+    }
+  }
+
+  private async createPaymentIntent(user: User, customerID: string, scanPayAmount?: number, currency?: string): Promise<BillingOperationResult> {
+    try {
+      // Let's create a paymentIntent for the stripe customer
+      const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.create({
+        customer: customerID,
+        // Stripe wait for cents amount = x100, ui displays euros as db
+        amount: scanPayAmount * 100,
+        currency: currency.toLowerCase(),
+        setup_future_usage: 'off_session',
+        capture_method: 'manual',
+        receipt_email: user.email
+      });
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        module: MODULE_NAME, method: 'createPaymentIntent',
+        actionOnUser: user,
+        message: `Payment intent has been created - customer '${customerID}'`
+      });
+      // Send some feedback
+      return {
+        succeeded: true,
+        internalData: paymentIntent
+      };
+    } catch (error) {
+      // catch stripe errors and send the information back to the client
+      throw new AppError({
+        errorCode: HTTPError.SCAN_PAY_HOLD_AMOUNT_MISSING,
+        user: user,
+        module: MODULE_NAME, method: 'createPaymentIntent',
+        message: 'Scan & Pay hold amount is not configured'
+      });
+    }
   }
 
   private async checkStripeCustomer(customerID: string): Promise<Stripe.Customer> {
@@ -803,7 +944,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private async checkStripePaymentMethod(customer: Stripe.Customer): Promise<void> {
     if (Utils.isDevelopmentEnv() && customer.default_source) {
       // Specific situation used only while running tests
-      return ;
+      return;
     }
     if (!customer.invoice_settings?.default_payment_method) {
       throw new BackendError({
@@ -1022,9 +1163,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
         const accountData = await this.retrieveAccountData(transaction);
         // ACHTUNG: a single transaction may generate several lines in the invoice - one line per paring dimension
         const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction, accountData);
-        const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem);
+        const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem, transaction.lastPaymentIntentID);
         // Send a notification to the user
-        void this.sendInvoiceNotification(billingInvoice);
+        await this.sendInvoiceNotification(billingInvoice);
         return {
           status: BillingStatus.BILLED,
           invoiceID: billingInvoice.id,
@@ -1167,7 +1308,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return pricingConsumptionData;
   }
 
-  public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem): Promise<BillingInvoice> {
+  public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem, lastPaymentIntentID: string = null): Promise<BillingInvoice> {
     // Let's collect the required information
     let refreshDataRequired = false;
     const userID: string = user.id;
@@ -1175,14 +1316,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const currency = billingInvoiceItem.currency.toLowerCase();
     // Check whether a DRAFT invoice can be used or not
     let stripeInvoice: Stripe.Invoice = null;
-    if (!this.settings.billing?.immediateBillingAllowed) {
+    // we are NOT in the immediate billing scenario and we are NOT in the scan & pay flow
+    if (!this.settings.billing?.immediateBillingAllowed && !lastPaymentIntentID) {
       // immediateBillingAllowed is OFF - let's retrieve to the latest DRAFT invoice (if any)
       stripeInvoice = await this.getLatestDraftInvoiceOfTheMonth(this.tenant.id, userID, customerID);
     }
     if (FeatureToggles.isFeatureActive(Feature.BILLING_INVOICES_EXCLUDE_PENDING_ITEMS)) {
       if (!stripeInvoice) {
         // NEW STRIPE API - Invoice can mow be created before its items
-        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'), currency);
+        stripeInvoice = await this.createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'), currency, lastPaymentIntentID);
       }
       // Let's create an invoice item per dimension
       await this.createStripeInvoiceItems(customerID, billingInvoiceItem, stripeInvoice.id);
@@ -1199,9 +1341,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
     }
     let operationResult: StripeChargeOperationResult;
-    if (this.settings.billing?.immediateBillingAllowed) {
+    if (this.settings.billing?.immediateBillingAllowed || lastPaymentIntentID) {
       // Let's try to bill the stripe invoice using the default payment method of the customer
-      operationResult = await this.chargeStripeInvoice(stripeInvoice.id);
+      operationResult = await this.chargeStripeInvoice(stripeInvoice.id, user, lastPaymentIntentID);
       if (!operationResult?.succeeded && operationResult?.error) {
         await Logging.logError({
           tenantID: this.tenant.id,
@@ -1452,7 +1594,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     await this.checkIfUserCanBeUpdated(user);
     // Let's check if the STRIPE customer exists
-    const customerID:string = user?.billingData?.customerID;
+    const customerID : string = user?.billingData?.customerID;
     if (!customerID) {
       throw new Error('Unexpected situation - the customerID is NOT set');
     }
@@ -1568,8 +1710,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     try {
       // Check whether the customer exists or not
       const customer = await this.checkStripeCustomer(customerID);
-      // Check whether the customer has a default payment method
-      await this.checkStripePaymentMethod(customer);
+      if (user.role !== UserRole.EXTERNAL) {
+        // Check whether the customer has a default payment method
+        await this.checkStripePaymentMethod(customer);
+      }
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,

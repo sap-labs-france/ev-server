@@ -332,6 +332,21 @@
         }
       ]
     },
+    "billing-new-invoice-unpaid-scan-pay": {
+      "title": "Billing - New Invoice",
+      "buttonText": "Pay Invoice",
+      "text": [
+        "Please follow the link below to finalize the payment.",
+        "",
+        "The invoice {{invoiceNumber}} has been generated. You can download the corresponding document following the link below once paid"
+      ],
+      "table": [
+        {
+          "label": "Amount Due",
+          "value": "{{invoiceAmount}}"
+        }
+      ]
+    },
     "charging-station-registered": {
       "title": "Ladestation Verbunden",
       "buttonText": "Ladestation anzeigen",
@@ -398,6 +413,15 @@
       "buttonText": "Ladevorgang anzeigen",
       "text": [
         "Ihr Fahrzeug wurde mit der Ladestation {{chargeBoxID}} an Ladepunkt {{connectorId}} verbunden."
+      ]
+    },
+    "scan-pay-session-started": {
+      "title": "Session Started",
+      "buttonText": "Stop Session",
+      "text": [
+        "Your vehicle has been connected to the charging station {{chargeBoxID}} on connector {{connectorId}}.",
+        "",
+        "Click on the link below to stop the transaction"
       ]
     },
     "verification-email": {
@@ -528,6 +552,13 @@
         "Ihre E-Mail wurde erfolgreich verifiziert.",
         "",
         "Ein Administrator wird Ihr Benutzerkonto prüfen und es aktivieren."
+      ]
+    },
+    "scan-pay-account-verification-notification": {
+      "title": "Verify your email and proceed to charging",
+      "buttonText": "Proceed to charging",
+      "text": [
+        "Click on the link below to verify your email and proceed to charging."
       ]
     },
     "admin-account-verification-notification": {

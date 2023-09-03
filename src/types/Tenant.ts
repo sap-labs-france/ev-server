@@ -29,6 +29,7 @@ export interface TenantComponent {
   asset?: TenantComponentContent;
   car?: TenantComponentContent;
   carConnector?: TenantComponentContent;
+  scanPay?: TenantComponentContent;
 }
 
 export interface TenantComponentContent {
@@ -54,5 +55,6 @@ export enum TenantComponents {
   ASSET = 'asset',
   SMART_CHARGING = 'smartCharging',
   CAR = 'car',
-  CAR_CONNECTOR = 'carConnector'
+  CAR_CONNECTOR = 'carConnector',
+  SCAN_PAY = 'scanPay',
 }

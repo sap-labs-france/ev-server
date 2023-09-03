@@ -1,0 +1,43 @@
+{
+  "$id": "auth-scan-pay-verify-email",
+  "title": "Send scan and pay verification email",
+  "type": "object",
+  "properties": {
+    "email": {
+      "$ref": "user#/definitions/email"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 100,
+      "transform": ["toUpperCase"],
+      "sanitize": "mongo"
+    },
+    "firstName": {
+      "type": "string",
+      "maxLength": 100,
+      "sanitize": "mongo"
+    },
+    "captcha": {
+      "$ref": "common#/definitions/captcha"
+    },
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "connectorID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "locale": {
+      "type": "string",
+      "sanitize": "mongo",
+      "maxLength": 5
+    }
+  },
+  "required": [
+    "name",
+    "firstName",
+    "email",
+    "captcha",
+    "chargingStationID",
+    "connectorID"
+  ]
+}

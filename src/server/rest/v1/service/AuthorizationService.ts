@@ -5,7 +5,7 @@ import { Car, CarCatalog } from '../../../../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import ChargingStation, { ChargingStationTemplate } from '../../../../types/ChargingStation';
 import { HttpAssetGetRequest, HttpAssetsGetRequest } from '../../../../types/requests/HttpAssetRequest';
-import { HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingTransferGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingScanPayRequest, HttpBillingTransferGetRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 import { HttpCarCatalogGetRequest, HttpCarCatalogsGetRequest, HttpCarGetRequest, HttpCarsGetRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingProfileRequest, HttpChargingProfilesGetRequest, HttpChargingStationGetRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpChargingStationTemplateGetRequest, HttpChargingStationTemplatesGetRequest } from '../../../../types/requests/HttpChargingStationTemplateRequest';
@@ -94,6 +94,8 @@ export default class AuthorizationService {
       tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS, authorizationFilter, { SiteID: site.id }, site);
     site.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR, authorizationFilter, { SiteID: site.id }, site);
+    site.canGenerateQrCodeScanPay = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR_SCAN_PAY, authorizationFilter, { SiteID: site.id }, site);
     site.canAssignUnassignUsers = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE, Action.ASSIGN_UNASSIGN_USERS, authorizationFilter, { SiteID: site.id }, site);
     site.canListSiteUsers = await AuthorizationService.canPerformAuthorizationAction(
@@ -671,6 +673,8 @@ export default class AuthorizationService {
       tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     siteArea.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
+    siteArea.canGenerateQrCodeScanPay = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR_SCAN_PAY, authorizationFilter, { SiteAreaID: siteArea.id, SiteID: siteArea.siteID }, siteArea);
     // Optimize data over the net
     Utils.removeCanPropertiesWithFalseValue(siteArea);
   }
@@ -795,6 +799,9 @@ export default class AuthorizationService {
     chargingStation.canDelete = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.DELETE, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+    chargingStation.canGetConnectorQRCodeScanPay = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.GET_CONNECTOR_QR_CODE_SCAN_PAY, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
     chargingStation.canReserveNow = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.RESERVE_NOW, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
@@ -848,6 +855,9 @@ export default class AuthorizationService {
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
     chargingStation.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.GENERATE_QR, authorizationFilter,
+      { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
+    chargingStation.canGenerateQrCodeScanPay = await AuthorizationService.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATION, Action.GENERATE_QR_SCAN_PAY, authorizationFilter,
       { chargingStationID: chargingStation.id, SiteID: chargingStation.siteID }, chargingStation);
     chargingStation.canMaintainPricingDefinitions = await AuthorizationService.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATION, Action.MAINTAIN_PRICING_DEFINITIONS, authorizationFilter,
@@ -1090,6 +1100,13 @@ export default class AuthorizationService {
       tenant, userToken, Entity.PAYMENT_METHOD, Action.LIST, authorizations,
       filteredRequest.userID ? { UserID: filteredRequest.userID } : {}, null, failsWithException);
     return authorizations;
+  }
+
+  // EntityData is not usable here, the object is returned via external API call
+  public static async checkAndGetPaymentIntentAuthorizations(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<HttpBillingScanPayRequest>, authAction: Action, entityData?: EntityData): Promise<AuthorizationFilter> {
+    return AuthorizationService.checkAndGetEntityAuthorizations(
+      tenant, Entity.PAYMENT_INTENT, userToken, filteredRequest, {}, authAction, entityData);
   }
 
   // EntityData is not usable here, the object is returned via external API call

@@ -195,6 +195,7 @@ export default abstract class BillingIntegration {
             invoiceAmount: invoiceAmount,
             invoiceNumber: billingInvoice.number,
             invoiceStatus: billingInvoice.status,
+            evseScanPayInvoiceDownloadURL: Utils.buildEvseScanPayInvoiceDownloadURL(this.tenant.subdomain, billingInvoice.id, user),
           }
         ).catch((error) => {
           Logging.logPromiseError(error, this.tenant?.id);
@@ -504,7 +505,7 @@ export default abstract class BillingIntegration {
         };
         transaction.billingData = {
           withBillingActive: false,
-          lastUpdate:new Date(),
+          lastUpdate: new Date(),
           stop
         };
         // Save to clear billing data
@@ -639,7 +640,7 @@ export default abstract class BillingIntegration {
       endDateTime = moment().add(-1,'days').endOf('day').toDate(); // yesterday at midnight
     }
     // Filter the invoice status based on the billing settings
-    const invoiceStatus = [ BillingInvoiceStatus.OPEN ];
+    const invoiceStatus = [BillingInvoiceStatus.OPEN];
     // Now return the query parameters
     return {
       // --------------------------------------------------------------------------------
@@ -717,6 +718,12 @@ export default abstract class BillingIntegration {
   public abstract billPlatformFee(transfer: BillingTransfer, user: User, billingAccount: BillingAccount): Promise<BillingPlatformInvoice>;
 
   public abstract sendTransfer(transfer: BillingTransfer, user: User): Promise<string>;
+
+  public abstract setupPaymentIntent(user: User, paymentIntentID: string, scanPayAmount?: number, currency?: string): Promise<BillingOperationResult>;
+
+  public abstract capturePayment(user: User, amount: number, paymentIntentId: string): Promise<BillingOperationResult>;
+
+  public abstract retrievePaymentIntent(user: User, paymentIntentId: string): Promise<BillingOperationResult>;
 
   public async isUserSynchronized(user: User): Promise<boolean> {
     // Make sure to get fresh data

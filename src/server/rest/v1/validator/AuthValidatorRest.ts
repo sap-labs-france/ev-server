@@ -1,4 +1,4 @@
-import { HttpCheckEulaRequest, HttpEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpCheckEulaRequest, HttpEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpScanPayVerifyEmailRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -14,6 +14,7 @@ export default class AuthValidatorRest extends SchemaValidator {
   private authEmailVerify: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-email-verify.json`, 'utf8'));
   private authVerificationEmailResend: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-verification-email-resend.json`, 'utf8'));
   private authEula: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-eula.json`, 'utf8'));
+  private authScanPayVerifyEmail: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-scan-pay-verify-email.json`, 'utf8'));
 
   private constructor() {
     super('AuthValidatorRest');
@@ -52,5 +53,10 @@ export default class AuthValidatorRest extends SchemaValidator {
 
   public validateAuthEulaReq(data: Record<string, unknown>): Partial<HttpEulaRequest> {
     return this.validate(this.authEula, data);
+  }
+
+  // Called at step #0 from unsecured "enter your email" UI
+  public validateScanPayVerifyEmailReq(data: Record<string, unknown>): HttpScanPayVerifyEmailRequest {
+    return this.validate(this.authScanPayVerifyEmail, data);
   }
 }

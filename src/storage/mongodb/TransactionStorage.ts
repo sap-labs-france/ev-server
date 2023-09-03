@@ -100,6 +100,7 @@ export default class TransactionStorage {
       currentInstantAmpsL3: Utils.convertToInt(transactionToSave.currentInstantAmpsL3),
       currentInstantAmpsDC: Utils.convertToInt(transactionToSave.currentInstantAmpsDC),
       migrationTag: transactionToSave.migrationTag,
+      lastPaymentIntentID: transactionToSave.lastPaymentIntentID
     };
     if (transactionToSave.phasesUsed) {
       transactionMDB.phasesUsed = {

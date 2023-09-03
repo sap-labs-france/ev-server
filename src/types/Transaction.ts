@@ -138,6 +138,7 @@ export default interface Transaction extends AbstractCurrentConsumption, Transac
   refundData?: TransactionRefundData;
   migrationTag?: string;
   authorizationID?: string;
+  lastPaymentIntentID?: string;
 }
 
 export interface TransactionStats extends DatabaseCount {

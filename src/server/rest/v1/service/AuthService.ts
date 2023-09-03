@@ -1,11 +1,12 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
-import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpLoginRequest, HttpResetPasswordRequest, HttpScanPayVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import AuthValidatorRest from '../validator/AuthValidatorRest';
 import Authorizations from '../../../../authorization/Authorizations';
+import BillingService from './BillingService';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import { Details } from 'express-useragent';
@@ -278,6 +279,44 @@ export default class AuthService {
     next();
   }
 
+  public static async checkAndSendVerifyScanPayEmail(tenant: Tenant, filteredRequest: HttpScanPayVerifyEmailRequest, action: ServerAction, req: Request,
+      res: Response, next: NextFunction): Promise<void> {
+    if (!filteredRequest.captcha) {
+      throw new AppError({
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The captcha is mandatory',
+        module: MODULE_NAME,
+        method: 'checkAndSendVerifyScanPayEmail'
+      });
+    }
+    // Check reCaptcha
+    await UtilsService.checkReCaptcha(tenant, action, 'checkAndSendVerifyScanPayEmail',
+      centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
+    const tag = await BillingService.handleUserScanPay(filteredRequest, tenant);
+    await Logging.logInfo({
+      tenantID: tenant.id,
+      user: tag.user, action: action,
+      module: MODULE_NAME,
+      method: 'checkAndSendVerifyScanPayEmail',
+      message: `User with Email '${req.body.email as string}' will receive an email to verify his email`
+    });
+    // Send notification
+    const evseDashboardVerifyScanPayEmailURL = Utils.buildEvseURL(req.tenant.subdomain) + '/auth/scan-pay?VerificationToken=' + tag.user.verificationToken + '&email=' + encodeURIComponent(tag.user.email) + '&chargingStationID=' + filteredRequest.chargingStationID + '&connectorID=' + filteredRequest.connectorID;
+    // Notify
+    await NotificationHandler.sendScanPayVerifyEmail(
+      tenant,
+      Utils.generateUUID(),
+      tag.user,
+      {
+        user: tag.user,
+        'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
+        'evseDashboardVerifyScanPayEmailURL': evseDashboardVerifyScanPayEmailURL
+      }
+    );
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   public static async resetUserPassword(tenant: Tenant, filteredRequest: Partial<HttpResetPasswordRequest>,
       action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get the user
@@ -330,6 +369,21 @@ export default class AuthService {
       // Send Confirmation Email for requesting a new password
       await AuthService.checkAndSendResetPasswordConfirmationEmail(req.tenant, filteredRequest, action, req, res, next);
     }
+  }
+
+  public static async handleScanPayVerifyEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleScanPayVerifyEmail', action: action,
+      });
+    }
+    // Filter
+    const filteredRequest = AuthValidatorRest.getInstance().validateScanPayVerifyEmailReq(req.body);
+    // Send verification email to validae email is valid
+    await AuthService.checkAndSendVerifyScanPayEmail(req.tenant, filteredRequest, action, req, res, next);
   }
 
   public static async handleCheckEndUserLicenseAgreement(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

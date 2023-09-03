@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { ChargingStationRegisteredNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NotificationSeverity, NotificationSource, OptimalChargeReachedNotification, TransactionStartedNotification } from '../types/UserNotifications';
+import { ChargingStationRegisteredNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NotificationSeverity, NotificationSource, OptimalChargeReachedNotification, ScanPayTransactionStartedNotification, TransactionStartedNotification } from '../types/UserNotifications';
 import User, { UserRole } from '../types/User';
 
 import ChargingStation from '../types/ChargingStation';
@@ -32,6 +32,14 @@ export default class NotificationHelper {
     if (user?.notificationsActive && user.notifications.sendSessionStarted) {
       setTimeout(() => {
         NotificationHelper.getSessionNotificationHelper(tenant, transaction, chargingStation, user).notifyStartTransaction();
+      }, 500);
+    }
+  }
+
+  public static notifyScanPayStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
+    if (user?.notificationsActive) {
+      setTimeout(() => {
+        NotificationHelper.getSessionNotificationHelper(tenant, transaction, chargingStation, user).notifyScanPayStartTransaction();
       }, 500);
     }
   }
@@ -244,6 +252,32 @@ export class SessionNotificationHelper extends ChargerNotificationHelper {
     });
   }
 
+  public notifyScanPayStartTransaction() {
+    const tenant = this.tenant;
+    const transaction = this.transaction;
+    const chargingStation = this.chargingStation;
+    const user = this.user;
+    // Notification data
+    const data: ScanPayTransactionStartedNotification = {
+      user,
+      transactionId: transaction.id,
+      chargeBoxID: chargingStation.id,
+      siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
+      connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+      evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+      evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+      evseStopScanPayTransactionURL: Utils.buildEvseScanPayStopTransactionURL(tenant.subdomain, transaction.id, user.email, user.verificationToken)
+    };
+    // Do it
+    NotificationHelper.notifySingleUser((channel: NotificationSource) => {
+      channel.notificationTask.sendScanPaySessionStarted(data, user, tenant, NotificationSeverity.INFO).catch((error) => {
+        Logging.logPromiseError(error, tenant?.id);
+      });
+    });
+  }
+
   public notifyEndOfCharge() {
     const tenant = this.tenant;
     const transaction = this.transaction;
@@ -263,7 +297,7 @@ export class SessionNotificationHelper extends ChargerNotificationHelper {
       totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
       stateOfCharge: transaction.currentStateOfCharge,
       totalDuration: Utils.transactionDurationToString(transaction),
-      evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+      evseDashboardChargingStationURL: user.role === UserRole.EXTERNAL ? Utils.buildEvseScanPayStopTransactionURL(tenant.subdomain, transaction.id, user.email, user.verificationToken) : Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
       evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
     };
     // Do it
@@ -300,7 +334,7 @@ export class SessionNotificationHelper extends ChargerNotificationHelper {
       connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
       totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
       stateOfCharge: transaction.currentStateOfCharge,
-      evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+      evseDashboardChargingStationURL: user.role === UserRole.EXTERNAL ? Utils.buildEvseScanPayStopTransactionURL(tenant.subdomain, transaction.id, user.email, user.verificationToken) : Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
       evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
     };
       // Do it
@@ -340,7 +374,7 @@ export class SessionNotificationHelper extends ChargerNotificationHelper {
       totalDuration: Utils.transactionDurationToString(transaction),
       totalInactivity: this.transactionInactivityToString(),
       stateOfCharge: transaction.stop.stateOfCharge,
-      evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
+      evseDashboardChargingStationURL: user.role === UserRole.EXTERNAL ? Utils.buildEvseScanPayStopTransactionURL(tenant.subdomain, transaction.id, user.email, user.verificationToken) : Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
       evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
     };
       // Do it

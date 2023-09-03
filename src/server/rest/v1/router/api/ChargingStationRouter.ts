@@ -34,10 +34,12 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationRemoteStop();
     this.buildRouteChargingStationUnlockConnector();
     this.buildRouteChargingStationGenerateQRCode();
+    this.buildRouteChargingStationGenerateQRCodeScanPay();
     this.buildRouteChargingStationGetCompositeSchedule();
     this.buildRouteChargingStationGetDiagnostics();
     this.buildRouteChargingStationUpdateFirmware();
     this.buildRouteChargingStationDownloadQRCode();
+    this.buildRouteChargingStationDownloadQRCodeScanPay();
     this.buildRouteChargingStationGetOCPPParameters();
     this.buildRouteChargingStationExportOCPPParameters();
     this.buildRouteChargingStationUpdateParameters();
@@ -164,9 +166,24 @@ export default class ChargingStationRouter {
     });
   }
 
+  private buildRouteChargingStationGenerateQRCodeScanPay(): void {
+    this.router.get(`/${RESTServerRoute.REST_CHARGING_STATIONS_QRCODE_GENERATE_SCAN_PAY}`, (req: Request, res: Response, next: NextFunction) => {
+      req.query.ChargingStationID = req.params.id;
+      req.query.ConnectorID = req.params.connectorId;
+      void RouterUtils.handleRestServerAction(ChargingStationService.handleGenerateQrCodeForConnectorScanPay.bind(this),
+        ServerAction.GENERATE_QR_CODE_FOR_CONNECTOR_SCAN_PAY, req, res, next);
+    });
+  }
+
   private buildRouteChargingStationDownloadQRCode(): void {
     this.router.get(`/${RESTServerRoute.REST_CHARGING_STATIONS_QRCODE_DOWNLOAD}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleRestServerAction(ChargingStationService.handleDownloadQrCodesPdf.bind(this), ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_PDF, req, res, next);
+    });
+  }
+
+  private buildRouteChargingStationDownloadQRCodeScanPay(): void {
+    this.router.get(`/${RESTServerRoute.REST_CHARGING_STATIONS_QRCODE_SCAN_PAY_DOWNLOAD}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(ChargingStationService.handleDownloadQrCodesScanPayPdf.bind(this), ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_SCAN_PAY_PDF, req, res, next);
     });
   }
 

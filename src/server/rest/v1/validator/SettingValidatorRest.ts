@@ -26,6 +26,7 @@ export default class SettingValidatorRest extends SchemaValidator {
   private settingDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-delete.json`, 'utf8'));
   private settingByIdentifierGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-by-identifier-get.json`, 'utf8'));
   private settingsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/settings-get.json`, 'utf8'));
+  private settingScanPaySet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/setting/setting-scan-pay-set.json`, 'utf8'));
 
   private constructor() {
     super('SettingValidatorRest');
@@ -112,5 +113,9 @@ export default class SettingValidatorRest extends SchemaValidator {
 
   public validateSettingStatisticsSetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
     return this.validate(this.settingStatisticsSet, data);
+  }
+
+  public validateSettingScanPaySetReq(data: Record<string, unknown>): HttpSettingUpdateRequest {
+    return this.validate(this.settingScanPaySet, data);
   }
 }

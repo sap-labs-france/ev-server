@@ -224,6 +224,10 @@
         {
           "label": "Livello di carica della batteria",
           "value": "{{stateOfCharge}} %"
+        },
+        {
+          "label": "Battery Level",
+          "value": "{{stateOfCharge}} %"
         }
       ]
     },
@@ -234,6 +238,10 @@
         "La sessione sulla stazione di ricarica {{chargeBoxID}}, presa {{connectorId}} é appena terminata."
       ],
       "table": [
+        {
+          "label": "Session",
+          "value": "{{transactionId}}"
+        },
         {
           "label": "Consumo",
           "value": "{{totalConsumption}} kW.h"
@@ -279,6 +287,10 @@
       ],
       "table": [
         {
+          "label": "Session",
+          "value": "{{transactionId}}"
+        },
+        {
           "label": "Consumo",
           "value": "{{totalConsumption}} kW.h"
         },
@@ -316,6 +328,21 @@
       "table": [
         {
           "label": "Importo dovuto",
+          "value": "{{invoiceAmount}}"
+        }
+      ]
+    },
+    "billing-new-invoice-unpaid-scan-pay": {
+      "title": "Billing - New Invoice",
+      "buttonText": "Pay Invoice",
+      "text": [
+        "Please follow the link below to finalize the payment.",
+        "",
+        "The invoice {{invoiceNumber}} has been generated. You can download the corresponding document following the link below once paid"
+      ],
+      "table": [
+        {
+          "label": "Amount Due",
           "value": "{{invoiceAmount}}"
         }
       ]
@@ -386,6 +413,15 @@
       "buttonText": "Visualizzare la sessione",
       "text": [
         "Il veicolo é stato connesso alla stazione di ricarica {{chargeBoxID}} sulla presa {{connectorId}}."
+      ]
+    },
+    "scan-pay-session-started": {
+      "title": "Session Started",
+      "buttonText": "Stop Session",
+      "text": [
+        "Your vehicle has been connected to the charging station {{chargeBoxID}} on connector {{connectorId}}.",
+        "",
+        "Click on the link below to stop the transaction"
       ]
     },
     "verification-email": {
@@ -516,6 +552,13 @@
         "L'email è stata verificata con successso.",
         "",
         "Un amministratore procederà alla validazione e all'attivazione dell'account."
+      ]
+    },
+    "scan-pay-account-verification-notification": {
+      "title": "Verify your email and proceed to charging",
+      "buttonText": "Proceed to charging",
+      "text": [
+        "Click on the link below to verify your email and proceed to charging."
       ]
     },
     "admin-account-verification-notification": {

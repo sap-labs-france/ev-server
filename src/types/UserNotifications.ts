@@ -206,6 +206,13 @@ export interface VerificationEmailNotification extends BaseNotification {
   evseDashboardVerifyEmailURL: string;
 }
 
+export interface ScanPayVerifyEmailNotification extends BaseNotification {
+  user: User;
+  tenantName?: string;
+  evseDashboardURL: string;
+  evseDashboardVerifyScanPayEmailURL: string;
+}
+
 export interface ChargingStationStatusErrorNotification extends BaseNotification {
   chargeBoxID: string;
   siteID: string;
@@ -245,6 +252,10 @@ export interface TransactionStartedNotification extends BaseNotification {
   connectorId: string;
   evseDashboardURL: string;
   evseDashboardChargingStationURL: string;
+}
+
+export interface ScanPayTransactionStartedNotification extends TransactionStartedNotification {
+  evseStopScanPayTransactionURL: string;
 }
 
 export interface OICPPatchChargingStationsErrorNotification extends BaseNotification {
@@ -313,6 +324,7 @@ export interface BillingNewInvoiceNotification extends BaseNotification {
   invoiceNumber: string;
   invoiceAmount: string;
   invoiceStatus: string;
+  evseScanPayInvoiceDownloadURL?: string;
 }
 
 export interface BillingAccountCreationLinkNotification extends BaseNotification {

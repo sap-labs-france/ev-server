@@ -1,4 +1,4 @@
-import { HttpBillingAccountActivateRequest, HttpBillingAccountCreateRequest, HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingTransferFinalizeRequest, HttpBillingTransferGetRequest, HttpBillingTransferSendRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
+import { HttpBillingAccountActivateRequest, HttpBillingAccountCreateRequest, HttpBillingAccountGetRequest, HttpBillingAccountsGetRequest, HttpBillingInvoiceRequest, HttpBillingInvoicesRequest, HttpBillingScanPayRequest, HttpBillingScanPayStopTransactionRequest, HttpBillingScanPayTransactionRequest, HttpBillingTransferFinalizeRequest, HttpBillingTransferGetRequest, HttpBillingTransferSendRequest, HttpBillingTransfersGetRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../types/requests/HttpBillingRequest';
 
 import { BillingSettings } from '../../../../types/Setting';
 import Schema from '../../../../types/validator/Schema';
@@ -22,6 +22,7 @@ export default class BillingValidatorRest extends SchemaValidator {
   private billingTransferGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-transfer-get.json`, 'utf8'));
   private billingTransferFinalize: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-transfer-finalize.json`, 'utf8'));
   private billingTransferSend: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-transfer-send.json`, 'utf8'));
+  private billingScanPay: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/billing/billing-scan-pay.json`, 'utf8'));
 
   private constructor() {
     super('BillingValidatorRest');
@@ -88,5 +89,10 @@ export default class BillingValidatorRest extends SchemaValidator {
 
   public validateBillingTransferSendReq(data: Record<string, unknown>): HttpBillingTransferSendRequest {
     return this.validate(this.billingTransferSend, data);
+  }
+
+  // Called at step #1 and step #2 when user enter card details to start transaction
+  public validateBillingScanPayPaymentReq(data: Record<string, unknown>): HttpBillingScanPayRequest {
+    return this.validate(this.billingScanPay, data);
   }
 }

@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
+import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EmailNotificationMessage, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationResult, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, ScanPayTransactionStartedNotification, ScanPayVerifyEmailNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../types/UserNotifications';
 import EmailComponentManager, { EmailComponent } from './EmailComponentManager';
 import { Message, SMTPClient, SMTPError } from 'emailjs';
+import User, { UserRole } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
 import BrandingConstants from '../../utils/BrandingConstants';
@@ -14,7 +15,6 @@ import LoggingHelper from '../../utils/LoggingHelper';
 import NotificationTask from '../NotificationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
-import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import mjmlBuilder from './EmailMjmlBuilder';
 import rfc2047 from 'rfc2047';
@@ -181,11 +181,15 @@ export default class EMailNotificationTask implements NotificationTask {
     const optionalComponents = [await EmailComponentManager.getComponent(EmailComponent.MJML_TABLE)];
     let templateName: string;
     if (data.invoiceStatus === 'paid') {
-      data.buttonUrl = data.invoiceDownloadUrl;
+      if (user.role === UserRole.EXTERNAL) {
+        data.buttonUrl = data.evseScanPayInvoiceDownloadURL;
+      } else {
+        data.buttonUrl = data.invoiceDownloadUrl;
+      }
       templateName = 'billing-new-invoice-paid';
     } else {
       data.buttonUrl = data.payInvoiceUrl;
-      templateName = 'billing-new-invoice-unpaid';
+      templateName = user.role === UserRole.EXTERNAL ? 'billing-new-invoice-unpaid-scan-pay' : 'billing-new-invoice-unpaid';
     }
     return await this.prepareAndSendEmail(templateName, data, user, tenant, severity, optionalComponents);
   }
@@ -213,6 +217,18 @@ export default class EMailNotificationTask implements NotificationTask {
     } else {
       templateName = 'account-verification-notification-inactive';
     }
+    return await this.prepareAndSendEmail(templateName, data, user, tenant, severity);
+  }
+
+  public async sendScanPayVerifyEmailNotification(data: ScanPayVerifyEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
+    data.buttonUrl = data.evseDashboardVerifyScanPayEmailURL;
+    const templateName = 'scan-pay-account-verification-notification';
+    return await this.prepareAndSendEmail(templateName, data, user, tenant, severity);
+  }
+
+  public async sendScanPaySessionStarted(data: ScanPayTransactionStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<NotificationResult> {
+    data.buttonUrl = data.evseStopScanPayTransactionURL;
+    const templateName = 'scan-pay-session-started';
     return await this.prepareAndSendEmail(templateName, data, user, tenant, severity);
   }
 
@@ -364,6 +380,12 @@ export default class EMailNotificationTask implements NotificationTask {
       }
       // Enrich the sourceData with constant values
       this.enrichSourceData(tenant, sourceData);
+      // Handle + sign in email addresses
+      if (recipient.role === UserRole.EXTERNAL && recipient.email.includes('+')) {
+        const lastPlusSignIndex = recipient.email.lastIndexOf('+');
+        const atSignIndex = recipient.email.indexOf('@');
+        recipient.email = recipient.email.slice(0, lastPlusSignIndex) + recipient.email.slice(atSignIndex);
+      }
       // Build the context with recipient data
       const context: Record<string, unknown> = this.populateNotificationContext(tenant, recipient, sourceData);
       // Send the email

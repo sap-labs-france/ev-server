@@ -77,6 +77,7 @@ export interface HttpLoginRequest {
   email: string;
   password: string;
   acceptEula: boolean;
+  verificationToken?: string;
 }
 
 export interface HttpResetPasswordRequest {
@@ -85,6 +86,17 @@ export interface HttpResetPasswordRequest {
   password: string;
   hash: string;
 }
+
+export interface HttpScanPayVerifyEmailRequest {
+  email: string;
+  captcha: string;
+  locale: string;
+  name: string;
+  firstName: string;
+  connectorID: string;
+  chargingStationID: string;
+}
+
 export interface HttpCheckEulaRequest {
   Email: string;
 }

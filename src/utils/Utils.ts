@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, ScanPaySettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
 import { OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
@@ -985,8 +985,20 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenant.subdomain)}/auth/account-onboarding?TenantID=${tenant.id}&AccountID=${billingAccountID}`;
   }
 
+  public static buildEvseScanPayStopTransactionURL(tenantSubdomain: string, transactionID: number, email: string, verificationToken: string,): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/stop/${transactionID}/${encodeURIComponent(email)}/${encodeURIComponent(verificationToken)}`;
+  }
+
+  public static buildEvseScanPayInvoiceDownloadURL(tenantSubdomain: string, billingInvoiceID: string, user: User): string {
+    return `${Utils.buildEvseURL(tenantSubdomain) + '/auth/scan-pay/invoice/' + billingInvoiceID + '/download?VerificationToken=' + encodeURIComponent(user.verificationToken) + '&email=' + encodeURIComponent(user.email)}`;
+  }
+
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
     return `${Utils.buildEvseURL(tenantSubdomain)}/users/${userId}`;
+  }
+
+  public static buildEvseScanPayConnectorURL(tenantSubdomain: string, chargingStation: ChargingStation, connectorID: number): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/auth/scan-pay/${chargingStation.id}/${connectorID}`;
   }
 
   public static getRequestIP(request: http.IncomingMessage | Partial<Request>): string | string[] {
@@ -1315,6 +1327,16 @@ export default class Utils {
             'carConnector': {
               connections: []
             }
+          } as SettingDBContent;
+        }
+        break;
+      // Scan & Pay
+      case TenantComponents.SCAN_PAY:
+        if (!currentSettingContent) {
+          // Only scanPay
+          return {
+            'type': ScanPaySettingsType.SCAN_PAY,
+            'scanPay': {}
           } as SettingDBContent;
         }
         break;
@@ -1787,6 +1809,12 @@ export default class Utils {
     return this.hashCode(str) + 2147483647 + 1;
   }
 
+  public static buildAliasEmail(email: string): string {
+    const userName = email.split('@').slice(0,1)[0];
+    const domain = email.split('@').slice(1,2)[0];
+    const alias = '+' + Utils.generateUUID();
+    return (userName + alias + '@' + domain);
+  }
 
   public static getRateLimiters(): Map<string, RateLimiterMemory> {
     const shieldConfiguration = Configuration.getShieldConfig();

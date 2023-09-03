@@ -1,0 +1,30 @@
+{
+  "$id": "billing-scan-pay",
+  "title": "Handle user scan and pay",
+  "type": "object",
+  "properties": {
+    "email": {
+      "$ref": "user#/definitions/email"
+    },
+    "paymentIntentID": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "connectorID": {
+      "$ref": "chargingstation#/definitions/connector/properties/connectorId"
+    },
+    "chargingStationID": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "verificationToken": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "email",
+    "connectorID",
+    "chargingStationID",
+    "verificationToken"
+  ]
+}

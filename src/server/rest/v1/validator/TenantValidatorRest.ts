@@ -119,6 +119,15 @@ export default class TenantValidatorRest extends SchemaValidator {
           module: this.moduleName, method: 'validateComponentDependencies'
         });
       }
+      // Scan & Pay active: Billing and Pricing must be active
+      if (tenant.components.billing && tenant.components.pricing && tenant.components.scanPay &&
+        tenant.components.scanPay.active && (!tenant.components.billing.active || !tenant.components.pricing.active)) {
+        throw new AppError({
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Pricing and Billing must be active to use the Scan & Pay component',
+          module: this.moduleName, method: 'validateComponentDependencies'
+        });
+      }
     }
   }
 }

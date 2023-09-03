@@ -7,6 +7,7 @@ export interface AuthorizationDefinition {
   demo: AuthorizationDefinitionRole;
   siteAdmin: AuthorizationDefinitionRole;
   siteOwner: AuthorizationDefinitionRole;
+  external: AuthorizationDefinitionRole;
 }
 export interface AuthorizationDefinitionRole {
   grants: AuthorizationDefinitionGrant[];
@@ -112,6 +113,7 @@ export enum Entity {
   SOURCE = 'Source',
   CONSUMPTION = 'Consumption',
   SMART_CHARGING = 'SmartCharging',
+  PAYMENT_INTENT = 'PaymentIntent',
   STATISTIC = 'Statistic'
 }
 
@@ -184,6 +186,7 @@ export enum Action {
   READ_CHARGING_STATIONS_FROM_SITE_AREA = 'ReadChargingStationsFromSiteArea',
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
+  GENERATE_QR_SCAN_PAY = 'GenerateQrCodeScanPay',
   MAINTAIN_PRICING_DEFINITIONS = 'MaintainPricingDefinitions',
   RESOLVE = 'Resolve',
   GET_STATUS_NOTIFICATION = 'GetStatusNotification',
@@ -195,6 +198,7 @@ export enum Action {
   GET_OCPP_PARAMS = 'GetOCPPParams',
   UPDATE_CHARGING_PROFILE = 'UpdateChargingProfile',
   GET_CONNECTOR_QR_CODE = 'GetConnectorQRCode',
+  GET_CONNECTOR_QR_CODE_SCAN_PAY = 'GetConnectorQRCodeScanPay',
   VIEW_USER_DATA = 'ViewUserData',
   SYNCHRONIZE_REFUNDED_TRANSACTION = 'SynchronizeRefundedTransaction',
   PUSH_TRANSACTION_CDR = 'PushTransactionCDR',
@@ -206,6 +210,8 @@ export enum Action {
   GET_REFUND_REPORT = 'GetRefundReport',
   EXPORT_COMPLETED_TRANSACTION = 'ExportCompletedTransaction',
   EXPORT_OCPI_CDR = 'ExportOcpiCdr',
+  SETUP = 'Setup',
+  RETRIEVE = 'Retrieve'
 }
 
 export interface AuthorizationContext {
@@ -282,6 +288,7 @@ export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canReadChargingStations?: boolean;
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
+  canGenerateQrCodeScanPay?: boolean;
 }
 
 export interface SiteAuthorizationActions extends AuthorizationActions {
@@ -289,6 +296,7 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
   canListSiteUsers?: boolean;
   canExportOCPPParams?: boolean;
   canGenerateQrCode?: boolean;
+  canGenerateQrCodeScanPay?: boolean;
   canMaintainPricingDefinitions?: boolean;
   canAssignSitesToUser?: boolean;
   canUnassignSitesFromUser?: boolean;
@@ -319,6 +327,7 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canUnlockConnector?:boolean;
   canDataTransfer?:boolean;
   canGenerateQrCode?:boolean;
+  canGenerateQrCodeScanPay?:boolean;
   canMaintainPricingDefinitions?:boolean;
   canUpdateOCPPParams?:boolean;
   canLimitPower?:boolean;
@@ -326,6 +335,7 @@ export interface ChargingStationAuthorizationActions extends AuthorizationAction
   canGetOCPPParams?:boolean;
   canUpdateChargingProfile?:boolean;
   canGetConnectorQRCode?:boolean;
+  canGetConnectorQRCodeScanPay?:boolean;
   canPushTransactionCDR?: boolean;
   canListCompletedTransactions?: boolean;
   canAuthorize?: boolean;

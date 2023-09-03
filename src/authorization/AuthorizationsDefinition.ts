@@ -353,7 +353,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE,
         action: [
-          Action.CREATE, Action.UPDATE, Action.DELETE, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR, Action.MAINTAIN_PRICING_DEFINITIONS,
+          Action.CREATE, Action.UPDATE, Action.DELETE, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR, Action.MAINTAIN_PRICING_DEFINITIONS, Action.GENERATE_QR_SCAN_PAY
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -431,7 +431,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         action: [
           Action.CREATE, Action.UPDATE, Action.DELETE, Action.ASSIGN_ASSETS_TO_SITE_AREA,
           Action.UNASSIGN_ASSETS_FROM_SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA,
-          Action.UNASSIGN_CHARGING_STATIONS_FROM_SITE_AREA, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR,
+          Action.UNASSIGN_CHARGING_STATIONS_FROM_SITE_AREA, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR, Action.GENERATE_QR_SCAN_PAY,
           Action.READ_ASSETS_FROM_SITE_AREA
         ],
         condition: {
@@ -495,11 +495,11 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.CHARGING_STATION,
         action: [
-          Action.RESET, Action.CLEAR_CACHE, Action.CHANGE_AVAILABILITY, Action.UPDATE, Action.DELETE, Action.GENERATE_QR,
+          Action.RESET, Action.CLEAR_CACHE, Action.CHANGE_AVAILABILITY, Action.UPDATE, Action.DELETE, Action.GENERATE_QR, Action.GENERATE_QR_SCAN_PAY,
           Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION, Action.STOP_TRANSACTION, Action.START_TRANSACTION,
           Action.AUTHORIZE, Action.SET_CHARGING_PROFILE,Action.GET_COMPOSITE_SCHEDULE, Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE,
           Action.EXPORT_OCPP_PARAMS, Action.TRIGGER_DATA_TRANSFER, Action.UPDATE_OCPP_PARAMS, Action.LIMIT_POWER, Action.DELETE_CHARGING_PROFILE, Action.GET_OCPP_PARAMS,
-          Action.UPDATE_CHARGING_PROFILE, Action.GET_CONNECTOR_QR_CODE, Action.MAINTAIN_PRICING_DEFINITIONS
+          Action.UPDATE_CHARGING_PROFILE, Action.GET_CONNECTOR_QR_CODE, Action.MAINTAIN_PRICING_DEFINITIONS, Action.GET_CONNECTOR_QR_CODE_SCAN_PAY
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -1400,7 +1400,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CHARGING_STATION,
-        action: [Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE, Action.GET_CONNECTOR_QR_CODE],
+        action: [Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE, Action.GET_CONNECTOR_QR_CODE, Action.GET_CONNECTOR_QR_CODE_SCAN_PAY],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
           args: {
@@ -1949,7 +1949,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'siteArea', 'site', 'siteID',
         ]
       },
-      { resource: Entity.CHARGING_STATION, action: [Action.GET_CONNECTOR_QR_CODE] },
+      { resource: Entity.CHARGING_STATION, action: [Action.GET_CONNECTOR_QR_CODE, Action.GET_CONNECTOR_QR_CODE_SCAN_PAY] },
       {
         resource: Entity.CHARGING_STATION, action: Action.PUSH_TRANSACTION_CDR,
         condition: {
@@ -2569,7 +2569,7 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CHARGING_STATION,
-        action: [Action.UPDATE, Action.EXPORT, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR, Action.UPDATE_OCPP_PARAMS, Action.LIMIT_POWER,
+        action: [Action.UPDATE, Action.EXPORT, Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR, Action.GENERATE_QR_SCAN_PAY, Action.UPDATE_OCPP_PARAMS, Action.LIMIT_POWER,
           Action.DELETE_CHARGING_PROFILE, Action.GET_OCPP_PARAMS, Action.UPDATE_CHARGING_PROFILE, Action.MAINTAIN_PRICING_DEFINITIONS],
         condition: {
           Fn: 'custom:dynamicAuthorizations',
@@ -3540,6 +3540,144 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'dimensions.chargingTime.active', 'dimensions.chargingTime.price', 'dimensions.chargingTime.stepSize', 'dimensions.chargingTime.pricedData',
           'dimensions.parkingTime.active', 'dimensions.parkingTime.price', 'dimensions.parkingTime.stepSize', 'dimensions.parkingTime.pricedData',
         ],
+      },
+    ]
+  },
+  external: {
+    grants: [
+      {
+        resource: Entity.PAYMENT_INTENT, action: [Action.SETUP, Action.RETRIEVE]
+      },
+      {
+        resource: Entity.TAG, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser'],
+            metadata: {
+              id: {
+                visible: false
+              }
+            },
+          }
+        },
+        attributes: [
+          'userID', 'active', 'description', 'visualID', 'issuer', 'default',
+          'createdOn', 'lastChangedOn'
+        ],
+      },
+      {
+        resource: Entity.TAG, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser'],
+          }
+        },
+        attributes: [
+          'userID', 'issuer', 'active', 'description', 'visualID', 'default',
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.issuer'
+        ],
+      },
+      { resource: Entity.TRANSACTION, action: [Action.GET_ACTIVE_TRANSACTION, Action.READ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit','currentCumulatedRoundedPrice', 'stop.timestamp', 'stop.roundedPrice', 'stop.priceUnit', 'stop.totalDurationSecs', 'stop.totalConsumptionWh'
+        ]
+      },
+      { resource: Entity.SETTING, action: Action.READ },
+      { resource: Entity.TRANSACTION, action: [Action.REMOTE_STOP_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        }
+      },
+      { resource: Entity.CHARGING_STATION,
+        action: [Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION, Action.START_TRANSACTION, Action.STOP_TRANSACTION, Action.AUTHORIZE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+      },
+      { resource: Entity.CHARGING_STATION,
+        action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+        attributes: [
+          'id','issuer','public','siteAreaID','lastSeen','inactive','forceInactive','manualConfiguration','voltage','coordinates','chargingStationURL', 'forceInactive',
+          'maximumPower', 'masterSlave', 'chargePoints.chargePointID','chargePoints.currentType','chargePoints.voltage','chargePoints.amperage','chargePoints.numberOfConnectedPhase',
+          'chargePoints.cannotChargeInParallel','chargePoints.sharePowerToAllConnectors','chargePoints.excludeFromPowerLimitation','chargePoints.ocppParamForPowerLimitation',
+          'chargePoints.power','chargePoints.efficiency','chargePoints.connectorIDs',
+          'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode', 'connectors.connectorId', 'connectors.currentTotalConsumptionWh',
+          'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info', 'connectors.vendorErrorCode', 'connectors.currentTransactionID',
+          'connectors.currentTotalInactivitySecs', 'connectors.phaseAssignmentToGrid', 'connectors.chargePointID', 'connectors.tariffID', 'connectors.currentTransactionDate', 'connectors.currentTagID',
+          'ocpiData.evses.capabilities',
+          'siteArea', 'site', 'siteID',
+        ]
+      },
+      {
+        resource: Entity.CONNECTOR, action: [Action.REMOTE_START_TRANSACTION],
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['AssignedSites']
+          }
+        },
+      },
+      {
+        resource: Entity.TRANSACTION, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
+        attributes: [
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'tag.visualID', 'tag.description', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'roundedPrice', 'price', 'priceUnit',
+          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'signedData', 'stop.reason',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData',
+          'stop.tagID', 'stop.tag.visualID', 'stop.tag.description', 'billingData.stop.status', 'billingData.stop.invoiceID', 'billingData.stop.invoiceItem',
+          'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
+          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'car.licensePlate',
+          'pricingModel'
+        ]
+      },
+      {
+        resource: Entity.INVOICE, action: Action.DOWNLOAD,
+        condition: {
+          Fn: 'custom:dynamicAuthorizations',
+          args: {
+            asserts: [],
+            filters: ['OwnUser']
+          }
+        },
       },
     ]
   },

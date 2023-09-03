@@ -6,7 +6,7 @@
     "userID": {
       "$ref": "common#/definitions/id"
     },
-    "paymentMethodId": {
+    "paymentMethodID": {
       "type": "string",
       "sanitize": "mongo"
     }

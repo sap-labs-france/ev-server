@@ -18,7 +18,8 @@ export interface HttpBillingInvoicesRequest extends HttpDatabaseRequest {
 
 export interface HttpSetupPaymentMethod {
   userID: string;
-  paymentMethodId?: string;
+  paymentMethodID?: string;
+  paymentIntentID?: string;
 }
 
 export interface HttpPaymentMethods {
@@ -74,4 +75,27 @@ export interface HttpBillingTransferFinalizeRequest extends HttpByIDRequest {
 
 export interface HttpBillingTransferSendRequest extends HttpByIDRequest {
   ID: string;
+}
+
+export interface HttpBillingScanPayRequest {
+  firstName?: string;
+  name?: string;
+  siteAreaID: string;
+  subdomain: string;
+  email: string;
+  locale: string;
+  paymentMethodID?: string;
+  paymentIntentID?: string;
+  connectorID?: number;
+  chargingStationID?: string;
+  verificationToken?: string;
+}
+
+export interface HttpBillingScanPayStopTransactionRequest {
+  ID: number;
+  email: string;
+}
+
+export interface HttpBillingScanPayTransactionRequest {
+  ID: number;
 }

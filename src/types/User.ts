@@ -42,6 +42,7 @@ export default interface User extends CreatedUpdatedProps, UserAuthorizationActi
   };
   technical?: boolean;
   freeAccess?: boolean;
+  lastPaymentIntentID?: string;
 }
 
 export interface UserMobileData {
@@ -99,6 +100,7 @@ export enum UserRole {
   ADMIN = 'A',
   BASIC = 'B',
   DEMO = 'D',
+  EXTERNAL = 'E',
 }
 
 export const UserRequiredImportProperties = [
