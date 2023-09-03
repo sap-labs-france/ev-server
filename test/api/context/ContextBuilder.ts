@@ -348,6 +348,12 @@ export default class ContextBuilder {
               console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
               const newChargingStationContext = await newTenantContext.createSinglePhasedChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
               await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            } else if (siteAreaModel.name === `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS}`) {
+              chargingStationTemplate = Factory.chargingStation.buildChargingStationDC();
+              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
+              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
+              const newChargingStationContext = await newTenantContext.createChargingStationDC(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
             } else if (siteAreaModel.name === `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`) {
               chargingStationTemplate = Factory.chargingStation.buildChargingStationDC();
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;

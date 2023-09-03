@@ -55,6 +55,7 @@ export default class ContextDefinition {
     WITH_SMART_CHARGING_THREE_PHASED: 'withSmartChargingThreePhased', // Smart Charging is active three phased
     WITH_SMART_CHARGING_SINGLE_PHASED: 'withSmartChargingSinglePhased', // Smart Charging is active single phased
     WITH_SMART_CHARGING_DC: 'withSmartChargingDC', // Smart Charging is active DC
+    WITH_TARIFFS: 'withTariffs', // Smart Charging is active DC
   };
 
   public static readonly CHARGING_STATION_CONTEXTS: Record<string, string> = {
@@ -743,6 +744,16 @@ export default class ContextDefinition {
       smartCharging: true,
       voltage: Voltage.VOLTAGE_230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+    },
+    { // With smart charging DC
+      id: '5ce249a2372f0b1c8caf5445',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS}`,
+      numberOfPhases: 3,
+      accessControl: true,
+      maximumPower: 200000,
+      smartCharging: true,
+      voltage: Voltage.VOLTAGE_230,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     }
   ];
 
@@ -763,7 +774,8 @@ export default class ContextDefinition {
         `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED}`,
-        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`]
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS}`]
     },
     {
       baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15, // Concatenated with siteAreaName

@@ -196,8 +196,8 @@ export default class BillingTestHelper {
 
   public async initChargingStationContext2TestChargingTime() : Promise<ChargingStationContext> {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
-    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
-    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED + '-singlePhased');
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS);
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
     const dimensions = {
       flatFee: {
@@ -215,8 +215,8 @@ export default class BillingTestHelper {
 
   public async initChargingStationContext2TestCS3Phased(testMode = 'FF+E') : Promise<ChargingStationContext> {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
-    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
-    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_TARIFFS);
     assert(!!this.chargingStationContext, 'Charging station context should not be null');
     let dimensions: PricingDimensions;
     if (testMode === 'FF+E(STEP)') {
@@ -738,6 +738,54 @@ export default class BillingTestHelper {
     return transactionId;
   }
 
+  public async generateTransactionWithWrongMeterValues(user: any): Promise<number> {
+    const meterStart = 0;
+    const meterStop = 60000; // Unit: Wh
+    const meterValue = Utils.createDecimal(meterStop).divToInt(60).toNumber();
+    const connectorId = 1;
+    assert((user.tags && user.tags.length), 'User must have a valid tag');
+    const tagId = user.tags[0].id;
+    // # Begin
+    const expectedStartDate = new Date();
+    const startDate = moment(expectedStartDate);
+    // Let's send an OCCP status notification to simulate some extra inactivities
+    await this.sendStatusNotification(connectorId, startDate.toDate(), ChargePointStatus.PREPARING);
+    const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    const expectedStatus = 'Accepted';
+    if (startTransactionResponse.idTagInfo.status !== expectedStatus) {
+      await this.dumpLastErrors();
+    }
+    expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
+    const transactionId = startTransactionResponse.transactionId;
+    const currentTime = startDate.clone();
+    let cumulated = 0;
+    // Send meter values
+    for (let index = 0; index < 50; index++) {
+      cumulated += meterValue;
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
+    }
+    // Wrong meter value
+    const wrongAccumulatedValue = cumulated + (meterValue * 100);
+    await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, wrongAccumulatedValue);
+    // send normal meter values again
+    for (let index = 0; index < 10; index++) {
+      cumulated += meterValue;
+      await this.sendConsumptionMeterValue(connectorId, transactionId, currentTime, cumulated);
+    }
+    const stopDate = startDate.clone().add(1, 'hour');
+    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
+    if (stopTransactionResponse.idTagInfo.status !== expectedStatus) {
+      await this.dumpLastErrors();
+    }
+    expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+    // Let's send an OCCP status notification to simulate some extra inactivities
+    await this.sendStatusNotification(connectorId, stopDate.clone().add(29, 'minutes').toDate(), ChargePointStatus.FINISHING);
+    await this.sendStatusNotification(connectorId, stopDate.clone().add(30, 'minutes').toDate(), ChargePointStatus.AVAILABLE);
+    // Give some time to the asyncTask to bill the transaction
+    await this.waitForAsyncTasks();
+    return transactionId;
+  }
+
   public async sendConsumptionMeterValue(connectorId: number, transactionId: number, currentTime: moment.Moment, energyActiveImportMeterValue: number, interval = 1): Promise<void> {
     currentTime.add(interval, 'minute');
     const meterValueResponse = await this.chargingStationContext.sendConsumptionMeterValue(
@@ -814,7 +862,7 @@ export default class BillingTestHelper {
 
     // Set a default value
     expectedStartDate = expectedStartDate || new Date();
-    connectorType = connectorType || ConnectorType.TYPE_2;
+    connectorType = connectorType || ConnectorType.COMBO_CCS;
 
     const tariffName = testMode;
     const tariff: Partial<PricingDefinition> = {
