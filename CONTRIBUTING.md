@@ -1,29 +1,36 @@
 # Contributing to ev-server
 
 You want to contribute to ev-server? Welcome! Please read this document to understand what you can do:
- * [Analyze Issues](#analyze-issues)
- * [Reporting Security Issues](#reporting-security-issues)
- * [Contribute Code](#contribute-code)
- * [Reporting Security Issues](#reporting-security-issues)
- * [Contributor License Agreement Acceptance](#contributor-license-agreement-acceptance)
+
+- [Analyze Issues](#analyze-issues)
+- [Reporting Security Issues](#reporting-security-issues)
+- [Contribute Code](#contribute-code)
+- [Reporting Security Issues](#reporting-security-issues)
+- [Contributor License Agreement Acceptance](#contributor-license-agreement-acceptance)
 
 ## Analyze Issues
+
 Analyzing issue reports can be a lot of effort. Any help is welcome!
 Go to [the Github issue tracker](https://github.com/sap-labs-france/ev-server/issues?state=open) and find an open issue which needs additional work or a bugfix. Maybe you can even find and [contribute](#contribute-code) a bugfix?
 
 ## Issue Handling Process
+
 When an issue is reported, a committer will look at it and either confirm it as a real issue (by giving the "approved" label), close it if it is not an issue, or ask for more details. Approved issues are then either assigned to a committer in GitHub, reported in our internal issue handling system, or left open as "contribution welcome" for easy or not urgent fixes. An issue that is about a real bug is closed as soon as the fix is committed.
 
 ## Contribute Code
+
 You are welcome to contribute code to ev-server in order to fix bugs or to implement new features.
 
 ## Reporting Security Issues
+
 If you find a security issue, please act responsibly and report it not in the public issue tracker, but directly to us, so we can fix it before it can be exploited:
- * SAP Customers: if the found security issue is not covered by a published security note, please report it by creating a customer message at https://service.sap.com/message.
- * Researchers/non-Customers: please send the related information to secure@sap.com using [PGP for e-mail encryption](http://global.sap.com/pc/security/keyblock.txt).
-Also refer to the general [SAP security information page](https://www.sap.com/corporate/en/company/security.html).
+
+- SAP Customers: if the found security issue is not covered by a published security note, please report it by creating a customer message at https://service.sap.com/message.
+- Researchers/non-Customers: please send the related information to secure@sap.com using [PGP for e-mail encryption](http://global.sap.com/pc/security/keyblock.txt).
+  Also refer to the general [SAP security information page](https://www.sap.com/corporate/en/company/security.html).
 
 ## Contributor License Agreement Acceptance
+
 When you contribute (code, documentation, or anything else), you have to be aware that your contribution is covered by the same [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0) that is applied to ev-server itself.
 In particular you need to agree to the Individual Contributor License Agreement,
 which can be [found here](https://gist.github.com/CLAassistant/bd1ea8ec8aa0357414e8).

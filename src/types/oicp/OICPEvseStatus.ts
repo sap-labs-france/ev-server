@@ -6,8 +6,8 @@ import { OICPOperatorEvseStatus } from './OICPEvse';
 // NOTE: The eRoamingPushEvseStatus operation MUST always be used sequentially as described in Data Push Operations
 //
 export interface OICPPushEvseStatusCpoSend {
-  ActionType: OICPActionType, // Describes the action that has to be performed by Hubject with the provided data.
-  OperatorEvseStatus: OICPOperatorEvseStatus // Indicates the Eves status
+  ActionType: OICPActionType; // Describes the action that has to be performed by Hubject with the provided data.
+  OperatorEvseStatus: OICPOperatorEvseStatus; // Indicates the Eves status
 }
 
 // Best Practices:

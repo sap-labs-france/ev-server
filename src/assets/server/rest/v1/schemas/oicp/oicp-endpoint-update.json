@@ -25,10 +25,5 @@
       "$ref": "oicp-endpoint#/definitions/name"
     }
   },
-  "required": [
-    "id",
-    "name",
-    "role",
-    "baseUrl"
-  ]
+  "required": ["id", "name", "role", "baseUrl"]
 }

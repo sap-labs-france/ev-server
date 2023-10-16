@@ -20,8 +20,9 @@ export default class SynchronizeRefundTransactionsTask extends TenantSchedulerTa
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.SYNCHRONIZE_REFUND,
-        module: MODULE_NAME, method: 'run',
-        message: 'Refund not active in this Tenant'
+        module: MODULE_NAME,
+        method: 'run',
+        message: 'Refund not active in this Tenant',
       });
       return;
     }
@@ -31,32 +32,40 @@ export default class SynchronizeRefundTransactionsTask extends TenantSchedulerTa
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.SYNCHRONIZE_REFUND,
-        module: MODULE_NAME, method: 'run',
-        message: 'Refund settings are not configured'
+        module: MODULE_NAME,
+        method: 'run',
+        message: 'Refund settings are not configured',
       });
       return;
     }
     // Get the lock
-    const refundLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.TRANSACTION, 'synchronize-refunded-sessions');
+    const refundLock = LockingManager.createExclusiveLock(
+      tenant.id,
+      LockEntity.TRANSACTION,
+      'synchronize-refunded-sessions'
+    );
     if (await LockingManager.acquire(refundLock)) {
       try {
         // Get the 'Submitted' transactions
-        const transactions = await TransactionStorage.getTransactions(tenant,
-          { 'refundStatus': [RefundStatus.SUBMITTED] },
-          { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1, 'refundData.reportId': 1 } });
+        const transactions = await TransactionStorage.getTransactions(
+          tenant,
+          { refundStatus: [RefundStatus.SUBMITTED] },
+          { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { userID: 1, 'refundData.reportId': 1 } }
+        );
         if (!Utils.isEmptyArray(transactions.result)) {
           // Process them
           await Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.SYNCHRONIZE_REFUND,
-            module: MODULE_NAME, method: 'processTenant',
-            message: `${transactions.count} Refunded Transaction(s) are going to be synchronized`
+            module: MODULE_NAME,
+            method: 'processTenant',
+            message: `${transactions.count} Refunded Transaction(s) are going to be synchronized`,
           });
           const actionsDone = {
             approved: 0,
             cancelled: 0,
             notUpdated: 0,
-            error: 0
+            error: 0,
           };
           for (const transaction of transactions.result) {
             try {
@@ -74,23 +83,29 @@ export default class SynchronizeRefundTransactionsTask extends TenantSchedulerTa
               }
             } catch (error) {
               actionsDone.error++;
-              await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_REFUND, error);
+              await Logging.logActionExceptionMessage(
+                tenant.id,
+                ServerAction.SYNCHRONIZE_REFUND,
+                error
+              );
             }
           }
           // Log result
           await Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.SYNCHRONIZE_REFUND,
-            module: MODULE_NAME, method: 'processTenant',
-            message: `Synchronized: ${actionsDone.approved} Approved, ${actionsDone.cancelled} Cancelled, ${actionsDone.notUpdated} Not updated, ${actionsDone.error} In Error`
+            module: MODULE_NAME,
+            method: 'processTenant',
+            message: `Synchronized: ${actionsDone.approved} Approved, ${actionsDone.cancelled} Cancelled, ${actionsDone.notUpdated} Not updated, ${actionsDone.error} In Error`,
           });
         } else {
           // Process them
           await Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.SYNCHRONIZE_REFUND,
-            module: MODULE_NAME, method: 'processTenant',
-            message: 'No Refunded Transaction found to synchronize'
+            module: MODULE_NAME,
+            method: 'processTenant',
+            message: 'No Refunded Transaction found to synchronize',
           });
         }
       } catch (error) {

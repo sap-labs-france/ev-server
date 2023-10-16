@@ -11,7 +11,7 @@ export default interface Tenant extends CreatedUpdatedProps {
   components: TenantComponent;
   cpmsDomainName?: string; // Optional - domain name used to connect chargers
   redirectDomain?: string;
-  idleMode?: boolean // Prevents batch and async tasks executions when moving the tenant to a different cloud infrastructure provider
+  idleMode?: boolean; // Prevents batch and async tasks executions when moving the tenant to a different cloud infrastructure provider
   taskExecutionEnv?: string; // Environment on which tasks should be executed
 }
 
@@ -29,6 +29,7 @@ export interface TenantComponent {
   asset?: TenantComponentContent;
   car?: TenantComponentContent;
   carConnector?: TenantComponentContent;
+  reservation?: TenantComponentContent;
 }
 
 export interface TenantComponentContent {
@@ -54,5 +55,6 @@ export enum TenantComponents {
   ASSET = 'asset',
   SMART_CHARGING = 'smartCharging',
   CAR = 'car',
-  CAR_CONNECTOR = 'carConnector'
+  CAR_CONNECTOR = 'carConnector',
+  RESERVATION = 'reservation',
 }

@@ -19,13 +19,15 @@ export default class AuthorizationsManager {
       const role = AUTHORIZATION_DEFINITION[roleName];
       try {
         // Validate the role
-        AUTHORIZATION_DEFINITION[roleName] = AuthorizationValidatorStorage.getInstance().validateAuthorizationDefinitionRoleSave(role);
+        AUTHORIZATION_DEFINITION[roleName] =
+          AuthorizationValidatorStorage.getInstance().validateAuthorizationDefinitionRoleSave(role);
       } catch (error) {
         Logging.logConsoleError(error.stack);
         throw new BackendError({
-          module: MODULE_NAME, method: 'constructor',
+          module: MODULE_NAME,
+          method: 'constructor',
           message: `Unable to init authorization definition for role '${roleName}'`,
-          detailedMessages: { error: error.stack, role }
+          detailedMessages: { error: error.stack, role },
         });
       }
     }
@@ -35,9 +37,10 @@ export default class AuthorizationsManager {
     } catch (error) {
       Logging.logConsoleError(error.stack);
       throw new BackendError({
-        module: MODULE_NAME, method: 'constructor',
+        module: MODULE_NAME,
+        method: 'constructor',
         message: 'Unable to init authorization definition',
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
     }
   }
@@ -62,34 +65,52 @@ export default class AuthorizationsManager {
         module: MODULE_NAME,
         method: 'getScopes',
         message: 'Unable to load available scopes',
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
     }
     return scopes;
   }
 
-  public async can(roles: string[], resource: string, action: string, context?: any): Promise<boolean> {
+  public async can(
+    roles: string[],
+    resource: string,
+    action: string,
+    context?: any
+  ): Promise<boolean> {
     try {
-      const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
+      const permission = await this.accessControl
+        .can(roles)
+        .execute(action)
+        .with(context)
+        .on(resource);
       return permission.granted;
     } catch (error) {
       throw new BackendError({
         module: MODULE_NAME,
         method: 'can',
         message: 'Unable to check authorization',
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
     }
   }
 
-  public async canPerformAction(roles: string[], resource: string, action: string, context: AuthorizationContext = {}): Promise<AuthorizationResult> {
+  public async canPerformAction(
+    roles: string[],
+    resource: string,
+    action: string,
+    context: AuthorizationContext = {}
+  ): Promise<AuthorizationResult> {
     try {
       const authID = `${roles.toString()}~${resource}~${action}~${JSON.stringify(context)}}`;
       // Check in cache
       let authResult = AuthorizationsManager.authorizationCache.get(authID);
       if (!authResult) {
         // Not found: Compute & Store in cache
-        const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
+        const permission = await this.accessControl
+          .can(roles)
+          .execute(action)
+          .with(context)
+          .on(resource);
         authResult = {
           authorized: permission.granted,
           fields: permission.attributes,
@@ -108,7 +129,7 @@ export default class AuthorizationsManager {
         module: MODULE_NAME,
         method: 'canPerformAction',
         message: 'Unable to check authorization',
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
     }
   }

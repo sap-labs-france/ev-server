@@ -12,7 +12,6 @@ import moment from 'moment';
 const MODULE_NAME = 'RepairInvoiceInconsistencies';
 
 export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
-
   public async migrateTenant(tenant: Tenant): Promise<void> {
     try {
       const billingImpl = await BillingFactory.getBillingImpl(tenant);
@@ -20,18 +19,22 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
         await this.repairInvoices(tenant, billingImpl);
         await Logging.logDebug({
           tenantID: Constants.DEFAULT_TENANT_ID,
-          module: MODULE_NAME, method: 'migrateTenant',
+          module: MODULE_NAME,
+          method: 'migrateTenant',
           action: ServerAction.MIGRATION,
-          message: `Invoice consistency has been checked for tenant: ${Utils.buildTenantName(tenant)}`
+          message: `Invoice consistency has been checked for tenant: ${Utils.buildTenantName(
+            tenant
+          )}`,
         });
       }
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.BILLING_PERFORM_OPERATIONS,
-        module: MODULE_NAME, method: 'repairInvoices',
+        module: MODULE_NAME,
+        method: 'repairInvoices',
         message: `Failed to repair invoice in tenant: ${tenant.subdomain}`,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
     }
   }
@@ -48,12 +51,15 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
     return true;
   }
 
-  public async repairInvoices(tenant: Tenant, billingImpl: StripeBillingIntegration): Promise<void> {
+  public async repairInvoices(
+    tenant: Tenant,
+    billingImpl: StripeBillingIntegration
+  ): Promise<void> {
     await billingImpl.checkConnection();
     const limit = Constants.BATCH_PAGE_SIZE;
     const filter = {
       // startDateTime: moment().date(0).date(1).startOf('day').toDate() // 1st day of the previous month 00:00:00 (AM)
-      startDateTime: moment('01/12/2021', 'DD/MM/YYYY').toDate()
+      startDateTime: moment('01/12/2021', 'DD/MM/YYYY').toDate(),
     };
     const sort = { createdOn: 1 };
     let skip = 0;
@@ -72,16 +78,18 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
               tenantID: tenant.id,
               action: ServerAction.BILLING_PERFORM_OPERATIONS,
               actionOnUser: billingInvoice.user,
-              module: MODULE_NAME, method: 'repairInvoices',
-              message: `Attempt to repair invoice: '${billingInvoice.id}' - '${billingInvoice.number}' `
+              module: MODULE_NAME,
+              method: 'repairInvoices',
+              message: `Attempt to repair invoice: '${billingInvoice.id}' - '${billingInvoice.number}' `,
             });
             await billingImpl.repairInvoice(billingInvoice);
             await Logging.logInfo({
               tenantID: tenant.id,
               action: ServerAction.BILLING_PERFORM_OPERATIONS,
               actionOnUser: billingInvoice.user,
-              module: MODULE_NAME, method: 'repairInvoices',
-              message: `Invoice has been repaired: '${billingInvoice.id}' - '${billingInvoice.number}' `
+              module: MODULE_NAME,
+              method: 'repairInvoices',
+              message: `Invoice has been repaired: '${billingInvoice.id}' - '${billingInvoice.number}' `,
             });
           }
         } catch (error) {
@@ -89,9 +97,10 @@ export default class RepairInvoiceInconsistencies extends TenantMigrationTask {
             tenantID: tenant.id,
             action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: billingInvoice.user,
-            module: MODULE_NAME, method: 'repairInvoices',
+            module: MODULE_NAME,
+            method: 'repairInvoices',
             message: `Failed to repair invoice: '${billingInvoice.id}' - '${billingInvoice.number}' `,
-            detailedMessages: { error: error.stack }
+            detailedMessages: { error: error.stack },
           });
         }
       }

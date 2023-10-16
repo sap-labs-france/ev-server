@@ -19,8 +19,8 @@ export interface Log extends AuthorizationActions {
   timestamp?: Date;
   action: ServerAction;
   message: string;
-  user?: User|UserToken|string;
-  actionOnUser?: User|UserToken|string;
+  user?: User | UserToken | string;
+  actionOnUser?: User | UserToken | string;
   hasDetailedMessages?: boolean;
   detailedMessages?: any;
 }

@@ -1,4 +1,9 @@
-import { AuthorizationActions, BillingInvoiceAuthorizationActions, BillingTaxAuthorizationActions, BillingTransferAuthorizationActions } from './Authorization';
+import {
+  AuthorizationActions,
+  BillingInvoiceAuthorizationActions,
+  BillingTaxAuthorizationActions,
+  BillingTransferAuthorizationActions,
+} from './Authorization';
 
 import { ActionsResponse } from './GlobalType';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
@@ -75,7 +80,7 @@ export interface BillingInvoice extends CreatedUpdatedProps, BillingInvoiceAutho
   currency?: string;
   customerID?: string;
   createdOn?: Date;
-  downloadable?: boolean
+  downloadable?: boolean;
   downloadUrl?: string;
   sessions?: BillingSessionData[];
   lastError?: BillingError;
@@ -85,13 +90,13 @@ export interface BillingInvoice extends CreatedUpdatedProps, BillingInvoiceAutho
 export interface BillingInvoiceItem {
   transactionID: number;
   currency: string;
-  pricingData: PricedConsumptionData[]
+  pricingData: PricedConsumptionData[];
   accountData?: BillingSessionAccountData; // Each session may target a distinct account - but the 4 pricing dimensions MUST share the same info
-  headerDescription?: string,
+  headerDescription?: string;
   metadata?: {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
-  }
+  };
 }
 
 export interface BillingSessionData {
@@ -110,9 +115,9 @@ export enum BillingInvoiceStatus {
 }
 
 export interface BillingOperationResult {
-  succeeded: boolean
-  error?: Error
-  internalData?: unknown // an object returned by the concrete implementation - e.g.: STRIPE
+  succeeded: boolean;
+  error?: Error;
+  internalData?: unknown; // an object returned by the concrete implementation - e.g.: STRIPE
 }
 
 export interface BillingPaymentMethod extends AuthorizationActions {
@@ -127,10 +132,10 @@ export interface BillingPaymentMethod extends AuthorizationActions {
 
 export interface BillingError {
   // Billing Error should expose the information which is common to all payment platforms
-  message: string
-  when: Date
-  errorType: BillingErrorType, // SERVER or APPLICATION errors
-  errorCode: BillingErrorCode, // More information about the root cause
+  message: string;
+  when: Date;
+  errorType: BillingErrorType; // SERVER or APPLICATION errors
+  errorCode: BillingErrorCode; // More information about the root cause
   rootCause?: unknown; // The original error from the payment platform
 }
 
@@ -151,7 +156,7 @@ export enum BillingErrorCode {
 export enum BillingAccountStatus {
   IDLE = 'idle',
   PENDING = 'pending',
-  ACTIVE = 'active'
+  ACTIVE = 'active',
 }
 
 export interface BillingPlatformFeeStrategy {
@@ -176,15 +181,15 @@ export interface BillingAccountData {
 }
 
 export interface BillingSessionAccountData extends BillingAccountData {
-  withTransferActive: boolean,
-  feeAmount?: number
+  withTransferActive: boolean;
+  feeAmount?: number;
 }
 
 export enum BillingTransferStatus {
   DRAFT = 'draft',
   PENDING = 'pending',
   FINALIZED = 'finalized',
-  TRANSFERRED = 'transferred'
+  TRANSFERRED = 'transferred',
 }
 
 // TODO - TO BE CLARIFIED - REDUNDANT INFORMATION
@@ -196,13 +201,13 @@ export interface BillingPlatformFeeData {
 export interface BillingTransfer extends CreatedUpdatedProps, BillingTransferAuthorizationActions {
   id?: string;
   status: BillingTransferStatus;
-  sessionCounter: number, // Number of transactions
-  collectedFunds: number, // Total amount of the priced transactions
-  collectedFlatFees: number,
-  collectedFees: number, // Total amount of the platform fee collected
-  totalConsumptionWh: number,
-  totalDurationSecs: number,
-  transferAmount: number // Amount transferred after applying platform fees
+  sessionCounter: number; // Number of transactions
+  collectedFunds: number; // Total amount of the priced transactions
+  collectedFlatFees: number;
+  collectedFees: number; // Total amount of the platform fee collected
+  totalConsumptionWh: number;
+  totalDurationSecs: number;
+  transferAmount: number; // Amount transferred after applying platform fees
   accountID: string;
   account?: BillingAccount;
   businessOwner?: User;
@@ -227,4 +232,3 @@ export interface BillingPlatformInvoice {
   customerID: string;
   createdOn: Date;
 }
-

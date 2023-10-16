@@ -22,9 +22,5 @@
       "$ref": "tag#/definitions/id"
     }
   },
-  "required": [
-    "UserID",
-    "ChargingStationID",
-    "ConnectorID"
-  ]
+  "required": ["UserID", "ChargingStationID", "ConnectorID"]
 }

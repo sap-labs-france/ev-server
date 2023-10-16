@@ -19,9 +19,5 @@
       "$ref": "common#/definitions/address"
     }
   },
-  "required": [
-    "id",
-    "name",
-    "email"
-  ]
+  "required": ["id", "name", "email"]
 }

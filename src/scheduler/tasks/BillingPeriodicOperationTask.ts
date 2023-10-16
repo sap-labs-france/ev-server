@@ -10,7 +10,10 @@ import TenantSchedulerTask from '../TenantSchedulerTask';
 import Utils from '../../utils/Utils';
 
 export default class BillingPeriodicOperationTask extends TenantSchedulerTask {
-  public async processTenant(tenant: Tenant, taskConfig: BillingPeriodicOperationTaskConfig): Promise<void> {
+  public async processTenant(
+    tenant: Tenant,
+    taskConfig: BillingPeriodicOperationTaskConfig
+  ): Promise<void> {
     // Get the lock
     const billingLock = await LockingHelper.acquireBillingPeriodicOperationLock(tenant.id);
     if (billingLock) {
@@ -20,21 +23,22 @@ export default class BillingPeriodicOperationTask extends TenantSchedulerTask {
           // Attempt to finalize and pay invoices
           const chargeActionResults = await billingImpl.chargeInvoices(taskConfig);
           if (chargeActionResults.inError > 0) {
-            NotificationHandler.sendBillingPeriodicOperationFailed(
-              tenant,
-              {
-                nbrInvoicesInError: chargeActionResults.inError,
-                evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-                evseDashboardBillingURL: Utils.buildEvseBillingSettingsURL(tenant.subdomain)
-              }
-            ).catch((error) => {
+            NotificationHandler.sendBillingPeriodicOperationFailed(tenant, {
+              nbrInvoicesInError: chargeActionResults.inError,
+              evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+              evseDashboardBillingURL: Utils.buildEvseBillingSettingsURL(tenant.subdomain),
+            }).catch((error) => {
               Logging.logPromiseError(error, tenant?.id);
             });
           }
         }
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_PERFORM_OPERATIONS, error as Error);
+        await Logging.logActionExceptionMessage(
+          tenant.id,
+          ServerAction.BILLING_PERFORM_OPERATIONS,
+          error as Error
+        );
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);

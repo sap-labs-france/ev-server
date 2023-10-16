@@ -21,11 +21,11 @@ export default class PricingTimeLimit {
   public isGreaterThan(aTimeLimit: PricingTimeLimit): boolean {
     if (this.hour === aTimeLimit.hour) {
       if (this.minute === aTimeLimit.minute) {
-        return (this.second > aTimeLimit.second);
+        return this.second > aTimeLimit.second;
       }
-      return (this.minute > aTimeLimit.minute);
+      return this.minute > aTimeLimit.minute;
     }
-    return (this.hour > aTimeLimit.hour);
+    return this.hour > aTimeLimit.hour;
   }
 
   public isSameOrLowerThan(aTimeLimit: PricingTimeLimit): boolean {
@@ -35,11 +35,11 @@ export default class PricingTimeLimit {
   public isLowerThan(aTimeLimit: PricingTimeLimit): boolean {
     if (this.hour === aTimeLimit.hour) {
       if (this.minute === aTimeLimit.minute) {
-        return (this.second < aTimeLimit.second);
+        return this.second < aTimeLimit.second;
       }
-      return (this.minute < aTimeLimit.minute);
+      return this.minute < aTimeLimit.minute;
     }
-    return (this.hour < aTimeLimit.hour);
+    return this.hour < aTimeLimit.hour;
   }
 
   public isSameOrGreaterThan(aTimeLimit: PricingTimeLimit): boolean {

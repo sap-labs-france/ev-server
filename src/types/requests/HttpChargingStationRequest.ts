@@ -1,7 +1,12 @@
-import { ChargePoint, ConnectorType, CurrentType, PhaseAssignmentToGrid, Voltage } from '../ChargingStation';
-import { OCPPAvailabilityType, OCPPResetType } from '../ocpp/OCPPClient';
-
 import { ChargingRateUnitType } from '../ChargingProfile';
+import {
+  ChargePoint,
+  ConnectorType,
+  CurrentType,
+  PhaseAssignmentToGrid,
+  Voltage,
+} from '../ChargingStation';
+import { OCPPAvailabilityType, OCPPResetType } from '../ocpp/OCPPClient';
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
@@ -26,8 +31,7 @@ export interface HttpChargingProfilesGetRequest extends HttpDatabaseRequest {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpChargingProfileRequest extends HttpByIDRequest {
-}
+export interface HttpChargingProfileRequest extends HttpByIDRequest {}
 
 export interface HttpDownloadQrCodeRequest {
   ChargingStationID?: string;
@@ -54,7 +58,8 @@ export interface HttpChargingStationsGetRequest extends HttpDatabaseRequest {
   LocLatitude?: number;
   LocCoordinates?: number[];
   LocMaxDistanceMeters?: number;
-  Public?: boolean,
+  Public?: boolean;
+  WithReservation?: boolean;
 }
 
 export interface HttpChargingStationsInErrorGetRequest extends HttpDatabaseRequest {
@@ -92,8 +97,9 @@ export interface HttpChargingStationParamsUpdateRequest {
 
 export interface HttpChargingStationGetRequest extends HttpByIDRequest {
   ID: string;
-  WithSite?: boolean,
+  WithSite?: boolean;
   WithSiteArea?: boolean;
+  WithReservation?: boolean;
 }
 
 export interface HttpChargingStationOcppGetRequest {
@@ -110,11 +116,12 @@ export interface HttpChargingStationOcppParametersGetRequest {
   forceUpdateOCPPParamsFromTemplate: boolean;
 }
 
-export interface HttpChargingStationMaxIntensitySocketSetRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationMaxIntensitySocketSetRequest
+  extends HttpChargingStationCommandRequest {
   carID?: string;
   userID?: string;
   maxIntensity?: number;
-  args?: {maxIntensity: number};
+  args?: { maxIntensity: number };
 }
 
 export interface HttpChargingStationCommandRequest {
@@ -122,102 +129,115 @@ export interface HttpChargingStationCommandRequest {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpChargingStationCacheClearCommandRequest extends HttpChargingStationCommandRequest {
-}
+export interface HttpChargingStationCacheClearCommandRequest
+  extends HttpChargingStationCommandRequest {}
 
-export interface HttpChargingStationAvailabilityChangeRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationAvailabilityChangeRequest
+  extends HttpChargingStationCommandRequest {
   args: {
-    connectorId: number,
+    connectorId: number;
     type: OCPPAvailabilityType;
-  }
+  };
 }
 
-export interface HttpChargingStationConfigurationChangeRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationConfigurationChangeRequest
+  extends HttpChargingStationCommandRequest {
   args: {
-    key: string,
-    value: string,
-    custom?: boolean,
-  }
+    key: string;
+    value: string;
+    custom?: boolean;
+  };
 }
 
-export interface HttpChargingStationCommandDataTransferRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationCommandDataTransferRequest
+  extends HttpChargingStationCommandRequest {
   args: {
-    vendorId: string,
-    messageId?: string,
-    data: string
-  }
+    vendorId: string;
+    messageId?: string;
+    data: string;
+  };
 }
 
 export interface HttpChargingStationReservationCancelRequest {
-  chargingStationID: string,
+  chargingStationId: string;
   args: {
     reservationId: number;
-  }
+  };
 }
 
-export interface HttpChargingStationTransactionStartRequest extends HttpChargingStationCommandRequest {
-  carID?: string,
-  userID?: string,
-  carStateOfCharge?: number,
-  carOdometer?: number,
-  departureTime?: Date,
-  targetStateOfCharge?: number,
+export interface HttpChargingStationTransactionStartRequest
+  extends HttpChargingStationCommandRequest {
+  carID?: string;
+  userID?: string;
+  carStateOfCharge?: number;
+  carOdometer?: number;
+  departureTime?: Date;
+  targetStateOfCharge?: number;
   args: {
-    connectorId: number,
-    tagID?: string,
-    visualTagID?: string,
-  }
+    connectorId: number;
+    tagID?: string;
+    visualTagID?: string;
+    reservationId?: number;
+  };
 }
 
-export interface HttpChargingStationTransactionStopRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationTransactionStopRequest
+  extends HttpChargingStationCommandRequest {
   args: {
-    transactionId: number
-  }
+    transactionId: number;
+  };
 }
 
-export interface HttpChargingStationCommandConfigurationGetRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationCommandConfigurationGetRequest
+  extends HttpChargingStationCommandRequest {
   args: {
-    key: string[]
-  }
+    key: string[];
+  };
 }
 
-export interface HttpChargingStationCompositeScheduleGetRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationCompositeScheduleGetRequest
+  extends HttpChargingStationCommandRequest {
   args: {
-    connectorId: number,
-    duration: number,
-    chargingRateUnit?: ChargingRateUnitType
-  }
+    connectorId: number;
+    duration: number;
+    chargingRateUnit?: ChargingRateUnitType;
+  };
 }
 
-export interface HttpChargingStationCommandConnectorUnlockRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationCommandConnectorUnlockRequest
+  extends HttpChargingStationCommandRequest {
   args: {
-    connectorId: number
-  }
+    connectorId: number;
+  };
 }
 
-export interface HttpChargingStationFirmwareUpdateRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationFirmwareUpdateRequest
+  extends HttpChargingStationCommandRequest {
   args: {
-    location: string,
-    retries?: number,
-    retryInterval?: number,
-    retrieveDate: Date
-  }
+    location: string;
+    retries?: number;
+    retryInterval?: number;
+    retrieveDate: Date;
+  };
 }
 
-export interface HttpChargingStationReserveNowRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationReserveNowRequest {
+  chargingStationId: string;
   args: {
-    connectorId: string;
+    connectorId: number;
     expiryDate: Date;
-    idTag: string;
+    idTag?: string;
+    visualTagID: string;
+    carID?: string;
     parentIdTag?: string;
-    reservationId: number;
-  }
+    reservationId?: number;
+  };
 }
 
 export interface HttpChargingStationResetRequest extends HttpChargingStationCommandRequest {
   args: {
     type: OCPPResetType;
-  }
+  };
 }
 
 export interface HttpIsAuthorizedRequest {
@@ -231,12 +251,20 @@ export interface HttpChargingStationFirmwareGetRequest {
   FileName: string;
 }
 
-export interface HttpChargingStationDiagnosticsGetRequest extends HttpChargingStationCommandRequest {
+export interface HttpChargingStationDiagnosticsGetRequest
+  extends HttpChargingStationCommandRequest {
   args: {
-    location: string,
-    retries?: number,
-    retryInterval?: number,
-    startTime?: Date,
-    stopTime?: Date
-  }
+    location: string;
+    retries?: number;
+    retryInterval?: number;
+    startTime?: Date;
+    stopTime?: Date;
+  };
+}
+
+export interface HttpReservableChargingStationsGetRequest extends HttpChargingStationsGetRequest {
+  FromDate: Date;
+  ToDate: Date;
+  ArrivalTime?: Date;
+  DepartureTime?: Date;
 }

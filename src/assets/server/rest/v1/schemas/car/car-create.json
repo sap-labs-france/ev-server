@@ -31,11 +31,5 @@
       "$ref": "car#/definitions/carConnectorData"
     }
   },
-  "required": [
-    "vin",
-    "licensePlate",
-    "carCatalogID",
-    "type",
-    "converter"
-  ]
+  "required": ["vin", "licensePlate", "carCatalogID", "type", "converter"]
 }

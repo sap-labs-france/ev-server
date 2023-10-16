@@ -11,8 +11,6 @@ export default class SiteAreaMandatoryDynamicAuthorizationAssert extends Dynamic
   }
 
   public getApplicableEntities(): Entity[] {
-    return [
-      Entity.REGISTRATION_TOKEN
-    ];
+    return [Entity.REGISTRATION_TOKEN];
   }
 }

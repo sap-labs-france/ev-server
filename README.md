@@ -6,58 +6,64 @@ This application server (NodeJs) collects and stores the data (MongoDB) received
 
 The application features:
 
-* Charging Stations details and real-time statuses
-* Charging sessions curves in real time
-* Charging stations remote control (Reboot, Clear Cache, Stop Transaction, Unlock Connector)
-* Charging Station Template management: Zero configuration
-* User management
-* Badge management
-* Role management (ABAC)
-* Static Energy Management: Manually limit the charging station
-* Smart Charging with Assets, Fair Sharing, Peak Shaving, Cost Management and Phase Balancing
-* Realtime Asset Management (Building, Battery, Solar Panel) 
-* Billing with Stripe
-* Complex Pricing
-* Roaming integration (Gire, Hubject)
-* Refunding (SAP Concur)
-* Simple Statistics + Advanced Analytics (SAP Analytics)
-* Car Connector Management (Get the car's data to optimize the charging session)
+- Charging Stations details and real-time statuses
+- Charging sessions curves in real time
+- Charging stations remote control (Reboot, Clear Cache, Stop Transaction, Unlock Connector)
+- Charging Station Template management: Zero configuration
+- User management
+- Badge management
+- Role management (ABAC)
+- Static Energy Management: Manually limit the charging station
+- Smart Charging with Assets, Fair Sharing, Peak Shaving, Cost Management and Phase Balancing
+- Realtime Asset Management (Building, Battery, Solar Panel)
+- Billing with Stripe
+- Complex Pricing
+- Roaming integration (Gire, Hubject)
+- Refunding (SAP Concur)
+- Simple Statistics + Advanced Analytics (SAP Analytics)
+- Car Connector Management (Get the car's data to optimize the charging session)
 
 **Contact the author** <a href="https://www.linkedin.com/in/serge-fabiano-a420a218/" target="_blank">Serge FABIANO</a>
 
 ## Installation
 
-* Install NodeJS: https://nodejs.org/ (install the LTS version)
-* Install Python: https://www.python.org/ (needed by node-gyp)
-* Install MongoDB: https://www.mongodb.com/
-* Clone this GitHub project
-* Install required build tools:
-  * Under Windows as an administrator:
+- Install NodeJS: <https://nodejs.org/> (install the LTS version)
+- Install Python: <https://www.python.org/> (needed by node-gyp)
+- Install MongoDB: <https://www.mongodb.com/>
+- Clone this GitHub project
+- Install required build tools:
+
+  - Under Windows as an administrator:
+
     ```powershell
-    npm install --global --production windows-build-tools
+    pnpm install --global --production windows-build-tools
     ```
-  * Under Mac OS X, install Xcode from the Apple store
-  * Under Debian based GNU/Linux distribution:
+
+  - Under Mac OS X, install Xcode from the Apple store
+  - Under Debian based GNU/Linux distribution:
+
     ```shell
     sudo apt install build-essential
     ```
-* Go into the **ev-server** directory and run **npm install** or **yarn install**
+
+- Go into the **ev-server** directory and run **pnpm install** or **yarn install**
 
 **NOTE**:
-* On Windows with **chocolatey** (https://chocolatey.org/), do as an administrator:
+
+- On Windows with **chocolatey** (<https://chocolatey.org/>), do as an administrator:
 
 ```powershell
 choco install -y nodejs-lts mongodb python postman robot3t microsoft-build-tools
 ```
 
-* On Mac OSX with **Homebrew** (https://brew.sh/), do:
+- On Mac OSX with **Homebrew** (<https://brew.sh/>), do:
 
 ```shell
 brew tap mongodb/brew
 brew install node mongodb-community@4.4 python@3.9 postman robo-3t
 ```
 
-* Follow the rest of the setup below
+- Follow the rest of the setup below
 
 ## The Database
 
@@ -68,7 +74,9 @@ brew install node mongodb-community@4.4 python@3.9 postman robo-3t
 ```shell
 mongod --port <port> --dbpath <path> --replSet <replcaSetName>
 ```
+
 For instance:
+
 ```shell
 mongod --port 27017 --dbpath "/var/lib/mongodb" --replSet "rs0"
 ```
@@ -76,12 +84,13 @@ mongod --port 27017 --dbpath "/var/lib/mongodb" --replSet "rs0"
 ##### As a Windows service
 
 Add to /path/to/mongod.cfg (open -a TextEdit /usr/local/etc/mongod.cfg)
+
 ```yaml
-...
+---
 replication:
-  replSetName: "rs0"
-...
+  replSetName: 'rs0'
 ```
+
 Restart the MongoDB service with Powershell as an administrator:
 
 ```powershell
@@ -93,13 +102,15 @@ Restart-Service -Name "MongoDB"
 Activate the replica set:
 
 - Start the Mongo client
+
 ```shell
 mongo
 ```
 
 - Activate the Replica Set
+
 ```js
-rs.initiate()
+rs.initiate();
 ```
 
 Check here for more info:
@@ -110,6 +121,7 @@ Check here for more info:
 This user will be used to connect to the database as an administrator with tools like MongoDB shell or RoboMongo:
 
 Create Admin User on Admin schema:
+
 ```js
   use admin
   db.createUser({
@@ -143,11 +155,11 @@ mongod --auth --port <port> --dbpath <path> --replSet <replcaSetName>
 ##### As a Windows service
 
 Add to /path/to/mongod.cfg:
+
 ```yaml
-...
+---
 security:
   authorization: enabled
-...
 ```
 
 Restart the MongoDB service with Powershell as an administrator:
@@ -165,6 +177,7 @@ mongo -u evse-admin -p <YourPassword> --authenticationDatabase admin
 ```
 
 Create Application User on EVSE schema
+
 ```js
   use evse
   db.createUser({
@@ -185,8 +198,8 @@ Now your database is ready to be used.
 
 The application server consists of:
 
-* **Central Service Server**: Serves the charging stations
-* **Central Service REST Server**: Serves the Angular front-end dashboard
+- **Central Service Server**: Serves the charging stations
+- **Central Service REST Server**: Serves the Angular front-end dashboard
 
 ### The Central Service Server (CSS)
 
@@ -209,6 +222,7 @@ Choose one and rename it to **config.json**.
 Set the protocol, host and the port which you want the server to listen to:
 
 SOAP (OCPP-S):
+
 ```json
   "CentralSystems": [
     {
@@ -221,6 +235,7 @@ SOAP (OCPP-S):
 ```
 
 JSON (OCPP-J):
+
 ```json
   "CentralSystems": [
     {
@@ -249,7 +264,7 @@ To set the end point, fill the following information in the **config.json** file
     "protocol": "http",
     "host": "YOUR_HOST",
     "port": 80,
-		"userTokenKey": "YOUR_JWT_PRIVATE_KEY",
+  "userTokenKey": "YOUR_JWT_PRIVATE_KEY",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 360,
     "userTechnicalTokenLifetimeDays": 180,
@@ -260,13 +275,14 @@ To set the end point, fill the following information in the **config.json** file
   }
 ```
 
-In order to properly call the REST endpoints, both ev-server and clients (ev-dashboard, ev-mobile, etc.) must reference a Google reCaptcha key. You can refer to this link https://www.google.com/recaptcha/admin/create, then copy the server key in config.json file, in section CentralSystemRestService:
+In order to properly call the REST endpoints, both ev-server and clients (ev-dashboard, ev-mobile, etc.) must reference a Google reCaptcha key. You can refer to this link <https://www.google.com/recaptcha/admin/create>, then copy the server key in config.json file, in section CentralSystemRestService:
 
 ```json
     ...
     "captchaSecretKey": "<GOOGLE_RECAPTCHA_KEY_SERVER>"
     ...
 ```
+
 ### Central Service Server (CSS) > Database
 
 You have now to connect the server to the database.
@@ -349,25 +365,25 @@ You can set your own key to encode it in key **userTokenKey** and change its lif
 
 The Demo users can have a longer lifetime for demo purposes with key **userDemoTokenLifetimeDays** (365 days by default)
 
-
 #### Authorization
 
 The users can have differents roles:
-* SuperAdmin (**S**)
-* Admin (**A**)
-* Basic (**B**)
-* Demo (**D**)
+
+- SuperAdmin (**S**)
+- Admin (**A**)
+- Basic (**B**)
+- Demo (**D**)
 
 ##### Authorization Matrix
 
-|                  |            SuperAdmin          |                                                       Admin                                                       |                   Basic                 |      Demo     |
-|------------------|:------------------------------:|:-----------------------------------------------------------------------------------------------------------------:|:---------------------------------------:|:-------------:|
-| Users            |                                |                                                        List                                                       |                    -                    |       -       |
-| User             |                                |                                        Create, Read, Update, Delete, Logout                                       | Read, Update (Only logged user), Logout | (user hidden) |
-| ChargingStations |                                |                                                        List                                                       |                   List                  |      List     |
-| ChargingStation  |                                | Read, Update, Delete, Reset, ClearCache,  GetConfiguration, ChangeConfiguration, StopTransaction, UnlockConnector |                   Read                  |      Read     |
-| Logging          |               List             |                                                        List                                                       |                    -                    |               |
-| Tenant           |  Create, Read, Update, Delete  |                                                                                                                   |                    -                    |               |
+|                  |          SuperAdmin          |                                                      Admin                                                       |                  Basic                  |     Demo      |
+| ---------------- | :--------------------------: | :--------------------------------------------------------------------------------------------------------------: | :-------------------------------------: | :-----------: |
+| Users            |                              |                                                       List                                                       |                    -                    |       -       |
+| User             |                              |                                       Create, Read, Update, Delete, Logout                                       | Read, Update (Only logged user), Logout | (user hidden) |
+| ChargingStations |                              |                                                       List                                                       |                  List                   |     List      |
+| ChargingStation  |                              | Read, Update, Delete, Reset, ClearCache, GetConfiguration, ChangeConfiguration, StopTransaction, UnlockConnector |                  Read                   |     Read      |
+| Logging          |             List             |                                                       List                                                       |                    -                    |               |
+| Tenant           | Create, Read, Update, Delete |                                                                                                                  |                    -                    |               |
 
 ### Notifications
 
@@ -409,13 +425,13 @@ Here are the charging station parameters:
   },
 ```
 
-* **heartbeatIntervalSecs**: The time interval which the charging station will send the data to the server
-* **checkEndOfChargeNotificationAfterMin**: The delay to wait before the notification will be sent when the charge will be finished
-* **notifBeforeEndOfChargePercent**: The threshold for the intermediate notification  (% of the energy delivered by the charging station)
-* **notifBeforeEndOfChargeEnabled**: Enable the intermediate notification
-* **notifEndOfChargePercent**: The threshold for the end of charge (% of the energy delivered by the charging station)
-* **notifEndOfChargeEnabled**: Enable the end of charge notification
-* **notifStopTransactionAndUnlockConnector**: Enable the stop transaction and unlock of the connector when the charge will be finished
+- **heartbeatIntervalSecs**: The time interval which the charging station will send the data to the server
+- **checkEndOfChargeNotificationAfterMin**: The delay to wait before the notification will be sent when the charge will be finished
+- **notifBeforeEndOfChargePercent**: The threshold for the intermediate notification (% of the energy delivered by the charging station)
+- **notifBeforeEndOfChargeEnabled**: Enable the intermediate notification
+- **notifEndOfChargePercent**: The threshold for the end of charge (% of the energy delivered by the charging station)
+- **notifEndOfChargeEnabled**: Enable the end of charge notification
+- **notifStopTransactionAndUnlockConnector**: Enable the stop transaction and unlock of the connector when the charge will be finished
 
 ### Internationalization
 
@@ -439,9 +455,9 @@ Here are the default delivered locales:
 
 Each charging station vendor has its own configuration interface, so I'll just describe in general terms what's to be setup on those:
 
-* Set this server URL in the charging station's interface
-* Rename the charging station ID if necessary: this will be the key (use Company-Town-Number)
-* Set the charging station endpoint public URL to a reachable URL so the server can use it to trigger action on it (avoid using *localhost*)
+- Set this server URL in the charging station's interface
+- Rename the charging station ID if necessary: this will be the key (use Company-Town-Number)
+- Set the charging station endpoint public URL to a reachable URL so the server can use it to trigger action on it (avoid using _localhost_)
 
 All charging stations supporting OCPP-J and OCPP-S version 1.5 and 1.6 protocols are compatibles.
 
@@ -452,13 +468,13 @@ All charging stations supporting OCPP-J and OCPP-S version 1.5 and 1.6 protocols
 Start the application:
 
 ```shell
-npm run start
+pnpm start
 ```
 
 You can also start the application with the standard nodejs profiler:
 
 ```shell
-npm run start:prod:prof
+pnpm start:prod:prof
 ```
 
 ### Development Mode
@@ -466,120 +482,145 @@ npm run start:prod:prof
 In a console, start the application (rebuild and restarts if any changes is detected):
 
 ```shell
-npm run start:dev
+pnpm start:dev
 ```
 
 You can also start the application with the standard nodejs profiler:
 
 ```shell
-npm run start:dev:prof
+pnpm start:dev:prof
 ```
 
 ### Profiling with [clinic](https://clinicjs.org)
 
 ```shell
-npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
+pnpm start:(prod|dev):(doctorprof|flameprof|bubbleprof)
 ```
 
 **NOTE**: You can also use the files in the ev-config-scripts.zip on the share to have a correct initial setup of your development environment and some server startup helpers.
 
 ### Tests
+
 **Prerequisite:** The database must contain an admin user.
 
-* Create a local configuration file located in './test/config/local.json' from the template file './test/config-template.json' with the parameters to override like
+- Create a local configuration file located in './test/config/local.json' from the template file './test/config-template.json' with the parameters to override like
 
 ```json
-        {
-          "superadmin": {
-            "username": "YOUR_SUPERADMIN_USERNAME",
-            "password": "YOUR_SUPERADMIN_PASSWORD"
-          },
-          "admin": {
-            "username": "YOUR_ADMIN_USERNAME",
-            "password": "YOUR_ADMIN_PASSWORD"
-          },
-          "server": {
-            "logs": "json"
-          },
-          "ocpp": {
-            "json": {
-                "logs": "json"
-            }
-          }
-        }
+{
+  "superadmin": {
+    "username": "YOUR_SUPERADMIN_USERNAME",
+    "password": "YOUR_SUPERADMIN_PASSWORD"
+  },
+  "admin": {
+    "username": "YOUR_ADMIN_USERNAME",
+    "password": "YOUR_ADMIN_PASSWORD"
+  },
+  "server": {
+    "logs": "json"
+  },
+  "ocpp": {
+    "json": {
+      "logs": "json"
+    }
+  }
+}
 ```
 
-  For further parameters, check the [`config`](./test/config.js) content. It is also possible to use environment variables as defined in the [`config`](./test/config.js) file
-* Start a server containing the configured admin user in the database
-* If you have not done it yet, run the command `npm run test:createContext`
-* Run the command `npm run test`
+For further parameters, check the [`config`](./test/config.js) content. It is also possible to use environment variables as defined in the [`config`](./test/config.js) file
+
+- Start a server containing the configured admin user in the database
+- If you have not done it yet, run the command `pnpm test:createContext`
+- Run the command `pnpm test`
 
 ### Docker Mode
+
 Depending on the need it is possible to start different docker containers.
 
 Each following command has to be executed in folder [docker](./docker).
 
 #### Minimal local environment
+
 It consist in starting a pre configured empty mongo database plus a mail service and mongo express.
 To start it, execute command:
+
 ```bash
 make local-env
 ```
+
 To stop it, execute command:
+
 ```bash
 make clean-local-env-containers
 ```
+
 The mongo database folder will be kept along multiple restarts. To remove it:
+
 ```bash
 make clean-mongo-data
 ```
+
 Due to fixed replica set configuration, the database hostname has to be referenced in the host machine to be accessible.
 To enable it, as admin, add the entry `ev_mongo 127.0.0.1` in `/private/etc/hosts` for MacOSX or in `C:\Windows\System32\Drivers\etc\hosts` for Windows.
 
 The database is then accessible using the credential `evse-admin/evse-admin-pwd`.
-The default login/password on the master tenant is super.admin@ev.com/Super.admin00. The default login/password on the SLF tenant is slf.admin@ev.com/Slf.admin00.
+The default login/password on the master tenant is <super.admin@ev.com>/Super.admin00. The default login/password on the SLF tenant is <slf.admin@ev.com>/Slf.admin00.
 
 #### ev-server
+
 In case of UI development or test purpose, the server has been containerized.
 To start it, execute command:
+
 ```bash
 make server
 ```
+
 In order to rebuild the image in case of changes:
+
 ```bash
 make server-force
 ```
+
 To stop it, execute command:
+
 ```bash
 make clean-server-container
 ```
 
 #### mongo express
+
 If needed, it is possible to start or stop a [mongo express](https://github.com/mongo-express/mongo-express) instance auto connected to mongodb independently.
 To start it, execute command:
+
 ```bash
 make mongo-express
 ```
 
 To stop it, execute command:
+
 ```bash
 make clean-mongo-express-container
 ```
 
 #### All in one
+
 It is possible to build and start all containers in one command:
+
 ```bash
 make
 ```
+
 Or without the optional git submodules:
+
 ```bash
 make SUBMODULES_INIT=false
 ```
+
 That Makefile option works for all targets.
 
 ## Architecture
 
 ### TAM Model
+
 ![TAM Model](./tam-model.png)
 
 ## License
@@ -587,4 +628,3 @@ That Makefile option works for all targets.
 This file and all other files in this repository are licensed under the Apache Software License, v.2 and copyrighted under the copyright in [NOTICE](NOTICE) file, except as noted otherwise in the [LICENSE](LICENSE) file.
 
 Please note that Docker images can contain other software which may be licensed under different licenses. This LICENSE and NOTICE files are also included in the Docker image. For any usage of built Docker images please make sure to check the licenses of the artifacts contained in the images.
-

@@ -18,11 +18,7 @@ import { TransactionBillingData } from './Billing';
 import { TransactionRefundData } from './Refund';
 import User from './User';
 
-export type InactivityStatusLevel =
- 'info' |
- 'warning' |
- 'danger'
-;
+export type InactivityStatusLevel = 'info' | 'warning' | 'danger';
 
 export enum TransactionStatus {
   ACTIVE = 'active',
@@ -38,14 +34,14 @@ export enum TransactionStatisticsType {
 export enum InactivityStatus {
   INFO = 'I',
   WARNING = 'W',
-  ERROR = 'E'
+  ERROR = 'E',
 }
 
 export enum TransactionAction {
   START = 'start',
   UPDATE = 'update',
   STOP = 'stop',
-  END = 'end'
+  END = 'end',
 }
 
 export interface UserDefaultTagCar {
@@ -55,19 +51,19 @@ export interface UserDefaultTagCar {
 }
 
 export interface AdvenirPayload {
-  [ userID: string ]: AdvenirEvseData
+  [userID: string]: AdvenirEvseData;
 }
 
 export interface AdvenirEvseData {
-  [ evseID: string ]: AdvenirTransactionData
+  [evseID: string]: AdvenirTransactionData;
 }
 export interface AdvenirTransactionData {
-  [ transactionID: string ]: AdvenirConsumptionData[]
+  [transactionID: string]: AdvenirConsumptionData[];
 }
 
 export interface AdvenirConsumptionData {
-  timestamp: number,
-  value: number
+  timestamp: number;
+  value: number;
 }
 
 export enum StartTransactionErrorCode {
@@ -77,7 +73,9 @@ export enum StartTransactionErrorCode {
   BILLING_INCONSISTENT_SETTINGS = 'billing_inconsistent_settings', // start transaction not possible - billing settings are inconsistent
 }
 
-export default interface Transaction extends AbstractCurrentConsumption, TransactionAuthorizationActions {
+export default interface Transaction
+  extends AbstractCurrentConsumption,
+    TransactionAuthorizationActions {
   id?: number;
   carID?: string;
   car?: Car;
@@ -115,7 +113,7 @@ export default interface Transaction extends AbstractCurrentConsumption, Transac
   roundedPrice?: number;
   priceUnit?: string;
   pricingSource?: string;
-  pricingModel?: ResolvedPricingModel,
+  pricingModel?: ResolvedPricingModel;
   stateOfCharge: number;
   timezone: string;
   currentTimestamp?: Date;
@@ -191,31 +189,31 @@ export interface TransactionStop {
   totalConsumptionWh?: number;
   totalDurationSecs?: number;
   inactivityStatus?: InactivityStatus;
-  transactionData?: OCPP15TransactionData|OCPPMeterValue[];
+  transactionData?: OCPP15TransactionData | OCPPMeterValue[];
   signedData?: string;
 }
 
 export interface CollectedFundReport {
   key: {
-    accountID: string,
-    currency: string,
-  }
-  collectedFunds: number,
-  collectedFlatFees: number,
-  collectedFees: number,
-  totalConsumptionWh: number,
-  totalDurationSecs: number,
-  transactionIDs: number[],
+    accountID: string;
+    currency: string;
+  };
+  collectedFunds: number;
+  collectedFlatFees: number;
+  collectedFees: number;
+  totalConsumptionWh: number;
+  totalDurationSecs: number;
+  transactionIDs: number[];
 }
 
 export interface SmartChargingSessionParameters {
-  departureTime: string,
-  carStateOfCharge: number,
-  targetStateOfCharge: number,
+  departureTime: string;
+  carStateOfCharge: number;
+  targetStateOfCharge: number;
 }
 
 export interface SmartChargingRuntimeSessionParameters {
-  departureTime?: Date, // Date of the departure time - taking into account the timezone of the charging station
-  carStateOfCharge?: number,
-  targetStateOfCharge?: number,
+  departureTime?: Date; // Date of the departure time - taking into account the timezone of the charging station
+  carStateOfCharge?: number;
+  targetStateOfCharge?: number;
 }

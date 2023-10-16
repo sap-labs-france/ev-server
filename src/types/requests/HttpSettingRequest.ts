@@ -19,5 +19,4 @@ export interface HttpSettingsGetRequest extends HttpDatabaseRequest {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpSettingUpdateRequest extends SettingDB {
-}
+export interface HttpSettingUpdateRequest extends SettingDB {}

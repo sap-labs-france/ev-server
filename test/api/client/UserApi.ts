@@ -13,12 +13,30 @@ export default class UserApi extends CrudApi {
     return super.readById(id, url);
   }
 
-  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_USERS));
+  public async readAll(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_USERS)
+    );
   }
 
-  public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_USERS_IN_ERROR));
+  public async readAllInError(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_USERS_IN_ERROR)
+    );
   }
 
   public async create(data) {
@@ -45,10 +63,16 @@ export default class UserApi extends CrudApi {
   }
 
   public async updateMobileToken(userID: string, mobileToken: string, mobileOS: string) {
-    const url = this.buildRestEndpointUrl(RESTServerRoute.REST_USER_UPDATE_MOBILE_TOKEN, { id: userID });
-    return super.update({
-      mobileToken, mobileOS
-    }, url);
+    const url = this.buildRestEndpointUrl(RESTServerRoute.REST_USER_UPDATE_MOBILE_TOKEN, {
+      id: userID,
+    });
+    return super.update(
+      {
+        mobileToken,
+        mobileOS,
+      },
+      url
+    );
   }
 
   public async getImage(userID: string) {
@@ -57,12 +81,22 @@ export default class UserApi extends CrudApi {
   }
 
   public async getDefaultTagCar(userID: string) {
-    const url = this.buildRestEndpointUrl(RESTServerRoute.REST_USER_DEFAULT_TAG_CAR, { });
+    const url = this.buildRestEndpointUrl(RESTServerRoute.REST_USER_DEFAULT_TAG_CAR, {});
     return super.read({ UserID: userID }, url);
   }
 
   public async getUserSessionContext(params) {
-    const url = this.buildRestEndpointUrl(RESTServerRoute.REST_USER_SESSION_CONTEXT, { id: params.userID });
-    return super.read({ ChargingStationID: params.chargingStationID, ConnectorID: params.connectorID, TagID: params.tagID, CarID: params.carID }, url);
+    const url = this.buildRestEndpointUrl(RESTServerRoute.REST_USER_SESSION_CONTEXT, {
+      id: params.userID,
+    });
+    return super.read(
+      {
+        ChargingStationID: params.chargingStationID,
+        ConnectorID: params.connectorID,
+        TagID: params.tagID,
+        CarID: params.carID,
+      },
+      url
+    );
   }
 }

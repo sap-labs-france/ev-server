@@ -1,4 +1,10 @@
-import OCPIEndpoint, { OCPIEndpointVersions, OCPIPingResult, OCPIRegisterResult, OCPIUnregisterResult, OCPIVersion } from '../../types/ocpi/OCPIEndpoint';
+import OCPIEndpoint, {
+  OCPIEndpointVersions,
+  OCPIPingResult,
+  OCPIRegisterResult,
+  OCPIUnregisterResult,
+  OCPIVersion,
+} from '../../types/ocpi/OCPIEndpoint';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
 import AxiosFactory from '../../utils/AxiosFactory';
@@ -25,11 +31,17 @@ export default abstract class OCPIClient {
   protected role: string;
   protected settings: OcpiSetting;
 
-  protected constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint, role: string) {
+  protected constructor(
+    tenant: Tenant,
+    settings: OcpiSetting,
+    ocpiEndpoint: OCPIEndpoint,
+    role: string
+  ) {
     if (role !== OCPIRole.CPO && role !== OCPIRole.EMSP) {
       throw new BackendError({
         message: `Invalid OCPI role '${role}'`,
-        module: MODULE_NAME, method: 'constructor',
+        module: MODULE_NAME,
+        method: 'constructor',
       });
     }
     this.axiosInstance = AxiosFactory.getAxiosInstance(tenant);
@@ -47,7 +59,7 @@ export default abstract class OCPIClient {
       // Get versions
       const response = await this.axiosInstance.get(this.ocpiEndpoint.baseUrl, {
         headers: {
-          'Authorization': `Token ${this.ocpiEndpoint.token}`
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
         },
       });
       // Check response
@@ -60,7 +72,7 @@ export default abstract class OCPIClient {
       }
     } catch (error) {
       pingResult.statusText = error.message;
-      pingResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
+      pingResult.statusCode = error.response ? error.response.status : HTTPError.GENERAL_ERROR;
     }
     return pingResult;
   }
@@ -74,7 +86,8 @@ export default abstract class OCPIClient {
         throw new BackendError({
           action: ServerAction.OCPI_UNREGISTER,
           message: 'OCPI Endpoint version 2.1.1 not found',
-          module: MODULE_NAME, method: 'constructor',
+          module: MODULE_NAME,
+          method: 'constructor',
         });
       }
       // Delete credentials
@@ -90,7 +103,9 @@ export default abstract class OCPIClient {
       unregisterResult.statusText = ReasonPhrases.OK;
     } catch (error) {
       unregisterResult.statusText = error.message;
-      unregisterResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
+      unregisterResult.statusCode = error.response
+        ? error.response.status
+        : HTTPError.GENERAL_ERROR;
     }
     return unregisterResult;
   }
@@ -104,7 +119,8 @@ export default abstract class OCPIClient {
         throw new BackendError({
           action: ServerAction.OCPI_REGISTER,
           message: 'OCPI Endpoint version 2.1.1 not found',
-          module: MODULE_NAME, method: 'constructor',
+          module: MODULE_NAME,
+          method: 'constructor',
         });
       }
       // Try to read services
@@ -140,7 +156,8 @@ export default abstract class OCPIClient {
         throw new BackendError({
           action: ServerAction.OCPI_REGISTER,
           message: 'OCPI Endpoint version 2.1.1 not found',
-          module: MODULE_NAME, method: 'constructor',
+          module: MODULE_NAME,
+          method: 'constructor',
         });
       }
       // Try to read services
@@ -173,11 +190,12 @@ export default abstract class OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_GET_VERSIONS,
       message: `Get OCPI Versions at ${this.ocpiEndpoint.baseUrl}`,
-      module: MODULE_NAME, method: 'getServices'
+      module: MODULE_NAME,
+      method: 'getServices',
     });
     const response = await this.axiosInstance.get(this.ocpiEndpoint.baseUrl, {
       headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.token}`
+        Authorization: `Token ${this.ocpiEndpoint.token}`,
       },
     });
     return response.data?.data;
@@ -192,11 +210,12 @@ export default abstract class OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_GET_ENDPOINT_VERSIONS,
       message: `Get OCPI Services at ${this.ocpiEndpoint.versionUrl}`,
-      module: MODULE_NAME, method: 'getServices'
+      module: MODULE_NAME,
+      method: 'getServices',
     });
     const response = await this.axiosInstance.get(this.ocpiEndpoint.versionUrl, {
       headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.token}`
+        Authorization: `Token ${this.ocpiEndpoint.token}`,
       },
     });
     return response.data?.data;
@@ -205,14 +224,18 @@ export default abstract class OCPIClient {
   public getLocalCountryCode(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
-        action, message: `OCPI Settings are missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getLocalCountryCode',
+        action,
+        message: `OCPI Settings are missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getLocalCountryCode',
       });
     }
     if (!this.settings[this.role].countryCode) {
       throw new BackendError({
-        action, message: `OCPI Country Code setting is missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getLocalCountryCode',
+        action,
+        message: `OCPI Country Code setting is missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getLocalCountryCode',
       });
     }
     return this.settings[this.role].countryCode;
@@ -221,14 +244,18 @@ export default abstract class OCPIClient {
   public getLocalPartyID(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
-        action, message: `OCPI Settings are missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getLocalPartyID',
+        action,
+        message: `OCPI Settings are missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getLocalPartyID',
       });
     }
     if (!this.settings[this.role].partyID) {
       throw new BackendError({
-        action, message: `OCPI Party ID setting is missing for role ${this.role}`,
-        module: MODULE_NAME, method: 'getLocalPartyID',
+        action,
+        message: `OCPI Party ID setting is missing for role ${this.role}`,
+        module: MODULE_NAME,
+        method: 'getLocalPartyID',
       });
     }
     return this.settings[this.role].partyID;
@@ -239,13 +266,17 @@ export default abstract class OCPIClient {
       return this.ocpiEndpoint.availableEndpoints[service];
     }
     throw new BackendError({
-      action, message: `No endpoint URL defined for service '${service}'`,
-      module: MODULE_NAME, method: 'getEndpointUrl',
+      action,
+      message: `No endpoint URL defined for service '${service}'`,
+      module: MODULE_NAME,
+      method: 'getEndpointUrl',
     });
   }
 
   protected getLocalEndpointUrl(service: string): string {
-    return `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${this.role}/${this.ocpiEndpoint.version}/${service}`;
+    return `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${this.role}/${
+      this.ocpiEndpoint.version
+    }/${service}`;
   }
 
   private async checkVersions(): Promise<boolean> {
@@ -271,60 +302,68 @@ export default abstract class OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CREATE_CREDENTIALS,
       message: `Delete Credentials at ${credentialsUrl}`,
-      module: MODULE_NAME, method: 'postCredentials'
+      module: MODULE_NAME,
+      method: 'postCredentials',
     });
     // Call eMSP with CPO credentials
-    const response = await this.axiosInstance.delete(credentialsUrl,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-      });
+    const response = await this.axiosInstance.delete(credentialsUrl, {
+      headers: {
+        Authorization: `Token ${this.ocpiEndpoint.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
     return response.data?.data;
   }
 
   private async postCredentials(): Promise<OCPICredential> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_CREATE_CREDENTIALS);
-    const credentials = await OCPIUtils.buildOcpiCredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
+    const credentials = await OCPIUtils.buildOcpiCredentialObject(
+      this.tenant,
+      this.ocpiEndpoint.localToken,
+      this.ocpiEndpoint.role
+    );
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CREATE_CREDENTIALS,
       message: `Post Credentials at ${credentialsUrl}`,
-      module: MODULE_NAME, method: 'postCredentials',
-      detailedMessages: { credentials }
+      module: MODULE_NAME,
+      method: 'postCredentials',
+      detailedMessages: { credentials },
     });
     // Call eMSP with CPO credentials
-    const response = await this.axiosInstance.post(credentialsUrl, credentials,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-      });
+    const response = await this.axiosInstance.post(credentialsUrl, credentials, {
+      headers: {
+        Authorization: `Token ${this.ocpiEndpoint.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
     return response.data?.data;
   }
 
   private async putCredentials(): Promise<OCPICredential> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_UPDATE_CREDENTIALS);
-    const credentials = await OCPIUtils.buildOcpiCredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
+    const credentials = await OCPIUtils.buildOcpiCredentialObject(
+      this.tenant,
+      this.ocpiEndpoint.localToken,
+      this.ocpiEndpoint.role
+    );
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_UPDATE_CREDENTIALS,
       message: `Put Credentials at ${credentialsUrl}`,
-      module: MODULE_NAME, method: 'putCredentials',
-      detailedMessages: { credentials }
+      module: MODULE_NAME,
+      method: 'putCredentials',
+      detailedMessages: { credentials },
     });
     // Call eMSP with CPO credentials
-    const response = await this.axiosInstance.put(credentialsUrl, credentials,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-      });
+    const response = await this.axiosInstance.put(credentialsUrl, credentials, {
+      headers: {
+        Authorization: `Token ${this.ocpiEndpoint.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
     return response.data?.data;
   }
 }

@@ -62,7 +62,7 @@ export enum OCPIEnergySourceCategory {
   GENERAL_GREEN = 'GENERAL_GREEN',
   SOLAR = 'SOLAR',
   WIND = 'WIND',
-  WATER = 'WATER'
+  WATER = 'WATER',
 }
 
 export interface OCPIEnvironmentalImpact {
@@ -72,7 +72,7 @@ export interface OCPIEnvironmentalImpact {
 
 export enum OCPIEnvironmentalImpactCategory {
   NUCLEAR_WASTE = 'NUCLEAR_WASTE',
-  CARBON_DIOXIDE = 'CARBON_DIOXIDE'
+  CARBON_DIOXIDE = 'CARBON_DIOXIDE',
 }
 export interface OCPICoordinates {
   latitude: string;
@@ -95,7 +95,7 @@ export enum OCPIFacilities {
   AIRPORT = 'AIRPORT',
   CARPOOL_PARKING = 'CARPOOL_PARKING',
   FUEL_STATION = 'FUEL_STATION',
-  WIFI = 'WIFI'
+  WIFI = 'WIFI',
 }
 
 export interface OCPIImage {
@@ -114,7 +114,7 @@ export enum OCPIImageCategory {
   NETWORK = 'NETWORK',
   OPERATOR = 'OPERATOR',
   OTHER = 'OTHER',
-  OWNER = 'OWNER'
+  OWNER = 'OWNER',
 }
 
 export interface OCPIOpeningTimes {
@@ -130,7 +130,7 @@ export enum OCPILocationType {
   UNDERGROUND_GARAGE = 'UNDERGROUND_GARAGE',
   PARKING_LOT = 'PARKING_LOT',
   OTHER = 'OTHER',
-  UNKNOWN = 'UNKNOWN'
+  UNKNOWN = 'UNKNOWN',
 }
 
 export interface OCPILocationOptions {
@@ -144,4 +144,3 @@ export interface OCPILocationReference {
   evse_uids: string[];
   connector_ids?: string[];
 }
-

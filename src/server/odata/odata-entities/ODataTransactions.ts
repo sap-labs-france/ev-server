@@ -71,4 +71,3 @@ export default class ODataTransactions extends AbstractODataEntities {
     return transaction;
   }
 }
-

@@ -72,7 +72,7 @@ async function createAsset() {
     testData.userService.assetApi,
     Factory.asset.build({
       siteAreaID: testData.newSiteArea.id,
-      assetType: 'PR'
+      assetType: 'PR',
     })
   );
 }
@@ -82,7 +82,9 @@ async function createAsset() {
  */
 async function createSiteWithoutSiteAdmin() {
   // Create a site
-  const siteData = Factory.site.build({ companyID: testData.tenantContext.getContext().companies[0].id });
+  const siteData = Factory.site.build({
+    companyID: testData.tenantContext.getContext().companies[0].id,
+  });
   testData.siteWithoutSiteAdmin = await testData.userService.createEntity(
     testData.userService.siteApi,
     siteData
@@ -128,16 +130,23 @@ describe('Site Area', () => {
   });
 
   describe('With all components (utall)', () => {
-
     beforeAll(async () => {
-      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(
+        ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS
+      );
+      testData.centralUserContext = testData.tenantContext.getUserContext(
+        ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN
+      );
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
         testData.centralUserContext
       );
-      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
-      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+      testData.siteContext = testData.tenantContext.getSiteContext(
+        ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+      );
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(
+        ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL
+      );
     });
 
     afterAll(async () => {
@@ -183,7 +192,6 @@ describe('Site Area', () => {
     });
 
     describe('Where admin user', () => {
-
       beforeAll(async () => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         await createSiteArea();
@@ -263,43 +271,49 @@ describe('Site Area', () => {
         expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
-      it(
-        'Should not be able to read consumption without site Area ID',
-        async () => {
-          // Try to call Consumptions without Site Area ID
-          const response = await testData.centralUserService.siteAreaApi.readConsumption(null,null,null);
-          expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
-        }
-      );
+      it('Should not be able to read consumption without site Area ID', async () => {
+        // Try to call Consumptions without Site Area ID
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(
+          null,
+          null,
+          null
+        );
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
+      });
 
-      it(
-        'Should not be able to read consumption without start and end date',
-        async () => {
-          // Try to call Consumptions without start and end date
-          const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, null, null);
-          expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
-        }
-      );
+      it('Should not be able to read consumption without start and end date', async () => {
+        // Try to call Consumptions without start and end date
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(
+          testData.siteAreaContext.getSiteArea().id,
+          null,
+          null
+        );
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
+      });
 
-      it(
-        'Should not be able to read consumption with end date before start date',
-        async () => {
-          // Try to call Consumptions with end date before start date
-          const response = await testData.centralUserService.siteAreaApi.readConsumption(
-            testData.siteAreaContext.getSiteArea().id, new Date(), new Date(new Date().getTime() - (24 * 60 * 60 * 1000)));
-          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-        }
-      );
+      it('Should not be able to read consumption with end date before start date', async () => {
+        // Try to call Consumptions with end date before start date
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(
+          testData.siteAreaContext.getSiteArea().id,
+          new Date(),
+          new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
+        );
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+      });
 
       it('Should be able to assign ChargingStations to SiteArea', async () => {
-      // Assign ChargingStation to SiteArea
+        // Assign ChargingStation to SiteArea
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
         expect(chargingStations.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.assignChargingStations(
-          testData.siteAreaContext.getSiteArea().id, [chargingStations.data.result[0].id]);
+          testData.siteAreaContext.getSiteArea().id,
+          [chargingStations.data.result[0].id]
+        );
         expect(response.status).to.equal(StatusCodes.OK);
         // Get the assigned charging station
-        const chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
+        const chargingStation = (
+          await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)
+        ).data;
         // Get the site
         const site = (await testData.userService.siteApi.readById(chargingStation.siteID)).data;
         expect(chargingStation.siteAreaID).to.equal(testData.siteAreaContext.getSiteArea().id);
@@ -312,10 +326,14 @@ describe('Site Area', () => {
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
         expect(chargingStations.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.removeChargingStations(
-          testData.siteAreaContext.getSiteArea().id, [chargingStations.data.result[0].id]);
+          testData.siteAreaContext.getSiteArea().id,
+          [chargingStations.data.result[0].id]
+        );
         expect(response.status).to.equal(StatusCodes.OK);
         // Get the assigned charging station
-        const chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
+        const chargingStation = (
+          await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)
+        ).data;
         // Organizations entities IDs should be removed
         expect(chargingStation.siteAreaID).to.be.null;
         expect(chargingStation.siteID).to.be.null;
@@ -324,13 +342,19 @@ describe('Site Area', () => {
 
       it('Assets, Charging stations, Transactions and Consumption should be aligned with organizations entities', async () => {
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
-        let transaction = (await testData.userService.transactionApi.readAllCompleted({}, { limit: 1, skip: 0 })).data.result[0];
-        let chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
+        let transaction = (
+          await testData.userService.transactionApi.readAllCompleted({}, { limit: 1, skip: 0 })
+        ).data.result[0];
+        let chargingStation = (
+          await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)
+        ).data;
         // Conserve site areas IDs to re init the context
         const oldChargingStationSiteAreaID = chargingStation.siteAreaID;
         const oldTransactionSiteAreaID = transaction.siteAreaID;
         const oldTransactionSiteID = transaction.siteID;
-        const transactionSiteArea = (await testData.userService.siteAreaApi.readById(oldTransactionSiteAreaID)).data;
+        const transactionSiteArea = (
+          await testData.userService.siteAreaApi.readById(oldTransactionSiteAreaID)
+        ).data;
         transactionSiteArea.siteID = testData.createdSites[1].id;
         // Update
         await testData.userService.updateEntity(
@@ -338,7 +362,11 @@ describe('Site Area', () => {
           transactionSiteArea
         );
         transaction = (await testData.userService.transactionApi.readById(transaction.id)).data;
-        const consumption = (await testData.userService.transactionApi.readAllConsumption({ TransactionId: transaction.id })).data;
+        const consumption = (
+          await testData.userService.transactionApi.readAllConsumption({
+            TransactionId: transaction.id,
+          })
+        ).data;
         expect(transaction.siteID).to.equal(testData.createdSites[1].id);
         expect(consumption.siteID).to.equal(testData.createdSites[1].id);
         expect(transaction.companyID).to.equal(testData.createdSites[1].companyID);
@@ -354,10 +382,13 @@ describe('Site Area', () => {
           Factory.siteArea.build({ siteID: testData.createdSites[0].id })
         );
         let response = await testData.userService.siteAreaApi.assignChargingStations(
-          testData.newSiteArea.id, [chargingStations.data.result[0].id]);
+          testData.newSiteArea.id,
+          [chargingStations.data.result[0].id]
+        );
         expect(response.status).to.equal(StatusCodes.OK);
-        response = await testData.userService.siteAreaApi.assignAssets(
-          testData.newSiteArea.id, [testData.testAsset.id]);
+        response = await testData.userService.siteAreaApi.assignAssets(testData.newSiteArea.id, [
+          testData.testAsset.id,
+        ]);
         expect(response.status).to.equal(StatusCodes.OK);
         // Get the assigned asset
         let asset = (await testData.userService.assetApi.readById(testData.testAsset.id)).data;
@@ -365,7 +396,9 @@ describe('Site Area', () => {
         expect(asset.siteID).to.equal(testData.createdSites[0].id);
         expect(asset.companyID).to.equal(testData.createdSites[0].companyID);
         // Get the assigned charging station
-        chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
+        chargingStation = (
+          await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)
+        ).data;
         expect(chargingStation.siteAreaID).to.equal(testData.newSiteArea.id);
         expect(chargingStation.siteID).to.equal(testData.createdSites[0].id);
         expect(chargingStation.companyID).to.equal(testData.createdSites[0].companyID);
@@ -382,23 +415,36 @@ describe('Site Area', () => {
         expect(asset.siteID).to.equal(testData.createdSites[1].id);
         expect(asset.companyID).to.equal(testData.createdSites[1].companyID);
         // Get the assigned charging station
-        chargingStation = (await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)).data;
+        chargingStation = (
+          await testData.userService.chargingStationApi.readById(chargingStations.data.result[0].id)
+        ).data;
         expect(chargingStation.siteAreaID).to.equal(testData.newSiteArea.id);
         expect(chargingStation.siteID).to.equal(testData.createdSites[1].id);
         expect(chargingStation.companyID).to.equal(testData.createdSites[1].companyID);
         // Remove charging station from site area
-        await testData.userService.siteAreaApi.removeChargingStations(
-          testData.newSiteArea.id, [chargingStation.id]);
-        chargingStation = (await testData.userService.chargingStationApi.readById(chargingStation.id)).data;
+        await testData.userService.siteAreaApi.removeChargingStations(testData.newSiteArea.id, [
+          chargingStation.id,
+        ]);
+        chargingStation = (
+          await testData.userService.chargingStationApi.readById(chargingStation.id)
+        ).data;
         expect(chargingStation.siteAreaID).to.be.null;
         expect(chargingStation.siteID).to.be.null;
         expect(chargingStation.companyID).to.be.null;
         // Put back the context in place
         if (oldChargingStationSiteAreaID) {
           await testData.userService.siteAreaApi.assignChargingStations(
-            oldChargingStationSiteAreaID, [chargingStation.id]);
+            oldChargingStationSiteAreaID,
+            [chargingStation.id]
+          );
         }
-        testData.siteAreaContext.setSiteArea((await testData.userService.siteAreaApi.readById(testData.siteAreaContext.getSiteArea().id)).data);
+        testData.siteAreaContext.setSiteArea(
+          (
+            await testData.userService.siteAreaApi.readById(
+              testData.siteAreaContext.getSiteArea().id
+            )
+          ).data
+        );
       });
 
       it('Should be able to assign Assets to SiteArea', async () => {
@@ -406,7 +452,9 @@ describe('Site Area', () => {
         const assets = await testData.userService.assetApi.readAll({});
         expect(assets.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.assignAssets(
-          testData.siteAreaContext.getSiteArea().id, [assets.data.result[0].id]);
+          testData.siteAreaContext.getSiteArea().id,
+          [assets.data.result[0].id]
+        );
         expect(response.status).to.equal(StatusCodes.OK);
         // Get the assigned asset
         const asset = (await testData.userService.assetApi.readById(assets.data.result[0].id)).data;
@@ -418,11 +466,13 @@ describe('Site Area', () => {
       });
 
       it('Should be able to remove Assets from SiteArea', async () => {
-      // Remove Assets from SiteArea
+        // Remove Assets from SiteArea
         const assets = await testData.userService.assetApi.readAll({});
         expect(assets.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.removeAssets(
-          testData.siteAreaContext.getSiteArea().id, [assets.data.result[0].id]);
+          testData.siteAreaContext.getSiteArea().id,
+          [assets.data.result[0].id]
+        );
         expect(response.status).to.equal(StatusCodes.OK);
         const asset = (await testData.userService.assetApi.readById(assets.data.result[0].id)).data;
         // Organization IDs should be removed
@@ -433,7 +483,6 @@ describe('Site Area', () => {
     });
 
     describe('Where basic user', () => {
-
       beforeAll(async () => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         await createSiteWithSiteAdmin();
@@ -458,7 +507,7 @@ describe('Site Area', () => {
           testData.userService.assetApi,
           Factory.asset.build({
             siteAreaID: testData.newSiteArea.id,
-            assetType: 'PR'
+            assetType: 'PR',
           })
         );
         login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
@@ -468,22 +517,21 @@ describe('Site Area', () => {
         // Create the entity
         const response = await testData.userService.createEntity(
           testData.userService.siteAreaApi,
-          Factory.siteArea.build({ siteID: testData.siteWithoutSiteAdmin.id }), false
+          Factory.siteArea.build({ siteID: testData.siteWithoutSiteAdmin.id }),
+          false
         );
         expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
-      it(
-        'Should be able to create a new site area if he is site admin',
-        async () => {
-          // Create the entity
-          const response = await testData.userService.createEntity(
-            testData.userService.siteAreaApi,
-            Factory.siteArea.build({ siteID: testData.siteWithSiteAdmin.id }), false
-          );
-          expect(response.status).to.equal(StatusCodes.OK);
-        }
-      );
+      it('Should be able to create a new site area if he is site admin', async () => {
+        // Create the entity
+        const response = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build({ siteID: testData.siteWithSiteAdmin.id }),
+          false
+        );
+        expect(response.status).to.equal(StatusCodes.OK);
+      });
 
       it('Should not be able to update the site area', async () => {
         // Change entity
@@ -491,24 +539,23 @@ describe('Site Area', () => {
         // Update
         const response = await testData.userService.updateEntity(
           testData.userService.siteAreaApi,
-          testData.siteAreaWithoutSiteAdmin, false
+          testData.siteAreaWithoutSiteAdmin,
+          false
         );
         expect(response.status).to.equal(StatusCodes.NOT_FOUND);
       });
 
-      it(
-        'Should be able to update the site area if he is site admin',
-        async () => {
-          // Change entity
-          testData.siteAreaWithSiteAdmin.name = 'New Name';
-          // Update
-          const response = await testData.userService.updateEntity(
-            testData.userService.siteAreaApi,
-            testData.siteAreaWithSiteAdmin, false
-          );
-          expect(response.status).to.equal(StatusCodes.OK);
-        }
-      );
+      it('Should be able to update the site area if he is site admin', async () => {
+        // Change entity
+        testData.siteAreaWithSiteAdmin.name = 'New Name';
+        // Update
+        const response = await testData.userService.updateEntity(
+          testData.userService.siteAreaApi,
+          testData.siteAreaWithSiteAdmin,
+          false
+        );
+        expect(response.status).to.equal(StatusCodes.OK);
+      });
 
       it('Should not be able to create a site area without a site', async () => {
         // Try to create the entity
@@ -520,87 +567,92 @@ describe('Site Area', () => {
         expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
-      it(
-        'Should not be able to read consumption without site Area ID',
-        async () => {
-          // Try to call Consumptions without Site Area ID
-          const response = await testData.centralUserService.siteAreaApi.readConsumption(null,null,null);
-          expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
-        }
-      );
+      it('Should not be able to read consumption without site Area ID', async () => {
+        // Try to call Consumptions without Site Area ID
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(
+          null,
+          null,
+          null
+        );
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
+      });
 
-      it(
-        'Should not be able to read consumption without start and end date',
-        async () => {
-          // Try to call Consumptions without start and end date
-          const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, null, null);
-          expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
-        }
-      );
+      it('Should not be able to read consumption without start and end date', async () => {
+        // Try to call Consumptions without start and end date
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(
+          testData.siteAreaContext.getSiteArea().id,
+          null,
+          null
+        );
+        expect(response.status).to.equal(StatusCodes.BAD_REQUEST);
+      });
 
-      it(
-        'Should not be able to read consumption with end date before start date',
-        async () => {
-          // Try to call Consumptions with end date before start date
-          const response = await testData.centralUserService.siteAreaApi.readConsumption(
-            testData.siteAreaContext.getSiteArea().id, new Date(), new Date(new Date().getTime() - (24 * 60 * 60 * 1000)));
-          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-        }
-      );
+      it('Should not be able to read consumption with end date before start date', async () => {
+        // Try to call Consumptions with end date before start date
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(
+          testData.siteAreaContext.getSiteArea().id,
+          new Date(),
+          new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
+        );
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+      });
 
       it('Should not be able to assign ChargingStations to SiteArea', async () => {
         // Try to assign ChargingStation to SiteArea
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
         expect(chargingStations.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.assignChargingStations(
-          testData.siteAreaWithoutSiteAdmin.id, [chargingStations.data.result[0].id]);
+          testData.siteAreaWithoutSiteAdmin.id,
+          [chargingStations.data.result[0].id]
+        );
         expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
-      it(
-        'Should not be able to remove ChargingStations from SiteArea',
-        async () => {
-          // Try to remove ChargingStation from SiteArea
-          const chargingStations = await testData.userService.chargingStationApi.readAll({});
-          expect(chargingStations.status).to.equal(StatusCodes.OK);
-          const response = await testData.userService.siteAreaApi.removeChargingStations(
-            testData.siteAreaWithoutSiteAdmin.id, [chargingStations.data.result[0].id]);
-          expect(response.status).to.equal(StatusCodes.NOT_FOUND);
-        }
-      );
+      it('Should not be able to remove ChargingStations from SiteArea', async () => {
+        // Try to remove ChargingStation from SiteArea
+        const chargingStations = await testData.userService.chargingStationApi.readAll({});
+        expect(chargingStations.status).to.equal(StatusCodes.OK);
+        const response = await testData.userService.siteAreaApi.removeChargingStations(
+          testData.siteAreaWithoutSiteAdmin.id,
+          [chargingStations.data.result[0].id]
+        );
+        expect(response.status).to.equal(StatusCodes.NOT_FOUND);
+      });
 
       it('Should not be able to assign Assets to SiteArea', async () => {
         const response = await testData.userService.siteAreaApi.assignAssets(
-          testData.siteAreaWithoutSiteAdmin.id, [testData.testAsset.id]);
+          testData.siteAreaWithoutSiteAdmin.id,
+          [testData.testAsset.id]
+        );
         expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should not be able to remove Assets from SiteArea', async () => {
         const response = await testData.userService.siteAreaApi.removeAssets(
-          testData.siteAreaWithoutSiteAdmin.id, [testData.testAsset.id]);
+          testData.siteAreaWithoutSiteAdmin.id,
+          [testData.testAsset.id]
+        );
         expect(response.status).to.equal(StatusCodes.NOT_FOUND);
       });
 
-      it(
-        'Should be able to remove ChargingStations from SiteArea if he is SiteAdmin',
-        async () => {
-          const chargingStations = await testData.userService.chargingStationApi.readAll({});
-          expect(chargingStations.status).to.equal(StatusCodes.OK);
-          // Remove ChargingStation from SiteArea
-          const response = await testData.userService.siteAreaApi.removeChargingStations(
-            testData.siteAreaWithSiteAdmin.id, [chargingStations.data.result[0].id]);
-          expect(response.status).to.equal(StatusCodes.OK);
-        }
-      );
+      it('Should be able to remove ChargingStations from SiteArea if he is SiteAdmin', async () => {
+        const chargingStations = await testData.userService.chargingStationApi.readAll({});
+        expect(chargingStations.status).to.equal(StatusCodes.OK);
+        // Remove ChargingStation from SiteArea
+        const response = await testData.userService.siteAreaApi.removeChargingStations(
+          testData.siteAreaWithSiteAdmin.id,
+          [chargingStations.data.result[0].id]
+        );
+        expect(response.status).to.equal(StatusCodes.OK);
+      });
 
-      it(
-        'Should be able to remove Assets from SiteArea if he is SiteAdmin',
-        async () => {
-          const response = await testData.userService.siteAreaApi.removeAssets(
-            testData.siteAreaWithSiteAdmin.id, [testData.testAsset.id]);
-          expect(response.status).to.equal(StatusCodes.OK);
-        }
-      );
+      it('Should be able to remove Assets from SiteArea if he is SiteAdmin', async () => {
+        const response = await testData.userService.siteAreaApi.removeAssets(
+          testData.siteAreaWithSiteAdmin.id,
+          [testData.testAsset.id]
+        );
+        expect(response.status).to.equal(StatusCodes.OK);
+      });
 
       it('Should not be able to delete the created site area', async () => {
         // Delete the created entity
@@ -612,22 +664,18 @@ describe('Site Area', () => {
         expect(response.status).to.equal(StatusCodes.NOT_FOUND);
       });
 
-      it(
-        'Should be able to delete the created site area if he is site admin',
-        async () => {
-          // Delete the created entity
-          const response = await testData.userService.deleteEntity(
-            testData.userService.siteAreaApi,
-            testData.siteAreaWithSiteAdmin,
-            false
-          );
-          expect(response.status).to.equal(StatusCodes.OK);
-        }
-      );
+      it('Should be able to delete the created site area if he is site admin', async () => {
+        // Delete the created entity
+        const response = await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.siteAreaWithSiteAdmin,
+          false
+        );
+        expect(response.status).to.equal(StatusCodes.OK);
+      });
     });
 
     describe('Sub Site Area Tests', () => {
-
       beforeAll(async () => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         // Create the entity
@@ -639,26 +687,40 @@ describe('Site Area', () => {
       });
 
       it('Should be able to create a new sub site area', async () => {
-        const newSubSiteArea = Factory.siteArea.build({ siteID: testData.siteContext.getSite().id });
+        const newSubSiteArea = Factory.siteArea.build({
+          siteID: testData.siteContext.getSite().id,
+        });
         newSubSiteArea.parentSiteAreaID = testData.newSiteArea.id;
         testData.newSubSiteArea = await testData.userService.createEntity(
-          testData.userService.siteAreaApi, newSubSiteArea
+          testData.userService.siteAreaApi,
+          newSubSiteArea
         );
         testData.createdSiteAreas.push(testData.newSubSiteArea);
       });
 
       it('Should not be able to create a new sub site area with different smart charging enablement', async () => {
-        const newSubSiteArea = Factory.siteArea.build({ siteID: testData.siteContext.getSite().id });
+        const newSubSiteArea = Factory.siteArea.build({
+          siteID: testData.siteContext.getSite().id,
+        });
         newSubSiteArea.parentSiteAreaID = testData.newSiteArea.id;
         newSubSiteArea.smartCharging = true;
-        const response = await testData.userService.createEntity(testData.userService.siteAreaApi, newSubSiteArea, false);
+        const response = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          newSubSiteArea,
+          false
+        );
         expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_SMART_CHARGING);
       });
 
       it('Should be able to create a new sub site area for sub site area', async () => {
-        const newSubSubSiteArea = Factory.siteArea.build({ siteID: testData.siteContext.getSite().id });
+        const newSubSubSiteArea = Factory.siteArea.build({
+          siteID: testData.siteContext.getSite().id,
+        });
         newSubSubSiteArea.parentSiteAreaID = testData.newSubSiteArea.id;
-        testData.newSubSubSiteArea = await testData.userService.createEntity(testData.userService.siteAreaApi, newSubSubSiteArea);
+        testData.newSubSubSiteArea = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          newSubSubSiteArea
+        );
         testData.createdSiteAreas.push(testData.newSubSubSiteArea);
       });
 
@@ -678,7 +740,8 @@ describe('Site Area', () => {
         // Update
         const response = await testData.userService.updateEntity(
           testData.userService.siteAreaApi,
-          testData.newSiteArea, false
+          testData.newSiteArea,
+          false
         );
         expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR);
       });
@@ -689,13 +752,16 @@ describe('Site Area', () => {
         // Update
         const response = await testData.userService.updateEntity(
           testData.userService.siteAreaApi,
-          testData.newSubSubSiteArea, false
+          testData.newSubSubSiteArea,
+          false
         );
         expect(response.status).to.equal(StatusCodes.NOT_FOUND);
-        const newSubSubSiteAreaResponse = testData.newSubSubSiteArea = await testData.userService.getEntityById(
-          testData.userService.siteAreaApi,
-          testData.newSubSubSiteArea, false
-        );
+        const newSubSubSiteAreaResponse = (testData.newSubSubSiteArea =
+          await testData.userService.getEntityById(
+            testData.userService.siteAreaApi,
+            testData.newSubSubSiteArea,
+            false
+          ));
         testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
       });
 
@@ -705,12 +771,14 @@ describe('Site Area', () => {
         // Update
         const response = await testData.userService.updateEntity(
           testData.userService.siteAreaApi,
-          testData.newSubSubSiteArea, false
+          testData.newSubSubSiteArea,
+          false
         );
         expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_SMART_NBR_PHASES);
         const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
           testData.userService.siteAreaApi,
-          testData.newSubSubSiteArea, false
+          testData.newSubSubSiteArea,
+          false
         );
         testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
       });
@@ -721,12 +789,14 @@ describe('Site Area', () => {
         // Update
         const response = await testData.userService.updateEntity(
           testData.userService.siteAreaApi,
-          testData.newSubSubSiteArea, false
+          testData.newSubSubSiteArea,
+          false
         );
         expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_VOLTAGE);
         const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
           testData.userService.siteAreaApi,
-          testData.newSubSubSiteArea, false
+          testData.newSubSubSiteArea,
+          false
         );
         testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
       });
@@ -737,12 +807,14 @@ describe('Site Area', () => {
         // Update
         const response = await testData.userService.updateEntity(
           testData.userService.siteAreaApi,
-          testData.newSubSubSiteArea, false
+          testData.newSubSubSiteArea,
+          false
         );
         expect(response.status).to.equal(HTTPError.SITE_AREA_TREE_ERROR_SITE);
         const newSubSubSiteAreaResponse = await testData.userService.getEntityById(
           testData.userService.siteAreaApi,
-          testData.newSubSubSiteArea, false
+          testData.newSubSubSiteArea,
+          false
         );
         testData.newSubSubSiteArea = newSubSubSiteAreaResponse.data;
       });
@@ -751,7 +823,8 @@ describe('Site Area', () => {
         // Delete the created entity
         const response = await testData.userService.deleteEntity(
           testData.userService.siteAreaApi,
-          testData.newSiteArea, false
+          testData.newSiteArea,
+          false
         );
         expect(response.status).to.equal(StatusCodes.OK);
       });
@@ -760,7 +833,8 @@ describe('Site Area', () => {
         // Delete the created entity
         const response = await testData.userService.deleteEntity(
           testData.userService.siteAreaApi,
-          testData.newSubSiteArea, false
+          testData.newSubSiteArea,
+          false
         );
         expect(response.status).to.equal(StatusCodes.OK);
       });

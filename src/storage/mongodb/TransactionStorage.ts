@@ -1,7 +1,18 @@
 import { BillingStatus, TransactionBillingData } from '../../types/Billing';
-import { DataResult, TransactionDataResult, TransactionInErrorDataResult } from '../../types/DataResult';
+import {
+  DataResult,
+  TransactionDataResult,
+  TransactionInErrorDataResult,
+} from '../../types/DataResult';
 import RefundReport, { RefundStatus, TransactionRefundData } from '../../types/Refund';
-import Transaction, { CollectedFundReport, TransactionOcpiData, TransactionOicpData, TransactionStatisticsType, TransactionStats, TransactionStatus } from '../../types/Transaction';
+import Transaction, {
+  CollectedFundReport,
+  TransactionOcpiData,
+  TransactionOicpData,
+  TransactionStatisticsType,
+  TransactionStats,
+  TransactionStatus,
+} from '../../types/Transaction';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 import global, { FilterParams } from './../../types/GlobalType';
 
@@ -24,22 +35,32 @@ export default class TransactionStorage {
     await TransactionStorage.deleteTransactions(tenant, [transactionID]);
   }
 
-  public static async deleteTransactions(tenant: Tenant, transactionsIDs: number[]): Promise<number> {
+  public static async deleteTransactions(
+    tenant: Tenant,
+    transactionsIDs: number[]
+  ): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
-    const result = await global.database.getCollection<any>(tenant.id, 'transactions')
-      .deleteMany({ '_id': { $in: transactionsIDs } });
+    const result = await global.database
+      .getCollection<any>(tenant.id, 'transactions')
+      .deleteMany({ _id: { $in: transactionsIDs } });
     // Delete Meter Values
-    await global.database.getCollection<any>(tenant.id, 'metervalues')
-      .deleteMany({ 'transactionId': { $in: transactionsIDs } });
+    await global.database
+      .getCollection<any>(tenant.id, 'metervalues')
+      .deleteMany({ transactionId: { $in: transactionsIDs } });
     // Delete Consumptions
     await ConsumptionStorage.deleteConsumptions(tenant, transactionsIDs);
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteTransaction', startTime, { transactionsIDs });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'deleteTransaction', startTime, {
+      transactionsIDs,
+    });
     return result.deletedCount;
   }
 
-  public static async saveTransaction(tenant: Tenant, transactionToSave: Transaction): Promise<number> {
+  public static async saveTransaction(
+    tenant: Tenant,
+    transactionToSave: Transaction
+  ): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // ID not provided?
@@ -55,12 +76,20 @@ export default class TransactionStorage {
       siteAreaID: DatabaseUtils.convertToObjectID(transactionToSave.siteAreaID),
       connectorId: Utils.convertToInt(transactionToSave.connectorId),
       tagID: transactionToSave.tagID,
-      carID: transactionToSave.carID ? DatabaseUtils.convertToObjectID(transactionToSave.carID) : null,
-      carCatalogID: transactionToSave.carCatalogID ? Utils.convertToInt(transactionToSave.carCatalogID) : null,
-      carStateOfCharge: !Utils.isNullOrUndefined(transactionToSave.carStateOfCharge) ? Utils.convertToInt(transactionToSave.carStateOfCharge) : null,
+      carID: transactionToSave.carID
+        ? DatabaseUtils.convertToObjectID(transactionToSave.carID)
+        : null,
+      carCatalogID: transactionToSave.carCatalogID
+        ? Utils.convertToInt(transactionToSave.carCatalogID)
+        : null,
+      carStateOfCharge: !Utils.isNullOrUndefined(transactionToSave.carStateOfCharge)
+        ? Utils.convertToInt(transactionToSave.carStateOfCharge)
+        : null,
       carOdometer: Utils.convertToInt(transactionToSave.carOdometer),
       departureTime: Utils.convertToDate(transactionToSave.departureTime),
-      targetStateOfCharge: transactionToSave.targetStateOfCharge ? Utils.convertToInt(transactionToSave.targetStateOfCharge) : null,
+      targetStateOfCharge: transactionToSave.targetStateOfCharge
+        ? Utils.convertToInt(transactionToSave.targetStateOfCharge)
+        : null,
       userID: DatabaseUtils.convertToObjectID(transactionToSave.userID),
       chargeBoxID: transactionToSave.chargeBoxID,
       meterStart: Utils.convertToInt(transactionToSave.meterStart),
@@ -80,7 +109,9 @@ export default class TransactionStorage {
       currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
       currentInactivityStatus: transactionToSave.currentInactivityStatus,
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
-      currentCumulatedRoundedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedRoundedPrice),
+      currentCumulatedRoundedPrice: Utils.convertToFloat(
+        transactionToSave.currentCumulatedRoundedPrice
+      ),
       transactionEndReceived: Utils.convertToBoolean(transactionToSave.transactionEndReceived),
       currentInstantWatts: Utils.convertToFloat(transactionToSave.currentInstantWatts),
       currentInstantWattsL1: Utils.convertToFloat(transactionToSave.currentInstantWattsL1),
@@ -128,7 +159,7 @@ export default class TransactionStorage {
         price: Utils.convertToFloat(transactionToSave.stop.price),
         roundedPrice: Utils.convertToFloat(transactionToSave.stop.roundedPrice),
         priceUnit: transactionToSave.priceUnit,
-        pricingSource: transactionToSave.stop.pricingSource
+        pricingSource: transactionToSave.stop.pricingSource,
       };
       // Remove runtime props
       delete transactionMDB.currentInstantWatts;
@@ -162,7 +193,7 @@ export default class TransactionStorage {
       transactionMDB.remotestop = {
         timestamp: Utils.convertToDate(transactionToSave.remotestop.timestamp),
         tagID: transactionToSave.remotestop.tagID,
-        userID: DatabaseUtils.convertToObjectID(transactionToSave.remotestop.userID)
+        userID: DatabaseUtils.convertToObjectID(transactionToSave.remotestop.userID),
       };
     }
     if (transactionToSave.refundData) {
@@ -170,16 +201,18 @@ export default class TransactionStorage {
         refundId: transactionToSave.refundData.refundId,
         refundedAt: Utils.convertToDate(transactionToSave.refundData.refundedAt),
         status: transactionToSave.refundData.status,
-        reportId: transactionToSave.refundData.reportId
+        reportId: transactionToSave.refundData.reportId,
       };
     }
     if (transactionToSave.billingData) {
-      transactionMDB.billingData = TransactionStorage.normalizeBillingData(transactionToSave.billingData);
+      transactionMDB.billingData = TransactionStorage.normalizeBillingData(
+        transactionToSave.billingData
+      );
     }
     if (transactionToSave.ocpiData) {
       transactionMDB.ocpiData = {
         session: transactionToSave.ocpiData.session,
-        cdr: transactionToSave.ocpiData.cdr
+        cdr: transactionToSave.ocpiData.cdr,
       };
       if (transactionToSave.ocpiData.sessionCheckedOn) {
         transactionMDB.ocpiData.sessionCheckedOn = transactionToSave.ocpiData.sessionCheckedOn;
@@ -191,146 +224,253 @@ export default class TransactionStorage {
     if (transactionToSave.oicpData) {
       transactionMDB.oicpData = {
         session: transactionToSave.oicpData.session,
-        cdr: transactionToSave.oicpData.cdr
+        cdr: transactionToSave.oicpData.cdr,
       };
     }
     // Modify
-    await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndReplace(
-      { '_id': Utils.convertToInt(transactionToSave.id) },
-      transactionMDB,
-      { upsert: true });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransaction', startTime, transactionMDB);
+    await global.database
+      .getCollection<any>(tenant.id, 'transactions')
+      .findOneAndReplace({ _id: Utils.convertToInt(transactionToSave.id) }, transactionMDB, {
+        upsert: true,
+      });
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveTransaction',
+      startTime,
+      transactionMDB
+    );
     return transactionToSave.id;
   }
 
-  public static async saveTransactionOcpiData(tenant: Tenant, id: number,
-      ocpiData: TransactionOcpiData): Promise<void> {
+  public static async saveTransactionOcpiData(
+    tenant: Tenant,
+    id: number,
+    ocpiData: TransactionOcpiData
+  ): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
     await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
-      { '_id': id },
+      { _id: id },
       {
         $set: {
-          ocpiData
-        }
+          ocpiData,
+        },
       },
-      { upsert: false });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionOcpiData', startTime, ocpiData);
+      { upsert: false }
+    );
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveTransactionOcpiData',
+      startTime,
+      ocpiData
+    );
   }
 
-  public static async updateTransactionsWithOrganizationIDs(tenant: Tenant, companyID: string, siteID: string, siteAreaID?: string): Promise<number> {
+  public static async updateTransactionsWithOrganizationIDs(
+    tenant: Tenant,
+    companyID: string,
+    siteID: string,
+    siteAreaID?: string
+  ): Promise<number> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     let result: UpdateResult;
     if (siteAreaID) {
-      result = await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
+      result = (await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
         {
           siteAreaID: DatabaseUtils.convertToObjectID(siteAreaID),
         },
         {
           $set: {
             siteID: DatabaseUtils.convertToObjectID(siteID),
-            companyID: DatabaseUtils.convertToObjectID(companyID)
-          }
-        }) as UpdateResult;
+            companyID: DatabaseUtils.convertToObjectID(companyID),
+          },
+        }
+      )) as UpdateResult;
     } else {
-      result = await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
+      result = (await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
         {
           siteID: DatabaseUtils.convertToObjectID(siteID),
         },
         {
           $set: {
-            companyID: DatabaseUtils.convertToObjectID(companyID)
-          }
-        }) as UpdateResult;
+            companyID: DatabaseUtils.convertToObjectID(companyID),
+          },
+        }
+      )) as UpdateResult;
     }
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateTransactionsWithOrganizationIDs', startTime, { siteID, companyID, siteAreaID });
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'updateTransactionsWithOrganizationIDs',
+      startTime,
+      { siteID, companyID, siteAreaID }
+    );
     return result.modifiedCount;
   }
 
-  public static async saveTransactionOicpData(tenant: Tenant, id: number,
-      oicpData: TransactionOicpData): Promise<void> {
+  public static async saveTransactionOicpData(
+    tenant: Tenant,
+    id: number,
+    oicpData: TransactionOicpData
+  ): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
     await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
-      { '_id': id },
+      { _id: id },
       {
         $set: {
-          oicpData
-        }
+          oicpData,
+        },
       },
-      { upsert: false });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionOicpData', startTime, oicpData);
+      { upsert: false }
+    );
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveTransactionOicpData',
+      startTime,
+      oicpData
+    );
   }
 
-  public static async saveTransactionBillingData(tenant: Tenant, id: number,
-      billingData: TransactionBillingData): Promise<void> {
+  public static async saveTransactionBillingData(
+    tenant: Tenant,
+    id: number,
+    billingData: TransactionBillingData
+  ): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Normalize billing data
     const billingDataMDB = TransactionStorage.normalizeBillingData(billingData);
     // Modify document
     await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
-      { '_id': id },
+      { _id: id },
       {
         $set: {
-          billingData: billingDataMDB
-        }
+          billingData: billingDataMDB,
+        },
       },
-      { upsert: false });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionBillingData', startTime, billingData);
+      { upsert: false }
+    );
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveTransactionBillingData',
+      startTime,
+      billingData
+    );
   }
 
-  public static async saveTransactionRefundData(tenant: Tenant, id: number,
-      refundData: TransactionRefundData): Promise<void> {
+  public static async saveTransactionRefundData(
+    tenant: Tenant,
+    id: number,
+    refundData: TransactionRefundData
+  ): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify document
     await global.database.getCollection<any>(tenant.id, 'transactions').findOneAndUpdate(
-      { '_id': id },
+      { _id: id },
       {
         $set: {
-          refundData
-        }
+          refundData,
+        },
       },
-      { upsert: false });
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveTransactionRefundData', startTime, refundData);
+      { upsert: false }
+    );
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveTransactionRefundData',
+      startTime,
+      refundData
+    );
   }
 
   public static async getTransactionYears(tenant: Tenant): Promise<Date[]> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
-    const firstTransactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+    const firstTransactionsMDB = (await global.database
+      .getCollection<any>(tenant.id, 'transactions')
       .find({})
       .sort({ timestamp: 1 })
       .limit(1)
-      .toArray() as Transaction[];
+      .toArray()) as Transaction[];
     // Found?
     if (Utils.isEmptyArray(firstTransactionsMDB)) {
       return null;
     }
     const transactionYears = [];
     // Push the rest of the years up to now
-    for (let i = new Date(firstTransactionsMDB[0].timestamp).getFullYear(); i <= new Date().getFullYear(); i++) {
+    for (
+      let i = new Date(firstTransactionsMDB[0].timestamp).getFullYear();
+      i <= new Date().getFullYear();
+      i++
+    ) {
       transactionYears.push(i);
     }
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactionYears', startTime, firstTransactionsMDB);
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getTransactionYears',
+      startTime,
+      firstTransactionsMDB
+    );
     return transactionYears;
   }
 
-  public static async getTransactions(tenant: Tenant,
-      params: {
-        transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string[]; userIDs?: string[]; siteAdminIDs?: string[]; status?: TransactionStatus;
-        chargingStationIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date; withChargingStation?: boolean;
-        endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
-        ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
-        ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
-        statistics?: TransactionStatisticsType; refundStatus?: RefundStatus[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
-        transactionsToStop?: boolean; siteOwnerIDs?: string[]; withSmartChargingData?: boolean
-      },
-      dbParams: DbParams, projectFields?: string[]): Promise<TransactionDataResult> {
+  public static async getTransactions(
+    tenant: Tenant,
+    params: {
+      transactionIDs?: number[];
+      issuer?: boolean;
+      search?: string;
+      ownerID?: string[];
+      userIDs?: string[];
+      siteAdminIDs?: string[];
+      status?: TransactionStatus;
+      chargingStationIDs?: string[];
+      siteAreaIDs?: string[];
+      siteIDs?: string[];
+      connectorIDs?: number[];
+      startDateTime?: Date;
+      withChargingStation?: boolean;
+      endDateTime?: Date;
+      stop?: any;
+      minimalPrice?: boolean;
+      reportIDs?: string[];
+      tagIDs?: string[];
+      inactivityStatus?: string[];
+      ocpiSessionID?: string;
+      ocpiAuthorizationID?: string;
+      ocpiSessionDateFrom?: Date;
+      ocpiSessionDateTo?: Date;
+      ocpiCdrDateFrom?: Date;
+      ocpiCdrDateTo?: Date;
+      ocpiSessionChecked?: boolean;
+      ocpiCdrChecked?: boolean;
+      oicpSessionID?: string;
+      withSite?: boolean;
+      withSiteArea?: boolean;
+      withCompany?: boolean;
+      statistics?: TransactionStatisticsType;
+      refundStatus?: RefundStatus[];
+      withTag?: boolean;
+      hasUserID?: boolean;
+      withUser?: boolean;
+      withCar?: boolean;
+      transactionsToStop?: boolean;
+      siteOwnerIDs?: string[];
+      withSmartChargingData?: boolean;
+    },
+    dbParams: DbParams,
+    projectFields?: string[]
+  ): Promise<TransactionDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -346,22 +486,22 @@ export default class TransactionStorage {
     if (!Utils.isEmptyArray(params.ownerID)) {
       ownerMatch.$or.push({
         userID: {
-          $in: params.ownerID.map((userID) => DatabaseUtils.convertToObjectID(userID))
-        }
+          $in: params.ownerID.map((userID) => DatabaseUtils.convertToObjectID(userID)),
+        },
       });
     }
     if (params.siteAdminIDs) {
       ownerMatch.$or.push({
         siteID: {
-          $in: params.siteAdminIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
-        }
+          $in: params.siteAdminIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID)),
+        },
       });
     }
     if (params.siteOwnerIDs) {
       ownerMatch.$or.push({
         siteID: {
-          $in: params.siteOwnerIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
-        }
+          $in: params.siteOwnerIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID)),
+        },
       });
     }
     // Create Aggregation
@@ -370,18 +510,20 @@ export default class TransactionStorage {
     if (params.search) {
       // Build filter
       filters.$or = [
-        { '_id': Utils.convertToInt(params.search) },
-        { 'tagID': { $regex: params.search, $options: 'i' } },
-        { 'chargeBoxID': { $regex: params.search, $options: 'i' } },
+        { _id: Utils.convertToInt(params.search) },
+        { tagID: { $regex: params.search, $options: 'i' } },
+        { chargeBoxID: { $regex: params.search, $options: 'i' } },
         { 'ocpiData.session.id': params.search },
         { 'ocpiData.session.authorization_id': params.search },
       ];
     }
     // Status
-    if (params.status === TransactionStatus.COMPLETED ||
-        params.status === TransactionStatus.ACTIVE) {
+    if (
+      params.status === TransactionStatus.COMPLETED ||
+      params.status === TransactionStatus.ACTIVE
+    ) {
       filters.stop = {
-        $exists: (params.status === TransactionStatus.COMPLETED)
+        $exists: params.status === TransactionStatus.COMPLETED,
       };
     }
     // OCPI ID
@@ -399,7 +541,7 @@ export default class TransactionStorage {
     // Transaction
     if (!Utils.isEmptyArray(params.transactionIDs)) {
       filters._id = {
-        $in: params.transactionIDs
+        $in: params.transactionIDs,
       };
     }
     // Issuer
@@ -408,7 +550,9 @@ export default class TransactionStorage {
     }
     // User
     if (params.userIDs) {
-      filters.userID = { $in: params.userIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID)) };
+      filters.userID = {
+        $in: params.userIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID)),
+      };
     }
     // Charge Box
     if (params.chargingStationIDs) {
@@ -420,15 +564,12 @@ export default class TransactionStorage {
     }
     // Has user ID?
     if (params.hasUserID) {
-      filters.$and = [
-        { 'userID': { '$exists': true } },
-        { 'userID': { '$ne': null } }
-      ];
+      filters.$and = [{ userID: { $exists: true } }, { userID: { $ne: null } }];
     }
     // Connector
     if (!Utils.isEmptyArray(params.connectorIDs)) {
       filters.connectorId = {
-        $in: params.connectorIDs
+        $in: params.connectorIDs,
       };
     }
     // Date provided?
@@ -447,11 +588,15 @@ export default class TransactionStorage {
     if (params.ocpiSessionDateFrom || params.ocpiSessionDateTo) {
       // Start date
       if (params.ocpiSessionDateFrom) {
-        filters['ocpiData.session.last_updated'] = { $gte: Utils.convertToDate(params.ocpiSessionDateFrom) };
+        filters['ocpiData.session.last_updated'] = {
+          $gte: Utils.convertToDate(params.ocpiSessionDateFrom),
+        };
       }
       // End date
       if (params.ocpiSessionDateTo) {
-        filters['ocpiData.session.last_updated'] = { $lte: Utils.convertToDate(params.ocpiSessionDateTo) };
+        filters['ocpiData.session.last_updated'] = {
+          $lte: Utils.convertToDate(params.ocpiSessionDateTo),
+        };
       }
     }
     if (Utils.objectHasProperty(params, 'ocpiSessionChecked')) {
@@ -463,7 +608,9 @@ export default class TransactionStorage {
     if (params.ocpiCdrDateFrom || params.ocpiCdrDateTo) {
       // Start date
       if (params.ocpiCdrDateFrom) {
-        filters['ocpiData.cdr.last_updated'] = { $gte: Utils.convertToDate(params.ocpiCdrDateFrom) };
+        filters['ocpiData.cdr.last_updated'] = {
+          $gte: Utils.convertToDate(params.ocpiCdrDateFrom),
+        };
       }
       // End date
       if (params.ocpiCdrDateTo) {
@@ -486,20 +633,22 @@ export default class TransactionStorage {
     // Site's area ID
     if (params.siteAreaIDs) {
       filters.siteAreaID = {
-        $in: params.siteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
+        $in: params.siteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID)),
       };
     }
     // Site ID
     if (params.siteIDs) {
       filters.siteID = {
-        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID)),
       };
     }
     // Refund status
     if (!Utils.isEmptyArray(params.refundStatus)) {
-      const statuses = params.refundStatus.map((status) => status === RefundStatus.NOT_SUBMITTED ? null : status);
+      const statuses = params.refundStatus.map((status) =>
+        status === RefundStatus.NOT_SUBMITTED ? null : status
+      );
       filters['refundData.status'] = {
-        $in: statuses
+        $in: statuses,
       };
     }
     // Minimal Price
@@ -518,18 +667,22 @@ export default class TransactionStorage {
     if (ownerMatch.$or && ownerMatch.$or.length > 0) {
       aggregation.push({
         $match: {
-          $and: [ownerMatch, filters]
-        }
+          $and: [ownerMatch, filters],
+        },
       });
     } else {
       aggregation.push({
-        $match: filters
+        $match: filters,
       });
     }
     // Only Connector's Transaction ID !== Transaction ID
     if (params.transactionsToStop) {
       TransactionStorage.pushChargingStationInTransactionAggregation(
-        tenant, params, projectFields, aggregation);
+        tenant,
+        params,
+        projectFields,
+        aggregation
+      );
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -548,10 +701,12 @@ export default class TransactionStorage {
             totalConsumptionWattHours: { $sum: '$stop.totalConsumptionWh' },
             totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
             totalPrice: { $sum: '$stop.price' },
-            totalInactivitySecs: { '$sum': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } },
+            totalInactivitySecs: {
+              $sum: { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] },
+            },
             currency: { $addToSet: '$stop.priceUnit' },
-            count: { $sum: 1 }
-          }
+            count: { $sum: 1 },
+          },
         };
         break;
       case TransactionStatisticsType.ONGOING:
@@ -564,10 +719,10 @@ export default class TransactionStorage {
             totalDurationSecs: { $sum: '$currentTotalDurationSecs' },
             totalPrice: { $sum: '$currentCumulatedPrice' },
             totalRoundedPrice: { $sum: '$currentCumulatedRoundedPrice' },
-            totalInactivitySecs: { $sum:  '$currentTotalInactivitySecs' },
+            totalInactivitySecs: { $sum: '$currentTotalInactivitySecs' },
             currency: { $addToSet: '$priceUnit' },
-            count: { $sum: 1 }
-          }
+            count: { $sum: 1 },
+          },
         };
         break;
       case TransactionStatisticsType.REFUND:
@@ -577,30 +732,64 @@ export default class TransactionStorage {
             firstTimestamp: { $min: '$timestamp' },
             lastTimestamp: { $max: '$timestamp' },
             totalConsumptionWattHours: { $sum: '$stop.totalConsumptionWh' },
-            totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, '$stop.price', 0] } },
-            totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 0, '$stop.price'] } },
-            countRefundTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 1, 0] } },
-            countPendingTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 0, 1] } },
+            totalPriceRefund: {
+              $sum: {
+                $cond: [
+                  { $in: ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] },
+                  '$stop.price',
+                  0,
+                ],
+              },
+            },
+            totalPricePending: {
+              $sum: {
+                $cond: [
+                  { $in: ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] },
+                  0,
+                  '$stop.price',
+                ],
+              },
+            },
+            countRefundTransactions: {
+              $sum: {
+                $cond: [
+                  { $in: ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] },
+                  1,
+                  0,
+                ],
+              },
+            },
+            countPendingTransactions: {
+              $sum: {
+                $cond: [
+                  { $in: ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] },
+                  0,
+                  1,
+                ],
+              },
+            },
             currency: { $addToSet: '$stop.priceUnit' },
             countRefundedReports: { $addToSet: '$refundData.reportId' },
-            count: { $sum: 1 }
-          }
+            count: { $sum: 1 },
+          },
         };
         break;
       default: // Default case only count
         statsQuery = {
           $group: {
             _id: null,
-            count: { $sum: 1 }
-          }
+            count: { $sum: 1 },
+          },
         };
         break;
     }
     // Count Records
-    const transactionsCountMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+    const transactionsCountMDB = (await global.database
+      .getCollection<any>(tenant.id, 'transactions')
       .aggregate<any>([...aggregation, statsQuery], DatabaseUtils.buildAggregateOptions())
-      .toArray() as TransactionStats[];
-    let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+      .toArray()) as TransactionStats[];
+    let transactionCountMDB =
+      transactionsCountMDB && transactionsCountMDB.length > 0 ? transactionsCountMDB[0] : null;
     // Initialize statistics
     if (!transactionCountMDB) {
       switch (params.statistics) {
@@ -611,7 +800,7 @@ export default class TransactionStorage {
             totalDurationSecs: 0,
             totalPrice: 0,
             totalInactivitySecs: 0,
-            count: 0
+            count: 0,
           };
           break;
         case TransactionStatisticsType.REFUND:
@@ -622,12 +811,12 @@ export default class TransactionStorage {
             countRefundTransactions: 0,
             countPendingTransactions: 0,
             countRefundedReports: 0,
-            count: 0
+            count: 0,
           };
           break;
         default:
           transactionCountMDB = {
-            count: 0
+            count: 0,
           };
           break;
       }
@@ -646,11 +835,18 @@ export default class TransactionStorage {
     }
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactions', startTime, aggregation, transactionCountMDB);
+      await Logging.traceDatabaseRequestEnd(
+        tenant,
+        MODULE_NAME,
+        'getTransactions',
+        startTime,
+        aggregation,
+        transactionCountMDB
+      );
       return {
         count: transactionCountMDB ? transactionCountMDB.count : 0,
         stats: transactionCountMDB ? transactionCountMDB : {},
-        result: []
+        result: [],
       };
     }
     // Remove the limit
@@ -661,48 +857,60 @@ export default class TransactionStorage {
     }
     if (!dbParams.sort.timestamp) {
       aggregation.push({
-        $sort: { ...dbParams.sort, timestamp: -1 }
+        $sort: { ...dbParams.sort, timestamp: -1 },
       });
     } else {
       aggregation.push({
-        $sort: dbParams.sort
+        $sort: dbParams.sort,
       });
     }
     // Skip
     aggregation.push({
-      $skip: dbParams.skip
+      $skip: dbParams.skip,
     });
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Add OCPI data
-    if (!projectFields || projectFields && projectFields.includes('ocpi')) {
+    if (!projectFields || (projectFields && projectFields.includes('ocpi'))) {
       aggregation.push({
         $addFields: {
-          'ocpi': { $gt: ['$ocpiData', null] }
-        }
+          ocpi: { $gt: ['$ocpiData', null] },
+        },
       });
     }
-    if (!projectFields || projectFields && projectFields.includes('ocpiWithCdr')) {
+    if (!projectFields || (projectFields && projectFields.includes('ocpiWithCdr'))) {
       aggregation.push({
         $addFields: {
-          'ocpiWithCdr': {
-            $cond: { if: { $and: [{ $gt: ['$ocpiData', null] }, { $gt: ['$ocpiData.cdr', null] }] }, then: true, else: false }
-          }
-        }
+          ocpiWithCdr: {
+            $cond: {
+              if: { $and: [{ $gt: ['$ocpiData', null] }, { $gt: ['$ocpiData.cdr', null] }] },
+              then: true,
+              else: false,
+            },
+          },
+        },
       });
     }
     // Charging Station
     if (params.withChargingStation) {
       TransactionStorage.pushChargingStationInTransactionAggregation(
-        tenant, params, projectFields, aggregation);
+        tenant,
+        params,
+        projectFields,
+        aggregation
+      );
     }
     // Tag
     if (params.withTag) {
       DatabaseUtils.pushTagLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, asField: 'tag', localField: 'tagID',
-        foreignField: '_id', oneToOneCardinality: true
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        asField: 'tag',
+        localField: 'tagID',
+        foreignField: '_id',
+        oneToOneCardinality: true,
       });
       // TODO: [To Investigate] Cause big perf issue in prod (local it takes 2sec with this lookup instead of 165ms, in prod it can takes up to 20s)
       // DatabaseUtils.pushTagLookupInAggregation({
@@ -713,55 +921,97 @@ export default class TransactionStorage {
     // Company
     if (params.withCompany) {
       DatabaseUtils.pushCompanyLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, localField: 'companyID', foreignField: '_id',
-        asField: 'company', oneToOneCardinality: true
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        localField: 'companyID',
+        foreignField: '_id',
+        asField: 'company',
+        oneToOneCardinality: true,
       });
     }
     // Site
     if (params.withSite) {
       DatabaseUtils.pushSiteLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, localField: 'siteID', foreignField: '_id',
-        asField: 'site', oneToOneCardinality: true
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        localField: 'siteID',
+        foreignField: '_id',
+        asField: 'site',
+        oneToOneCardinality: true,
       });
     }
     // Site Area
     if (params.withSiteArea || params.transactionsToStop) {
       DatabaseUtils.pushSiteAreaLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
-        asField: 'siteArea', oneToOneCardinality: true
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        localField: 'siteAreaID',
+        foreignField: '_id',
+        asField: 'siteArea',
+        oneToOneCardinality: true,
       });
     }
     // User
     if (params.withUser) {
       DatabaseUtils.pushUserLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
-        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        asField: 'user',
+        localField: 'userID',
+        foreignField: '_id',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false,
       });
       DatabaseUtils.pushUserLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, asField: 'stop.user', localField: 'stop.userID',
-        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        asField: 'stop.user',
+        localField: 'stop.userID',
+        foreignField: '_id',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false,
       });
     }
     // Car
     if (params.withCar) {
       DatabaseUtils.pushCarLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, asField: 'car', localField: 'carID',
-        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        asField: 'car',
+        localField: 'carID',
+        foreignField: '_id',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false,
       });
       DatabaseUtils.pushCarCatalogLookupInAggregation({
-        tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
-        foreignField: '_id', oneToOneCardinality: true
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        aggregation: aggregation,
+        asField: 'carCatalog',
+        localField: 'carCatalogID',
+        foreignField: '_id',
+        oneToOneCardinality: true,
       });
     }
     // Smart Charging Data
     if (params.withSmartChargingData) {
       DatabaseUtils.pushCarLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, asField: 'car', localField: 'carID',
-        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false, projectFields:['converter.amperagePerPhase']
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        asField: 'car',
+        localField: 'carID',
+        foreignField: '_id',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false,
+        projectFields: ['converter.amperagePerPhase'],
       });
       DatabaseUtils.pushCarCatalogLookupInAggregation({
-        tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
-        foreignField: '_id', oneToOneCardinality: true, projectFields:['fastChargePowerMax', 'batteryCapacityFull']
+        tenantID: Constants.DEFAULT_TENANT_ID,
+        aggregation: aggregation,
+        asField: 'carCatalog',
+        localField: 'carCatalogID',
+        foreignField: '_id',
+        oneToOneCardinality: true,
+        projectFields: ['fastChargePowerMax', 'batteryCapacityFull'],
       });
     }
     // Rename ID
@@ -779,20 +1029,31 @@ export default class TransactionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+    const transactionsMDB = (await global.database
+      .getCollection<any>(tenant.id, 'transactions')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as Transaction[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactions', startTime, aggregation, transactionsMDB);
+      .toArray()) as Transaction[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getTransactions',
+      startTime,
+      aggregation,
+      transactionsMDB
+    );
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(transactionCountMDB),
       stats: transactionCountMDB ? transactionCountMDB : {},
-      result: transactionsMDB
+      result: transactionsMDB,
     };
   }
 
-  public static async getRefundReports(tenant: Tenant,
-      params: { siteIDs?: string[]; userIDs?: string[]; siteAreaIDs?: string[]; },
-      dbParams: DbParams, projectFields?: string[]): Promise<{ count: number; result: RefundReport[] }> {
+  public static async getRefundReports(
+    tenant: Tenant,
+    params: { siteIDs?: string[]; userIDs?: string[]; siteAreaIDs?: string[] },
+    dbParams: DbParams,
+    projectFields?: string[]
+  ): Promise<{ count: number; result: RefundReport[] }> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -806,46 +1067,44 @@ export default class TransactionStorage {
     const ownerMatch = { $or: [] };
     const filters: any = { stop: { $exists: true } };
     // Build filters
-    filters['refundData.reportId'] = { '$ne': null };
+    filters['refundData.reportId'] = { $ne: null };
     if (params.userIDs) {
       ownerMatch.$or.push({
         userID: {
-          $in: params.userIDs.map((user) => DatabaseUtils.convertToObjectID(user))
-        }
+          $in: params.userIDs.map((user) => DatabaseUtils.convertToObjectID(user)),
+        },
       });
     }
     if (params.siteIDs) {
       ownerMatch.$or.push({
         siteID: {
-          $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
-        }
+          $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID)),
+        },
       });
     }
     if (params.siteAreaIDs) {
       ownerMatch.$or.push({
         siteAreaID: {
-          $in: params.siteAreaIDs.map((area) => DatabaseUtils.convertToObjectID(area))
-        }
+          $in: params.siteAreaIDs.map((area) => DatabaseUtils.convertToObjectID(area)),
+        },
       });
     }
     if (ownerMatch.$or && ownerMatch.$or.length > 0) {
       aggregation.push({
         $match: {
-          $and: [
-            ownerMatch, filters
-          ]
-        }
+          $and: [ownerMatch, filters],
+        },
       });
     } else {
       aggregation.push({
-        $match: filters
+        $match: filters,
       });
     }
     aggregation.push({
       $group: {
-        '_id': '$refundData.reportId',
-        'userID': { '$first': '$userID' }
-      }
+        _id: '$refundData.reportId',
+        userID: { $first: '$userID' },
+      },
     });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -856,26 +1115,35 @@ export default class TransactionStorage {
     const statsQuery = {
       $group: {
         _id: null,
-        count: { $sum: 1 }
-      }
+        count: { $sum: 1 },
+      },
     };
     // Count Records
-    const transactionsCountMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+    const transactionsCountMDB = await global.database
+      .getCollection<any>(tenant.id, 'transactions')
       .aggregate([...aggregation, statsQuery], DatabaseUtils.buildAggregateOptions())
       .toArray();
-    let reportCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+    let reportCountMDB =
+      transactionsCountMDB && transactionsCountMDB.length > 0 ? transactionsCountMDB[0] : null;
     // Initialize statistics
     if (!reportCountMDB) {
       reportCountMDB = {
-        count: 0
+        count: 0,
       };
     }
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRefundReports', startTime, aggregation, reportCountMDB);
+      await Logging.traceDatabaseRequestEnd(
+        tenant,
+        MODULE_NAME,
+        'getRefundReports',
+        startTime,
+        aggregation,
+        reportCountMDB
+      );
       return {
         count: reportCountMDB ? reportCountMDB.count : 0,
-        result: []
+        result: [],
       };
     }
     // Remove the limit
@@ -889,25 +1157,30 @@ export default class TransactionStorage {
     }
     if (!dbParams.sort.timestamp) {
       aggregation.push({
-        $sort: { ...dbParams.sort, timestamp: -1 }
+        $sort: { ...dbParams.sort, timestamp: -1 },
       });
     } else {
       aggregation.push({
-        $sort: dbParams.sort
+        $sort: dbParams.sort,
       });
     }
     // Skip
     aggregation.push({
-      $skip: dbParams.skip
+      $skip: dbParams.skip,
     });
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Add respective users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      tenantID: tenant.id,
+      aggregation: aggregation,
+      asField: 'user',
+      localField: 'userID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false,
     });
     // Rename ID
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
@@ -916,22 +1189,42 @@ export default class TransactionStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const reportsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+    const reportsMDB = (await global.database
+      .getCollection<any>(tenant.id, 'transactions')
       .aggregate(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as RefundReport[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRefundReports', startTime, aggregation, reportsMDB);
+      .toArray()) as RefundReport[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getRefundReports',
+      startTime,
+      aggregation,
+      reportsMDB
+    );
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(reportCountMDB),
-      result: reportsMDB
+      result: reportsMDB,
     };
   }
 
-  public static async getTransactionsInError(tenant: Tenant,
-      params: {
-        search?: string; issuer?: boolean; userIDs?: string[]; chargingStationIDs?: string[];
-        siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
-        withChargingStations?: boolean; errorType?: string[]; connectorIDs?: number[];
-      }, dbParams: DbParams, projectFields?: string[]): Promise<TransactionInErrorDataResult> {
+  public static async getTransactionsInError(
+    tenant: Tenant,
+    params: {
+      search?: string;
+      issuer?: boolean;
+      userIDs?: string[];
+      chargingStationIDs?: string[];
+      siteAreaIDs?: string[];
+      siteIDs?: string[];
+      startDateTime?: Date;
+      endDateTime?: Date;
+      withChargingStations?: boolean;
+      errorType?: string[];
+      connectorIDs?: number[];
+    },
+    dbParams: DbParams,
+    projectFields?: string[]
+  ): Promise<TransactionInErrorDataResult> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -945,9 +1238,9 @@ export default class TransactionStorage {
     // Filter?
     if (params.search) {
       match.$or = [
-        { '_id': Utils.convertToInt(params.search) },
-        { 'tagID': { $regex: params.search, $options: 'i' } },
-        { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
+        { _id: Utils.convertToInt(params.search) },
+        { tagID: { $regex: params.search, $options: 'i' } },
+        { chargeBoxID: { $regex: params.search, $options: 'i' } },
       ];
     }
     // Issuer
@@ -977,52 +1270,73 @@ export default class TransactionStorage {
     // Site Areas
     if (params.siteAreaIDs) {
       match.siteAreaID = {
-        $in: params.siteAreaIDs.map((area) => DatabaseUtils.convertToObjectID(area))
+        $in: params.siteAreaIDs.map((area) => DatabaseUtils.convertToObjectID(area)),
       };
     }
     // Sites
     if (params.siteIDs) {
       match.siteID = {
-        $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site))
+        $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site)),
       };
     }
     // Connectors
     if (!Utils.isEmptyArray(params.connectorIDs)) {
       match.connectorId = {
-        $in: params.connectorIDs
+        $in: params.connectorIDs,
       };
     }
     // Create Aggregation
     const aggregation = [];
     aggregation.push({
-      $match: match
+      $match: match,
     });
     // Charging Station
-    if (params.withChargingStations ||
-      (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
+    if (
+      params.withChargingStations ||
+      (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))
+    ) {
       // Add Charge Box
       DatabaseUtils.pushChargingStationLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id', asField: 'chargeBox',
-        oneToOneCardinality: true, oneToOneCardinalityNotNull: false, pipelineMatch: { 'issuer': true }
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        localField: 'chargeBoxID',
+        foreignField: '_id',
+        asField: 'chargeBox',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false,
+        pipelineMatch: { issuer: true },
       });
       DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     }
     // User
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      tenantID: tenant.id,
+      aggregation: aggregation,
+      asField: 'user',
+      localField: 'userID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false,
     });
     // Car Catalog
     DatabaseUtils.pushCarCatalogLookupInAggregation({
-      tenantID: Constants.DEFAULT_TENANT_ID, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
-      foreignField: '_id', oneToOneCardinality: true
+      tenantID: Constants.DEFAULT_TENANT_ID,
+      aggregation: aggregation,
+      asField: 'carCatalog',
+      localField: 'carCatalogID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
     });
     // Used only in the error type : missing_user
     if (params.errorType && params.errorType.includes(TransactionInErrorType.MISSING_USER)) {
       // Site Area
       DatabaseUtils.pushSiteAreaLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
-        asField: 'siteArea', oneToOneCardinality: true
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        localField: 'siteAreaID',
+        foreignField: '_id',
+        asField: 'siteArea',
+        oneToOneCardinality: true,
       });
     }
     // Build facets for each type of error if any
@@ -1035,16 +1349,23 @@ export default class TransactionStorage {
       }
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
-      aggregation.push({ $project: { 'allItems': { $setUnion: array } } });
-      aggregation.push({ $unwind: { 'path': '$allItems' } });
+      aggregation.push({ $project: { allItems: { $setUnion: array } } });
+      aggregation.push({ $unwind: { path: '$allItems' } });
       aggregation.push({ $replaceRoot: { newRoot: '$allItems' } });
       // Add a unique identifier as we may have the same Charging Station several time
-      aggregation.push({ $addFields: { 'uniqueId': { $concat: [{ $substr: ['$_id', 0, -1] }, '#', '$errorCode'] } } });
+      aggregation.push({
+        $addFields: { uniqueId: { $concat: [{ $substr: ['$_id', 0, -1] }, '#', '$errorCode'] } },
+      });
     }
     // Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'stop.user', localField: 'stop.userID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      tenantID: tenant.id,
+      aggregation: aggregation,
+      asField: 'stop.user',
+      localField: 'stop.userID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false,
     });
     // Rename ID
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
@@ -1062,86 +1383,136 @@ export default class TransactionStorage {
       dbParams.sort = { _id: 1 };
     }
     aggregation.push({
-      $sort: dbParams.sort
+      $sort: dbParams.sort,
     });
     // Skip
     aggregation.push({
-      $skip: dbParams.skip
+      $skip: dbParams.skip,
     });
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+    const transactionsMDB = (await global.database
+      .getCollection<any>(tenant.id, 'transactions')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as TransactionInError[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getTransactionsInError', startTime, aggregation, transactionsMDB);
+      .toArray()) as TransactionInError[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getTransactionsInError',
+      startTime,
+      aggregation,
+      transactionsMDB
+    );
     return {
       count: transactionsMDB.length,
-      result: transactionsMDB
+      result: transactionsMDB,
     };
   }
 
-  public static async getTransaction(tenant: Tenant, id: number = Constants.UNKNOWN_NUMBER_ID,
-      params: { withTag?: boolean; withCar?: boolean; withUser?: boolean, withChargingStation?: boolean, siteIDs?: string[]; userIDs?: string[] } = {},
-      projectFields?: string[]): Promise<Transaction> {
-    const transactionsMDB = await TransactionStorage.getTransactions(tenant, {
-      transactionIDs: [id],
-      withTag: params.withTag,
-      withCar: params.withCar,
-      withChargingStation: params.withChargingStation,
-      withUser: params.withUser,
-      userIDs: params.userIDs,
-      siteIDs: params.siteIDs,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+  public static async getTransaction(
+    tenant: Tenant,
+    id: number = Constants.UNKNOWN_NUMBER_ID,
+    params: {
+      withTag?: boolean;
+      withCar?: boolean;
+      withUser?: boolean;
+      withChargingStation?: boolean;
+      siteIDs?: string[];
+      userIDs?: string[];
+    } = {},
+    projectFields?: string[]
+  ): Promise<Transaction> {
+    const transactionsMDB = await TransactionStorage.getTransactions(
+      tenant,
+      {
+        transactionIDs: [id],
+        withTag: params.withTag,
+        withCar: params.withCar,
+        withChargingStation: params.withChargingStation,
+        withUser: params.withUser,
+        userIDs: params.userIDs,
+        siteIDs: params.siteIDs,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOCPITransactionBySessionID(tenant: Tenant, sessionID: string,
-      params: { withUser?: boolean } = {}): Promise<Transaction> {
-    const transactionsMDB = await TransactionStorage.getTransactions(tenant,
+  public static async getOCPITransactionBySessionID(
+    tenant: Tenant,
+    sessionID: string,
+    params: { withUser?: boolean } = {}
+  ): Promise<Transaction> {
+    const transactionsMDB = await TransactionStorage.getTransactions(
+      tenant,
       {
         withUser: params.withUser,
-        ocpiSessionID: sessionID
-      }, Constants.DB_PARAMS_SINGLE_RECORD);
+        ocpiSessionID: sessionID,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD
+    );
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOCPITransactionByAuthorizationID(tenant: Tenant, authorizationID: string): Promise<Transaction> {
-    const transactionsMDB = await TransactionStorage.getTransactions(tenant,
+  public static async getOCPITransactionByAuthorizationID(
+    tenant: Tenant,
+    authorizationID: string
+  ): Promise<Transaction> {
+    const transactionsMDB = await TransactionStorage.getTransactions(
+      tenant,
       {
-        ocpiAuthorizationID: authorizationID
-      }, Constants.DB_PARAMS_SINGLE_RECORD);
+        ocpiAuthorizationID: authorizationID,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD
+    );
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOICPTransactionBySessionID(tenant: Tenant, oicpSessionID: string): Promise<Transaction> {
-    const transactionsMDB = await TransactionStorage.getTransactions(tenant,
+  public static async getOICPTransactionBySessionID(
+    tenant: Tenant,
+    oicpSessionID: string
+  ): Promise<Transaction> {
+    const transactionsMDB = await TransactionStorage.getTransactions(
+      tenant,
       {
-        oicpSessionID: oicpSessionID
-      }, Constants.DB_PARAMS_SINGLE_RECORD);
+        oicpSessionID: oicpSessionID,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD
+    );
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getActiveTransaction(tenant: Tenant, chargeBoxID: string, connectorId: number): Promise<Transaction> {
+  public static async getActiveTransaction(
+    tenant: Tenant,
+    chargeBoxID: string,
+    connectorId: number
+  ): Promise<Transaction> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const aggregation = [];
     // Filters
     aggregation.push({
       $match: {
-        'chargeBoxID': chargeBoxID,
-        'connectorId': Utils.convertToInt(connectorId),
-        'stop': { $exists: false }
-      }
+        chargeBoxID: chargeBoxID,
+        connectorId: Utils.convertToInt(connectorId),
+        stop: { $exists: false },
+      },
     });
     // Add User
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation, localField: 'userID', foreignField: '_id', asField: 'user',
-      oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      tenantID: tenant.id,
+      aggregation,
+      localField: 'userID',
+      foreignField: '_id',
+      asField: 'user',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false,
     });
     // Rename ID
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
@@ -1155,54 +1526,80 @@ export default class TransactionStorage {
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Read DB
-    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+    const transactionsMDB = (await global.database
+      .getCollection<any>(tenant.id, 'transactions')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as Transaction[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getActiveTransaction', startTime, aggregation, transactionsMDB);
+      .toArray()) as Transaction[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getActiveTransaction',
+      startTime,
+      aggregation,
+      transactionsMDB
+    );
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
 
-  public static async getLastTransactionFromChargingStation(tenant: Tenant, chargeBoxID: string, connectorId: number,
-      params: { withChargingStation?: boolean; withUser?: boolean; withTag?: boolean; } = {}): Promise<Transaction> {
+  public static async getLastTransactionFromChargingStation(
+    tenant: Tenant,
+    chargeBoxID: string,
+    connectorId: number,
+    params: { withChargingStation?: boolean; withUser?: boolean; withTag?: boolean } = {}
+  ): Promise<Transaction> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const aggregation = [];
     // Filters
     aggregation.push({
       $match: {
-        'chargeBoxID': chargeBoxID,
-        'connectorId': Utils.convertToInt(connectorId)
-      }
+        chargeBoxID: chargeBoxID,
+        connectorId: Utils.convertToInt(connectorId),
+      },
     });
     // Sort
     aggregation.push({
       $sort: {
-        timestamp: -1
-      }
+        timestamp: -1,
+      },
     });
     // The last one
     aggregation.push({
-      $limit: 1
+      $limit: 1,
     });
     // Add Charging Station
     if (params.withChargingStation) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
-        asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        localField: 'chargeBoxID',
+        foreignField: '_id',
+        asField: 'chargeBox',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false,
       });
     }
     // Add User
     if (params.withUser) {
       DatabaseUtils.pushUserLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, localField: 'userID', foreignField: '_id',
-        asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        localField: 'userID',
+        foreignField: '_id',
+        asField: 'user',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false,
       });
     }
     // Tag
     if (params.withTag) {
       DatabaseUtils.pushTagLookupInAggregation({
-        tenantID: tenant.id, aggregation: aggregation, asField: 'tag', localField: 'tagID',
-        foreignField: '_id', oneToOneCardinality: true
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        asField: 'tag',
+        localField: 'tagID',
+        foreignField: '_id',
+        oneToOneCardinality: true,
       });
     }
     // Rename ID
@@ -1218,10 +1615,18 @@ export default class TransactionStorage {
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Read DB
-    const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+    const transactionsMDB = (await global.database
+      .getCollection<any>(tenant.id, 'transactions')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as Transaction[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getLastTransactionFromChargingStation', startTime, aggregation, transactionsMDB);
+      .toArray()) as Transaction[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getLastTransactionFromChargingStation',
+      startTime,
+      aggregation,
+      transactionsMDB
+    );
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
 
@@ -1236,9 +1641,10 @@ export default class TransactionStorage {
       if (existingTransaction) {
         await Logging.logWarning({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: 'findAvailableID',
+          module: MODULE_NAME,
+          method: 'findAvailableID',
           action: ServerAction.TRANSACTION_STARTED,
-          message: `Transaction ID '${id}' already exists, generating a new one...`
+          message: `Transaction ID '${id}' already exists, generating a new one...`,
         });
       } else {
         return id;
@@ -1247,13 +1653,17 @@ export default class TransactionStorage {
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'findAvailableID', startTime, {});
   }
 
-  public static async getNotStartedTransactions(tenant: Tenant,
-      params: { checkPastAuthorizeMins: number; sessionShouldBeStartedAfterMins: number }): Promise<DataResult<NotifySessionNotStarted>> {
+  public static async getNotStartedTransactions(
+    tenant: Tenant,
+    params: { checkPastAuthorizeMins: number; sessionShouldBeStartedAfterMins: number }
+  ): Promise<DataResult<NotifySessionNotStarted>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Compute the date some minutes ago
     const authorizeStartDate = moment().subtract(params.checkPastAuthorizeMins, 'minutes').toDate();
-    const authorizeEndDate = moment().subtract(params.sessionShouldBeStartedAfterMins, 'minutes').toDate();
+    const authorizeEndDate = moment()
+      .subtract(params.sessionShouldBeStartedAfterMins, 'minutes')
+      .toDate();
     // Create Aggregation
     const aggregation = [];
     // Authorization window
@@ -1262,79 +1672,93 @@ export default class TransactionStorage {
         issuer: true,
         timestamp: {
           $gt: Utils.convertToDate(authorizeStartDate),
-          $lt: Utils.convertToDate(authorizeEndDate)
-        }
-      }
+          $lt: Utils.convertToDate(authorizeEndDate),
+        },
+      },
     });
     // Group by tagID
     aggregation.push({
       $group: {
         _id: '$tagID',
         authDate: {
-          $last: '$timestamp'
+          $last: '$timestamp',
         },
         chargeBoxID: {
-          $last: '$chargeBoxID'
+          $last: '$chargeBoxID',
         },
         userID: {
-          $last: '$userID'
-        }
-      }
+          $last: '$userID',
+        },
+      },
     });
     // Add number of mins
     aggregation.push({
       $addFields: {
         dateStart: {
-          $toDate: { $subtract: [{ $toLong: '$authDate' }, 5 * 60 * 1000] }
+          $toDate: { $subtract: [{ $toLong: '$authDate' }, 5 * 60 * 1000] },
         },
         dateEnd: {
-          $toDate: { $add: [{ $toLong: '$authDate' }, params.sessionShouldBeStartedAfterMins * 60 * 1000] }
-        }
-      }
+          $toDate: {
+            $add: [{ $toLong: '$authDate' }, params.sessionShouldBeStartedAfterMins * 60 * 1000],
+          },
+        },
+      },
     });
     // Lookup for transactions
     aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenant.id, 'transactions'),
         let: { tagID: '$_id', dateStart: '$dateStart', dateEnd: '$dateEnd' },
-        pipeline: [{
-          $match: {
-            $or: [
-              {
-                $and: [
-                  { $expr: { $eq: ['$tagID', '$$tagID'] } },
-                  { $expr: { $gt: ['$timestamp', '$$dateStart'] } },
-                  { $expr: { $lt: ['$timestamp', '$$dateEnd'] } }
-                ]
-              },
-              {
-                $and: [
-                  { $expr: { $eq: ['$stop.tagID', '$$tagID'] } },
-                  { $expr: { $gt: ['$stop.timestamp', '$$dateStart'] } },
-                  { $expr: { $lt: ['$stop.timestamp', '$$dateEnd'] } }
-                ]
-              },
-            ]
-          }
-        }],
-        as: 'transaction'
-      }
+        pipeline: [
+          {
+            $match: {
+              $or: [
+                {
+                  $and: [
+                    { $expr: { $eq: ['$tagID', '$$tagID'] } },
+                    { $expr: { $gt: ['$timestamp', '$$dateStart'] } },
+                    { $expr: { $lt: ['$timestamp', '$$dateEnd'] } },
+                  ],
+                },
+                {
+                  $and: [
+                    { $expr: { $eq: ['$stop.tagID', '$$tagID'] } },
+                    { $expr: { $gt: ['$stop.timestamp', '$$dateStart'] } },
+                    { $expr: { $lt: ['$stop.timestamp', '$$dateEnd'] } },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        as: 'transaction',
+      },
     });
     // Get only authorize with no transactions
     aggregation.push({
       $match: {
-        transaction: { $size: 0 }
-      }
+        transaction: { $size: 0 },
+      },
     });
     // Lookup for users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation, localField: 'userID', foreignField: '_id',
-      asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
+      tenantID: tenant.id,
+      aggregation,
+      localField: 'userID',
+      foreignField: '_id',
+      asField: 'user',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: true,
     });
     // Lookup for charging station
     DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID: tenant.id, aggregation, localField: 'chargeBoxID', foreignField: '_id',
-      asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
+      tenantID: tenant.id,
+      aggregation,
+      localField: 'chargeBoxID',
+      foreignField: '_id',
+      asField: 'chargingStation',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: true,
     });
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargingStation.siteAreaID');
     // Format Data
@@ -1344,21 +1768,31 @@ export default class TransactionStorage {
         tagID: '$_id',
         authDate: '$dateStart',
         chargingStation: 1,
-        user: 1
-      }
+        user: 1,
+      },
     });
     // Read DB
-    const notifySessionNotStartedMDB = await global.database.getCollection<any>(tenant.id, 'authorizes')
+    const notifySessionNotStartedMDB = (await global.database
+      .getCollection<any>(tenant.id, 'authorizes')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as NotifySessionNotStarted[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getNotStartedTransactions', startTime, aggregation, notifySessionNotStartedMDB);
+      .toArray()) as NotifySessionNotStarted[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getNotStartedTransactions',
+      startTime,
+      aggregation,
+      notifySessionNotStartedMDB
+    );
     return {
       count: notifySessionNotStartedMDB.length,
-      result: notifySessionNotStartedMDB
+      result: notifySessionNotStartedMDB,
     };
   }
 
-  public static async getCollectedFunds(tenant: Tenant): Promise<{ count: number; result: CollectedFundReport[] }> {
+  public static async getCollectedFunds(
+    tenant: Tenant
+  ): Promise<{ count: number; result: CollectedFundReport[] }> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation
@@ -1371,15 +1805,20 @@ export default class TransactionStorage {
           { 'billingData.stop.status': { $eq: BillingStatus.BILLED } },
           { 'billingData.stop.invoiceItem.accountData.accountID': { $exists: true } },
           { 'billingData.stop.transferID': { $exists: false } },
-        ]
-      }
+        ],
+      },
     });
     // Group by accountID
     aggregation.push({
       $group: {
-        '_id': { accountID: '$billingData.stop.invoiceItem.accountData.accountID', currency: '$stop.priceUnit' },
+        _id: {
+          accountID: '$billingData.stop.invoiceItem.accountData.accountID',
+          currency: '$stop.priceUnit',
+        },
         collectedFunds: { $sum: '$stop.roundedPrice' },
-        collectedFlatFees: { $sum: '$billingData.stop.invoiceItem.accountData.platformFeeStrategy.flatFeePerSession' },
+        collectedFlatFees: {
+          $sum: '$billingData.stop.invoiceItem.accountData.platformFeeStrategy.flatFeePerSession',
+        },
         collectedFees: { $sum: '$billingData.stop.invoiceItem.accountData.feeAmount' },
         totalConsumptionWh: { $sum: '$stop.totalConsumptionWh' },
         totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
@@ -1396,35 +1835,54 @@ export default class TransactionStorage {
         collectedFees: 1,
         totalConsumptionWh: 1,
         totalDurationSecs: 1,
-        transactionIDs: 1
-      }
+        transactionIDs: 1,
+      },
     });
     // Read DB
-    const resultMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
+    const resultMDB = (await global.database
+      .getCollection<any>(tenant.id, 'transactions')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as CollectedFundReport[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getCollectedFunds', startTime, aggregation, resultMDB);
+      .toArray()) as CollectedFundReport[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getCollectedFunds',
+      startTime,
+      aggregation,
+      resultMDB
+    );
     return {
       count: resultMDB.length,
-      result: resultMDB
+      result: resultMDB,
     };
   }
 
-  public static async updateTransactionsWithTransferData(tenant: Tenant, transactionsIDs: number[], transferID: string): Promise<void> {
+  public static async updateTransactionsWithTransferData(
+    tenant: Tenant,
+    transactionsIDs: number[],
+    transferID: string
+  ): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // At least one ChargingStation
     if (!Utils.isEmptyArray(transactionsIDs)) {
       // Update all transactions
       await global.database.getCollection<any>(tenant.id, 'transactions').updateMany(
-        { '_id': { $in: transactionsIDs } },
+        { _id: { $in: transactionsIDs } },
         {
           $set: {
-            'billingData.stop.transferID' : DatabaseUtils.convertToObjectID(transferID)
-          }
-        });
+            'billingData.stop.transferID': DatabaseUtils.convertToObjectID(transferID),
+          },
+        }
+      );
     }
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'updateTransactionsWithTransferData', startTime, transactionsIDs);
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'updateTransactionsWithTransferData',
+      startTime,
+      transactionsIDs
+    );
   }
 
   private static normalizeBillingData(billingData: TransactionBillingData): any {
@@ -1454,19 +1912,30 @@ export default class TransactionStorage {
     switch (errorType) {
       case TransactionInErrorType.LONG_INACTIVITY:
         return [
-          { $addFields: { 'totalInactivity': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } } },
-          { $match: { 'totalInactivity': { $gte: 86400 } } },
-          { $addFields: { 'errorCode': TransactionInErrorType.LONG_INACTIVITY } }
+          {
+            $addFields: {
+              totalInactivity: { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] },
+            },
+          },
+          { $match: { totalInactivity: { $gte: 86400 } } },
+          { $addFields: { errorCode: TransactionInErrorType.LONG_INACTIVITY } },
         ];
       case TransactionInErrorType.NO_CONSUMPTION:
         return [
           { $match: { 'stop.totalConsumptionWh': { $eq: 0 } } },
-          { $addFields: { 'errorCode': TransactionInErrorType.NO_CONSUMPTION } }
+          { $addFields: { errorCode: TransactionInErrorType.NO_CONSUMPTION } },
         ];
       case TransactionInErrorType.LOW_CONSUMPTION:
         return [
-          { $match: { 'stop.totalConsumptionWh': { $gt: 0, $lt: Constants.AFIREV_MINIMAL_CONSUMPTION_THRESHOLD } } },
-          { $addFields: { 'errorCode': TransactionInErrorType.LOW_CONSUMPTION } }
+          {
+            $match: {
+              'stop.totalConsumptionWh': {
+                $gt: 0,
+                $lt: Constants.AFIREV_MINIMAL_CONSUMPTION_THRESHOLD,
+              },
+            },
+          },
+          { $addFields: { errorCode: TransactionInErrorType.LOW_CONSUMPTION } },
         ];
       case TransactionInErrorType.NEGATIVE_ACTIVITY:
         return [
@@ -1475,50 +1944,86 @@ export default class TransactionStorage {
               $or: [
                 { 'stop.totalInactivitySecs': { $lt: 0 } },
                 { 'stop.extraInactivitySecs': { $lt: 0 } },
-              ]
-            }
+              ],
+            },
           },
-          { $addFields: { 'errorCode': TransactionInErrorType.NEGATIVE_ACTIVITY } }
+          { $addFields: { errorCode: TransactionInErrorType.NEGATIVE_ACTIVITY } },
         ];
       case TransactionInErrorType.NEGATIVE_DURATION:
         return [
           { $match: { 'stop.totalDurationSecs': { $lt: 0 } } },
-          { $addFields: { 'errorCode': TransactionInErrorType.NEGATIVE_DURATION } }
+          { $addFields: { errorCode: TransactionInErrorType.NEGATIVE_DURATION } },
         ];
       case TransactionInErrorType.LOW_DURATION:
         return [
-          { $match: { 'stop.totalDurationSecs': { $gte: 0, $lt: Constants.AFIREV_MINIMAL_DURATION_THRESHOLD } } },
-          { $addFields: { 'errorCode': TransactionInErrorType.LOW_DURATION } }
+          {
+            $match: {
+              'stop.totalDurationSecs': {
+                $gte: 0,
+                $lt: Constants.AFIREV_MINIMAL_DURATION_THRESHOLD,
+              },
+            },
+          },
+          { $addFields: { errorCode: TransactionInErrorType.LOW_DURATION } },
         ];
       case TransactionInErrorType.INVALID_START_DATE:
         return [
-          { $match: { 'timestamp': { $lte: Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
-          { $addFields: { 'errorCode': TransactionInErrorType.INVALID_START_DATE } }
+          { $match: { timestamp: { $lte: Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
+          { $addFields: { errorCode: TransactionInErrorType.INVALID_START_DATE } },
         ];
       case TransactionInErrorType.OVER_CONSUMPTION:
         return [
-          { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
-          { $match: { 'activeDuration': { $gt: 0 } } },
-          { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
-          { $addFields: { averagePower: { $abs: { $multiply: [{ $divide: ['$stop.totalConsumptionWh', '$activeDuration'] }, 3600] } } } },
-          { $addFields: { impossiblePower: { $lte: [{ $subtract: [{ $multiply: ['$connector.power', 1.10] }, '$averagePower'] }, 0] } } },
-          { $match: { 'impossiblePower': { $eq: true } } },
-          { $addFields: { 'errorCode': TransactionInErrorType.OVER_CONSUMPTION } }
+          {
+            $addFields: {
+              activeDuration: {
+                $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'],
+              },
+            },
+          },
+          { $match: { activeDuration: { $gt: 0 } } },
+          {
+            $addFields: {
+              connector: {
+                $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }],
+              },
+            },
+          },
+          {
+            $addFields: {
+              averagePower: {
+                $abs: {
+                  $multiply: [{ $divide: ['$stop.totalConsumptionWh', '$activeDuration'] }, 3600],
+                },
+              },
+            },
+          },
+          {
+            $addFields: {
+              impossiblePower: {
+                $lte: [
+                  { $subtract: [{ $multiply: ['$connector.power', 1.1] }, '$averagePower'] },
+                  0,
+                ],
+              },
+            },
+          },
+          { $match: { impossiblePower: { $eq: true } } },
+          { $addFields: { errorCode: TransactionInErrorType.OVER_CONSUMPTION } },
         ];
       case TransactionInErrorType.MISSING_PRICE:
         return [
           { $match: { 'stop.price': { $lte: 0 } } },
           { $match: { 'stop.totalConsumptionWh': { $gt: 0 } } },
-          { $addFields: { 'errorCode': TransactionInErrorType.MISSING_PRICE } }
+          { $addFields: { errorCode: TransactionInErrorType.MISSING_PRICE } },
         ];
       case TransactionInErrorType.MISSING_USER:
         return [
           {
             $match: {
-              'userID': null,
-            }
+              userID: null,
+            },
           },
-          { $addFields: { 'errorCode': TransactionInErrorType.MISSING_USER } }
+          { $addFields: { errorCode: TransactionInErrorType.MISSING_USER } },
         ];
       case TransactionInErrorType.NO_BILLING_DATA:
         return [
@@ -1528,28 +2033,36 @@ export default class TransactionStorage {
                 { 'billingData.withBillingActive': { $eq: true } },
                 {
                   $or: [
-                    { 'billingData': { $exists: false } },
+                    { billingData: { $exists: false } },
                     { 'billingData.stop': { $exists: false } },
                     { 'billingData.stop.status': { $eq: BillingStatus.FAILED } },
-                  ]
-                }
-              ]
-            }
+                  ],
+                },
+              ],
+            },
           },
-          { $addFields: { 'errorCode': TransactionInErrorType.NO_BILLING_DATA } }
+          { $addFields: { errorCode: TransactionInErrorType.NO_BILLING_DATA } },
         ];
       default:
         return [];
     }
   }
 
-  private static pushChargingStationInTransactionAggregation(tenant: Tenant,
-      params: { withChargingStation?: boolean, transactionsToStop?: boolean },
-      projectFields: string[], aggregation: any[]) {
+  private static pushChargingStationInTransactionAggregation(
+    tenant: Tenant,
+    params: { withChargingStation?: boolean; transactionsToStop?: boolean },
+    projectFields: string[],
+    aggregation: any[]
+  ) {
     // Add Charging Station
     DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
-      asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      tenantID: tenant.id,
+      aggregation: aggregation,
+      localField: 'chargeBoxID',
+      foreignField: '_id',
+      asField: 'chargeBox',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false,
     });
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Do we need the connector status
@@ -1559,45 +2072,42 @@ export default class TransactionStorage {
       aggregation.push({
         $addFields: {
           connector: {
-            '$arrayElemAt': [
+            $arrayElemAt: [
               {
-                '$filter': {
+                $filter: {
                   input: '$chargeBox.connectors',
                   as: 'connector',
                   cond: {
-                    $eq: [
-                      '$$connector.connectorId',
-                      '$connectorId'
-                    ]
-                  }
-                }
+                    $eq: ['$$connector.connectorId', '$connectorId'],
+                  },
+                },
               },
-              0
-            ]
-          }
-        }
+              0,
+            ],
+          },
+        },
       });
       if (withStatus) {
         // ok - let's add the connector status
         aggregation.push({
-          $addFields: { status: '$connector.status' }
+          $addFields: { status: '$connector.status' },
         });
       }
       if (params.transactionsToStop) {
         aggregation.push(
           {
             // Make sure we have connectors (to avoid conflicts with a OcppBootNotification where connectors temporarily are cleared)
-            '$match': { 'connector': { $exists: true, $ne: null } }
+            $match: { connector: { $exists: true, $ne: null } },
           },
           {
             // let's check whether the current transaction matches the one referenced by the connector
-            '$addFields': {
-              'transactionIsStillInProgress': { '$eq': ['$connector.currentTransactionID', '$_id'] }
-            }
+            $addFields: {
+              transactionIsStillInProgress: { $eq: ['$connector.currentTransactionID', '$_id'] },
+            },
           },
           {
             // Select only the transactions which are not in progress anymore
-            '$match': { 'transactionIsStillInProgress': false }
+            $match: { transactionIsStillInProgress: false },
           }
         );
       }

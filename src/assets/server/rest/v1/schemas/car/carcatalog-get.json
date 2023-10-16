@@ -8,7 +8,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "ID"
-  ]
+  "required": ["ID"]
 }

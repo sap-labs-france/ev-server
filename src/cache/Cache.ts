@@ -3,12 +3,15 @@ import Logging from '../utils/Logging';
 import NodeCache from 'node-cache';
 
 export class Cache {
-
   private cache: NodeCache;
   private debug: boolean;
 
   public constructor(cacheConfiguration: CacheConfiguration) {
-    this.cache = new NodeCache({ stdTTL: cacheConfiguration.ttlSeconds, checkperiod: cacheConfiguration.ttlSeconds * 0.2, useClones: false });
+    this.cache = new NodeCache({
+      stdTTL: cacheConfiguration.ttlSeconds,
+      checkperiod: cacheConfiguration.ttlSeconds * 0.2,
+      useClones: false,
+    });
     this.debug = cacheConfiguration.debug;
   }
 
@@ -29,7 +32,6 @@ export class Cache {
         Logging.logConsoleError(`Cache Error: ${error}`);
       }
       return result;
-
     });
   }
 

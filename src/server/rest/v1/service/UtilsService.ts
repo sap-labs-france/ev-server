@@ -1,61 +1,65 @@
-import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { BillingAccount, BillingInvoice, BillingTransfer } from '../../../../types/Billing';
-import { BillingSettings, SettingDB } from '../../../../types/Setting';
-import { Car, CarCatalog } from '../../../../types/Car';
-import ChargingStation, { ChargePoint, ChargingStationTemplate, Command } from '../../../../types/ChargingStation';
-import { EntityData, URLInfo } from '../../../../types/GlobalType';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { NextFunction, Request, Response } from 'express';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
-import User, { UserRole, UserStatus } from '../../../../types/User';
-
-import AppAuthError from '../../../../exception/AppAuthError';
-import AppError from '../../../../exception/AppError';
-import Asset from '../../../../types/Asset';
-import AssetStorage from '../../../../storage/mongodb/AssetStorage';
-import AuthorizationService from './AuthorizationService';
-import Authorizations from '../../../../authorization/Authorizations';
-import AxiosFactory from '../../../../utils/AxiosFactory';
 import { AxiosResponse } from 'axios';
-import BillingStorage from '../../../../storage/mongodb/BillingStorage';
-import CarStorage from '../../../../storage/mongodb/CarStorage';
-import CentralSystemRestServiceConfiguration from '../../../../types/configuration/CentralSystemRestServiceConfiguration';
-import { ChargingProfile } from '../../../../types/ChargingProfile';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
-import Company from '../../../../types/Company';
-import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
-import Constants from '../../../../utils/Constants';
-import Cypher from '../../../../utils/Cypher';
-import { DataResult } from '../../../../types/DataResult';
-import { Log } from '../../../../types/Log';
-import LogStorage from '../../../../storage/mongodb/LogStorage';
-import Logging from '../../../../utils/Logging';
-import LoggingHelper from '../../../../utils/LoggingHelper';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
-import PDFDocument from 'pdfkit';
-import PricingDefinition from '../../../../types/Pricing';
-import PricingStorage from '../../../../storage/mongodb/PricingStorage';
-import RegistrationToken from '../../../../types/RegistrationToken';
-import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTokenStorage';
-import { ServerAction } from '../../../../types/Server';
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
-import Site from '../../../../types/Site';
-import SiteArea from '../../../../types/SiteArea';
-import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import Tag from '../../../../types/Tag';
-import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Transaction from '../../../../types/Transaction';
-import { TransactionInErrorType } from '../../../../types/InError';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
-import UserToken from '../../../../types/UserToken';
-import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
 import moment from 'moment';
+import PDFDocument from 'pdfkit';
+
+import Authorizations from '../../../../authorization/Authorizations';
+import AppAuthError from '../../../../exception/AppAuthError';
+import AppError from '../../../../exception/AppError';
+import AssetStorage from '../../../../storage/mongodb/AssetStorage';
+import BillingStorage from '../../../../storage/mongodb/BillingStorage';
+import CarStorage from '../../../../storage/mongodb/CarStorage';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationTemplateStorage from '../../../../storage/mongodb/ChargingStationTemplateStorage';
+import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
+import LogStorage from '../../../../storage/mongodb/LogStorage';
+import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
+import PricingStorage from '../../../../storage/mongodb/PricingStorage';
+import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTokenStorage';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
+import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Asset from '../../../../types/Asset';
+import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { BillingAccount, BillingInvoice, BillingTransfer } from '../../../../types/Billing';
+import { Car, CarCatalog } from '../../../../types/Car';
+import { ChargingProfile } from '../../../../types/ChargingProfile';
+import ChargingStation, {
+  ChargePoint,
+  ChargingStationTemplate,
+  Command,
+} from '../../../../types/ChargingStation';
+import Company from '../../../../types/Company';
+import CentralSystemRestServiceConfiguration from '../../../../types/configuration/CentralSystemRestServiceConfiguration';
+import { DataResult } from '../../../../types/DataResult';
+import { EntityData, URLInfo } from '../../../../types/GlobalType';
+import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
+import { TransactionInErrorType } from '../../../../types/InError';
+import { Log } from '../../../../types/Log';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import PricingDefinition from '../../../../types/Pricing';
+import RegistrationToken from '../../../../types/RegistrationToken';
+import { ServerAction } from '../../../../types/Server';
+import { BillingSettings, SettingDB } from '../../../../types/Setting';
+import Site from '../../../../types/Site';
+import SiteArea from '../../../../types/SiteArea';
+import Tag from '../../../../types/Tag';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
+import Transaction from '../../../../types/Transaction';
+import User, { UserRole, UserStatus } from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
+import AxiosFactory from '../../../../utils/AxiosFactory';
+import Constants from '../../../../utils/Constants';
+import Cypher from '../../../../utils/Cypher';
+import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
+import Utils from '../../../../utils/Utils';
+import AuthorizationService from './AuthorizationService';
 
 const MODULE_NAME = 'UtilsService';
 
@@ -69,7 +73,11 @@ export default class UtilsService {
     };
   }
 
-  public static async assignCreatedUserToSites(tenant: Tenant, user: User, authorizationFilter?: AuthorizationFilter) {
+  public static async assignCreatedUserToSites(
+    tenant: Tenant,
+    user: User,
+    authorizationFilter?: AuthorizationFilter
+  ) {
     // Assign user to sites
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
       let siteIDs = [];
@@ -77,7 +85,8 @@ export default class UtilsService {
         siteIDs = authorizationFilter.filters.siteIDs;
       } else {
         // Assign user to all sites with auto-assign flag set
-        const sites = await SiteStorage.getSites(tenant,
+        const sites = await SiteStorage.getSites(
+          tenant,
           { withAutoUserAssignment: true },
           Constants.DB_PARAMS_MAX_LIMIT
         );
@@ -87,46 +96,95 @@ export default class UtilsService {
     }
   }
 
-  public static async checkReCaptcha(tenant: Tenant, action: ServerAction, method: string,
-      centralSystemRestConfig: CentralSystemRestServiceConfiguration, captcha: string, remoteAddress: string): Promise<void> {
-    const response = await UtilsService.performRecaptchaAPICall(tenant, centralSystemRestConfig, captcha, remoteAddress);
+  public static async checkReCaptcha(
+    tenant: Tenant,
+    action: ServerAction,
+    method: string,
+    centralSystemRestConfig: CentralSystemRestServiceConfiguration,
+    captcha: string,
+    remoteAddress: string
+  ): Promise<void> {
+    const response = await UtilsService.performRecaptchaAPICall(
+      tenant,
+      centralSystemRestConfig,
+      captcha,
+      remoteAddress
+    );
     if (!response.data.success) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        module: MODULE_NAME, action, method,
+        module: MODULE_NAME,
+        action,
+        method,
         message: 'The Captcha is invalid',
       });
     }
     if (response.data.score < centralSystemRestConfig.captchaScore) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        module: MODULE_NAME, action, method,
-        message: `The Captcha score is too low, got ${response.data.score as string} but expected ${centralSystemRestConfig.captchaScore}`,
+        module: MODULE_NAME,
+        action,
+        method,
+        message: `The Captcha score is too low, got ${response.data.score as string} but expected ${
+          centralSystemRestConfig.captchaScore
+        }`,
       });
     }
     await Logging.logDebug({
       tenantID: tenant?.id,
-      module: MODULE_NAME, action, method,
-      message: `The Captcha score is ${response.data.score as string} (score limit is ${centralSystemRestConfig.captchaScore})`,
+      module: MODULE_NAME,
+      action,
+      method,
+      message: `The Captcha score is ${response.data.score as string} (score limit is ${
+        centralSystemRestConfig.captchaScore
+      })`,
     });
   }
 
-  public static async checkAndGetChargingStationAuthorization(tenant: Tenant, userToken: UserToken, chargingStationID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStation> {
+  public static async checkAndGetChargingStationAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    chargingStationID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<ChargingStation> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      chargingStationID,
+      MODULE_NAME,
+      'checkAndGetChargingStationAuthorization',
+      userToken
+    );
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetChargingStationAuthorizations(tenant, userToken, { ID: chargingStationID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetChargingStationAuthorizations(
+      tenant,
+      userToken,
+      { ID: chargingStationID },
+      authAction,
+      entityData
+    );
     // Get ChargingStation
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingStationID,
+    const chargingStation = await ChargingStationStorage.getChargingStation(
+      tenant,
+      chargingStationID,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation ID '${chargingStationID}' does not exist`,
-      MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      chargingStation,
+      `ChargingStation ID '${chargingStationID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetChargingStationAuthorization',
+      userToken
+    );
     // Check deleted
     if (!additionalFilters?.includeDeleted && chargingStation?.deleted) {
       throw new AppError({
@@ -147,55 +205,117 @@ export default class UtilsService {
       chargingStation.metadata = authorizations.metadata;
     }
     // Add actions
-    await AuthorizationService.addChargingStationAuthorizations(tenant, userToken, chargingStation, authorizations);
+    await AuthorizationService.addChargingStationAuthorizations(
+      tenant,
+      userToken,
+      chargingStation,
+      authorizations
+    );
     const authorized = AuthorizationService.canPerformAction(chargingStation, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
+        action: authAction,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME,
+        method: 'checkAndGetChargingStationAuthorization',
       });
     }
     return chargingStation;
   }
 
-  public static async checkAndGetChargingStationTemplateAuthorization(tenant: Tenant, userToken: UserToken, chargingStationTemplateID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStationTemplate> {
-  // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, chargingStationTemplateID, MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
+  public static async checkAndGetChargingStationTemplateAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    chargingStationTemplateID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<ChargingStationTemplate> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(
+      action,
+      chargingStationTemplateID,
+      MODULE_NAME,
+      'checkAndGetChargingStationTemplateAuthorization',
+      userToken
+    );
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
-      tenant, userToken, { ID: chargingStationTemplateID }, authAction, entityData);
+    const authorizationFilter =
+      await AuthorizationService.checkAndGetChargingStationTemplateAuthorizations(
+        tenant,
+        userToken,
+        { ID: chargingStationTemplateID },
+        authAction,
+        entityData
+      );
     // Get one template
-    const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(chargingStationTemplateID,
+    const chargingStationTemplate = await ChargingStationTemplateStorage.getChargingStationTemplate(
+      chargingStationTemplateID,
       {
         ...additionalFilters,
-        ...authorizationFilter.filters
+        ...authorizationFilter.filters,
       },
       applyProjectFields ? authorizationFilter.projectFields : null
     );
-    UtilsService.assertObjectExists(action, chargingStationTemplate, `ChargingStationTemplate ID '${chargingStationTemplateID}' does not exist`,
-      MODULE_NAME, 'checkAndGetChargingStationTemplateAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      chargingStationTemplate,
+      `ChargingStationTemplate ID '${chargingStationTemplateID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetChargingStationTemplateAuthorization',
+      userToken
+    );
     return chargingStationTemplate;
   }
 
-  public static async checkAndGetChargingProfileAuthorization(tenant: Tenant, userToken: UserToken, chargingProfileID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingProfile> {
+  public static async checkAndGetChargingProfileAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    chargingProfileID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<ChargingProfile> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, chargingProfileID, MODULE_NAME, 'checkAndGetChargingProfileAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      chargingProfileID,
+      MODULE_NAME,
+      'checkAndGetChargingProfileAuthorization',
+      userToken
+    );
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetChargingProfileAuthorizations(tenant, userToken, { ID: chargingProfileID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetChargingProfileAuthorizations(
+      tenant,
+      userToken,
+      { ID: chargingProfileID },
+      authAction,
+      entityData
+    );
     // Get charging profile
-    const chargingProfile = await ChargingStationStorage.getChargingProfile(tenant, chargingProfileID,
+    const chargingProfile = await ChargingStationStorage.getChargingProfile(
+      tenant,
+      chargingProfileID,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, chargingProfile, `Charging Profile ID '${chargingProfileID}' does not exist.`,
-      MODULE_NAME, 'handleUpdateChargingProfile', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      chargingProfile,
+      `Charging Profile ID '${chargingProfileID}' does not exist.`,
+      MODULE_NAME,
+      'handleUpdateChargingProfile',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       chargingProfile.projectFields = authorizations.projectFields;
@@ -205,35 +325,70 @@ export default class UtilsService {
       chargingProfile.metadata = authorizations.metadata;
     }
     // Add actions
-    await AuthorizationService.addChargingProfileAuthorizations(tenant, userToken, chargingProfile, authorizations);
+    await AuthorizationService.addChargingProfileAuthorizations(
+      tenant,
+      userToken,
+      chargingProfile,
+      authorizations
+    );
     const authorized = AuthorizationService.canPerformAction(chargingProfile, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.CHARGING_PROFILE,
-        module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
+        action: authAction,
+        entity: Entity.CHARGING_PROFILE,
+        module: MODULE_NAME,
+        method: 'checkAndGetChargingStationAuthorization',
       });
     }
     return chargingProfile;
   }
 
-  public static async checkAndGetTransactionAuthorization(tenant: Tenant, userToken: UserToken, transactionID: number, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Transaction> {
+  public static async checkAndGetTransactionAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    transactionID: number,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<Transaction> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, transactionID, MODULE_NAME, 'checkAndGetTransactionAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      transactionID,
+      MODULE_NAME,
+      'checkAndGetTransactionAuthorization',
+      userToken
+    );
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetTransactionAuthorizations(tenant, userToken, { ID: transactionID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetTransactionAuthorizations(
+      tenant,
+      userToken,
+      { ID: transactionID },
+      authAction,
+      entityData
+    );
     // Get ChargingStation
-    const transaction = await TransactionStorage.getTransaction(tenant, transactionID,
+    const transaction = await TransactionStorage.getTransaction(
+      tenant,
+      transactionID,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${transactionID}' does not exist`,
-      MODULE_NAME, 'checkAndGetTransactionAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      transaction,
+      `Transaction ID '${transactionID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetTransactionAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       transaction.projectFields = authorizations.projectFields;
@@ -243,38 +398,77 @@ export default class UtilsService {
       transaction.metadata = authorizations.metadata;
     }
     // Add actions
-    await AuthorizationService.addTransactionAuthorizations(tenant, userToken, transaction, authorizations);
+    await AuthorizationService.addTransactionAuthorizations(
+      tenant,
+      userToken,
+      transaction,
+      authorizations
+    );
     const authorized = AuthorizationService.canPerformAction(transaction, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.TRANSACTION,
-        module: MODULE_NAME, method: 'checkAndGetTransactionAuthorization',
+        action: authAction,
+        entity: Entity.TRANSACTION,
+        module: MODULE_NAME,
+        method: 'checkAndGetTransactionAuthorization',
       });
     }
     return transaction;
   }
 
-  public static async checkAndGetPricingDefinitionAuthorization(tenant: Tenant, userToken: UserToken, pricingDefinitionID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<PricingDefinition> {
-  // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, pricingDefinitionID, MODULE_NAME, 'checkAndGetPricingDefinitionAuthorization', userToken);
+  public static async checkAndGetPricingDefinitionAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    pricingDefinitionID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<PricingDefinition> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(
+      action,
+      pricingDefinitionID,
+      MODULE_NAME,
+      'checkAndGetPricingDefinitionAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetPricingDefinitionAuthorizations(
-      tenant, userToken, { ID: pricingDefinitionID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: pricingDefinitionID },
+      authAction,
+      entityData
+    );
     // Get Pricing
-    const pricingDefinition = await PricingStorage.getPricingDefinition(tenant, pricingDefinitionID,
+    const pricingDefinition = await PricingStorage.getPricingDefinition(
+      tenant,
+      pricingDefinitionID,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, pricingDefinition, `Pricing Model ID '${pricingDefinitionID}' does not exist`,
-      MODULE_NAME, 'checkAndGetPricingDefinitionAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      pricingDefinition,
+      `Pricing Model ID '${pricingDefinitionID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetPricingDefinitionAuthorization',
+      userToken
+    );
     // Add actions
-    await AuthorizationService.addPricingDefinitionAuthorizations(tenant, userToken, pricingDefinition, authorizations);
+    await AuthorizationService.addPricingDefinitionAuthorizations(
+      tenant,
+      userToken,
+      pricingDefinition,
+      authorizations
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       pricingDefinition.projectFields = authorizations.projectFields;
@@ -288,31 +482,60 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.PRICING_DEFINITION,
-        module: MODULE_NAME, method: 'checkAndGetPricingDefinitionAuthorization',
-        value: pricingDefinitionID
+        action: authAction,
+        entity: Entity.PRICING_DEFINITION,
+        module: MODULE_NAME,
+        method: 'checkAndGetPricingDefinitionAuthorization',
+        value: pricingDefinitionID,
       });
     }
     return pricingDefinition;
   }
 
-  public static async checkAndGetRegistrationTokenAuthorization(tenant: Tenant, userToken: UserToken, registrationTokenID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<RegistrationToken> {
+  public static async checkAndGetRegistrationTokenAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    registrationTokenID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<RegistrationToken> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, registrationTokenID, MODULE_NAME, 'checkAndGetRegistrationTokenAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      registrationTokenID,
+      MODULE_NAME,
+      'checkAndGetRegistrationTokenAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetRegistrationTokenAuthorizations(
-      tenant, userToken, { ID: registrationTokenID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: registrationTokenID },
+      authAction,
+      entityData
+    );
     // Get Registration Token
-    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(tenant, registrationTokenID,
+    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(
+      tenant,
+      registrationTokenID,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, registrationToken, `Registration Token ID '${registrationTokenID}' does not exist`,
-      MODULE_NAME, 'checkAndGetRegistrationTokenAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      registrationToken,
+      `Registration Token ID '${registrationTokenID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetRegistrationTokenAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       registrationToken.projectFields = authorizations.projectFields;
@@ -322,37 +545,71 @@ export default class UtilsService {
       registrationToken.metadata = authorizations.metadata;
     }
     // Add actions
-    await AuthorizationService.addRegistrationTokenAuthorizations(tenant, userToken, registrationToken, authorizations);
+    await AuthorizationService.addRegistrationTokenAuthorizations(
+      tenant,
+      userToken,
+      registrationToken,
+      authorizations
+    );
     const authorized = AuthorizationService.canPerformAction(registrationToken, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.REGISTRATION_TOKEN,
-        module: MODULE_NAME, method: 'checkAndGetRegistrationTokenAuthorization',
+        action: authAction,
+        entity: Entity.REGISTRATION_TOKEN,
+        module: MODULE_NAME,
+        method: 'checkAndGetRegistrationTokenAuthorization',
         value: registrationTokenID,
       });
     }
     return registrationToken;
   }
 
-  public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Company> {
+  public static async checkAndGetCompanyAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    companyID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<Company> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      companyID,
+      MODULE_NAME,
+      'checkAndGetCompanyAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetCompanyAuthorizations(
-      tenant, userToken, { ID: companyID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: companyID },
+      authAction,
+      entityData
+    );
     // Get Company
-    const company = await CompanyStorage.getCompany(tenant, companyID,
+    const company = await CompanyStorage.getCompany(
+      tenant,
+      companyID,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, company, `Company ID '${companyID}' does not exist`,
-      MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      company,
+      `Company ID '${companyID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetCompanyAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       company.projectFields = authorizations.projectFields;
@@ -368,8 +625,10 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.COMPANY,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
+        action: authAction,
+        entity: Entity.COMPANY,
+        module: MODULE_NAME,
+        method: 'checkAndGetCompanyAuthorization',
         value: companyID,
         companyID: companyID,
       });
@@ -377,22 +636,50 @@ export default class UtilsService {
     return company;
   }
 
-  public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<User> {
+  public static async checkAndGetUserAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    userID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<User> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      userID,
+      MODULE_NAME,
+      'checkAndGetUserAuthorization',
+      userToken
+    );
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetUserAuthorizations(tenant, userToken, { ID: userID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetUserAuthorizations(
+      tenant,
+      userToken,
+      { ID: userID },
+      authAction,
+      entityData
+    );
     // Get User
-    const user = await UserStorage.getUser(tenant, userID,
+    const user = await UserStorage.getUser(
+      tenant,
+      userID,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
-      MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      user,
+      `User ID '${userID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetUserAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       user.projectFields = authorizations.projectFields;
@@ -408,30 +695,60 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.USER,
-        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
-        value: userID
+        action: authAction,
+        entity: Entity.USER,
+        module: MODULE_NAME,
+        method: 'checkAndGetUserAuthorization',
+        value: userID,
       });
     }
     return user;
   }
 
-  public static async checkAndGetSiteAuthorization(tenant: Tenant, userToken: UserToken, siteID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Site> {
+  public static async checkAndGetSiteAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    siteID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<Site> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      siteID,
+      MODULE_NAME,
+      'checkAndGetSiteAuthorization',
+      userToken
+    );
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetSiteAuthorizations(tenant, userToken, { ID: siteID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetSiteAuthorizations(
+      tenant,
+      userToken,
+      { ID: siteID },
+      authAction,
+      entityData
+    );
     // Get Site
-    const site = await SiteStorage.getSite(tenant, siteID,
+    const site = await SiteStorage.getSite(
+      tenant,
+      siteID,
       {
         ...additionalFilters,
         ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, site, `Site ID '${siteID}' does not exist`,
-      MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      site,
+      `Site ID '${siteID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetSiteAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       site.projectFields = authorizations.projectFields;
@@ -448,33 +765,61 @@ export default class UtilsService {
         ...LoggingHelper.getSiteProperties(site),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
+        action: authAction,
+        entity: Entity.SITE,
+        module: MODULE_NAME,
+        method: 'checkAndGetSiteAuthorization',
         value: siteID,
       });
     }
     return site;
   }
 
-  public static async checkAndGetAssetAuthorization(tenant: Tenant, userToken: UserToken, assetID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Asset> {
+  public static async checkAndGetAssetAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    assetID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<Asset> {
     // Check mandatory fields failsafe, should already be done in the json schema validation for each request
-    UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'checkAndGetAssetAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      assetID,
+      MODULE_NAME,
+      'checkAndGetAssetAuthorization',
+      userToken
+    );
     // Retrieve authorization for action
     const authorizations = await AuthorizationService.checkAndGetAssetAuthorizations(
-      tenant, userToken, authAction, { ID: assetID }, entityData);
+      tenant,
+      userToken,
+      authAction,
+      { ID: assetID },
+      entityData
+    );
     // Retrieve Asset from storage
-    const asset = await AssetStorage.getAsset(tenant,
+    const asset = await AssetStorage.getAsset(
+      tenant,
       assetID,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
     // Check object not empty
-    UtilsService.assertObjectExists(action, asset, `Asset ID '${assetID}' cannot be retrieved`,
-      MODULE_NAME, 'checkAndGetAssetAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      asset,
+      `Asset ID '${assetID}' cannot be retrieved`,
+      MODULE_NAME,
+      'checkAndGetAssetAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       asset.projectFields = authorizations.projectFields;
@@ -492,31 +837,60 @@ export default class UtilsService {
         ...LoggingHelper.getAssetProperties(asset),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'checkAndGetAssetAuthorization',
+        action: authAction,
+        entity: Entity.ASSET,
+        module: MODULE_NAME,
+        method: 'checkAndGetAssetAuthorization',
         value: assetID,
       });
     }
     return asset;
   }
 
-  public static async checkAndGetLogAuthorization(tenant: Tenant, userToken: UserToken, logID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Log> {
+  public static async checkAndGetLogAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    logID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<Log> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, logID, MODULE_NAME, 'checkAndGetLogAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      logID,
+      MODULE_NAME,
+      'checkAndGetLogAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetLoggingAuthorizations(
-      tenant, userToken, { ID: logID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: logID },
+      authAction,
+      entityData
+    );
     // Get Log
-    const log = await LogStorage.getLog(tenant, logID,
+    const log = await LogStorage.getLog(
+      tenant,
+      logID,
       {
         ...additionalFilters,
         ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, log, `Log ID '${logID}' does not exist`,
-      MODULE_NAME, 'checkAndGetLogAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      log,
+      `Log ID '${logID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetLogAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       log.projectFields = authorizations.projectFields;
@@ -532,38 +906,62 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.LOGGING,
-        module: MODULE_NAME, method: 'checkAndGetLogAuthorization',
+        action: authAction,
+        entity: Entity.LOGGING,
+        module: MODULE_NAME,
+        method: 'checkAndGetLogAuthorization',
         value: logID,
       });
     }
     return log;
   }
 
-  public static async checkAndGetUserSitesAuthorization(tenant: Tenant, userToken: UserToken, user: User, siteIDs: string[],
-      action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Site[]> {
+  public static async checkAndGetUserSitesAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    user: User,
+    siteIDs: string[],
+    action: ServerAction,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<Site[]> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, user.id, MODULE_NAME, 'checkUserSitesAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      user.id,
+      MODULE_NAME,
+      'checkUserSitesAuthorization',
+      userToken
+    );
     if (Utils.isEmptyArray(siteIDs)) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Site\'s IDs must be provided',
-        module: MODULE_NAME, method: 'checkUserSitesAuthorization',
-        user: userToken
+        message: "The Site's IDs must be provided",
+        module: MODULE_NAME,
+        method: 'checkUserSitesAuthorization',
+        user: userToken,
       });
     }
     // Check dynamic auth for assignment
     const authorizations = await AuthorizationService.checkAssignUserSitesAuthorizations(
-      tenant, action, userToken, { userID: user.id, siteIDs });
+      tenant,
+      action,
+      userToken,
+      { userID: user.id, siteIDs }
+    );
     // Get Sites
-    let sites = (await SiteStorage.getSites(tenant,
-      {
-        siteIDs,
-        ...additionalFilters,
-        ...authorizations.filters,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      applyProjectFields ? authorizations.projectFields : null
-    )).result;
+    let sites = (
+      await SiteStorage.getSites(
+        tenant,
+        {
+          siteIDs,
+          ...additionalFilters,
+          ...authorizations.filters,
+        },
+        Constants.DB_PARAMS_MAX_LIMIT,
+        applyProjectFields ? authorizations.projectFields : null
+      )
+    ).result;
     // Keep the relevant result
     sites = sites.filter((site) => siteIDs.includes(site.id));
     // Must have the same result
@@ -573,37 +971,66 @@ export default class UtilsService {
         user: userToken,
         action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
         entity: Entity.USER_SITE,
-        module: MODULE_NAME, method: 'checkUserSitesAuthorization',
+        module: MODULE_NAME,
+        method: 'checkUserSitesAuthorization',
       });
     }
-    await AuthorizationService.addUserSiteAuthToSitesAuthorizations(tenant, userToken, user, sites, authorizations);
+    await AuthorizationService.addUserSiteAuthToSitesAuthorizations(
+      tenant,
+      userToken,
+      user,
+      sites,
+      authorizations
+    );
     return sites;
   }
 
-  public static async checkAndGetSiteUsersAuthorization(tenant: Tenant, userToken: UserToken, site: Site, userIDs: string[],
-      action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<User[]> {
+  public static async checkAndGetSiteUsersAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    site: Site,
+    userIDs: string[],
+    action: ServerAction,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<User[]> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, site.id, MODULE_NAME, 'checkSiteUsersAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      site.id,
+      MODULE_NAME,
+      'checkSiteUsersAuthorization',
+      userToken
+    );
     if (Utils.isEmptyArray(userIDs)) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The User\'s IDs must be provided',
-        module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
-        user: userToken
+        message: "The User's IDs must be provided",
+        module: MODULE_NAME,
+        method: 'checkSiteUsersAuthorization',
+        user: userToken,
       });
     }
     // Check dynamic auth for assignment
     const authorizations = await AuthorizationService.checkAssignSiteUsersAuthorizations(
-      tenant, action, userToken, { siteID: site.id, userIDs });
+      tenant,
+      action,
+      userToken,
+      { siteID: site.id, userIDs }
+    );
     // Get Users
-    let users = (await UserStorage.getUsers(tenant,
-      {
-        userIDs,
-        ...additionalFilters,
-        ...authorizations.filters,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      applyProjectFields ? authorizations.projectFields : null
-    )).result;
+    let users = (
+      await UserStorage.getUsers(
+        tenant,
+        {
+          userIDs,
+          ...additionalFilters,
+          ...authorizations.filters,
+        },
+        Constants.DB_PARAMS_MAX_LIMIT,
+        applyProjectFields ? authorizations.projectFields : null
+      )
+    ).result;
     // Keep the relevant result
     users = users.filter((user) => userIDs.includes(user.id));
     // Must have the same result
@@ -611,39 +1038,70 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN_USERS_TO_SITE : Action.UNASSIGN_USERS_FROM_SITE,
+        action:
+          action === ServerAction.ADD_USERS_TO_SITE
+            ? Action.ASSIGN_USERS_TO_SITE
+            : Action.UNASSIGN_USERS_FROM_SITE,
         entity: Entity.SITE_USER,
-        module: MODULE_NAME, method: 'checkAndGetSiteUsersAuthorization',
+        module: MODULE_NAME,
+        method: 'checkAndGetSiteUsersAuthorization',
       });
     }
-    await AuthorizationService.addSiteUserAuthToUsersAuthorizations(tenant, userToken, site, users, authorizations);
+    await AuthorizationService.addSiteUserAuthToUsersAuthorizations(
+      tenant,
+      userToken,
+      site,
+      users,
+      authorizations
+    );
     return users;
   }
 
-  public static async checkSiteAreaAssetsAuthorization(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, assetIDs: string[],
-      action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Asset[]> {
+  public static async checkSiteAreaAssetsAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    siteArea: SiteArea,
+    assetIDs: string[],
+    action: ServerAction,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<Asset[]> {
     // Check Mandatory fields
-    UtilsService.assertIdIsProvided(action, siteArea.id, MODULE_NAME, 'checkSiteAreaAssetsAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      siteArea.id,
+      MODULE_NAME,
+      'checkSiteAreaAssetsAuthorization',
+      userToken
+    );
     if (Utils.isEmptyArray(assetIDs)) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Asset\'s IDs must be provided',
-        module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
-        user: userToken
+        message: "The Asset's IDs must be provided",
+        module: MODULE_NAME,
+        method: 'checkSiteAreaAssetsAuthorization',
+        user: userToken,
       });
     }
     // Check dynamic auth
     const authorizations = await AuthorizationService.checkAndGetAssetsAuthorizations(
-      tenant, userToken, Action.LIST);
+      tenant,
+      userToken,
+      Action.LIST
+    );
     // Get Assets
-    const assets = (await AssetStorage.getAssets(tenant,
-      {
-        assetIDs,
-        ...additionalFilters,
-        ...authorizations.filters,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      applyProjectFields ? authorizations.projectFields : null
-    )).result;
+    const assets = (
+      await AssetStorage.getAssets(
+        tenant,
+        {
+          assetIDs,
+          ...additionalFilters,
+          ...authorizations.filters,
+        },
+        Constants.DB_PARAMS_MAX_LIMIT,
+        applyProjectFields ? authorizations.projectFields : null
+      )
+    ).result;
     // Must have the same result
     if (assetIDs.length !== assets.length) {
       throw new AppAuthError({
@@ -651,66 +1109,119 @@ export default class UtilsService {
         user: userToken,
         action: action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN : Action.UNASSIGN,
         entity: Entity.ASSET,
-        module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
+        module: MODULE_NAME,
+        method: 'checkSiteAreaAssetsAuthorization',
       });
     }
     return assets;
   }
 
-  public static async checkSiteAreaChargingStationsAuthorization(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, chargingStationIDs: string[],
-      action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStation[]> {
+  public static async checkSiteAreaChargingStationsAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    siteArea: SiteArea,
+    chargingStationIDs: string[],
+    action: ServerAction,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<ChargingStation[]> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, siteArea.id, MODULE_NAME, 'checkSiteAreaChargingStationsAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      siteArea.id,
+      MODULE_NAME,
+      'checkSiteAreaChargingStationsAuthorization',
+      userToken
+    );
     if (Utils.isEmptyArray(chargingStationIDs)) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Charging Station\'s IDs must be provided',
+        message: "The Charging Station's IDs must be provided",
         module: MODULE_NAME,
         method: 'checkSiteAreaChargingStationsAuthorization',
-        user: userToken
+        user: userToken,
       });
     }
     // Check dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(tenant, userToken, Action.LIST);
+    const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(
+      tenant,
+      userToken,
+      Action.LIST
+    );
     // Get Charging Stations
-    const chargingStations = (await ChargingStationStorage.getChargingStations(tenant,
-      {
-        chargingStationIDs,
-        ...additionalFilters,
-        ...authorizations.filters,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      applyProjectFields ? authorizations.projectFields : null
-    )).result;
+    const chargingStations = (
+      await ChargingStationStorage.getChargingStations(
+        tenant,
+        {
+          chargingStationIDs,
+          ...additionalFilters,
+          ...authorizations.filters,
+        },
+        Constants.DB_PARAMS_MAX_LIMIT,
+        applyProjectFields ? authorizations.projectFields : null
+      )
+    ).result;
     // Must have the same result
     if (chargingStationIDs.length !== chargingStations.length) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN : Action.UNASSIGN,
+        action:
+          action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA
+            ? Action.ASSIGN
+            : Action.UNASSIGN,
         entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
+        module: MODULE_NAME,
+        method: 'checkSiteAreaChargingStationsAuthorization',
       });
     }
     return chargingStations;
   }
 
-  public static async checkAndGetSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<SiteArea> {
+  public static async checkAndGetSiteAreaAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    siteAreaID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<SiteArea> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'checkAndGetSiteAreaAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      siteAreaID,
+      MODULE_NAME,
+      'checkAndGetSiteAreaAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetSiteAreaAuthorizations(
-      tenant, userToken, { ID: siteAreaID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: siteAreaID },
+      authAction,
+      entityData
+    );
     // Get SiteArea & check it exists
-    const siteArea = await SiteAreaStorage.getSiteArea(tenant, siteAreaID,
+    const siteArea = await SiteAreaStorage.getSiteArea(
+      tenant,
+      siteAreaID,
       {
         ...additionalFilters,
         ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${siteAreaID}' does not exist`,
-      MODULE_NAME, 'checkAndGetSiteAreaAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      siteArea,
+      `Site Area ID '${siteAreaID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetSiteAreaAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       siteArea.projectFields = authorizations.projectFields;
@@ -720,38 +1231,72 @@ export default class UtilsService {
       siteArea.metadata = authorizations.metadata;
     }
     // Add actions
-    await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, authorizations);
+    await AuthorizationService.addSiteAreaAuthorizations(
+      tenant,
+      userToken,
+      siteArea,
+      authorizations
+    );
     const authorized = AuthorizationService.canPerformAction(siteArea, authAction);
     if (!authorized) {
       throw new AppAuthError({
         ...LoggingHelper.getSiteAreaProperties(siteArea),
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
+        action: authAction,
+        entity: Entity.SITE_AREA,
+        module: MODULE_NAME,
+        method: 'checkAndGetSiteAreaAuthorization',
         value: siteAreaID,
       });
     }
     return siteArea;
   }
 
-  public static async checkAndGetCarAuthorization(tenant: Tenant, userToken: UserToken, carID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Car> {
+  public static async checkAndGetCarAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    carID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<Car> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, carID, MODULE_NAME, 'checkAndGetCarAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      carID,
+      MODULE_NAME,
+      'checkAndGetCarAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetCarAuthorizations(
-      tenant, userToken, { ID: carID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: carID },
+      authAction,
+      entityData
+    );
     // Get Car
-    const car = await CarStorage.getCar(tenant, carID,
+    const car = await CarStorage.getCar(
+      tenant,
+      carID,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, car, `Car ID '${carID}' does not exist`,
-      MODULE_NAME, 'checkAndGetCarAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      car,
+      `Car ID '${carID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetCarAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       car.projectFields = authorizations.projectFields;
@@ -767,32 +1312,60 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.CAR,
-        module: MODULE_NAME, method: 'checkAndGetCarAuthorization',
-        value: carID
+        action: authAction,
+        entity: Entity.CAR,
+        module: MODULE_NAME,
+        method: 'checkAndGetCarAuthorization',
+        value: carID,
       });
     }
     return car;
   }
 
-  public static async checkAndGetCarCatalogAuthorization(tenant: Tenant, userToken: UserToken, carCatalogID: number, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<CarCatalog> {
-  // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, carCatalogID, MODULE_NAME, 'checkAndGetCarCatalogAuthorization', userToken);
+  public static async checkAndGetCarCatalogAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    carCatalogID: number,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<CarCatalog> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(
+      action,
+      carCatalogID,
+      MODULE_NAME,
+      'checkAndGetCarCatalogAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetCarCatalogAuthorizations(
-      tenant, userToken, { ID: carCatalogID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: carCatalogID },
+      authAction,
+      entityData
+    );
     // Get the car
-    const carCatalog = await CarStorage.getCarCatalog(carCatalogID,
+    const carCatalog = await CarStorage.getCarCatalog(
+      carCatalogID,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
     // Check it exists
-    UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${carCatalogID}' does not exist`,
-      MODULE_NAME, 'checkAndGetCarCatalogAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      carCatalog,
+      `Car Catalog ID '${carCatalogID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetCarCatalogAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       carCatalog.projectFields = authorizations.projectFields;
@@ -802,41 +1375,77 @@ export default class UtilsService {
       carCatalog.metadata = authorizations.metadata;
     }
     // Add actions
-    await AuthorizationService.addCarCatalogAuthorizations(tenant, userToken, carCatalog, authorizations);
+    await AuthorizationService.addCarCatalogAuthorizations(
+      tenant,
+      userToken,
+      carCatalog,
+      authorizations
+    );
     const authorized = AuthorizationService.canPerformAction(carCatalog, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME, method: 'checkAndGetCarCatalogAuthorization',
+        action: authAction,
+        entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME,
+        method: 'checkAndGetCarCatalogAuthorization',
         value: carCatalogID.toString(),
       });
     }
     return carCatalog;
   }
 
-  public static async checkAndGetSettingAuthorization(tenant: Tenant, userToken: UserToken, settingID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<SettingDB> {
+  public static async checkAndGetSettingAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    settingID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<SettingDB> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'checkAndGetSettingAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      settingID,
+      MODULE_NAME,
+      'checkAndGetSettingAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(
-      tenant, userToken, { ID: settingID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: settingID },
+      authAction,
+      entityData
+    );
     // Get Setting
     let setting;
     if (additionalFilters?.identifier) {
-      setting = await SettingStorage.getSettingByIdentifier(tenant, settingID,
+      setting = await SettingStorage.getSettingByIdentifier(
+        tenant,
+        settingID,
         applyProjectFields ? authorizations.projectFields : null
       );
     } else {
-      setting = await SettingStorage.getSetting(tenant, settingID,
+      setting = await SettingStorage.getSetting(
+        tenant,
+        settingID,
         applyProjectFields ? authorizations.projectFields : null
       );
     }
 
-    UtilsService.assertObjectExists(action, setting, `Setting '${settingID}' does not exist`,
-      MODULE_NAME, 'checkAndGetSettingAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      setting,
+      `Setting '${settingID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetSettingAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       setting.projectFields = authorizations.projectFields;
@@ -852,27 +1461,56 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'checkAndGetSettingAuthorization',
-        value: settingID
+        action: authAction,
+        entity: Entity.SETTING,
+        module: MODULE_NAME,
+        method: 'checkAndGetSettingAuthorization',
+        value: settingID,
       });
     }
     return setting;
   }
 
-  public static async checkAndGetOCPIEndpointAuthorization(tenant: Tenant, userToken: UserToken, ocpiEndpointID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<OCPIEndpoint> {
+  public static async checkAndGetOCPIEndpointAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    ocpiEndpointID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<OCPIEndpoint> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, ocpiEndpointID, MODULE_NAME, 'checkAndGetOCPIEndpointAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      ocpiEndpointID,
+      MODULE_NAME,
+      'checkAndGetOCPIEndpointAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetOCPIEndpointAuthorizations(
-      tenant, userToken, { ID: ocpiEndpointID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: ocpiEndpointID },
+      authAction,
+      entityData
+    );
     // Get OCPI endpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(tenant, ocpiEndpointID,
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(
+      tenant,
+      ocpiEndpointID,
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint '${ocpiEndpointID}' does not exist`,
-      MODULE_NAME, 'checkAndGetOCPIEndpointAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      ocpiEndpoint,
+      `OCPIEndpoint '${ocpiEndpointID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetOCPIEndpointAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       ocpiEndpoint.projectFields = authorizations.projectFields;
@@ -882,33 +1520,60 @@ export default class UtilsService {
       ocpiEndpoint.metadata = authorizations.metadata;
     }
     // Add Actions
-    await AuthorizationService.addOCPIEndpointAuthorizations(tenant, userToken, ocpiEndpoint, authorizations);
+    await AuthorizationService.addOCPIEndpointAuthorizations(
+      tenant,
+      userToken,
+      ocpiEndpoint,
+      authorizations
+    );
     const authorized = AuthorizationService.canPerformAction(ocpiEndpoint, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'checkAndGetOCPIEndpointAuthorization',
-        value: ocpiEndpointID
+        action: authAction,
+        entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME,
+        method: 'checkAndGetOCPIEndpointAuthorization',
+        value: ocpiEndpointID,
       });
     }
     return ocpiEndpoint;
   }
 
   // This function is tailored for SETTING authorization, do not use it for "general" entities !
-  public static async checkAndGetBillingSettingAuthorization(tenant: Tenant, userToken: UserToken, billingSettingID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingSettings> {
+  public static async checkAndGetBillingSettingAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    billingSettingID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<BillingSettings> {
     // Get dynamic auth
-    const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(tenant, userToken, { ID: billingSettingID }, authAction, entityData);
+    const authorizations = await AuthorizationService.checkAndGetSettingAuthorizations(
+      tenant,
+      userToken,
+      { ID: billingSettingID },
+      authAction,
+      entityData
+    );
     // Get the entity from storage
     const billingSetting = await SettingStorage.getBillingSetting(
       tenant,
       applyProjectFields ? authorizations.projectFields : null
     );
     // Check it exists
-    UtilsService.assertObjectExists(action, billingSetting, `Billing setting for tenantID '${tenant.id}' does not exist`,
-      MODULE_NAME, 'checkAndGetBillingSettingAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      billingSetting,
+      `Billing setting for tenantID '${tenant.id}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetBillingSettingAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (applyProjectFields && authorizations.projectFields) {
       billingSetting.projectFields = authorizations.projectFields;
@@ -918,36 +1583,70 @@ export default class UtilsService {
       billingSetting.metadata = authorizations.metadata;
     }
     // Add actions
-    await AuthorizationService.addSettingAuthorizations(tenant, userToken, billingSetting, authorizations);
+    await AuthorizationService.addSettingAuthorizations(
+      tenant,
+      userToken,
+      billingSetting,
+      authorizations
+    );
     const authorized = AuthorizationService.canPerformAction(billingSetting, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'checkAndGetBillingSettingAuthorization',
+        action: authAction,
+        entity: Entity.SETTING,
+        module: MODULE_NAME,
+        method: 'checkAndGetBillingSettingAuthorization',
       });
     }
     return billingSetting;
   }
 
-  public static async checkAndGetInvoiceAuthorization(tenant: Tenant, userToken: UserToken, invoiceID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingInvoice> {
+  public static async checkAndGetInvoiceAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    invoiceID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<BillingInvoice> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, invoiceID, MODULE_NAME, 'checkAndGetInvoiceAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      invoiceID,
+      MODULE_NAME,
+      'checkAndGetInvoiceAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetInvoiceAuthorizations(
-      tenant, userToken, { ID: invoiceID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: invoiceID },
+      authAction,
+      entityData
+    );
     // Get Invoice
-    const invoice = await BillingStorage.getInvoice(tenant, invoiceID,
+    const invoice = await BillingStorage.getInvoice(
+      tenant,
+      invoiceID,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${invoiceID}' does not exist`,
-      MODULE_NAME, 'checkAndGetInvoiceAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      invoice,
+      `Invoice ID '${invoiceID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetInvoiceAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields && applyProjectFields) {
       invoice.projectFields = authorizations.projectFields;
@@ -963,32 +1662,61 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.INVOICE,
-        module: MODULE_NAME, method: 'checkAndGetInvoiceAuthorization',
-        value: invoiceID
+        action: authAction,
+        entity: Entity.INVOICE,
+        module: MODULE_NAME,
+        method: 'checkAndGetInvoiceAuthorization',
+        value: invoiceID,
       });
     }
     return invoice;
   }
 
-  public static async checkAndGetTransferAuthorization(tenant: Tenant, userToken: UserToken, ID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingTransfer> {
+  public static async checkAndGetTransferAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    ID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<BillingTransfer> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, ID, MODULE_NAME, 'checkAndGetTransferAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      ID,
+      MODULE_NAME,
+      'checkAndGetTransferAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetTransferAuthorizations(
-      tenant, userToken, { ID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID },
+      authAction,
+      entityData
+    );
     // Get Invoice
-    const transfer = await BillingStorage.getTransfer(tenant, ID,
-    // TODO - authorizations
-    //   {
-    //     ...additionalFilters,
-    //     ...authorizations.filters
-    //   },
+    const transfer = await BillingStorage.getTransfer(
+      tenant,
+      ID,
+      // TODO - authorizations
+      //   {
+      //     ...additionalFilters,
+      //     ...authorizations.filters
+      //   },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, transfer, `Transfer ID '${ID}' does not exist`,
-      MODULE_NAME, 'checkAndGetTransferAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      transfer,
+      `Transfer ID '${ID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetTransferAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields && applyProjectFields) {
       transfer.projectFields = authorizations.projectFields;
@@ -998,45 +1726,113 @@ export default class UtilsService {
       transfer.metadata = authorizations.metadata;
     }
     // Add Actions
-    await AuthorizationService.addTransferAuthorizations(tenant, userToken, transfer, authorizations);
+    await AuthorizationService.addTransferAuthorizations(
+      tenant,
+      userToken,
+      transfer,
+      authorizations
+    );
     const authorized = AuthorizationService.canPerformAction(transfer, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.BILLING_TRANSFER,
-        module: MODULE_NAME, method: 'checkAndGetTransferAuthorization',
-        value: ID
+        action: authAction,
+        entity: Entity.BILLING_TRANSFER,
+        module: MODULE_NAME,
+        method: 'checkAndGetTransferAuthorization',
+        value: ID,
       });
     }
     return transfer;
   }
 
-  public static async checkAndGetTagAuthorization(tenant: Tenant, userToken: UserToken, tagID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Tag> {
-    return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTag.bind(this),
-      authAction, action, entityData, additionalFilters, applyProjectFields);
+  public static async checkAndGetTagAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    tagID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<Tag> {
+    return UtilsService.checkAndGetTagByXXXAuthorization(
+      tenant,
+      userToken,
+      tagID,
+      TagStorage.getTag.bind(this),
+      authAction,
+      action,
+      entityData,
+      additionalFilters,
+      applyProjectFields
+    );
   }
 
-  public static async checkAndGetTagByVisualIDAuthorization(tenant: Tenant, userToken: UserToken, tagID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Tag> {
-    return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTagByVisualID.bind(this),
-      authAction, action, entityData, additionalFilters, applyProjectFields);
+  public static async checkAndGetTagByVisualIDAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    tagID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<Tag> {
+    return UtilsService.checkAndGetTagByXXXAuthorization(
+      tenant,
+      userToken,
+      tagID,
+      TagStorage.getTagByVisualID.bind(this),
+      authAction,
+      action,
+      entityData,
+      additionalFilters,
+      applyProjectFields
+    );
   }
 
-  public static async checkAndGetBillingAccountAuthorization(tenant: Tenant, userToken: UserToken, billingAccountID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<BillingAccount> {
+  public static async checkAndGetBillingAccountAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    billingAccountID: string,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<BillingAccount> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, billingAccountID, MODULE_NAME, 'checkAndGetBillingAccountAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      billingAccountID,
+      MODULE_NAME,
+      'checkAndGetBillingAccountAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetBillingAccountAuthorizations(
-      tenant, userToken, { ID: billingAccountID }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: billingAccountID },
+      authAction,
+      entityData
+    );
     // Get Invoice
-    const billingAccount = await BillingStorage.getAccountByID(tenant, billingAccountID,
+    const billingAccount = await BillingStorage.getAccountByID(
+      tenant,
+      billingAccountID,
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, billingAccount, `Billing account ID '${billingAccountID}' does not exist`,
-      MODULE_NAME, 'checkAndGetBillingAccountAuthorization', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      billingAccount,
+      `Billing account ID '${billingAccountID}' does not exist`,
+      MODULE_NAME,
+      'checkAndGetBillingAccountAuthorization',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields && applyProjectFields) {
       billingAccount.projectFields = authorizations.projectFields;
@@ -1051,9 +1847,11 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.INVOICE,
-        module: MODULE_NAME, method: 'checkAndGetInvoiceAuthorization',
-        value: billingAccountID
+        action: authAction,
+        entity: Entity.INVOICE,
+        module: MODULE_NAME,
+        method: 'checkAndGetInvoiceAuthorization',
+        value: billingAccountID,
       });
     }
     return billingAccount;
@@ -1069,14 +1867,29 @@ export default class UtilsService {
     next();
   }
 
-  public static async handleUnknownAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUnknownAction(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Action provided
     if (!action) {
       await Logging.logActionExceptionMessageAndSendResponse(
-        null, new Error('No Action has been provided'), req, res, next);
+        null,
+        new Error('No Action has been provided'),
+        req,
+        res,
+        next
+      );
     } else {
       await Logging.logActionExceptionMessageAndSendResponse(
-        action, new Error(`The Action '${action}' does not exist`), req, res, next);
+        action,
+        new Error(`The Action '${action}' does not exist`),
+        req,
+        res,
+        next
+      );
     }
   }
 
@@ -1091,7 +1904,7 @@ export default class UtilsService {
       TransactionInErrorType.INVALID_START_DATE,
       TransactionInErrorType.NO_CONSUMPTION,
       TransactionInErrorType.LOW_CONSUMPTION,
-      TransactionInErrorType.MISSING_USER
+      TransactionInErrorType.MISSING_USER,
     ];
     if (Utils.isComponentActiveFromToken(user, TenantComponents.PRICING)) {
       allTypes.push(TransactionInErrorType.MISSING_PRICE);
@@ -1139,7 +1952,13 @@ export default class UtilsService {
     }
   }
 
-  public static assertIdIsProvided(action: ServerAction, id: string|number, module: string, method: string, userToken: UserToken): void {
+  public static assertIdIsProvided(
+    action: ServerAction,
+    id: string | number,
+    module: string,
+    method: string,
+    userToken: UserToken
+  ): void {
     if (!id) {
       // Object does not exist
       throw new AppError({
@@ -1148,12 +1967,19 @@ export default class UtilsService {
         message: 'The ID must be provided',
         module: module,
         method: method,
-        user: userToken
+        user: userToken,
       });
     }
   }
 
-  public static assertObjectExists(action: ServerAction, object: any, errorMsg: string, module: string, method: string, userToken?: UserToken): void {
+  public static assertObjectExists(
+    action: ServerAction,
+    object: any,
+    errorMsg: string,
+    module: string,
+    method: string,
+    userToken?: UserToken
+  ): void {
     if (!object) {
       throw new AppError({
         action,
@@ -1161,7 +1987,7 @@ export default class UtilsService {
         message: errorMsg,
         module: module,
         method: method,
-        user: userToken
+        user: userToken,
       });
     }
   }
@@ -1198,24 +2024,37 @@ export default class UtilsService {
     }
   }
 
-  public static assertComponentIsActiveFromToken(userToken: UserToken, component: TenantComponents,
-      action: Action, entity: Entity, module: string, method: string): void {
+  public static assertComponentIsActiveFromToken(
+    userToken: UserToken,
+    component: TenantComponents,
+    action: Action,
+    entity: Entity,
+    module: string,
+    method: string
+  ): void {
     // Check from token
     const active = Utils.isComponentActiveFromToken(userToken, component);
     if (!active) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
-        entity: entity, action: action,
-        module: module, method: method,
+        entity: entity,
+        action: action,
+        module: module,
+        method: method,
         inactiveComponent: component,
-        user: userToken
+        user: userToken,
       });
     }
   }
 
-  public static async exportToCSV(req: Request, res: Response, attachmentName: string, filteredRequest: any,
-      handleGetData: (req: Request, filteredRequest: any) => Promise<DataResult<any>>,
-      handleConvertToCSV: (req: Request, data: any[], writeHeader: boolean) => string): Promise<void> {
+  public static async exportToCSV(
+    req: Request,
+    res: Response,
+    attachmentName: string,
+    filteredRequest: any,
+    handleGetData: (req: Request, filteredRequest: any) => Promise<DataResult<any>>,
+    handleConvertToCSV: (req: Request, data: any[], writeHeader: boolean) => string
+  ): Promise<void> {
     // Force params
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Set the attachment name
@@ -1246,7 +2085,7 @@ export default class UtilsService {
       // Sanitize against csv formula injection
       data.result = await Utils.sanitizeCSVExport(data.result, req.tenant?.id);
       // Get CSV data
-      const csvData = handleConvertToCSV(req, data.result, (skip === 0));
+      const csvData = handleConvertToCSV(req, data.result, skip === 0);
       // Send Transactions
       res.write(csvData);
       // Next page
@@ -1256,9 +2095,17 @@ export default class UtilsService {
     res.end();
   }
 
-  public static async exportToPDF(req: Request, res: Response, attachmentName: string,
-      handleGetData: (req: Request) => Promise<DataResult<any>>,
-      handleConvertToPDF: (req: Request, pdfDocument: PDFKit.PDFDocument, data: any[]) => Promise<string>): Promise<void> {
+  public static async exportToPDF(
+    req: Request,
+    res: Response,
+    attachmentName: string,
+    handleGetData: (req: Request) => Promise<DataResult<any>>,
+    handleConvertToPDF: (
+      req: Request,
+      pdfDocument: PDFKit.PDFDocument,
+      data: any[]
+    ) => Promise<string>
+  ): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PDF_PAGE_SIZE.toString();
     // Set the attachment name
@@ -1298,41 +2145,59 @@ export default class UtilsService {
     pdfDocument.end();
   }
 
-  public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,
-      filteredRequest: ChargingProfile, req: Request): void {
+  public static checkIfChargingProfileIsValid(
+    chargingStation: ChargingStation,
+    chargePoint: ChargePoint,
+    filteredRequest: ChargingProfile,
+    req: Request
+  ): void {
     if (filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.length === 0) {
       throw new AppError({
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Profile\'s schedule must not be empty',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
+        message: "Charging Profile's schedule must not be empty",
+        module: MODULE_NAME,
+        method: 'checkIfChargingProfileIsValid',
+        user: req.user.id,
       });
     }
     // Check End of Schedule <= 24h
-    const endScheduleDate = new Date(new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() +
-      filteredRequest.profile.chargingSchedule.duration * 1000);
-    if (!moment(endScheduleDate).isBefore(moment(filteredRequest.profile.chargingSchedule.startSchedule).add('1', 'd').add('1', 'm'))) {
+    const endScheduleDate = new Date(
+      new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() +
+        filteredRequest.profile.chargingSchedule.duration * 1000
+    );
+    if (
+      !moment(endScheduleDate).isBefore(
+        moment(filteredRequest.profile.chargingSchedule.startSchedule).add('1', 'd').add('1', 'm')
+      )
+    ) {
       throw new AppError({
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Profile\'s schedule should not exceed 24 hours',
-        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
+        message: "Charging Profile's schedule should not exceed 24 hours",
+        module: MODULE_NAME,
+        method: 'checkIfChargingProfileIsValid',
+        user: req.user.id,
       });
     }
     // Check Max Limitation of each Schedule
-    const maxAmpLimit = Utils.getChargingStationAmperageLimit(chargingStation, chargePoint, filteredRequest.connectorID);
-    for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
+    const maxAmpLimit = Utils.getChargingStationAmperageLimit(
+      chargingStation,
+      chargePoint,
+      filteredRequest.connectorID
+    );
+    for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule
+      .chargingSchedulePeriod) {
       // Check Min
       if (chargingSchedulePeriod.limit < 0) {
         throw new AppError({
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Charging Schedule is below the min limitation (0A)',
-          module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
+          module: MODULE_NAME,
+          method: 'checkIfChargingProfileIsValid',
           user: req.user.id,
-          detailedMessages: { chargingSchedulePeriod }
+          detailedMessages: { chargingSchedulePeriod },
         });
       }
       // Check Max
@@ -1341,15 +2206,20 @@ export default class UtilsService {
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Charging Schedule is above the max limitation (${maxAmpLimit}A)`,
-          module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
+          module: MODULE_NAME,
+          method: 'checkIfChargingProfileIsValid',
           user: req.user.id,
-          detailedMessages: { chargingSchedulePeriod }
+          detailedMessages: { chargingSchedulePeriod },
         });
       }
     }
   }
 
-  public static checkIfChargePointValid(chargingStation: ChargingStation, chargePoint: ChargePoint, user: UserToken): void {
+  public static checkIfChargePointValid(
+    chargingStation: ChargingStation,
+    chargePoint: ChargePoint,
+    user: UserToken
+  ): void {
     const connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
     // Add helpers to check if charge point is valid
     let chargePointAmperage = 0;
@@ -1361,46 +2231,65 @@ export default class UtilsService {
           action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
           errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
           message: 'Charge Point does not match the voltage of its connectors',
-          module: MODULE_NAME, method: 'checkIfChargePointValid',
-          user
+          module: MODULE_NAME,
+          method: 'checkIfChargePointValid',
+          user,
         });
       }
-      if (connector.numberOfConnectedPhase && chargePoint.numberOfConnectedPhase && connector.numberOfConnectedPhase !== chargePoint.numberOfConnectedPhase) {
+      if (
+        connector.numberOfConnectedPhase &&
+        chargePoint.numberOfConnectedPhase &&
+        connector.numberOfConnectedPhase !== chargePoint.numberOfConnectedPhase
+      ) {
         throw new AppError({
           action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
           errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
           message: 'Charge Point does not match the number of phases of its connectors',
-          module: MODULE_NAME, method: 'checkIfChargePointValid',
-          user
+          module: MODULE_NAME,
+          method: 'checkIfChargePointValid',
+          user,
         });
       }
-      if (connector.currentType && chargePoint.currentType && connector.currentType !== chargePoint.currentType) {
+      if (
+        connector.currentType &&
+        chargePoint.currentType &&
+        connector.currentType !== chargePoint.currentType
+      ) {
         throw new AppError({
           action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
           errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
           message: 'Charge Point does not match the currentType of its connectors',
-          module: MODULE_NAME, method: 'checkIfChargePointValid',
-          user
+          module: MODULE_NAME,
+          method: 'checkIfChargePointValid',
+          user,
         });
       }
       // Check connectors power when it is shared within the charge point
       if (chargePoint.sharePowerToAllConnectors || chargePoint.cannotChargeInParallel) {
-        if (connector.amperage && chargePoint.amperage && connector.amperage !== chargePoint.amperage) {
+        if (
+          connector.amperage &&
+          chargePoint.amperage &&
+          connector.amperage !== chargePoint.amperage
+        ) {
           throw new AppError({
             action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
             errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
-            message: 'Charge Points amperage does not equal the amperage of the connectors (shared power between connectors)',
-            module: MODULE_NAME, method: 'checkIfChargePointValid',
-            user
+            message:
+              'Charge Points amperage does not equal the amperage of the connectors (shared power between connectors)',
+            module: MODULE_NAME,
+            method: 'checkIfChargePointValid',
+            user,
           });
         }
         if (connector.power && chargePoint.power && connector.power !== chargePoint.power) {
           throw new AppError({
             action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
             errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
-            message: 'Charge Points power does not equal the power of the connectors (shared power between connectors)',
-            module: MODULE_NAME, method: 'checkIfChargePointValid',
-            user
+            message:
+              'Charge Points power does not equal the power of the connectors (shared power between connectors)',
+            module: MODULE_NAME,
+            method: 'checkIfChargePointValid',
+            user,
           });
         }
       } else {
@@ -1413,8 +2302,9 @@ export default class UtilsService {
         action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
         errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
         message: `Charge Points amperage ${chargePoint.amperage}A does not match the combined amperage of the connectors ${chargePointPower}A`,
-        module: MODULE_NAME, method: 'checkIfChargePointValid',
-        user
+        module: MODULE_NAME,
+        method: 'checkIfChargePointValid',
+        user,
       });
     }
     if (chargePointPower > 0 && chargePointPower !== chargePoint.power) {
@@ -1422,20 +2312,29 @@ export default class UtilsService {
         action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
         errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
         message: `Charge Points power ${chargePoint.power}W does not match the combined power of the connectors ${chargePointPower}W`,
-        module: MODULE_NAME, method: 'checkIfChargePointValid',
-        user
+        module: MODULE_NAME,
+        method: 'checkIfChargePointValid',
+        user,
       });
     }
   }
 
-  public static checkIfPricingDefinitionValid(pricingDefinition: Partial<PricingDefinition>, req: Request): void {
-    if (pricingDefinition.staticRestrictions?.validFrom && pricingDefinition.staticRestrictions?.validTo &&
-        pricingDefinition.staticRestrictions.validFrom.getTime() > pricingDefinition.staticRestrictions.validTo.getTime()) {
+  public static checkIfPricingDefinitionValid(
+    pricingDefinition: Partial<PricingDefinition>,
+    req: Request
+  ): void {
+    if (
+      pricingDefinition.staticRestrictions?.validFrom &&
+      pricingDefinition.staticRestrictions?.validTo &&
+      pricingDefinition.staticRestrictions.validFrom.getTime() >
+        pricingDefinition.staticRestrictions.validTo.getTime()
+    ) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The pricing definition validity start date cannot be after the end date',
-        module: MODULE_NAME, method: 'checkIfPricingDefinitionValid',
-        user: req.user.id
+        module: MODULE_NAME,
+        method: 'checkIfPricingDefinitionValid',
+        user: req.user.id,
       });
     }
   }
@@ -1445,56 +2344,63 @@ export default class UtilsService {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'OICP and OCPI Components cannot be both active',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
+        module: MODULE_NAME,
+        method: 'checkIfTenantValid',
+        user: req.user.id,
       });
     }
     if (tenant.components.refund?.active && !tenant.components.pricing?.active) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Refund cannot be active without the Pricing component',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
+        module: MODULE_NAME,
+        method: 'checkIfTenantValid',
+        user: req.user.id,
       });
     }
     if (tenant.components.billing?.active && !tenant.components.pricing?.active) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing cannot be active without the Pricing component',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
+        module: MODULE_NAME,
+        method: 'checkIfTenantValid',
+        user: req.user.id,
       });
     }
     if (tenant.components.billingPlatform?.active && !tenant.components.billing?.active) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing accounts cannot be active without the Billing component',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
+        module: MODULE_NAME,
+        method: 'checkIfTenantValid',
+        user: req.user.id,
       });
     }
     if (tenant.components.smartCharging?.active && !tenant.components.organization?.active) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Smart Charging cannot be active without the Organization component',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
+        module: MODULE_NAME,
+        method: 'checkIfTenantValid',
+        user: req.user.id,
       });
     }
     if (tenant.components.asset?.active && !tenant.components.organization?.active) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Asset cannot be active without the Organization component',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
+        module: MODULE_NAME,
+        method: 'checkIfTenantValid',
+        user: req.user.id,
       });
     }
     if (tenant.components.carConnector?.active && !tenant.components.car?.active) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Connector cannot be active without the Car component',
-        module: MODULE_NAME, method: 'checkIfTenantValid',
-        user: req.user.id
+        module: MODULE_NAME,
+        method: 'checkIfTenantValid',
+        user: req.user.id,
       });
     }
   }
@@ -1507,7 +2413,7 @@ export default class UtilsService {
         message: 'Tenant is mandatory',
         module: MODULE_NAME,
         method: 'checkIfUserValid',
-        user: req.user.id
+        user: req.user.id,
       });
     }
     // Update model?
@@ -1517,7 +2423,7 @@ export default class UtilsService {
         message: 'User ID is mandatory',
         module: MODULE_NAME,
         method: 'checkIfUserValid',
-        user: req.user.id
+        user: req.user.id,
       });
     }
     // Creation?
@@ -1532,38 +2438,53 @@ export default class UtilsService {
       filteredRequest.status = UserStatus.BLOCKED;
     }
     // Creation?
-    if ((filteredRequest.role !== UserRole.BASIC) && (filteredRequest.role !== UserRole.DEMO) &&
-      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+    if (
+      filteredRequest.role !== UserRole.BASIC &&
+      filteredRequest.role !== UserRole.DEMO &&
+      !Authorizations.isAdmin(req.user) &&
+      !Authorizations.isSuperAdmin(req.user)
+    ) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`,
+        message: `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(
+          filteredRequest.role
+        )}'`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
-        actionOnUser: filteredRequest.id
+        actionOnUser: filteredRequest.id,
       });
     }
     // Only Basic, Demo, Admin user other Tenants (!== default)
-    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === UserRole.SUPER_ADMIN) {
+    if (
+      tenantID !== 'default' &&
+      filteredRequest.role &&
+      filteredRequest.role === UserRole.SUPER_ADMIN
+    ) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User cannot have the Super Admin role in this Tenant',
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
-        actionOnUser: filteredRequest.id
+        actionOnUser: filteredRequest.id,
       });
     }
     // Only Admin and Super Admin can use role different from Basic
-    if ((filteredRequest.role === UserRole.ADMIN || filteredRequest.role === UserRole.SUPER_ADMIN) &&
-      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+    if (
+      (filteredRequest.role === UserRole.ADMIN || filteredRequest.role === UserRole.SUPER_ADMIN) &&
+      !Authorizations.isAdmin(req.user) &&
+      !Authorizations.isSuperAdmin(req.user)
+    ) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`,
+        message: `User without role Admin or Super Admin tried to ${
+          filteredRequest.id ? 'update' : 'create'
+        } an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`,
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
-        actionOnUser: filteredRequest.id
+        actionOnUser: filteredRequest.id,
       });
     }
     if (req.method === 'POST' && !filteredRequest.name) {
@@ -1573,7 +2494,7 @@ export default class UtilsService {
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
-        actionOnUser: filteredRequest.id
+        actionOnUser: filteredRequest.id,
       });
     }
     if (req.method === 'POST' && !filteredRequest.email) {
@@ -1583,7 +2504,7 @@ export default class UtilsService {
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
-        actionOnUser: filteredRequest.id
+        actionOnUser: filteredRequest.id,
       });
     }
     if (req.method === 'POST' && !Utils.isUserEmailValid(filteredRequest.email)) {
@@ -1593,33 +2514,41 @@ export default class UtilsService {
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
-        actionOnUser: filteredRequest.id
+        actionOnUser: filteredRequest.id,
       });
     }
     // Check for password validity if user's password is updated
-    if (req.method === 'PUT' && filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
+    if (
+      req.method === 'PUT' &&
+      filteredRequest.password &&
+      !Utils.isPasswordValid(filteredRequest.password)
+    ) {
       throw new AppError({
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Password is not valid',
         module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
-        actionOnUser: filteredRequest.id
+        actionOnUser: filteredRequest.id,
       });
     }
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  public static async processSensitiveData(tenant: Tenant, currentProperties: object, newProperties: object): Promise<void> {
+  public static async processSensitiveData(
+    tenant: Tenant,
+    currentProperties: object,
+    newProperties: object
+  ): Promise<void> {
     // Process the sensitive data (if any)
-    const sensitivePropertyNames: string [] = _.get(currentProperties, 'sensitiveData');
+    const sensitivePropertyNames: string[] = _.get(currentProperties, 'sensitiveData');
     if (sensitivePropertyNames) {
       if (!Array.isArray(sensitivePropertyNames)) {
         throw new AppError({
           errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
           message: 'Unexpected situation - sensitiveData is not an array',
           module: MODULE_NAME,
-          method: 'processSensitiveData'
+          method: 'processSensitiveData',
         });
       }
       // Process sensitive properties
@@ -1632,14 +2561,14 @@ export default class UtilsService {
           if (currentValue && typeof currentValue === 'string') {
             const currentHash = Utils.hash(currentValue);
             if (newValue !== currentHash) {
-            // Yes: Encrypt
+              // Yes: Encrypt
               _.set(newProperties, propertyName, await Cypher.encrypt(tenant, newValue));
             } else {
-            // No: Put back the encrypted value
+              // No: Put back the encrypted value
               _.set(newProperties, propertyName, currentValue);
             }
           } else {
-          // Value in db is empty then encrypt
+            // Value in db is empty then encrypt
             _.set(newProperties, propertyName, await Cypher.encrypt(tenant, newValue));
           }
         } else {
@@ -1656,14 +2585,14 @@ export default class UtilsService {
 
   // eslint-disable-next-line @typescript-eslint/ban-types
   public static hashSensitiveData(tenantID: string, properties: object): unknown {
-    const sensitivePropertyNames: string [] = _.get(properties, 'sensitiveData');
+    const sensitivePropertyNames: string[] = _.get(properties, 'sensitiveData');
     if (sensitivePropertyNames) {
       if (!Array.isArray(sensitivePropertyNames)) {
         throw new AppError({
           errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
           message: 'Unexpected situation - sensitiveData is not an array',
           module: MODULE_NAME,
-          method: 'hashSensitiveData'
+          method: 'hashSensitiveData',
         });
       }
       for (const propertyName of sensitivePropertyNames) {
@@ -1681,24 +2610,56 @@ export default class UtilsService {
     return properties;
   }
 
-  private static async checkAndGetTagByXXXAuthorization(tenant: Tenant, userToken: UserToken, id: string,
-      getTagByXXX: (tenant: Tenant, id: string, params: any, projectedFileds: string[]) => Promise<Tag>, authAction: Action,
-      action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Tag> {
+  private static async checkAndGetTagByXXXAuthorization(
+    tenant: Tenant,
+    userToken: UserToken,
+    id: string,
+    getTagByXXX: (
+      tenant: Tenant,
+      id: string,
+      params: any,
+      projectedFileds: string[]
+    ) => Promise<Tag>,
+    authAction: Action,
+    action: ServerAction,
+    entityData?: EntityData,
+    additionalFilters: Record<string, any> = {},
+    applyProjectFields = false
+  ): Promise<Tag> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'checkAndGetTagByXXXAuthorization', userToken);
+    UtilsService.assertIdIsProvided(
+      action,
+      id,
+      MODULE_NAME,
+      'checkAndGetTagByXXXAuthorization',
+      userToken
+    );
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetTagAuthorizations(
-      tenant, userToken, { ID: id }, authAction, entityData);
+      tenant,
+      userToken,
+      { ID: id },
+      authAction,
+      entityData
+    );
     // Get the Tag & check it exists
-    const tag = await getTagByXXX(tenant, id,
+    const tag = await getTagByXXX(
+      tenant,
+      id,
       {
         ...additionalFilters,
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       applyProjectFields ? authorizations.projectFields : null
     );
-    UtilsService.assertObjectExists(action, tag, `Tag ID '${id}' does not exist`,
-      MODULE_NAME, 'handleGetTag', userToken);
+    UtilsService.assertObjectExists(
+      action,
+      tag,
+      `Tag ID '${id}' does not exist`,
+      MODULE_NAME,
+      'handleGetTag',
+      userToken
+    );
     // Assign projected fields
     if (authorizations.projectFields) {
       tag.projectFields = authorizations.projectFields;
@@ -1714,28 +2675,46 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'checkAndGetTagByXXXAuthorization',
-        value: id
+        action: authAction,
+        entity: Entity.TAG,
+        module: MODULE_NAME,
+        method: 'checkAndGetTagByXXXAuthorization',
+        value: id,
       });
     }
     return tag;
   }
 
-  private static async performRecaptchaAPICall(tenant: Tenant, centralSystemRestConfig: CentralSystemRestServiceConfiguration,captcha: string, remoteAddress: string)
-      : Promise<AxiosResponse<any, any>> {
-    const recaptchaURL = UtilsService.buildRecaptchaURL(centralSystemRestConfig.captchaSecretKey, captcha, remoteAddress);
+  private static async performRecaptchaAPICall(
+    tenant: Tenant,
+    centralSystemRestConfig: CentralSystemRestServiceConfiguration,
+    captcha: string,
+    remoteAddress: string
+  ): Promise<AxiosResponse<any, any>> {
+    const recaptchaURL = UtilsService.buildRecaptchaURL(
+      centralSystemRestConfig.captchaSecretKey,
+      captcha,
+      remoteAddress
+    );
     const axiosInstance = AxiosFactory.getAxiosInstance(tenant);
     let response = await axiosInstance.get(recaptchaURL);
     // Call not successful, attempt with alternative URL
     if (!response.data.success && centralSystemRestConfig.alternativeCaptchaSecretKey) {
-      const alternativeRecaptchaURL = UtilsService.buildRecaptchaURL(centralSystemRestConfig.alternativeCaptchaSecretKey, captcha, remoteAddress);
+      const alternativeRecaptchaURL = UtilsService.buildRecaptchaURL(
+        centralSystemRestConfig.alternativeCaptchaSecretKey,
+        captcha,
+        remoteAddress
+      );
       response = await axiosInstance.get(alternativeRecaptchaURL);
     }
     return response;
   }
 
-  private static buildRecaptchaURL(captchaSecretKey: string, captcha: string, remoteAddress: string) {
+  private static buildRecaptchaURL(
+    captchaSecretKey: string,
+    captcha: string,
+    remoteAddress: string
+  ) {
     return `https://www.google.com/recaptcha/api/siteverify?secret=${captchaSecretKey}&response=${captcha}&remoteip=${remoteAddress}`;
   }
 }

@@ -14,15 +14,22 @@ const MODULE_NAME = 'CheckAndComputeSmartChargingTask';
 
 export default class CheckAndComputeSmartChargingTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant): Promise<void> {
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) &&
-        Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+    if (
+      Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) &&
+      Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)
+    ) {
       // Get all site areas
-      const siteAreas = await SiteAreaStorage.getSiteAreas(tenant,
+      const siteAreas = await SiteAreaStorage.getSiteAreas(
+        tenant,
         { smartCharging: true, withNoParentSiteArea: true },
-        Constants.DB_PARAMS_MAX_LIMIT);
+        Constants.DB_PARAMS_MAX_LIMIT
+      );
       // Get Site Area
       for (const siteArea of siteAreas.result) {
-        const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea);
+        const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(
+          tenant.id,
+          siteArea
+        );
         if (siteAreaLock) {
           try {
             // Get implementation
@@ -31,7 +38,8 @@ export default class CheckAndComputeSmartChargingTask extends TenantSchedulerTas
               // Log
               await Logging.logError({
                 tenantID: tenant.id,
-                module: MODULE_NAME, method: 'processTenant',
+                module: MODULE_NAME,
+                method: 'processTenant',
                 action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
                 message: 'No implementation available for the Smart Charging',
               });
@@ -42,10 +50,13 @@ export default class CheckAndComputeSmartChargingTask extends TenantSchedulerTas
             // Log error
             await Logging.logError({
               tenantID: tenant.id,
-              module: MODULE_NAME, method: 'processTenant',
+              module: MODULE_NAME,
+              method: 'processTenant',
               action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
-              message: `Error while running the task '${CheckAndComputeSmartChargingTask.name}': ${error.message as string}`,
-              detailedMessages: { error: error.stack }
+              message: `Error while running the task '${CheckAndComputeSmartChargingTask.name}': ${
+                error.message as string
+              }`,
+              detailedMessages: { error: error.stack },
             });
           } finally {
             // Release lock
@@ -55,7 +66,8 @@ export default class CheckAndComputeSmartChargingTask extends TenantSchedulerTas
       }
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        module: MODULE_NAME, method: 'processTenant',
+        module: MODULE_NAME,
+        method: 'processTenant',
         action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
         message: `Processed '${siteAreas.count}' Site Area(s) with Smart Charging`,
       });

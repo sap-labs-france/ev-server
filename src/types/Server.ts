@@ -1,4 +1,3 @@
-
 export enum ServerAction {
   UNKNOWN_ACTION = 'Unknown',
 
@@ -425,7 +424,7 @@ export enum ServerAction {
   USER_IMAGE = 'UserImage',
   TAGS = 'Tags',
   TAG = 'Tag',
-  TAG_BY_VISUAL_ID= 'TagByVisualID',
+  TAG_BY_VISUAL_ID = 'TagByVisualID',
   USER_DEFAULT_TAG_CAR = 'UserDefaultTagCar',
   USER_SESSION_CONTEXT = 'UserSessionContext',
   TAG_CREATE = 'TagCreate',
@@ -496,8 +495,24 @@ export enum ServerAction {
   HTTP_ERROR = 'HttpError',
 
   EXPORT_TO_CSV = 'ExportToCSV',
-  SHIELD ='Shield',
-  RATE_LIMITER = 'RateLimiter'
+  SHIELD = 'Shield',
+  RATE_LIMITER = 'RateLimiter',
+
+  RESERVATION = 'Reservation',
+  RESERVATIONS = 'Reservations',
+  RESERVATION_CREATE = 'ReservationCreate',
+  RESERVATION_UPDATE = 'ReservationUpdate',
+  RESERVATION_DELETE = 'ReservationDelete',
+  RESERVATIONS_DELETE = 'ReservationsDelete',
+  RESERVATIONS_EXPORT = 'ReservationsExport',
+  RESERVATIONS_IMPORT = 'ReservationsImport',
+  RESERVATION_CANCEL = 'ReservationCancel',
+  RESERVATIONS_EXPIRE = 'ReservationsExpire',
+  SYNCHRONIZE_RESERVATIONS = 'SynchronizeReservations',
+  RESERVATION_STATUS_TRANSITION = 'ReservationStatusTransition',
+  RESERVATION_UPCOMING = 'ReservationUpcoming',
+  RESERVATION_CHARGING_STATION_BLOCKED = 'ReservationChargingStationBlocked',
+  RESERVATION_UNMET = 'ReservationUnmet',
 }
 
 // RESTful API
@@ -532,6 +547,7 @@ export enum RESTServerRoute {
   REST_CHARGING_STATIONS_CHANGE_AVAILABILITY = 'charging-stations/:id/availability/change',
   REST_CHARGING_STATIONS_RESERVE_NOW = 'charging-stations/:id/reserve/now',
   REST_CHARGING_STATIONS_CANCEL_RESERVATION = 'charging-stations/:id/reservation/cancel',
+  REST_CHARGING_STATIONS_RESERVATION_AVAILABILITY = 'charging-stations/reservation/availability',
 
   REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'charging-stations/firmware/download',
   REST_CHARGING_STATIONS_QRCODE_GENERATE = 'charging-stations/:id/connectors/:connectorId/qrcode/generate',
@@ -737,6 +753,13 @@ export enum RESTServerRoute {
 
   // PRICING URLs for Non-CRUD operations
   REST_PRICING_MODEL_RESOLVE = 'pricing-model/resolve',
+
+  // RESERVATION URLs for CRUD operations
+  REST_RESERVATIONS = 'reservations',
+  REST_RESERVATION = 'reservations/:id',
+  REST_RESERVATIONS_EXPORT = 'reservations/action/export',
+  REST_RESERVATIONS_IMPORT = 'reservations/action/import',
+  REST_RESERVATION_CANCEL = 'reservations/:id/cancel',
 }
 
 export enum OCPIServerRoute {
@@ -751,14 +774,14 @@ export enum OCPIServerRoute {
 }
 
 export enum OCPIServerRouteVersions {
-  VERSION_211 = '2.1.1'
+  VERSION_211 = '2.1.1',
 }
 
 export enum ServerProtocol {
   HTTP = 'http',
   HTTPS = 'https',
   WS = 'ws',
-  WSS = 'wss'
+  WSS = 'wss',
 }
 
 export enum ServerType {
@@ -775,5 +798,5 @@ export enum ServerType {
 
 export enum WSServerProtocol {
   OCPP16 = 'ocpp1.6',
-  REST = 'rest'
+  REST = 'rest',
 }

@@ -10,13 +10,27 @@ export default class KebaChargingStationVendorIntegration extends ChargingStatio
   }
 
   // Keba use mA as unit for static limitation
-  public async setStaticPowerLimitation(tenant: Tenant, chargingStation: ChargingStation,
-      chargePoint?: ChargePoint, maxAmps?: number): Promise<OCPPChangeConfigurationResponse> {
+  public async setStaticPowerLimitation(
+    tenant: Tenant,
+    chargingStation: ChargingStation,
+    chargePoint?: ChargePoint,
+    maxAmps?: number
+  ): Promise<OCPPChangeConfigurationResponse> {
     return super.setStaticPowerLimitation(tenant, chargingStation, chargePoint, maxAmps, 1000);
   }
 
-  public async checkUpdateOfOCPPParams(tenant: Tenant, chargingStation: ChargingStation,
-      ocppParamName: string, ocppParamValue: string): Promise<void> {
-    return super.checkUpdateOfOCPPParams(tenant, chargingStation, ocppParamName, ocppParamValue, 1000);
+  public async checkUpdateOfOCPPParams(
+    tenant: Tenant,
+    chargingStation: ChargingStation,
+    ocppParamName: string,
+    ocppParamValue: string
+  ): Promise<void> {
+    return super.checkUpdateOfOCPPParams(
+      tenant,
+      chargingStation,
+      ocppParamName,
+      ocppParamValue,
+      1000
+    );
   }
 }

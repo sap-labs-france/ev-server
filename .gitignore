@@ -91,3 +91,5 @@ Thumbs.db
 *.mta
 mta_archives/
 
+# ESLint Cache
+.eslintcache

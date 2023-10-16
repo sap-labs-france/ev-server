@@ -22,14 +22,13 @@ export interface TenantIdHoldingRequest extends Request {
 }
 
 export default abstract class AbstractOICPService {
-
   private endpoints: Map<string, AbstractEndpoint> = new Map();
 
   protected constructor(
-      private readonly oicpRestConfig: OICPServiceConfiguration,
-      private readonly path: string,
-      private readonly version: string) {
-  }
+    private readonly oicpRestConfig: OICPServiceConfiguration,
+    private readonly path: string,
+    private readonly version: string
+  ) {}
 
   public registerEndpoint(endpoint: AbstractEndpoint): void {
     this.endpoints.set(endpoint.getIdentifier(), endpoint);
@@ -61,7 +60,11 @@ export default abstract class AbstractOICPService {
     return this.version;
   }
 
-  public async restService(req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
+  public async restService(
+    req: TenantIdHoldingRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Parse the action
     // Full endpoint path /:protocol/:role/:version/:tenantSubdomain/api/oicp/:module/:endpointVersion/providers/:providerID/:endpoint/:endpointAction?
     // Fixed path /:protocol/:role/:version/:tenantSubdomain
@@ -71,7 +74,12 @@ export default abstract class AbstractOICPService {
     await this.processEndpointAction(req.params, req, res, next);
   }
 
-  public async processEndpointAction(params: any, req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
+  public async processEndpointAction(
+    params: any,
+    req: TenantIdHoldingRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Get tenant subdomain and endpoint from url parameters
     const tenantSubdomain = params.tenantSubdomain as string;
     const endpointName = params.endpoint as string;
@@ -82,20 +90,22 @@ export default abstract class AbstractOICPService {
       // Check if tenant was found
       if (!tenant) {
         throw new AppError({
-          module: MODULE_NAME, method: 'processEndpointAction',
+          module: MODULE_NAME,
+          method: 'processEndpointAction',
           action: ServerAction.OICP_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not exist`,
-          oicpError: OICPStatusCode.Code021
+          oicpError: OICPStatusCode.Code021,
         });
       }
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
         throw new AppError({
-          module: MODULE_NAME, method: 'processEndpointAction',
+          module: MODULE_NAME,
+          method: 'processEndpointAction',
           action: ServerAction.OICP_ENDPOINT,
           errorCode: StatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not support OICP`,
-          oicpError: OICPStatusCode.Code021
+          oicpError: OICPStatusCode.Code021,
         });
       }
       // Pass tenant id to req
@@ -105,48 +115,57 @@ export default abstract class AbstractOICPService {
       if (endpoint) {
         await Logging.logDebug({
           tenantID: tenant.id,
-          module: MODULE_NAME, method: endpointName,
+          module: MODULE_NAME,
+          method: endpointName,
           message: `>> OICP Request ${req.method} ${req.originalUrl}`,
           action: ServerAction.OICP_ENDPOINT,
-          detailedMessages: { params: req.body }
+          detailedMessages: { params: req.body },
         });
         const response = await endpoint.process(req, res, next, tenant);
         if (response) {
           await Logging.logDebug({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: endpointName,
+            module: MODULE_NAME,
+            method: endpointName,
             message: `<< OICP Response ${req.method} ${req.originalUrl}`,
             action: ServerAction.OICP_ENDPOINT,
-            detailedMessages: { response }
+            detailedMessages: { response },
           });
           res.json(response);
         } else {
           await Logging.logWarning({
             tenantID: tenant.id,
-            module: MODULE_NAME, method: endpointName,
+            module: MODULE_NAME,
+            method: endpointName,
             message: `<< OICP Endpoint ${req.method} ${req.originalUrl} not implemented`,
-            action: ServerAction.OICP_ENDPOINT
+            action: ServerAction.OICP_ENDPOINT,
           });
           res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
         }
       } else {
         throw new AppError({
-          module: MODULE_NAME, method: 'processEndpointAction',
+          module: MODULE_NAME,
+          method: 'processEndpointAction',
           action: ServerAction.OICP_ENDPOINT,
           errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
           message: `Endpoint ${endpointName} not implemented`,
-          oicpError: OICPStatusCode.Code021
+          oicpError: OICPStatusCode.Code021,
         });
       }
     } catch (error) {
       await Logging.logError({
         tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT_ID,
-        module: MODULE_NAME, method: endpointName,
+        module: MODULE_NAME,
+        method: endpointName,
         message: `<< OICP Response Error ${req.method} ${req.originalUrl}`,
         action: ServerAction.OICP_ENDPOINT,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
-      await Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT_ID, ServerAction.OICP_ENDPOINT, error);
+      await Logging.logActionExceptionMessage(
+        req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT_ID,
+        ServerAction.OICP_ENDPOINT,
+        error
+      );
       let errorCode: any = {};
       if (error instanceof AppError || error instanceof AppAuthError) {
         errorCode = error.params.errorCode;

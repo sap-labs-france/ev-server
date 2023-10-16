@@ -41,9 +41,7 @@
           "enum": ["crypto"]
         }
       },
-      "required": [
-        "type"
-      ]
+      "required": ["type"]
     },
     "id": {
       "$ref": "common#/definitions/id"
@@ -57,7 +55,5 @@
       "$ref": "setting#/definitions/sensitiveData"
     }
   },
-  "required": [
-    "identifier"
-  ]
+  "required": ["identifier"]
 }

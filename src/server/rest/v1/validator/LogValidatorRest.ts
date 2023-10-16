@@ -6,9 +6,13 @@ import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class LogValidatorRest extends SchemaValidator {
-  private static instance: LogValidatorRest|null = null;
-  private logsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/log/logs-get.json`, 'utf8'));
-  private logGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/log/log-get.json`, 'utf8'));
+  private static instance: LogValidatorRest | null = null;
+  private logsGet: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/log/logs-get.json`, 'utf8')
+  );
+  private logGet: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/log/log-get.json`, 'utf8')
+  );
 
   private constructor() {
     super('LogValidatorRest');

@@ -60,10 +60,7 @@
                     "format": {
                       "type": "string",
                       "description": "string defining the format of the SampledValue",
-                      "enum": [
-                        "Raw",
-                        "SignedData"
-                      ]
+                      "enum": ["Raw", "SignedData"]
                     },
                     "measurand": {
                       "type": "string",
@@ -90,11 +87,7 @@
                     "location": {
                       "type": "string",
                       "description": "string defining the location of the SampledValue",
-                      "enum": [
-                        "Inlet",
-                        "Outlet",
-                        "Body"
-                      ]
+                      "enum": ["Inlet", "Outlet", "Body"]
                     },
                     "unit": {
                       "type": "string",
@@ -126,9 +119,5 @@
       "description": "performance correlation ID"
     }
   },
-  "required": [
-    "transactionId",
-    "timestamp",
-    "meterStop"
-  ]
+  "required": ["transactionId", "timestamp", "meterStop"]
 }

@@ -33,7 +33,11 @@ export default abstract class AbstractODataEntities {
     if (!coordinatesEntity) {
       coordinatesEntity = entity;
     }
-    if (coordinatesEntity.coordinates && Array.isArray(coordinatesEntity.coordinates) && coordinatesEntity.coordinates.length === 2) {
+    if (
+      coordinatesEntity.coordinates &&
+      Array.isArray(coordinatesEntity.coordinates) &&
+      coordinatesEntity.coordinates.length === 2
+    ) {
       entity.latitude = coordinatesEntity.coordinates[1];
       entity.longitude = coordinatesEntity.coordinates[0];
     } else {
@@ -52,7 +56,9 @@ export default abstract class AbstractODataEntities {
   }
 
   public convertTimestamp(timestampUTC, req) {
-    return (req.timezone && timestampUTC) ? moment(timestampUTC).tz(req.timezone).format() : timestampUTC;
+    return req.timezone && timestampUTC
+      ? moment(timestampUTC).tz(req.timezone).format()
+      : timestampUTC;
   }
 
   public buildDateObject(timestamp, req) {
@@ -65,7 +71,7 @@ export default abstract class AbstractODataEntities {
       date: date.format('YYYY-MM-DD'),
       dayOfTheWeek: Utils.convertToInt(date.format('d')),
       hourOfTheDay: date.hours(),
-      weekOfTheYear: Utils.convertToInt(date.format('W'))
+      weekOfTheYear: Utils.convertToInt(date.format('W')),
     };
   }
 
@@ -105,7 +111,7 @@ export default abstract class AbstractODataEntities {
     if (query.$inlinecount) {
       cb(null, {
         count: count,
-        value: result
+        value: result,
       });
     } else {
       // pragma cb(null, response.data.result);

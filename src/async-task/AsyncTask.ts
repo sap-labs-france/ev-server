@@ -28,11 +28,9 @@ export default abstract class AbstractAsyncTask {
     return this.correlationID;
   }
 
-  protected async beforeAsyncTaskRun(): Promise<void> {
-  }
+  protected async beforeAsyncTaskRun(): Promise<void> {}
 
-  protected async afterAsyncTaskRun(): Promise<void> {
-  }
+  protected async afterAsyncTaskRun(): Promise<void> {}
 
   protected abstract executeAsyncTask(): Promise<void>;
 }

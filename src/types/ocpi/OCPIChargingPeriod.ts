@@ -14,5 +14,5 @@ export enum CdrDimensionType {
   MAX_CURRENT = 'MAX_CURRENT',
   MIN_CURRENT = 'MIN_CURRENT',
   PARKING_TIME = 'PARKING_TIME',
-  TIME = 'TIME'
+  TIME = 'TIME',
 }

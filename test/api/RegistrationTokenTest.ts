@@ -26,9 +26,16 @@ describe('Registration Token', () => {
   jest.setTimeout(300000); // Will automatically stop the unit test after that period of time
 
   beforeAll(async () => {
-    testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-    testData.adminUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-    testData.adminCentralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, testData.adminUserContext);
+    testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(
+      ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS
+    );
+    testData.adminUserContext = testData.tenantContext.getUserContext(
+      ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN
+    );
+    testData.adminCentralService = new CentralServerService(
+      ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
+      testData.adminUserContext
+    );
   });
 
   afterAll(async () => {
@@ -57,23 +64,20 @@ describe('Registration Token', () => {
       });
 
       // Check creation readAll
-      it(
-        'Should find the created registration token in the tokens list',
-        async () => {
-          // Check if the created entity is in the list
-          await testData.adminCentralService.checkEntityInList(
-            testData.adminCentralService.registrationApi,
-            testData.newRegistrationToken
-          );
-        }
-      );
+      it('Should find the created registration token in the tokens list', async () => {
+        // Check if the created entity is in the list
+        await testData.adminCentralService.checkEntityInList(
+          testData.adminCentralService.registrationApi,
+          testData.newRegistrationToken
+        );
+      });
 
       // Update
       it('Should be able to update a registration token', async () => {
         testData.newRegistrationToken.expirationDate = faker.date.past();
         await testData.adminCentralService.updateEntity(
           testData.adminCentralService.registrationApi,
-          testData.newRegistrationToken,
+          testData.newRegistrationToken
         );
       });
 
@@ -86,7 +90,11 @@ describe('Registration Token', () => {
           false
         );
         // Expect(updatedRegistrationToken.data.description).to.equal(testData.newRegistrationToken.description);
-        expect(updatedRegistrationToken.data.expirationDate).to.equal(moment.utc(testData.newRegistrationToken.expirationDate).format('yyyy-MM-DD[T]HH:mm:ss.SSS[Z]'));
+        expect(updatedRegistrationToken.data.expirationDate).to.equal(
+          moment
+            .utc(testData.newRegistrationToken.expirationDate)
+            .format('yyyy-MM-DD[T]HH:mm:ss.SSS[Z]')
+        );
       });
 
       // Check revoke expired
@@ -107,12 +115,12 @@ describe('Registration Token', () => {
         testData.newRegistrationToken.expirationDate = faker.date.future();
         await testData.adminCentralService.updateEntity(
           testData.adminCentralService.registrationApi,
-          testData.newRegistrationToken,
+          testData.newRegistrationToken
         );
         // TestData.newRegistrationToken.revocationDate = new Date();
         await testData.adminCentralService.revokeEntity(
           testData.adminCentralService.registrationApi,
-          testData.newRegistrationToken,
+          testData.newRegistrationToken
         );
       });
 
@@ -146,9 +154,16 @@ describe('Registration Token', () => {
 
     describe('Where basic user assigned', () => {
       beforeAll(async () => {
-        testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-        testData.basicUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-        testData.basicCentralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, testData.basicUserContext);
+        testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(
+          ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS
+        );
+        testData.basicUserContext = testData.tenantContext.getUserContext(
+          ContextDefinition.USER_CONTEXTS.BASIC_USER
+        );
+        testData.basicCentralService = new CentralServerService(
+          ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
+          testData.basicUserContext
+        );
         // Create the entity
         const registrationTokenToCreate = Factory.registrationToken.build();
         testData.newRegistrationToken = await testData.adminCentralService.createEntity(
@@ -156,7 +171,6 @@ describe('Registration Token', () => {
           registrationTokenToCreate
         );
         testData.createdRegistrationTokens.push(testData.newRegistrationToken);
-
       });
       // Create
       it('Should not be able to create a new registration token', async () => {

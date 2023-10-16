@@ -1,4 +1,26 @@
-import { OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
+import {
+  OCPPAuthorizeRequest,
+  OCPPAuthorizeResponse,
+  OCPPBootNotificationRequest,
+  OCPPBootNotificationResponse,
+  OCPPDataTransferRequest,
+  OCPPDataTransferResponse,
+  OCPPDiagnosticsStatusNotificationRequest,
+  OCPPDiagnosticsStatusNotificationResponse,
+  OCPPFirmwareStatusNotificationRequest,
+  OCPPFirmwareStatusNotificationResponse,
+  OCPPHeartbeatRequest,
+  OCPPHeartbeatResponse,
+  OCPPMeterValuesRequest,
+  OCPPMeterValuesResponse,
+  OCPPStartTransactionRequest,
+  OCPPStartTransactionResponse,
+  OCPPStatusNotificationRequest,
+  OCPPStatusNotificationResponse,
+  OCPPStopTransactionRequest,
+  OCPPStopTransactionResponse,
+  OCPPVersion,
+} from '../../../../types/ocpp/OCPPServer';
 
 import { Command } from '../../../../types/ChargingStation';
 import Logging from '../../../../utils/Logging';
@@ -10,6 +32,10 @@ import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import global from '../../../../types/GlobalType';
+import {
+  OCPPCancelReservationRequest,
+  OCPPCancelReservationResponse,
+} from '../../../../types/ocpp/OCPPClient';
 
 const MODULE_NAME = 'JsonChargingStationService';
 export default class JsonChargingStationService {
@@ -19,9 +45,11 @@ export default class JsonChargingStationService {
 
   public constructor() {
     // Get the OCPP service
-    this.chargingStationService = global.centralSystemJsonServer.getChargingStationService(OCPPVersion.VERSION_16);
+    this.chargingStationService = global.centralSystemJsonServer.getChargingStationService(
+      OCPPVersion.VERSION_16
+    );
     const rateLimitersMap = Utils.getRateLimiters();
-    let name : string;
+    let name: string;
     name = 'StartStopTransactionPerMin';
     const startStopTransactionLimiterPerMin = rateLimitersMap.get(name);
     if (startStopTransactionLimiterPerMin) {
@@ -44,7 +72,10 @@ export default class JsonChargingStationService {
     }
   }
 
-  public async handleBootNotification(headers: OCPPHeader, payload: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
+  public async handleBootNotification(
+    headers: OCPPHeader,
+    payload: OCPPBootNotificationRequest
+  ): Promise<OCPPBootNotificationResponse> {
     const { chargeBoxIdentity, tenant } = headers;
     const keyString = `${tenant.subdomain}:${chargeBoxIdentity}`;
     await this.checkRateLimiters(tenant, chargeBoxIdentity, this.limitersBootNotifs, keyString);
@@ -52,77 +83,144 @@ export default class JsonChargingStationService {
     return {
       currentTime: result.currentTime,
       status: result.status,
-      interval: result.interval
+      interval: result.interval,
     };
   }
 
-  public async handleHeartbeat(headers: OCPPHeader, payload: OCPPHeartbeatRequest): Promise<OCPPHeartbeatResponse> {
+  public async handleHeartbeat(
+    headers: OCPPHeader,
+    payload: OCPPHeartbeatRequest
+  ): Promise<OCPPHeartbeatResponse> {
     const result = await this.handle(Command.HEARTBEAT, headers, payload);
     return {
-      currentTime: result.currentTime
+      currentTime: result.currentTime,
     };
   }
 
-  public async handleStatusNotification(headers: OCPPHeader, payload: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
+  public async handleStatusNotification(
+    headers: OCPPHeader,
+    payload: OCPPStatusNotificationRequest
+  ): Promise<OCPPStatusNotificationResponse> {
     await this.handle(Command.STATUS_NOTIFICATION, headers, payload);
     return {};
   }
 
-  public async handleMeterValues(headers: OCPPHeader, payload: OCPPMeterValuesRequest): Promise<OCPPMeterValuesResponse> {
+  public async handleMeterValues(
+    headers: OCPPHeader,
+    payload: OCPPMeterValuesRequest
+  ): Promise<OCPPMeterValuesResponse> {
     await this.handle(Command.METER_VALUES, headers, payload);
     return {};
   }
 
-  public async handleAuthorize(headers: OCPPHeader, payload: OCPPAuthorizeRequest): Promise<OCPPAuthorizeResponse> {
+  public async handleAuthorize(
+    headers: OCPPHeader,
+    payload: OCPPAuthorizeRequest
+  ): Promise<OCPPAuthorizeResponse> {
     const result: OCPPAuthorizeResponse = await this.handle(Command.AUTHORIZE, headers, payload);
     return {
       idTagInfo: {
-        status: result.idTagInfo.status
-      }
+        status: result.idTagInfo.status,
+      },
     };
   }
 
-  public async handleDiagnosticsStatusNotification(headers: OCPPHeader, payload: OCPPDiagnosticsStatusNotificationRequest): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+  public async handleDiagnosticsStatusNotification(
+    headers: OCPPHeader,
+    payload: OCPPDiagnosticsStatusNotificationRequest
+  ): Promise<OCPPDiagnosticsStatusNotificationResponse> {
     await this.handle(Command.DIAGNOSTICS_STATUS_NOTIFICATION, headers, payload);
     return {};
   }
 
-  public async handleFirmwareStatusNotification(headers: OCPPHeader, payload: OCPPFirmwareStatusNotificationRequest): Promise<OCPPFirmwareStatusNotificationResponse> {
+  public async handleFirmwareStatusNotification(
+    headers: OCPPHeader,
+    payload: OCPPFirmwareStatusNotificationRequest
+  ): Promise<OCPPFirmwareStatusNotificationResponse> {
     await this.handle(Command.FIRMWARE_STATUS_NOTIFICATION, headers, payload);
     return {};
   }
 
-  public async handleStartTransaction(headers: OCPPHeader, payload: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
+  public async handleStartTransaction(
+    headers: OCPPHeader,
+    payload: OCPPStartTransactionRequest
+  ): Promise<OCPPStartTransactionResponse> {
     const { chargingStation, tenant } = headers;
-    const key = { connector: payload.connectorId, tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
+    const key = {
+      connector: payload.connectorId,
+      tenant: tenant.subdomain,
+      chargingStation: chargingStation.id,
+    };
     const keyString = `${key.connector}:${key.tenant}:${key.chargingStation}`;
-    await this.checkRateLimiters(tenant, chargingStation.id, this.limitersStartStopTransaction, keyString);
-    const result: OCPPStartTransactionResponse = await this.handle(Command.START_TRANSACTION, headers, payload);
+    await this.checkRateLimiters(
+      tenant,
+      chargingStation.id,
+      this.limitersStartStopTransaction,
+      keyString
+    );
+    const result: OCPPStartTransactionResponse = await this.handle(
+      Command.START_TRANSACTION,
+      headers,
+      payload
+    );
     return {
       transactionId: result.transactionId,
       idTagInfo: {
-        status: result.idTagInfo.status
-      }
+        status: result.idTagInfo.status,
+      },
     };
   }
 
-  public async handleDataTransfer(headers: OCPPHeader, payload: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
-    const result: OCPPDataTransferResponse = await this.handle(Command.DATA_TRANSFER, headers, payload);
+  public async handleDataTransfer(
+    headers: OCPPHeader,
+    payload: OCPPDataTransferRequest
+  ): Promise<OCPPDataTransferResponse> {
+    const result: OCPPDataTransferResponse = await this.handle(
+      Command.DATA_TRANSFER,
+      headers,
+      payload
+    );
     return {
-      status: result.status
+      status: result.status,
     };
   }
 
-  public async handleStopTransaction(headers: OCPPHeader, payload: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
+  public async handleStopTransaction(
+    headers: OCPPHeader,
+    payload: OCPPStopTransactionRequest
+  ): Promise<OCPPStopTransactionResponse> {
     const { chargingStation, tenant } = headers;
-    const key = { tenant: tenant.subdomain, chargingStation: chargingStation.id } ;
+    const key = { tenant: tenant.subdomain, chargingStation: chargingStation.id };
     const keyString = `${key.tenant}:${key.chargingStation}`;
-    await this.checkRateLimiters(tenant, chargingStation.id, this.limitersStartStopTransaction, keyString);
-    const result: OCPPStopTransactionResponse = await this.handle(Command.STOP_TRANSACTION, headers, payload);
+    await this.checkRateLimiters(
+      tenant,
+      chargingStation.id,
+      this.limitersStartStopTransaction,
+      keyString
+    );
+    const result: OCPPStopTransactionResponse = await this.handle(
+      Command.STOP_TRANSACTION,
+      headers,
+      payload
+    );
     return {
       idTagInfo: {
-        status: result.idTagInfo.status
-      }
+        status: result.idTagInfo.status,
+      },
+    };
+  }
+
+  public async handleCancelReservation(
+    headers: OCPPHeader,
+    payload: OCPPCancelReservationRequest
+  ): Promise<OCPPCancelReservationResponse> {
+    const result: OCPPCancelReservationResponse = await this.handle(
+      Command.CANCEL_RESERVATION,
+      headers,
+      payload
+    );
+    return {
+      status: result.status,
     };
   }
 
@@ -130,12 +228,23 @@ export default class JsonChargingStationService {
     try {
       return this.chargingStationService[`handle${command}`](headers, payload);
     } catch (error) {
-      await Logging.logException(error, OCPPUtils.buildServerActionFromOcppCommand(command), MODULE_NAME, command, headers.tenantID);
+      await Logging.logException(
+        error,
+        OCPPUtils.buildServerActionFromOcppCommand(command),
+        MODULE_NAME,
+        command,
+        headers.tenantID
+      );
       throw error;
     }
   }
 
-  private async checkRateLimiters(tenant:Tenant, chargingStationId: string, limiters: Array<RateLimiterMemoryWithName>, key: string) {
+  private async checkRateLimiters(
+    tenant: Tenant,
+    chargingStationId: string,
+    limiters: Array<RateLimiterMemoryWithName>,
+    key: string
+  ) {
     for (const rateLimiter of limiters) {
       const limiterName = rateLimiter.name;
       const limiter = rateLimiter.limiter;
@@ -144,28 +253,30 @@ export default class JsonChargingStationService {
       try {
         await limiter.consume(key);
       } catch (rateLimiterRes) {
-        if (rateLimiterRes.consumedPoints === (points + 1)) {
+        if (rateLimiterRes.consumedPoints === points + 1) {
           // Only log the first time we reach the limit in the current limiter window
           await Logging.logError({
             tenantID: tenant.id,
-            chargingStationID:chargingStationId,
+            chargingStationID: chargingStationId,
             action: ServerAction.RATE_LIMITER,
-            module: MODULE_NAME, method: 'checkRateLimiters',
+            module: MODULE_NAME,
+            method: 'checkRateLimiters',
             message: `RateLimiter ${limiterName} reached for the key: ${key}`,
-            detailedMessages : {
+            detailedMessages: {
               rateLimiterPoints: points,
-              rateLimiterDurations: duration
-            }
+              rateLimiterDurations: duration,
+            },
           });
         }
-        throw new Error(`RateLimiter: ${limiterName} - Rate limit exceeded - key: ${key} - points: ${points} - durations: ${duration}`);
+        throw new Error(
+          `RateLimiter: ${limiterName} - Rate limit exceeded - key: ${key} - points: ${points} - durations: ${duration}`
+        );
       }
     }
   }
 }
 
-export interface RateLimiterMemoryWithName
-{
-  name : string;
-  limiter : RateLimiterMemory
+export interface RateLimiterMemoryWithName {
+  name: string;
+  limiter: RateLimiterMemory;
 }

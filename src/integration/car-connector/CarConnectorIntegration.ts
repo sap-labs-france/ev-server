@@ -1,4 +1,8 @@
-import { CarConnectorConnectionSetting, CarConnectorConnectionToken, CarConnectorSettings } from '../../types/Setting';
+import {
+  CarConnectorConnectionSetting,
+  CarConnectorConnectionToken,
+  CarConnectorSettings,
+} from '../../types/Setting';
 
 import { Car } from '../../types/Car';
 import Tenant from '../../types/Tenant';

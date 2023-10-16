@@ -1,5 +1,12 @@
 /* eslint-disable max-len */
-import PricingDefinition, { PricedConsumptionData, PricingContext, PricingEntity, PricingStaticRestriction, ResolvedPricingDefinition, ResolvedPricingModel } from '../../types/Pricing';
+import PricingDefinition, {
+  PricedConsumptionData,
+  PricingContext,
+  PricingEntity,
+  PricingStaticRestriction,
+  ResolvedPricingDefinition,
+  ResolvedPricingModel,
+} from '../../types/Pricing';
 
 import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
@@ -15,15 +22,38 @@ import moment from 'moment';
 const MODULE_NAME = 'PricingEngine';
 
 export default class PricingEngine {
-
-  public static async resolvePricingContext(tenant: Tenant, pricingContext: PricingContext): Promise<ResolvedPricingModel> {
+  public static async resolvePricingContext(
+    tenant: Tenant,
+    pricingContext: PricingContext
+  ): Promise<ResolvedPricingModel> {
     // Merge the pricing definitions from the different contexts
     const pricingDefinitions: ResolvedPricingDefinition[] = [];
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.CHARGING_STATION, pricingContext.chargingStationID));
+    pricingDefinitions.push(
+      ...(await PricingEngine.getPricingDefinitions4Entity(
+        tenant,
+        pricingContext,
+        PricingEntity.CHARGING_STATION,
+        pricingContext.chargingStationID
+      ))
+    );
     // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.SITE_AREA, transaction.siteAreaID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.SITE, pricingContext.siteID));
+    pricingDefinitions.push(
+      ...(await PricingEngine.getPricingDefinitions4Entity(
+        tenant,
+        pricingContext,
+        PricingEntity.SITE,
+        pricingContext.siteID
+      ))
+    );
     // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.COMPANY, transaction.companyID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, pricingContext, PricingEntity.TENANT, tenant.id));
+    pricingDefinitions.push(
+      ...(await PricingEngine.getPricingDefinitions4Entity(
+        tenant,
+        pricingContext,
+        PricingEntity.TENANT,
+        tenant.id
+      ))
+    );
     if (!pricingContext.timezone) {
       await Logging.logWarning({
         ...LoggingHelper.getPricingContextProperties(pricingContext),
@@ -31,7 +61,8 @@ export default class PricingEngine {
         module: MODULE_NAME,
         action: ServerAction.PRICING,
         method: 'resolvePricingContext',
-        message: 'Unexpected situation: The timezone of the transaction is unknown. Make sure the location of the charging station is properly set!',
+        message:
+          'Unexpected situation: The timezone of the transaction is unknown. Make sure the location of the charging station is properly set!',
       });
     }
     // Return the resolution result as a resolved pricing model
@@ -39,9 +70,9 @@ export default class PricingEngine {
       pricerContext: {
         flatFeeAlreadyPriced: false,
         sessionStartDate: pricingContext.timestamp,
-        timezone: pricingContext.timezone
+        timezone: pricingContext.timezone,
       },
-      pricingDefinitions
+      pricingDefinitions,
     };
     await Logging.logInfo({
       ...LoggingHelper.getPricingContextProperties(pricingContext),
@@ -55,25 +86,36 @@ export default class PricingEngine {
     return Promise.resolve(resolvedPricingModel);
   }
 
-  public static priceConsumption(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption): PricedConsumptionData {
+  public static priceConsumption(
+    tenant: Tenant,
+    pricingModel: ResolvedPricingModel,
+    consumptionData: Consumption
+  ): PricedConsumptionData {
     const consumptionPricer = new ConsumptionPricer(tenant, pricingModel, consumptionData);
     return consumptionPricer.priceConsumption();
   }
 
-  public static extractFinalPricingData(pricingModel: ResolvedPricingModel): PricedConsumptionData[] {
+  public static extractFinalPricingData(
+    pricingModel: ResolvedPricingModel
+  ): PricedConsumptionData[] {
     if (!pricingModel) {
       // Happens only when billing "ghost" sessions that were created with the former "Simple Pricing" module
       return [];
     }
     // Iterate throw the list of pricing definitions
-    const pricedData: PricedConsumptionData[] = pricingModel.pricingDefinitions.map((pricingDefinition) =>
-      PricingEngine.extractFinalPricedConsumptionData(pricingDefinition)
+    const pricedData: PricedConsumptionData[] = pricingModel.pricingDefinitions.map(
+      (pricingDefinition) => PricingEngine.extractFinalPricedConsumptionData(pricingDefinition)
     );
     // Remove null/undefined entries (if any)
     return pricedData.filter((pricingConsumptionData) => !!pricingConsumptionData);
   }
 
-  private static async getPricingDefinitions4Entity(tenant: Tenant, pricingContext: PricingContext, entityType: PricingEntity, entityID: string): Promise<ResolvedPricingDefinition[]> {
+  private static async getPricingDefinitions4Entity(
+    tenant: Tenant,
+    pricingContext: PricingContext,
+    entityType: PricingEntity,
+    entityID: string
+  ): Promise<ResolvedPricingDefinition[]> {
     if (!entityID) {
       await Logging.logWarning({
         ...LoggingHelper.getPricingContextProperties(pricingContext),
@@ -85,31 +127,46 @@ export default class PricingEngine {
       });
       return [];
     }
-    let pricingDefinitions = await PricingEngine.fetchPricingDefinitions4Entity(tenant, entityType, entityID);
-    pricingDefinitions = pricingDefinitions || [];
-    const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>
-      PricingEngine.checkEntityType(pricingDefinition, entityType)
-    ).filter((pricingDefinition) =>
-      PricingEngine.checkStaticRestrictions(pricingDefinition, pricingContext)
-    ).map((pricingDefinition) =>
-      PricingEngine.shrinkPricingDefinition(pricingDefinition)
+    let pricingDefinitions = await PricingEngine.fetchPricingDefinitions4Entity(
+      tenant,
+      entityType,
+      entityID
     );
+    pricingDefinitions = pricingDefinitions || [];
+    const actualPricingDefinitions = pricingDefinitions
+      .filter((pricingDefinition) => PricingEngine.checkEntityType(pricingDefinition, entityType))
+      .filter((pricingDefinition) =>
+        PricingEngine.checkStaticRestrictions(pricingDefinition, pricingContext)
+      )
+      .map((pricingDefinition) => PricingEngine.shrinkPricingDefinition(pricingDefinition));
     await Logging.logDebug({
       ...LoggingHelper.getPricingContextProperties(pricingContext),
       tenantID: tenant.id,
       module: MODULE_NAME,
       action: ServerAction.PRICING,
       method: 'getPricingDefinitions4Entity',
-      message: `Pricing context resolution - ${actualPricingDefinitions.length || 0} pricing definitions found for ${entityType}: '${entityID}'`,
+      message: `Pricing context resolution - ${
+        actualPricingDefinitions.length || 0
+      } pricing definitions found for ${entityType}: '${entityID}'`,
     });
     return actualPricingDefinitions || [];
   }
 
-  private static async fetchPricingDefinitions4Entity(tenant: Tenant, entityType: PricingEntity, entityID: string): Promise<PricingDefinition[]> {
+  private static async fetchPricingDefinitions4Entity(
+    tenant: Tenant,
+    entityType: PricingEntity,
+    entityID: string
+  ): Promise<PricingDefinition[]> {
     if (entityID) {
-      const pricingModelResults = await PricingStorage.getPricingDefinitions(tenant, { entityType, entityID }, {
-        limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, sort: { createdOn: -1 }
-      });
+      const pricingModelResults = await PricingStorage.getPricingDefinitions(
+        tenant,
+        { entityType, entityID },
+        {
+          limit: Constants.DB_RECORD_COUNT_NO_LIMIT,
+          skip: 0,
+          sort: { createdOn: -1 },
+        }
+      );
       if (pricingModelResults.count > 0) {
         return pricingModelResults.result;
       }
@@ -117,16 +174,22 @@ export default class PricingEngine {
     return null;
   }
 
-  private static checkEntityType(pricingDefinition: PricingDefinition, entityType: PricingEntity) : PricingDefinition {
-    return (pricingDefinition.entityType === entityType) ? pricingDefinition : null;
+  private static checkEntityType(
+    pricingDefinition: PricingDefinition,
+    entityType: PricingEntity
+  ): PricingDefinition {
+    return pricingDefinition.entityType === entityType ? pricingDefinition : null;
   }
 
-  private static checkStaticRestrictions(pricingDefinition: PricingDefinition, pricingContext: PricingContext) : PricingDefinition {
+  private static checkStaticRestrictions(
+    pricingDefinition: PricingDefinition,
+    pricingContext: PricingContext
+  ): PricingDefinition {
     if (pricingDefinition.staticRestrictions) {
       if (
-        !PricingEngine.checkDateValidity(pricingDefinition.staticRestrictions, pricingContext)
-      || !PricingEngine.checkConnectorType(pricingDefinition.staticRestrictions, pricingContext)
-      || !PricingEngine.checkConnectorPower(pricingDefinition.staticRestrictions, pricingContext)
+        !PricingEngine.checkDateValidity(pricingDefinition.staticRestrictions, pricingContext) ||
+        !PricingEngine.checkConnectorType(pricingDefinition.staticRestrictions, pricingContext) ||
+        !PricingEngine.checkConnectorPower(pricingDefinition.staticRestrictions, pricingContext)
       ) {
         return null;
       }
@@ -135,7 +198,9 @@ export default class PricingEngine {
     return pricingDefinition;
   }
 
-  private static shrinkPricingDefinition(pricingDefinition: PricingDefinition): ResolvedPricingDefinition {
+  private static shrinkPricingDefinition(
+    pricingDefinition: PricingDefinition
+  ): ResolvedPricingDefinition {
     const resolvedPricingDefinition: ResolvedPricingDefinition = {
       id: pricingDefinition.id,
       entityID: pricingDefinition.entityID,
@@ -149,7 +214,10 @@ export default class PricingEngine {
     return resolvedPricingDefinition;
   }
 
-  private static checkDateValidity(staticRestrictions: PricingStaticRestriction, pricingContext: PricingContext): boolean {
+  private static checkDateValidity(
+    staticRestrictions: PricingStaticRestriction,
+    pricingContext: PricingContext
+  ): boolean {
     if (!Utils.isNullOrUndefined(staticRestrictions.validFrom)) {
       if (moment(pricingContext.timestamp).isBefore(staticRestrictions.validFrom)) {
         return false;
@@ -163,7 +231,10 @@ export default class PricingEngine {
     return true;
   }
 
-  private static checkConnectorType(staticRestrictions: PricingStaticRestriction, pricingContext: PricingContext): boolean {
+  private static checkConnectorType(
+    staticRestrictions: PricingStaticRestriction,
+    pricingContext: PricingContext
+  ): boolean {
     if (!Utils.isNullOrUndefined(staticRestrictions.connectorType)) {
       if (staticRestrictions.connectorType !== pricingContext.connectorType) {
         return false;
@@ -172,16 +243,25 @@ export default class PricingEngine {
     return true;
   }
 
-  private static checkConnectorPower(staticRestrictions: PricingStaticRestriction, pricingContext: PricingContext): boolean {
+  private static checkConnectorPower(
+    staticRestrictions: PricingStaticRestriction,
+    pricingContext: PricingContext
+  ): boolean {
     if (!Utils.isNullOrUndefined(staticRestrictions.connectorPowerkW)) {
-      if (!Utils.createDecimal(pricingContext.connectorPower).div(1000).equals(staticRestrictions.connectorPowerkW)) {
+      if (
+        !Utils.createDecimal(pricingContext.connectorPower)
+          .div(1000)
+          .equals(staticRestrictions.connectorPowerkW)
+      ) {
         return false;
       }
     }
     return true;
   }
 
-  private static extractFinalPricedConsumptionData(pricingDefinition: ResolvedPricingDefinition): PricedConsumptionData {
+  private static extractFinalPricedConsumptionData(
+    pricingDefinition: ResolvedPricingDefinition
+  ): PricedConsumptionData {
     const flatFee = pricingDefinition.dimensions.flatFee?.pricedData;
     const energy = pricingDefinition.dimensions.energy?.pricedData;
     const chargingTime = pricingDefinition.dimensions.chargingTime?.pricedData;
@@ -191,7 +271,7 @@ export default class PricingEngine {
         flatFee,
         energy,
         chargingTime,
-        parkingTime
+        parkingTime,
       };
     }
     // Nothing to bill for the current pricing definition

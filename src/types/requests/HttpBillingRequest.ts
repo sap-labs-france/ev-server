@@ -32,12 +32,10 @@ export interface HttpDeletePaymentMethod {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpBillingAccountCreateRequest extends BillingAccount {
-}
+export interface HttpBillingAccountCreateRequest extends BillingAccount {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpBillingAccountUpdateRequest extends BillingAccount {
-}
+export interface HttpBillingAccountUpdateRequest extends BillingAccount {}
 
 export interface HttpBillingAccountActivateRequest {
   ID: string;

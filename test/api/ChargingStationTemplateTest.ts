@@ -31,7 +31,11 @@ describe('Charging Station Template', () => {
     describe('Success cases', () => {
       it('Should be able to create a new template', async () => {
         const templateToCreate = Factory.chargingStationTemplate.build();
-        const response = await testData.superAdminCentralService.createEntity(testData.superAdminCentralService.chargingStationTemplateApi, templateToCreate, false);
+        const response = await testData.superAdminCentralService.createEntity(
+          testData.superAdminCentralService.chargingStationTemplateApi,
+          templateToCreate,
+          false
+        );
         expect(response.status).to.equal(StatusCodes.OK);
         expect(response.data).not.null;
         expect(response.data.status).to.eql('Success');
@@ -42,7 +46,10 @@ describe('Charging Station Template', () => {
 
       it('Should find the created template by id', async () => {
         // Retrieve it from the backend
-        const response = await testData.superAdminCentralService.chargingStationTemplateApi.readById(testData.newChargingStationTemplate.id);
+        const response =
+          await testData.superAdminCentralService.chargingStationTemplateApi.readById(
+            testData.newChargingStationTemplate.id
+          );
         // Check if ok
         expect(response.status).to.equal(StatusCodes.OK);
         expect(response.data.id).is.eql(testData.newChargingStationTemplate.id);
@@ -54,7 +61,7 @@ describe('Charging Station Template', () => {
         templateToUpdate.template.chargePointVendor = 'new chargePointVendor';
         await testData.superAdminCentralService.updateEntity(
           testData.superAdminCentralService.chargingStationTemplateApi,
-          { ...templateToUpdate, ...testData.newChargingStationTemplate },
+          { ...templateToUpdate, ...testData.newChargingStationTemplate }
         );
       });
 

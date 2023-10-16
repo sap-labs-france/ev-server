@@ -4,7 +4,9 @@ import { OCPIRegistrationStatus } from './OCPIRegistrationStatus';
 import { OCPIRole } from './OCPIRole';
 import { OcpiEndpointAuthorizationActions } from '../Authorization';
 
-export default interface OCPIEndpoint extends OcpiEndpointAuthorizationActions, CreatedUpdatedProps {
+export default interface OCPIEndpoint
+  extends OcpiEndpointAuthorizationActions,
+    CreatedUpdatedProps {
   id: string;
   role: OCPIRole;
   name: string;

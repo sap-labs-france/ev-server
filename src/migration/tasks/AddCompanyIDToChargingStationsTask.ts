@@ -14,16 +14,15 @@ export default class AddCompanyIDToChargingStationsTask extends TenantMigrationT
   public async migrateTenant(tenant: Tenant): Promise<void> {
     let updated = 0;
     // Get all the Sites
-    const sites = (await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'companyID'])).result;
+    const sites = (
+      await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'companyID'])
+    ).result;
     if (!Utils.isEmptyArray(sites)) {
       // Get all the Transactions without Company ID
-      const transactions = await global.database.getCollection<any>(tenant.id, 'transactions')
+      const transactions = await global.database
+        .getCollection<any>(tenant.id, 'transactions')
         .find({
-          $or: [
-            { companyID: { $exists: false } },
-            { companyID: null },
-            { companyID: '' }
-          ]
+          $or: [{ companyID: { $exists: false } }, { companyID: null }, { companyID: '' }],
         })
         .project({ id: 1, siteID: 1 })
         .toArray();
@@ -39,7 +38,7 @@ export default class AddCompanyIDToChargingStationsTask extends TenantMigrationT
             await global.database.getCollection<any>(tenant.id, 'transactions').updateOne(
               { _id: transaction['_id'] },
               {
-                $set: { companyID: DatabaseUtils.convertToObjectID(foundSite.companyID) }
+                $set: { companyID: DatabaseUtils.convertToObjectID(foundSite.companyID) },
               }
             );
             updated++;
@@ -51,9 +50,12 @@ export default class AddCompanyIDToChargingStationsTask extends TenantMigrationT
     if (updated > 0) {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        module: MODULE_NAME, method: 'migrateTenant',
+        module: MODULE_NAME,
+        method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${updated} Charging Station(s) have been updated with Company ID in Tenant ${Utils.buildTenantName(tenant)}`
+        message: `${updated} Charging Station(s) have been updated with Company ID in Tenant ${Utils.buildTenantName(
+          tenant
+        )}`,
       });
     }
   }

@@ -17,7 +17,8 @@ export default class MjmlBuilder {
 
   public static async initialize(): Promise<MjmlBuilder> {
     const instance = new MjmlBuilder();
-    instance.addConfig(await EmailComponentManager.getComponent(EmailComponent.MJML_CONFIG))
+    instance
+      .addConfig(await EmailComponentManager.getComponent(EmailComponent.MJML_CONFIG))
       .addHeader(await EmailComponentManager.getComponent(EmailComponent.MJML_HEADER))
       .addFooter(await EmailComponentManager.getComponent(EmailComponent.MJML_FOOTER));
     return instance;

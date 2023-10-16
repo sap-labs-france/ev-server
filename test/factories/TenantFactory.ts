@@ -14,9 +14,5 @@ export default Factory.define('tenant')
     department: faker.random.alphaNumeric(20),
     region: faker.random.alphaNumeric(20),
     country: faker.address.country(),
-    coordinates: [
-      +faker.address.longitude(),
-      +faker.address.latitude()
-    ]
+    coordinates: [+faker.address.longitude(), +faker.address.latitude()],
   });
-

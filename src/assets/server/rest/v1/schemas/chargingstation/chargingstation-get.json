@@ -16,9 +16,11 @@
     "WithSiteArea": {
       "type": "boolean",
       "sanitize": "mongo"
+    },
+    "WithReservation": {
+      "type": "boolean",
+      "sanitize": "mongo"
     }
   },
-  "required": [
-    "ID"
-  ]
+  "required": ["ID"]
 }

@@ -25,7 +25,7 @@ class TestData {
   public newSite: Site;
   public createdCompanies: Company[] = [];
   public createdUsers: User[] = [];
-  public createdSites: Site[] =[];
+  public createdSites: Site[] = [];
 }
 
 const testData = new TestData();
@@ -62,7 +62,9 @@ async function loginAsAdminAndCreateTestData() {
   );
   testData.createdSites.push(testData.newSite);
   // Assign the basic user to the site
-  const basicUserContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+  const basicUserContext = await testData.tenantContext.getUserContext(
+    ContextDefinition.USER_CONTEXTS.BASIC_USER
+  );
   await testData.userService.siteApi.addUsersToSite(testData.newSite.id, [basicUserContext.id]);
   testData.createdCompanies.push(testData.companyWithSite);
 
@@ -96,10 +98,13 @@ describe('Company', () => {
   });
 
   describe('With component Organization (utorg)', () => {
-
     beforeAll(async () => {
-      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
-      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(
+        ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION
+      );
+      testData.centralUserContext = testData.tenantContext.getUserContext(
+        ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN
+      );
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
         testData.centralUserContext
@@ -203,52 +208,42 @@ describe('Company', () => {
     });
 
     describe('Where basic user', () => {
-
       beforeAll(async () => {
         await loginAsAdminAndCreateTestData();
         login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
       });
 
-      it(
-        'Should be able to read company with site he is assigned to ',
-        async () => {
+      it('Should be able to read company with site he is assigned to ', async () => {
+        await testData.userService.getEntityById(
+          testData.userService.companyApi,
+          testData.companyWithSite
+        );
+      });
+
+      it('Should not be able to read company if he is not assigned to a site of that company', async () => {
+        try {
+          await testData.userService.getEntityById(
+            testData.userService.companyApi,
+            testData.companyWithNoSite
+          );
+        } catch (error) {
+          expect(error.actual).to.eq(403);
+        }
+      });
+
+      it('Should not be able to read company after he was removed from the site assigned to that company', async () => {
+        await loginAsAdminAndRemoveUsersFromSite();
+        login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+
+        try {
           await testData.userService.getEntityById(
             testData.userService.companyApi,
             testData.companyWithSite
           );
+        } catch (error) {
+          expect(error.actual).to.eq(403);
         }
-      );
-
-      it(
-        'Should not be able to read company if he is not assigned to a site of that company',
-        async () => {
-          try {
-            await testData.userService.getEntityById(
-              testData.userService.companyApi,
-              testData.companyWithNoSite
-            );
-          } catch (error) {
-            expect(error.actual).to.eq(403);
-          }
-        }
-      );
-
-      it(
-        'Should not be able to read company after he was removed from the site assigned to that company',
-        async () => {
-          await loginAsAdminAndRemoveUsersFromSite();
-          login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-
-          try {
-            await testData.userService.getEntityById(
-              testData.userService.companyApi,
-              testData.companyWithSite
-            );
-          } catch (error) {
-            expect(error.actual).to.eq(403);
-          }
-        }
-      );
+      });
 
       it('Should not be able to create a new company', async () => {
         try {
@@ -263,7 +258,7 @@ describe('Company', () => {
 
       it('Should not be able to update a company', async () => {
         try {
-        // Change entity
+          // Change entity
           testData.newCompany.name = 'New Name';
           // Try to update
           await testData.userService.updateEntity(
@@ -277,7 +272,7 @@ describe('Company', () => {
 
       it('Should not be able to delete a company', async () => {
         try {
-        // Try to delete
+          // Try to delete
           await testData.userService.deleteEntity(
             testData.userService.companyApi,
             testData.companyWithNoSite

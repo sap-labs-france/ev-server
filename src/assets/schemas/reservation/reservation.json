@@ -1,0 +1,69 @@
+{
+  "$id": "reservation",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/number-id"
+    },
+    "chargingStationId": {
+      "$ref": "chargingstation#/definitions/id"
+    },
+    "connectorId": {
+      "$ref": "chargingstation#/definitions/connector/properties/connectorId"
+    },
+    "fromDate": {
+      "type": ["string", "object"],
+      "format": "date-time",
+      "customType": "date",
+      "sanitize": "mongo"
+    },
+    "toDate": {
+      "type": ["string", "object"],
+      "format": "date-time",
+      "customType": "date",
+      "sanitize": "mongo"
+    },
+    "expiryDate": {
+      "type": ["string", "object"],
+      "format": "date-time",
+      "customType": "date",
+      "sanitize": "mongo"
+    },
+    "arrivalTime": {
+      "type": ["string", "object"],
+      "format": "date-time",
+      "customType": "date",
+      "sanitize": "mongo",
+      "nullable": true
+    },
+    "departureTime": {
+      "type": ["string", "object"],
+      "format": "date-time",
+      "customType": "date",
+      "sanitize": "mongo",
+      "nullable": true
+    },
+    "idTag": {
+      "$ref": "tag#/definitions/id"
+    },
+    "parentIdTag": {
+      "$ref": "tag#/definitions/id"
+    },
+    "carID": {
+      "$ref": "car#/definitions/id"
+    },
+    "userID": {
+      "$ref": "user#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["planned_reservation", "reserve_now"]
+    },
+    "status": {
+      "type": ["string"],
+      "pattern": "^((reservation_done|reservation_scheduled|reservation_in_progress|reservation_cancelled|reservation_expired|reservation_unmet)(\\||reservation_done|reservation_scheduled|reservation_in_progress|reservation_cancelled|reservation_expired|reservation_unmet)*)?$",
+      "nullable": true
+    }
+  },
+  "required": ["id", "chargingStationId", "connectorId", "expiryDate", "idTag", "type"]
+}

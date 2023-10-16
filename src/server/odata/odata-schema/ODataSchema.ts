@@ -12,12 +12,14 @@ import global from '../../../types/GlobalType';
 const MODULE_NAME = 'ODataSchema';
 
 export default class ODataSchema {
-
   public static restServerUrl = '';
 
   static async getSchema(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Read XML schema
-    const oDataSchema = fs.readFileSync(`${global.appRoot}/assets/server/odata/ODataSchema.xml`, 'utf8');
+    const oDataSchema = fs.readFileSync(
+      `${global.appRoot}/assets/server/odata/ODataSchema.xml`,
+      'utf8'
+    );
     // Set default header
     res.setHeader('Cache-Control', 'no-cache');
     // Check authentication
@@ -36,7 +38,12 @@ export default class ODataSchema {
         // Get tenant at first place
         const subdomain = split[0];
         // Build AuthenticatedApi
-        const centralServiceApi = new CentralServiceApi(ODataSchema.restServerUrl, authentication.name, authentication.pass, subdomain);
+        const centralServiceApi = new CentralServiceApi(
+          ODataSchema.restServerUrl,
+          authentication.name,
+          authentication.pass,
+          subdomain
+        );
         // Process with the secure Ping
         await centralServiceApi.securePing();
       }
@@ -44,10 +51,11 @@ export default class ODataSchema {
       // Add logging: login info
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        module: MODULE_NAME, method: 'getSchema',
+        module: MODULE_NAME,
+        method: 'getSchema',
         action: ServerAction.ODATA_SERVER,
         message: 'Unauthorized Access',
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack },
       });
       res.send(StatusCodes.UNAUTHORIZED);
       return;

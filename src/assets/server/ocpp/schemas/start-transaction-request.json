@@ -33,10 +33,5 @@
       "description": "performance correlation ID"
     }
   },
-  "required": [
-    "connectorId",
-    "idTag",
-    "timestamp",
-    "meterStart"
-  ]
+  "required": ["connectorId", "idTag", "timestamp", "meterStart"]
 }

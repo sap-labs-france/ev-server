@@ -22,18 +22,30 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         // Get all available endpoints
-        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
+        const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(
+          tenant,
+          { role: OCPIRole.EMSP },
+          Constants.DB_PARAMS_MAX_LIMIT
+        );
         for (const ocpiEndpoint of ocpiEndpoints.result) {
           await this.processOCPIEndpoint(tenant, ocpiEndpoint, config);
         }
       }
     } catch (error) {
       // Log error
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_UPDATE_TOKENS, error);
+      await Logging.logActionExceptionMessage(
+        tenant.id,
+        ServerAction.OCPI_EMSP_UPDATE_TOKENS,
+        error
+      );
     }
   }
 
-  private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIPushTokensTaskConfig): Promise<void> {
+  private async processOCPIEndpoint(
+    tenant: Tenant,
+    ocpiEndpoint: OCPIEndpoint,
+    config: OCPIPushTokensTaskConfig
+  ): Promise<void> {
     // Get the lock
     const ocpiLock = await LockingHelper.createOCPIPushTokensLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
@@ -43,8 +55,9 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
           await Logging.logDebug({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
-            module: MODULE_NAME, method: 'processOCPIEndpoint',
-            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
+            module: MODULE_NAME,
+            method: 'processOCPIEndpoint',
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`,
           });
           return;
         }
@@ -52,16 +65,18 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
           await Logging.logDebug({
             tenantID: tenant.id,
             action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
-            module: MODULE_NAME, method: 'processOCPIEndpoint',
-            message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`
+            module: MODULE_NAME,
+            method: 'processOCPIEndpoint',
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is inactive.`,
           });
           return;
         }
         await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
-          module: MODULE_NAME, method: 'processOCPIEndpoint',
-          message: `Push of Tokens for endpoint '${ocpiEndpoint.name}' is being processed`
+          module: MODULE_NAME,
+          method: 'processOCPIEndpoint',
+          message: `Push of Tokens for endpoint '${ocpiEndpoint.name}' is being processed`,
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
@@ -70,16 +85,20 @@ export default class OCPIPushTokensTask extends TenantSchedulerTask {
         await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_EMSP_UPDATE_TOKENS,
-          module: MODULE_NAME, method: 'processOCPIEndpoint',
+          module: MODULE_NAME,
+          method: 'processOCPIEndpoint',
           message: `Push of Tokens for endpoint '${ocpiEndpoint.name}' is completed`,
-          detailedMessages: { result }
+          detailedMessages: { result },
         });
       } catch (error) {
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_EMSP_UPDATE_TOKENS, error);
+        await Logging.logActionExceptionMessage(
+          tenant.id,
+          ServerAction.OCPI_EMSP_UPDATE_TOKENS,
+          error
+        );
       } finally {
         await LockingManager.release(ocpiLock);
       }
     }
   }
 }
-

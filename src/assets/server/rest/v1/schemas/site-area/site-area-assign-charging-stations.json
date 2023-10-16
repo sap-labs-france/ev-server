@@ -13,8 +13,5 @@
       }
     }
   },
-  "required": [
-    "siteAreaID",
-    "chargingStationIDs"
-  ]
+  "required": ["siteAreaID", "chargingStationIDs"]
 }

@@ -15,10 +15,7 @@
     "Channel": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": [
-        "email",
-        "remote-push-notification"
-      ]
+      "enum": ["email", "remote-push-notification"]
     },
     "SortFields": {
       "$ref": "common#/definitions/sortFields"
@@ -30,7 +27,5 @@
       "$ref": "common#/definitions/skip"
     }
   },
-  "required": [
-    "Limit"
-  ]
+  "required": ["Limit"]
 }

@@ -8,7 +8,5 @@
       "$ref": "setting#/definitions/identifier"
     }
   },
-  "required": [
-    "Identifier"
-  ]
+  "required": ["Identifier"]
 }

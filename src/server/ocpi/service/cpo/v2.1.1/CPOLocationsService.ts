@@ -19,7 +19,12 @@ import Utils from '../../../../../utils/Utils';
 const MODULE_NAME = 'CPOLocationsService';
 
 export default class CPOLocationsService {
-  public static async handleGetLocations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetLocations(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Split URL Segments
     //   /ocpi/cpo/2.0/locations/{location_id}
     //   /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
@@ -38,72 +43,114 @@ export default class CPOLocationsService {
     const options: OCPILocationOptions = {
       addChargeBoxAndOrgIDs: false,
       countryID: ocpiClient.getLocalCountryCode(action),
-      partyID: ocpiClient.getLocalPartyID(action)
+      partyID: ocpiClient.getLocalPartyID(action),
     };
     if (locationId && !DatabaseUtils.isObjectID(locationId)) {
       throw new AppError({
-        module: MODULE_NAME, method: 'handleGetLocations', action,
+        module: MODULE_NAME,
+        method: 'handleGetLocations',
+        action,
         errorCode: StatusCodes.UNPROCESSABLE_ENTITY,
         message: `Location ID '${locationId}' has a wrong format`,
         ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-        detailedMessages: { locationId, evseUid, evseConnectorId }
+        detailedMessages: { locationId, evseUid, evseConnectorId },
       });
     }
     // Process request
     if (locationId && evseUid && evseConnectorId) {
-      ociResult = await CPOLocationsService.getConnector(tenant, locationId, evseUid, evseConnectorId, options, ocpiClient.getSettings());
+      ociResult = await CPOLocationsService.getConnector(
+        tenant,
+        locationId,
+        evseUid,
+        evseConnectorId,
+        options,
+        ocpiClient.getSettings()
+      );
       // Check if at least of site found
       if (!ociResult) {
         throw new AppError({
-          module: MODULE_NAME, method: 'handleGetLocations', action,
+          module: MODULE_NAME,
+          method: 'handleGetLocations',
+          action,
           errorCode: StatusCodes.NOT_FOUND,
           message: `EVSE Connector ID '${evseConnectorId}' not found on Charging Station ID '${evseUid}' and Location ID '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-          detailedMessages: { locationId, evseUid, evseConnectorId }
+          detailedMessages: { locationId, evseUid, evseConnectorId },
         });
       }
     } else if (locationId && evseUid) {
-      ociResult = await OCPIUtilsService.getCpoEvse(tenant, locationId, evseUid, options, ocpiClient.getSettings());
+      ociResult = await OCPIUtilsService.getCpoEvse(
+        tenant,
+        locationId,
+        evseUid,
+        options,
+        ocpiClient.getSettings()
+      );
       // Check if at least of site found
       if (!ociResult) {
         throw new AppError({
-          module: MODULE_NAME, method: 'handleGetLocations', action,
+          module: MODULE_NAME,
+          method: 'handleGetLocations',
+          action,
           errorCode: StatusCodes.NOT_FOUND,
           message: `EVSE UID not found '${evseUid}' in Location ID '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-          detailedMessages: { locationId, evseUid }
+          detailedMessages: { locationId, evseUid },
         });
       }
     } else if (locationId) {
       // Get single location
-      ociResult = await CPOLocationsService.getLocation(tenant, locationId, options, ocpiClient.getSettings());
+      ociResult = await CPOLocationsService.getLocation(
+        tenant,
+        locationId,
+        options,
+        ocpiClient.getSettings()
+      );
       // Check if at least of site found
       if (!ociResult) {
         throw new AppError({
-          module: MODULE_NAME, method: 'handleGetLocations', action,
+          module: MODULE_NAME,
+          method: 'handleGetLocations',
+          action,
           errorCode: StatusCodes.NOT_FOUND,
           message: `Location ID '${locationId}' not found`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-          detailedMessages: { locationId }
+          detailedMessages: { locationId },
         });
       }
     } else {
       // Get query parameters
-      const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
-      const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : Constants.OCPI_RECORDS_LIMIT;
+      const offset = req.query.offset ? Utils.convertToInt(req.query.offset) : 0;
+      const limit =
+        req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT
+          ? Utils.convertToInt(req.query.limit)
+          : Constants.OCPI_RECORDS_LIMIT;
       // Get all locations
-      const locations = await OCPIUtilsService.getAllCpoLocations(tenant, limit, offset, options, true, ocpiClient.getSettings());
+      const locations = await OCPIUtilsService.getAllCpoLocations(
+        tenant,
+        limit,
+        offset,
+        options,
+        true,
+        ocpiClient.getSettings()
+      );
       ociResult = locations.result;
       // Set header
       res.set({
         'X-Total-Count': locations.count,
-        'X-Limit': Constants.OCPI_RECORDS_LIMIT
+        'X-Limit': Constants.OCPI_RECORDS_LIMIT,
       });
       // Return next link
-      const nextUrl = OCPIUtils.buildNextUrl(req, OCPIUtilsService.getBaseUrl(req), offset, limit, locations.count);
+      const nextUrl = OCPIUtils.buildNextUrl(
+        req,
+        OCPIUtilsService.getBaseUrl(req),
+        offset,
+        limit,
+        locations.count
+      );
       if (nextUrl) {
         res.links({
-          next: nextUrl
+          next: nextUrl,
         });
       }
     }
@@ -111,7 +158,12 @@ export default class CPOLocationsService {
     next();
   }
 
-  private static async getLocation(tenant: Tenant, locationId: string, options: OCPILocationOptions, settings: OcpiSetting): Promise<OCPILocation> {
+  private static async getLocation(
+    tenant: Tenant,
+    locationId: string,
+    options: OCPILocationOptions,
+    settings: OcpiSetting
+  ): Promise<OCPILocation> {
     // Get site
     const site = await SiteStorage.getSite(tenant, locationId);
     if (site) {
@@ -119,7 +171,14 @@ export default class CPOLocationsService {
     }
   }
 
-  private static async getConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string, options: OCPILocationOptions, settings: OcpiSetting): Promise<OCPIConnector> {
+  private static async getConnector(
+    tenant: Tenant,
+    locationId: string,
+    evseUid: string,
+    connectorId: string,
+    options: OCPILocationOptions,
+    settings: OcpiSetting
+  ): Promise<OCPIConnector> {
     // Get site
     const evse = await OCPIUtilsService.getCpoEvse(tenant, locationId, evseUid, options, settings);
     // Find the Connector

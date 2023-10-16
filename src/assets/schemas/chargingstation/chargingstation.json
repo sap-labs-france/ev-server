@@ -14,16 +14,7 @@
         "type": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": [
-            "T2",
-            "CCS",
-            "C",
-            "T1",
-            "T3C",
-            "T1CCS",
-            "D",
-            "U"
-          ]
+          "enum": ["T2", "CCS", "C", "T1", "T3C", "T1CCS", "D", "U"]
         },
         "power": {
           "type": "number",
@@ -31,10 +22,7 @@
         },
         "voltage": {
           "type": "integer",
-          "enum": [
-            110,
-            230
-          ],
+          "enum": [110, 230],
           "sanitize": "mongo"
         },
         "amperage": {
@@ -43,10 +31,7 @@
         },
         "currentType": {
           "type": "string",
-          "enum": [
-            "AC",
-            "DC"
-          ],
+          "enum": ["AC", "DC"],
           "sanitize": "mongo"
         },
         "numberOfConnectedPhase": {
@@ -74,9 +59,7 @@
           "$ref": "common#/definitions/tariff-id"
         }
       },
-      "required": [
-        "connectorId"
-      ]
+      "required": ["connectorId"]
     },
     "chargePoint": {
       "type": "object",
@@ -87,18 +70,12 @@
         },
         "currentType": {
           "type": "string",
-          "enum": [
-            "AC",
-            "DC"
-          ],
+          "enum": ["AC", "DC"],
           "sanitize": "mongo"
         },
         "voltage": {
           "type": "number",
-          "enum": [
-            110,
-            230
-          ],
+          "enum": [110, 230],
           "sanitize": "mongo"
         },
         "amperage": {
@@ -140,9 +117,7 @@
           }
         }
       },
-      "required": [
-        "chargePointID"
-      ]
+      "required": ["chargePointID"]
     }
   }
 }

@@ -30,12 +30,5 @@
       "maxLength": 5
     }
   },
-  "required": [
-    "email",
-    "name",
-    "firstName",
-    "password",
-    "acceptEula",
-    "captcha"
-  ]
+  "required": ["email", "name", "firstName", "password", "acceptEula", "captcha"]
 }

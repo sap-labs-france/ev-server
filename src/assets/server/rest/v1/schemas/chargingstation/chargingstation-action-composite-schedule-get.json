@@ -22,13 +22,8 @@
           "enum": ["A", "W"]
         }
       },
-      "required": [
-        "connectorId",
-        "duration"
-      ]
+      "required": ["connectorId", "duration"]
     }
   },
-  "required": [
-    "chargingStationID"
-  ]
+  "required": ["chargingStationID"]
 }

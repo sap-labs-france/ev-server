@@ -11,15 +11,19 @@ import Utils from '../../../../utils/Utils';
 const MODULE_NAME = 'CommonService';
 
 export default class CommonService {
-
-  public static async checkTenantValidity(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async checkTenantValidity(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       // Get Tenant ID/Sub Domain from HTTP Request
       const httpRequest = {
         ...Utils.cloneObject(req.body),
-        ...Utils.cloneObject(req.query)
+        ...Utils.cloneObject(req.query),
       };
-      const filteredRequest = CommonValidatorRest.getInstance().validateAuthVerifyTenantRedirectReq(httpRequest);
+      const filteredRequest =
+        CommonValidatorRest.getInstance().validateAuthVerifyTenantRedirectReq(httpRequest);
       // Get the Tenant information
       let tenantID: string;
       let tenantSubdomain: string;
@@ -35,13 +39,19 @@ export default class CommonService {
       if (filteredRequest.Subdomain) {
         tenantSubdomain = filteredRequest.Subdomain;
       }
-      if (filteredRequest.ID && (req.url.startsWith('/tenants/logo') || req.url.startsWith('/tenants/email-logo'))) {
+      if (
+        filteredRequest.ID &&
+        (req.url.startsWith('/tenants/logo') || req.url.startsWith('/tenants/email-logo'))
+      ) {
         tenantID = filteredRequest.ID;
       }
       // No Tenant info found
       if (!tenantID && !tenantSubdomain) {
         // Handle the default tenant
-        if (Utils.objectHasProperty(httpRequest, 'tenant') || Utils.objectHasProperty(httpRequest, 'Tenant')) {
+        if (
+          Utils.objectHasProperty(httpRequest, 'tenant') ||
+          Utils.objectHasProperty(httpRequest, 'Tenant')
+        ) {
           req.tenant = await AuthService.getTenant('');
         }
         next();
@@ -75,12 +85,13 @@ export default class CommonService {
         throw new AppError({
           errorCode: StatusCodes.MOVED_TEMPORARILY,
           message: ReasonPhrases.MOVED_TEMPORARILY,
-          module: MODULE_NAME, method: 'checkTenantValidity',
+          module: MODULE_NAME,
+          method: 'checkTenantValidity',
           user: req.user,
           detailedMessages: {
             redirectDomain: tenant.redirectDomain,
-            subdomain: tenant.subdomain
-          }
+            subdomain: tenant.subdomain,
+          },
         });
       }
       req.tenant = tenant;

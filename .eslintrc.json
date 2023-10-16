@@ -1,91 +1,34 @@
 {
+  "$schema": "https://json.schemastore.org/eslintrc",
   "root": true,
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "project": "./tsconfig.json"
+  "env": {
+    "node": true
   },
-  "plugins": [
-    "eslint-plugin-import",
-    "@typescript-eslint",
-    "eslint-plugin-jsdoc"
-  ],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking",
-    "plugin:import/errors",
-    "plugin:jsdoc/recommended",
-    "plugin:import/warnings",
-    "plugin:import/typescript"
-  ],
+  "plugins": ["import"],
+  "extends": ["eslint:recommended", "plugin:import/recommended", "plugin:prettier/recommended"],
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "project": "´tsconfig.json"
+      }
+    }
+  },
   "rules": {
-    "@typescript-eslint/explicit-member-accessibility": "off",
-    "jsdoc/require-jsdoc": "off",
-    "indent": "off",
-    "@typescript-eslint/indent": [
-      "error",
-      2,
-      {
-        "SwitchCase": 1,
-        "FunctionDeclaration": {
-          "parameters": 2
-        },
-        "FunctionExpression": {
-          "parameters": 2
-        }
-      }
-    ],
-    "@typescript-eslint/array-type": "off",
-    "semi": "off",
-    "@typescript-eslint/semi": [
-      "error",
-      "always"
-    ],
-    "space-before-blocks": [
-      "error",
-      "always"
-    ],
-    "@typescript-eslint/no-empty-function": [
-      "warn",
-      {
-        "allow": [
-          "arrowFunctions",
-          "methods"
-        ]
-      }
-    ],
-    "@typescript-eslint/no-unsafe-assignment": "off",
-    "@typescript-eslint/restrict-plus-operands": "off",
-    "@typescript-eslint/no-unsafe-member-access": "off",
-    "@typescript-eslint/no-unsafe-call": "off",
-    "@typescript-eslint/no-unsafe-return": "off",
-    "@typescript-eslint/member-ordering": "error",
-    "@typescript-eslint/await-thenable": "error",
-    "@typescript-eslint/no-floating-promises": "error",
-    "@typescript-eslint/promise-function-async": "error",
-    "@typescript-eslint/no-misused-promises": "error",
-    "@typescript-eslint/no-empty-interface": "off",
-    "curly": "error",
+    "semi": ["error", "always"],
+    "space-before-blocks": ["error", "always"],
+    "curly": ["error", "all"],
     "brace-style": "error",
-    "eqeqeq": [
-      "error",
-      "always"
-    ],
+    "eqeqeq": ["error", "always"],
     "no-else-return": "error",
     "no-eq-null": "error",
-    "no-undefined": "error",
     "no-extra-bind": "error",
     "no-lone-blocks": "error",
     "no-multi-spaces": "error",
     "no-empty": "error",
-    "no-return-assign": [
-      "error",
-      "always"
-    ],
+    "no-return-assign": ["error", "always"],
     "no-useless-catch": "error",
     "no-useless-return": "error",
-    "no-shadow": "off", // This one is generating false positive no-shadow errors on exported/const enums
-    "@typescript-eslint/no-shadow": "error",
+    "no-useless-escape": "warn",
     "no-multiple-empty-lines": [
       "error",
       {
@@ -102,21 +45,10 @@
     //     "ignorePattern": "pragma|ignored"
     //   }
     // ],
-    "eol-last": [
-      "error",
-      "always"
-    ],
-    "consistent-this": [
-      "error",
-      "self"
-    ],
-    "func-call-spacing": [
-      "error",
-      "never"
-    ],
-    "keyword-spacing": [
-      "error"
-    ],
+    "eol-last": ["error", "always"],
+    "consistent-this": ["error", "self"],
+    "func-call-spacing": ["error", "never"],
+    "keyword-spacing": ["error"],
     "id-blacklist": [
       "error",
       "any",
@@ -131,74 +63,59 @@
       "Symbol",
       "symbol"
     ],
-    "linebreak-style": [
-      "error",
-      "unix"
-    ],
+    "linebreak-style": ["error", "unix"],
     "max-len": [
       "warn",
       {
-        "code": 180,
-        "ignoreComments": true,
-        "ignoreUrls": true,
-        "ignoreStrings": true,
-        "ignoreTemplateLiterals": true,
-        "ignoreRegExpLiterals": true,
-        "ignorePattern": "(^(import|export)|(public|private))\\s.+;"
+        "code": 190,
+        "ignoreUrls": true
       }
     ],
     "no-lonely-if": "error",
     "no-trailing-spaces": "error",
     "no-whitespace-before-property": "error",
-    "space-before-function-paren": [
-      "error",
-      {
-        "anonymous": "never",
-        "named": "never",
-        "asyncArrow": "always"
-      }
-    ],
-    "space-in-parens": [
-      "error",
-      "never"
-    ],
+    "no-shadow": "error",
+    "space-in-parens": ["error", "never"],
     "space-infix-ops": "error",
     "space-unary-ops": "error",
-    "spaced-comment": [
-      "error",
-      "always"
-    ],
+    "spaced-comment": ["error", "always"],
     "switch-colon-spacing": "error",
-    "arrow-body-style": [
-      "error",
-      "as-needed"
-    ],
-    "arrow-parens": [
-      "error",
-      "always"
-    ],
+    "arrow-parens": ["error", "always"],
     "arrow-spacing": "error",
     "no-duplicate-imports": "error",
     "no-var": "error",
     "prefer-const": "error",
     "sort-imports": [
-      "warn",
+      "error",
       {
         "ignoreCase": false,
-        "ignoreDeclarationSort": false,
+        "ignoreDeclarationSort": true,
         "ignoreMemberSort": false,
-        "memberSyntaxSortOrder": [
-          "none",
-          "all",
-          "multiple",
-          "single"
-        ]
+        "memberSyntaxSortOrder": ["none", "all", "multiple", "single"],
+        "allowSeparatedGroups": true
       }
     ],
-    "object-curly-spacing": [
-      "error",
-      "always"
+    "import/order": [
+      "warn",
+      {
+        "groups": [
+          "builtin", // Built-in imports (come from NodeJS native) go first
+          "external", // <- External imports
+          "internal", // <- Absolute imports
+          ["sibling", "parent"], // <- Relative imports, the sibling and parent types they can be mingled together
+          "index", // <- Index imports
+          "unknown" // <- Unknown
+        ],
+        "newlines-between": "always",
+        "alphabetize": {
+          /* Sort in ascending order. Options: ["ignore", "asc", "desc"] */
+          "order": "asc",
+          /* Ignore case. Options: [true, false] */
+          "caseInsensitive": true
+        }
+      }
     ],
+    "object-curly-spacing": ["error", "always"],
     "lines-between-class-members": [
       "error",
       "always",
@@ -208,14 +125,55 @@
     ],
     "quotes": [
       "error",
-      "single"
+      "single",
+      {
+        "avoidEscape": true,
+        "allowTemplateLiterals": false
+      }
     ]
   },
   "overrides": [
     {
-      "files": ["*.ts", "*.tsx"],
+      "files": ["**/*.ts"],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "project": "./tsconfig.json"
+      },
+      "plugins": ["@typescript-eslint", "eslint-plugin-tsdoc"],
+      "extends": [
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:import/typescript"
+      ],
       "rules": {
-        "@typescript-eslint/explicit-member-accessibility": ["error"]
+        "tsdoc/syntax": "warn",
+        "@typescript-eslint/array-type": "off",
+        "semi": "off",
+        "@typescript-eslint/semi": ["error", "always"],
+        /* TODO: Return to error values (if time is given) */
+        "@typescript-eslint/no-empty-function": "warn",
+        "@typescript-eslint/no-unsafe-argument": "warn",
+        "@typescript-eslint/no-unsafe-assignment": "warn",
+        "@typescript-eslint/no-unsafe-member-access": "warn",
+        "@typescript-eslint/no-empty-interface": "warn",
+        "@typescript-eslint/no-unsafe-return": "warn",
+        "@typescript-eslint/no-unsafe-call": "warn",
+        "@typescript-eslint/member-ordering": "error",
+        "@typescript-eslint/await-thenable": "error",
+        "@typescript-eslint/no-floating-promises": "error",
+        "@typescript-eslint/promise-function-async": "error",
+        "@typescript-eslint/no-misused-promises": "error",
+        "no-shadow": "off",
+        "@typescript-eslint/no-shadow": "warn"
+      }
+    },
+    {
+      "files": ["**/*.js", "**/*.cjs", "**/*.mjs"],
+      "plugins": ["jsdoc"],
+      "extends": ["plugin:jsdoc/recommended", "plugin:n/recommended"],
+      "rules": {
+        "n/shebang": "off"
       }
     }
   ]

@@ -15,31 +15,56 @@ import WitAssetIntegration from './wit/WitAssetIntegration';
 const MODULE_NAME = 'AssetFactory';
 
 export default class AssetFactory {
-  public static async getAssetImpl(tenant: Tenant, connectionID: string): Promise<AssetIntegration<AssetSetting>> {
+  public static async getAssetImpl(
+    tenant: Tenant,
+    connectionID: string
+  ): Promise<AssetIntegration<AssetSetting>> {
     // Check if component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
       // Get the Asset's settings
       const settings = await SettingStorage.getAssetsSettings(tenant);
       if (settings && settings.asset && settings.asset.connections) {
         // Find connection
-        const foundConnection = settings.asset.connections.find((connection) => connection.id === connectionID);
+        const foundConnection = settings.asset.connections.find(
+          (connection) => connection.id === connectionID
+        );
         if (foundConnection) {
           let assetIntegrationImpl: AssetIntegration<AssetSetting> = null;
           switch (foundConnection.type) {
             case AssetConnectionType.SCHNEIDER:
-              assetIntegrationImpl = new SchneiderAssetIntegration(tenant, settings.asset, foundConnection);
+              assetIntegrationImpl = new SchneiderAssetIntegration(
+                tenant,
+                settings.asset,
+                foundConnection
+              );
               break;
             case AssetConnectionType.GREENCOM:
-              assetIntegrationImpl = new GreencomAssetIntegration(tenant, settings.asset, foundConnection);
+              assetIntegrationImpl = new GreencomAssetIntegration(
+                tenant,
+                settings.asset,
+                foundConnection
+              );
               break;
             case AssetConnectionType.IOTHINK:
-              assetIntegrationImpl = new IothinkAssetIntegration(tenant, settings.asset, foundConnection);
+              assetIntegrationImpl = new IothinkAssetIntegration(
+                tenant,
+                settings.asset,
+                foundConnection
+              );
               break;
             case AssetConnectionType.WIT:
-              assetIntegrationImpl = new WitAssetIntegration(tenant, settings.asset, foundConnection);
+              assetIntegrationImpl = new WitAssetIntegration(
+                tenant,
+                settings.asset,
+                foundConnection
+              );
               break;
             case AssetConnectionType.LACROIX:
-              assetIntegrationImpl = new LacroixAssetIntegration(tenant, settings.asset, foundConnection);
+              assetIntegrationImpl = new LacroixAssetIntegration(
+                tenant,
+                settings.asset,
+                foundConnection
+              );
               break;
           }
           return assetIntegrationImpl;
@@ -48,11 +73,11 @@ export default class AssetFactory {
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.ASSET,
-        module: MODULE_NAME, method: 'getAssetImpl',
-        message: 'Asset settings are not configured'
+        module: MODULE_NAME,
+        method: 'getAssetImpl',
+        message: 'Asset settings are not configured',
       });
     }
     return null;
   }
 }
-

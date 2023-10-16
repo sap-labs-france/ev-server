@@ -1,0 +1,44 @@
+{
+  "$id": "reservable-chargingstations-get",
+  "title": "Get Reservable Charging Stations Request",
+  "type": "object",
+  "properties": {
+    "FromDate": {
+      "type": ["string", "object"],
+      "format": "date-time",
+      "customType": "date",
+      "sanitize": "mongo"
+    },
+    "ToDate": {
+      "type": ["string", "object"],
+      "format": "date-time",
+      "customType": "date",
+      "sanitize": "mongo"
+    },
+    "ArrivalTime": {
+      "type": ["string", "object"],
+      "format": "date-time",
+      "customType": "date",
+      "sanitize": "mongo"
+    },
+    "DepartureTime": {
+      "type": ["string", "object"],
+      "format": "date-time",
+      "customType": "date",
+      "sanitize": "mongo"
+    },
+    "Issuer": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithSite": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    }
+  },
+  "required": ["FromDate", "ToDate", "ArrivalTime", "DepartureTime"]
+}

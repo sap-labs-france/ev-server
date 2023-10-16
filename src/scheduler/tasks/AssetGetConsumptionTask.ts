@@ -25,24 +25,35 @@ export default class AssetGetConsumptionTask extends TenantSchedulerTask {
   public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Check if Asset component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
-      const smartChargingActive = Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING);
+      const smartChargingActive = Utils.isTenantComponentActive(
+        tenant,
+        TenantComponents.SMART_CHARGING
+      );
       // Create Helper Array with site areas to trigger smart charging
       const triggerSmartChargingSiteAreas = [];
       // Get dynamic assets only
-      const dynamicAssets = await AssetStorage.getAssets(tenant,
+      const dynamicAssets = await AssetStorage.getAssets(
+        tenant,
         {
           dynamicOnly: true,
-          withSiteArea: true
+          withSiteArea: true,
         },
         Constants.DB_PARAMS_MAX_LIMIT
       );
       // Process them
       for (const asset of dynamicAssets.result) {
         if (asset.usesPushAPI) {
-          this.processSmartChargingFromAsset(asset, triggerSmartChargingSiteAreas, smartChargingActive);
+          this.processSmartChargingFromAsset(
+            asset,
+            triggerSmartChargingSiteAreas,
+            smartChargingActive
+          );
           continue;
         }
-        const assetLock = await LockingHelper.acquireAssetRetrieveConsumptionsLock(tenant.id, asset);
+        const assetLock = await LockingHelper.acquireAssetRetrieveConsumptionsLock(
+          tenant.id,
+          asset
+        );
         if (assetLock) {
           try {
             // Get asset factory
@@ -53,22 +64,38 @@ export default class AssetGetConsumptionTask extends TenantSchedulerTask {
               if (!Utils.isEmptyArray(assetConsumptions)) {
                 // Create helper for site area limit
                 const siteAreaLimitConsumption = {} as Consumption;
-                await OCPPUtils.addSiteLimitationToConsumption(tenant, asset.siteArea, siteAreaLimitConsumption);
+                await OCPPUtils.addSiteLimitationToConsumption(
+                  tenant,
+                  asset.siteArea,
+                  siteAreaLimitConsumption
+                );
                 // Create Consumptions
                 for (const consumption of assetConsumptions) {
                   // Check if last consumption already exists
-                  if (asset.lastConsumption?.timestamp && moment(consumption.lastConsumption.timestamp).diff(moment(asset.lastConsumption.timestamp), 'seconds') < 50) {
+                  if (
+                    asset.lastConsumption?.timestamp &&
+                    moment(consumption.lastConsumption.timestamp).diff(
+                      moment(asset.lastConsumption.timestamp),
+                      'seconds'
+                    ) < 50
+                  ) {
                     continue;
                   }
                   // Create Consumption to save
                   const consumptionToSave: Consumption = {
-                    startedAt: asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment(consumption.lastConsumption.timestamp).subtract(1, 'minutes').toDate(),
+                    startedAt: asset.lastConsumption?.timestamp
+                      ? asset.lastConsumption.timestamp
+                      : moment(consumption.lastConsumption.timestamp)
+                          .subtract(1, 'minutes')
+                          .toDate(),
                     endedAt: consumption.lastConsumption.timestamp,
                     assetID: asset.id,
                     siteAreaID: asset.siteAreaID,
                     siteID: asset.siteArea.siteID,
                     cumulatedConsumptionWh: consumption.currentConsumptionWh,
-                    cumulatedConsumptionAmps: Math.floor(consumption.currentConsumptionWh / asset.siteArea.voltage),
+                    cumulatedConsumptionAmps: Math.floor(
+                      consumption.currentConsumptionWh / asset.siteArea.voltage
+                    ),
                     instantAmps: consumption.currentInstantAmps,
                     instantWatts: consumption.currentInstantWatts,
                     stateOfCharge: consumption.currentStateOfCharge,
@@ -84,12 +111,20 @@ export default class AssetGetConsumptionTask extends TenantSchedulerTask {
                 }
                 // Save Asset
                 await AssetStorage.saveAsset(tenant, asset);
-                this.processSmartChargingFromAsset(asset, triggerSmartChargingSiteAreas, smartChargingActive);
+                this.processSmartChargingFromAsset(
+                  asset,
+                  triggerSmartChargingSiteAreas,
+                  smartChargingActive
+                );
               }
             }
           } catch (error) {
             // Log error
-            await Logging.logActionExceptionMessage(tenant.id, ServerAction.RETRIEVE_ASSET_CONSUMPTION, error);
+            await Logging.logActionExceptionMessage(
+              tenant.id,
+              ServerAction.RETRIEVE_ASSET_CONSUMPTION,
+              error
+            );
           } finally {
             // Release the lock
             await LockingManager.release(assetLock);
@@ -103,11 +138,21 @@ export default class AssetGetConsumptionTask extends TenantSchedulerTask {
     }
   }
 
-  private processSmartChargingFromAsset(asset: Asset, triggerSmartChargingSiteAreas: SiteArea[], smartChargingActive: boolean) {
+  private processSmartChargingFromAsset(
+    asset: Asset,
+    triggerSmartChargingSiteAreas: SiteArea[],
+    smartChargingActive: boolean
+  ) {
     // Check if variation since last smart charging run exceeds the variation threshold
-    if (smartChargingActive && this.checkVariationSinceLastSmartChargingRun(asset) && !asset.excludeFromSmartCharging) {
+    if (
+      smartChargingActive &&
+      this.checkVariationSinceLastSmartChargingRun(asset) &&
+      !asset.excludeFromSmartCharging
+    ) {
       // Check if Site Area is already pushed
-      const siteAreaAlreadyPushed = triggerSmartChargingSiteAreas.findIndex((siteArea) => siteArea.id === asset.siteArea.id);
+      const siteAreaAlreadyPushed = triggerSmartChargingSiteAreas.findIndex(
+        (siteArea) => siteArea.id === asset.siteArea.id
+      );
       if (siteAreaAlreadyPushed === -1) {
         triggerSmartChargingSiteAreas.push(asset.siteArea);
       }
@@ -123,7 +168,9 @@ export default class AssetGetConsumptionTask extends TenantSchedulerTask {
         return false;
       }
       // Calculate the variation threshold in Watts
-      const variationThreshold = new Decimal(asset.staticValueWatt).mul(asset.variationThresholdPercent / 100).toNumber();
+      const variationThreshold = new Decimal(asset.staticValueWatt)
+        .mul(asset.variationThresholdPercent / 100)
+        .toNumber();
       if (variationThreshold < Math.abs(consumptionVariation)) {
         return true;
       }

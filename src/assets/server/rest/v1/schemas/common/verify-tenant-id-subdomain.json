@@ -19,6 +19,5 @@
       "$ref": "common#/definitions/id"
     }
   },
-  "required": [
-  ]
+  "required": []
 }

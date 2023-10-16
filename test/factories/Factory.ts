@@ -7,6 +7,7 @@ import CompanyFactory from './CompanyFactory';
 import OcpiEndpointsFactory from './OcpiEndpointsFactory';
 import OicpEndpointsFactory from './OicpEndpointsFactory';
 import RegistrationTokenFactory from './RegistrationTokenFactory';
+import ReservationFactory from './ReservationFactory';
 import SettingFactory from './SettingFactory';
 import SiteAreaFactory from './SiteAreaFactory';
 import SiteFactory from './SiteFactory';
@@ -30,4 +31,5 @@ export default abstract class Factory {
   public static tag = TagFactory;
   public static registrationToken = RegistrationTokenFactory;
   public static chargingStationTemplate = ChargingStationTemplateFactory;
+  public static reservation = ReservationFactory;
 }

@@ -49,15 +49,13 @@
         },
         "visualTagID": {
           "$ref": "tag#/definitions/visualID"
+        },
+        "reservationId": {
+          "$ref": "reservation#/definitions/id"
         }
       },
-      "anyOf": [
-        { "required": ["tagID"] },
-        { "required": ["visualTagID"] }
-      ]
+      "anyOf": [{ "required": ["tagID"] }, { "required": ["visualTagID"] }]
     }
   },
-  "required": [
-    "chargingStationID"
-  ]
+  "required": ["chargingStationID"]
 }

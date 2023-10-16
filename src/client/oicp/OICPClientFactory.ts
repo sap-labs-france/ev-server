@@ -23,8 +23,9 @@ export default class OICPClientFactory {
         await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.OICP_SETTINGS,
-          module: MODULE_NAME, method: 'getOicpClient',
-          message: 'OICP Settings are not configured'
+          module: MODULE_NAME,
+          method: 'getOicpClient',
+          message: 'OICP Settings are not configured',
         });
       }
       switch (oicpEndpoint.role) {
@@ -36,7 +37,10 @@ export default class OICPClientFactory {
     }
   }
 
-  static async getCpoOicpClient(tenant: Tenant, oicpEndpoint: OICPEndpoint): Promise<CpoOICPClient> {
+  static async getCpoOicpClient(
+    tenant: Tenant,
+    oicpEndpoint: OICPEndpoint
+  ): Promise<CpoOICPClient> {
     if (oicpEndpoint.role === OICPRole.CPO) {
       const client = await OICPClientFactory.getOicpClient(tenant, oicpEndpoint);
       return client as CpoOICPClient;
@@ -44,13 +48,18 @@ export default class OICPClientFactory {
     await Logging.logError({
       tenantID: tenant.id,
       action: ServerAction.OICP_SETTINGS,
-      module: MODULE_NAME, method: 'getCpoOicpClient',
-      message: `CPO OICP Client is not compatible with endpoint role '${oicpEndpoint.role}'`
+      module: MODULE_NAME,
+      method: 'getCpoOicpClient',
+      message: `CPO OICP Client is not compatible with endpoint role '${oicpEndpoint.role}'`,
     });
   }
 
   static async getAvailableOicpClient(tenant: Tenant, oicpRole: string): Promise<OICPClient> {
-    const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant, { role: oicpRole }, Constants.DB_PARAMS_MAX_LIMIT);
+    const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(
+      tenant,
+      { role: oicpRole },
+      Constants.DB_PARAMS_MAX_LIMIT
+    );
     for (const oicpEndpoint of oicpEndpoints.result) {
       if (oicpEndpoint.status === OICPRegistrationStatus.REGISTERED) {
         const client = await OICPClientFactory.getOicpClient(tenant, oicpEndpoint);
@@ -58,5 +67,4 @@ export default class OICPClientFactory {
       }
     }
   }
-
 }

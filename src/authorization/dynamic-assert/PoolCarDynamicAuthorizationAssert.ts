@@ -14,8 +14,6 @@ export default class PoolCarDynamicAuthorizationAssert extends DynamicAuthorizat
   }
 
   public getApplicableEntities(): Entity[] {
-    return [
-      Entity.CAR
-    ];
+    return [Entity.CAR];
   }
 }

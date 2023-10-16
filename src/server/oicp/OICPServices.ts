@@ -3,7 +3,6 @@ import CPOService from './oicp-services-impl/oicp-2.3.0/CPOService';
 import OICPServiceConfiguration from '../../types/configuration/OICPServiceConfiguration';
 
 export default class OICPServices {
-
   private cpoServices: AbstractOICPService[] = [];
   constructor(oicpRestConfig: OICPServiceConfiguration) {
     // Add available OICP services

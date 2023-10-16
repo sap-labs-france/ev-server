@@ -13,7 +13,5 @@
       "$ref": "common#/definitions/skip"
     }
   },
-  "required": [
-    "Limit"
-  ]
+  "required": ["Limit"]
 }

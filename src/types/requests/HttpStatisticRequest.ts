@@ -6,7 +6,7 @@ export default interface HttpStatisticsGetRequest {
   EndDateTime?: Date;
   SiteID?: string;
   SiteIDs?: string[];
-  PeriodInMonth?: string|number;
+  PeriodInMonth?: string | number;
   SiteAreaID?: string;
   SiteAreaIDs?: string[];
   ChargingStationID?: string;

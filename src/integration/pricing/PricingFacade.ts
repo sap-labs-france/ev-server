@@ -9,14 +9,23 @@ import User from '../../types/User';
 const MODULE_NAME = 'PricingFacade';
 
 export default class PricingFacade {
-
-  public static async processStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, consumption: Consumption, user: User): Promise<void> {
+  public static async processStartTransaction(
+    tenant: Tenant,
+    transaction: Transaction,
+    chargingStation: ChargingStation,
+    consumption: Consumption,
+    user: User
+  ): Promise<void> {
     if (!user?.issuer) {
       return;
     }
     const pricingImpl = await PricingFactory.getPricingImpl(tenant);
     if (pricingImpl) {
-      const pricedConsumption = await pricingImpl.startSession(transaction, consumption, chargingStation);
+      const pricedConsumption = await pricingImpl.startSession(
+        transaction,
+        consumption,
+        chargingStation
+      );
       if (pricedConsumption) {
         PricingFacade.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
         // Set the initial pricing
@@ -30,40 +39,74 @@ export default class PricingFacade {
     }
   }
 
-  public static async processUpdateTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, consumption: Consumption, user: User): Promise<void> {
+  public static async processUpdateTransaction(
+    tenant: Tenant,
+    transaction: Transaction,
+    chargingStation: ChargingStation,
+    consumption: Consumption,
+    user: User
+  ): Promise<void> {
     if (!user?.issuer) {
       return;
     }
     const pricingImpl = await PricingFactory.getPricingImpl(tenant);
     if (pricingImpl) {
-      const pricedConsumption = await pricingImpl.updateSession(transaction, consumption, chargingStation);
+      const pricedConsumption = await pricingImpl.updateSession(
+        transaction,
+        consumption,
+        chargingStation
+      );
       PricingFacade.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
     }
   }
 
-  public static async processStopTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, consumption: Consumption, user: User): Promise<void> {
+  public static async processStopTransaction(
+    tenant: Tenant,
+    transaction: Transaction,
+    chargingStation: ChargingStation,
+    consumption: Consumption,
+    user: User
+  ): Promise<void> {
     if (!user?.issuer) {
       return;
     }
     const pricingImpl = await PricingFactory.getPricingImpl(tenant);
     if (pricingImpl) {
-      const pricedConsumption = await pricingImpl.stopSession(transaction, consumption, chargingStation);
+      const pricedConsumption = await pricingImpl.stopSession(
+        transaction,
+        consumption,
+        chargingStation
+      );
       PricingFacade.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
     }
   }
 
-  public static async processEndTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, consumption: Consumption, user: User): Promise<void> {
+  public static async processEndTransaction(
+    tenant: Tenant,
+    transaction: Transaction,
+    chargingStation: ChargingStation,
+    consumption: Consumption,
+    user: User
+  ): Promise<void> {
     if (!user?.issuer) {
       return;
     }
     const pricingImpl = await PricingFactory.getPricingImpl(tenant);
     if (pricingImpl) {
-      const pricedConsumption = await pricingImpl.endSession(transaction, consumption, chargingStation);
+      const pricedConsumption = await pricingImpl.endSession(
+        transaction,
+        consumption,
+        chargingStation
+      );
       PricingFacade.updateCumulatedAmounts(transaction, consumption, pricedConsumption);
     }
   }
 
-  private static updateCumulatedAmounts(transaction: Transaction, consumption: Consumption, pricedConsumption: PricedConsumption): void {
+  private static updateCumulatedAmounts(
+    transaction: Transaction,
+    consumption: Consumption,
+    pricedConsumption: PricedConsumption
+  ): void {
     if (pricedConsumption) {
       // Update consumption
       consumption.amount = pricedConsumption.amount;

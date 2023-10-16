@@ -60,20 +60,9 @@
           "sanitize": "mongo"
         }
       },
-      "required": [
-        "url",
-        "publicKey",
-        "secretKey"
-      ]
+      "required": ["url", "publicKey", "secretKey"]
     }
   },
-  "required": [
-    "id",
-    "identifier",
-    "type",
-    "billing"
-  ],
-  "oneOf": [
-    { "required": [ "stripe" ] }
-  ]
+  "required": ["id", "identifier", "type", "billing"],
+  "oneOf": [{ "required": ["stripe"] }]
 }

@@ -26,10 +26,9 @@ export default class WSWrapper {
   public nbrPingFailed: number;
   public lastPingDate: Date;
   public lastPongDate: Date;
-  public ocppOpenWebSocketMetricCounter : CounterClearableMetric;
-  public ocppClosedWebSocketMetricCounter : CounterClearableMetric;
+  public ocppOpenWebSocketMetricCounter: CounterClearableMetric;
+  public ocppClosedWebSocketMetricCounter: CounterClearableMetric;
   private ws: WebSocket;
-
 
   public constructor(ws: WebSocket) {
     this.guid = Utils.generateShortNonUniqueID();
@@ -53,7 +52,7 @@ export default class WSWrapper {
     }
   }
 
-  public ping(message?: RecognizedString) : boolean {
+  public ping(message?: RecognizedString): boolean {
     this.checkWSClosed(WebSocketAction.PING);
     return this.ws.ping(message) === 1;
   }
@@ -64,7 +63,9 @@ export default class WSWrapper {
 
   private checkWSClosed(wsAction: WebSocketAction): void {
     if (this.closed) {
-      throw new Error(`${wsAction} > WS Connection ID '${this.guid}' is already closed ('${this.url}'), cannot perform action`);
+      throw new Error(
+        `${wsAction} > WS Connection ID '${this.guid}' is already closed ('${this.url}'), cannot perform action`
+      );
     }
   }
 }

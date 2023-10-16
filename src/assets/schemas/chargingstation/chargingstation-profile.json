@@ -32,28 +32,17 @@
         "chargingProfilePurpose": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": [
-            "ChargePointMaxProfile",
-            "TxDefaultProfile",
-            "TxProfile"
-          ]
+          "enum": ["ChargePointMaxProfile", "TxDefaultProfile", "TxProfile"]
         },
         "chargingProfileKind": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": [
-            "Absolute",
-            "Recurring",
-            "Relative"
-          ]
+          "enum": ["Absolute", "Recurring", "Relative"]
         },
         "recurrencyKind": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": [
-            "Daily",
-            "Weekly"
-          ]
+          "enum": ["Daily", "Weekly"]
         },
         "validFrom": {
           "type": "string",
@@ -83,10 +72,7 @@
             "chargingRateUnit": {
               "type": "string",
               "sanitize": "mongo",
-              "enum": [
-                "W",
-                "A"
-              ]
+              "enum": ["W", "A"]
             },
             "chargingSchedulePeriod": {
               "type": "array",
@@ -106,10 +92,7 @@
                     "sanitize": "mongo"
                   }
                 },
-                "required": [
-                  "startPeriod",
-                  "limit"
-                ]
+                "required": ["startPeriod", "limit"]
               }
             },
             "minChargeRate": {
@@ -117,10 +100,7 @@
               "sanitize": "mongo"
             }
           },
-          "required": [
-            "chargingRateUnit",
-            "chargingSchedulePeriod"
-          ]
+          "required": ["chargingRateUnit", "chargingSchedulePeriod"]
         }
       },
       "required": [
@@ -132,11 +112,5 @@
       ]
     }
   },
-  "required": [
-    "id",
-    "connectorID",
-    "chargePointID",
-    "chargingStationID",
-    "profile"
-  ]
+  "required": ["id", "connectorID", "chargePointID", "chargingStationID", "profile"]
 }

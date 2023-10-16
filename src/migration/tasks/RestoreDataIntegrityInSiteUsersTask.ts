@@ -14,13 +14,18 @@ export default class RestoreDataIntegrityInSiteUsersTask extends TenantMigration
   public async migrateTenant(tenant: Tenant): Promise<void> {
     let deleted = 0;
     // Get all the Site Users
-    const siteUsers = await global.database.getCollection<any>(tenant.id, 'siteusers')
-      .find({}).project({ _id: 1, siteID: 1, userID: 1 }).toArray();
+    const siteUsers = await global.database
+      .getCollection<any>(tenant.id, 'siteusers')
+      .find({})
+      .project({ _id: 1, siteID: 1, userID: 1 })
+      .toArray();
     if (!Utils.isEmptyArray(siteUsers)) {
       // Get all the Sites
-      const sites = (await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id'])).result;
+      const sites = (await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id']))
+        .result;
       // Get all the Users
-      const users = (await UserStorage.getUsers(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id'])).result;
+      const users = (await UserStorage.getUsers(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id']))
+        .result;
       for (const siteUser of siteUsers) {
         let toBeDeleted = true;
         if (siteUser.siteID && siteUser.userID) {
@@ -38,9 +43,9 @@ export default class RestoreDataIntegrityInSiteUsersTask extends TenantMigration
         }
         // Delete
         if (toBeDeleted) {
-          await global.database.getCollection<any>(tenant.id, 'siteusers').deleteOne(
-            { _id: siteUser._id }
-          );
+          await global.database
+            .getCollection<any>(tenant.id, 'siteusers')
+            .deleteOne({ _id: siteUser._id });
           deleted++;
         }
       }
@@ -49,9 +54,12 @@ export default class RestoreDataIntegrityInSiteUsersTask extends TenantMigration
     if (deleted > 0) {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
-        module: MODULE_NAME, method: 'migrateTenant',
+        module: MODULE_NAME,
+        method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${deleted} Site/Users have been deleted in Tenant ${Utils.buildTenantName(tenant)}`
+        message: `${deleted} Site/Users have been deleted in Tenant ${Utils.buildTenantName(
+          tenant
+        )}`,
       });
     }
   }

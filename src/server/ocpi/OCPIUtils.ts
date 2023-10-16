@@ -1,6 +1,13 @@
-import ChargingStation, { Connector, ConnectorType, CurrentType } from '../../types/ChargingStation';
+import ChargingStation, {
+  Connector,
+  ConnectorType,
+  CurrentType,
+} from '../../types/ChargingStation';
 import { OCPIConnector, OCPIConnectorType, OCPIPowerType } from '../../types/ocpi/OCPIConnector';
-import OCPIEndpoint, { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../types/ocpi/OCPIEndpoint';
+import OCPIEndpoint, {
+  OCPIAvailableEndpoints,
+  OCPIEndpointVersions,
+} from '../../types/ocpi/OCPIEndpoint';
 import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPITariff, OCPITariffDimensionType } from '../../types/ocpi/OCPITariff';
 import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
@@ -48,13 +55,20 @@ export default class OCPIUtils {
     return evseUID.split(Constants.OCPI_SEPARATOR).pop();
   }
 
-  public static async buildOcpiCredentialObject(tenant: Tenant, token: string, role: string, versionUrl?: string): Promise<OCPICredential> {
+  public static async buildOcpiCredentialObject(
+    tenant: Tenant,
+    token: string,
+    role: string,
+    versionUrl?: string
+  ): Promise<OCPICredential> {
     // Credential
     const credential = {} as OCPICredential;
     // Get ocpi service configuration
     const ocpiSetting = await SettingStorage.getOCPISettings(tenant);
     // Define version url
-    credential.url = versionUrl ?? `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`;
+    credential.url =
+      versionUrl ??
+      `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`;
     // Check if available
     if (ocpiSetting?.ocpi) {
       credential.token = token;
@@ -70,7 +84,9 @@ export default class OCPIUtils {
     return credential;
   }
 
-  public static convertAvailableEndpoints(endpointURLs: OCPIEndpointVersions): OCPIAvailableEndpoints {
+  public static convertAvailableEndpoints(
+    endpointURLs: OCPIEndpointVersions
+  ): OCPIAvailableEndpoints {
     const availableEndpoints = {} as OCPIAvailableEndpoints;
     if (!Utils.isEmptyArray(endpointURLs.endpoints)) {
       for (const endpoint of endpointURLs.endpoints) {
@@ -85,7 +101,7 @@ export default class OCPIUtils {
       data: data,
       status_code: OCPIStatusCode.CODE_1000_SUCCESS.status_code,
       status_message: OCPIStatusCode.CODE_1000_SUCCESS.status_message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -93,12 +109,20 @@ export default class OCPIUtils {
     return {
       status_message: error.message,
       timestamp: new Date().toISOString(),
-      status_code: error instanceof AppError && error.params.ocpiError ?
-        error.params.ocpiError.status_code : OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR.status_code
+      status_code:
+        error instanceof AppError && error.params.ocpiError
+          ? error.params.ocpiError.status_code
+          : OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR.status_code,
     };
   }
 
-  public static buildNextUrl(req: Request, baseUrl: string, offset: number, limit: number, total: number): string | undefined {
+  public static buildNextUrl(
+    req: Request,
+    baseUrl: string,
+    offset: number,
+    limit: number,
+    total: number
+  ): string | undefined {
     // Check if next link should be generated
     if (offset + limit < total) {
       // Build url
@@ -107,7 +131,9 @@ export default class OCPIUtils {
       query.limit = limit.toString();
       let queryString: string;
       for (const param in query) {
-        queryString = queryString ? `${queryString}&${param}=${query[param] as string}` : `${param}=${query[param] as string}`;
+        queryString = queryString
+          ? `${queryString}&${param}=${query[param] as string}`
+          : `${param}=${query[param] as string}`;
       }
       return `${baseUrl + req.originalUrl.split('?')[0]}?${queryString}`;
     }
@@ -144,11 +170,20 @@ export default class OCPIUtils {
     return evseUIDs;
   }
 
-  public static buildEmspEmailFromEmspToken(token: OCPIToken, countryCode: string, partyId: string): string {
+  public static buildEmspEmailFromEmspToken(
+    token: OCPIToken,
+    countryCode: string,
+    partyId: string
+  ): string {
     return `${token.issuer}@${partyId}.${countryCode}`.toLowerCase();
   }
 
-  public static async checkAndCreateEMSPUserFromToken(tenant: Tenant, countryCode: string, partyId: string, token: OCPIToken): Promise<User> {
+  public static async checkAndCreateEMSPUserFromToken(
+    tenant: Tenant,
+    countryCode: string,
+    partyId: string,
+    token: OCPIToken
+  ): Promise<User> {
     // Get eMSP user
     const email = OCPIUtils.buildEmspEmailFromEmspToken(token, countryCode, partyId);
     // Get User from DB
@@ -183,8 +218,9 @@ export default class OCPIUtils {
 
   public static getOcpiTokenTypeFromID(tagID: string): OCPITokenType {
     // Virtual badges handling
-    return (tagID.length % 8 === 0 || tagID.length === 14) &&
-      Utils.isHexString(tagID) ? OCPITokenType.RFID : OCPITokenType.OTHER;
+    return (tagID.length % 8 === 0 || tagID.length === 14) && Utils.isHexString(tagID)
+      ? OCPITokenType.RFID
+      : OCPITokenType.OTHER;
   }
 
   public static buildEmspTokenFromTag(tenant: Tenant, tag: Tag): OCPIToken {
@@ -196,7 +232,7 @@ export default class OCPIUtils {
       issuer: tenant.name,
       valid: tag.active && tag.user?.status === UserStatus.ACTIVE,
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-      last_updated: tag.lastChangedOn ?? tag.createdOn ?? new Date()
+      last_updated: tag.lastChangedOn ?? tag.createdOn ?? new Date(),
     };
   }
 
@@ -213,88 +249,148 @@ export default class OCPIUtils {
   }
 
   public static isAuthorizationValid(authorizationDate: Date): boolean {
-    return authorizationDate && moment(authorizationDate).isAfter(moment().subtract(
-      Constants.ROAMING_AUTHORIZATION_TIMEOUT_MINS, 'minutes'));
+    return (
+      authorizationDate &&
+      moment(authorizationDate).isAfter(
+        moment().subtract(Constants.ROAMING_AUTHORIZATION_TIMEOUT_MINS, 'minutes')
+      )
+    );
   }
 
-  public static async checkAndGetEmspCompany(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<Company> {
+  public static async checkAndGetEmspCompany(
+    tenant: Tenant,
+    ocpiEndpoint: OCPIEndpoint
+  ): Promise<Company> {
     let company = await CompanyStorage.getCompany(tenant, ocpiEndpoint.id);
     if (!company) {
       company = {
         id: ocpiEndpoint.id,
         name: `${ocpiEndpoint.name} (${ocpiEndpoint.role})`,
         issuer: false,
-        createdOn: new Date()
+        createdOn: new Date(),
       } as Company;
       await CompanyStorage.saveCompany(tenant, company, false);
     }
     return company;
   }
 
-  public static async updateCreateChargingStationsWithEmspLocation(tenant: Tenant, location: OCPILocation, site: Site,
-      siteArea: SiteArea, evses: OCPIEvse[], action: ServerAction): Promise<void> {
+  public static async updateCreateChargingStationsWithEmspLocation(
+    tenant: Tenant,
+    location: OCPILocation,
+    site: Site,
+    siteArea: SiteArea,
+    evses: OCPIEvse[],
+    action: ServerAction
+  ): Promise<void> {
     // Process Charging Stations
     if (!Utils.isEmptyArray(evses)) {
       for (const evse of evses) {
         try {
-          await OCPIUtils.updateCreateChargingStationWithEmspLocation(tenant, location, site, siteArea, evse, action);
+          await OCPIUtils.updateCreateChargingStationWithEmspLocation(
+            tenant,
+            location,
+            site,
+            siteArea,
+            evse,
+            action
+          );
         } catch (error) {
           await Logging.logError({
             tenantID: tenant.id,
-            action, module: MODULE_NAME, method: 'processEMSPLocationChargingStations',
+            action,
+            module: MODULE_NAME,
+            method: 'processEMSPLocationChargingStations',
             message: `Error while processing the EVSE UID '${evse.uid}' (ID '${evse.evse_id}') in Location '${location.name}'`,
-            detailedMessages: { error: error.stack, evse, location, site, siteArea }
+            detailedMessages: { error: error.stack, evse, location, site, siteArea },
           });
         }
       }
     }
   }
 
-  public static async updateCreateChargingStationWithEmspLocation(tenant: Tenant, location: OCPILocation, site: Site,
-      siteArea: SiteArea, evse: OCPIEvse, action: ServerAction): Promise<void> {
+  public static async updateCreateChargingStationWithEmspLocation(
+    tenant: Tenant,
+    location: OCPILocation,
+    site: Site,
+    siteArea: SiteArea,
+    evse: OCPIEvse,
+    action: ServerAction
+  ): Promise<void> {
     if (!evse.uid) {
       throw new BackendError({
-        action, module: MODULE_NAME, method: 'processEMSPLocationChargingStation',
+        action,
+        module: MODULE_NAME,
+        method: 'processEMSPLocationChargingStation',
         message: `Missing Charging Station EVSE UID in Location '${location.name}' with ID '${location.id}'`,
-        detailedMessages:  { evse, location }
+        detailedMessages: { evse, location },
       });
     }
     // Get existing charging station
-    const currentChargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationEvseUid(
-      tenant, location.id, evse.uid, false, false);
+    const currentChargingStation =
+      await ChargingStationStorage.getChargingStationByOcpiLocationEvseUid(
+        tenant,
+        location.id,
+        evse.uid,
+        false,
+        false
+      );
     // Delete Charging Station
     if (currentChargingStation && evse.status === OCPIEvseStatus.REMOVED) {
       await ChargingStationStorage.deleteChargingStation(tenant, currentChargingStation.id);
       await Logging.logDebug({
         ...LoggingHelper.getChargingStationProperties(currentChargingStation),
         tenantID: tenant.id,
-        action, module: MODULE_NAME, method: 'processEMSPLocationChargingStation',
+        action,
+        module: MODULE_NAME,
+        method: 'processEMSPLocationChargingStation',
         message: `Deleted Charging Station ID '${currentChargingStation.id}' in Location '${location.name}' with ID '${location.id}'`,
-        detailedMessages: { evse, location }
+        detailedMessages: { evse, location },
       });
-    // Update/Create Charging Station
+      // Update/Create Charging Station
     } else {
       const chargingStation = OCPIUtils.convertEvseToChargingStation(
-        currentChargingStation, evse, location, site, siteArea, action);
+        currentChargingStation,
+        evse,
+        location,
+        site,
+        siteArea,
+        action
+      );
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
-      await ChargingStationStorage.saveChargingStationOcpiData(tenant, chargingStation.id, chargingStation.ocpiData);
+      await ChargingStationStorage.saveChargingStationOcpiData(
+        tenant,
+        chargingStation.id,
+        chargingStation.ocpiData
+      );
       await Logging.logDebug({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         tenantID: tenant.id,
-        action, module: MODULE_NAME, method: 'processEMSPLocationChargingStation',
-        message: `${currentChargingStation ? 'Updated' : 'Created'} Charging Station ID '${chargingStation.id}' in Location '${location.name}' with ID '${location.id}'`,
-        detailedMessages: { evse, location }
+        action,
+        module: MODULE_NAME,
+        method: 'processEMSPLocationChargingStation',
+        message: `${currentChargingStation ? 'Updated' : 'Created'} Charging Station ID '${
+          chargingStation.id
+        }' in Location '${location.name}' with ID '${location.id}'`,
+        detailedMessages: { evse, location },
       });
     }
   }
 
-  public static convertEvseToChargingStation(chargingStation: ChargingStation, evse: OCPIEvse,
-      location: OCPILocation, site: Site, siteArea: SiteArea, action: ServerAction): ChargingStation {
+  public static convertEvseToChargingStation(
+    chargingStation: ChargingStation,
+    evse: OCPIEvse,
+    location: OCPILocation,
+    site: Site,
+    siteArea: SiteArea,
+    action: ServerAction
+  ): ChargingStation {
     if (!evse.evse_id) {
       throw new BackendError({
-        action, module: MODULE_NAME, method: 'convertEvseToChargingStation',
+        action,
+        module: MODULE_NAME,
+        method: 'convertEvseToChargingStation',
         message: 'Cannot find Charging Station EVSE ID',
-        detailedMessages:  { evse, location }
+        detailedMessages: { evse, location },
       });
     }
     if (!chargingStation) {
@@ -309,8 +405,8 @@ export default class OCPIUtils {
         siteID: site.id,
         siteAreaID: siteArea.id,
         ocpiData: {
-          evses: [evse]
-        }
+          evses: [evse],
+        },
       } as ChargingStation;
     } else {
       chargingStation = {
@@ -320,8 +416,8 @@ export default class OCPIUtils {
         lastChangedOn: new Date(),
         connectors: [],
         ocpiData: {
-          evses: [evse]
-        }
+          evses: [evse],
+        },
       } as ChargingStation;
     }
     // Set the location ID
@@ -330,18 +426,22 @@ export default class OCPIUtils {
     if (evse.coordinates?.latitude && evse.coordinates?.longitude) {
       chargingStation.coordinates = [
         Utils.convertToFloat(evse.coordinates.longitude),
-        Utils.convertToFloat(evse.coordinates.latitude)
+        Utils.convertToFloat(evse.coordinates.latitude),
       ];
     } else if (location?.coordinates?.latitude && location?.coordinates?.longitude) {
       chargingStation.coordinates = [
         Utils.convertToFloat(location.coordinates.longitude),
-        Utils.convertToFloat(location.coordinates.latitude)
+        Utils.convertToFloat(location.coordinates.latitude),
       ];
     }
     if (!Utils.isEmptyArray(evse.connectors)) {
       let connectorID = 1;
       for (const evseConnector of evse.connectors) {
-        const connector = OCPIUtils.convertEvseToChargingStationConnector(evse, evseConnector, connectorID++);
+        const connector = OCPIUtils.convertEvseToChargingStationConnector(
+          evse,
+          evseConnector,
+          connectorID++
+        );
         chargingStation.connectors.push(connector);
         chargingStation.maximumPower = Math.max(chargingStation.maximumPower, connector.power);
       }
@@ -349,7 +449,11 @@ export default class OCPIUtils {
     return chargingStation;
   }
 
-  public static convertEvseToChargingStationConnector(evse: OCPIEvse, evseConnector: OCPIConnector, connectorID: number): Connector {
+  public static convertEvseToChargingStationConnector(
+    evse: OCPIEvse,
+    evseConnector: OCPIConnector,
+    connectorID: number
+  ): Connector {
     return {
       id: evseConnector.id,
       status: OCPIUtils.convertOcpiStatusToStatus(evse.status),
@@ -364,7 +468,9 @@ export default class OCPIUtils {
     };
   }
 
-  public static convertOcpiConnectorTypeToConnectorType(ocpiConnectorType: OCPIConnectorType): ConnectorType {
+  public static convertOcpiConnectorTypeToConnectorType(
+    ocpiConnectorType: OCPIConnectorType
+  ): ConnectorType {
     switch (ocpiConnectorType) {
       case OCPIConnectorType.CHADEMO:
         return ConnectorType.CHADEMO;
@@ -416,7 +522,9 @@ export default class OCPIUtils {
     }
   }
 
-  public static convertOcpiSessionStatusToConnectorStatus(status: OCPISessionStatus): ChargePointStatus {
+  public static convertOcpiSessionStatusToConnectorStatus(
+    status: OCPISessionStatus
+  ): ChargePointStatus {
     switch (status) {
       case OCPISessionStatus.PENDING:
         return ChargePointStatus.PREPARING;
@@ -450,7 +558,9 @@ export default class OCPIUtils {
     }
   }
 
-  public static convertSimplePricingSettingToOcpiTariff(simplePricingSetting: SimplePricingSetting): OCPITariff {
+  public static convertSimplePricingSettingToOcpiTariff(
+    simplePricingSetting: SimplePricingSetting
+  ): OCPITariff {
     const tariff = {} as OCPITariff;
     tariff.id = '1';
     tariff.currency = simplePricingSetting.currency;
@@ -461,15 +571,21 @@ export default class OCPIUtils {
             type: OCPITariffDimensionType.TIME,
             price: simplePricingSetting.price,
             step_size: 60,
-          }
-        ]
-      }
+          },
+        ],
+      },
     ];
     tariff.last_updated = simplePricingSetting.last_updated;
     return tariff;
   }
 
-  public static async updateCreateSiteWithEmspLocation(tenant: Tenant, location: OCPILocation, company: Company, site: Site, siteName?: string): Promise<Site> {
+  public static async updateCreateSiteWithEmspLocation(
+    tenant: Tenant,
+    location: OCPILocation,
+    company: Company,
+    site: Site,
+    siteName?: string
+  ): Promise<Site> {
     // Create Site
     if (!site) {
       site = {
@@ -482,8 +598,8 @@ export default class OCPIUtils {
           postalCode: location.postal_code,
           city: location.city,
           country: location.country,
-          coordinates: []
-        }
+          coordinates: [],
+        },
       } as Site;
     } else {
       site = {
@@ -495,14 +611,14 @@ export default class OCPIUtils {
           postalCode: location.postal_code,
           city: location.city,
           country: location.country,
-          coordinates: []
-        }
+          coordinates: [],
+        },
       } as Site;
     }
     if (location.coordinates?.latitude && location.coordinates?.longitude) {
       site.address.coordinates = [
         Utils.convertToFloat(location.coordinates.longitude),
-        Utils.convertToFloat(location.coordinates.latitude)
+        Utils.convertToFloat(location.coordinates.latitude),
       ];
     }
     // Save Site
@@ -510,7 +626,12 @@ export default class OCPIUtils {
     return site;
   }
 
-  public static async updateCreateSiteAreaWithEmspLocation(tenant: Tenant, location: OCPILocation, site: Site, siteArea: SiteArea): Promise<SiteArea> {
+  public static async updateCreateSiteAreaWithEmspLocation(
+    tenant: Tenant,
+    location: OCPILocation,
+    site: Site,
+    siteArea: SiteArea
+  ): Promise<SiteArea> {
     // Create Site Area
     if (!siteArea) {
       siteArea = {
@@ -524,8 +645,8 @@ export default class OCPIUtils {
           postalCode: location.postal_code,
           city: location.city,
           country: location.country,
-          coordinates: []
-        }
+          coordinates: [],
+        },
       } as SiteArea;
     } else {
       siteArea = {
@@ -539,14 +660,14 @@ export default class OCPIUtils {
           postalCode: location.postal_code,
           city: location.city,
           country: location.country,
-          coordinates: []
-        }
+          coordinates: [],
+        },
       } as SiteArea;
     }
     if (location.coordinates?.latitude && location.coordinates?.longitude) {
       siteArea.address.coordinates = [
         Utils.convertToFloat(location.coordinates.longitude),
-        Utils.convertToFloat(location.coordinates.latitude)
+        Utils.convertToFloat(location.coordinates.latitude),
       ];
     }
     // Save Site Area

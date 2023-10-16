@@ -1,4 +1,12 @@
-import { HttpCheckEulaRequest, HttpEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
+import {
+  HttpCheckEulaRequest,
+  HttpEulaRequest,
+  HttpLoginRequest,
+  HttpRegisterUserRequest,
+  HttpResendVerificationMailRequest,
+  HttpResetPasswordRequest,
+  HttpVerifyEmailRequest,
+} from '../../../../types/requests/HttpUserRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -7,13 +15,39 @@ import global from '../../../../types/GlobalType';
 
 export default class AuthValidatorRest extends SchemaValidator {
   private static instance: AuthValidatorRest | null = null;
-  private authSignIn: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signin.json`, 'utf8'));
-  private authSignOn: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signon.json`, 'utf8'));
-  private authPasswordReset: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-password-reset.json`, 'utf8'));
-  private authEulaCheck: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-eula-check.json`, 'utf8'));
-  private authEmailVerify: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-email-verify.json`, 'utf8'));
-  private authVerificationEmailResend: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-verification-email-resend.json`, 'utf8'));
-  private authEula: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-eula.json`, 'utf8'));
+  private authSignIn: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signin.json`, 'utf8')
+  );
+  private authSignOn: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signon.json`, 'utf8')
+  );
+  private authPasswordReset: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-password-reset.json`,
+      'utf8'
+    )
+  );
+  private authEulaCheck: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-eula-check.json`,
+      'utf8'
+    )
+  );
+  private authEmailVerify: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-email-verify.json`,
+      'utf8'
+    )
+  );
+  private authVerificationEmailResend: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-verification-email-resend.json`,
+      'utf8'
+    )
+  );
+  private authEula: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-eula.json`, 'utf8')
+  );
 
   private constructor() {
     super('AuthValidatorRest');
@@ -34,7 +68,9 @@ export default class AuthValidatorRest extends SchemaValidator {
     return this.validate(this.authSignOn, data);
   }
 
-  public validateAuthPasswordResetReq(data: Record<string, unknown>): Partial<HttpResetPasswordRequest> {
+  public validateAuthPasswordResetReq(
+    data: Record<string, unknown>
+  ): Partial<HttpResetPasswordRequest> {
     return this.validate(this.authPasswordReset, data);
   }
 
@@ -42,11 +78,15 @@ export default class AuthValidatorRest extends SchemaValidator {
     return this.validate(this.authEulaCheck, data);
   }
 
-  public validateAuthEmailVerifyReq(data: Record<string, unknown>): Partial<HttpVerifyEmailRequest> {
+  public validateAuthEmailVerifyReq(
+    data: Record<string, unknown>
+  ): Partial<HttpVerifyEmailRequest> {
     return this.validate(this.authEmailVerify, data);
   }
 
-  public validateAuthVerificationEmailResendReq(data: Record<string, unknown>): Partial<HttpResendVerificationMailRequest> {
+  public validateAuthVerificationEmailResendReq(
+    data: Record<string, unknown>
+  ): Partial<HttpResendVerificationMailRequest> {
     return this.validate(this.authVerificationEmailResend, data);
   }
 

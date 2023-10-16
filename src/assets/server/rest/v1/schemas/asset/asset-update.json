@@ -46,10 +46,5 @@
       "$ref": "asset#/definitions/meterID"
     }
   },
-  "required": [
-    "id",
-    "name",
-    "siteAreaID",
-    "assetType"
-  ]
+  "required": ["id", "name", "siteAreaID", "assetType"]
 }

@@ -2,7 +2,9 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { RegistrationTokenAuthorizationActions } from './Authorization';
 import SiteArea from './SiteArea';
 
-export default interface RegistrationToken extends CreatedUpdatedProps, RegistrationTokenAuthorizationActions {
+export default interface RegistrationToken
+  extends CreatedUpdatedProps,
+    RegistrationTokenAuthorizationActions {
   id?: string;
   description: string;
   expirationDate: Date;

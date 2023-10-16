@@ -15,12 +15,8 @@
           "enum": ["Soft", "Hard"]
         }
       },
-      "required": [
-        "type"
-      ]
+      "required": ["type"]
     }
   },
-  "required": [
-    "chargingStationID"
-  ]
+  "required": ["chargingStationID"]
 }

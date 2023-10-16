@@ -2,7 +2,7 @@ import CentralSystemServerConfiguration from './CentralSystemServerConfiguration
 
 export enum CentralSystemImplementation {
   SOAP = 'soap',
-  JSON = 'json'
+  JSON = 'json',
 }
 
 export default interface CentralSystemConfiguration extends CentralSystemServerConfiguration {

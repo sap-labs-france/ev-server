@@ -23,14 +23,12 @@ export interface HttpPricingDefinitionsDeleteRequest extends HttpByIDRequest {
 export interface HttpPricingModelResolutionGetRequest extends HttpDatabaseRequest {
   ChargingStationID: string;
   ConnectorID: number;
-  UserID?: string
+  UserID?: string;
   StartDateTime?: Date;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpPricingDefinitionCreateRequest extends PricingDefinition {
-}
+export interface HttpPricingDefinitionCreateRequest extends PricingDefinition {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpPricingDefinitionUpdateRequest extends PricingDefinition {
-}
+export interface HttpPricingDefinitionUpdateRequest extends PricingDefinition {}

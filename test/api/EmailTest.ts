@@ -1,4 +1,37 @@
-import { AccountVerificationNotification, AdminAccountVerificationNotification, BillingAccountActivationNotification, BillingAccountCreationLinkNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingPeriodicOperationFailedNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, VerificationEmailNotification } from '../../src/types/UserNotifications';
+import {
+  AccountVerificationNotification,
+  AdminAccountVerificationNotification,
+  BillingAccountActivationNotification,
+  BillingAccountCreationLinkNotification,
+  BillingInvoiceSynchronizationFailedNotification,
+  BillingNewInvoiceNotification,
+  BillingPeriodicOperationFailedNotification,
+  BillingUserSynchronizationFailedNotification,
+  CarCatalogSynchronizationFailedNotification,
+  ChargingStationRegisteredNotification,
+  ChargingStationStatusErrorNotification,
+  ComputeAndApplyChargingProfilesFailedNotification,
+  EndOfChargeNotification,
+  EndOfSessionNotification,
+  EndOfSignedSessionNotification,
+  EndUserErrorNotification,
+  NewRegisteredUserNotification,
+  NotificationSeverity,
+  OCPIPatchChargingStationsStatusesErrorNotification,
+  OICPPatchChargingStationsErrorNotification,
+  OICPPatchChargingStationsStatusesErrorNotification,
+  OfflineChargingStationNotification,
+  OptimalChargeReachedNotification,
+  PreparingSessionNotStartedNotification,
+  RequestPasswordNotification,
+  SessionNotStartedNotification,
+  TransactionStartedNotification,
+  UnknownUserBadgedNotification,
+  UserAccountInactivityNotification,
+  UserAccountStatusChangedNotification,
+  UserCreatePassword,
+  VerificationEmailNotification,
+} from '../../src/types/UserNotifications';
 import User, { UserStatus } from '../../src/types/User';
 import chai, { assert } from 'chai';
 
@@ -56,14 +89,20 @@ describe('Initialization', () => {
     const severity = 'INFO' as NotificationSeverity;
 
     beforeAll(async () => {
-      const tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      const tenantContext = await ContextProvider.defaultInstance.getTenantContext(
+        ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS
+      );
       // Set the recipient
-      recipient = Utils.cloneObject(tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN));
+      recipient = Utils.cloneObject(
+        tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
+      );
       recipient.firstName = 'Kaito (怪盗)';
       recipient.name = '(怪盗) Kaito';
       recipient.locale = 'fr_FR';
       // Set the user mentioned in the body of the mail
-      user = Utils.cloneObject(tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER));
+      user = Utils.cloneObject(
+        tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
+      );
       user.phone = '+33 6 12 34 56 78';
       user.locale = 'fr_FR';
       tenant = tenantContext.getTenant();
@@ -75,7 +114,12 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardVerifyEmailURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendNewRegisteredUser(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendNewRegisteredUser(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -85,9 +129,14 @@ describe('Initialization', () => {
       const data: RequestPasswordNotification = {
         user,
         evseDashboardResetPassURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
-        evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL
+        evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendRequestPassword(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendRequestPassword(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -107,7 +156,12 @@ describe('Initialization', () => {
         user,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendOptimalChargeReached(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendOptimalChargeReached(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -128,7 +182,12 @@ describe('Initialization', () => {
         user,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendEndOfCharge(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendEndOfCharge(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -151,7 +210,12 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: 'charging station url',
       };
-      const notificationResult = await emailNotificationTask.sendEndOfSession(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendEndOfSession(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -174,10 +238,17 @@ describe('Initialization', () => {
         totalConsumption: '10110',
         price: 0,
         relativeCost: 0,
-        startSignedData: 'OCMF|{"FV": "1.0", "GI": "ChargeX Messkapsel 1.0", "GS": "ESVFL915WH52", "GV": "1.2", "PG": "T53", "MV": "ChargeX", "IS": "true", "IT": "ISO14443", "ID": "8421A3EE", "CT": "CBIDC", "CI": "72ABHJLHYY568SEJ 2", "RD": [{"TM": "2022-07-25T08:37:19.962+00:00 S", "TX": "B", "RV": 543.708, "RI": "1-b:1.8.e", "RU": "kWh", "EF": "", "ST": "G"}]}|{"SA": "ECDSA-secp192k1-SHA256", "SD": "MDUCGH0gEwvhKU8n0x36wWszmForuqEP7EcBHQIZAJ70dXSN732qKgEikBNp/5fcQyuk/uzGZQ==", "SE": "base64"}',
-        endSignedData: 'OCMF|{"FV": "1.0", "GI": "ChargeX Messkapsel 1.0", "GS": "ESVFL915WH52", "GV": "1.2", "PG": "T54", "MV": "ChargeX", "IS": "true", "IT": "ISO14443", "ID": "8421A3EE", "CT": "CBIDC", "CI": "72ABHJLHYY568SEJ 2", "RD": [{"TM": "2022-07-25T08:45:38.425+00:00 S", "TX": "E", "RV": 544.719, "RI": "1-b:1.8.e", "RU": "kWh", "EF": "", "ST": "G"}]}|{"SA": "ECDSA-secp192k1-SHA256", "SD": "MDQCGFR9euJ/yXiVmefh6pzRX2avXxlrUT63kAIYY/OVK4Z/myHHHeAzbz7/U5Uy/FuZpMf8", "SE": "base64"}',
+        startSignedData:
+          'OCMF|{"FV": "1.0", "GI": "ChargeX Messkapsel 1.0", "GS": "ESVFL915WH52", "GV": "1.2", "PG": "T53", "MV": "ChargeX", "IS": "true", "IT": "ISO14443", "ID": "8421A3EE", "CT": "CBIDC", "CI": "72ABHJLHYY568SEJ 2", "RD": [{"TM": "2022-07-25T08:37:19.962+00:00 S", "TX": "B", "RV": 543.708, "RI": "1-b:1.8.e", "RU": "kWh", "EF": "", "ST": "G"}]}|{"SA": "ECDSA-secp192k1-SHA256", "SD": "MDUCGH0gEwvhKU8n0x36wWszmForuqEP7EcBHQIZAJ70dXSN732qKgEikBNp/5fcQyuk/uzGZQ==", "SE": "base64"}',
+        endSignedData:
+          'OCMF|{"FV": "1.0", "GI": "ChargeX Messkapsel 1.0", "GS": "ESVFL915WH52", "GV": "1.2", "PG": "T54", "MV": "ChargeX", "IS": "true", "IT": "ISO14443", "ID": "8421A3EE", "CT": "CBIDC", "CI": "72ABHJLHYY568SEJ 2", "RD": [{"TM": "2022-07-25T08:45:38.425+00:00 S", "TX": "E", "RV": 544.719, "RI": "1-b:1.8.e", "RU": "kWh", "EF": "", "ST": "G"}]}|{"SA": "ECDSA-secp192k1-SHA256", "SD": "MDQCGFR9euJ/yXiVmefh6pzRX2avXxlrUT63kAIYY/OVK4Z/myHHHeAzbz7/U5Uy/FuZpMf8", "SE": "base64"}',
       };
-      const notificationResult = await emailNotificationTask.sendEndOfSignedSession(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendEndOfSignedSession(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -194,7 +265,12 @@ describe('Initialization', () => {
         invoiceAmount: '$12.50',
         invoiceStatus: 'paid',
       };
-      const notificationResult = await emailNotificationTask.sendBillingNewInvoice(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendBillingNewInvoice(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -211,7 +287,12 @@ describe('Initialization', () => {
         invoiceAmount: '$12.50',
         invoiceStatus: 'unpaid',
       };
-      const notificationResult = await emailNotificationTask.sendBillingNewInvoice(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendBillingNewInvoice(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -226,7 +307,12 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendChargingStationRegistered(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendChargingStationRegistered(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -242,7 +328,12 @@ describe('Initialization', () => {
         phone: user.phone,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendEndUserErrorNotification(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendEndUserErrorNotification(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -258,7 +349,12 @@ describe('Initialization', () => {
         phone: user.phone,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendEndUserErrorNotification(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendEndUserErrorNotification(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -266,10 +362,28 @@ describe('Initialization', () => {
 
     it('offline-charging-station', async () => {
       const data: OfflineChargingStationNotification = {
-        chargingStationIDs: [ 'CS1', 'CS2', 'CS3', 'CS4', 'CS5', 'CS6', 'CS7', 'CS8', 'CS9', 'CS10', 'CS11', 'CS12' ],
+        chargingStationIDs: [
+          'CS1',
+          'CS2',
+          'CS3',
+          'CS4',
+          'CS5',
+          'CS6',
+          'CS7',
+          'CS8',
+          'CS9',
+          'CS10',
+          'CS11',
+          'CS12',
+        ],
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendOfflineChargingStations(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendOfflineChargingStations(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -286,7 +400,12 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendChargingStationStatusError(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendChargingStationStatusError(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -298,7 +417,12 @@ describe('Initialization', () => {
         user,
         onboardingLink: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendBillingAccountCreationLink(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendBillingAccountCreationLink(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -309,7 +433,12 @@ describe('Initialization', () => {
         user,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendUserAccountStatusChanged(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendUserAccountStatusChanged(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -324,7 +453,12 @@ describe('Initialization', () => {
         badgeID,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendUnknownUserBadged(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendUnknownUserBadged(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -342,7 +476,12 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendSessionStarted(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendSessionStarted(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -354,7 +493,12 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardVerifyEmailURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendVerificationEmail(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendVerificationEmail(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -366,7 +510,12 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardVerifyEmailURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendVerificationEmailUserImport(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendVerificationEmailUserImport(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -375,9 +524,15 @@ describe('Initialization', () => {
     it('ocpi-patch-status-error', async () => {
       const data: OCPIPatchChargingStationsStatusesErrorNotification = {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
-        location: 'location'
+        location: 'location',
       };
-      const notificationResult = await emailNotificationTask.sendOCPIPatchChargingStationsStatusesError(data, recipient, tenant, severity);
+      const notificationResult =
+        await emailNotificationTask.sendOCPIPatchChargingStationsStatusesError(
+          data,
+          recipient,
+          tenant,
+          severity
+        );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -385,9 +540,15 @@ describe('Initialization', () => {
 
     it('oicp-patch-status-error', async () => {
       const data: OICPPatchChargingStationsStatusesErrorNotification = {
-        evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL
+        evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendOICPPatchChargingStationsStatusesError(data, recipient, tenant, severity);
+      const notificationResult =
+        await emailNotificationTask.sendOICPPatchChargingStationsStatusesError(
+          data,
+          recipient,
+          tenant,
+          severity
+        );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -397,7 +558,12 @@ describe('Initialization', () => {
       const data: OICPPatchChargingStationsErrorNotification = {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendOICPPatchChargingStationsError(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendOICPPatchChargingStationsError(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -409,7 +575,12 @@ describe('Initialization', () => {
         lastLogin: new Date().toDateString(),
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendUserAccountInactivity(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendUserAccountInactivity(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -426,7 +597,12 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendPreparingSessionNotStarted(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendPreparingSessionNotStarted(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -442,7 +618,12 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardChargingStationURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendSessionNotStarted(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendSessionNotStarted(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -454,7 +635,12 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardBillingURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendBillingSynchronizationFailed(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendBillingSynchronizationFailed(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -466,7 +652,13 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardBillingURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendBillingInvoiceSynchronizationFailed(data, recipient, tenant, severity);
+      const notificationResult =
+        await emailNotificationTask.sendBillingInvoiceSynchronizationFailed(
+          data,
+          recipient,
+          tenant,
+          severity
+        );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -478,7 +670,12 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardBillingURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendBillingPeriodicOperationFailed(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendBillingPeriodicOperationFailed(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -489,7 +686,13 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         user,
       };
-      const notificationResult = await emailNotificationTask.sendBillingAccountActivationNotification(data, recipient, tenant, severity);
+      const notificationResult =
+        await emailNotificationTask.sendBillingAccountActivationNotification(
+          data,
+          recipient,
+          tenant,
+          severity
+        );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -500,7 +703,12 @@ describe('Initialization', () => {
         nbrCarsInError: 10,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendCarCatalogSynchronizationFailed(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendCarCatalogSynchronizationFailed(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -515,7 +723,13 @@ describe('Initialization', () => {
         companyID,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendComputeAndApplyChargingProfilesFailed(data, recipient, tenant, severity);
+      const notificationResult =
+        await emailNotificationTask.sendComputeAndApplyChargingProfilesFailed(
+          data,
+          recipient,
+          tenant,
+          severity
+        );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -527,7 +741,12 @@ describe('Initialization', () => {
         userStatus: UserStatus.ACTIVE,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendAccountVerificationNotification(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendAccountVerificationNotification(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -539,7 +758,12 @@ describe('Initialization', () => {
         userStatus: UserStatus.INACTIVE,
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendAccountVerificationNotification(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendAccountVerificationNotification(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -551,7 +775,13 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseUserToVerifyURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendAdminAccountVerificationNotification(data, recipient, tenant, severity);
+      const notificationResult =
+        await emailNotificationTask.sendAdminAccountVerificationNotification(
+          data,
+          recipient,
+          tenant,
+          severity
+        );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
@@ -564,11 +794,15 @@ describe('Initialization', () => {
         evseDashboardURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
         evseDashboardCreatePasswordURL: BrandingConstants.OPEN_EMOBILITY_WEBSITE_URL,
       };
-      const notificationResult = await emailNotificationTask.sendUserCreatePassword(data, recipient, tenant, severity);
+      const notificationResult = await emailNotificationTask.sendUserCreatePassword(
+        data,
+        recipient,
+        tenant,
+        severity
+      );
       const isMissing = checkForMissing(notificationResult.html);
       assert.equal(isMissing, null, isMissing);
       assert.equal(notificationResult.error, null, notificationResult.error as string);
     });
   });
 });
-

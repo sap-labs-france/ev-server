@@ -21,7 +21,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "chargingStationID", "chargePointID", "connectorId", "ampLimitValue"
-  ]
+  "required": ["chargingStationID", "chargePointID", "connectorId", "ampLimitValue"]
 }

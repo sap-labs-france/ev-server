@@ -27,5 +27,5 @@ export enum OCPISessionStatus {
 
 export enum OCPIAuthMethod {
   AUTH_REQUEST = 'AUTH_REQUEST',
-  WHITELIST = 'WHITELIST'
+  WHITELIST = 'WHITELIST',
 }

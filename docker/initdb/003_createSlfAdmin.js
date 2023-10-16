@@ -10,10 +10,7 @@ db.getCollection('5c866e81a2d9593de43efdb4.users').insert({
     department: null,
     region: null,
     country: null,
-    coordinates: [
-      0,
-      0
-    ]
+    coordinates: [0, 0],
   },
   costCenter: null,
   createdBy: null,
@@ -43,7 +40,7 @@ db.getCollection('5c866e81a2d9593de43efdb4.users').insert({
     sendChargingStationRegistered: false,
     sendOcpiPatchStatusError: false,
     sendOicpPatchStatusError: false,
-    sendOfflineChargingStations: false
+    sendOfflineChargingStations: false,
   },
   phone: null,
   password: '$2a$10$hUuTADOXG4HSPaVk0JEUMeQF219jxWv5p4aazAtYI4C8sABjneUGK',
@@ -55,5 +52,5 @@ db.getCollection('5c866e81a2d9593de43efdb4.users').insert({
   eulaAcceptedVersion: 28,
   role: 'A',
   status: 'A',
-  notificationsActive: true
+  notificationsActive: true,
 });

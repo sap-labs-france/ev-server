@@ -3,21 +3,23 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
 const config = {
   mode: 'development',
   optimization: {
-    nodeEnv: 'development-build'
+    nodeEnv: 'development-build',
   },
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: [{
-          loader: 'ts-loader',
-          options: {
-              configFile: "tsconfig.json"
-          }
-        }],
-        exclude: [/node_modules/]
-      }
-    ]
+        use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              configFile: 'tsconfig.json',
+            },
+          },
+        ],
+        exclude: [/node_modules/],
+      },
+    ],
   },
   plugins: [
     new CircularDependencyPlugin({
@@ -32,8 +34,8 @@ const config = {
       allowAsyncCycles: false,
       // set the current working directory for displaying module paths
       cwd: process.cwd(),
-    })
-  ]
+    }),
+  ],
 };
 
 module.exports = config;

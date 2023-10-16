@@ -5,13 +5,7 @@
   "properties": {
     "DataType": {
       "type": "string",
-      "enum": [
-        "Consumption",
-        "Usage",
-        "Inactivity",
-        "Transactions",
-        "Pricing"
-      ],
+      "enum": ["Consumption", "Usage", "Inactivity", "Transactions", "Pricing"],
       "sanitize": "mongo"
     },
     "StartDateTime": {
@@ -40,19 +34,12 @@
     },
     "DataCategory": {
       "type": "string",
-      "enum": [
-        "C",
-        "U"
-      ],
+      "enum": ["C", "U"],
       "sanitize": "mongo"
     },
     "DataScope": {
       "type": "string",
-      "enum": [
-        "year",
-        "month",
-        "total"
-      ],
+      "enum": ["year", "month", "total"],
       "sanitize": "mongo"
     }
   }

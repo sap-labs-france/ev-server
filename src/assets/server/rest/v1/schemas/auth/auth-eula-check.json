@@ -7,7 +7,5 @@
       "$ref": "user#/definitions/email"
     }
   },
-  "required": [
-    "Email"
-  ]
+  "required": ["Email"]
 }

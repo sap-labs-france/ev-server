@@ -1,4 +1,10 @@
-import { BillingAccount, BillingInvoice, BillingPaymentMethod, BillingTax, BillingTransfer } from './Billing';
+import {
+  BillingAccount,
+  BillingInvoice,
+  BillingPaymentMethod,
+  BillingTax,
+  BillingTransfer,
+} from './Billing';
 import { Car, CarCatalog } from './Car';
 import ChargingStation, { ChargingStationTemplate, Connector } from './ChargingStation';
 import Site, { UserSite } from './Site';
@@ -17,6 +23,7 @@ import { PerformanceRecordGroup } from './Performance';
 import PricingDefinition from './Pricing';
 import RefundReport from './Refund';
 import RegistrationToken from './RegistrationToken';
+import Reservation from './Reservation';
 import { ServerType } from './Server';
 import { Setting } from './Setting';
 import SiteArea from './SiteArea';
@@ -90,20 +97,46 @@ export enum ImportStatus {
   ERROR = 'E',
 }
 
-export type EntityData = Car|User|Company|Site|SiteArea|Tag|CarCatalog|ChargingStation|PricingDefinition|Log|RegistrationToken|BillingInvoice|BillingPaymentMethod|Setting|BillingAccount|ChargingProfile|Connector|Transaction|TransactionStop|BillingTransfer|BillingTax|RefundReport|UserSite|SiteUser|ChargingStationTemplate|OCPIEndpoint;
+export type EntityData =
+  | Car
+  | User
+  | Company
+  | Site
+  | SiteArea
+  | Tag
+  | CarCatalog
+  | ChargingStation
+  | PricingDefinition
+  | Log
+  | RegistrationToken
+  | BillingInvoice
+  | BillingPaymentMethod
+  | Setting
+  | BillingAccount
+  | ChargingProfile
+  | Connector
+  | Transaction
+  | TransactionStop
+  | BillingTransfer
+  | BillingTax
+  | RefundReport
+  | UserSite
+  | SiteUser
+  | ChargingStationTemplate
+  | OCPIEndpoint
+  | Reservation;
 
 interface TSGlobal extends Global {
-  tenantIdMap: Map<string,string>;
+  tenantIdMap: Map<string, string>;
   database: MongoDBStorage;
   appRoot: string;
   centralSystemJsonServer: JsonOCPPServer;
   centralSystemSoapServer: SoapOCPPServer;
   serverType: ServerType;
-  monitoringServer : MonitoringServer;
+  monitoringServer: MonitoringServer;
   cache: Cache;
   Promise: any;
 }
-
 
 // Export global variables
 declare const global: TSGlobal;
@@ -120,4 +153,3 @@ if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
 }
 
 export default global;
-

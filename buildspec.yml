@@ -1,6 +1,6 @@
 version: 0.2
 parameter-store:
-  build_ssh_key: "/CodeBuild/emobility_build_ssh_key"
+  build_ssh_key: '/CodeBuild/emobility_build_ssh_key'
 phases:
   install:
     runtime-versions:
@@ -25,7 +25,7 @@ phases:
       - npm install
   build:
     commands:
-      - npm run build:prod
+      - pnpm build:prod
 artifacts:
   type: zip
   files:

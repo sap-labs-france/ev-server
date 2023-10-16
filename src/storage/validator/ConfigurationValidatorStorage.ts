@@ -6,7 +6,12 @@ import global from '../../types/GlobalType';
 
 export default class ConfigurationValidatorStorage extends SchemaValidator {
   private static instance: ConfigurationValidatorStorage | null = null;
-  private configurationSave: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/storage/schemas/configuration/configuration-save.json`, 'utf8'));
+  private configurationSave: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/storage/schemas/configuration/configuration-save.json`,
+      'utf8'
+    )
+  );
 
   private constructor() {
     super('ConfigurationValidatorStorage');

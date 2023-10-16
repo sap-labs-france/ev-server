@@ -1,4 +1,27 @@
-import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
+import {
+  OCPP15MeterValuesRequest,
+  OCPPAuthorizeRequest,
+  OCPPAuthorizeResponse,
+  OCPPBootNotificationRequest,
+  OCPPBootNotificationResponse,
+  OCPPDataTransferRequest,
+  OCPPDataTransferResponse,
+  OCPPDiagnosticsStatusNotificationRequest,
+  OCPPDiagnosticsStatusNotificationResponse,
+  OCPPFirmwareStatusNotificationRequest,
+  OCPPFirmwareStatusNotificationResponse,
+  OCPPHeartbeatRequest,
+  OCPPHeartbeatResponse,
+  OCPPMeterValuesRequest,
+  OCPPMeterValuesResponse,
+  OCPPStartTransactionRequest,
+  OCPPStartTransactionResponse,
+  OCPPStatusNotificationRequest,
+  OCPPStatusNotificationResponse,
+  OCPPStopTransactionRequest,
+  OCPPStopTransactionResponse,
+  OCPPVersion,
+} from '../../../../src/types/ocpp/OCPPServer';
 import { OCPPIncomingRequest, OCPPMessageType } from '../../../../src/types/ocpp/OCPPCommon';
 
 import { Command } from '../../../types/ChargingStation';
@@ -11,12 +34,12 @@ import config from '../../../config';
 import { performance } from 'perf_hooks';
 
 export default class OCPPJsonService16 extends OCPPService {
-  private wsSessions: Map<string, { connection: WSClient, requests: any }>;
+  private wsSessions: Map<string, { connection: WSClient; requests: any }>;
   private requestHandler: any;
 
   public constructor(serverUrl: string, requestHandler) {
     super(serverUrl);
-    this.wsSessions = new Map<string, { connection: WSClient, requests: any }>();
+    this.wsSessions = new Map<string, { connection: WSClient; requests: any }>();
     this.requestHandler = requestHandler;
   }
 
@@ -24,14 +47,20 @@ export default class OCPPJsonService16 extends OCPPService {
     return OCPPVersion.VERSION_16;
   }
 
-  public async openConnection(chargeBoxIdentity: string): Promise<{ connection: WSClient, requests: any }> {
+  public async openConnection(
+    chargeBoxIdentity: string
+  ): Promise<{ connection: WSClient; requests: any }> {
     return new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = {};
       const wsClientOptions: WSClientOptions = {
         protocols: WSServerProtocol.OCPP16,
       };
-      const wsConnection = new WSClient(`${this.serverUrl}/${chargeBoxIdentity}`, wsClientOptions, false);
+      const wsConnection = new WSClient(
+        `${this.serverUrl}/${chargeBoxIdentity}`,
+        wsClientOptions,
+        false
+      );
       // Opened
       wsConnection.onopen = () => {
         // Connection is opened and ready to use
@@ -56,7 +85,9 @@ export default class OCPPJsonService16 extends OCPPService {
         const t1 = performance.now();
         try {
           // Parse the message
-          const [messageType, messageId, command, commandPayload]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
+          const [messageType, messageId, command, commandPayload]: OCPPIncomingRequest = JSON.parse(
+            message.data
+          ) as OCPPIncomingRequest;
           // Check if this corresponds to a request
           if (messageType === OCPPMessageType.CALL_RESULT_MESSAGE && sentRequests[messageId]) {
             const response: any = {};
@@ -76,7 +107,12 @@ export default class OCPPJsonService16 extends OCPPService {
     });
   }
 
-  public async handleRequest(chargeBoxIdentity: string, messageId: string, command: Command, commandPayload: Record<string, unknown> | string): Promise<void> {
+  public async handleRequest(
+    chargeBoxIdentity: string,
+    messageId: string,
+    command: Command,
+    commandPayload: Record<string, unknown> | string
+  ): Promise<void> {
     let result = {};
     const methodName = `handle${command}`;
     if (this.requestHandler && typeof this.requestHandler[methodName] === 'function') {
@@ -93,53 +129,107 @@ export default class OCPPJsonService16 extends OCPPService {
     }
   }
 
-  public async executeAuthorize(chargingStationID: string, authorize: OCPPAuthorizeRequest): Promise<OCPPAuthorizeResponse> {
+  public async executeAuthorize(
+    chargingStationID: string,
+    authorize: OCPPAuthorizeRequest
+  ): Promise<OCPPAuthorizeResponse> {
     const response = await this.send(chargingStationID, this.buildRequest('Authorize', authorize));
     return response.data;
   }
 
-  public async executeStartTransaction(chargingStationID: string, startTransaction: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('StartTransaction', startTransaction));
+  public async executeStartTransaction(
+    chargingStationID: string,
+    startTransaction: OCPPStartTransactionRequest
+  ): Promise<OCPPStartTransactionResponse> {
+    const response = await this.send(
+      chargingStationID,
+      this.buildRequest('StartTransaction', startTransaction)
+    );
     return response.data;
   }
 
-  public async executeStopTransaction(chargingStationID: string, stopTransaction: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('StopTransaction', stopTransaction));
+  public async executeStopTransaction(
+    chargingStationID: string,
+    stopTransaction: OCPPStopTransactionRequest
+  ): Promise<OCPPStopTransactionResponse> {
+    const response = await this.send(
+      chargingStationID,
+      this.buildRequest('StopTransaction', stopTransaction)
+    );
     return response.data;
   }
 
-  public async executeHeartbeat(chargingStationID: string, heartbeat: OCPPHeartbeatRequest): Promise<OCPPHeartbeatResponse> {
+  public async executeHeartbeat(
+    chargingStationID: string,
+    heartbeat: OCPPHeartbeatRequest
+  ): Promise<OCPPHeartbeatResponse> {
     const response = await this.send(chargingStationID, this.buildRequest('Heartbeat', heartbeat));
     return response.data;
   }
 
-  public async executeMeterValues(chargingStationID: string, meterValue: OCPPMeterValuesRequest | OCPP15MeterValuesRequest): Promise<OCPPMeterValuesResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('MeterValues', meterValue));
+  public async executeMeterValues(
+    chargingStationID: string,
+    meterValue: OCPPMeterValuesRequest | OCPP15MeterValuesRequest
+  ): Promise<OCPPMeterValuesResponse> {
+    const response = await this.send(
+      chargingStationID,
+      this.buildRequest('MeterValues', meterValue)
+    );
     return response.data;
   }
 
-  public async executeBootNotification(chargingStationID: string, bootNotification: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('BootNotification', bootNotification));
+  public async executeBootNotification(
+    chargingStationID: string,
+    bootNotification: OCPPBootNotificationRequest
+  ): Promise<OCPPBootNotificationResponse> {
+    const response = await this.send(
+      chargingStationID,
+      this.buildRequest('BootNotification', bootNotification)
+    );
     return response.data;
   }
 
-  public async executeStatusNotification(chargingStationID: string, statusNotification: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('StatusNotification', statusNotification));
+  public async executeStatusNotification(
+    chargingStationID: string,
+    statusNotification: OCPPStatusNotificationRequest
+  ): Promise<OCPPStatusNotificationResponse> {
+    const response = await this.send(
+      chargingStationID,
+      this.buildRequest('StatusNotification', statusNotification)
+    );
     return response.data;
   }
 
-  public async executeFirmwareStatusNotification(chargingStationID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequest): Promise<OCPPFirmwareStatusNotificationResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('FirmwareStatusNotification', firmwareStatusNotification));
+  public async executeFirmwareStatusNotification(
+    chargingStationID: string,
+    firmwareStatusNotification: OCPPFirmwareStatusNotificationRequest
+  ): Promise<OCPPFirmwareStatusNotificationResponse> {
+    const response = await this.send(
+      chargingStationID,
+      this.buildRequest('FirmwareStatusNotification', firmwareStatusNotification)
+    );
     return response.data;
   }
 
-  public async executeDiagnosticsStatusNotification(chargingStationID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequest): Promise<OCPPDiagnosticsStatusNotificationResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('DiagnosticsStatusNotification', diagnosticsStatusNotification));
+  public async executeDiagnosticsStatusNotification(
+    chargingStationID: string,
+    diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequest
+  ): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+    const response = await this.send(
+      chargingStationID,
+      this.buildRequest('DiagnosticsStatusNotification', diagnosticsStatusNotification)
+    );
     return response.data;
   }
 
-  public async executeDataTransfer(chargingStationID: string, dataTransfer: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('DataTransfer', dataTransfer));
+  public async executeDataTransfer(
+    chargingStationID: string,
+    dataTransfer: OCPPDataTransferRequest
+  ): Promise<OCPPDataTransferResponse> {
+    const response = await this.send(
+      chargingStationID,
+      this.buildRequest('DataTransfer', dataTransfer)
+    );
     return response.data;
   }
 
@@ -157,9 +247,16 @@ export default class OCPPJsonService16 extends OCPPService {
     }
     // Send
     const t0 = performance.now();
-    this.wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message), {}, (error?: Error) => {
-      config.trace_logs && console.debug(`Sending error to '${chargeBoxIdentity}', error '${JSON.stringify(error)}', message: '${JSON.stringify(message)}'`);
-    });
+    this.wsSessions
+      .get(chargeBoxIdentity)
+      .connection.send(JSON.stringify(message), {}, (error?: Error) => {
+        config.trace_logs &&
+          console.debug(
+            `Sending error to '${chargeBoxIdentity}', error '${JSON.stringify(
+              error
+            )}', message: '${JSON.stringify(message)}'`
+          );
+      });
     if (message[0] === OCPPMessageType.CALL_MESSAGE) {
       // Return a promise
       return new Promise((resolve, reject) => {
@@ -171,18 +268,11 @@ export default class OCPPJsonService16 extends OCPPService {
 
   private buildRequest(command: string, payload: any) {
     // Build the request
-    return [
-      OCPPMessageType.CALL_MESSAGE,
-      Utils.generateUUID(),
-      command,
-      payload];
+    return [OCPPMessageType.CALL_MESSAGE, Utils.generateUUID(), command, payload];
   }
 
   private buildResponse(messageId, payload: any) {
     // Build the request
-    return [
-      OCPPMessageType.CALL_MESSAGE,
-      messageId,
-      payload];
+    return [OCPPMessageType.CALL_MESSAGE, messageId, payload];
   }
 }

@@ -10,9 +10,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "active"
-      ]
+      "required": ["active"]
     },
     "Crypto": {
       "type": "object",
@@ -24,10 +22,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "key",
-        "algorithm"
-      ]
+      "required": ["key", "algorithm"]
     },
     "EVDatabase": {
       "type": "object",
@@ -39,10 +34,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "url",
-        "key"
-      ]
+      "required": ["url", "key"]
     },
     "OICPService": {
       "type": "object",
@@ -60,11 +52,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "protocol",
-        "host",
-        "port"
-      ]
+      "required": ["protocol", "host", "port"]
     },
     "ODataService": {
       "type": "object",
@@ -82,11 +70,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "protocol",
-        "host",
-        "port"
-      ]
+      "required": ["protocol", "host", "port"]
     },
     "CentralSystemServer": {
       "type": "object",
@@ -101,11 +85,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "protocol",
-        "host",
-        "port"
-      ]
+      "required": ["protocol", "host", "port"]
     },
     "CentralSystems": {
       "type": "array",
@@ -134,13 +114,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "type",
-          "implementation",
-          "protocol",
-          "host",
-          "port"
-        ]
+        "required": ["type", "implementation", "protocol", "host", "port"]
       }
     },
     "CentralSystemRestService": {
@@ -215,11 +189,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "protocol",
-        "host",
-        "port"
-      ]
+      "required": ["protocol", "host", "port"]
     },
     "Monitoring": {
       "type": "object",
@@ -242,11 +212,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "protocol",
-        "host",
-        "port"
-      ]
+      "required": ["protocol", "host", "port"]
     },
     "WSDLEndpoint": {
       "type": "object",
@@ -255,9 +221,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "baseSecureUrl"
-      ]
+      "required": ["baseSecureUrl"]
     },
     "JsonEndpoint": {
       "type": "object",
@@ -269,9 +233,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "baseSecureUrl"
-      ]
+      "required": ["baseSecureUrl"]
     },
     "OCPIEndpoint": {
       "type": "object",
@@ -280,9 +242,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "baseUrl"
-      ]
+      "required": ["baseUrl"]
     },
     "OICPEndpoint": {
       "type": "object",
@@ -291,9 +251,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "baseUrl"
-      ]
+      "required": ["baseUrl"]
     },
     "Storage": {
       "type": "object",
@@ -321,10 +279,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "implementation",
-        "uri"
-      ]
+      "required": ["implementation", "uri"]
     },
     "OCPIService": {
       "type": "object",
@@ -343,11 +298,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "protocol",
-        "host",
-        "port"
-      ]
+      "required": ["protocol", "host", "port"]
     },
     "Notification": {
       "type": "object",
@@ -359,9 +310,7 @@
               "type": "boolean"
             }
           },
-          "required": [
-            "enabled"
-          ]
+          "required": ["enabled"]
         },
         "RemotePushNotification": {
           "type": "object",
@@ -370,15 +319,10 @@
               "type": "boolean"
             }
           },
-          "required": [
-            "enabled"
-          ]
+          "required": ["enabled"]
         }
       },
-      "required": [
-        "Email",
-        "RemotePushNotification"
-      ]
+      "required": ["Email", "RemotePushNotification"]
     },
     "Firebase": {
       "type": "object",
@@ -425,10 +369,7 @@
                 "type": "object"
               }
             },
-            "required": [
-              "tenantID",
-              "configuration"
-            ]
+            "required": ["tenantID", "configuration"]
           }
         },
         "alternativeConfiguration": {
@@ -502,10 +443,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "retries",
-        "timeoutSecs"
-      ]
+      "required": ["retries", "timeoutSecs"]
     },
     "Email": {
       "type": "object",
@@ -541,15 +479,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "from",
-            "host",
-            "port",
-            "secure",
-            "requireTLS",
-            "user",
-            "password"
-          ]
+          "required": ["from", "host", "port", "secure", "requireTLS", "user", "password"]
         },
         "smtpBackup": {
           "type": "object",
@@ -576,20 +506,10 @@
               "type": "string"
             }
           },
-          "required": [
-            "from",
-            "host",
-            "port",
-            "secure",
-            "requireTLS",
-            "user",
-            "password"
-          ]
+          "required": ["from", "host", "port", "secure", "requireTLS", "user", "password"]
         }
       },
-      "required": [
-        "smtp"
-      ]
+      "required": ["smtp"]
     },
     "Authorization": {
       "type": "object",
@@ -652,10 +572,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "active",
-        "nbrTasksInParallel"
-      ]
+      "required": ["active", "nbrTasksInParallel"]
     },
     "Shield": {
       "type": "object",
@@ -706,18 +623,11 @@
                 "type": "object"
               }
             },
-            "required": [
-              "name",
-              "active",
-              "periodicity"
-            ]
+            "required": ["name", "active", "periodicity"]
           }
         }
       },
-      "required": [
-        "active",
-        "tasks"
-      ]
+      "required": ["active", "tasks"]
     },
     "Trace": {
       "type": "object",
@@ -754,9 +664,7 @@
           "enum": ["NONE", "D", "I", "W", "E"]
         }
       },
-      "required": [
-        "logLevel"
-      ]
+      "required": ["logLevel"]
     },
     "Cache": {
       "type": "object",
@@ -768,9 +676,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "ttlSeconds"
-      ]
+      "required": ["ttlSeconds"]
     }
   }
 }

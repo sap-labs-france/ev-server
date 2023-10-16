@@ -25,7 +25,5 @@
       "$ref": "common#/definitions/onlyRecordCount"
     }
   },
-  "required": [
-    "SiteID"
-  ]
+  "required": ["SiteID"]
 }

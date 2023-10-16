@@ -1,4 +1,8 @@
-import { AuthorizationFilter, DynamicAuthorizationDataSourceName, Entity } from '../../types/Authorization';
+import {
+  AuthorizationFilter,
+  DynamicAuthorizationDataSourceName,
+  Entity,
+} from '../../types/Authorization';
 
 import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
 import { EntityData } from '../../types/GlobalType';
@@ -6,10 +10,15 @@ import SitesAdminOrOwnerDynamicAuthorizationDataSource from '../dynamic-data-sou
 import Utils from '../../utils/Utils';
 
 export default class SitesAdminOrOwnerDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
-  public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>, entityData?: EntityData): void {
+  public processFilter(
+    authorizationFilters: AuthorizationFilter,
+    extraFilters: Record<string, any>,
+    entityData?: EntityData
+  ): void {
     // Get Site IDs
     const sitesAdminOrOwnerDataSource = this.getDataSource(
-      DynamicAuthorizationDataSourceName.SITES_ADMIN_OR_OWNER) as SitesAdminOrOwnerDynamicAuthorizationDataSource;
+      DynamicAuthorizationDataSourceName.SITES_ADMIN_OR_OWNER
+    ) as SitesAdminOrOwnerDynamicAuthorizationDataSource;
     const { siteIDs } = sitesAdminOrOwnerDataSource.getData();
     // Clear
     authorizationFilters.filters.siteIDs = [];
@@ -17,12 +26,15 @@ export default class SitesAdminOrOwnerDynamicAuthorizationFilter extends Dynamic
       // Force the filter
       authorizationFilters.filters.siteIDs = siteIDs;
       // Check if filter is provided
-      if (Utils.objectHasProperty(extraFilters, 'SiteID') &&
-          !Utils.isNullOrUndefined(extraFilters['SiteID'])) {
+      if (
+        Utils.objectHasProperty(extraFilters, 'SiteID') &&
+        !Utils.isNullOrUndefined(extraFilters['SiteID'])
+      ) {
         const filteredSiteIDs: string[] = extraFilters['SiteID'].split('|');
         // Override
-        authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
-          (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
+        authorizationFilters.filters.siteIDs = filteredSiteIDs.filter((siteID) =>
+          authorizationFilters.filters.siteIDs.includes(siteID)
+        );
       }
     }
     if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
@@ -31,15 +43,10 @@ export default class SitesAdminOrOwnerDynamicAuthorizationFilter extends Dynamic
   }
 
   public getApplicableEntities(): Entity[] {
-    return [
-      Entity.SITE,
-      Entity.USER
-    ];
+    return [Entity.SITE, Entity.USER];
   }
 
   public getApplicableDataSources(): DynamicAuthorizationDataSourceName[] {
-    return [
-      DynamicAuthorizationDataSourceName.SITES_ADMIN_OR_OWNER
-    ];
+    return [DynamicAuthorizationDataSourceName.SITES_ADMIN_OR_OWNER];
   }
 }

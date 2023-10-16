@@ -50,28 +50,56 @@ import moment from 'moment';
 const MODULE_NAME = 'UserService';
 
 export default class UserService {
-  public static async handleGetUserSessionContext(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUserSessionContext(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Filter
-    const filteredRequest = UserValidatorRest.getInstance().validateUserSessionContextReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetUserSessionContext', req.user);
+    const filteredRequest = UserValidatorRest.getInstance().validateUserSessionContextReq(
+      req.query
+    );
+    UtilsService.assertIdIsProvided(
+      action,
+      filteredRequest.UserID,
+      MODULE_NAME,
+      'handleGetUserSessionContext',
+      req.user
+    );
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
+      req.tenant,
+      req.user,
+      filteredRequest.UserID,
+      Action.READ,
+      action
+    );
     // Handle Tag
     // We retrieve Tag auth to get the projected fields here to fit with what's in auth definition
-    const tagAuthorization = await AuthorizationService.checkAndGetTagAuthorizations(req.tenant, req.user, {}, Action.READ);
+    const tagAuthorization = await AuthorizationService.checkAndGetTagAuthorizations(
+      req.tenant,
+      req.user,
+      {},
+      Action.READ
+    );
     let tag: Tag;
     if (tagAuthorization.authorized) {
       // Get the tag from the request TagID
       if (filteredRequest.TagID) {
-        const tagFromID = await TagStorage.getTag(req.tenant, filteredRequest.TagID, { issuer: true }, tagAuthorization.projectFields);
+        const tagFromID = await TagStorage.getTag(
+          req.tenant,
+          filteredRequest.TagID,
+          { issuer: true },
+          tagAuthorization.projectFields
+        );
         if (!tagFromID || tagFromID.userID !== filteredRequest.UserID) {
           throw new AppError({
             errorCode: StatusCodes.BAD_REQUEST,
             message: 'This user has no tag with such TagID',
             module: MODULE_NAME,
             method: 'handleGetUserSessionContext',
-            action: action
+            action: action,
           });
         } else {
           tag = tagFromID;
@@ -79,28 +107,51 @@ export default class UserService {
       }
       if (!tag) {
         // Get the default Tag
-        tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, { issuer: true }, tagAuthorization.projectFields);
+        tag = await TagStorage.getDefaultUserTag(
+          req.tenant,
+          user.id,
+          { issuer: true },
+          tagAuthorization.projectFields
+        );
         if (!tag) {
           // Get the first active Tag
-          tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, { issuer: true }, tagAuthorization.projectFields);
+          tag = await TagStorage.getFirstActiveUserTag(
+            req.tenant,
+            user.id,
+            { issuer: true },
+            tagAuthorization.projectFields
+          );
         }
       }
     }
     // Handle Car
     // We retrieve Car auth to get the projected fields here to fit with what's in auth definition
-    const carAuthorization = await AuthorizationService.checkAndGetCarAuthorizations(req.tenant, req.user, {}, Action.READ);
+    const carAuthorization = await AuthorizationService.checkAndGetCarAuthorizations(
+      req.tenant,
+      req.user,
+      {},
+      Action.READ
+    );
     let car: Car;
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) && carAuthorization.authorized) {
+    if (
+      Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) &&
+      carAuthorization.authorized
+    ) {
       // Get the car from the request CarID
       if (filteredRequest.CarID) {
-        const carFromID = await CarStorage.getCar(req.tenant, filteredRequest.CarID, {}, carAuthorization.projectFields);
+        const carFromID = await CarStorage.getCar(
+          req.tenant,
+          filteredRequest.CarID,
+          {},
+          carAuthorization.projectFields
+        );
         if (!carFromID || carFromID.userID !== filteredRequest.UserID) {
           throw new AppError({
             errorCode: StatusCodes.BAD_REQUEST,
             message: 'This user has no car with such CarID',
             module: MODULE_NAME,
             method: 'handleGetUserSessionContext',
-            action: action
+            action: action,
           });
         } else {
           car = carFromID;
@@ -108,16 +159,32 @@ export default class UserService {
       }
       if (!car) {
         // Get the default Car
-        car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
+        car = await CarStorage.getDefaultUserCar(
+          req.tenant,
+          filteredRequest.UserID,
+          {},
+          carAuthorization.projectFields
+        );
         if (!car) {
           // Get the first available car
-          car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID, carAuthorization.projectFields);
+          car = await CarStorage.getFirstAvailableUserCar(
+            req.tenant,
+            filteredRequest.UserID,
+            carAuthorization.projectFields
+          );
         }
       }
     }
-    let withBillingChecks = true ;
-    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ,
-      action, null, { withSiteArea: true });
+    let withBillingChecks = true;
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+      req.tenant,
+      req.user,
+      filteredRequest.ChargingStationID,
+      Action.READ,
+      action,
+      null,
+      { withSiteArea: true }
+    );
     if (!chargingStation.siteArea.accessControl) {
       // The access control is switched off - so billing checks are useless
       withBillingChecks = false;
@@ -129,53 +196,119 @@ export default class UserService {
       await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
     }
     // Get additional Smart Charging parameters such as the Departure Time
-    const parameters = await SmartChargingHelper.getSessionParameters(req.tenant, req.user, chargingStation, filteredRequest.ConnectorID, car);
+    const parameters = await SmartChargingHelper.getSessionParameters(
+      req.tenant,
+      req.user,
+      chargingStation,
+      filteredRequest.ConnectorID,
+      car
+    );
     res.json({
-      tag, car, errorCodes, smartChargingSessionParameters: parameters
+      tag,
+      car,
+      errorCodes,
+      smartChargingSessionParameters: parameters,
     });
     next();
   }
 
-  public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUserDefaultTagCar(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Filter
-    const filteredRequest = UserValidatorRest.getInstance().validateUserDefaultTagCarGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
+    const filteredRequest = UserValidatorRest.getInstance().validateUserDefaultTagCarGetReq(
+      req.query
+    );
+    UtilsService.assertIdIsProvided(
+      action,
+      filteredRequest.UserID,
+      MODULE_NAME,
+      'handleGetUserDefaultTagCar',
+      req.user
+    );
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
+      req.tenant,
+      req.user,
+      filteredRequest.UserID,
+      Action.READ,
+      action
+    );
     // Handle Tag
     // We retrieve Tag auth to get the projected fields here to fit with what's in auth definition
-    const tagAuthorization = await AuthorizationService.checkAndGetTagAuthorizations(req.tenant, req.user, {}, Action.READ);
+    const tagAuthorization = await AuthorizationService.checkAndGetTagAuthorizations(
+      req.tenant,
+      req.user,
+      {},
+      Action.READ
+    );
     let tag: Tag;
     // Get the default Tag
     if (tagAuthorization.authorized) {
-      tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, {
-        issuer: true
-      }, tagAuthorization.projectFields);
+      tag = await TagStorage.getDefaultUserTag(
+        req.tenant,
+        user.id,
+        {
+          issuer: true,
+        },
+        tagAuthorization.projectFields
+      );
       if (!tag) {
         // Get the first active Tag
-        tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, {
-          issuer: true
-        }, tagAuthorization.projectFields);
+        tag = await TagStorage.getFirstActiveUserTag(
+          req.tenant,
+          user.id,
+          {
+            issuer: true,
+          },
+          tagAuthorization.projectFields
+        );
       }
     }
     // Handle Car
     // We retrieve Car auth to get the projected fields here to fit with what's in auth definition
-    const carAuthorization = await AuthorizationService.checkAndGetCarAuthorizations(req.tenant, req.user, {}, Action.READ);
+    const carAuthorization = await AuthorizationService.checkAndGetCarAuthorizations(
+      req.tenant,
+      req.user,
+      {},
+      Action.READ
+    );
     let car: Car;
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) && carAuthorization.authorized) {
-    // Get the default Car
-      car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {}, carAuthorization.projectFields);
+    if (
+      Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR) &&
+      carAuthorization.authorized
+    ) {
+      // Get the default Car
+      car = await CarStorage.getDefaultUserCar(
+        req.tenant,
+        filteredRequest.UserID,
+        {},
+        carAuthorization.projectFields
+      );
       if (!car) {
         // Get the first available car
-        car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID, carAuthorization.projectFields);
+        car = await CarStorage.getFirstAvailableUserCar(
+          req.tenant,
+          filteredRequest.UserID,
+          carAuthorization.projectFields
+        );
       }
     }
-    let withBillingChecks = true ;
+    let withBillingChecks = true;
     if (filteredRequest.ChargingStationID) {
       // TODO - The ChargingStationID is optional but only for backward compatibility reasons - make it mandatory as soon as possible
-      const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(req.tenant, req.user, filteredRequest.ChargingStationID, Action.READ,
-        action, null, { withSiteArea: true });
+      const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+        req.tenant,
+        req.user,
+        filteredRequest.ChargingStationID,
+        Action.READ,
+        action,
+        null,
+        { withSiteArea: true }
+      );
       if (!chargingStation.siteArea.accessControl) {
         // The access control is switched off - so billing checks are useless
         withBillingChecks = false;
@@ -188,21 +321,49 @@ export default class UserService {
       await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
     }
     res.json({
-      tag, car, errorCodes
+      tag,
+      car,
+      errorCodes,
     });
     next();
   }
 
-  public static async handleAssignSitesToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.UPDATE, Entity.SITE, 'SiteService', 'handleAssignSitesToUser');
+  public static async handleAssignSitesToUser(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user,
+      TenantComponents.ORGANIZATION,
+      Action.UPDATE,
+      Entity.SITE,
+      'SiteService',
+      'handleAssignSitesToUser'
+    );
     // Filter request
     const filteredRequest = UserValidatorRest.getInstance().validateUserSitesAssignReq(req.body);
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID, Action.ASSIGN_UNASSIGN_SITES, action);
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant,
+      req.user,
+      filteredRequest.userID,
+      Action.ASSIGN_UNASSIGN_SITES,
+      action
+    );
     // Check and Get Sites
-    const serverAction = action === ServerAction.ADD_SITES_TO_USER ? Action.ASSIGN_SITES_TO_USER : Action.UNASSIGN_SITES_FROM_USER;
-    const sites = await UtilsService.checkAndGetUserSitesAuthorization(req.tenant, req.user, user, filteredRequest.siteIDs, action);
+    const serverAction =
+      action === ServerAction.ADD_SITES_TO_USER
+        ? Action.ASSIGN_SITES_TO_USER
+        : Action.UNASSIGN_SITES_FROM_USER;
+    const sites = await UtilsService.checkAndGetUserSitesAuthorization(
+      req.tenant,
+      req.user,
+      user,
+      filteredRequest.siteIDs,
+      action
+    );
     // Save
     for (const site of sites) {
       const authorized = AuthorizationService.canPerformAction(site, serverAction);
@@ -210,43 +371,70 @@ export default class UserService {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
-          action: serverAction, entity: Entity.USER_SITE,
-          module: MODULE_NAME, method: 'handleAssignSitesToUser',
-          value: site.id
+          action: serverAction,
+          entity: Entity.USER_SITE,
+          module: MODULE_NAME,
+          method: 'handleAssignSitesToUser',
+          value: site.id,
         });
       }
     }
     if (action === ServerAction.ADD_SITES_TO_USER) {
-      await UserStorage.addSitesToUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
+      await UserStorage.addSitesToUser(
+        req.tenant,
+        filteredRequest.userID,
+        sites.map((site) => site.id)
+      );
     } else {
-      await UserStorage.removeSitesFromUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
+      await UserStorage.removeSitesFromUser(
+        req.tenant,
+        filteredRequest.userID,
+        sites.map((site) => site.id)
+      );
     }
     await Logging.logInfo({
       tenantID: req.tenant.id,
       user: req.user,
       module: MODULE_NAME,
       method: 'handleAssignSitesToUser',
-      message: 'User\'s Sites have been assigned successfully', action: action
+      message: "User's Sites have been assigned successfully",
+      action: action,
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  public static async handleDeleteUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteUser(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Filter
     const userID = UserValidatorRest.getInstance().validateUserDeleteReq(req.query).ID.toString();
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, userID, Action.DELETE, action, null, {}, false);
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant,
+      req.user,
+      userID,
+      Action.DELETE,
+      action,
+      null,
+      {},
+      false
+    );
     // Delete OCPI User
     if (!user.issuer) {
       // Delete User
       await UserStorage.deleteUser(req.tenant, user.id);
       await Logging.logInfo({
         tenantID: req.tenant.id,
-        user: req.user, actionOnUser: user,
-        module: MODULE_NAME, method: 'handleDeleteUser',
+        user: req.user,
+        actionOnUser: user,
+        module: MODULE_NAME,
+        method: 'handleDeleteUser',
         message: `User with ID '${user.id}' has been deleted successfully`,
-        action: action
+        action: action,
       });
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
@@ -263,21 +451,35 @@ export default class UserService {
     // Log
     await Logging.logInfo({
       tenantID: req.tenant.id,
-      user: req.user, actionOnUser: user,
-      module: MODULE_NAME, method: 'handleDeleteUser',
+      user: req.user,
+      actionOnUser: user,
+      module: MODULE_NAME,
+      method: 'handleDeleteUser',
       message: `User with ID '${user.id}' has been deleted successfully`,
-      action: action
+      action: action,
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateUser(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     let statusHasChanged = false;
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUserUpdateReq(req.body);
     // Check and Get User
-    let user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
+    let user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant,
+      req.user,
+      filteredRequest.id,
+      Action.UPDATE,
+      action,
+      filteredRequest
+    );
     // Check email already exists
     if (filteredRequest.email) {
       const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
@@ -285,9 +487,10 @@ export default class UserService {
         throw new AppError({
           errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
           message: `Email '${filteredRequest.email}' already exists`,
-          module: MODULE_NAME, method: 'handleUpdateUser',
+          module: MODULE_NAME,
+          method: 'handleUpdateUser',
           user: req.user,
-          action: action
+          action: action,
         });
       }
     }
@@ -313,37 +516,38 @@ export default class UserService {
     if (filteredRequest.password) {
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
-      await UserStorage.saveUserPassword(req.tenant, filteredRequest.id,
-        {
-          password: newPasswordHashed,
-          passwordWrongNbrTrials: 0,
-          passwordResetHash: null,
-          passwordBlockedUntil: null
-        });
+      await UserStorage.saveUserPassword(req.tenant, filteredRequest.id, {
+        password: newPasswordHashed,
+        passwordWrongNbrTrials: 0,
+        passwordResetHash: null,
+        passwordBlockedUntil: null,
+      });
     }
     // Update User Admin Data
     await UserService.updateUserAdminData(req.tenant, user, user.projectFields);
     // Update Billing
-    await UserService.syncUserAndUpdateBillingData(ServerAction.USER_UPDATE, req.tenant, req.user, user);
+    await UserService.syncUserAndUpdateBillingData(
+      ServerAction.USER_UPDATE,
+      req.tenant,
+      req.user,
+      user
+    );
     // Log
     await Logging.logInfo({
       tenantID: req.tenant.id,
-      user: req.user, actionOnUser: user,
-      module: MODULE_NAME, method: 'handleUpdateUser',
+      user: req.user,
+      actionOnUser: user,
+      module: MODULE_NAME,
+      method: 'handleUpdateUser',
       message: 'User has been updated successfully',
-      action: action
+      action: action,
     });
     if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
       // Notify
-      NotificationHandler.sendUserAccountStatusChanged(
-        req.tenant,
-        Utils.generateUUID(),
+      NotificationHandler.sendUserAccountStatusChanged(req.tenant, Utils.generateUUID(), user, {
         user,
-        {
-          user,
-          evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain)
-        }
-      ).catch((error) => {
+        evseDashboardURL: Utils.buildEvseURL(req.tenant.subdomain),
+      }).catch((error) => {
         Logging.logPromiseError(error, req?.tenant?.id);
       });
     }
@@ -351,12 +555,25 @@ export default class UserService {
     next();
   }
 
-  public static async handleUpdateUserMobileData(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateUserMobileData(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Filter
-    const filteredRequest = UserValidatorRest.getInstance().validateUserMobileDataUpdateReq({ ...req.params, ...req.body });
+    const filteredRequest = UserValidatorRest.getInstance().validateUserMobileDataUpdateReq({
+      ...req.params,
+      ...req.body,
+    });
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
+      req.tenant,
+      req.user,
+      filteredRequest.id,
+      Action.UPDATE,
+      action
+    );
     // Update User
     await UserStorage.saveUserMobileData(req.tenant, user.id, {
       mobileToken: filteredRequest.mobileToken,
@@ -364,40 +581,71 @@ export default class UserService {
       mobileBundleID: filteredRequest.mobileBundleID,
       mobileAppName: filteredRequest.mobileAppName,
       mobileVersion: filteredRequest.mobileVersion,
-      mobileLastChangedOn: new Date()
+      mobileLastChangedOn: new Date(),
     });
     await Logging.logInfo({
       tenantID: req.tenant.id,
       user: user,
-      module: MODULE_NAME, method: 'handleUpdateUserMobileData',
-      message: 'User\'s mobile data has been updated successfully',
+      module: MODULE_NAME,
+      method: 'handleUpdateUserMobileData',
+      message: "User's mobile data has been updated successfully",
       action: action,
       detailedMessages: {
         mobileData: filteredRequest,
-      }
+      },
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUser(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUserGetReq(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
+    UtilsService.assertIdIsProvided(
+      action,
+      filteredRequest.ID,
+      MODULE_NAME,
+      'handleGetUser',
+      req.user
+    );
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, null, {
-        withImage: true
-      }, true);
+      req.tenant,
+      req.user,
+      filteredRequest.ID.toString(),
+      Action.READ,
+      action,
+      null,
+      {
+        withImage: true,
+      },
+      true
+    );
     res.json(user);
     next();
   }
 
-  public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUserImage(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Filter
     const userID = UserValidatorRest.getInstance().validateUserGetReq(req.query).ID.toString();
     // Check and Get User
-    const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, userID, Action.READ, action);
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant,
+      req.user,
+      userID,
+      Action.READ,
+      action
+    );
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.tenant, user.id);
     let image = userImage?.image;
@@ -418,7 +666,12 @@ export default class UserService {
     next();
   }
 
-  public static async handleExportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleExportUsers(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Check auth
     await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, Action.EXPORT);
     // Force params
@@ -426,45 +679,76 @@ export default class UserService {
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUsersGetReq(req.query);
     // Get Users
-    await UtilsService.exportToCSV(req, res, 'exported-users.csv', filteredRequest,
+    await UtilsService.exportToCSV(
+      req,
+      res,
+      'exported-users.csv',
+      filteredRequest,
       UserService.getUsers.bind(this),
-      UserService.convertToCSV.bind(this));
+      UserService.convertToCSV.bind(this)
+    );
   }
 
-  public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
+  public static async handleGetSites(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user,
+      TenantComponents.ORGANIZATION,
+      Action.UPDATE,
+      Entity.USER,
+      MODULE_NAME,
+      'handleGetSites'
+    );
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUserSitesGetReq(req.query);
     // Check dynamic auth for listing user sites
-    const authorizations = await AuthorizationService.checkAndGetUserSitesAuthorizations(req.tenant,
-      req.user, filteredRequest, false);
+    const authorizations = await AuthorizationService.checkAndGetUserSitesAuthorizations(
+      req.tenant,
+      req.user,
+      filteredRequest,
+      false
+    );
     if (!authorizations.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
     // Get Sites
-    const userSites = await UserStorage.getUserSites(req.tenant,
+    const userSites = await UserStorage.getUserSites(
+      req.tenant,
       {
         search: filteredRequest.Search,
         userIDs: [filteredRequest.UserID],
-        ...authorizations.filters
+        ...authorizations.filters,
       },
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
-        onlyRecordCount: filteredRequest.OnlyRecordCount
+        onlyRecordCount: filteredRequest.OnlyRecordCount,
       },
       authorizations.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUserSitesAuthorizations(req.tenant, req.user, userSites as UserSiteDataResult , authorizations);
+    await AuthorizationService.addUserSitesAuthorizations(
+      req.tenant,
+      req.user,
+      userSites as UserSiteDataResult,
+      authorizations
+    );
     res.json(userSites);
     next();
   }
 
-  public static async handleGetUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsers(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUsersGetReq(req.query);
     // Get Users
@@ -472,36 +756,59 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsersInError(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUsersInErrorGetReq(req.query);
     // Get authorization filters
-    const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(req.tenant, req.user, filteredRequest);
+    const authorizationUserInErrorFilters =
+      await AuthorizationService.checkAndGetUsersInErrorAuthorizations(
+        req.tenant,
+        req.user,
+        filteredRequest
+      );
     // Get users
-    const users = await UserStorage.getUsersInError(req.tenant,
+    const users = await UserStorage.getUsersInError(
+      req.tenant,
       {
         search: filteredRequest.Search,
-        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : Object.values(UserInErrorType)),
-        ...authorizationUserInErrorFilters.filters
+        roles: filteredRequest.Role ? filteredRequest.Role.split('|') : null,
+        errorTypes: filteredRequest.ErrorType
+          ? filteredRequest.ErrorType.split('|')
+          : Object.values(UserInErrorType),
+        ...authorizationUserInErrorFilters.filters,
       },
       {
         limit: filteredRequest.Limit,
         onlyRecordCount: filteredRequest.OnlyRecordCount,
         skip: filteredRequest.Skip,
-        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields)
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
       },
       authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
     if (filteredRequest.WithAuth) {
-      await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUserInErrorFilters);
+      await AuthorizationService.addUsersAuthorizations(
+        req.tenant,
+        req.user,
+        users as UserDataResult,
+        authorizationUserInErrorFilters
+      );
     }
     res.json(users);
     next();
   }
 
-  public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleImportUsers(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, Action.IMPORT);
     // Acquire the lock
     const importUsersLock = await LockingHelper.acquireImportUsersLock(req.tenant.id);
@@ -509,9 +816,10 @@ export default class UserService {
       throw new AppError({
         action: action,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
-        module: MODULE_NAME, method: 'handleImportUsers',
+        module: MODULE_NAME,
+        method: 'handleImportUsers',
         message: 'Error in importing the Users: cannot acquire the lock',
-        user: req.user
+        user: req.user,
       });
     }
     // Default values for User import
@@ -521,7 +829,7 @@ export default class UserService {
     const startTime = new Date().getTime();
     const result: ActionsResponse = {
       inSuccess: 0,
-      inError: 0
+      inError: 0,
     };
     try {
       // Delete all previously imported users
@@ -548,94 +856,136 @@ export default class UserService {
               delimiter: Constants.CSV_SEPARATOR,
               output: 'json',
             });
-            void converter.subscribe(async (user: ImportedUser) => {
-              // Check connection
-              if (connectionClosed) {
-                reject(new Error('HTTP connection has been closed'));
-              }
-              // Check the format of the first entry
-              if (!result.inSuccess && !result.inError) {
-                // Check header
-                const userKeys = Object.keys(user);
-                if (!UserRequiredImportProperties.every((property) => userKeys.includes(property))) {
-                  if (!res.headersSent) {
-                    res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
-                    res.end();
-                    resolve();
-                  }
-                  reject(new Error(`Missing one of required properties: '${UserRequiredImportProperties.join(', ')}'`));
+            void converter.subscribe(
+              async (user: ImportedUser) => {
+                // Check connection
+                if (connectionClosed) {
+                  reject(new Error('HTTP connection has been closed'));
                 }
-              }
-              // Set default value
-              user.importedBy = importedBy;
-              user.importedOn = importedOn;
-              user.importedData = {
-                'autoActivateUserAtImport': UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport)
-              };
-              // Import
-              const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
-              if (!importSuccess) {
-                result.inError++;
-              }
-              // Insert batched
-              if (!Utils.isEmptyArray(usersToBeImported) && (usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-                await UserService.insertUsers(req.tenant, req.user, action, usersToBeImported, result);
-              }
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            }, async (error: CSVError) => {
-              // Release the lock
-              await LockingManager.release(importUsersLock);
-              // Log
-              await Logging.logError({
-                tenantID: req.tenant.id,
-                module: MODULE_NAME, method: 'handleImportUsers',
-                action: action,
-                user: req.user.id,
-                message: `Exception while parsing the CSV '${fileInfo.filename}': ${error.message}`,
-                detailedMessages: { error: error.stack }
-              });
-              if (!res.headersSent) {
-                res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-                res.end();
+                // Check the format of the first entry
+                if (!result.inSuccess && !result.inError) {
+                  // Check header
+                  const userKeys = Object.keys(user);
+                  if (
+                    !UserRequiredImportProperties.every((property) => userKeys.includes(property))
+                  ) {
+                    if (!res.headersSent) {
+                      res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
+                      res.end();
+                      resolve();
+                    }
+                    reject(
+                      new Error(
+                        `Missing one of required properties: '${UserRequiredImportProperties.join(
+                          ', '
+                        )}'`
+                      )
+                    );
+                  }
+                }
+                // Set default value
+                user.importedBy = importedBy;
+                user.importedOn = importedOn;
+                user.importedData = {
+                  autoActivateUserAtImport: UtilsSecurity.filterBoolean(
+                    req.headers.autoactivateuseratimport
+                  ),
+                };
+                // Import
+                const importSuccess = await UserService.processUser(
+                  action,
+                  req,
+                  user,
+                  usersToBeImported
+                );
+                if (!importSuccess) {
+                  result.inError++;
+                }
+                // Insert batched
+                if (
+                  !Utils.isEmptyArray(usersToBeImported) &&
+                  usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE === 0
+                ) {
+                  await UserService.insertUsers(
+                    req.tenant,
+                    req.user,
+                    action,
+                    usersToBeImported,
+                    result
+                  );
+                }
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              },
+              async (error: CSVError) => {
+                // Release the lock
+                await LockingManager.release(importUsersLock);
+                // Log
+                await Logging.logError({
+                  tenantID: req.tenant.id,
+                  module: MODULE_NAME,
+                  method: 'handleImportUsers',
+                  action: action,
+                  user: req.user.id,
+                  message: `Exception while parsing the CSV '${fileInfo.filename}': ${error.message}`,
+                  detailedMessages: { error: error.stack },
+                });
+                if (!res.headersSent) {
+                  res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+                  res.end();
+                  resolve();
+                }
+                // Completed
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              },
+              async () => {
+                // Consider the connection closed
+                connectionClosed = true;
+                // Insert batched
+                if (usersToBeImported.length > 0) {
+                  await UserService.insertUsers(
+                    req.tenant,
+                    req.user,
+                    action,
+                    usersToBeImported,
+                    result
+                  );
+                }
+                // Release the lock
+                await LockingManager.release(importUsersLock);
+                // Log
+                const executionDurationSecs = Utils.truncTo(
+                  (new Date().getTime() - startTime) / 1000,
+                  2
+                );
+                await Logging.logActionsResponse(
+                  req.tenant.id,
+                  action,
+                  MODULE_NAME,
+                  'handleImportUsers',
+                  result,
+                  `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
+                  `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
+                  `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
+                  `No User have been uploaded in ${executionDurationSecs}s`,
+                  req.user
+                );
+                // Create and Save async task
+                await AsyncTaskBuilder.createAndSaveAsyncTasks({
+                  name: AsyncTasks.USERS_IMPORT,
+                  action: ServerAction.USERS_IMPORT,
+                  type: AsyncTaskType.TASK,
+                  tenantID: req.tenant.id,
+                  module: MODULE_NAME,
+                  method: 'handleImportUsers',
+                });
+                // Respond
+                if (!res.headersSent) {
+                  res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+                }
+                next();
                 resolve();
               }
-            // Completed
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            }, async () => {
-              // Consider the connection closed
-              connectionClosed = true;
-              // Insert batched
-              if (usersToBeImported.length > 0) {
-                await UserService.insertUsers(req.tenant, req.user, action, usersToBeImported, result);
-              }
-              // Release the lock
-              await LockingManager.release(importUsersLock);
-              // Log
-              const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
-              await Logging.logActionsResponse(
-                req.tenant.id, action,
-                MODULE_NAME, 'handleImportUsers', result,
-                `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
-                `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
-                `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
-                `No User have been uploaded in ${executionDurationSecs}s`, req.user
-              );
-              // Create and Save async task
-              await AsyncTaskBuilder.createAndSaveAsyncTasks({
-                name: AsyncTasks.USERS_IMPORT,
-                action: ServerAction.USERS_IMPORT,
-                type: AsyncTaskType.TASK,
-                tenantID: req.tenant.id,
-                module: MODULE_NAME,
-                method: 'handleImportUsers',
-              });
-              // Respond
-              if (!res.headersSent) {
-                res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
-              }
-              next();
-              resolve();
-            });
+            );
             // Start processing the file
             void fileStream.pipe(converter);
           } else if (fileInfo.mimeType === 'application/json') {
@@ -647,13 +997,24 @@ export default class UserService {
               user.importedBy = importedBy;
               user.importedOn = importedOn;
               // Import
-              const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
+              const importSuccess = await UserService.processUser(
+                action,
+                req,
+                user,
+                usersToBeImported
+              );
               if (!importSuccess) {
                 result.inError++;
               }
               // Insert batched
-              if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-                await UserService.insertUsers(req.tenant, req.user, action, usersToBeImported, result);
+              if (usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE === 0) {
+                await UserService.insertUsers(
+                  req.tenant,
+                  req.user,
+                  action,
+                  usersToBeImported,
+                  result
+                );
               }
             });
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -663,11 +1024,12 @@ export default class UserService {
               // Log
               await Logging.logError({
                 tenantID: req.tenant.id,
-                module: MODULE_NAME, method: 'handleImportUsers',
+                module: MODULE_NAME,
+                method: 'handleImportUsers',
                 action: action,
                 user: req.user.id,
                 message: `Invalid Json file '${fileInfo.filename}'`,
-                detailedMessages: { error: error.stack }
+                detailedMessages: { error: error.stack },
               });
               if (!res.headersSent) {
                 res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -682,10 +1044,11 @@ export default class UserService {
             // Log
             await Logging.logError({
               tenantID: req.tenant.id,
-              module: MODULE_NAME, method: 'handleImportUsers',
+              module: MODULE_NAME,
+              method: 'handleImportUsers',
               action: action,
               user: req.user.id,
-              message: `Invalid file format '${fileInfo.mimeType}'`
+              message: `Invalid file format '${fileInfo.mimeType}'`,
             });
             if (!res.headersSent) {
               res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -700,23 +1063,34 @@ export default class UserService {
     }
   }
 
-  public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateUser(
+    action: ServerAction,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     // Filter
     const filteredRequest = UserValidatorRest.getInstance().validateUserCreateReq(req.body);
     // Check Mandatory fields
     UtilsService.checkIfUserValid(filteredRequest, null, req);
     // Get dynamic auth
     const authorizations = await AuthorizationService.checkAndGetUserAuthorizations(
-      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
+      req.tenant,
+      req.user,
+      {},
+      Action.CREATE,
+      filteredRequest
+    );
     // Get the email
     const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     if (foundUser) {
       throw new AppError({
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
-        module: MODULE_NAME, method: 'handleCreateUser',
+        module: MODULE_NAME,
+        method: 'handleCreateUser',
         user: req.user,
-        action: action
+        action: action,
       });
     }
     // Create
@@ -733,33 +1107,45 @@ export default class UserService {
     // Save password
     if (newUser.password) {
       const newPasswordHashed = await Utils.hashPasswordBcrypt(newUser.password);
-      await UserStorage.saveUserPassword(req.tenant, newUser.id,
-        {
-          password: newPasswordHashed,
-          passwordWrongNbrTrials: 0,
-          passwordResetHash: null,
-          passwordBlockedUntil: null
-        });
+      await UserStorage.saveUserPassword(req.tenant, newUser.id, {
+        password: newPasswordHashed,
+        passwordWrongNbrTrials: 0,
+        passwordResetHash: null,
+        passwordBlockedUntil: null,
+      });
     }
     // Update User Admin Data
     await UserService.updateUserAdminData(req.tenant, newUser, authorizations.projectFields);
     // Assign Site to new User
     await UtilsService.assignCreatedUserToSites(req.tenant, newUser, authorizations);
     // Update Billing
-    await UserService.syncUserAndUpdateBillingData(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
+    await UserService.syncUserAndUpdateBillingData(
+      ServerAction.USER_CREATE,
+      req.tenant,
+      req.user,
+      newUser
+    );
     // Log
     await Logging.logInfo({
       tenantID: req.tenant.id,
-      user: req.user, actionOnUser: req.user,
-      module: MODULE_NAME, method: 'handleCreateUser',
+      user: req.user,
+      actionOnUser: req.user,
+      module: MODULE_NAME,
+      method: 'handleCreateUser',
       message: `User with ID '${newUser.id}' has been created successfully`,
-      action: action
+      action: action,
     });
     res.json(Object.assign({ id: newUser.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
-  private static async insertUsers(tenant: Tenant, user: UserToken, action: ServerAction, usersToBeImported: ImportedUser[], result: ActionsResponse): Promise<void> {
+  private static async insertUsers(
+    tenant: Tenant,
+    user: UserToken,
+    action: ServerAction,
+    usersToBeImported: ImportedUser[],
+    result: ActionsResponse
+  ): Promise<void> {
     try {
       const nbrInsertedUsers = await UserStorage.saveImportedUsers(tenant, usersToBeImported);
       result.inSuccess += nbrInsertedUsers;
@@ -769,11 +1155,12 @@ export default class UserService {
       result.inError += error.writeErrors.length;
       await Logging.logError({
         tenantID: tenant.id,
-        module: MODULE_NAME, method: 'insertUsers',
+        module: MODULE_NAME,
+        method: 'insertUsers',
         action: action,
         user: user.id,
         message: `Cannot import ${error.writeErrors.length as number} users!`,
-        detailedMessages: { error: error.stack, tagsError: error.writeErrors }
+        detailedMessages: { error: error.stack, tagsError: error.writeErrors },
       });
     }
     usersToBeImported.length = 0;
@@ -798,59 +1185,81 @@ export default class UserService {
       ].join(Constants.CSV_SEPARATOR);
     }
     // Content
-    const rows = users.map((user) => {
-      const row = [
-        user.id,
-        user.name,
-        user.firstName,
-        user.locale,
-        user.role,
-        user.status,
-        user.email,
-        moment(user.eulaAcceptedOn).format('YYYY-MM-DD'),
-        moment(user.createdOn).format('YYYY-MM-DD'),
-        moment(user.lastChangedOn).format('YYYY-MM-DD'),
-        (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
-      ].map((value) => Utils.escapeCsvValue(value));
-      return row;
-    }).join(Constants.CR_LF);
-    return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
+    const rows = users
+      .map((user) => {
+        const row = [
+          user.id,
+          user.name,
+          user.firstName,
+          user.locale,
+          user.role,
+          user.status,
+          user.email,
+          moment(user.eulaAcceptedOn).format('YYYY-MM-DD'),
+          moment(user.createdOn).format('YYYY-MM-DD'),
+          moment(user.lastChangedOn).format('YYYY-MM-DD'),
+          user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '',
+        ].map((value) => Utils.escapeCsvValue(value));
+        return row;
+      })
+      .join(Constants.CR_LF);
+    return Utils.isNullOrUndefined(headers)
+      ? Constants.CR_LF + rows
+      : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getUsers(req: Request, filteredRequest: HttpUsersGetRequest): Promise<DataResult<User>> {
+  private static async getUsers(
+    req: Request,
+    filteredRequest: HttpUsersGetRequest
+  ): Promise<DataResult<User>> {
     // Get authorization filters
-    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(req.tenant, req.user, Action.LIST, filteredRequest);
+    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(
+      req.tenant,
+      req.user,
+      Action.LIST,
+      filteredRequest
+    );
     // Optimization: Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
-      await AuthorizationService.checkAndGetTagsAuthorizations(req.tenant, req.user, filteredRequest);
-      const tagIDs = await TagStorage.getTags(req.tenant, {
-        visualIDs: filteredRequest.VisualTagID.split('|'),
-        ...authorizationUsersFilters.filters
-      }, Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
+      await AuthorizationService.checkAndGetTagsAuthorizations(
+        req.tenant,
+        req.user,
+        filteredRequest
+      );
+      const tagIDs = await TagStorage.getTags(
+        req.tenant,
+        {
+          visualIDs: filteredRequest.VisualTagID.split('|'),
+          ...authorizationUsersFilters.filters,
+        },
+        Constants.DB_PARAMS_MAX_LIMIT,
+        ['userID']
+      );
       if (!Utils.isEmptyArray(tagIDs.result)) {
         const userIDs = _.uniq(tagIDs.result.map((tag) => tag.userID));
         filteredRequest.UserID = userIDs.join('|');
       }
     }
     // Get users
-    const users = await UserStorage.getUsers(req.tenant,
+    const users = await UserStorage.getUsers(
+      req.tenant,
       {
         search: filteredRequest.Search,
         issuer: Utils.isBoolean(filteredRequest.Issuer) ? filteredRequest.Issuer : null,
-        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
-        userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
-        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
+        siteIDs: filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null,
+        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+        roles: filteredRequest.Role ? filteredRequest.Role.split('|') : null,
+        statuses: filteredRequest.Status ? filteredRequest.Status.split('|') : null,
         technical: Utils.isBoolean(filteredRequest.Technical) ? filteredRequest.Technical : null,
         freeAccess: Utils.isBoolean(filteredRequest.FreeAccess) ? filteredRequest.FreeAccess : null,
         excludeSiteID: filteredRequest.ExcludeSiteID,
-        ...authorizationUsersFilters.filters
+        ...authorizationUsersFilters.filters,
       },
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
         sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
-        onlyRecordCount: filteredRequest.OnlyRecordCount
+        onlyRecordCount: filteredRequest.OnlyRecordCount,
       },
       authorizationUsersFilters.projectFields
     );
@@ -860,19 +1269,29 @@ export default class UserService {
     }
     // Add Auth flags
     if (filteredRequest.WithAuth) {
-      await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUsersFilters);
+      await AuthorizationService.addUsersAuthorizations(
+        req.tenant,
+        req.user,
+        users as UserDataResult,
+        authorizationUsersFilters
+      );
     }
     return users;
   }
 
-  private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
+  private static async processUser(
+    action: ServerAction,
+    req: Request,
+    importedUser: ImportedUser,
+    usersToBeImported: ImportedUser[]
+  ): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
         name: importedUser.name.toUpperCase(),
         firstName: importedUser.firstName,
         email: importedUser.email,
         importedData: importedUser.importedData,
-        siteIDs: importedUser.siteIDs
+        siteIDs: importedUser.siteIDs,
       };
       // Validate User data
       UserValidatorRest.getInstance().validateUserImportCreateReq(newImportedUser);
@@ -886,23 +1305,28 @@ export default class UserService {
     } catch (error) {
       await Logging.logError({
         tenantID: req.tenant.id,
-        module: MODULE_NAME, method: 'importUser',
+        module: MODULE_NAME,
+        method: 'importUser',
         action: action,
         message: 'User cannot be imported',
-        detailedMessages: { user: importedUser, error: error.stack }
+        detailedMessages: { user: importedUser, error: error.stack },
       });
       return false;
     }
   }
 
-  private static async checkBillingErrorCodes(action: ServerAction, tenant: Tenant,
-      loggedUser: UserToken, user: User, errorCodes: StartTransactionErrorCode[]) {
+  private static async checkBillingErrorCodes(
+    action: ServerAction,
+    tenant: Tenant,
+    loggedUser: UserToken,
+    user: User,
+    errorCodes: StartTransactionErrorCode[]
+  ) {
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(tenant);
         if (billingImpl) {
-          errorCodes.push(
-            ...await billingImpl.precheckStartTransactionPrerequisites(user));
+          errorCodes.push(...(await billingImpl.precheckStartTransactionPrerequisites(user)));
         }
       } catch (error) {
         await Logging.logError({
@@ -911,7 +1335,7 @@ export default class UserService {
           method: 'checkBillingErrorCodes',
           action: action,
           message: `Start Transaction checks failed for ${user.id}`,
-          detailedMessages: { error: error.stack }
+          detailedMessages: { error: error.stack },
         });
         // Billing module is ON but the settings are not set or inconsistent
         errorCodes.push(StartTransactionErrorCode.BILLING_INCONSISTENT_SETTINGS);
@@ -919,7 +1343,11 @@ export default class UserService {
     }
   }
 
-  private static async checkAndDeleteUserBilling(tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
+  private static async checkAndDeleteUserBilling(
+    tenant: Tenant,
+    loggedUser: UserToken,
+    user: User
+  ): Promise<void> {
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(tenant);
@@ -930,8 +1358,10 @@ export default class UserService {
               action: ServerAction.USER_DELETE,
               errorCode: HTTPError.BILLING_DELETE_ERROR,
               message: 'User cannot be deleted due to billing constraints',
-              module: MODULE_NAME, method: 'checkAndDeleteUserBilling',
-              user: loggedUser, actionOnUser: user
+              module: MODULE_NAME,
+              method: 'checkAndDeleteUserBilling',
+              user: loggedUser,
+              actionOnUser: user,
             });
           }
           await billingImpl.deleteUser(user);
@@ -941,23 +1371,37 @@ export default class UserService {
           action: ServerAction.USER_DELETE,
           errorCode: HTTPError.BILLING_DELETE_ERROR,
           message: 'Error occurred in billing system',
-          module: MODULE_NAME, method: 'checkAndDeleteUserBilling',
-          user: loggedUser, actionOnUser: user,
-          detailedMessages: { error: error.stack }
+          module: MODULE_NAME,
+          method: 'checkAndDeleteUserBilling',
+          user: loggedUser,
+          actionOnUser: user,
+          detailedMessages: { error: error.stack },
         });
       }
     }
   }
 
-  private static async checkAndDeleteUserRoaming(tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
+  private static async checkAndDeleteUserRoaming(
+    tenant: Tenant,
+    loggedUser: UserToken,
+    user: User
+  ): Promise<void> {
     // Synchronize badges with IOP (eMSP)
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
       try {
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        const ocpiClient: EmspOCPIClient = (await OCPIClientFactory.getAvailableOcpiClient(
+          tenant,
+          OCPIRole.EMSP
+        )) as EmspOCPIClient;
         if (ocpiClient) {
           // Get tags
-          const tags = (await TagStorage.getTags(tenant,
-            { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
+          const tags = (
+            await TagStorage.getTags(
+              tenant,
+              { userIDs: [user.id], withNbrTransactions: true },
+              Constants.DB_PARAMS_MAX_LIMIT
+            )
+          ).result;
           for (const tag of tags) {
             await ocpiClient.pushToken({
               uid: tag.id,
@@ -967,7 +1411,7 @@ export default class UserService {
               issuer: tenant.name,
               valid: false,
               whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-              last_updated: new Date()
+              last_updated: new Date(),
             });
           }
         }
@@ -978,7 +1422,7 @@ export default class UserService {
           method: 'checkAndDeleteUserOCPI',
           action: ServerAction.USER_DELETE,
           message: `Unable to disable tokens of user ${user.id} with IOP`,
-          detailedMessages: { error: error.stack }
+          detailedMessages: { error: error.stack },
         });
       }
     }
@@ -987,7 +1431,11 @@ export default class UserService {
   private static async checkAndDeleteCar(tenant: Tenant, loggedUser: UserToken, user: User) {
     // Delete cars
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.CAR)) {
-      const cars = await CarStorage.getCars(tenant, { userIDs: [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+      const cars = await CarStorage.getCars(
+        tenant,
+        { userIDs: [user.id] },
+        Constants.DB_PARAMS_MAX_LIMIT
+      );
       if (!Utils.isEmptyArray(cars.result)) {
         for (const car of cars.result) {
           // Delete private Car
@@ -1005,7 +1453,12 @@ export default class UserService {
     }
   }
 
-  private static async syncUserAndUpdateBillingData(action: ServerAction, tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
+  private static async syncUserAndUpdateBillingData(
+    action: ServerAction,
+    tenant: Tenant,
+    loggedUser: UserToken,
+    user: User
+  ): Promise<void> {
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
       const billingImpl = await BillingFactory.getBillingImpl(tenant);
       if (billingImpl) {
@@ -1014,11 +1467,14 @@ export default class UserService {
           await billingImpl.synchronizeUser(user);
         } catch (error) {
           await Logging.logError({
-            tenantID: tenant.id, action,
-            module: MODULE_NAME, method: 'syncUserAndUpdateBillingData',
-            user: loggedUser, actionOnUser: user,
+            tenantID: tenant.id,
+            action,
+            module: MODULE_NAME,
+            method: 'syncUserAndUpdateBillingData',
+            user: loggedUser,
+            actionOnUser: user,
             message: 'User cannot be updated in billing system',
-            detailedMessages: { error: error.stack }
+            detailedMessages: { error: error.stack },
           });
         }
       }
@@ -1027,13 +1483,11 @@ export default class UserService {
 
   private static async updateUserAdminData(tenant: Tenant, user: User, projectFields: string[]) {
     // Save User Status
-    if (Utils.objectHasProperty(user, 'status') &&
-        projectFields.includes('status')) {
+    if (Utils.objectHasProperty(user, 'status') && projectFields.includes('status')) {
       await UserStorage.saveUserStatus(tenant, user.id, user.status);
     }
     // Save User Role
-    if (Utils.objectHasProperty(user, 'role') &&
-        projectFields.includes('role')) {
+    if (Utils.objectHasProperty(user, 'role') && projectFields.includes('role')) {
       await UserStorage.saveUserRole(tenant, user.id, user.role);
       // Check Admin
       if (user.role === UserRole.ADMIN) {
@@ -1041,25 +1495,32 @@ export default class UserService {
       }
     }
     // Save Admin Data
-    if (projectFields.includes('plateID') ||
-        projectFields.includes('technical') ||
-        projectFields.includes('notificationsActive') ||
-        projectFields.includes('freeAccess')) {
-      const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, freeAccess?: boolean } = {};
-      if (Utils.objectHasProperty(user, 'plateID') &&
-          projectFields.includes('plateID')) {
+    if (
+      projectFields.includes('plateID') ||
+      projectFields.includes('technical') ||
+      projectFields.includes('notificationsActive') ||
+      projectFields.includes('freeAccess')
+    ) {
+      const adminData: {
+        plateID?: string;
+        notificationsActive?: boolean;
+        notifications?: UserNotifications;
+        technical?: boolean;
+        freeAccess?: boolean;
+      } = {};
+      if (Utils.objectHasProperty(user, 'plateID') && projectFields.includes('plateID')) {
         adminData.plateID = user.plateID || null;
       }
-      if (Utils.objectHasProperty(user, 'technical') &&
-          projectFields.includes('technical')) {
+      if (Utils.objectHasProperty(user, 'technical') && projectFields.includes('technical')) {
         adminData.technical = user.technical;
       }
-      if (Utils.objectHasProperty(user, 'freeAccess') &&
-          projectFields.includes('freeAccess')) {
+      if (Utils.objectHasProperty(user, 'freeAccess') && projectFields.includes('freeAccess')) {
         adminData.freeAccess = user.freeAccess;
       }
-      if (Utils.objectHasProperty(user, 'notificationsActive') &&
-          projectFields.includes('notificationsActive')) {
+      if (
+        Utils.objectHasProperty(user, 'notificationsActive') &&
+        projectFields.includes('notificationsActive')
+      ) {
         adminData.notificationsActive = user.notificationsActive;
         if (user.notifications) {
           adminData.notifications = user.notifications;

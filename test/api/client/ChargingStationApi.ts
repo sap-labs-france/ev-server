@@ -17,16 +17,37 @@ export default class ChargingStationApi extends CrudApi {
     return super.read({}, `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS}/${id}`);
   }
 
-  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS}`);
+  public async readAll(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS}`
+    );
   }
 
-  public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS_IN_ERROR}`);
+  public async readAllInError(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS_IN_ERROR}`
+    );
   }
 
   public async update(data) {
-    return super.update(data, `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS}/${data.id}/parameters`);
+    return super.update(
+      data,
+      `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS}/${data.id}/parameters`
+    );
   }
 
   public async delete(id) {
@@ -41,16 +62,33 @@ export default class ChargingStationApi extends CrudApi {
     return super.read({ Year: year }, '/client/api/ChargingStationUsageStatistics');
   }
 
-  public async readAllTransactions(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS}/${params.id}/transactions`);
+  public async readAllTransactions(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS}/${params.id}/transactions`
+    );
   }
 
   public async readAllYears(params) {
-    return super.readAll(params, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/TransactionYears');
+    return super.readAll(
+      params,
+      TestConstants.DEFAULT_PAGING,
+      TestConstants.DEFAULT_ORDERING,
+      '/client/api/TransactionYears'
+    );
   }
 
   public async remoteStartTransaction(data) {
-    return super.update(data, `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS}/${data.chargingStationID}/remote/start`);
+    return super.update(
+      data,
+      `/v1/api/${RESTServerRoute.REST_CHARGING_STATIONS}/${data.chargingStationID}/remote/start`
+    );
   }
 
   public async checkConnector(chargingStation, connectorId, connectorData) {

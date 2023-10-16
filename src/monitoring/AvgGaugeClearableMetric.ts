@@ -6,10 +6,15 @@ class AvgGaugeClearableMetric extends Clearable {
   protected gaugeMetricAvg: client.Gauge;
   protected metricCount = 0;
   protected metricAvg = 0;
-  protected registry :client.Registry;
-  private key : string;
+  protected registry: client.Registry;
+  private key: string;
 
-  public constructor(registry : client.Registry, key :string, metricHelp: string, labelNames: string[]) {
+  public constructor(
+    registry: client.Registry,
+    key: string,
+    metricHelp: string,
+    labelNames: string[]
+  ) {
     super();
     this.gaugeMetricAvg = new client.Gauge({
       name: key,

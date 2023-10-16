@@ -3,7 +3,6 @@ import { RESTServerRoute } from '../../../../src/types/Server';
 import TestConstants from './TestConstants';
 
 export default class CrudApi {
-
   protected _authenticatedApi: AuthenticatedBaseApi;
 
   public constructor(authenticatedApi: AuthenticatedBaseApi) {
@@ -22,11 +21,16 @@ export default class CrudApi {
     return this._authenticatedApi.send({
       method: 'GET',
       url: path,
-      params
+      params,
     });
   }
 
-  public async readAll(params = {}, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING, path): Promise<any> {
+  public async readAll(
+    params = {},
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING,
+    path
+  ): Promise<any> {
     // Build Paging
     this.buildPaging(paging, params);
     // Build Ordering
@@ -35,7 +39,7 @@ export default class CrudApi {
     return this._authenticatedApi.send({
       method: 'GET',
       url: path,
-      params: params
+      params: params,
     });
   }
 
@@ -60,8 +64,8 @@ export default class CrudApi {
       method: 'DELETE',
       url: path,
       params: {
-        ID: id
-      }
+        ID: id,
+      },
     });
   }
 
@@ -69,15 +73,22 @@ export default class CrudApi {
     return this._authenticatedApi.send({
       method: 'PATCH',
       url: path,
-      data
+      data,
     });
   }
 
-  protected buildUtilRestEndpointUrl(urlPatternAsString: RESTServerRoute, params: { [name: string]: string | number | null } = {}): string {
+  protected buildUtilRestEndpointUrl(
+    urlPatternAsString: RESTServerRoute,
+    params: { [name: string]: string | number | null } = {}
+  ): string {
     return this.buildRestEndpointUrl(urlPatternAsString, params, 'util');
   }
 
-  protected buildRestEndpointUrl(urlPatternAsString: RESTServerRoute, params: { [name: string]: string | number | null } = {}, urlPrefix = 'api'): string {
+  protected buildRestEndpointUrl(
+    urlPatternAsString: RESTServerRoute,
+    params: { [name: string]: string | number | null } = {},
+    urlPrefix = 'api'
+  ): string {
     let resolvedUrlPattern = urlPatternAsString as string;
     for (const key in params) {
       if (Object.prototype.hasOwnProperty.call(params, key)) {

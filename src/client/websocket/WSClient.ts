@@ -24,14 +24,14 @@ export default class WSClient {
 
   public constructor(url: string, options: WSClientOptions, dbLogging = true) {
     this.url = url;
-    this.options = options || {} as WSClientOptions;
+    this.options = options || ({} as WSClientOptions);
     this.callbacks = {
-      'onopen': () => { },
-      'onerror': () => { },
-      'onclose': () => { },
-      'onmessage': () => { },
-      'onreconnect': () => { },
-      'onmaximum': () => { }
+      onopen: () => {},
+      onerror: () => {},
+      onclose: () => {},
+      onmessage: () => {},
+      onreconnect: () => {},
+      onmaximum: () => {},
     };
     this.dbLogging = dbLogging;
     this.logTenantID = options.logTenantID ? options.logTenantID : Constants.DEFAULT_TENANT_ID;
@@ -62,7 +62,11 @@ export default class WSClient {
    * @param {Function} callback Callback which is executed when data is written out
    * @public
    */
-  public send(data, options?: { mask?: boolean; binary?: boolean; compress?: boolean; fin?: boolean }, callback?: (err?: Error) => void): void {
+  public send(
+    data,
+    options?: { mask?: boolean; binary?: boolean; compress?: boolean; fin?: boolean },
+    callback?: (err?: Error) => void
+  ): void {
     this.ws.send(data, options, callback);
   }
 
@@ -122,12 +126,11 @@ export default class WSClient {
     return this.ws?.readyState === WebSocket.OPEN;
   }
 
-  private onOpen() {
-  }
+  private onOpen() {}
 
   private reinstantiateCbs() {
     for (const method of ['onopen', 'onerror', 'onclose', 'onmessage']) {
-      if (this.callbacks[method].toString() !== (() => { }).toString()) {
+      if (this.callbacks[method].toString() !== (() => {}).toString()) {
         this.ws[method] = this.callbacks[method];
       }
     }
@@ -140,13 +143,17 @@ export default class WSClient {
         if (this.dbLogging) {
           void Logging.logError({
             tenantID: this.logTenantID,
-            module: MODULE_NAME, method: 'onError',
+            module: MODULE_NAME,
+            method: 'onError',
             action: ServerAction.WS_CLIENT_ERROR,
             message: `Connection refused to '${this.url}': ${error?.message as string}`,
-            detailedMessages: { error }
+            detailedMessages: { error },
           });
         } else {
-          !Utils.isProductionEnv() && Logging.logConsoleError(`WSClient connection refused to '${this.url}': ${error?.message as string}`);
+          !Utils.isProductionEnv() &&
+            Logging.logConsoleError(
+              `WSClient connection refused to '${this.url}': ${error?.message as string}`
+            );
         }
         break;
       default:
@@ -154,13 +161,17 @@ export default class WSClient {
         if (this.dbLogging) {
           void Logging.logError({
             tenantID: this.logTenantID,
-            module: MODULE_NAME, method: 'onError',
+            module: MODULE_NAME,
+            method: 'onError',
             action: ServerAction.WS_CLIENT_ERROR,
             message: `Connection error to '${this.url}': ${error?.message as string}`,
-            detailedMessages: { error: error.stack }
+            detailedMessages: { error: error.stack },
           });
         } else {
-          !Utils.isProductionEnv() && Logging.logConsoleError(`WSClient connection error to '${this.url}': ${error?.message as string}`);
+          !Utils.isProductionEnv() &&
+            Logging.logConsoleError(
+              `WSClient connection error to '${this.url}': ${error?.message as string}`
+            );
         }
         break;
     }
@@ -173,12 +184,20 @@ export default class WSClient {
         if (this.dbLogging) {
           void Logging.logInfo({
             tenantID: this.logTenantID,
-            module: MODULE_NAME, method: 'onClose',
+            module: MODULE_NAME,
+            method: 'onClose',
             action: ServerAction.WS_CLIENT_CONNECTION_CLOSE,
-            message: `Connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+            message: `Connection closing to '${this.url}', Reason: '${
+              reason ? reason : 'No reason given'
+            }', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`,
           });
         } else {
-          !Utils.isProductionEnv() && Logging.logConsoleInfo(`WSClient connection closing to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
+          !Utils.isProductionEnv() &&
+            Logging.logConsoleInfo(
+              `WSClient connection closing to '${this.url}', Reason: '${
+                reason ? reason : 'No reason given'
+              }', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+            );
         }
         break;
       // Abnormal close
@@ -186,12 +205,20 @@ export default class WSClient {
         if (this.dbLogging) {
           void Logging.logError({
             tenantID: this.logTenantID,
-            module: MODULE_NAME, method: 'onClose',
+            module: MODULE_NAME,
+            method: 'onClose',
             action: ServerAction.WS_CLIENT_ERROR,
-            message: `Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+            message: `Connection closing error to '${this.url}', Reason: '${
+              reason ? reason : 'No reason given'
+            }', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`,
           });
         } else {
-          !Utils.isProductionEnv() && Logging.logConsoleError(`WSClient Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
+          !Utils.isProductionEnv() &&
+            Logging.logConsoleError(
+              `WSClient Connection closing error to '${this.url}', Reason: '${
+                reason ? reason : 'No reason given'
+              }', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+            );
         }
         break;
     }
@@ -209,7 +236,7 @@ for (const method of ['onopen', 'onerror', 'onclose', 'onmessage']) {
       // Save the callback in an object attribute
       this.callbacks[method] = callback;
       this.ws[method] = callback;
-    }
+    },
   });
 }
 
@@ -222,7 +249,7 @@ for (const method of ['onreconnect', 'onmaximum']) {
     },
     set(callback: (...args: any[]) => void): void {
       this.callbacks[method] = callback;
-    }
+    },
   });
 }
 
@@ -231,6 +258,6 @@ for (const property of ['binaryType', 'bufferedAmount', 'extensions', 'protocol'
     enumerable: true,
     get() {
       return this.ws[property];
-    }
+    },
   });
 }

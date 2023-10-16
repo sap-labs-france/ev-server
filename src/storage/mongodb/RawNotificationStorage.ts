@@ -13,18 +13,29 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'RawNotificationStorage';
 
 export default class RawNotificationStorage {
-
-  public static async getRawNotification(tenant: Tenant, params: { discriminator: string; serverAction: string }, projectFields: string[] = ['_id']): Promise<RawNotification> {
-    const notificationsMDB = await RawNotificationStorage.getRawNotifications(tenant, {
-      discriminator: params.discriminator,
-      serverAction: params.serverAction
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+  public static async getRawNotification(
+    tenant: Tenant,
+    params: { discriminator: string; serverAction: string },
+    projectFields: string[] = ['_id']
+  ): Promise<RawNotification> {
+    const notificationsMDB = await RawNotificationStorage.getRawNotifications(
+      tenant,
+      {
+        discriminator: params.discriminator,
+        serverAction: params.serverAction,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return notificationsMDB.count === 1 ? notificationsMDB.result[0] : null;
   }
 
-  public static async getRawNotifications(tenant: Tenant,
-      params: { dateFrom?: Date; discriminator?: string; serverAction?: string; },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<RawNotification>> {
+  public static async getRawNotifications(
+    tenant: Tenant,
+    params: { dateFrom?: Date; discriminator?: string; serverAction?: string },
+    dbParams: DbParams,
+    projectFields?: string[]
+  ): Promise<DataResult<RawNotification>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -52,21 +63,22 @@ export default class RawNotificationStorage {
     }
     // Filters
     aggregation.push({
-      $match: filters
+      $match: filters,
     });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const notificationsCountMDB = await global.database.getCollection<any>(tenant.id, 'rawnotifications')
+    const notificationsCountMDB = (await global.database
+      .getCollection<any>(tenant.id, 'rawnotifications')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray() as DatabaseCount[];
+      .toArray()) as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       return {
-        count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
-        result: []
+        count: notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0,
+        result: [],
       };
     }
     // Remove the limit
@@ -74,43 +86,63 @@ export default class RawNotificationStorage {
     // Sort
     if (dbParams.sort) {
       aggregation.push({
-        $sort: dbParams.sort
+        $sort: dbParams.sort,
       });
     }
     // Skip
     aggregation.push({
-      $skip: dbParams.skip
+      $skip: dbParams.skip,
     });
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const notificationsMDB = await global.database.getCollection<any>(tenant.id, 'rawnotifications')
+    const notificationsMDB = (await global.database
+      .getCollection<any>(tenant.id, 'rawnotifications')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as RawNotification[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getRawNotifications', startTime, aggregation, notificationsMDB);
+      .toArray()) as RawNotification[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getRawNotifications',
+      startTime,
+      aggregation,
+      notificationsMDB
+    );
     return {
-      count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
-      result: notificationsMDB
+      count: notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0,
+      result: notificationsMDB,
     };
   }
 
-  public static async saveRawNotification(tenant: Tenant, notificationToSave: Partial<RawNotification>): Promise<void> {
+  public static async saveRawNotification(
+    tenant: Tenant,
+    notificationToSave: Partial<RawNotification>
+  ): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const notificationsMDB: any = {
-      _id: notificationToSave.id ? DatabaseUtils.convertToObjectID(notificationToSave.id) : new ObjectId(),
+      _id: notificationToSave.id
+        ? DatabaseUtils.convertToObjectID(notificationToSave.id)
+        : new ObjectId(),
       timestamp: Utils.convertToDate(notificationToSave.timestamp),
       discriminator: notificationToSave.discriminator,
       serverAction: notificationToSave.serverAction,
       data: notificationToSave.data,
     };
     // Create
-    await global.database.getCollection<any>(tenant.id, 'rawnotifications')
+    await global.database
+      .getCollection<any>(tenant.id, 'rawnotifications')
       .insertOne(notificationsMDB);
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveRawNotification', startTime, notificationsMDB);
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveRawNotification',
+      startTime,
+      notificationsMDB
+    );
   }
 }

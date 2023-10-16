@@ -1,9 +1,14 @@
-import { DynamicAuthorizationDataSourceData, DynamicAuthorizationDataSourceName } from '../types/Authorization';
+import {
+  DynamicAuthorizationDataSourceData,
+  DynamicAuthorizationDataSourceName,
+} from '../types/Authorization';
 
 import Tenant from '../types/Tenant';
 import UserToken from '../types/UserToken';
 
-export default abstract class DynamicAuthorizationDataSource<T extends DynamicAuthorizationDataSourceData> {
+export default abstract class DynamicAuthorizationDataSource<
+  T extends DynamicAuthorizationDataSourceData
+> {
   protected tenant: Tenant;
   protected userToken: UserToken;
   private dataSourceData: T;

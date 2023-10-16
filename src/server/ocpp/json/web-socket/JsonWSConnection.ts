@@ -36,27 +36,48 @@ export default class JsonWSConnection extends WSConnection {
     // Initialize the default Headers
     this.headers = {
       chargeBoxIdentity: this.getChargingStationID(),
-      ocppVersion: (this.getWS().protocol.startsWith('ocpp') ? this.getWS().protocol.replace('ocpp', '') : this.getWS().protocol) as OCPPVersion,
+      ocppVersion: (this.getWS().protocol.startsWith('ocpp')
+        ? this.getWS().protocol.replace('ocpp', '')
+        : this.getWS().protocol) as OCPPVersion,
       ocppProtocol: OCPPProtocol.JSON,
       chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl,
       tenantID: this.getTenantID(),
       tokenID: this.getTokenID(),
       From: {
-        Address: this.getClientIP()
-      }
+        Address: this.getClientIP(),
+      },
     };
     if (Utils.isMonitoringEnabled()) {
       const labelValues = { tenant: this.getTenant().subdomain };
-      this.getWS().ocppOpenWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'OpenedWebSocket', 'Opened web sockets', labelValues);
-      this.getWS().ocppClosedWebSocketMetricCounter = global.monitoringServer.getCounterClearableMetric(PerformanceRecordGroup.OCPP, 'ClosedWebSocket', 'Closed web sockets', labelValues);
+      this.getWS().ocppOpenWebSocketMetricCounter =
+        global.monitoringServer.getCounterClearableMetric(
+          PerformanceRecordGroup.OCPP,
+          'OpenedWebSocket',
+          'Opened web sockets',
+          labelValues
+        );
+      this.getWS().ocppClosedWebSocketMetricCounter =
+        global.monitoringServer.getCounterClearableMetric(
+          PerformanceRecordGroup.OCPP,
+          'ClosedWebSocket',
+          'Closed web sockets',
+          labelValues
+        );
     }
     // Create the Json Client
-    this.chargingStationClient = new JsonChargingStationClient(this, this.getTenant(), this.getChargingStationID());
+    this.chargingStationClient = new JsonChargingStationClient(
+      this,
+      this.getTenant(),
+      this.getChargingStationID()
+    );
     // Create the Json Server Service
     this.chargingStationService = new JsonChargingStationService();
   }
 
-  public async handleRequest(command: Command, commandPayload: Record<string, unknown> | string): Promise<any> {
+  public async handleRequest(
+    command: Command,
+    commandPayload: Record<string, unknown> | string
+  ): Promise<any> {
     let result: any;
     // Check Command
     if (!this.isValidOcppServerCommand(command)) {
@@ -68,7 +89,7 @@ export default class JsonWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         message: `Command '${command}' is not allowed from Charging Station`,
-        action: OCPPUtils.buildServerActionFromOcppCommand(command)
+        action: OCPPUtils.buildServerActionFromOcppCommand(command),
       });
     }
     // Set
@@ -77,17 +98,30 @@ export default class JsonWSConnection extends WSConnection {
     if (typeof this.chargingStationService[methodName] === 'function') {
       this.headers.currentIPAddress = this.getClientIP();
       // Check the Charging Station
-      const { tenant, chargingStation, token } = await OCPPUtils.checkAndGetChargingStationConnectionData(
-        OCPPUtils.buildServerActionFromOcppCommand(command),
-        this.getTenantID(), this.getChargingStationID(), this.getTokenID());
+      const { tenant, chargingStation, token } =
+        await OCPPUtils.checkAndGetChargingStationConnectionData(
+          OCPPUtils.buildServerActionFromOcppCommand(command),
+          this.getTenantID(),
+          this.getChargingStationID(),
+          this.getTokenID()
+        );
       // Set the header
       this.headers.tenant = tenant;
       this.headers.chargingStation = chargingStation;
       this.headers.token = token;
       // Trace
-      const performanceTracingData = await Logging.traceOcppMessageRequest(Constants.MODULE_JSON_OCPP_SERVER_16,
-        this.getTenant(), this.getChargingStationID(), OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, '>>',
-        { siteAreaID: this.getSiteAreaID(), siteID: this.getSiteID(), companyID: this.getCompanyID() }
+      const performanceTracingData = await Logging.traceOcppMessageRequest(
+        Constants.MODULE_JSON_OCPP_SERVER_16,
+        this.getTenant(),
+        this.getChargingStationID(),
+        OCPPUtils.buildServerActionFromOcppCommand(command),
+        commandPayload,
+        '>>',
+        {
+          siteAreaID: this.getSiteAreaID(),
+          siteID: this.getSiteID(),
+          companyID: this.getCompanyID(),
+        }
       );
       try {
         // Call it
@@ -99,9 +133,20 @@ export default class JsonWSConnection extends WSConnection {
         // delete this.headers.tenant;
         // delete this.headers.token;
         // Trace
-        await Logging.traceOcppMessageResponse(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenant(), this.getChargingStationID(),
-          OCPPUtils.buildServerActionFromOcppCommand(command), commandPayload, result, '<<',
-          { siteAreaID: this.getSiteAreaID(), siteID: this.getSiteID(), companyID: this.getCompanyID() }, performanceTracingData
+        await Logging.traceOcppMessageResponse(
+          Constants.MODULE_JSON_OCPP_SERVER_16,
+          this.getTenant(),
+          this.getChargingStationID(),
+          OCPPUtils.buildServerActionFromOcppCommand(command),
+          commandPayload,
+          result,
+          '<<',
+          {
+            siteAreaID: this.getSiteAreaID(),
+            siteID: this.getSiteID(),
+            companyID: this.getCompanyID(),
+          },
+          performanceTracingData
         );
       }
     } else {
@@ -114,7 +159,10 @@ export default class JsonWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OCPPErrorType.NOT_IMPLEMENTED,
-        message: (typeof command === 'string') ? `OCPP method 'handle${command}()' has not been implemented` : `Unknown OCPP command: ${JSON.stringify(command)}`
+        message:
+          typeof command === 'string'
+            ? `OCPP method 'handle${command}()' has not been implemented`
+            : `Unknown OCPP command: ${JSON.stringify(command)}`,
       });
     }
     return result;
@@ -138,15 +186,25 @@ export default class JsonWSConnection extends WSConnection {
 
   private async updateChargingStationLastSeen(): Promise<void> {
     // Update once every ping interval / 2
-    if (!this.lastSeen ||
-      (Date.now() - this.lastSeen.getTime()) > (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000 / 2)) {
+    if (
+      !this.lastSeen ||
+      Date.now() - this.lastSeen.getTime() >
+        (Configuration.getChargingStationConfig().pingIntervalOCPPJSecs * 1000) / 2
+    ) {
       // Update last seen
       this.lastSeen = new Date();
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),
-        this.getChargingStationID(), { issuer: true }, ['id']);
+      const chargingStation = await ChargingStationStorage.getChargingStation(
+        this.getTenant(),
+        this.getChargingStationID(),
+        { issuer: true },
+        ['id']
+      );
       if (chargingStation) {
-        await ChargingStationStorage.saveChargingStationRuntimeData(this.getTenant(), this.getChargingStationID(),
-          { lastSeen: this.lastSeen });
+        await ChargingStationStorage.saveChargingStationRuntimeData(
+          this.getTenant(),
+          this.getChargingStationID(),
+          { lastSeen: this.lastSeen }
+        );
       }
     }
   }
@@ -156,6 +214,7 @@ export default class JsonWSConnection extends WSConnection {
     return [
       Command.AUTHORIZE,
       Command.BOOT_NOTIFICATION,
+      Command.CANCEL_RESERVATION,
       Command.DATA_TRANSFER,
       Command.DIAGNOSTICS_STATUS_NOTIFICATION,
       Command.FIRMWARE_STATUS_NOTIFICATION,

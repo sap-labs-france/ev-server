@@ -14,10 +14,10 @@ declare global {
  * @param chai
  * @param utils
  */
-export default function(chai, utils) {
+export default function (chai, utils) {
   const Assertion = chai.Assertion;
 
-  utils.addProperty(Assertion.prototype, 'transaction', function() {
+  utils.addProperty(Assertion.prototype, 'transaction', function () {
     const obj = this._obj;
     // First, our instanceof check, shortcut
     new Assertion(this._obj).to.be.instanceof(Object);
@@ -25,43 +25,43 @@ export default function(chai, utils) {
     new Assertion(this._obj).to.not.be.null;
     // Second, our type check
     this.assert(
-      obj.idTagInfo instanceof Object
-      , 'expected idTagInfo to be #{exp} but got #{act}'
-      , 'expected idTagInfo to not be above #{act}'
-      , 'Object'
-      , obj
+      obj.idTagInfo instanceof Object,
+      'expected idTagInfo to be #{exp} but got #{act}',
+      'expected idTagInfo to not be above #{act}',
+      'Object',
+      obj
     );
   });
 
-  utils.addProperty(Assertion.prototype, 'transactionValid', function() {
+  utils.addProperty(Assertion.prototype, 'transactionValid', function () {
     const obj = this._obj;
     // First, our instanceof check, shortcut
     new Assertion(this._obj).to.be.transactionStatus('Accepted');
     // Second, our type check
     this.assert(
-      obj.transactionId > 1
-      , 'expected transactionId to be above #{exp} but got #{act}'
-      , 'expected transactionId to not be above #{act}'
-      , 1
-      , obj.transactionId
+      obj.transactionId > 1,
+      'expected transactionId to be above #{exp} but got #{act}',
+      'expected transactionId to not be above #{act}',
+      1,
+      obj.transactionId
     );
   });
 
-  Assertion.addMethod('transactionStatus', function(expectedStatus) {
+  Assertion.addMethod('transactionStatus', function (expectedStatus) {
     const obj = this._obj;
     // First, our instanceof check, shortcut
     new Assertion(this._obj).to.be.transaction;
     // Second, our type check
     this.assert(
-      obj.idTagInfo.status === expectedStatus
-      , 'expected idTagInfo.status to be #{exp} but got #{act}'
-      , 'expected idTagInfo to not be #{act}'
-      , expectedStatus
-      , obj.idTagInfo.status
+      obj.idTagInfo.status === expectedStatus,
+      'expected idTagInfo.status to be #{exp} but got #{act}',
+      'expected idTagInfo to not be #{act}',
+      expectedStatus,
+      obj.idTagInfo.status
     );
   });
 
-  Assertion.addMethod('validatedSetting', function(identifier, type) {
+  Assertion.addMethod('validatedSetting', function (identifier, type) {
     // First, our instanceof check, shortcut
     new Assertion(this._obj).to.be.instanceof(Object);
     new Assertion(this._obj).to.be.not.null;

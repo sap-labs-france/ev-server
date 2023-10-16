@@ -1,4 +1,15 @@
-import { HttpSiteAdminUpdateRequest, HttpSiteAssignUsersRequest, HttpSiteCreateRequest, HttpSiteDeleteRequest, HttpSiteGetRequest, HttpSiteImageGetRequest, HttpSiteOwnerUpdateRequest, HttpSiteUpdateRequest, HttpSiteUsersRequest, HttpSitesGetRequest } from '../../../../types/requests/HttpSiteRequest';
+import {
+  HttpSiteAdminUpdateRequest,
+  HttpSiteAssignUsersRequest,
+  HttpSiteCreateRequest,
+  HttpSiteDeleteRequest,
+  HttpSiteGetRequest,
+  HttpSiteImageGetRequest,
+  HttpSiteOwnerUpdateRequest,
+  HttpSiteUpdateRequest,
+  HttpSiteUsersRequest,
+  HttpSitesGetRequest,
+} from '../../../../types/requests/HttpSiteRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -6,17 +17,52 @@ import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class SiteValidatorRest extends SchemaValidator {
-  private static instance: SiteValidatorRest|null = null;
-  private siteCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-create.json`, 'utf8'));
-  private siteAdminUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-admin-update.json`, 'utf8'));
-  private siteOwnerUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-owner-update.json`, 'utf8'));
-  private sitesGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/sites-get.json`, 'utf8'));
-  private siteAssignUsers: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-users-assign.json`, 'utf8'));
-  private siteGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-get.json`, 'utf8'));
-  private siteDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-delete.json`, 'utf8'));
-  private siteGetImage: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-get-image.json`, 'utf8'));
-  private siteGetUsers: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-get-users.json`, 'utf8'));
-  private siteUpdate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-update.json`, 'utf8'));
+  private static instance: SiteValidatorRest | null = null;
+  private siteCreate: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-create.json`, 'utf8')
+  );
+  private siteAdminUpdate: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/site/site-admin-update.json`,
+      'utf8'
+    )
+  );
+  private siteOwnerUpdate: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/site/site-owner-update.json`,
+      'utf8'
+    )
+  );
+  private sitesGet: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/sites-get.json`, 'utf8')
+  );
+  private siteAssignUsers: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/site/site-users-assign.json`,
+      'utf8'
+    )
+  );
+  private siteGet: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-get.json`, 'utf8')
+  );
+  private siteDelete: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-delete.json`, 'utf8')
+  );
+  private siteGetImage: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/site/site-get-image.json`,
+      'utf8'
+    )
+  );
+  private siteGetUsers: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/site/site-get-users.json`,
+      'utf8'
+    )
+  );
+  private siteUpdate: Schema = JSON.parse(
+    fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/site/site-update.json`, 'utf8')
+  );
 
   private constructor() {
     super('SiteValidatorRest');

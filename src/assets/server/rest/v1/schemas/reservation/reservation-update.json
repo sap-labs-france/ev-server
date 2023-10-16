@@ -1,0 +1,59 @@
+{
+  "$id": "reservation-update",
+  "title": "Update Reservation",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "reservation#/definitions/id"
+    },
+    "chargingStationID": {
+      "$ref": "reservation#/definitions/chargingStationId"
+    },
+    "connectorID": {
+      "$ref": "reservation#/definitions/connectorId"
+    },
+    "fromDate": {
+      "$ref": "reservation#/definitions/fromDate"
+    },
+    "toDate": {
+      "$ref": "reservation#/definitions/toDate"
+    },
+    "expiryDate": {
+      "$ref": "reservation#/definitions/expiryDate"
+    },
+    "arrivalTime": {
+      "$ref": "reservation#/definitions/arrivalTime"
+    },
+    "departureTime": {
+      "$ref": "reservation#/definitions/departureTime"
+    },
+    "visualTagID": {
+      "$ref": "tag#/definitions/visualID"
+    },
+    "parentIdTag": {
+      "$ref": "reservation#/definitions/parentIdTag"
+    },
+    "carID": {
+      "$ref": "reservation#/definitions/carID"
+    },
+    "userID": {
+      "$ref": "reservation#/definitions/userID"
+    },
+    "type": {
+      "$ref": "reservation#/definitions/type"
+    },
+    "status": {
+      "$ref": "reservation#/definitions/status"
+    }
+  },
+  "required": [
+    "id",
+    "chargingStationID",
+    "connectorID",
+    "fromDate",
+    "toDate",
+    "expiryDate",
+    "visualTagID",
+    "type"
+  ]
+}

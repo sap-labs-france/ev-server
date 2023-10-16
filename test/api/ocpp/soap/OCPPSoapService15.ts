@@ -1,4 +1,27 @@
-import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
+import {
+  OCPP15MeterValuesRequest,
+  OCPPAuthorizeRequest,
+  OCPPAuthorizeResponse,
+  OCPPBootNotificationRequest,
+  OCPPBootNotificationResponse,
+  OCPPDataTransferRequest,
+  OCPPDataTransferResponse,
+  OCPPDiagnosticsStatusNotificationRequest,
+  OCPPDiagnosticsStatusNotificationResponse,
+  OCPPFirmwareStatusNotificationRequest,
+  OCPPFirmwareStatusNotificationResponse,
+  OCPPHeartbeatRequest,
+  OCPPHeartbeatResponse,
+  OCPPMeterValuesRequest,
+  OCPPMeterValuesResponse,
+  OCPPStartTransactionRequest,
+  OCPPStartTransactionResponse,
+  OCPPStatusNotificationRequest,
+  OCPPStatusNotificationResponse,
+  OCPPStopTransactionRequest,
+  OCPPStopTransactionResponse,
+  OCPPVersion,
+} from '../../../../src/types/ocpp/OCPPServer';
 
 import OCPPService from '../OCPPService';
 import global from '../../../../src/types/GlobalType';
@@ -17,43 +40,93 @@ export default class OCPPSoapService15 extends OCPPService {
     return OCPPVersion.VERSION_15;
   }
 
-  public async executeAuthorize(chargingStationID: string, authorize: OCPPAuthorizeRequest): Promise<OCPPAuthorizeResponse> {
+  public async executeAuthorize(
+    chargingStationID: string,
+    authorize: OCPPAuthorizeRequest
+  ): Promise<OCPPAuthorizeResponse> {
     return this.execute(this.buildSOAPRequest(chargingStationID, 'Authorize', authorize));
   }
 
-  public async executeStartTransaction(chargingStationID: string, startTransaction: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
-    return this.execute(this.buildSOAPRequest(chargingStationID, 'StartTransaction', startTransaction));
+  public async executeStartTransaction(
+    chargingStationID: string,
+    startTransaction: OCPPStartTransactionRequest
+  ): Promise<OCPPStartTransactionResponse> {
+    return this.execute(
+      this.buildSOAPRequest(chargingStationID, 'StartTransaction', startTransaction)
+    );
   }
 
-  public async executeStopTransaction(chargingStationID: string, stopTransaction: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
-    return this.execute(this.buildSOAPRequest(chargingStationID, 'StopTransaction', stopTransaction));
+  public async executeStopTransaction(
+    chargingStationID: string,
+    stopTransaction: OCPPStopTransactionRequest
+  ): Promise<OCPPStopTransactionResponse> {
+    return this.execute(
+      this.buildSOAPRequest(chargingStationID, 'StopTransaction', stopTransaction)
+    );
   }
 
-  public async executeHeartbeat(chargingStationID: string, heartbeat: OCPPHeartbeatRequest): Promise<OCPPHeartbeatResponse> {
+  public async executeHeartbeat(
+    chargingStationID: string,
+    heartbeat: OCPPHeartbeatRequest
+  ): Promise<OCPPHeartbeatResponse> {
     return this.execute(this.buildSOAPRequest(chargingStationID, 'Heartbeat', heartbeat));
   }
 
-  public async executeMeterValues(chargingStationID: string, meterValue: OCPPMeterValuesRequest|OCPP15MeterValuesRequest): Promise<OCPPMeterValuesResponse> {
+  public async executeMeterValues(
+    chargingStationID: string,
+    meterValue: OCPPMeterValuesRequest | OCPP15MeterValuesRequest
+  ): Promise<OCPPMeterValuesResponse> {
     return this.execute(this.buildSOAPRequest(chargingStationID, 'MeterValues', meterValue));
   }
 
-  public async executeBootNotification(chargingStationID: string, bootNotification: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
-    return this.execute(this.buildSOAPRequest(chargingStationID, 'BootNotification', bootNotification));
+  public async executeBootNotification(
+    chargingStationID: string,
+    bootNotification: OCPPBootNotificationRequest
+  ): Promise<OCPPBootNotificationResponse> {
+    return this.execute(
+      this.buildSOAPRequest(chargingStationID, 'BootNotification', bootNotification)
+    );
   }
 
-  public async executeStatusNotification(chargingStationID: string, statusNotification: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
-    return this.execute(this.buildSOAPRequest(chargingStationID, 'StatusNotification', statusNotification));
+  public async executeStatusNotification(
+    chargingStationID: string,
+    statusNotification: OCPPStatusNotificationRequest
+  ): Promise<OCPPStatusNotificationResponse> {
+    return this.execute(
+      this.buildSOAPRequest(chargingStationID, 'StatusNotification', statusNotification)
+    );
   }
 
-  public async executeFirmwareStatusNotification(chargingStationID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequest): Promise<OCPPFirmwareStatusNotificationResponse> {
-    return this.execute(this.buildSOAPRequest(chargingStationID, 'FirmwareStatusNotification', firmwareStatusNotification));
+  public async executeFirmwareStatusNotification(
+    chargingStationID: string,
+    firmwareStatusNotification: OCPPFirmwareStatusNotificationRequest
+  ): Promise<OCPPFirmwareStatusNotificationResponse> {
+    return this.execute(
+      this.buildSOAPRequest(
+        chargingStationID,
+        'FirmwareStatusNotification',
+        firmwareStatusNotification
+      )
+    );
   }
 
-  public async executeDiagnosticsStatusNotification(chargingStationID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequest): Promise<OCPPDiagnosticsStatusNotificationResponse> {
-    return this.execute(this.buildSOAPRequest(chargingStationID, 'DiagnosticsStatusNotification', diagnosticsStatusNotification));
+  public async executeDiagnosticsStatusNotification(
+    chargingStationID: string,
+    diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequest
+  ): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+    return this.execute(
+      this.buildSOAPRequest(
+        chargingStationID,
+        'DiagnosticsStatusNotification',
+        diagnosticsStatusNotification
+      )
+    );
   }
 
-  public async executeDataTransfer(chargingStationID: string, dataTransfer: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
+  public async executeDataTransfer(
+    chargingStationID: string,
+    dataTransfer: OCPPDataTransferRequest
+  ): Promise<OCPPDataTransferResponse> {
     return this.execute(this.buildSOAPRequest(chargingStationID, 'DataTransfer', dataTransfer));
   }
 
@@ -77,14 +150,14 @@ export default class OCPPSoapService15 extends OCPPService {
       headers: {
         chargeBoxIdentity: chargeBoxIdentity,
         From: {
-          Address: 'http://www.w3.org/2005/08/addressing/anonymous'
+          Address: 'http://www.w3.org/2005/08/addressing/anonymous',
         },
         To: this.serverUrl,
         ReplyTo: {
-          'Address': 'http://www.w3.org/2005/08/addressing/anonymous'
-        }
+          Address: 'http://www.w3.org/2005/08/addressing/anonymous',
+        },
       },
-      data: payload
+      data: payload,
     };
   }
 
@@ -97,15 +170,19 @@ export default class OCPPSoapService15 extends OCPPService {
     const options = {};
     if (!this.client) {
       // Create the Promise
-      this.client = await new Promise(function(resolve, reject) {
+      this.client = await new Promise(function (resolve, reject) {
         // Create the client
-        soap.soap.createClient(`${global.appRoot}/assets/server/ocpp/wsdl/OCPPCentralSystemService15.wsdl`, options, (err, client) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(client);
+        soap.soap.createClient(
+          `${global.appRoot}/assets/server/ocpp/wsdl/OCPPCentralSystemService15.wsdl`,
+          options,
+          (err, client) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(client);
+            }
           }
-        });
+        );
       });
       // Set endpoint
       this.client.setEndpoint(this.serverUrl);

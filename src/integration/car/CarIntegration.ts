@@ -12,7 +12,7 @@ export default abstract class CarIntegration {
   public async synchronizeCarCatalogs(): Promise<ActionsResponse> {
     const actionsDone: ActionsResponse = {
       inSuccess: 0,
-      inError: 0
+      inError: 0,
     };
     // Get the cars
     const externalCars = await this.getCarCatalogs();
@@ -44,10 +44,11 @@ export default abstract class CarIntegration {
           await Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-            module: MODULE_NAME, method: 'synchronizeCarCatalogs',
+            module: MODULE_NAME,
+            method: 'synchronizeCarCatalogs',
             message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been created successfully`,
           });
-        // Car has changed?
+          // Car has changed?
         } else if (internalCar.hash !== externalCarHash) {
           // Car has changed: Update it
           externalCar.hash = externalCarHash;
@@ -78,7 +79,8 @@ export default abstract class CarIntegration {
           await Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-            module: MODULE_NAME, method: 'synchronizeCarCatalogs',
+            module: MODULE_NAME,
+            method: 'synchronizeCarCatalogs',
             message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been updated successfully`,
           });
         }
@@ -87,15 +89,20 @@ export default abstract class CarIntegration {
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-          module: MODULE_NAME, method: 'synchronizeCarCatalogs',
+          module: MODULE_NAME,
+          method: 'synchronizeCarCatalogs',
           message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} got synchronization error`,
-          detailedMessages: { error: error.stack }
+          detailedMessages: { error: error.stack },
         });
       }
     }
     // Log
-    await Logging.logActionsResponse(Constants.DEFAULT_TENANT_ID, ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-      MODULE_NAME, 'synchronizeCarCatalogs', actionsDone,
+    await Logging.logActionsResponse(
+      Constants.DEFAULT_TENANT_ID,
+      ServerAction.SYNCHRONIZE_CAR_CATALOGS,
+      MODULE_NAME,
+      'synchronizeCarCatalogs',
+      actionsDone,
       '{{inSuccess}} car(s) were successfully synchronized',
       '{{inError}} car(s) failed to be synchronized',
       '{{inSuccess}} car(s) were successfully synchronized and {{inError}} failed to be synchronized',

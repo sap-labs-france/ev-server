@@ -164,6 +164,42 @@
       "title": "Account verified",
       "bodyVerified": "Your account has been verified with success. An administrator will check and activate your account.",
       "bodyVerifiedAndActivated": "Your account has been verified and activated with success."
+    },
+    "reservationCreatedNotification": {
+      "title": "Reservation Created",
+      "body": "Your reservation for charging station '{{chargingStationID}}' on connector '{{connectorID}}' has been created successfully."
+    },
+    "reservationCancelledNotification": {
+      "title": "Reservation Cancelled",
+      "body": "Your reservation for the charging station '{{chargingStationID}}' on connector '{{connectorID}}' has been cancelled successfully."
+    },
+    "reservationUpcomingNotification": {
+      "title": "Reservation Upcoming",
+      "body": "Your reservation on the charging station '{{chargingStationID}}' at connector '{{connectorID}}' is upcoming."
+    },
+    "reservationUpcomingWarning": {
+      "title": "Reservation Upcoming",
+      "body": "There is a reservation upcoming from '{{fromDate}}' to '{{toDate}}' on this charging station '{{chargingStationID}}' at connector '{{connectorID}}'."
+    },
+    "reservedChargingStationBlockedNotification": {
+      "title": "Reserved Charging Station Blocked",
+      "body": "At your currently reserved charging station '{{chargingStationID}}' on connector '{{connectorID}}' a charging session started."
+    },
+    "reservationStatusChangedNotification": {
+      "title": "Reservation Status Changed",
+      "body": "Your reservation for charging station '{{chargingStationID}}' on connector '{{connectorID}}' changed its status.",
+      "status": {
+        "reservation_done": "Reservation Done",
+        "reservation_scheduled": "Reservation Scheduled",
+        "reservation_in_progress": "Reservation In Progress",
+        "reservation_cancelled": "Reservation Cancelled",
+        "reservation_expired": "Reservation Expired",
+        "reservation_unmet": "Reservation Unmet"
+      }
+    },
+    "reservationUnmetNotification": {
+      "title": "Reservation Unmet",
+      "body": "The reservation for charging station '{{chargingStationID}}' on connector '{{connectorID}}' is cancelled after absence of 15 minutes after reservation start."
     }
   },
   "siteArea": "Site Area",
@@ -263,20 +299,48 @@
     "end-of-signed-session": {
       "title": "Session Finished - Signed Session",
       "buttonText": "View Session",
-      "text": [
-        "Ladetransaktion abgeschlossen"
-      ],
+      "text": ["Ladetransaktion abgeschlossen"],
       "table": [
-        { "label": "Charger", "value": "{{chargeBoxID}}" },
-        { "label": "Connector", "value": "{{connectorId}}" },
-        { "label": "RFID Card", "value": "{{tagId}}" },
-        { "label": "Start time", "value": "{{startDate}}" },
-        { "label": "End time", "value": "{{endDate}}" },
-        { "label": "Start counter", "value": "{{meterStart}} kWh" },
-        { "label": "Stop counter", "value": "{{meterStop}} kWh" },
-        { "label": "Consumption", "value": "{{totalConsumption}} kWh" },
-        { "label": "Cost", "value": "{{price}}€ {{relativeCost}}€/kWh) (informative)" },
-        { "label": "Contract for", "value":"LOCAL (informative)" }
+        {
+          "label": "Charger",
+          "value": "{{chargeBoxID}}"
+        },
+        {
+          "label": "Connector",
+          "value": "{{connectorId}}"
+        },
+        {
+          "label": "RFID Card",
+          "value": "{{tagId}}"
+        },
+        {
+          "label": "Start time",
+          "value": "{{startDate}}"
+        },
+        {
+          "label": "End time",
+          "value": "{{endDate}}"
+        },
+        {
+          "label": "Start counter",
+          "value": "{{meterStart}} kWh"
+        },
+        {
+          "label": "Stop counter",
+          "value": "{{meterStop}} kWh"
+        },
+        {
+          "label": "Consumption",
+          "value": "{{totalConsumption}} kWh"
+        },
+        {
+          "label": "Cost",
+          "value": "{{price}}€ {{relativeCost}}€/kWh) (informative)"
+        },
+        {
+          "label": "Contract for",
+          "value": "LOCAL (informative)"
+        }
       ]
     },
     "end-of-charge": {
@@ -335,9 +399,7 @@
     "charging-station-registered": {
       "title": "Charging Station Connected",
       "buttonText": "View Charging Station",
-      "text": [
-        "The charging station {{chargeBoxID}} just got connected to the central server."
-      ]
+      "text": ["The charging station {{chargeBoxID}} just got connected to the central server."]
     },
     "end-user-error-notification": {
       "title": "A User Reported an Error",
@@ -389,9 +451,7 @@
     "unknown-user-badged": {
       "title": "Unknown User Badged",
       "buttonText": "Navigate to {{tenantName}}",
-      "text": [
-        "An unknown user has just badged on {{chargeBoxID}} with the RFID Card {{badgeID}}."
-      ]
+      "text": ["An unknown user has just badged on {{chargeBoxID}} with the RFID Card {{badgeID}}."]
     },
     "session-started": {
       "title": "Session Started",
@@ -486,9 +546,7 @@
     "billing-periodic-operation-failed": {
       "title": "Billing - Periodic Operation Failed",
       "buttonText": "Navigate to {{tenantName}}",
-      "text": [
-        "Unable to process {{nbrInvoicesInError}} invoice(s)."
-      ]
+      "text": ["Unable to process {{nbrInvoicesInError}} invoice(s)."]
     },
     "billing-account-activated": {
       "title": "Billing Account Activated",
@@ -502,9 +560,7 @@
     "car-synchronization-failed": {
       "title": "Vehicle Synchronization Failed",
       "buttonText": "Navigate to {{tenantName}}",
-      "text": [
-        "Unable to synchronize the data of {{nbrCarsInError}} vehicle(s)."
-      ]
+      "text": ["Unable to synchronize the data of {{nbrCarsInError}} vehicle(s)."]
     },
     "compute-and-apply-charging-profiles-failed": {
       "title": "Failed to apply Charging Profiles",
@@ -517,9 +573,7 @@
     "account-verification-notification-active": {
       "title": "Account Verified",
       "buttonText": "Navigate to {{tenantName}}",
-      "text": [
-        "Your account has been verified and activated with success!"
-      ]
+      "text": ["Your account has been verified and activated with success!"]
     },
     "account-verification-notification-inactive": {
       "title": "Account Verified",
@@ -547,6 +601,98 @@
         "You will have to log in at least once to be able to charge your vehicle.",
         "",
         "Click on the link below to set your password."
+      ]
+    },
+    "reservation-created": {
+      "title": "Reservation Created",
+      "buttonText": "View Reservation",
+      "text": [
+        "Your reservation for charging station '{{chargingStationID}}' on connector '{{connectorID}}' has been created successfully."
+      ],
+      "table": [
+        {
+          "label": "Charging Station",
+          "value": "{{chargingStationID}}"
+        },
+        {
+          "label": "Connector",
+          "value": "{{connectorID}}"
+        },
+        {
+          "label": "Duration",
+          "value": "{{fromDate}} - {{toDate}}"
+        },
+        {
+          "label": "Total Duration",
+          "value": "{{totalDuration}} h"
+        },
+        {
+          "label": "Expiry Date",
+          "value": "{{expiryDate}}"
+        }
+      ]
+    },
+    "reservation-cancelled": {
+      "title": "Reservation Cancelled",
+      "buttonText": "View Reservation",
+      "text": [
+        "Your reservation for the charging station '{{chargingStationID}}' on connector '{{connectorID}}' has been cancelled successfully.",
+        "",
+        "For further information on your reservation, please click on the link below."
+      ]
+    },
+    "reservation-status-notification": {
+      "title": "Reservation Status Changed",
+      "buttonText": "Navigate to Reservation",
+      "text": [
+        "Your reservation for charging station '{{chargingStationID}}' on connector '{{connectorID}}' changed its status.",
+        "Status change: '{{reservationStatus}}'",
+        "",
+        "For further information on your reservation, please click on the link below."
+      ]
+    },
+    "upcoming-reservation-notification": {
+      "title": "Reservation Upcoming ('{{fromDate}'} - '{{toDate}}')",
+      "buttonText": "Navigate to Reservation",
+      "text": [
+        "Your reservation on the charging station '{{chargingStationID}}' at connector '{{connectorID}}' is upcoming.",
+        "Planned Reservation Duration: '{{fromDate}}' - '{{toDate}}'",
+        "",
+        "In case of delay or trip cancellation, please consider the following options:",
+        "- Postpone reservation",
+        "- Cancel reservation",
+        "",
+        "For adjusting your reservation. please click on the link below."
+      ]
+    },
+    "upcoming-reservation-warning": {
+      "title": "Reservation Upcoming",
+      "buttonText": "Navigate to {{tenantName}}",
+      "text": [
+        "There is a reservation upcoming from '{{fromDate}}' to '{{toDate}}' on this charging station '{{chargingStationID}}' at connector '{{connectorID}}'.",
+        "In case of a longer charging session, please reconsider using this charging station and relocate your car.",
+        "",
+        "For further information selecting another charging station/connector, please click on the link below."
+      ]
+    },
+    "reserved-chargingstation-blocked": {
+      "title": "Reserved Charging Station Blocked",
+      "buttonText": "Navigate to Reservation",
+      "text": [
+        "At your currently reserved charging station '{{chargingStationID}}' on connector '{{connectorID}}' a charging session started.",
+        "If you have the possibility, please consider another charging station or connector for your reservation.",
+        "",
+        "For further information selecting another charging station/connector, please click on the link below."
+      ]
+    },
+    "reservation-unmet": {
+      "title": "Reservation Unmet",
+      "buttonText": "Navigate to Reservation",
+      "text": [
+        "The reservation at '{{chargingStationID}}' on connector '{{connectorID}}' is cancelled because of an absence of 15 minutes after the reservation started.",
+        "Please consider creating another reservation, which meets your arrival time.",
+        "",
+        "For further information selecting another charging station/connector, please click on the link below."
       ]
     }
   }

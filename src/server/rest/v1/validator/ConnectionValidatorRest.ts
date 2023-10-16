@@ -1,4 +1,8 @@
-import { HttpConnectionDeleteRequest, HttpConnectionGetRequest, HttpConnectionsGetRequest } from '../../../../types/requests/HttpConnectionRequest';
+import {
+  HttpConnectionDeleteRequest,
+  HttpConnectionGetRequest,
+  HttpConnectionsGetRequest,
+} from '../../../../types/requests/HttpConnectionRequest';
 
 import Connection from '../../../../types/Connection';
 import Schema from '../../../../types/validator/Schema';
@@ -7,11 +11,31 @@ import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class ConnectionValidatorRest extends SchemaValidator {
-  private static instance: ConnectionValidatorRest|null = null;
-  private connectionCreate: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-create.json`, 'utf8'));
-  private connectionsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connections-get.json`, 'utf8'));
-  private connectionGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-get.json`, 'utf8'));
-  private connectionDelete: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-delete.json`, 'utf8'));
+  private static instance: ConnectionValidatorRest | null = null;
+  private connectionCreate: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-create.json`,
+      'utf8'
+    )
+  );
+  private connectionsGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/connections/connections-get.json`,
+      'utf8'
+    )
+  );
+  private connectionGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-get.json`,
+      'utf8'
+    )
+  );
+  private connectionDelete: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/connections/connection-delete.json`,
+      'utf8'
+    )
+  );
 
   private constructor() {
     super('ConnectionValidatorRest');
@@ -40,4 +64,3 @@ export default class ConnectionValidatorRest extends SchemaValidator {
     return this.validate(this.connectionDelete, data);
   }
 }
-

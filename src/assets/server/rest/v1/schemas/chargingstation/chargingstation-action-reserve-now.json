@@ -3,7 +3,7 @@
   "title": "Reserve Now",
   "type": "object",
   "properties": {
-    "chargingStationID": {
+    "chargingStationId": {
       "$ref": "chargingstation#/definitions/id"
     },
     "args": {
@@ -21,6 +21,12 @@
         "idTag": {
           "$ref": "tag#/definitions/id"
         },
+        "visualTagID": {
+          "$ref": "tag#/definitions/visualID"
+        },
+        "carID": {
+          "$ref": "reservation#/definitions/carID"
+        },
         "parentIdTag": {
           "$ref": "tag#/definitions/id"
         },
@@ -29,15 +35,8 @@
           "sanitize": "mongo"
         }
       },
-      "required": [
-        "connectorId",
-        "expiryDate",
-        "idTag",
-        "reservationId"
-      ]
+      "required": ["connectorId", "expiryDate", "visualTagID"]
     }
   },
-  "required": [
-    "chargingStationID"
-  ]
+  "required": ["chargingStationId"]
 }

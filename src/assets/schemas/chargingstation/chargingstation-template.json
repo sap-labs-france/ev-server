@@ -122,23 +122,12 @@
                   }
                 },
                 "additionalProperties": false,
-                "required": [
-                  "connectorId",
-                  "type",
-                  "power",
-                  "chargePointID"
-                ]
+                "required": ["connectorId", "type", "power", "chargePointID"]
               }
             }
           },
           "additionalProperties": false,
-          "required": [
-            "maximumPower",
-            "voltage",
-            "powerLimitUnit",
-            "chargePoints",
-            "connectors"
-          ]
+          "required": ["maximumPower", "voltage", "powerLimitUnit", "chargePoints", "connectors"]
         },
         "capabilities": {
           "type": "array",
@@ -195,11 +184,7 @@
               }
             },
             "additionalProperties": false,
-            "required": [
-              "supportedFirmwareVersions",
-              "supportedOcppVersions",
-              "capabilities"
-            ]
+            "required": ["supportedFirmwareVersions", "supportedOcppVersions", "capabilities"]
           }
         },
         "ocppStandardParameters": {
@@ -401,11 +386,7 @@
               }
             },
             "additionalProperties": false,
-            "required": [
-              "supportedFirmwareVersions",
-              "supportedOcppVersions",
-              "parameters"
-            ]
+            "required": ["supportedFirmwareVersions", "supportedOcppVersions", "parameters"]
           }
         },
         "ocppVendorParameters": {
@@ -435,20 +416,12 @@
               }
             },
             "additionalProperties": false,
-            "required": [
-              "supportedFirmwareVersions",
-              "supportedOcppVersions",
-              "parameters"
-            ]
+            "required": ["supportedFirmwareVersions", "supportedOcppVersions", "parameters"]
           }
         }
       },
       "additionalProperties": false,
-      "required": [
-        "chargePointVendor",
-        "technical",
-        "capabilities"
-      ]
+      "required": ["chargePointVendor", "technical", "capabilities"]
     }
   }
 }

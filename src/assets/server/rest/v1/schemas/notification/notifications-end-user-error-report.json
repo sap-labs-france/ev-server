@@ -17,8 +17,5 @@
       "pattern": "^\\+?([0-9] ?){9,14}[0-9]$"
     }
   },
-  "required": [
-    "subject",
-    "description"
-  ]
+  "required": ["subject", "description"]
 }

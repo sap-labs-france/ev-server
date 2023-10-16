@@ -15,19 +15,11 @@
         "type": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": [
-            "Inoperative",
-            "Operative"
-          ]
+          "enum": ["Inoperative", "Operative"]
         }
       },
-      "required": [
-        "connectorId",
-        "type"
-      ]
+      "required": ["connectorId", "type"]
     }
   },
-  "required": [
-    "chargingStationID"
-  ]
+  "required": ["chargingStationID"]
 }

@@ -5,9 +5,9 @@ import global from '../../types/GlobalType';
 export default class MigrateUserMobileDataTask extends TenantMigrationTask {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public async migrateTenant(tenant: Tenant) {
-    await global.database.getCollection<any>(tenant.id, 'users').updateMany(
-      { mobileToken: { $exists: true } },
-      [
+    await global.database
+      .getCollection<any>(tenant.id, 'users')
+      .updateMany({ mobileToken: { $exists: true } }, [
         {
           $set: {
             mobileData: {
@@ -16,15 +16,14 @@ export default class MigrateUserMobileDataTask extends TenantMigrationTask {
               mobileBundleID: '',
               mobileAppName: '',
               mobileVersion: '',
-              mobileLastChangedOn: '$mobileLastChangedOn'
-            }
-          }
+              mobileLastChangedOn: '$mobileLastChangedOn',
+            },
+          },
         },
         {
-          $unset: ['mobileToken', 'mobileOs', 'mobileLastChangedOn']
-        }
-      ]
-    );
+          $unset: ['mobileToken', 'mobileOs', 'mobileLastChangedOn'],
+        },
+      ]);
   }
 
   public getVersion(): string {

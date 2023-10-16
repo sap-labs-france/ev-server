@@ -8,7 +8,7 @@ export enum CloudCredentialsEnvKey {
   CAPTCHA_SECRET_KEY = 'captchaSecretKey',
   CRYPTO_KEY = 'cryptoKey',
   FIREBASE_PRIVATE_KEY_ID = 'firebasePrivateKeyID',
-  FIREBASE_PRIVATE_KEY = 'firebasePrivateKey'
+  FIREBASE_PRIVATE_KEY = 'firebasePrivateKey',
 }
 
 export type CloudCredentials = Record<CloudCredentialsEnvKey, string>;

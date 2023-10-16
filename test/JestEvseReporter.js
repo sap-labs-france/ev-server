@@ -37,7 +37,16 @@ class JestEvseReporter {
 
   getReportMessage() {
     if (this.testInError.length > 0) {
-      return ' #### Errors detected [' + this.testInSuccess.length + ' OK, ' + this.testInError.length + ' ERR, ' + this.testInUnknown.length + ' UNK' + ']';
+      return (
+        ' #### Errors detected [' +
+        this.testInSuccess.length +
+        ' OK, ' +
+        this.testInError.length +
+        ' ERR, ' +
+        this.testInUnknown.length +
+        ' UNK' +
+        ']'
+      );
     }
     return '';
   }

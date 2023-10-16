@@ -91,11 +91,7 @@
     "Statistics": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": [
-        "refund",
-        "history",
-        "ongoing"
-      ]
+      "enum": ["refund", "history", "ongoing"]
     },
     "ReportIDs": {
       "$ref": "common#/definitions/ids"
@@ -103,10 +99,7 @@
     "Status": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": [
-        "completed",
-        "active"
-      ]
+      "enum": ["completed", "active"]
     },
     "Search": {
       "$ref": "common#/definitions/search"
@@ -127,7 +120,5 @@
       "$ref": "common#/definitions/projectFields"
     }
   },
-  "required": [
-    "Limit"
-  ]
+  "required": ["Limit"]
 }

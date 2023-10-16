@@ -74,9 +74,5 @@
       "description": "performance correlation ID"
     }
   },
-  "required": [
-    "connectorId",
-    "status",
-    "errorCode"
-  ]
+  "required": ["connectorId", "status", "errorCode"]
 }

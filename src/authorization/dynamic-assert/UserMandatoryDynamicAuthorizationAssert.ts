@@ -11,8 +11,6 @@ export default class UserMandatoryDynamicAuthorizationAssert extends DynamicAuth
   }
 
   public getApplicableEntities(): Entity[] {
-    return [
-      Entity.TAG
-    ];
+    return [Entity.TAG];
   }
 }

@@ -11,7 +11,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "userID"
-  ]
+  "required": ["userID"]
 }

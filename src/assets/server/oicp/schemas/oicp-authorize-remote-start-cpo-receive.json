@@ -1,145 +1,123 @@
 {
-    "$id": "oicp-authorize-remote-start-cpo-receive",
-    "definitions": {
-        "OICPIdentification": {
-            "properties": {
-                "PlugAndChargeIdentification": {
-                    "$ref": "#/definitions/OICPPlugAndChargeIdentification"
-                },
-                "QRCodeIdentification": {
-                    "$ref": "#/definitions/OICPQRCodeIdentification"
-                },
-                "RFIDIdentification": {
-                    "$ref": "#/definitions/OICPRFIDIdentification"
-                },
-                "RFIDMifareFamilyIdentification": {
-                    "$ref": "#/definitions/OICPRFIDmifarefamilyIdentification"
-                },
-                "RemoteIdentification": {
-                    "$ref": "#/definitions/OICPRemoteIdentificationType"
-                }
-            },
-            "type": "object"
+  "$id": "oicp-authorize-remote-start-cpo-receive",
+  "definitions": {
+    "OICPIdentification": {
+      "properties": {
+        "PlugAndChargeIdentification": {
+          "$ref": "#/definitions/OICPPlugAndChargeIdentification"
         },
-        "OICPPlugAndChargeIdentification": {
-            "properties": {
-                "EvcoID": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "EvcoID"
-            ],
-            "type": "object"
+        "QRCodeIdentification": {
+          "$ref": "#/definitions/OICPQRCodeIdentification"
         },
-        "OICPProductID": {
-              "type": "string"
+        "RFIDIdentification": {
+          "$ref": "#/definitions/OICPRFIDIdentification"
         },
-        "OICPQRCodeIdentification": {
-            "properties": {
-                "EvcoID": {
-                    "type": "string"
-                },
-                "HashedPIN": {
-                    "type": "string"
-                },
-                "PIN": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "EvcoID"
-            ],
-            "type": "object"
+        "RFIDMifareFamilyIdentification": {
+          "$ref": "#/definitions/OICPRFIDmifarefamilyIdentification"
         },
-        "OICPRFID": {
-            "enum": [
-                "calypso",
-                "mifareCls",
-                "mifareDes",
-                "mifareFamily",
-                "nfc"
-            ],
-            "type": "string"
-        },
-        "OICPRFIDIdentification": {
-            "properties": {
-                "EvcoID": {
-                    "type": "string"
-                },
-                "ExpiryDate": {
-                    "description": "Enables basic storage and retrieval of dates and times.",
-                    "format": "date-time",
-                    "customType": "date",
-                    "type": "string"
-                },
-                "PrintedNumber": {
-                    "type": "string"
-                },
-                "RFID": {
-                    "$ref": "#/definitions/OICPRFID"
-                },
-                "UID": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "RFID",
-                "UID"
-            ],
-            "type": "object"
-        },
-        "OICPRFIDmifarefamilyIdentification": {
-            "properties": {
-                "UID": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "UID"
-            ],
-            "type": "object"
-        },
-        "OICPRemoteIdentificationType": {
-            "properties": {
-                "EvcoID": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "EvcoID"
-            ],
-            "type": "object"
+        "RemoteIdentification": {
+          "$ref": "#/definitions/OICPRemoteIdentificationType"
         }
+      },
+      "type": "object"
     },
-    "properties": {
-        "CPOPartnerSessionID": {
-            "type": "string"
-        },
-        "EMPPartnerSessionID": {
-            "type": "string"
-        },
-        "EvseID": {
-            "type": "string"
-        },
-        "Identification": {
-            "$ref": "#/definitions/OICPIdentification"
-        },
-        "PartnerProductID": {
-            "$ref": "#/definitions/OICPProductID"
-        },
-        "ProviderID": {
-            "type": "string"
-        },
-        "SessionID": {
-            "type": "string"
+    "OICPPlugAndChargeIdentification": {
+      "properties": {
+        "EvcoID": {
+          "type": "string"
         }
+      },
+      "required": ["EvcoID"],
+      "type": "object"
     },
-    "required": [
-        "EvseID",
-        "Identification",
-        "ProviderID",
-        "SessionID"
-    ],
-    "type": "object"
+    "OICPProductID": {
+      "type": "string"
+    },
+    "OICPQRCodeIdentification": {
+      "properties": {
+        "EvcoID": {
+          "type": "string"
+        },
+        "HashedPIN": {
+          "type": "string"
+        },
+        "PIN": {
+          "type": "string"
+        }
+      },
+      "required": ["EvcoID"],
+      "type": "object"
+    },
+    "OICPRFID": {
+      "enum": ["calypso", "mifareCls", "mifareDes", "mifareFamily", "nfc"],
+      "type": "string"
+    },
+    "OICPRFIDIdentification": {
+      "properties": {
+        "EvcoID": {
+          "type": "string"
+        },
+        "ExpiryDate": {
+          "description": "Enables basic storage and retrieval of dates and times.",
+          "format": "date-time",
+          "customType": "date",
+          "type": "string"
+        },
+        "PrintedNumber": {
+          "type": "string"
+        },
+        "RFID": {
+          "$ref": "#/definitions/OICPRFID"
+        },
+        "UID": {
+          "type": "string"
+        }
+      },
+      "required": ["RFID", "UID"],
+      "type": "object"
+    },
+    "OICPRFIDmifarefamilyIdentification": {
+      "properties": {
+        "UID": {
+          "type": "string"
+        }
+      },
+      "required": ["UID"],
+      "type": "object"
+    },
+    "OICPRemoteIdentificationType": {
+      "properties": {
+        "EvcoID": {
+          "type": "string"
+        }
+      },
+      "required": ["EvcoID"],
+      "type": "object"
+    }
+  },
+  "properties": {
+    "CPOPartnerSessionID": {
+      "type": "string"
+    },
+    "EMPPartnerSessionID": {
+      "type": "string"
+    },
+    "EvseID": {
+      "type": "string"
+    },
+    "Identification": {
+      "$ref": "#/definitions/OICPIdentification"
+    },
+    "PartnerProductID": {
+      "$ref": "#/definitions/OICPProductID"
+    },
+    "ProviderID": {
+      "type": "string"
+    },
+    "SessionID": {
+      "type": "string"
+    }
+  },
+  "required": ["EvseID", "Identification", "ProviderID", "SessionID"],
+  "type": "object"
 }

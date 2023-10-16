@@ -17,15 +17,19 @@ export default abstract class SchedulerTask {
     this.name = name;
     this.correlationID = Utils.generateShortNonUniqueID();
     // Get the lock
-    const scheduledTaskLock = await LockingHelper.acquireScheduledTaskLock(Constants.DEFAULT_TENANT_ID, name);
+    const scheduledTaskLock = await LockingHelper.acquireScheduledTaskLock(
+      Constants.DEFAULT_TENANT_ID,
+      name
+    );
     if (scheduledTaskLock) {
       try {
         const startTime = moment();
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
-          module: MODULE_NAME, method: 'run',
-          message: `The Task '${name}~${this.correlationID}' is running...`
+          module: MODULE_NAME,
+          method: 'run',
+          message: `The Task '${name}~${this.correlationID}' is running...`,
         });
         try {
           // Hook
@@ -38,9 +42,12 @@ export default abstract class SchedulerTask {
           await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT_ID,
             action: ServerAction.SCHEDULER,
-            module: MODULE_NAME, method: 'run',
-            message: `Error while running the Task '${this.getName()}~${this.correlationID}': ${error.message as string}`,
-            detailedMessages: { error: error.stack }
+            module: MODULE_NAME,
+            method: 'run',
+            message: `Error while running the Task '${this.getName()}~${this.correlationID}': ${
+              error.message as string
+            }`,
+            detailedMessages: { error: error.stack },
           });
         }
         // Log Total Processing Time
@@ -48,8 +55,9 @@ export default abstract class SchedulerTask {
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.SCHEDULER,
-          module: MODULE_NAME, method: 'run',
-          message: `The Task '${name}~${this.correlationID}' has been run in ${totalTimeSecs} secs`
+          module: MODULE_NAME,
+          method: 'run',
+          message: `The Task '${name}~${this.correlationID}' has been run in ${totalTimeSecs} secs`,
         });
       } finally {
         // Release lock
@@ -66,11 +74,9 @@ export default abstract class SchedulerTask {
     return this.correlationID;
   }
 
-  protected async beforeTaskRun(config: TaskConfig): Promise<void> {
-  }
+  protected async beforeTaskRun(config: TaskConfig): Promise<void> {}
 
-  protected async afterTaskRun(config: TaskConfig): Promise<void> {
-  }
+  protected async afterTaskRun(config: TaskConfig): Promise<void> {}
 
   protected abstract processTask(config: TaskConfig): Promise<void>;
 }

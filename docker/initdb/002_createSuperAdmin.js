@@ -10,10 +10,7 @@ db.getCollection('default.users').insert({
     department: null,
     region: null,
     country: null,
-    coordinates: [
-      0,
-      0
-    ]
+    coordinates: [0, 0],
   },
   costCenter: null,
   createdBy: null,
@@ -43,7 +40,7 @@ db.getCollection('default.users').insert({
     sendChargingStationRegistered: false,
     sendOcpiPatchStatusError: false,
     sendOicpPatchStatusError: false,
-    sendOfflineChargingStations: false
+    sendOfflineChargingStations: false,
   },
   phone: null,
   password: '$2a$10$/c.TRisu3xPAGkgTL69b7uC4SGXqDIzFJuZgHOB1D.fvXf5h3WWwW',
@@ -55,5 +52,5 @@ db.getCollection('default.users').insert({
   eulaAcceptedVersion: 28,
   role: 'S',
   status: 'A',
-  notificationsActive: true
+  notificationsActive: true,
 });

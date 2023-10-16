@@ -12,8 +12,17 @@ export default class SiteApi extends CrudApi {
     return super.readById(id, this.buildRestEndpointUrl(RESTServerRoute.REST_SITE, { id }));
   }
 
-  public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_SITES));
+  public async readAll(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_SITES)
+    );
   }
 
   public async create(data) {
@@ -21,19 +30,25 @@ export default class SiteApi extends CrudApi {
     // Check User IDs
     if (data.userIDs) {
       // Assign User IDs to Site
-      await super.create({
-        siteID: site.data.id,
-        userIDs: data.userIDs
-      }, this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_ADD_USERS, { id: site.data.id }));
+      await super.create(
+        {
+          siteID: site.data.id,
+          userIDs: data.userIDs,
+        },
+        this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_ADD_USERS, { id: site.data.id })
+      );
     }
     return site;
   }
 
   public async addUsersToSite(siteID: string, userIDs: string[]) {
-    return super.update({
-      siteID,
-      userIDs
-    }, this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_ADD_USERS, { id: siteID }));
+    return super.update(
+      {
+        siteID,
+        userIDs,
+      },
+      this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_ADD_USERS, { id: siteID })
+    );
   }
 
   public async addSitesToUser(userID: string, siteIDs: string[]) {
@@ -47,13 +62,19 @@ export default class SiteApi extends CrudApi {
   }
 
   public async readUsersForSite(siteID: string) {
-    return super.read({
-      SiteID: siteID
-    }, this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_USERS, { id: siteID }));
+    return super.read(
+      {
+        SiteID: siteID,
+      },
+      this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_USERS, { id: siteID })
+    );
   }
 
   public async update(data) {
-    return super.update(data, this.buildRestEndpointUrl(RESTServerRoute.REST_SITE, { id: data.id }));
+    return super.update(
+      data,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_SITE, { id: data.id })
+    );
   }
 
   public async delete(id: string) {
@@ -61,17 +82,22 @@ export default class SiteApi extends CrudApi {
   }
 
   public async assignSiteAdmin(siteID: string, userID: string) {
-    return super.update({
-      userID: userID,
-      siteAdmin: true
-    }, this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_ADMIN, { id: siteID }));
+    return super.update(
+      {
+        userID: userID,
+        siteAdmin: true,
+      },
+      this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_ADMIN, { id: siteID })
+    );
   }
 
   public async assignSiteOwner(siteID: string, userID: string) {
-    return super.update({
-      userID: userID,
-      siteOwner: true
-    }, this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_OWNER, { id: siteID }));
+    return super.update(
+      {
+        userID: userID,
+        siteOwner: true,
+      },
+      this.buildRestEndpointUrl(RESTServerRoute.REST_SITE_OWNER, { id: siteID })
+    );
   }
-
 }

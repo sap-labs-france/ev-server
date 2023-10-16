@@ -14,9 +14,5 @@
       "$ref": "common#/definitions/acceptEula"
     }
   },
-  "required": [
-    "email",
-    "password",
-    "acceptEula"
-  ]
+  "required": ["email", "password", "acceptEula"]
 }

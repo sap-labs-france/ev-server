@@ -11,8 +11,12 @@ export default class WALLBOXChargingStationVendorIntegration extends ChargingSta
   }
 
   // Wallbox only supports stack level 0
-  public async setChargingProfile(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint,
-      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileResponse | OCPPSetChargingProfileResponse[]> {
+  public async setChargingProfile(
+    tenant: Tenant,
+    chargingStation: ChargingStation,
+    chargePoint: ChargePoint,
+    chargingProfile: ChargingProfile
+  ): Promise<OCPPSetChargingProfileResponse | OCPPSetChargingProfileResponse[]> {
     chargingProfile.profile.stackLevel = 0;
     return super.setChargingProfile(tenant, chargingStation, chargePoint, chargingProfile);
   }

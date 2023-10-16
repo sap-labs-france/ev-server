@@ -18,26 +18,44 @@ export default class EndTransactionAsyncTask extends AbstractAsyncTask {
       if (!transactionID || !connectorId || !chargeBoxID) {
         throw new Error('Unexpected situation - task parameters are not set');
       }
-      const transaction = await TransactionStorage.getTransaction(tenant, Number(transactionID), {}, [ 'id', 'stop' ]);
+      const transaction = await TransactionStorage.getTransaction(
+        tenant,
+        Number(transactionID),
+        {},
+        ['id', 'stop']
+      );
       if (!transaction) {
         throw new Error(`Unknown Transaction ID '${transactionID}'`);
       }
       if (!transaction.stop) {
-        throw new Error(`Unexpected situation - the transaction has not been stopped - Transaction ID '${transactionID}'`);
+        throw new Error(
+          `Unexpected situation - the transaction has not been stopped - Transaction ID '${transactionID}'`
+        );
       }
       if (transaction.stop.extraInactivityComputed) {
-        throw new Error(`Unexpected situation - the extra inactivity has already been computed  - Transaction ID '${transactionID}'`);
+        throw new Error(
+          `Unexpected situation - the extra inactivity has already been computed  - Transaction ID '${transactionID}'`
+        );
       }
       // Instantiate the OCPPService
       const ocppService = new OCPPService(Configuration.getChargingStationConfig());
-      const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargeBoxID, { withSiteArea: true, issuer: true });
+      const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargeBoxID, {
+        withSiteArea: true,
+        issuer: true,
+      });
       if (!chargingStation) {
-        throw new Error(`Unexpected situation - the charging station does not exist - Charging Station ID '${chargeBoxID}'`);
+        throw new Error(
+          `Unexpected situation - the charging station does not exist - Charging Station ID '${chargeBoxID}'`
+        );
       }
       // Let's trigger the end of the transaction
       await ocppService.triggerEndTransaction(tenant, chargingStation, transactionID, connectorId);
     } catch (error) {
-      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPP_STATUS_NOTIFICATION, error);
+      await Logging.logActionExceptionMessage(
+        tenant.id,
+        ServerAction.OCPP_STATUS_NOTIFICATION,
+        error
+      );
     }
   }
 }

@@ -24,7 +24,10 @@ export default class TestUtils {
           if (j > 0) {
             jsonString += ',';
           }
-          jsonString += `"${columns[j].replace(/^"|"$/g, '')}":"${values[j].replace(/^"|"$/g, '')}"`;
+          jsonString += `"${columns[j].replace(/^"|"$/g, '')}":"${values[j].replace(
+            /^"|"$/g,
+            ''
+          )}"`;
         }
         jsonString += '}';
         objectArray.push(JSON.parse(jsonString));

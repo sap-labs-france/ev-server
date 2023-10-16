@@ -1,0 +1,47 @@
+{
+  "$id": "reservation-create",
+  "title": "Create Reservation",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "reservation#/definitions/id"
+    },
+    "chargingStationID": {
+      "$ref": "reservation#/definitions/chargingStationId"
+    },
+    "connectorID": {
+      "$ref": "reservation#/definitions/connectorId"
+    },
+    "fromDate": {
+      "$ref": "reservation#/definitions/fromDate"
+    },
+    "toDate": {
+      "$ref": "reservation#/definitions/toDate"
+    },
+    "expiryDate": {
+      "$ref": "reservation#/definitions/expiryDate"
+    },
+    "arrivalTime": {
+      "$ref": "reservation#/definitions/arrivalTime"
+    },
+    "departureTime": {
+      "$ref": "reservation#/definitions/departureTime"
+    },
+    "visualTagID": {
+      "$ref": "tag#/definitions/visualID"
+    },
+    "parentIdTag": {
+      "$ref": "reservation#/definitions/parentIdTag"
+    },
+    "userID": {
+      "$ref": "reservation#/definitions/userID"
+    },
+    "carID": {
+      "$ref": "reservation#/definitions/carID"
+    },
+    "type": {
+      "$ref": "reservation#/definitions/type"
+    }
+  },
+  "required": ["chargingStationID", "connectorID", "visualTagID", "expiryDate", "type"]
+}

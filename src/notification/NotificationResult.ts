@@ -1,2 +1,1 @@
-export default class NotificationResult {
-}
+export default class NotificationResult {}

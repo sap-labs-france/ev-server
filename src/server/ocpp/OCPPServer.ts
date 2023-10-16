@@ -9,7 +9,10 @@ export default abstract class OCPPServer {
   protected chargingStationConfig: ChargingStationConfiguration;
 
   // Common constructor for Central System Server
-  public constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
+  public constructor(
+    centralSystemConfig: CentralSystemConfiguration,
+    chargingStationConfig: ChargingStationConfiguration
+  ) {
     // Init
     this.centralSystemConfig = centralSystemConfig;
     this.chargingStationConfig = chargingStationConfig;
@@ -29,4 +32,3 @@ export default abstract class OCPPServer {
 
   public abstract start(): void;
 }
-

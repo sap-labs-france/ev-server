@@ -10,27 +10,62 @@ export default class CarApi extends CrudApi {
   }
 
   public async readCarCatalog(id: number) {
-    return super.read({ ID: id }, this.buildRestEndpointUrl(RESTServerRoute.REST_CAR_CATALOG, { id }));
+    return super.read(
+      { ID: id },
+      this.buildRestEndpointUrl(RESTServerRoute.REST_CAR_CATALOG, { id })
+    );
   }
 
-  public async readCarCatalogs(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_CAR_CATALOGS));
+  public async readCarCatalogs(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_CAR_CATALOGS)
+    );
   }
 
-  public async readCarMakers(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_CAR_MAKERS));
+  public async readCarMakers(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_CAR_MAKERS)
+    );
   }
 
   public async readCarImages(id: number) {
-    return super.readAll({ ID: id }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, this.buildRestEndpointUrl(RESTServerRoute.REST_CAR_CATALOG_IMAGES, { id }));
+    return super.readAll(
+      { ID: id },
+      TestConstants.DEFAULT_PAGING,
+      TestConstants.DEFAULT_ORDERING,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_CAR_CATALOG_IMAGES, { id })
+    );
   }
 
   public async readCar(id: string) {
     return super.read({ ID: id }, this.buildRestEndpointUrl(RESTServerRoute.REST_CAR, { id }));
   }
 
-  public async readCars(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_CARS));
+  public async readCars(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_CARS)
+    );
   }
 
   public async update(data: Car) {

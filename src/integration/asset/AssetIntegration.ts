@@ -17,8 +17,12 @@ export default abstract class AssetIntegration<T extends AssetSetting> {
   }
 
   public checkIfIntervalExceeded(asset: Asset): boolean {
-    if (asset.lastConsumption?.timestamp && this.connection.refreshIntervalMins &&
-      moment() < moment(asset.lastConsumption.timestamp).add(this.connection.refreshIntervalMins, 'minutes')) {
+    if (
+      asset.lastConsumption?.timestamp &&
+      this.connection.refreshIntervalMins &&
+      moment() <
+        moment(asset.lastConsumption.timestamp).add(this.connection.refreshIntervalMins, 'minutes')
+    ) {
       return false;
     }
     return true;
@@ -26,5 +30,8 @@ export default abstract class AssetIntegration<T extends AssetSetting> {
 
   abstract checkConnection(): Promise<void>;
 
-  abstract retrieveConsumptions(asset: Asset, manualCall?: boolean): Promise<AbstractCurrentConsumption[]>;
+  abstract retrieveConsumptions(
+    asset: Asset,
+    manualCall?: boolean
+  ): Promise<AbstractCurrentConsumption[]>;
 }

@@ -12,10 +12,20 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'NotificationStorage';
 
 export default class NotificationStorage {
-  public static async getNotifications(tenant: Tenant,
-      params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string;
-        sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Notification>> {
+  public static async getNotifications(
+    tenant: Tenant,
+    params: {
+      userID?: string;
+      dateFrom?: Date;
+      channel?: string;
+      sourceId?: string;
+      sourceDescr?: string;
+      additionalFilters?: any;
+      chargeBoxID?: string;
+    },
+    dbParams: DbParams,
+    projectFields?: string[]
+  ): Promise<DataResult<Notification>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -61,65 +71,87 @@ export default class NotificationStorage {
     }
     // Filters
     aggregation.push({
-      $match: filters
+      $match: filters,
     });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const notificationsCountMDB = await global.database.getCollection<any>(tenant.id, 'notifications')
+    const notificationsCountMDB = (await global.database
+      .getCollection<any>(tenant.id, 'notifications')
       .aggregate([...aggregation, { $count: 'count' }], DatabaseUtils.buildAggregateOptions())
-      .toArray() as DatabaseCount[];
+      .toArray()) as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       return {
-        count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
-        result: []
+        count: notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0,
+        result: [],
       };
     }
     // Remove the limit
     aggregation.pop();
     // Charge Box
     DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
-      asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      tenantID: tenant.id,
+      aggregation: aggregation,
+      localField: 'chargeBoxID',
+      foreignField: '_id',
+      asField: 'chargeBox',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false,
     });
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      tenantID: tenant.id,
+      aggregation: aggregation,
+      asField: 'user',
+      localField: 'userID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false,
     });
     // Sort
     if (!dbParams.sort) {
       dbParams.sort = { timestamp: -1 };
     }
     aggregation.push({
-      $sort: dbParams.sort
+      $sort: dbParams.sort,
     });
     // Skip
     aggregation.push({
-      $skip: dbParams.skip
+      $skip: dbParams.skip,
     });
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const notificationsMDB = await global.database.getCollection<any>(tenant.id, 'notifications')
+    const notificationsMDB = (await global.database
+      .getCollection<any>(tenant.id, 'notifications')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as Notification[];
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getNotifications', startTime, aggregation, notificationsMDB);
+      .toArray()) as Notification[];
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'getNotifications',
+      startTime,
+      aggregation,
+      notificationsMDB
+    );
     return {
-      count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
-      result: notificationsMDB
+      count: notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0,
+      result: notificationsMDB,
     };
   }
 
-  public static async saveNotification(tenant: Tenant, notificationToSave: Partial<Notification>): Promise<void> {
+  public static async saveNotification(
+    tenant: Tenant,
+    notificationToSave: Partial<Notification>
+  ): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     const notificationsMDB: any = {
@@ -130,11 +162,18 @@ export default class NotificationStorage {
       sourceId: notificationToSave.sourceId,
       sourceDescr: notificationToSave.sourceDescr,
       data: notificationToSave.data,
-      chargeBoxID: notificationToSave.chargeBoxID
+      chargeBoxID: notificationToSave.chargeBoxID,
     };
     // Create
-    await global.database.getCollection<any>(tenant.id, 'notifications')
+    await global.database
+      .getCollection<any>(tenant.id, 'notifications')
       .insertOne(notificationsMDB);
-    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveNotification', startTime, notificationsMDB);
+    await Logging.traceDatabaseRequestEnd(
+      tenant,
+      MODULE_NAME,
+      'saveNotification',
+      startTime,
+      notificationsMDB
+    );
   }
 }

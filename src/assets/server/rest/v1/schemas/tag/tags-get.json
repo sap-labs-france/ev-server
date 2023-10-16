@@ -39,7 +39,5 @@
       "default": true
     }
   },
-  "required": [
-    "Limit"
-  ]
+  "required": ["Limit"]
 }

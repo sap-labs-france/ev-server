@@ -31,19 +31,13 @@
       ]
     }
   },
-  "required": [
-    "connectorId"
-  ],
+  "required": ["connectorId"],
   "oneOf": [
     {
-      "required": [
-        "meterValue"
-      ]
+      "required": ["meterValue"]
     },
     {
-      "required": [
-        "values"
-      ]
+      "required": ["values"]
     }
   ],
   "definitions": {
@@ -107,13 +101,7 @@
               "location": {
                 "type": "string",
                 "default": "Outlet",
-                "enum": [
-                  "Cable",
-                  "EV",
-                  "Inlet",
-                  "Outlet",
-                  "Body"
-                ]
+                "enum": ["Cable", "EV", "Inlet", "Outlet", "Body"]
               },
               "unit": {
                 "type": "string",
@@ -139,38 +127,19 @@
               },
               "phase": {
                 "type": "string",
-                "enum": [
-                  "L1",
-                  "L2",
-                  "L3",
-                  "N",
-                  "L1-N",
-                  "L2-N",
-                  "L3-N",
-                  "L1-L2",
-                  "L2-L3",
-                  "L3-L1"
-                ]
+                "enum": ["L1", "L2", "L3", "N", "L1-N", "L2-N", "L3-N", "L1-L2", "L2-L3", "L3-L1"]
               },
               "format": {
                 "type": "string",
                 "default": "Raw",
-                "enum": [
-                  "Raw",
-                  "SignedData"
-                ]
+                "enum": ["Raw", "SignedData"]
               }
             },
-            "required": [
-              "value"
-            ]
+            "required": ["value"]
           }
         }
       },
-      "required": [
-        "timestamp",
-        "sampledValue"
-      ]
+      "required": ["timestamp", "sampledValue"]
     },
     "meterValuesOCPP16": {
       "type": "array",
@@ -232,13 +201,7 @@
                 "location": {
                   "type": "string",
                   "default": "Outlet",
-                  "enum": [
-                    "Cable",
-                    "EV",
-                    "Inlet",
-                    "Outlet",
-                    "Body"
-                  ]
+                  "enum": ["Cable", "EV", "Inlet", "Outlet", "Body"]
                 },
                 "unit": {
                   "type": "string",
@@ -265,23 +228,15 @@
                 "format": {
                   "type": "string",
                   "default": "Raw",
-                  "enum": [
-                    "Raw",
-                    "SignedData"
-                  ]
+                  "enum": ["Raw", "SignedData"]
                 }
               }
             }
           },
-          "required": [
-            "$value"
-          ]
+          "required": ["$value"]
         }
       },
-      "required": [
-        "timestamp",
-        "value"
-      ]
+      "required": ["timestamp", "value"]
     },
     "meterValuesOCPP15": {
       "type": "object",
@@ -297,10 +252,7 @@
           }
         }
       },
-      "required": [
-        "timestamp",
-        "value"
-      ]
+      "required": ["timestamp", "value"]
     }
   }
 }

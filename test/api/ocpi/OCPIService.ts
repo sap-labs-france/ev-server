@@ -15,15 +15,16 @@ export default class OCPIService {
   public baseApi: BaseApi;
 
   public constructor(role: OCPIRole) {
-    this.baseURL = `${config.get('ocpi.scheme')}://${config.get('ocpi.host')}:${config.get('ocpi.port')}`;
+    this.baseURL = `${config.get('ocpi.scheme')}://${config.get('ocpi.host')}:${config.get(
+      'ocpi.port'
+    )}`;
     this.role = role.toLocaleLowerCase();
     this.baseApi = new BaseApi(this.baseURL);
     this.token = OCPIService.getToken(role);
   }
 
   public static isConfigAvailable(): boolean {
-    return (config.get('ocpi.enabled')) ? true : false;
-
+    return config.get('ocpi.enabled') ? true : false;
   }
 
   public static getToken(role: OCPIRole) {
@@ -31,7 +32,6 @@ export default class OCPIService {
       return `Token ${config.get('ocpi.cpoToken')}`;
     }
     return `Token ${config.get('ocpi.emspToken')}`;
-
   }
 
   public async getVersions() {
@@ -41,8 +41,8 @@ export default class OCPIService {
       method: 'GET',
       url: `ocpi/${this.role}/versions`,
       headers: {
-        Authorization: this.token
-      }
+        Authorization: this.token,
+      },
     });
   }
 
@@ -51,8 +51,8 @@ export default class OCPIService {
       method: 'GET',
       url: `ocpi/${this.role}/2.1.1`,
       headers: {
-        Authorization: this.token
-      }
+        Authorization: this.token,
+      },
     });
   }
 
@@ -61,8 +61,8 @@ export default class OCPIService {
       method: 'GET',
       url: `ocpi/${this.role}/2.1.1/locations`,
       headers: {
-        Authorization: this.token
-      }
+        Authorization: this.token,
+      },
     });
   }
 
@@ -72,8 +72,8 @@ export default class OCPIService {
       url: `ocpi/${this.role}/2.1.1/credentials`,
       data: credential,
       headers: {
-        Authorization: this.token
-      }
+        Authorization: this.token,
+      },
     });
   }
 
@@ -82,8 +82,8 @@ export default class OCPIService {
       method: method,
       url: path,
       headers: {
-        Authorization: this.token
-      }
+        Authorization: this.token,
+      },
     });
   }
 
@@ -111,19 +111,25 @@ export default class OCPIService {
   }
 
   public validateLocationEntity(location) {
-    return expect(location).to.have.property('id').that.is.not.empty &&
-      expect(location).to.have.property('name').that.is.not.empty;
+    return (
+      expect(location).to.have.property('id').that.is.not.empty &&
+      expect(location).to.have.property('name').that.is.not.empty
+    );
   }
 
   public validateEvseEntity(evse) {
-    return expect(evse).to.have.property('uid').that.is.not.empty &&
+    return (
+      expect(evse).to.have.property('uid').that.is.not.empty &&
       expect(evse).to.have.property('evse_id').that.is.not.empty &&
       expect(evse).to.have.property('status').that.is.not.empty &&
-      expect(evse).to.have.property('connectors').to.be.an('array').that.is.not.empty;
+      expect(evse).to.have.property('connectors').to.be.an('array').that.is.not.empty
+    );
   }
 
   public validateConnectorEntity(connector) {
-    return expect(connector).to.have.property('id') &&
-      expect(connector).to.have.property('last_updated').that.is.not.empty;
+    return (
+      expect(connector).to.have.property('id') &&
+      expect(connector).to.have.property('last_updated').that.is.not.empty
+    );
   }
 }

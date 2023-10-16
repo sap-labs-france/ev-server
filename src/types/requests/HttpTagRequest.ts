@@ -25,16 +25,13 @@ export interface HttpTagsGetRequest extends HttpDatabaseRequest {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpTagUpdateRequest extends Tag {
-}
+export interface HttpTagUpdateRequest extends Tag {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpTagCreateRequest extends Tag {
-}
+export interface HttpTagCreateRequest extends Tag {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface HttpTagAssignRequest extends Tag {
-}
+export interface HttpTagAssignRequest extends Tag {}
 
 export interface HttpTagsDeleteRequest {
   tagsIDs: string[];

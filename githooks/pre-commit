@@ -6,14 +6,14 @@
 #   - for *nix (chmod +x pre-commit)
 
 # echo "Starting the server"
-# npm run start:dev
+# pnpm start:dev
 
 echo "Running linter fix:"
-npm run eslint:fix
+pnpm eslint:fix
 
-echo "Running unit tests (do not forget to start the server before with 'npm run start:dev'):"
-# npm run start:email &
-npm run mochatest
+echo "Running unit tests (do not forget to start the server before with 'pnpm start:dev'):"
+# pnpm start:email &
+pnpm mochatest
 
 # Do not abort the commit because of errors
 exit 0

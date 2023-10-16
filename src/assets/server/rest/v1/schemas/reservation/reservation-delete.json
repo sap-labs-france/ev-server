@@ -1,0 +1,11 @@
+{
+  "$id": "reservation-delete",
+  "title": "Delete a reservation",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "reservation#/definitions/id"
+    }
+  },
+  "required": ["ID"]
+}

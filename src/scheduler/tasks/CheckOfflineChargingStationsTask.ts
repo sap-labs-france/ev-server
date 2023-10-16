@@ -18,16 +18,31 @@ import moment from 'moment';
 const MODULE_NAME = 'CheckOfflineChargingStationsTask';
 
 export default class CheckOfflineChargingStationsTask extends TenantSchedulerTask {
-  public async processTenant(tenant: Tenant, config: CheckOfflineChargingStationsTaskConfig): Promise<void> {
+  public async processTenant(
+    tenant: Tenant,
+    config: CheckOfflineChargingStationsTaskConfig
+  ): Promise<void> {
     // Get the lock
-    const offlineChargingStationLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'offline-charging-station');
+    const offlineChargingStationLock = LockingManager.createExclusiveLock(
+      tenant.id,
+      LockEntity.CHARGING_STATION,
+      'offline-charging-station'
+    );
     if (await LockingManager.acquire(offlineChargingStationLock)) {
       try {
         // Compute the date some minutes ago
-        const offlineSince = moment().subtract(Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').toDate();
-        const chargingStations = await ChargingStationStorage.getChargingStations(tenant, {
-          issuer: true, withSiteArea: true, offlineSince
-        }, Constants.DB_PARAMS_MAX_LIMIT);
+        const offlineSince = moment()
+          .subtract(Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds')
+          .toDate();
+        const chargingStations = await ChargingStationStorage.getChargingStations(
+          tenant,
+          {
+            issuer: true,
+            withSiteArea: true,
+            offlineSince,
+          },
+          Constants.DB_PARAMS_MAX_LIMIT
+        );
         if (!Utils.isEmptyArray(chargingStations.result)) {
           for (let i = chargingStations.result.length - 1; i >= 0; i--) {
             const chargingStation = chargingStations.result[i];
@@ -36,7 +51,10 @@ export default class CheckOfflineChargingStationsTask extends TenantSchedulerTas
             try {
               // Send credentials to get the token
               ocppHeartbeatConfiguration = await Utils.executePromiseWithTimeout(
-                5000, OCPPCommon.requestChargingStationOcppParameters(tenant, chargingStation, { key: Constants.OCPP_HEARTBEAT_KEYS as string[] }),
+                5000,
+                OCPPCommon.requestChargingStationOcppParameters(tenant, chargingStation, {
+                  key: Constants.OCPP_HEARTBEAT_KEYS as string[],
+                }),
                 `Time out error (5s) when trying to get OCPP configuration from '${chargingStation.id}'`
               );
             } catch (error) {
@@ -49,17 +67,21 @@ export default class CheckOfflineChargingStationsTask extends TenantSchedulerTas
                 ...LoggingHelper.getChargingStationProperties(chargingStation),
                 tenantID: tenant.id,
                 action: ServerAction.OFFLINE_CHARGING_STATION,
-                module: MODULE_NAME, method: 'processTenant',
-                message: 'Offline charging station responded successfully to an OCPP command and will be ignored',
-                detailedMessages: { ocppHeartbeatConfiguration }
+                module: MODULE_NAME,
+                method: 'processTenant',
+                message:
+                  'Offline charging station responded successfully to an OCPP command and will be ignored',
+                detailedMessages: { ocppHeartbeatConfiguration },
               });
               // Update lastSeen
-              await ChargingStationStorage.saveChargingStationRuntimeData(tenant, chargingStation.id,
+              await ChargingStationStorage.saveChargingStationRuntimeData(
+                tenant,
+                chargingStation.id,
                 { lastSeen: new Date() }
               );
               // Remove charging station from notification
               chargingStations.result.splice(i, 1);
-            // Check if inactive
+              // Check if inactive
             } else if (chargingStation.forceInactive) {
               // Remove charging station from notification
               chargingStations.result.splice(i, 1);
@@ -67,21 +89,25 @@ export default class CheckOfflineChargingStationsTask extends TenantSchedulerTas
           }
           // Notify users with the rest of the Charging Stations
           if (chargingStations.result.length > 0) {
-            const chargingStationIDs = chargingStations.result.map((chargingStation) => chargingStation.id);
+            const chargingStationIDs = chargingStations.result.map(
+              (chargingStation) => chargingStation.id
+            );
             // Send notification
-            NotificationHandler.sendOfflineChargingStations(
-              tenant, {
-                chargingStationIDs,
-                evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
-              }
-            ).catch((error) => {
+            NotificationHandler.sendOfflineChargingStations(tenant, {
+              chargingStationIDs,
+              evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+            }).catch((error) => {
               Logging.logPromiseError(error, tenant?.id);
             });
           }
         }
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OFFLINE_CHARGING_STATION, error);
+        await Logging.logActionExceptionMessage(
+          tenant.id,
+          ServerAction.OFFLINE_CHARGING_STATION,
+          error
+        );
       } finally {
         // Release the lock
         await LockingManager.release(offlineChargingStationLock);
@@ -89,4 +115,3 @@ export default class CheckOfflineChargingStationsTask extends TenantSchedulerTas
     }
   }
 }
-

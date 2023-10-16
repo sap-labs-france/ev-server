@@ -1,5 +1,9 @@
 /* eslint-disable max-len */
-import ChargingStation, { ChargingStationTemplate, ConnectorType, CurrentType } from '../../../src/types/ChargingStation';
+import ChargingStation, {
+  ChargingStationTemplate,
+  ConnectorType,
+  CurrentType,
+} from '../../../src/types/ChargingStation';
 import ContextDefinition, { TenantDefinition } from './ContextDefinition';
 import PricingDefinition, { PricingEntity } from '../../../src/types/Pricing';
 import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
@@ -43,7 +47,6 @@ import global from '../../../src/types/GlobalType';
 import moment from 'moment';
 
 export default class ContextBuilder {
-
   private superAdminCentralServerService: CentralServerService;
   private tenantsContexts: TenantContext[];
 
@@ -51,7 +54,7 @@ export default class ContextBuilder {
     // Create a super admin interface
     this.superAdminCentralServerService = new CentralServerService(null, {
       email: config.get('superadmin.username'),
-      password: config.get('superadmin.password')
+      password: config.get('superadmin.password'),
     });
     this.tenantsContexts = [];
     // Create MongoDB
@@ -76,8 +79,10 @@ export default class ContextBuilder {
     let tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST;
     if (process.env.TENANT_FILTER) {
       // Just an optimization allowing to only initialize a single tenant
-      // e.g.: npm run mochatest:create:utbilling
-      tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST.filter((def) => RegExp(process.env.TENANT_FILTER).exec(def.subdomain));
+      // e.g.: pnpm mochatest:create:utbilling
+      tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST.filter((def) =>
+        RegExp(process.env.TENANT_FILTER).exec(def.subdomain)
+      );
     }
     for (const tenantContextDef of tenantDefinitions) {
       await this.buildTenantContext(tenantContextDef);
@@ -89,8 +94,15 @@ export default class ContextBuilder {
   private async destroyTestTenants(): Promise<void> {
     if (this.tenantsContexts && this.tenantsContexts.length > 0) {
       for (const tenantContext of this.tenantsContexts) {
-        console.log(`Delete Tenant context '${tenantContext.getTenant().id} (${tenantContext.getTenant().subdomain})`);
-        await this.superAdminCentralServerService.deleteEntity(this.superAdminCentralServerService.tenantApi, tenantContext.getTenant());
+        console.log(
+          `Delete Tenant context '${tenantContext.getTenant().id} (${
+            tenantContext.getTenant().subdomain
+          })`
+        );
+        await this.superAdminCentralServerService.deleteEntity(
+          this.superAdminCentralServerService.tenantApi,
+          tenantContext.getTenant()
+        );
       }
     }
     // Delete all tenants
@@ -114,17 +126,26 @@ export default class ContextBuilder {
         const componentName = TenantComponents[component];
         if (Utils.objectHasProperty(tenantContextDef.componentSettings, componentName as string)) {
           components[componentName] = {
-            active: true
+            active: true,
           };
-          if (Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'content') && Utils.objectHasProperty(tenantContextDef.componentSettings[componentName].content, 'type')) {
-            components[componentName]['type'] = tenantContextDef.componentSettings[componentName].content.type;
+          if (
+            Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'content') &&
+            Utils.objectHasProperty(
+              tenantContextDef.componentSettings[componentName].content,
+              'type'
+            )
+          ) {
+            components[componentName]['type'] =
+              tenantContextDef.componentSettings[componentName].content.type;
           }
         }
       }
     }
     const existingTenant = await TenantStorage.getTenant(tenantContextDef.id);
     if (existingTenant) {
-      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.name}. Please run a destroy context`);
+      console.log(
+        `Tenant ${tenantContextDef.id} already exist with name ${existingTenant.name}. Please run a destroy context`
+      );
       throw new Error('Tenant id exist already');
     }
     let buildTenant: Tenant = null;
@@ -135,24 +156,34 @@ export default class ContextBuilder {
     dummyTenant.id = tenantContextDef.id;
     dummyTenant.components = components;
     buildTenant = await this.superAdminCentralServerService.createEntity(
-      this.superAdminCentralServerService.tenantApi, dummyTenant);
+      this.superAdminCentralServerService.tenantApi,
+      dummyTenant
+    );
     await this.superAdminCentralServerService.updateEntity(
-      this.superAdminCentralServerService.tenantApi, buildTenant);
+      this.superAdminCentralServerService.tenantApi,
+      buildTenant
+    );
     console.log(`${buildTenant.id} (${buildTenant.name}) - Create tenant context`);
     const userId = await UserStorage.saveUser(buildTenant, {
-      'id': ContextDefinition.TENANT_USER_LIST[0].id,
-      'issuer': true,
-      'name': 'Admin',
-      'firstName': 'User',
-      'email': config.get('admin.username'),
-      'locale': 'en-US',
-      'phone': '66666666666',
-      'mobile': '66666666666',
-      'plateID': '666-FB-69'
+      id: ContextDefinition.TENANT_USER_LIST[0].id,
+      issuer: true,
+      name: 'Admin',
+      firstName: 'User',
+      email: config.get('admin.username'),
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
     } as User);
-    await UserStorage.saveUserStatus(buildTenant, userId, ContextDefinition.TENANT_USER_LIST[0].status);
+    await UserStorage.saveUserStatus(
+      buildTenant,
+      userId,
+      ContextDefinition.TENANT_USER_LIST[0].status
+    );
     await UserStorage.saveUserRole(buildTenant, userId, ContextDefinition.TENANT_USER_LIST[0].role);
-    await UserStorage.saveUserPassword(buildTenant, userId, { password: await Utils.hashPasswordBcrypt(config.get('admin.password')) });
+    await UserStorage.saveUserPassword(buildTenant, userId, {
+      password: await Utils.hashPasswordBcrypt(config.get('admin.password')),
+    });
     if (ContextDefinition.TENANT_USER_LIST[0].tags) {
       for (const tag of ContextDefinition.TENANT_USER_LIST[0].tags) {
         tag.userID = ContextDefinition.TENANT_USER_LIST[0].id;
@@ -160,38 +191,79 @@ export default class ContextBuilder {
       }
     }
     if (Utils.isBoolean(ContextDefinition.TENANT_USER_LIST[0].freeAccess)) {
-      await UserStorage.saveUserAdminData(buildTenant, userId, { freeAccess: ContextDefinition.TENANT_USER_LIST[0].freeAccess });
+      await UserStorage.saveUserAdminData(buildTenant, userId, {
+        freeAccess: ContextDefinition.TENANT_USER_LIST[0].freeAccess,
+      });
     }
-    const defaultAdminUser = await UserStorage.getUser(buildTenant, ContextDefinition.TENANT_USER_LIST[0].id);
+    const defaultAdminUser = await UserStorage.getUser(
+      buildTenant,
+      ContextDefinition.TENANT_USER_LIST[0].id
+    );
     // Create Central Server Service
-    const localCentralServiceService: CentralServerService = new CentralServerService(buildTenant.subdomain);
+    const localCentralServiceService: CentralServerService = new CentralServerService(
+      buildTenant.subdomain
+    );
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
-      console.log(`Settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings, null, ' ')}`);
-      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, TestConstants.DEFAULT_PAGING);
+      console.log(
+        `Settings in tenant ${buildTenant.name} as ${JSON.stringify(
+          tenantContextDef.componentSettings,
+          null,
+          ' '
+        )}`
+      );
+      const allSettings: any = await localCentralServiceService.settingApi.readAll(
+        {},
+        TestConstants.DEFAULT_PAGING
+      );
       expect(allSettings.status).to.equal(StatusCodes.OK);
       for (const componentSettingKey in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
-        if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
-          foundSetting = allSettings.data.result.find((existingSetting) => existingSetting.identifier === componentSettingKey);
+        if (
+          allSettings &&
+          allSettings.data &&
+          allSettings.data.result &&
+          allSettings.data.result.length > 0
+        ) {
+          foundSetting = allSettings.data.result.find(
+            (existingSetting) => existingSetting.identifier === componentSettingKey
+          );
         }
         if (!foundSetting) {
           // Create new settings
           const settingInput: SettingDB = {
             identifier: componentSettingKey as TenantComponents,
-            content: tenantContextDef.componentSettings[componentSettingKey].content as SettingDBContent
+            content: tenantContextDef.componentSettings[componentSettingKey]
+              .content as SettingDBContent,
           };
-          console.log(`${buildTenant.id} (${buildTenant.name}) - Create settings for '${componentSettingKey}'`);
-          await localCentralServiceService.createEntity(localCentralServiceService.settingApi, settingInput);
+          console.log(
+            `${buildTenant.id} (${buildTenant.name}) - Create settings for '${componentSettingKey}'`
+          );
+          await localCentralServiceService.createEntity(
+            localCentralServiceService.settingApi,
+            settingInput
+          );
         } else {
-          console.log(`${buildTenant.id} (${buildTenant.name}) - Update settings for '${componentSettingKey}'`);
+          console.log(
+            `${buildTenant.id} (${buildTenant.name}) - Update settings for '${componentSettingKey}'`
+          );
           foundSetting.content = tenantContextDef.componentSettings[componentSettingKey].content;
-          if (componentSettingKey === TenantComponents.PRICING && !!foundSetting.content?.simple?.currency) {
+          if (
+            componentSettingKey === TenantComponents.PRICING &&
+            !!foundSetting.content?.simple?.currency
+          ) {
             // Expect an error code triggering a user logout when the currency code is changed
-            const response = await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting, false);
+            const response = await localCentralServiceService.updateEntity(
+              localCentralServiceService.settingApi,
+              foundSetting,
+              false
+            );
             expect(response.status).to.equal(HTTPError.TENANT_COMPONENT_CHANGED);
           } else {
-            await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting);
+            await localCentralServiceService.updateEntity(
+              localCentralServiceService.settingApi,
+              foundSetting
+            );
           }
         }
         if (componentSettingKey === TenantComponents.OCPI) {
@@ -205,7 +277,7 @@ export default class ContextBuilder {
             version: '2.1.1',
             status: OCPIRegistrationStatus.REGISTERED,
             localToken: ContextBuilder.generateLocalToken(OCPIRole.CPO, tenantContextDef.subdomain),
-            token: 'TOIOP-OCPI-TOKEN-cpo-xxxx-xxxx-yyyy'
+            token: 'TOIOP-OCPI-TOKEN-cpo-xxxx-xxxx-yyyy',
           } as OCPIEndpoint;
           await OCPIEndpointStorage.saveOcpiEndpoint(buildTenant, cpoEndpoint);
           const emspEndpoint = {
@@ -217,8 +289,11 @@ export default class ContextBuilder {
             versionUrl: 'https://ocpi-pp-iop.gireve.com/ocpi/cpo/2.1.1',
             version: '2.1.1',
             status: OCPIRegistrationStatus.REGISTERED,
-            localToken: ContextBuilder.generateLocalToken(OCPIRole.EMSP, tenantContextDef.subdomain),
-            token: 'TOIOP-OCPI-TOKEN-emsp-xxxx-xxxx-yyyy'
+            localToken: ContextBuilder.generateLocalToken(
+              OCPIRole.EMSP,
+              tenantContextDef.subdomain
+            ),
+            token: 'TOIOP-OCPI-TOKEN-emsp-xxxx-xxxx-yyyy',
           } as OCPIEndpoint;
           await OCPIEndpointStorage.saveOcpiEndpoint(buildTenant, emspEndpoint);
         } else if (componentSettingKey === TenantComponents.PRICING) {
@@ -233,8 +308,8 @@ export default class ContextBuilder {
               energy: {
                 active: true,
                 price: ContextDefinition.DEFAULT_PRICE,
-              }
-            }
+              },
+            },
           } as PricingDefinition;
           await PricingStorage.savePricingDefinition(buildTenant, pricingDefinition);
         }
@@ -244,8 +319,13 @@ export default class ContextBuilder {
     let userList: User[] = null;
     let tagList: Tag[] = null;
     // Read admin user
-    const adminUser: User = (await localCentralServiceService.getEntityById(
-      localCentralServiceService.userApi, defaultAdminUser, false)).data;
+    const adminUser: User = (
+      await localCentralServiceService.getEntityById(
+        localCentralServiceService.userApi,
+        defaultAdminUser,
+        false
+      )
+    ).data;
     if (!adminUser.id) {
       console.log('Error with new Admin user: ', adminUser);
     }
@@ -277,21 +357,32 @@ export default class ContextBuilder {
         userListToAssign.push(userModel);
       }
       if (userDef.freeAccess) {
-        await UserStorage.saveUserAdminData(buildTenant, user.id, { freeAccess: userDef.freeAccess });
+        await UserStorage.saveUserAdminData(buildTenant, user.id, {
+          freeAccess: userDef.freeAccess,
+        });
       }
       // Set back password to clear value for login/logout
       (userModel as any).passwordClear = config.get('admin.password');
       userList.push(userModel);
     }
     // Persist tenant context
-    const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, '', localCentralServiceService, null);
+    const newTenantContext = new TenantContext(
+      tenantContextDef.tenantName,
+      buildTenant,
+      '',
+      localCentralServiceService,
+      null
+    );
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
     tagList = (await TagStorage.getTags(buildTenant, {}, TestConstants.DEFAULT_PAGING)).result;
     newTenantContext.addTags(tagList);
     // Check if Organization is active
-    if (buildTenant.components && Utils.objectHasProperty(buildTenant.components, TenantComponents.ORGANIZATION) &&
-      buildTenant.components[TenantComponents.ORGANIZATION].active) {
+    if (
+      buildTenant.components &&
+      Utils.objectHasProperty(buildTenant.components, TenantComponents.ORGANIZATION) &&
+      buildTenant.components[TenantComponents.ORGANIZATION].active
+    ) {
       // Create the company
       for (const companyDef of ContextDefinition.TENANT_COMPANY_LIST) {
         const dummyCompany: Company = Factory.company.build();
@@ -309,7 +400,7 @@ export default class ContextBuilder {
         // Create site
         const siteTemplate = Factory.site.build({
           companyID: siteContextDef.companyID,
-          userIDs: userListToAssign.map((user) => user.id)
+          userIDs: userListToAssign.map((user) => user.id),
         });
         siteTemplate.name = siteContextDef.name;
         siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
@@ -318,10 +409,16 @@ export default class ContextBuilder {
         siteTemplate.issuer = true;
         site = siteTemplate;
         site.id = await SiteStorage.saveSite(buildTenant, siteTemplate, true);
-        await SiteStorage.addUsersToSite(buildTenant, site.id, userListToAssign.map((user) => user.id));
+        await SiteStorage.addUsersToSite(
+          buildTenant,
+          site.id,
+          userListToAssign.map((user) => user.id)
+        );
         const siteContext = new SiteContext(site, newTenantContext);
         // Create site areas of current site
-        for (const siteAreaDef of ContextDefinition.TENANT_SITEAREA_LIST.filter((siteArea) => siteArea.siteName === site.name)) {
+        for (const siteAreaDef of ContextDefinition.TENANT_SITEAREA_LIST.filter(
+          (siteArea) => siteArea.siteName === site.name
+        )) {
           const siteAreaTemplate = Factory.siteArea.build();
           siteAreaTemplate.id = siteAreaDef.id;
           siteAreaTemplate.name = siteAreaDef.name;
@@ -333,52 +430,112 @@ export default class ContextBuilder {
           siteAreaTemplate.parentSiteAreaID = siteAreaDef.parentSiteAreaID;
           siteAreaTemplate.numberOfPhases = siteAreaDef.numberOfPhases;
           siteAreaTemplate.voltage = siteAreaDef.voltage;
-          console.log(`${buildTenant.id} (${buildTenant.name}) - Site Area '${siteAreaTemplate.name}'`);
+          console.log(
+            `${buildTenant.id} (${buildTenant.name}) - Site Area '${siteAreaTemplate.name}'`
+          );
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant, sireAreaID);
           const siteAreaContext = siteContext.addSiteArea(siteAreaModel);
           const relevantCS = ContextDefinition.TENANT_CHARGING_STATION_LIST.filter(
-            (chargingStation) => chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true);
+            (chargingStation) =>
+              chargingStation.siteAreaNames &&
+              chargingStation.siteAreaNames.includes(siteAreaModel.name) === true
+          );
           // Create Charging Station for site area
           for (const chargingStationDef of relevantCS) {
             let chargingStationTemplate: ChargingStation;
             if (siteAreaModel.numberOfPhases === 1) {
               chargingStationTemplate = Factory.chargingStation.buildChargingStationSinglePhased();
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
-              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
-              const newChargingStationContext = await newTenantContext.createSinglePhasedChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
-              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
-            } else if (siteAreaModel.name === `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`) {
+              console.log(
+                `${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`
+              );
+              const newChargingStationContext =
+                await newTenantContext.createSinglePhasedChargingStation(
+                  chargingStationDef.ocppVersion,
+                  chargingStationTemplate,
+                  null,
+                  siteAreaModel
+                );
+              await siteAreaContext.addChargingStation(
+                newChargingStationContext.getChargingStation()
+              );
+            } else if (
+              siteAreaModel.name ===
+              `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`
+            ) {
               chargingStationTemplate = Factory.chargingStation.buildChargingStationDC();
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
-              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
-              const newChargingStationContext = await newTenantContext.createChargingStationDC(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
-              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
-            } else if (siteAreaModel.name === `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`) {
+              console.log(
+                `${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`
+              );
+              const newChargingStationContext = await newTenantContext.createChargingStationDC(
+                chargingStationDef.ocppVersion,
+                chargingStationTemplate,
+                null,
+                siteAreaModel
+              );
+              await siteAreaContext.addChargingStation(
+                newChargingStationContext.getChargingStation()
+              );
+            } else if (
+              siteAreaModel.name ===
+              `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`
+            ) {
               chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
-              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
-              let newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
-              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+              console.log(
+                `${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`
+              );
+              let newChargingStationContext = await newTenantContext.createChargingStation(
+                chargingStationDef.ocppVersion,
+                chargingStationTemplate,
+                null,
+                siteAreaModel
+              );
+              await siteAreaContext.addChargingStation(
+                newChargingStationContext.getChargingStation()
+              );
               chargingStationTemplate = Factory.chargingStation.buildChargingStationSinglePhased();
-              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name + '-' + 'singlePhased';
-              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
-              newChargingStationContext = await newTenantContext.createSinglePhasedChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
-              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+              chargingStationTemplate.id =
+                chargingStationDef.baseName + '-' + siteAreaModel.name + '-' + 'singlePhased';
+              console.log(
+                `${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`
+              );
+              newChargingStationContext = await newTenantContext.createSinglePhasedChargingStation(
+                chargingStationDef.ocppVersion,
+                chargingStationTemplate,
+                null,
+                siteAreaModel
+              );
+              await siteAreaContext.addChargingStation(
+                newChargingStationContext.getChargingStation()
+              );
             } else {
               chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
-              console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
-              const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
-              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+              console.log(
+                `${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`
+              );
+              const newChargingStationContext = await newTenantContext.createChargingStation(
+                chargingStationDef.ocppVersion,
+                chargingStationTemplate,
+                null,
+                siteAreaModel
+              );
+              await siteAreaContext.addChargingStation(
+                newChargingStationContext.getChargingStation()
+              );
             }
           }
         }
         newTenantContext.addSiteContext(siteContext);
       }
       // Check if the asset tenant exists and is activated
-      if (Utils.objectHasProperty(buildTenant.components, TenantComponents.ASSET) &&
-        buildTenant.components[TenantComponents.ASSET].active) {
+      if (
+        Utils.objectHasProperty(buildTenant.components, TenantComponents.ASSET) &&
+        buildTenant.components[TenantComponents.ASSET].active
+      ) {
         // Create Asset list
         for (const assetDef of ContextDefinition.TENANT_ASSET_LIST) {
           const dummyAsset = Factory.asset.build();
@@ -395,21 +552,33 @@ export default class ContextBuilder {
       }
     }
     // Create unassigned Charging station
-    const relevantCS = ContextDefinition.TENANT_CHARGING_STATION_LIST.filter((chargingStation) => chargingStation.siteAreaNames === null);
+    const relevantCS = ContextDefinition.TENANT_CHARGING_STATION_LIST.filter(
+      (chargingStation) => chargingStation.siteAreaNames === null
+    );
     // Create Charging Station for site area
-    const siteContext = new SiteContext({
-      id: 1,
-      name: ContextDefinition.SITE_CONTEXTS.NO_SITE
-    }, newTenantContext);
+    const siteContext = new SiteContext(
+      {
+        id: 1,
+        name: ContextDefinition.SITE_CONTEXTS.NO_SITE,
+      },
+      newTenantContext
+    );
     const emptySiteAreaContext = siteContext.addSiteArea({
       id: 1,
-      name: ContextDefinition.SITE_AREA_CONTEXTS.NO_SITE
+      name: ContextDefinition.SITE_AREA_CONTEXTS.NO_SITE,
     });
     for (const chargingStationDef of relevantCS) {
       const chargingStationTemplate = Factory.chargingStation.build();
       chargingStationTemplate.id = chargingStationDef.baseName;
-      console.log(`${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`);
-      const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
+      console.log(
+        `${buildTenant.id} (${buildTenant.name}) - Charging Station '${chargingStationTemplate.id}'`
+      );
+      const newChargingStationContext = await newTenantContext.createChargingStation(
+        chargingStationDef.ocppVersion,
+        chargingStationTemplate,
+        null,
+        null
+      );
       await emptySiteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
     }
     newTenantContext.addSiteContext(siteContext);
@@ -417,12 +586,22 @@ export default class ContextBuilder {
     const statisticContext = new StatisticsContext(newTenantContext);
     switch (tenantContextDef.tenantName) {
       case ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS:
-        console.log(`${buildTenant.id} (${buildTenant.name}) - Transactions - Site Area '${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}'`);
-        await statisticContext.createTestData(ContextDefinition.SITE_CONTEXTS.SITE_BASIC, ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+        console.log(
+          `${buildTenant.id} (${buildTenant.name}) - Transactions - Site Area '${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}'`
+        );
+        await statisticContext.createTestData(
+          ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
+          ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL
+        );
         break;
       case ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS:
-        console.log(`${buildTenant.id} (${buildTenant.name}) - Transactions - Unassigned Charging Stations`);
-        await statisticContext.createTestData(ContextDefinition.SITE_CONTEXTS.NO_SITE, ContextDefinition.SITE_AREA_CONTEXTS.NO_SITE);
+        console.log(
+          `${buildTenant.id} (${buildTenant.name}) - Transactions - Unassigned Charging Stations`
+        );
+        await statisticContext.createTestData(
+          ContextDefinition.SITE_CONTEXTS.NO_SITE,
+          ContextDefinition.SITE_AREA_CONTEXTS.NO_SITE
+        );
         break;
     }
     return newTenantContext;
@@ -432,7 +611,9 @@ export default class ContextBuilder {
   private static async populateTemplates(): Promise<void> {
     let created = 0;
     // Check if there is existing templates
-    const existingTemplates = await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates').findOne({});
+    const existingTemplates = await global.database
+      .getCollection<any>(Constants.DEFAULT_TENANT_ID, 'chargingstationtemplates')
+      .findOne({});
     if (existingTemplates) {
       return;
     }
@@ -445,7 +626,7 @@ export default class ContextBuilder {
             chargePointVendor: 'Schneider Electric',
             extraFilters: {
               chargePointModel: 'MONOBLOCK|City \\(On Street\\)',
-              chargeBoxSerialNumber: 'EV\\.2S22P44|EVC1S22P4E4E'
+              chargeBoxSerialNumber: 'EV\\.2S22P44|EVC1S22P4E4E',
             },
             technical: {
               maximumPower: 44160,
@@ -464,11 +645,8 @@ export default class ContextBuilder {
                   power: 44160,
                   voltage: null,
                   efficiency: null,
-                  connectorIDs: [
-                    1,
-                    2
-                  ]
-                }
+                  connectorIDs: [1, 2],
+                },
               ],
               connectors: [
                 {
@@ -476,25 +654,21 @@ export default class ContextBuilder {
                   type: ConnectorType.TYPE_2,
                   power: 22080,
                   amperage: 96,
-                  chargePointID: 1
+                  chargePointID: 1,
                 },
                 {
                   connectorId: 2,
                   type: ConnectorType.TYPE_2,
                   power: 22080,
                   amperage: 96,
-                  chargePointID: 1
-                }
-              ]
+                  chargePointID: 1,
+                },
+              ],
             },
             capabilities: [
               {
-                supportedFirmwareVersions: [
-                  '3\\.[2-4]\\.0\\..*'
-                ],
-                supportedOcppVersions: [
-                  '1.6'
-                ],
+                supportedFirmwareVersions: ['3\\.[2-4]\\.0\\..*'],
+                supportedOcppVersions: ['1.6'],
                 capabilities: {
                   supportStaticLimitation: true,
                   supportChargingProfiles: true,
@@ -502,71 +676,61 @@ export default class ContextBuilder {
                   supportUnlockConnector: true,
                   supportReservation: false,
                   supportCreditCard: false,
-                  supportRFIDCard: false
-                }
-              }
+                  supportRFIDCard: false,
+                },
+              },
             ],
             ocppStandardParameters: [
               {
-                supportedFirmwareVersions: [
-                  '3\\.[2-4]\\.0\\..*'
-                ],
-                supportedOcppVersions: [
-                  '1.6'
-                ],
+                supportedFirmwareVersions: ['3\\.[2-4]\\.0\\..*'],
+                supportedOcppVersions: ['1.6'],
                 parameters: {
-                  'AllowOfflineTxForUnknownId': 'true',
-                  'AuthorizationCacheEnabled': 'false',
-                  'StopTransactionOnInvalidId': 'true'
-                }
-              }
+                  AllowOfflineTxForUnknownId: 'true',
+                  AuthorizationCacheEnabled: 'false',
+                  StopTransactionOnInvalidId: 'true',
+                },
+              },
             ],
             ocppVendorParameters: [
               {
-                supportedFirmwareVersions: [
-                  '3\\.2\\.0\\..*'
-                ],
-                supportedOcppVersions: [
-                  '1.6'
-                ],
+                supportedFirmwareVersions: ['3\\.2\\.0\\..*'],
+                supportedOcppVersions: ['1.6'],
                 parameters: {
-                  'authenticationmanager': '2',
-                  'ocppconnecttimeout': '60',
-                  'clockaligneddatainterval': '0',
-                  'metervaluessampleddata': 'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
-                  'metervaluesampleinterval': '60',
-                  'emsetting': '3',
-                  'enableevdetection': 'true',
-                  'useautotimemanagment': 'true',
-                  'timeservername': 'pool.ntp.org',
-                  'monophasedloadsheddingfloorvalue': '6',
-                  'triphasedloadsheddingfloorvalue': '6'
-                }
+                  authenticationmanager: '2',
+                  ocppconnecttimeout: '60',
+                  clockaligneddatainterval: '0',
+                  metervaluessampleddata:
+                    'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
+                  metervaluesampleinterval: '60',
+                  emsetting: '3',
+                  enableevdetection: 'true',
+                  useautotimemanagment: 'true',
+                  timeservername: 'pool.ntp.org',
+                  monophasedloadsheddingfloorvalue: '6',
+                  triphasedloadsheddingfloorvalue: '6',
+                },
               },
               {
-                supportedFirmwareVersions: [
-                  '3\\.[3-4]\\.0\\..*'
-                ],
-                supportedOcppVersions: [
-                  '1.6'
-                ],
+                supportedFirmwareVersions: ['3\\.[3-4]\\.0\\..*'],
+                supportedOcppVersions: ['1.6'],
                 parameters: {
-                  'authenticationmanager': '2',
-                  'ocppconnecttimeout': '60',
-                  'clockaligneddatainterval': '0',
-                  'metervaluessampleddata': 'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
-                  'metervaluesampleinterval': '60',
-                  'emsetting': '3',
-                  'enableevdetection': 'true',
-                  'useautotimemanagment': 'true',
-                  'timeservername': 'pool.ntp.org',
-                  'websocketpinginterval': '30',
-                  'monophasedloadsheddingfloorvalue': '6',
-                  'triphasedloadsheddingfloorvalue': '6'
-                }
-              }
-            ]
-          }
+                  authenticationmanager: '2',
+                  ocppconnecttimeout: '60',
+                  clockaligneddatainterval: '0',
+                  metervaluessampleddata:
+                    'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
+                  metervaluesampleinterval: '60',
+                  emsetting: '3',
+                  enableevdetection: 'true',
+                  useautotimemanagment: 'true',
+                  timeservername: 'pool.ntp.org',
+                  websocketpinginterval: '30',
+                  monophasedloadsheddingfloorvalue: '6',
+                  triphasedloadsheddingfloorvalue: '6',
+                },
+              },
+            ],
+          },
         },
         // Template Schneider~EV2S7P44|EVC1S7P4E4E
         {
@@ -575,7 +739,7 @@ export default class ContextBuilder {
             chargePointVendor: 'Schneider Electric',
             extraFilters: {
               chargePointModel: 'MONOBLOCK|City \\(On Street\\)',
-              chargeBoxSerialNumber: 'EV\\.2S7P44|EVC1S7P4E4E'
+              chargeBoxSerialNumber: 'EV\\.2S7P44|EVC1S7P4E4E',
             },
             technical: {
               maximumPower: 14720,
@@ -594,11 +758,8 @@ export default class ContextBuilder {
                   power: 14720,
                   voltage: null,
                   efficiency: null,
-                  connectorIDs: [
-                    1,
-                    2
-                  ]
-                }
+                  connectorIDs: [1, 2],
+                },
               ],
               connectors: [
                 {
@@ -606,25 +767,21 @@ export default class ContextBuilder {
                   type: ConnectorType.TYPE_2,
                   power: 7360,
                   amperage: 32,
-                  chargePointID: 1
+                  chargePointID: 1,
                 },
                 {
                   connectorId: 2,
                   type: ConnectorType.TYPE_2,
                   power: 7360,
                   amperage: 32,
-                  chargePointID: 1
-                }
-              ]
+                  chargePointID: 1,
+                },
+              ],
             },
             capabilities: [
               {
-                supportedFirmwareVersions: [
-                  '3\\.[2-4]\\.0\\..*'
-                ],
-                supportedOcppVersions: [
-                  '1.6'
-                ],
+                supportedFirmwareVersions: ['3\\.[2-4]\\.0\\..*'],
+                supportedOcppVersions: ['1.6'],
                 capabilities: {
                   supportStaticLimitation: true,
                   supportChargingProfiles: true,
@@ -632,71 +789,61 @@ export default class ContextBuilder {
                   supportUnlockConnector: true,
                   supportReservation: false,
                   supportCreditCard: false,
-                  supportRFIDCard: false
-                }
-              }
+                  supportRFIDCard: false,
+                },
+              },
             ],
             ocppStandardParameters: [
               {
-                supportedFirmwareVersions: [
-                  '3\\.[2-4]\\.0\\..*'
-                ],
-                supportedOcppVersions: [
-                  '1.6'
-                ],
+                supportedFirmwareVersions: ['3\\.[2-4]\\.0\\..*'],
+                supportedOcppVersions: ['1.6'],
                 parameters: {
-                  'AllowOfflineTxForUnknownId': 'true',
-                  'AuthorizationCacheEnabled': 'false',
-                  'StopTransactionOnInvalidId': 'true'
-                }
-              }
+                  AllowOfflineTxForUnknownId: 'true',
+                  AuthorizationCacheEnabled: 'false',
+                  StopTransactionOnInvalidId: 'true',
+                },
+              },
             ],
             ocppVendorParameters: [
               {
-                supportedFirmwareVersions: [
-                  '3\\.2\\.0\\..*'
-                ],
-                supportedOcppVersions: [
-                  '1.6'
-                ],
+                supportedFirmwareVersions: ['3\\.2\\.0\\..*'],
+                supportedOcppVersions: ['1.6'],
                 parameters: {
-                  'authenticationmanager': '2',
-                  'ocppconnecttimeout': '60',
-                  'clockaligneddatainterval': '0',
-                  'metervaluessampleddata': 'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
-                  'metervaluesampleinterval': '60',
-                  'emsetting': '3',
-                  'enableevdetection': 'true',
-                  'useautotimemanagment': 'true',
-                  'timeservername': 'pool.ntp.org',
-                  'monophasedloadsheddingfloorvalue': '6',
-                  'triphasedloadsheddingfloorvalue': '6'
-                }
+                  authenticationmanager: '2',
+                  ocppconnecttimeout: '60',
+                  clockaligneddatainterval: '0',
+                  metervaluessampleddata:
+                    'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
+                  metervaluesampleinterval: '60',
+                  emsetting: '3',
+                  enableevdetection: 'true',
+                  useautotimemanagment: 'true',
+                  timeservername: 'pool.ntp.org',
+                  monophasedloadsheddingfloorvalue: '6',
+                  triphasedloadsheddingfloorvalue: '6',
+                },
               },
               {
-                supportedFirmwareVersions: [
-                  '3\\.[3-4]\\.0\\..*'
-                ],
-                supportedOcppVersions: [
-                  '1.6'
-                ],
+                supportedFirmwareVersions: ['3\\.[3-4]\\.0\\..*'],
+                supportedOcppVersions: ['1.6'],
                 parameters: {
-                  'authenticationmanager': '2',
-                  'ocppconnecttimeout': '60',
-                  'clockaligneddatainterval': '0',
-                  'metervaluessampleddata': 'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
-                  'metervaluesampleinterval': '60',
-                  'emsetting': '3',
-                  'enableevdetection': 'true',
-                  'useautotimemanagment': 'true',
-                  'timeservername': 'pool.ntp.org',
-                  'websocketpinginterval': '30',
-                  'monophasedloadsheddingfloorvalue': '6',
-                  'triphasedloadsheddingfloorvalue': '6'
-                }
-              }
-            ]
-          }
+                  authenticationmanager: '2',
+                  ocppconnecttimeout: '60',
+                  clockaligneddatainterval: '0',
+                  metervaluessampleddata:
+                    'Energy.Active.Import.Register,Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3',
+                  metervaluesampleinterval: '60',
+                  emsetting: '3',
+                  enableevdetection: 'true',
+                  useautotimemanagment: 'true',
+                  timeservername: 'pool.ntp.org',
+                  websocketpinginterval: '30',
+                  monophasedloadsheddingfloorvalue: '6',
+                  triphasedloadsheddingfloorvalue: '6',
+                },
+              },
+            ],
+          },
         },
         // Template Delta~10616
         {
@@ -704,7 +851,7 @@ export default class ContextBuilder {
           template: {
             chargePointVendor: 'DELTA',
             extraFilters: {
-              chargePointModel: '10616'
+              chargePointModel: '10616',
             },
             technical: {
               maximumPower: 150000,
@@ -723,36 +870,28 @@ export default class ContextBuilder {
                   power: 150000,
                   efficiency: 95,
                   voltage: null, // mandatory but never provided in the json templates
-                  connectorIDs: [
-                    1,
-                    2
-                  ]
-                }
+                  connectorIDs: [1, 2],
+                },
               ],
               connectors: [
                 {
                   connectorId: 1,
                   type: ConnectorType.COMBO_CCS,
                   power: 150000,
-                  chargePointID: 1
+                  chargePointID: 1,
                 },
                 {
                   connectorId: 2,
                   type: ConnectorType.COMBO_CCS,
                   power: 150000,
-                  chargePointID: 1
-                }
-              ]
+                  chargePointID: 1,
+                },
+              ],
             },
             capabilities: [
               {
-                supportedFirmwareVersions: [
-                  '3\\.[2-3]\\..*',
-                  '3\\.4.*'
-                ],
-                supportedOcppVersions: [
-                  '1.6'
-                ],
+                supportedFirmwareVersions: ['3\\.[2-3]\\..*', '3\\.4.*'],
+                supportedOcppVersions: ['1.6'],
                 capabilities: {
                   supportStaticLimitation: true,
                   supportChargingProfiles: true,
@@ -760,52 +899,43 @@ export default class ContextBuilder {
                   supportUnlockConnector: true,
                   supportReservation: true,
                   supportCreditCard: false,
-                  supportRFIDCard: true
-                }
-              }
+                  supportRFIDCard: true,
+                },
+              },
             ],
             ocppStandardParameters: [
               {
-                supportedFirmwareVersions: [
-                  '3\\.[2-3]\\..*',
-                  '3\\.4.*'
-                ],
-                supportedOcppVersions: [
-                  '1.6'
-                ],
+                supportedFirmwareVersions: ['3\\.[2-3]\\..*', '3\\.4.*'],
+                supportedOcppVersions: ['1.6'],
                 parameters: {
-                  'AuthorizationCacheEnabled': 'False',
-                  'AuthorizeRemoteTxRequests': 'True',
-                  'ClockAlignedDataInterval': '0',
-                  'ConnectionTimeOut': '60',
-                  'LocalPreAuthorize': 'True',
-                  'LocalAuthorizeOffline': 'True',
-                  'StopTransactionOnInvalidId': 'True',
-                  'MeterValuesAlignedData': '0',
-                  'MeterValueSampleInterval': '60',
-                  'MeterValuesSampledData': 'SoC,Energy.Active.Import.Register,Power.Active.Import,Current.Import,Voltage',
-                  'StopTransactionOnEVSideDisconnect': 'True',
-                  'UnlockConnectorOnEVSideDisconnect': 'True',
-                  'WebSocketPingInterval': '30',
-                }
-              }
+                  AuthorizationCacheEnabled: 'False',
+                  AuthorizeRemoteTxRequests: 'True',
+                  ClockAlignedDataInterval: '0',
+                  ConnectionTimeOut: '60',
+                  LocalPreAuthorize: 'True',
+                  LocalAuthorizeOffline: 'True',
+                  StopTransactionOnInvalidId: 'True',
+                  MeterValuesAlignedData: '0',
+                  MeterValueSampleInterval: '60',
+                  MeterValuesSampledData:
+                    'SoC,Energy.Active.Import.Register,Power.Active.Import,Current.Import,Voltage',
+                  StopTransactionOnEVSideDisconnect: 'True',
+                  UnlockConnectorOnEVSideDisconnect: 'True',
+                  WebSocketPingInterval: '30',
+                },
+              },
             ],
             ocppVendorParameters: [
               {
-                supportedFirmwareVersions: [
-                  '3\\.[2-3]\\..*',
-                  '3\\.4.*'
-                ],
-                supportedOcppVersions: [
-                  '1.6'
-                ],
+                supportedFirmwareVersions: ['3\\.[2-3]\\..*', '3\\.4.*'],
+                supportedOcppVersions: ['1.6'],
                 parameters: {
-                  'OCPP/idTagConversion': 'HexZerofill4or7byte'
-                }
-              }
-            ]
-          }
-        }
+                  'OCPP/idTagConversion': 'HexZerofill4or7byte',
+                },
+              },
+            ],
+          },
+        },
       ];
       for (const template of chargingStationTemplates) {
         template.createdOn = new Date();
@@ -813,7 +943,9 @@ export default class ContextBuilder {
         created++;
       }
     } catch (error) {
-      console.log(`>>>> Error while importing the charging station templates : ${error.message as string}`);
+      console.log(
+        `>>>> Error while importing the charging station templates : ${error.message as string}`
+      );
     }
     // Log in the default tenant
     console.log(`>>>> ${created} charging station template(s) created in the default tenant`);

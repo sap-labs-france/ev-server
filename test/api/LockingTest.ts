@@ -44,13 +44,18 @@ describe('Locking', () => {
     global.database = new MongoDBStorage(config.get('storage'));
     await global.database.start();
     // Clean locks
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'locks')
-      .deleteMany({});
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT_ID, 'locks').deleteMany({});
     // Prepare context
     await ContextProvider.defaultInstance.prepareContexts();
-    testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
-    testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
-    testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+    testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(
+      ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION
+    );
+    testData.siteContext = testData.tenantContext.getSiteContext(
+      ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+    );
+    testData.siteAreaContext = testData.siteContext.getSiteAreaContext(
+      ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL
+    );
   });
 
   afterAll(async () => {
@@ -62,7 +67,11 @@ describe('Locking', () => {
 
   describe('Exclusive Locks', () => {
     it('Should create an exclusive lock', () => {
-      testData.exclusiveLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT_ID, LockEntity.DATABASE, lockKey);
+      testData.exclusiveLock = LockingManager.createExclusiveLock(
+        Constants.DEFAULT_TENANT_ID,
+        LockEntity.DATABASE,
+        lockKey
+      );
       expect(testData.exclusiveLock).not.null;
       expect(testData.exclusiveLock.id).not.null;
       expect(testData.exclusiveLock.hostname).not.null;
@@ -99,34 +108,32 @@ describe('Locking', () => {
   });
 
   describe('Site Area Exclusive Locks', () => {
-    it(
-      'Should create a Site Area exclusive lock with expiration date',
-      async () => {
-        // Get the Site Area
-        const siteArea = testData.siteAreaContext.getSiteArea();
-        // Create and Acquire lock
-        testData.siteExclusiveLock = await LockingHelper.acquireSiteAreaSmartChargingLock(
-          testData.tenantContext.getTenant().id, siteArea);
-        expect(testData.siteExclusiveLock).not.null;
-        expect(testData.siteExclusiveLock.id).not.null;
-        expect(testData.siteExclusiveLock.hostname).not.null;
-        expect(testData.siteExclusiveLock.timestamp).not.null;
-        expect(testData.siteExclusiveLock.tenantID).to.eql(testData.tenantContext.getTenant().id);
-        expect(testData.siteExclusiveLock.entity).to.eql(LockEntity.SITE_AREA);
-        expect(testData.siteExclusiveLock.key).to.eql(siteArea.id + '-smart-charging');
-        expect(testData.siteExclusiveLock.type).to.eql(LockType.EXCLUSIVE);
-        expect(testData.siteExclusiveLock.expirationDate).to.eql(moment(testData.siteExclusiveLock.timestamp).add(180, 'seconds').toDate());
-      }
-    );
+    it('Should create a Site Area exclusive lock with expiration date', async () => {
+      // Get the Site Area
+      const siteArea = testData.siteAreaContext.getSiteArea();
+      // Create and Acquire lock
+      testData.siteExclusiveLock = await LockingHelper.acquireSiteAreaSmartChargingLock(
+        testData.tenantContext.getTenant().id,
+        siteArea
+      );
+      expect(testData.siteExclusiveLock).not.null;
+      expect(testData.siteExclusiveLock.id).not.null;
+      expect(testData.siteExclusiveLock.hostname).not.null;
+      expect(testData.siteExclusiveLock.timestamp).not.null;
+      expect(testData.siteExclusiveLock.tenantID).to.eql(testData.tenantContext.getTenant().id);
+      expect(testData.siteExclusiveLock.entity).to.eql(LockEntity.SITE_AREA);
+      expect(testData.siteExclusiveLock.key).to.eql(siteArea.id + '-smart-charging');
+      expect(testData.siteExclusiveLock.type).to.eql(LockType.EXCLUSIVE);
+      expect(testData.siteExclusiveLock.expirationDate).to.eql(
+        moment(testData.siteExclusiveLock.timestamp).add(180, 'seconds').toDate()
+      );
+    });
 
-    it(
-      'Should not acquire a second time a Site Area exclusive lock',
-      async () => {
-        const result = await LockingManager.acquire(testData.siteExclusiveLock);
-        expect(result).not.null;
-        expect(result).to.eql(false);
-      }
-    );
+    it('Should not acquire a second time a Site Area exclusive lock', async () => {
+      const result = await LockingManager.acquire(testData.siteExclusiveLock);
+      expect(result).not.null;
+      expect(result).to.eql(false);
+    });
 
     it('Should release a Site Area exclusive lock', async () => {
       const result = await LockingManager.release(testData.siteExclusiveLock);
@@ -134,54 +141,49 @@ describe('Locking', () => {
       expect(result).to.eql(true);
     });
 
-    it(
-      'Should not release an already released Site Area exclusive lock',
-      async () => {
-        const result = await LockingManager.release(testData.siteExclusiveLock);
-        expect(result).not.null;
-        expect(result).to.eql(false);
-      }
-    );
+    it('Should not release an already released Site Area exclusive lock', async () => {
+      const result = await LockingManager.release(testData.siteExclusiveLock);
+      expect(result).not.null;
+      expect(result).to.eql(false);
+    });
   });
 
   describe('Test automatic release of locks', () => {
-    it(
-      'Should create a Site Area exclusive lock with expiration of 10 seconds',
-      async () => {
-        // Get the Site Area
-        const siteArea = testData.siteAreaContext.getSiteArea();
-        // Create and Acquire lock
-        testData.siteExclusiveLock = LockingManager.createExclusiveLock(testData.tenantContext.getTenant().id, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`, 5);
-        expect(testData.siteExclusiveLock).not.null;
-        expect(testData.siteExclusiveLock.id).not.null;
-        expect(testData.siteExclusiveLock.hostname).not.null;
-        expect(testData.siteExclusiveLock.timestamp).not.null;
-        expect(testData.siteExclusiveLock.tenantID).to.eql(testData.tenantContext.getTenant().id);
-        expect(testData.siteExclusiveLock.entity).to.eql(LockEntity.SITE_AREA);
-        expect(testData.siteExclusiveLock.key).to.eql(siteArea.id + '-smart-charging');
-        expect(testData.siteExclusiveLock.type).to.eql(LockType.EXCLUSIVE);
-        expect(testData.siteExclusiveLock.expirationDate).to.eql(moment(testData.siteExclusiveLock.timestamp).add(5, 'seconds').toDate());
-        await LockingManager.acquire(testData.siteExclusiveLock);
-      }
-    );
+    it('Should create a Site Area exclusive lock with expiration of 10 seconds', async () => {
+      // Get the Site Area
+      const siteArea = testData.siteAreaContext.getSiteArea();
+      // Create and Acquire lock
+      testData.siteExclusiveLock = LockingManager.createExclusiveLock(
+        testData.tenantContext.getTenant().id,
+        LockEntity.SITE_AREA,
+        `${siteArea.id}-smart-charging`,
+        5
+      );
+      expect(testData.siteExclusiveLock).not.null;
+      expect(testData.siteExclusiveLock.id).not.null;
+      expect(testData.siteExclusiveLock.hostname).not.null;
+      expect(testData.siteExclusiveLock.timestamp).not.null;
+      expect(testData.siteExclusiveLock.tenantID).to.eql(testData.tenantContext.getTenant().id);
+      expect(testData.siteExclusiveLock.entity).to.eql(LockEntity.SITE_AREA);
+      expect(testData.siteExclusiveLock.key).to.eql(siteArea.id + '-smart-charging');
+      expect(testData.siteExclusiveLock.type).to.eql(LockType.EXCLUSIVE);
+      expect(testData.siteExclusiveLock.expirationDate).to.eql(
+        moment(testData.siteExclusiveLock.timestamp).add(5, 'seconds').toDate()
+      );
+      await LockingManager.acquire(testData.siteExclusiveLock);
+    });
 
-    it(
-      'Should not acquire a second time the Site Area exclusive lock',
-      async () => {
-        const result = await LockingManager.acquire(testData.siteExclusiveLock);
-        expect(result).not.null;
-        expect(result).to.eql(false);
-      }
-    );
+    it('Should not acquire a second time the Site Area exclusive lock', async () => {
+      const result = await LockingManager.acquire(testData.siteExclusiveLock);
+      expect(result).not.null;
+      expect(result).to.eql(false);
+    });
 
-    it(
-      'Should acquire the lock with a timeout of 10 seconds. First lock should be released after timeout is reached ',
-      async () => {
-        const result = await LockingManager.acquire(testData.siteExclusiveLock, 10);
-        expect(result).not.null;
-        expect(result).to.eql(true);
-      }
-    );
+    it('Should acquire the lock with a timeout of 10 seconds. First lock should be released after timeout is reached ', async () => {
+      const result = await LockingManager.acquire(testData.siteExclusiveLock, 10);
+      expect(result).not.null;
+      expect(result).to.eql(true);
+    });
 
     it('Should release the latest Site Area exclusive lock', async () => {
       const result = await LockingManager.release(testData.siteExclusiveLock);

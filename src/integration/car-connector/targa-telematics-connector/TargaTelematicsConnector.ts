@@ -1,4 +1,8 @@
-import { CarConnectorConnectionSetting, CarConnectorConnectionToken, CarConnectorSettings } from '../../../types/Setting';
+import {
+  CarConnectorConnectionSetting,
+  CarConnectorConnectionToken,
+  CarConnectorSettings,
+} from '../../../types/Setting';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -18,7 +22,11 @@ const MODULE_NAME = 'TargaTelematicsCarConnectorIntegration';
 export default class TargaTelematicsCarConnectorIntegration extends CarConnectorIntegration<CarConnectorSettings> {
   private axiosInstance: AxiosInstance;
 
-  public constructor(tenant: Tenant, settings: CarConnectorSettings, connection: CarConnectorConnectionSetting) {
+  public constructor(
+    tenant: Tenant,
+    settings: CarConnectorSettings,
+    connection: CarConnectorConnectionSetting
+  ) {
     super(tenant, settings, connection);
     // Get Axios
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenant);
@@ -40,18 +48,16 @@ export default class TargaTelematicsCarConnectorIntegration extends CarConnector
     const connectionToken = await this.connect();
     const request = `${this.connection.targaTelematicsConnection.apiUrl}/v1/digital-twin/vehicles/${car.vin}`;
     try {
-      const response = await this.axiosInstance.get(
-        request,
-        {
-          headers: { 'Authorization': 'Bearer ' + connectionToken }
-        }
-      );
+      const response = await this.axiosInstance.get(request, {
+        headers: { Authorization: 'Bearer ' + connectionToken },
+      });
       await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.CAR_CONNECTOR,
         message: `${car.vin} > Targa Telematics web service has been called successfully`,
-        module: MODULE_NAME, method: 'getCurrentSoC',
-        detailedMessages: { response: response.data }
+        module: MODULE_NAME,
+        method: 'getCurrentSoC',
+        detailedMessages: { response: response.data },
       });
       if (response.data?.vehicleDiagnostics?.tractionBattery?.batteryPercentage?.value) {
         return response.data.vehicleDiagnostics.tractionBattery.batteryPercentage.value;
@@ -63,33 +69,38 @@ export default class TargaTelematicsCarConnectorIntegration extends CarConnector
         method: 'getCurrentSoC',
         action: ServerAction.CAR_CONNECTOR,
         message: 'Error while retrieving the SOC',
-        detailedMessages: { request, error: error.stack }
+        detailedMessages: { request, error: error.stack },
       });
     }
   }
 
   private async fetchNewToken(credentials: URLSearchParams) {
-    const response = await Utils.executePromiseWithTimeout(5000,
-      this.axiosInstance.post(`${this.connection.targaTelematicsConnection.authenticationUrl}/auth/realms/platform-api/protocol/openid-connect/token`,
+    const response = await Utils.executePromiseWithTimeout(
+      5000,
+      this.axiosInstance.post(
+        `${this.connection.targaTelematicsConnection.authenticationUrl}/auth/realms/platform-api/protocol/openid-connect/token`,
         credentials,
         {
           'axios-retry': {
-            retries: 0
+            retries: 0,
           },
-          headers: this.buildFormHeaders()
-        }),
+          headers: this.buildFormHeaders(),
+        }
+      ),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.targaTelematicsConnection.authenticationUrl}/auth/realms/platform-api/protocol/openid-connect/token'`
     );
     const currentTime = new Date();
-    const token : CarConnectorConnectionToken = {
+    const token: CarConnectorConnectionToken = {
       accessToken: await Cypher.encrypt(this.tenant, response.data.access_token),
       tokenType: response.data.token_type,
       expiresIn: response.data.expires_in,
       issued: currentTime,
-      expires: new Date(currentTime.getTime() + response.data.expires_in * 1000)
+      expires: new Date(currentTime.getTime() + response.data.expires_in * 1000),
     };
     this.connection.token = token;
-    const sensitiveData = `content.carConnector.connections[${this.settings.carConnector.connections.indexOf(this.connection)}].token.accessToken`;
+    const sensitiveData = `content.carConnector.connections[${this.settings.carConnector.connections.indexOf(
+      this.connection
+    )}].token.accessToken`;
     if (this.settings.sensitiveData.indexOf(sensitiveData) === -1) {
       this.settings.sensitiveData.push(sensitiveData);
     }
@@ -99,7 +110,7 @@ export default class TargaTelematicsCarConnectorIntegration extends CarConnector
 
   private buildFormHeaders(): any {
     return {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     };
   }
 
@@ -109,7 +120,7 @@ export default class TargaTelematicsCarConnectorIntegration extends CarConnector
         module: MODULE_NAME,
         method: 'checkConnectionIsProvided',
         action: ServerAction.CHECK_CONNECTION,
-        message: 'No connection provided'
+        message: 'No connection provided',
       });
     }
   }
@@ -118,7 +129,10 @@ export default class TargaTelematicsCarConnectorIntegration extends CarConnector
     const params = new URLSearchParams();
     params.append('grant_type', 'client_credentials');
     params.append('client_id', this.connection.targaTelematicsConnection.clientId);
-    params.append('client_secret', await Cypher.decrypt(this.tenant, this.connection.targaTelematicsConnection.clientSecret));
+    params.append(
+      'client_secret',
+      await Cypher.decrypt(this.tenant, this.connection.targaTelematicsConnection.clientSecret)
+    );
     return params;
   }
 }

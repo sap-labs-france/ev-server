@@ -14,4 +14,3 @@ export default interface StorageConfiguration {
   debug: boolean;
   readPreference: string;
 }
-

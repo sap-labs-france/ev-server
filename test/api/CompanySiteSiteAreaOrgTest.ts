@@ -44,10 +44,13 @@ describe('Company, Site, Site Area', () => {
   });
 
   describe('With component Organization (utorg)', () => {
-
     beforeAll(async () => {
-      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
-      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(
+        ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION
+      );
+      testData.centralUserContext = testData.tenantContext.getUserContext(
+        ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN
+      );
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
         testData.centralUserContext
@@ -94,9 +97,10 @@ describe('Company, Site, Site Area', () => {
     });
 
     describe('Where admin user', () => {
-
       beforeAll(async () => {
-        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        testData.userContext = testData.tenantContext.getUserContext(
+          ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN
+        );
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
           testData.userService = testData.centralUserService;
@@ -120,7 +124,7 @@ describe('Company, Site, Site Area', () => {
         testData.newSite = await testData.userService.createEntity(
           testData.userService.siteApi,
           Factory.site.build({
-            companyID: testData.newCompany.id
+            companyID: testData.newCompany.id,
           })
         );
         testData.createdSites.push(testData.newSite);
@@ -129,7 +133,7 @@ describe('Company, Site, Site Area', () => {
         testData.newSiteArea = await testData.userService.createEntity(
           testData.userService.siteAreaApi,
           Factory.siteArea.build({
-            siteID: testData.newSite.id
+            siteID: testData.newSite.id,
           })
         );
         testData.createdSiteAreas.push(testData.newSiteArea);
@@ -157,55 +161,43 @@ describe('Company, Site, Site Area', () => {
         );
       });
 
-      it(
-        'Should be able to delete a site which will automatically delete the site area',
-        async () => {
-          // Delete the Site
-          await testData.userService.deleteEntity(
-            testData.userService.siteApi,
-            testData.newSite
-          );
-          // Check Site does not exist
-          await testData.userService.checkDeletedEntityById(
-            testData.userService.siteApi,
-            testData.newSite
-          );
-          // Check Site Area does not exist
-          await testData.userService.checkDeletedEntityById(
-            testData.userService.siteAreaApi,
-            testData.newSiteArea
-          );
-        }
-      );
+      it('Should be able to delete a site which will automatically delete the site area', async () => {
+        // Delete the Site
+        await testData.userService.deleteEntity(testData.userService.siteApi, testData.newSite);
+        // Check Site does not exist
+        await testData.userService.checkDeletedEntityById(
+          testData.userService.siteApi,
+          testData.newSite
+        );
+        // Check Site Area does not exist
+        await testData.userService.checkDeletedEntityById(
+          testData.userService.siteAreaApi,
+          testData.newSiteArea
+        );
+      });
 
-      it(
-        'Should be able to delete a company which will automatically delete the site and the site area',
-        async () => {
-          // Delete the Site
-          await testData.userService.deleteEntity(
-            testData.userService.companyApi,
-            testData.newCompany
-          );
-          // Check Company does not exist
-          await testData.userService.checkDeletedEntityById(
-            testData.userService.companyApi,
-            testData.newCompany
-          );
-          // Check Site does not exist
-          await testData.userService.checkDeletedEntityById(
-            testData.userService.siteApi,
-            testData.newSite
-          );
-          // Check Site Area does not exist
-          await testData.userService.checkDeletedEntityById(
-            testData.userService.siteAreaApi,
-            testData.newSiteArea
-          );
-        }
-      );
-
+      it('Should be able to delete a company which will automatically delete the site and the site area', async () => {
+        // Delete the Site
+        await testData.userService.deleteEntity(
+          testData.userService.companyApi,
+          testData.newCompany
+        );
+        // Check Company does not exist
+        await testData.userService.checkDeletedEntityById(
+          testData.userService.companyApi,
+          testData.newCompany
+        );
+        // Check Site does not exist
+        await testData.userService.checkDeletedEntityById(
+          testData.userService.siteApi,
+          testData.newSite
+        );
+        // Check Site Area does not exist
+        await testData.userService.checkDeletedEntityById(
+          testData.userService.siteAreaApi,
+          testData.newSiteArea
+        );
+      });
     });
-
   });
-
 });

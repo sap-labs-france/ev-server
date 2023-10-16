@@ -7,7 +7,5 @@
       "$ref": "transaction#/definitions/id"
     }
   },
-  "required": [
-    "transactionId"
-  ]
+  "required": ["transactionId"]
 }

@@ -36,7 +36,11 @@ export default class MjmlTemplate {
     }
   }
 
-  private buildTable(i18nManager: I18nManager, context: Record<string, unknown>, prefix: string): void {
+  private buildTable(
+    i18nManager: I18nManager,
+    context: Record<string, unknown>,
+    prefix: string
+  ): void {
     const regex = new RegExp(/_TABLE_CONTENT_/, 'g');
     const match = this.template.match(regex);
     if (!match) {
@@ -57,7 +61,9 @@ export default class MjmlTemplate {
     // ]
     // -----------------------------------------
     let table = '';
-    const tableCases = JSON.parse(JSON.stringify(i18nManager.translate('email.' + prefix + '.table')));
+    const tableCases = JSON.parse(
+      JSON.stringify(i18nManager.translate('email.' + prefix + '.table'))
+    );
     for (let i = 0; i < tableCases.length; i++) {
       const tableCase = tableCases[i];
       // Search for place holders - e.g.: {{stateOfCharge}}
@@ -67,12 +73,22 @@ export default class MjmlTemplate {
         // skip if value is undefined in context - i.e.: context.stateValue is not set!
         continue;
       }
-      table = table + `<tr><td style="font-size:12px;text-align:start">${tableCase.label as string}</td><td style="font-size:12px;font-weight:300;width:50%;text-align:start">${tableCase.value as string}</td></tr>`;
+      table =
+        table +
+        `<tr><td style="font-size:12px;text-align:start">${
+          tableCase.label as string
+        }</td><td style="font-size:12px;font-weight:300;width:50%;text-align:start">${
+          tableCase.value as string
+        }</td></tr>`;
     }
     this.replace(match[0], table);
   }
 
-  private buildComponents(i18nManager: I18nManager, context: Record<string, unknown>, prefix: string) {
+  private buildComponents(
+    i18nManager: I18nManager,
+    context: Record<string, unknown>,
+    prefix: string
+  ) {
     this.buildTable(i18nManager, context, prefix);
   }
 

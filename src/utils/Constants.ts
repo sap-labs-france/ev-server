@@ -1,8 +1,15 @@
-import { OCPPAttribute, OCPPLocation, OCPPMeasurand, OCPPPhase, OCPPReadingContext, OCPPUnitOfMeasure, OCPPValueFormat } from '../types/ocpp/OCPPServer';
-
-import DbParams from '../types/database/DbParams';
-import Logging from './Logging';
 import { OcppParameter } from '../types/ChargingStation';
+import DbParams from '../types/database/DbParams';
+import {
+  OCPPAttribute,
+  OCPPLocation,
+  OCPPMeasurand,
+  OCPPPhase,
+  OCPPReadingContext,
+  OCPPUnitOfMeasure,
+  OCPPValueFormat,
+} from '../types/ocpp/OCPPServer';
+import { ReservationStatus, ReservationStatusTransition } from '../types/Reservation';
 import Tenant from '../types/Tenant';
 
 export default class Constants {
@@ -28,10 +35,31 @@ export default class Constants {
   public static readonly DB_UNDETERMINED_NBR_OF_RECORDS = -1;
   public static readonly DB_EMPTY_DATA_RESULT = Object.freeze({ count: 0, result: [] });
 
-  public static readonly DB_PARAMS_MAX_LIMIT: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, sort: null });
-  public static readonly DB_PARAMS_SINGLE_RECORD: DbParams = Object.freeze({ limit: 1, skip: 0, sort: null });
-  public static readonly DB_PARAMS_DEFAULT_RECORD: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_DEFAULT, skip: 0, sort: null });
-  public static readonly DB_PARAMS_COUNT_ONLY: DbParams = Object.freeze({ limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true, sort: null });
+  public static readonly DB_PARAMS_MAX_LIMIT: DbParams = Object.freeze({
+    limit: Constants.DB_RECORD_COUNT_NO_LIMIT,
+    skip: 0,
+    sort: null,
+  });
+
+  public static readonly DB_PARAMS_SINGLE_RECORD: DbParams = Object.freeze({
+    limit: 1,
+    skip: 0,
+    sort: null,
+  });
+
+  public static readonly DB_PARAMS_DEFAULT_RECORD: DbParams = Object.freeze({
+    limit: Constants.DB_RECORD_COUNT_DEFAULT,
+    skip: 0,
+    sort: null,
+  });
+
+  public static readonly DB_PARAMS_COUNT_ONLY: DbParams = Object.freeze({
+    limit: Constants.DB_RECORD_COUNT_NO_LIMIT,
+    skip: 0,
+    onlyRecordCount: true,
+    sort: null,
+  });
+
   public static readonly DB_MAX_PING_TIME_MILLIS = 3000;
 
   public static readonly EXPORT_PDF_PAGE_SIZE = 100;
@@ -55,7 +83,7 @@ export default class Constants {
   public static readonly DEFAULT_TENANT_OBJECT = Object.freeze({
     id: Constants.DEFAULT_TENANT_ID,
     name: Constants.DEFAULT_TENANT_ID,
-    subdomain: Constants.DEFAULT_TENANT_ID
+    subdomain: Constants.DEFAULT_TENANT_ID,
   } as Tenant);
 
   // Output of crypto.getCiphers()
@@ -234,7 +262,7 @@ export default class Constants {
     'sm4-cfb',
     'sm4-ctr',
     'sm4-ecb',
-    'sm4-ofb'
+    'sm4-ofb',
   ]);
 
   public static readonly UNKNOWN_OBJECT_ID: string = '000000000000000000000000';
@@ -243,7 +271,9 @@ export default class Constants {
 
   public static readonly REST_RESPONSE_SUCCESS = Object.freeze({ status: 'Success' });
 
-  public static readonly REST_CHARGING_STATION_COMMAND_RESPONSE_SUCCESS = Object.freeze({ status: 'Accepted' });
+  public static readonly REST_CHARGING_STATION_COMMAND_RESPONSE_SUCCESS = Object.freeze({
+    status: 'Accepted',
+  });
 
   public static readonly DELAY_SMART_CHARGING_EXECUTION_MILLIS = 3000;
   public static readonly DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS = 10000;
@@ -255,7 +285,6 @@ export default class Constants {
   public static readonly OCPI_MAX_PARALLEL_REQUESTS = 2;
 
   public static readonly ROAMING_AUTHORIZATION_TIMEOUT_MINS = 2;
-
 
   public static readonly MODULE_AXIOS = 'Axios';
   public static readonly MODULE_JSON_OCPP_SERVER_16 = 'OcppJ-16';
@@ -284,8 +313,27 @@ export default class Constants {
   public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store regex in enum
   public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store regex in enum
 
-  public static readonly SUPPORTED_LOCALES = Object.freeze(['en_US', 'fr_FR', 'es_ES', 'de_DE', 'pt_PT', 'it_IT', 'cs_CZ', 'en_AU']);
-  public static readonly SUPPORTED_LANGUAGES = Object.freeze(['en', 'fr', 'es', 'de', 'pt', 'it', 'cs']);
+  public static readonly SUPPORTED_LOCALES = Object.freeze([
+    'en_US',
+    'fr_FR',
+    'es_ES',
+    'de_DE',
+    'pt_PT',
+    'it_IT',
+    'cs_CZ',
+    'en_AU',
+  ]);
+
+  public static readonly SUPPORTED_LANGUAGES = Object.freeze([
+    'en',
+    'fr',
+    'es',
+    'de',
+    'pt',
+    'it',
+    'cs',
+  ]);
+
   public static readonly DEFAULT_LOCALE = 'en_US';
   public static readonly DEFAULT_LANGUAGE = 'en';
 
@@ -298,86 +346,103 @@ export default class Constants {
   public static readonly WS_RECONNECT_UNLIMITED = -1;
   public static readonly WS_DEFAULT_RECONNECT_MAX_RETRIES = -1;
   public static readonly WS_DEFAULT_RECONNECT_TIMEOUT = 30; // Seconds
-  public static readonly WS_CONNECTION_URL_RE = new RegExp(['^(?:(?:ws|wss)://)(?:\\S+)\\/(?:\\S+)\\/',
-    '(?:[0-9a-f]{24})\\/',
-    '([0-9a-f]{24})\\/',
-    '(?:\\S+)$'].join(''), 'ig');
+  public static readonly WS_CONNECTION_URL_RE = new RegExp(
+    [
+      '^(?:(?:ws|wss)://)(?:\\S+)\\/(?:\\S+)\\/',
+      '(?:[0-9a-f]{24})\\/',
+      '([0-9a-f]{24})\\/',
+      '(?:\\S+)$',
+    ].join(''),
+    'ig'
+  );
 
   public static readonly OCPP_SOCKET_TIMEOUT_MILLIS = 10 * 1000;
-  public static readonly OCPP_HEARTBEAT_KEYS = Object.freeze(['HeartbeatInterval', 'HeartBeatInterval']);
+  public static readonly OCPP_HEARTBEAT_KEYS = Object.freeze([
+    'HeartbeatInterval',
+    'HeartBeatInterval',
+  ]);
 
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
   public static readonly MIN_DATE = new Date('1970-01-01Z00:00:00:000');
 
   public static readonly REGEX_VALIDATION_LATITUDE = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/;
-  public static readonly REGEX_VALIDATION_LONGITUDE = /^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
-  public static readonly REGEX_URL_PATTERN = /^(?:https?|wss?):\/\/((?:[\w-]+)(?:\.[\w-]+)*)(?:[\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?$/;
+  public static readonly REGEX_VALIDATION_LONGITUDE =
+    /^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
+
+  public static readonly REGEX_URL_PATTERN =
+    /^(?:https?|wss?):\/\/((?:[\w-]+)(?:\.[\w-]+)*)(?:[\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?$/; //eslint-disable-line
+
   public static readonly MAX_GPS_DISTANCE_METERS = 40000000; // Earth
 
   public static readonly CSV_CHARACTERS_TO_ESCAPE = /^[+\-@=].*$/;
-  public static readonly CSV_ESCAPING_CHARACTER = '\'';
+  public static readonly CSV_ESCAPING_CHARACTER = "'";
 
-  public static readonly EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA = Object.freeze([
-    'error', 'stack'
-  ]);
+  public static readonly EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA = Object.freeze(['error', 'stack']);
 
   public static readonly SENSITIVE_DATA = Object.freeze([
-    'firstName', 'name', 'repeatPassword', 'password', 'plainPassword', 'captcha', 'email'
+    'firstName',
+    'name',
+    'repeatPassword',
+    'password',
+    'plainPassword',
+    'captcha',
+    'email',
   ]);
 
   public static readonly DEFAULT_OCPP_16_CONFIGURATION: OcppParameter[] = Object.freeze([
-    { 'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null },
-    { 'key': 'AuthorizationCacheEnabled', 'readonly': false, 'value': null },
-    { 'key': 'AuthorizeRemoteTxRequests', 'readonly': false, 'value': null },
-    { 'key': 'BlinkRepeat', 'readonly': false, 'value': null },
-    { 'key': 'ClockAlignedDataInterval', 'readonly': false, 'value': null },
-    { 'key': 'ConnectionTimeOut', 'readonly': false, 'value': null },
-    { 'key': 'GetConfigurationMaxKeys', 'readonly': false, 'value': null },
-    { 'key': 'HeartbeatInterval', 'readonly': false, 'value': null },
-    { 'key': 'LightIntensity', 'readonly': false, 'value': null },
-    { 'key': 'LocalAuthorizeOffline', 'readonly': false, 'value': null },
-    { 'key': 'LocalPreAuthorize', 'readonly': false, 'value': null },
-    { 'key': 'MaxEnergyOnInvalidId', 'readonly': false, 'value': null },
-    { 'key': 'MeterValuesAlignedData', 'readonly': false, 'value': null },
-    { 'key': 'MeterValuesAlignedDataMaxLength', 'readonly': false, 'value': null },
-    { 'key': 'MeterValuesSampledData', 'readonly': false, 'value': null },
-    { 'key': 'MeterValuesSampledDataMaxLength', 'readonly': false, 'value': null },
-    { 'key': 'MeterValueSampleInterval', 'readonly': false, 'value': null },
-    { 'key': 'MinimumStatusDuration', 'readonly': false, 'value': null },
-    { 'key': 'NumberOfConnectors', 'readonly': false, 'value': null },
-    { 'key': 'ResetRetries', 'readonly': false, 'value': null },
-    { 'key': 'ConnectorPhaseRotation', 'readonly': false, 'value': null },
-    { 'key': 'ConnectorPhaseRotationMaxLength', 'readonly': false, 'value': null },
-    { 'key': 'StopTransactionOnEVSideDisconnect', 'readonly': false, 'value': null },
-    { 'key': 'StopTransactionOnInvalidId', 'readonly': false, 'value': null },
-    { 'key': 'StopTxnAlignedData', 'readonly': false, 'value': null },
-    { 'key': 'StopTxnAlignedDataMaxLength', 'readonly': false, 'value': null },
-    { 'key': 'StopTxnSampledData', 'readonly': false, 'value': null },
-    { 'key': 'StopTxnSampledDataMaxLength', 'readonly': false, 'value': null },
-    { 'key': 'SupportedFeatureProfiles', 'readonly': false, 'value': null },
-    { 'key': 'SupportedFeatureProfilesMaxLength', 'readonly': false, 'value': null },
-    { 'key': 'TransactionMessageAttempts', 'readonly': false, 'value': null },
-    { 'key': 'TransactionMessageRetryInterval', 'readonly': false, 'value': null },
-    { 'key': 'UnlockConnectorOnEVSideDisconnect', 'readonly': false, 'value': null },
-    { 'key': 'WebSocketPingInterval', 'readonly': false, 'value': null },
-    { 'key': 'LocalAuthListEnabled', 'readonly': false, 'value': null },
-    { 'key': 'LocalAuthListMaxLength', 'readonly': false, 'value': null },
-    { 'key': 'SendLocalListMaxLength', 'readonly': false, 'value': null },
-    { 'key': 'ReserveConnectorZeroSupported', 'readonly': false, 'value': null },
-    { 'key': 'ChargeProfileMaxStackLevel', 'readonly': false, 'value': null },
-    { 'key': 'ChargingScheduleAllowedChargingRateUnit', 'readonly': false, 'value': null },
-    { 'key': 'ChargingScheduleMaxPeriods', 'readonly': false, 'value': null },
-    { 'key': 'ConnectorSwitch3to1PhaseSupported', 'readonly': false, 'value': null },
-    { 'key': 'MaxChargingProfilesInstalled', 'readonly': false, 'value': null }
+    { key: 'AllowOfflineTxForUnknownId', readonly: false, value: null },
+    { key: 'AuthorizationCacheEnabled', readonly: false, value: null },
+    { key: 'AuthorizeRemoteTxRequests', readonly: false, value: null },
+    { key: 'BlinkRepeat', readonly: false, value: null },
+    { key: 'ClockAlignedDataInterval', readonly: false, value: null },
+    { key: 'ConnectionTimeOut', readonly: false, value: null },
+    { key: 'GetConfigurationMaxKeys', readonly: false, value: null },
+    { key: 'HeartbeatInterval', readonly: false, value: null },
+    { key: 'LightIntensity', readonly: false, value: null },
+    { key: 'LocalAuthorizeOffline', readonly: false, value: null },
+    { key: 'LocalPreAuthorize', readonly: false, value: null },
+    { key: 'MaxEnergyOnInvalidId', readonly: false, value: null },
+    { key: 'MeterValuesAlignedData', readonly: false, value: null },
+    { key: 'MeterValuesAlignedDataMaxLength', readonly: false, value: null },
+    { key: 'MeterValuesSampledData', readonly: false, value: null },
+    { key: 'MeterValuesSampledDataMaxLength', readonly: false, value: null },
+    { key: 'MeterValueSampleInterval', readonly: false, value: null },
+    { key: 'MinimumStatusDuration', readonly: false, value: null },
+    { key: 'NumberOfConnectors', readonly: false, value: null },
+    { key: 'ResetRetries', readonly: false, value: null },
+    { key: 'ConnectorPhaseRotation', readonly: false, value: null },
+    { key: 'ConnectorPhaseRotationMaxLength', readonly: false, value: null },
+    { key: 'StopTransactionOnEVSideDisconnect', readonly: false, value: null },
+    { key: 'StopTransactionOnInvalidId', readonly: false, value: null },
+    { key: 'StopTxnAlignedData', readonly: false, value: null },
+    { key: 'StopTxnAlignedDataMaxLength', readonly: false, value: null },
+    { key: 'StopTxnSampledData', readonly: false, value: null },
+    { key: 'StopTxnSampledDataMaxLength', readonly: false, value: null },
+    { key: 'SupportedFeatureProfiles', readonly: false, value: null },
+    { key: 'SupportedFeatureProfilesMaxLength', readonly: false, value: null },
+    { key: 'TransactionMessageAttempts', readonly: false, value: null },
+    { key: 'TransactionMessageRetryInterval', readonly: false, value: null },
+    { key: 'UnlockConnectorOnEVSideDisconnect', readonly: false, value: null },
+    { key: 'WebSocketPingInterval', readonly: false, value: null },
+    { key: 'LocalAuthListEnabled', readonly: false, value: null },
+    { key: 'LocalAuthListMaxLength', readonly: false, value: null },
+    { key: 'SendLocalListMaxLength', readonly: false, value: null },
+    { key: 'ReserveConnectorZeroSupported', readonly: false, value: null },
+    { key: 'ChargeProfileMaxStackLevel', readonly: false, value: null },
+    { key: 'ChargingScheduleAllowedChargingRateUnit', readonly: false, value: null },
+    { key: 'ChargingScheduleMaxPeriods', readonly: false, value: null },
+    { key: 'ConnectorSwitch3to1PhaseSupported', readonly: false, value: null },
+    { key: 'MaxChargingProfilesInstalled', readonly: false, value: null },
   ]) as OcppParameter[];
 
-  public static readonly OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE: OCPPAttribute = Object.freeze({
-    unit: OCPPUnitOfMeasure.WATT_HOUR,
-    context: OCPPReadingContext.SAMPLE_PERIODIC,
-    measurand: OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
-    location: OCPPLocation.OUTLET,
-    format: OCPPValueFormat.RAW,
-  });
+  public static readonly OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE: OCPPAttribute =
+    Object.freeze({
+      unit: OCPPUnitOfMeasure.WATT_HOUR,
+      context: OCPPReadingContext.SAMPLE_PERIODIC,
+      measurand: OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+      location: OCPPLocation.OUTLET,
+      format: OCPPValueFormat.RAW,
+    });
 
   public static readonly OCPP_SOC_ATTRIBUTE: OCPPAttribute = Object.freeze({
     unit: OCPPUnitOfMeasure.PERCENT,
@@ -402,7 +467,7 @@ export default class Constants {
     measurand: OCPPMeasurand.VOLTAGE,
     unit: OCPPUnitOfMeasure.VOLT,
     location: OCPPLocation.OUTLET,
-    context: OCPPReadingContext.SAMPLE_PERIODIC
+    context: OCPPReadingContext.SAMPLE_PERIODIC,
   });
 
   public static readonly OCPP_VOLTAGE_L1_ATTRIBUTE: OCPPAttribute = Object.freeze({
@@ -425,7 +490,7 @@ export default class Constants {
     measurand: OCPPMeasurand.CURRENT_IMPORT,
     unit: OCPPUnitOfMeasure.AMP,
     location: OCPPLocation.OUTLET,
-    context: OCPPReadingContext.SAMPLE_PERIODIC
+    context: OCPPReadingContext.SAMPLE_PERIODIC,
   });
 
   public static readonly OCPP_CURRENT_IMPORT_L1_ATTRIBUTE: OCPPAttribute = Object.freeze({
@@ -448,7 +513,7 @@ export default class Constants {
     measurand: OCPPMeasurand.POWER_ACTIVE_IMPORT,
     unit: OCPPUnitOfMeasure.WATT,
     location: OCPPLocation.OUTLET,
-    context: OCPPReadingContext.SAMPLE_PERIODIC
+    context: OCPPReadingContext.SAMPLE_PERIODIC,
   });
 
   public static readonly OCPP_POWER_ACTIVE_IMPORT_L1_ATTRIBUTE: OCPPAttribute = Object.freeze({
@@ -475,13 +540,19 @@ export default class Constants {
   // public static readonly STRIPE_API_VERSION = '2020-08-27';
   public static readonly STRIPE_API_VERSION = '2022-11-15';
 
-  public static readonly WEB_SOCKET_OCPP_NEW_CONNECTIONS_COUNT = 'web_socket_ocpp_new_connections_count';
-  public static readonly WEB_SOCKET_OCPP_CLOSED_CONNECTIONS_COUNT = 'web_socket_ocpp_closed_connections_count';
+  public static readonly WEB_SOCKET_OCPP_NEW_CONNECTIONS_COUNT =
+    'web_socket_ocpp_new_connections_count';
+
+  public static readonly WEB_SOCKET_OCPP_CLOSED_CONNECTIONS_COUNT =
+    'web_socket_ocpp_closed_connections_count';
+
   public static readonly WEB_SOCKET_OCPP_CONNECTIONS_COUNT = 'web_socket_ocpp_connections_count';
   public static readonly WEB_SOCKET_CURRENT_REQUEST = 'web_socket_current_request';
   public static readonly WEB_SOCKET_REST_CONNECTIONS_COUNT = 'web_socket_rest_connections_count';
   public static readonly WEB_SOCKET_RUNNING_REQUEST = 'web_socket_running_request';
-  public static readonly WEB_SOCKET_RUNNING_REQUEST_RESPONSE = 'web_socket_running_request_response';
+  public static readonly WEB_SOCKET_RUNNING_REQUEST_RESPONSE =
+    'web_socket_running_request_response';
+
   public static readonly WEB_SOCKET_QUEUED_REQUEST = 'web_socket_queued_request';
 
   public static readonly MONGODB_CONNECTION_POOL_CREATED = 'mongodb_connectionPoolCreated';
@@ -494,4 +565,19 @@ export default class Constants {
   public static readonly MONGODB_CONNECTION_CHECK_OUT = 'mongodb_connectionCheckOut';
   public static readonly MONGODB_CONNECTION_CHECK_IN = 'mongodb_connectionCheckIn';
   public static readonly MONGODB_CONNECTION_POOL_CLEARED = 'mongodb_connectionPoolCleared';
+
+  public static readonly ReservationStatusTransitions: Readonly<ReservationStatusTransition[]> =
+    Object.freeze([
+      { to: ReservationStatus.IN_PROGRESS },
+      { to: ReservationStatus.SCHEDULED },
+      { from: ReservationStatus.SCHEDULED, to: ReservationStatus.IN_PROGRESS },
+      { from: ReservationStatus.SCHEDULED, to: ReservationStatus.CANCELLED },
+      { from: ReservationStatus.SCHEDULED, to: ReservationStatus.EXPIRED },
+      { from: ReservationStatus.IN_PROGRESS, to: ReservationStatus.SCHEDULED },
+      { from: ReservationStatus.IN_PROGRESS, to: ReservationStatus.CANCELLED },
+      { from: ReservationStatus.IN_PROGRESS, to: ReservationStatus.EXPIRED },
+      { from: ReservationStatus.IN_PROGRESS, to: ReservationStatus.UNMET },
+      { from: ReservationStatus.IN_PROGRESS, to: ReservationStatus.DONE },
+      { from: ReservationStatus.UNMET, to: ReservationStatus.IN_PROGRESS },
+    ]);
 }

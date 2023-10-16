@@ -18,8 +18,17 @@ export default class CPOLocationsRouterV211 {
   }
 
   protected buildRouteGetLocations(): void {
-    this.router.get(`/${OCPIServerRoute.OCPI_LOCATIONS}*`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleOCPIServerAction(CPOLocationsService.handleGetLocations.bind(this), ServerAction.OCPI_CPO_GET_LOCATIONS, req, res, next);
-    });
+    this.router.get(
+      `/${OCPIServerRoute.OCPI_LOCATIONS}*`,
+      async (req: Request, res: Response, next: NextFunction) => {
+        await RouterUtils.handleOCPIServerAction(
+          CPOLocationsService.handleGetLocations.bind(this),
+          ServerAction.OCPI_CPO_GET_LOCATIONS,
+          req,
+          res,
+          next
+        );
+      }
+    );
   }
 }

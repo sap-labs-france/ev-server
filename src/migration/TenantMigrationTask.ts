@@ -18,8 +18,11 @@ export default abstract class TenantMigrationTask extends MigrationTask {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'migrate',
-        message: `The Task '${this.getName()}~${tenantCorrelationID}' is running for Tenant ${Utils.buildTenantName(tenant)}...`
+        module: MODULE_NAME,
+        method: 'migrate',
+        message: `The Task '${this.getName()}~${tenantCorrelationID}' is running for Tenant ${Utils.buildTenantName(
+          tenant
+        )}...`,
       });
       try {
         // Migrate
@@ -28,9 +31,12 @@ export default abstract class TenantMigrationTask extends MigrationTask {
         await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT_ID,
           action: ServerAction.MIGRATION,
-          module: MODULE_NAME, method: 'migrate',
-          message: `Error while running the Task '${this.getName()}~${tenantCorrelationID}' for Tenant ${Utils.buildTenantName(tenant)}: ${error.message as string}`,
-          detailedMessages: { error: error.stack }
+          module: MODULE_NAME,
+          method: 'migrate',
+          message: `Error while running the Task '${this.getName()}~${tenantCorrelationID}' for Tenant ${Utils.buildTenantName(
+            tenant
+          )}: ${error.message as string}`,
+          detailedMessages: { error: error.stack },
         });
       }
       // Log Total Processing Time
@@ -38,8 +44,11 @@ export default abstract class TenantMigrationTask extends MigrationTask {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT_ID,
         action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'migrate',
-        message: `The Task '${this.getName()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(tenant)}`
+        module: MODULE_NAME,
+        method: 'migrate',
+        message: `The Task '${this.getName()}~${tenantCorrelationID}' has been run successfully in ${totalTimeSecsInTenant} secs for Tenant ${Utils.buildTenantName(
+          tenant
+        )}`,
       });
     }
   }

@@ -13,8 +13,10 @@ const MODULE_NAME = 'BillingFactory';
 export default class BillingFactory {
   public static async getBillingImpl(tenant: Tenant): Promise<BillingIntegration> {
     // Check if billing is active
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING) &&
-        Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
+    if (
+      Utils.isTenantComponentActive(tenant, TenantComponents.PRICING) &&
+      Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)
+    ) {
       // Get the billing's settings
       const settings = await SettingStorage.getBillingSetting(tenant);
       if (settings) {
@@ -29,8 +31,9 @@ export default class BillingFactory {
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.BILLING,
-        module: MODULE_NAME, method: 'getBillingImpl',
-        message: 'Billing settings are not configured'
+        module: MODULE_NAME,
+        method: 'getBillingImpl',
+        message: 'Billing settings are not configured',
       });
     }
     return null;

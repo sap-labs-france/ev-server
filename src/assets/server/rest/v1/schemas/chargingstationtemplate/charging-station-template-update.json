@@ -10,7 +10,5 @@
       "$ref": "chargingstation-template#/definitions/template"
     }
   },
-  "required": [
-    "id"
-  ]
+  "required": ["id"]
 }

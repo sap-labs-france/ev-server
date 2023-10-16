@@ -8,8 +8,17 @@ export default class TagApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public async readTags(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(RESTServerRoute.REST_TAGS));
+  public async readTags(
+    params,
+    paging = TestConstants.DEFAULT_PAGING,
+    ordering = TestConstants.DEFAULT_ORDERING
+  ) {
+    return super.readAll(
+      params,
+      paging,
+      ordering,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_TAGS)
+    );
   }
 
   public async readTag(id: string) {
@@ -21,15 +30,24 @@ export default class TagApi extends CrudApi {
   }
 
   public async assignTag(params?) {
-    return super.update(params, this.buildRestEndpointUrl(RESTServerRoute.REST_TAG_ASSIGN, { id: params.visualID }));
+    return super.update(
+      params,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_TAG_ASSIGN, { id: params.visualID })
+    );
   }
 
   public async updateTagByVisualID(params?) {
-    return super.update(params, this.buildRestEndpointUrl(RESTServerRoute.REST_TAG, { id: params.visualID }));
+    return super.update(
+      params,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_TAG, { id: params.visualID })
+    );
   }
 
   public async unassignTag(params?) {
-    return super.update(params, this.buildRestEndpointUrl(RESTServerRoute.REST_TAG_UNASSIGN, { id: params.visualID }));
+    return super.update(
+      params,
+      this.buildRestEndpointUrl(RESTServerRoute.REST_TAG_UNASSIGN, { id: params.visualID })
+    );
   }
 
   public async readTagByVisualID(visualID: string) {

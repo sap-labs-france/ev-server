@@ -6,12 +6,7 @@
       "type": "shell",
       "command": "./node_modules/.bin/tsc",
       "isBackground": true,
-      "args": [
-        "--watch",
-        "--noEmit",
-        "--project",
-        "src"
-      ],
+      "args": ["--watch", "--noEmit", "--project", "src"],
       "group": {
         "kind": "build",
         "isDefault": true

@@ -1,4 +1,4 @@
-version: "3.7"
+version: '3.7'
 networks:
   ev_network:
     driver: bridge
@@ -7,7 +7,7 @@ services:
     image: mongo-express
     restart: always
     ports:
-    - 8091:8081
+      - 8091:8081
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: admin
@@ -16,4 +16,4 @@ services:
       ME_CONFIG_MONGODB_AUTH_USERNAME: admin-user
       ME_CONFIG_MONGODB_AUTH_PASSWORD: admin-user-pwd
     networks:
-    - ev_network
+      - ev_network

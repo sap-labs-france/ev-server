@@ -11,8 +11,5 @@
       "sanitize": "mongo"
     }
   },
-  "required": [
-    "userID",
-    "paymentMethodId"
-  ]
+  "required": ["userID", "paymentMethodId"]
 }

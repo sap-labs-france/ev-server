@@ -15,9 +15,5 @@
       "format": "date-time"
     }
   },
-  "required": [
-    "SiteAreaID",
-    "StartDate",
-    "EndDate"
-  ]
+  "required": ["SiteAreaID", "StartDate", "EndDate"]
 }

@@ -8,7 +8,5 @@
       "$ref": "registration-token#/definitions/id"
     }
   },
-  "required": [
-    "ID"
-  ]
+  "required": ["ID"]
 }

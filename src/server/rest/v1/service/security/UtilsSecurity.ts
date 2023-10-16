@@ -14,7 +14,7 @@ export default class UtilsSecurity {
         result = value;
       } else {
         // Convert
-        result = (value === 'true');
+        result = value === 'true';
       }
     }
     return result;

@@ -44,18 +44,13 @@
         "type": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": [
-            "sapSmartCharging"
-          ]
+          "enum": ["sapSmartCharging"]
         }
       },
       "links": {
         "$ref": "setting#/definitions/links"
       },
-      "required": [
-        "type",
-        "sapSmartCharging"
-      ]
+      "required": ["type", "sapSmartCharging"]
     },
     "id": {
       "$ref": "common#/definitions/id"
@@ -63,15 +58,11 @@
     "identifier": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": [
-        "smartCharging"
-      ]
+      "enum": ["smartCharging"]
     },
     "sensitiveData": {
       "$ref": "setting#/definitions/sensitiveData"
     }
   },
-  "required": [
-    "identifier"
-  ]
+  "required": ["identifier"]
 }

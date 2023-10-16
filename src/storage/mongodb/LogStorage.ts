@@ -22,8 +22,7 @@ export default class LogStorage {
       return;
     }
     // Delete Logs
-    const result = await global.database.getCollection<any>(tenant.id, 'logs')
-      .deleteMany(filters);
+    const result = await global.database.getCollection<any>(tenant.id, 'logs').deleteMany(filters);
     // Return the result
     return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
   }
@@ -45,7 +44,7 @@ export default class LogStorage {
       method: logToSave.method,
       action: logToSave.action,
       message: logToSave.message,
-      detailedMessages: logToSave.detailedMessages
+      detailedMessages: logToSave.detailedMessages,
     };
     // Insert
     if (global.database) {
@@ -54,19 +53,43 @@ export default class LogStorage {
     }
   }
 
-  public static async getLog(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { siteIDs?: string[]; } = {}, projectFields: string[]): Promise<Log> {
-    const logsMDB = await LogStorage.getLogs(tenant, {
-      logIDs: [id],
-      siteIDs: params.siteIDs,
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+  public static async getLog(
+    tenant: Tenant,
+    id: string = Constants.UNKNOWN_OBJECT_ID,
+    params: { siteIDs?: string[] } = {},
+    projectFields: string[]
+  ): Promise<Log> {
+    const logsMDB = await LogStorage.getLogs(
+      tenant,
+      {
+        logIDs: [id],
+        siteIDs: params.siteIDs,
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD,
+      projectFields
+    );
     return logsMDB.count === 1 ? logsMDB.result[0] : null;
   }
 
-  public static async getLogs(tenant: Tenant, params: {
-    startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
-    hosts?: string[]; userIDs?: string[]; siteIDs?: string[]; chargingStationIDs?: string[]; search?: string; logIDs?: string[];
-  } = {}, dbParams: DbParams, projectFields: string[]): Promise<DataResult<Log>> {
+  public static async getLogs(
+    tenant: Tenant,
+    params: {
+      startDateTime?: Date;
+      endDateTime?: Date;
+      levels?: string[];
+      sources?: string[];
+      type?: string;
+      actions?: string[];
+      hosts?: string[];
+      userIDs?: string[];
+      siteIDs?: string[];
+      chargingStationIDs?: string[];
+      search?: string;
+      logIDs?: string[];
+    } = {},
+    dbParams: DbParams,
+    projectFields: string[]
+  ): Promise<DataResult<Log>> {
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
@@ -95,7 +118,7 @@ export default class LogStorage {
     // ID
     if (!Utils.isEmptyArray(params.logIDs)) {
       filters._id = {
-        $in: params.logIDs.map((logID) => DatabaseUtils.convertToObjectID(logID))
+        $in: params.logIDs.map((logID) => DatabaseUtils.convertToObjectID(logID)),
       };
     }
     // Level
@@ -121,20 +144,26 @@ export default class LogStorage {
     // Site
     if (!Utils.isEmptyArray(params.siteIDs)) {
       filters.siteID = {
-        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID)),
       };
     }
     // User
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.$or = [
-        { userID: { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) } },
-        { actionOnUserID: { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) } }
+        {
+          userID: { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) },
+        },
+        {
+          actionOnUserID: {
+            $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)),
+          },
+        },
       ];
     }
     // Charging Station
     if (!Utils.isEmptyArray(params.chargingStationIDs)) {
       filters.chargingStationID = {
-        $in: params.chargingStationIDs
+        $in: params.chargingStationIDs,
       };
     }
     // Create Aggregation
@@ -142,7 +171,7 @@ export default class LogStorage {
     // Filters
     if (filters) {
       aggregation.push({
-        $match: filters
+        $match: filters,
       });
     }
     // Count Records
@@ -150,14 +179,15 @@ export default class LogStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
-    const logsCountMDB = await global.database.getCollection<any>(tenant.id, 'logs')
+    const logsCountMDB = (await global.database
+      .getCollection<any>(tenant.id, 'logs')
       .aggregate([...aggregation, { $count: 'count' }])
-      .toArray() as DatabaseCount[];
+      .toArray()) as DatabaseCount[];
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       return {
-        count: (logsCountMDB.length > 0 ? logsCountMDB[0].count : 0),
-        result: []
+        count: logsCountMDB.length > 0 ? logsCountMDB[0].count : 0,
+        result: [],
       };
     }
     // Remove the limit
@@ -167,56 +197,59 @@ export default class LogStorage {
       dbParams.sort = { timestamp: -1 };
     }
     aggregation.push({
-      $sort: dbParams.sort
+      $sort: dbParams.sort,
     });
     // Skip
     aggregation.push({
-      $skip: dbParams.skip
+      $skip: dbParams.skip,
     });
     // Limit
     aggregation.push({
-      $limit: dbParams.limit
+      $limit: dbParams.limit,
     });
     // Add Users
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id,
-      aggregation: aggregation,
-      asField: 'user',
-      localField: 'userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
-    }, [
-      { $project: { name: 1, firstName: 1 } }
-    ]);
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id,
-      aggregation: aggregation,
-      asField: 'actionOnUser',
-      localField: 'actionOnUserID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
-    }, [
-      { $project: { name: 1, firstName: 1 } }
-    ]);
+    DatabaseUtils.pushUserLookupInAggregation(
+      {
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        asField: 'user',
+        localField: 'userID',
+        foreignField: '_id',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false,
+      },
+      [{ $project: { name: 1, firstName: 1 } }]
+    );
+    DatabaseUtils.pushUserLookupInAggregation(
+      {
+        tenantID: tenant.id,
+        aggregation: aggregation,
+        asField: 'actionOnUser',
+        localField: 'actionOnUserID',
+        foreignField: '_id',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false,
+      },
+      [{ $project: { name: 1, firstName: 1 } }]
+    );
     // Check if it has detailed messages
     aggregation.push({
       $addFields: {
-        'hasDetailedMessages': { $gt: ['$detailedMessages', null] }
-      }
+        hasDetailedMessages: { $gt: ['$detailedMessages', null] },
+      },
     });
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const logsMDB = await global.database.getCollection<any>(tenant.id, 'logs')
+    const logsMDB = (await global.database
+      .getCollection<any>(tenant.id, 'logs')
       .aggregate<any>(aggregation, DatabaseUtils.buildAggregateOptions())
-      .toArray() as Log[];
+      .toArray()) as Log[];
     return {
       count: DatabaseUtils.getCountFromDatabaseCount(logsCountMDB[0]),
-      result: logsMDB
+      result: logsMDB,
     };
   }
 }

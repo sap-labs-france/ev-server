@@ -5,9 +5,19 @@ import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class StatisticsValidatorRest extends SchemaValidator {
-  private static instance: StatisticsValidatorRest|null = null;
-  private statisticsGet: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/statistic/statistics-get.json`, 'utf8'));
-  private statisticsExport: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/statistic/statistics-export.json`, 'utf8'));
+  private static instance: StatisticsValidatorRest | null = null;
+  private statisticsGet: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/statistic/statistics-get.json`,
+      'utf8'
+    )
+  );
+  private statisticsExport: Schema = JSON.parse(
+    fs.readFileSync(
+      `${global.appRoot}/assets/server/rest/v1/schemas/statistic/statistics-export.json`,
+      'utf8'
+    )
+  );
 
   private constructor() {
     super('StatisticsValidatorRest');

@@ -17,7 +17,7 @@ export interface OCPIConnector {
 export enum OCPIPowerType {
   AC_1_PHASE = 'AC_1_PHASE',
   AC_3_PHASE = 'AC_3_PHASE',
-  DC = 'DC'
+  DC = 'DC',
 }
 
 export enum OCPIConnectorType {
@@ -45,10 +45,10 @@ export enum OCPIConnectorType {
   IEC_62196_T3A = 'IEC_62196_T3A',
   IEC_62196_T3 = 'IEC_62196_T3',
   TESLA_R = 'TESLA_R',
-  TESLA_S = 'TESLA_S'
+  TESLA_S = 'TESLA_S',
 }
 
 export enum OCPIConnectorFormat {
   SOCKET = 'SOCKET',
-  CABLE = 'CABLE'
+  CABLE = 'CABLE',
 }

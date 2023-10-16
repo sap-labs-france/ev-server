@@ -1,4 +1,3 @@
-
 export default interface Connection {
   id?: string;
   connectorId: string;
@@ -11,5 +10,5 @@ export default interface Connection {
 
 export enum ConnectionType {
   MERCEDES = 'mercedes',
-  CONCUR = 'concur'
+  CONCUR = 'concur',
 }

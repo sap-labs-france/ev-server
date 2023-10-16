@@ -7,7 +7,5 @@
       "$ref": "common#/definitions/id"
     }
   },
-  "required": [
-    "SiteAreaID"
-  ]
+  "required": ["SiteAreaID"]
 }
