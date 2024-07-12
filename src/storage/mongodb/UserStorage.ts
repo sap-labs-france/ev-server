@@ -1,5 +1,11 @@
 import Tenant, { TenantComponents } from '../../types/Tenant';
-import User, { ImportedUser, StartTransactionUserData, UserMobileData, UserRole, UserStatus } from '../../types/User';
+import User, {
+  ImportedUser,
+  StartTransactionUserData,
+  UserMobileData,
+  UserRole,
+  UserStatus
+} from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import global, { DatabaseCount, FilterParams, Image, ImportStatus } from '../../types/GlobalType';
 
@@ -92,6 +98,13 @@ export default class UserStorage {
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
+  public static async getUserByMobileNumber(tenant: Tenant, mobile: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
+    const userMDB = await UserStorage.getUsers(tenant, {
+      mobile: mobile,
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return userMDB.count === 1 ? userMDB.result[0] : null;
+  }
+
   public static async getUserByPasswordResetHash(tenant: Tenant, passwordResetHash: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenant, {
       passwordResetHash: passwordResetHash
@@ -100,7 +113,10 @@ export default class UserStorage {
   }
 
   public static async getUser(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withImage?: boolean; siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<User> {
+      params: {
+        withImage?: boolean;
+        siteIDs?: string[];
+      } = {}, projectFields?: string[]): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenant, {
       userIDs: [id],
       withImage: params.withImage,
@@ -120,7 +136,10 @@ export default class UserStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
-    const userImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenant.id, 'userimages')
+    const userImageMDB = await global.database.getCollection<{
+      _id: ObjectId;
+      image: string
+    }>(tenant.id, 'userimages')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'getUserImage', startTime, { id }, userImageMDB);
     return {
@@ -354,7 +373,9 @@ export default class UserStorage {
 
   public static async saveUserPassword(tenant: Tenant, userID: string,
       params: {
-        password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
+        password?: string;
+        passwordResetHash?: string;
+        passwordWrongNbrTrials?: number;
         passwordBlockedUntil?: Date;
       }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -364,6 +385,21 @@ export default class UserStorage {
       { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: params });
     await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserPassword', startTime, { params });
+  }
+
+  public static async saveUserOtp(tenant: Tenant, userID: string,
+      params: {
+        otp?: string;
+        otpWrongNbrTrials?: number;
+        otpBlockedUntil?: Date;
+      }): Promise<void> {
+    const startTime = Logging.traceDatabaseRequestStart();
+    DatabaseUtils.checkTenantObject(tenant);
+    // Modify and return the modified document
+    await global.database.getCollection<any>(tenant.id, 'users').findOneAndUpdate(
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
+      { $set: params });
+    await Logging.traceDatabaseRequestEnd(tenant, MODULE_NAME, 'saveUserOtp', startTime, { params });
   }
 
   public static async saveUserStatus(tenant: Tenant, userID: string, status: UserStatus): Promise<void> {
@@ -403,7 +439,10 @@ export default class UserStorage {
   }
 
   public static async saveUserMobilePhone(tenant: Tenant, userID: string,
-      params: { mobile?: string; phone?: string; }): Promise<void> {
+      params: {
+        mobile?: string;
+        phone?: string;
+      }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
@@ -424,7 +463,11 @@ export default class UserStorage {
   }
 
   public static async saveUserEULA(tenant: Tenant, userID: string,
-      params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
+      params: {
+        eulaAcceptedHash: string;
+        eulaAcceptedOn: Date;
+        eulaAcceptedVersion: number
+      }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
@@ -435,7 +478,10 @@ export default class UserStorage {
   }
 
   public static async saveUserAccountVerification(tenant: Tenant, userID: string,
-      params: { verificationToken?: string; verifiedAt?: Date }): Promise<void> {
+      params: {
+        verificationToken?: string;
+        verifiedAt?: Date
+      }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Modify and return the modified document
@@ -446,7 +492,13 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenant: Tenant, userID: string,
-      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications, technical?: boolean, freeAccess?: boolean }): Promise<void> {
+      params: {
+        plateID?: string;
+        notificationsActive?: boolean;
+        notifications?: UserNotifications,
+        technical?: boolean,
+        freeAccess?: boolean
+      }): Promise<void> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     // Set data
@@ -478,7 +530,7 @@ export default class UserStorage {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
     if (billingData) {
-    // Set data
+      // Set data
       const updatedUserMDB: any = {
         billingData: {
           customerID: billingData.customerID,
@@ -521,10 +573,25 @@ export default class UserStorage {
 
   public static async getUsers(tenant: Tenant,
       params: {
-        notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-        userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
-        statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; technical?: boolean; freeAccess?: boolean;
+        notificationsActive?: boolean;
+        siteIDs?: string[];
+        excludeSiteID?: string;
+        search?: string;
+        userIDs?: string[];
+        email?: string;
+        mobile?: string;
+        issuer?: boolean;
+        passwordResetHash?: string;
+        roles?: string[];
+        statuses?: string[];
+        withImage?: boolean;
+        billingUserID?: string;
+        notSynchronizedBillingData?: boolean;
+        withTestBillingData?: boolean;
+        notifications?: any;
+        noLoginSince?: Date;
+        technical?: boolean;
+        freeAccess?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     const startTime = Logging.traceDatabaseRequestStart();
@@ -544,7 +611,8 @@ export default class UserStorage {
         { 'name': { $regex: params.search, $options: 'i' } },
         { 'firstName': { $regex: params.search, $options: 'i' } },
         { 'email': { $regex: params.search, $options: 'i' } },
-        { 'plateID': { $regex: params.search, $options: 'i' } }
+        { 'plateID': { $regex: params.search, $options: 'i' } },
+        { 'mobile': { $regex: params.search, $options: 'i' } }
       ];
       if (DatabaseUtils.isObjectID(params.search)) {
         filters.$or.push({ '_id': DatabaseUtils.convertToObjectID(params.search) });
@@ -561,6 +629,10 @@ export default class UserStorage {
     // Email
     if (params.email) {
       filters.email = params.email;
+    }
+
+    if (params.mobile) {
+      filters.mobile = params.mobile;
     }
     // Password Reset Hash
     if (params.passwordResetHash) {
@@ -605,7 +677,7 @@ export default class UserStorage {
       if (filters.$and) {
         filters.$and.push(billingFilter);
       } else {
-        filters.$and = [ billingFilter ];
+        filters.$and = [billingFilter];
       }
     }
     // Select users with test billing data
@@ -644,7 +716,11 @@ export default class UserStorage {
     // Add Site
     if (params.siteIDs || params.excludeSiteID) {
       DatabaseUtils.pushSiteUserLookupInAggregation({
-        tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'userID', asField: 'siteusers'
+        tenantID: tenant.id,
+        aggregation,
+        localField: '_id',
+        foreignField: 'userID',
+        asField: 'siteusers'
       });
       if (params.siteIDs) {
         aggregation.push({
@@ -804,7 +880,11 @@ export default class UserStorage {
   }
 
   public static async getUsersInError(tenant: Tenant,
-      params: { search?: string; roles?: string[]; errorTypes?: string[] },
+      params: {
+        search?: string;
+        roles?: string[];
+        errorTypes?: string[]
+      },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserInError>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);
@@ -917,7 +997,13 @@ export default class UserStorage {
   }
 
   public static async getUserSites(tenant: Tenant,
-      params: { search?: string; userIDs: string[]; siteIDs?: string[]; siteAdmin?: boolean; siteOwner?: boolean },
+      params: {
+        search?: string;
+        userIDs: string[];
+        siteIDs?: string[];
+        siteAdmin?: boolean;
+        siteOwner?: boolean
+      },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserSite>> {
     const startTime = Logging.traceDatabaseRequestStart();
     DatabaseUtils.checkTenantObject(tenant);

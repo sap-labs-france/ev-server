@@ -1,0 +1,21 @@
+{
+  "$id": "auth-signin-otp-verify",
+  "title": "Sign in otp verify",
+  "type": "object",
+  "properties": {
+    "mobile": {
+      "$ref": "user#/definitions/mobile"
+    },
+    "otp": {
+      "$ref": "user#/definitions/otp"
+    },
+    "acceptEula": {
+      "$ref": "common#/definitions/acceptEula"
+    }
+  },
+  "required": [
+    "mobile",
+    "otp",
+    "acceptEula"
+  ]
+}

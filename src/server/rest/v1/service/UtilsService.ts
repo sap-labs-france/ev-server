@@ -111,6 +111,13 @@ export default class UtilsService {
     });
   }
 
+  // ayush change
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static generateOtp() {
+    return '123456';
+    // return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
   public static async checkAndGetChargingStationAuthorization(tenant: Tenant, userToken: UserToken, chargingStationID: string, authAction: Action,
       action: ServerAction, entityData?: EntityData, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<ChargingStation> {
     // Check mandatory fields

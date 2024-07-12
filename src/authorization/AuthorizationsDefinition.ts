@@ -148,6 +148,9 @@ export const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TENANT, action: Action.UPDATE,
         attributes: ['id', 'name', 'email', 'logo', 'address']
       },
+      { resource: Entity.DASHBOARD, action: [Action.LIST],
+        attributes: []
+      },
       {
         resource: Entity.USER,
         action: [

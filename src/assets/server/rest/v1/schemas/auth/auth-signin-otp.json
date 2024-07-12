@@ -1,0 +1,17 @@
+{
+  "$id": "auth-signin-otp",
+  "title": "Sign in otp",
+  "type": "object",
+  "properties": {
+    "mobile": {
+      "$ref": "user#/definitions/mobile"
+    },
+    "acceptEula": {
+      "$ref": "common#/definitions/acceptEula"
+    }
+  },
+  "required": [
+    "mobile",
+    "acceptEula"
+  ]
+}

@@ -25,6 +25,10 @@
       "sanitize": "mongo",
       "pattern": "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,%&=_<>\\/'\\$\\^\\*\\.\\?\\-\\+\\(\\)])(?=.{8,})"
     },
+    "otp": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
     "costCenter": {
       "type": "string",
       "sanitize": "mongo"

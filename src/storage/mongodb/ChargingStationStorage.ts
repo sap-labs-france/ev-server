@@ -133,7 +133,7 @@ export default class ChargingStationStorage {
       params: {
         search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
         connectorStatuses?: ChargePointStatus[]; connectorTypes?: ConnectorType[]; statusChangedBefore?: Date; withSiteArea?: boolean; withUser?: boolean;
-        ocpiEvseUid?: string; ocpiLocationID?: string; oicpEvseID?: string;
+        ocpiEvseUid?: string; ocpiLocationID?: string; oicpEvseID?: string; Inactive?: boolean;
         siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean; manualConfiguration?: boolean;
       },
@@ -182,6 +182,10 @@ export default class ChargingStationStorage {
     // Public Charging Stations
     if (Utils.isBoolean(params.public)) {
       filters.public = params.public;
+    }
+    // Public Charging Stations
+    if (Utils.isBoolean(params.Inactive)) {
+      filters.inactive = params.Inactive;
     }
     // Charging Station
     if (Utils.isBoolean(params.manualConfiguration)) {

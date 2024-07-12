@@ -11,4 +11,6 @@ export default interface CentralSystemRestServiceConfiguration extends CentralSy
   alternativeCaptchaSecretKey: string;
   captchaScore: number;
   debug: boolean;
+  otpWrongNumberOfTrial: number;
+  otpBlockedWaitTimeMin: number;
 }

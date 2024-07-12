@@ -79,6 +79,17 @@ export interface HttpLoginRequest {
   acceptEula: boolean;
 }
 
+export interface HttpLoginOtp{
+  mobile: string;
+  acceptEula: boolean;
+}
+
+export interface HttpVerifyOtp{
+  mobile: string;
+  otp: string;
+  acceptEula: boolean;
+}
+
 export interface HttpResetPasswordRequest {
   email: string;
   captcha: string;
@@ -88,7 +99,7 @@ export interface HttpResetPasswordRequest {
 export interface HttpCheckEulaRequest {
   Email: string;
 }
-export interface HttpRegisterUserRequest extends HttpLoginRequest {
+export interface HttpRegisterUserRequest extends HttpLoginRequest, HttpLoginOtp{
   name: string;
   firstName: string;
   password: string;

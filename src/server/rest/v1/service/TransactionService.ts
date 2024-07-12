@@ -740,8 +740,8 @@ export default class TransactionService {
     return result;
   }
 
-  private static async getTransactions(req: Request, filteredRequest: HttpTransactionsGetRequest,
-      authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
+  static async getTransactions(req: Request, filteredRequest: HttpTransactionsGetRequest,
+                               authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<Transaction>> {
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetTransactionsAuthorizations(
       req.tenant, req.user, authAction, filteredRequest, false);

@@ -1,4 +1,14 @@
-import { HttpCheckEulaRequest, HttpEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
+import {
+  HttpCheckEulaRequest,
+  HttpEulaRequest,
+  HttpLoginOtp,
+  HttpLoginRequest,
+  HttpRegisterUserRequest,
+  HttpResendVerificationMailRequest,
+  HttpResetPasswordRequest,
+  HttpVerifyEmailRequest,
+  HttpVerifyOtp
+} from '../../../../types/requests/HttpUserRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../../../validator/SchemaValidator';
@@ -8,6 +18,8 @@ import global from '../../../../types/GlobalType';
 export default class AuthValidatorRest extends SchemaValidator {
   private static instance: AuthValidatorRest | null = null;
   private authSignIn: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signin.json`, 'utf8'));
+  private authSignInOtp: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signin-otp.json`, 'utf8'));
+  private authSignInOtpVerify: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signin-otp-verify.json`, 'utf8'));
   private authSignOn: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signon.json`, 'utf8'));
   private authPasswordReset: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-password-reset.json`, 'utf8'));
   private authEulaCheck: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-eula-check.json`, 'utf8'));
@@ -28,6 +40,14 @@ export default class AuthValidatorRest extends SchemaValidator {
 
   public validateAuthSignInReq(data: Record<string, unknown>): HttpLoginRequest {
     return this.validate(this.authSignIn, data);
+  }
+
+  public validateAuthSignInWithOtpReq(data: Record<string, unknown>): HttpLoginOtp {
+    return this.validate(this.authSignInOtp, data);
+  }
+
+  public validateAuthSignInOtpVerification(data: Record<string, unknown>): HttpVerifyOtp {
+    return this.validate(this.authSignInOtpVerify, data);
   }
 
   public validateAuthSignOnReq(data: Record<string, unknown>): Partial<HttpRegisterUserRequest> {

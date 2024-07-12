@@ -75,6 +75,7 @@ export interface Grant {
 }
 
 export enum Entity {
+  DASHBOARD = 'Dashboard',
   SITE = 'Site',
   SITE_AREA = 'SiteArea',
   COMPANY = 'Company',

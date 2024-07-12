@@ -1,21 +1,24 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
-import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/requests/HttpUserRequest';
-import User, { UserRole, UserStatus } from '../../../../types/User';
+import {ExtractJwt, Strategy} from 'passport-jwt';
+import {Handler, NextFunction, Request, RequestHandler, Response} from 'express';
+import {
+  HttpLoginRequest,
+  HttpResetPasswordRequest, HttpVerifyOtp
+} from '../../../../types/requests/HttpUserRequest';
+import User, {UserRole, UserStatus} from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import AuthValidatorRest from '../validator/AuthValidatorRest';
 import Authorizations from '../../../../authorization/Authorizations';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
-import { Details } from 'express-useragent';
-import { HTTPError } from '../../../../types/HTTPError';
+import {Details} from 'express-useragent';
+import {HTTPError} from '../../../../types/HTTPError';
 import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
-import { ServerAction } from '../../../../types/Server';
+import {ServerAction} from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
-import { StatusCodes } from 'http-status-codes';
+import {StatusCodes} from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
@@ -52,7 +55,7 @@ export default class AuthService {
   }
 
   public static authenticate(): RequestHandler {
-    return passport.authenticate('jwt', { session: false });
+    return passport.authenticate('jwt', {session: false});
   }
 
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -66,10 +69,12 @@ export default class AuthService {
     }
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthSignInReq(req.body);
-    req.user = { tenantID: req.tenant.id };
+    req.user = {tenantID: req.tenant.id};
     const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
       MODULE_NAME, 'handleLogIn', req.user);
+
+    console.log(filteredRequest,'loginwithmail');
     // Check if the number of trials is reached
     if (user.passwordWrongNbrTrials >= centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Check if the user is still locked
@@ -87,7 +92,7 @@ export default class AuthService {
           await UserStorage.saveUserStatus(req.tenant, user.id, UserStatus.ACTIVE);
           // Init User Password
           await UserStorage.saveUserPassword(req.tenant, user.id,
-            { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
+            {passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null});
           // Read user again
           const updatedUser = await UserStorage.getUser(req.tenant, user.id);
           // Check user
@@ -114,6 +119,100 @@ export default class AuthService {
     }
   }
 
+
+  public static async handleLogInWithOtp(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'handleLogInWithOtp', action: action,
+      });
+    }
+
+    // Filter
+    const filteredRequest = AuthValidatorRest.getInstance().validateAuthSignInWithOtpReq(req.body);
+    req.user = {tenantID: req.tenant.id};
+
+    const user = await UserStorage.getUserByMobileNumber(req.tenant, filteredRequest.mobile);
+    UtilsService.assertObjectExists(action, user, `User with mobile '${filteredRequest.mobile}' does not exist`,
+      MODULE_NAME, 'handleLogInWithOtp', req.user);
+
+    // Check if the user is locked due to too many wrong OTP trials
+    if (user.otpWrongNbrTrials >= centralSystemRestConfig.passwordWrongNumberOfTrial) {
+      // Check if the user is still locked
+      if (user.status === UserStatus.LOCKED) {
+        // Yes: Check date to reset OTP attempts
+        if (user.otpBlockedUntil && moment(user.otpBlockedUntil).isBefore(moment())) {
+          // Time elapsed: activate the account again
+          await Logging.logInfo({
+            tenantID: req.user.tenantID,
+            actionOnUser: user,
+            module: MODULE_NAME, method: 'handleLogInWithOtp', action: action,
+            message: 'User has been unlocked after a period of time and can try to login again'
+          });
+          // Save User Status
+          await UserStorage.saveUserStatus(req.tenant, user.id, UserStatus.ACTIVE);
+          // Init User OTP trials
+          await UserStorage.saveUserOtp(req.tenant, user.id, {
+            otpWrongNbrTrials: 0,
+            otpBlockedUntil: null
+          });
+        } else {
+          // Return data
+          throw new AppError({
+            errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
+            message: 'User is locked',
+            module: MODULE_NAME,
+            method: 'handleLogInWithOtp'
+          });
+        }
+      } else {
+        // An admin has reactivated the account
+        user.otpWrongNbrTrials = 0;
+        user.otpBlockedUntil = null;
+        // await AuthService.checkUserLoginOtp(action, req.tenant, user, filteredRequest, req, res, next);
+      }
+    }
+
+    // Generate and send OTP
+    const tempo = UtilsService.generateOtp();
+    await UserStorage.saveUserOtp(req.tenant, user.id, {
+      otp: tempo,
+      otpWrongNbrTrials: 0,
+      otpBlockedUntil: null
+    });
+    console.log(user.otp,'user.otp');
+    // await UtilsService.sendOtp(user.mobile, user.otp);
+    res.json({ message: `OTP has been sent to mobile number '${filteredRequest.mobile}'`});
+  }
+
+
+  public static async handleVerifyOtp(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Tenant
+    if (!req.tenant) {
+      throw new AppError({
+        errorCode: StatusCodes.BAD_REQUEST,
+        message: 'Tenant must be provided',
+        module: MODULE_NAME, method: 'verifyOtp', action: action,
+      });
+    }
+    console.log(req.body,'req.body');
+
+
+    // Filter
+    const filteredRequest = AuthValidatorRest.getInstance().validateAuthSignInOtpVerification(req.body);
+    req.user = { tenantID: req.tenant.id };
+
+    const user = await UserStorage.getUserByMobileNumber(req.tenant, filteredRequest.mobile);
+    UtilsService.assertObjectExists(action, user, `User with mobile '${filteredRequest.mobile}' does not exist`,
+      MODULE_NAME, 'verifyOtp', req.user);
+
+    console.log(filteredRequest, user,'verifywithotp');
+    // Verify OTP
+    await AuthService.verifyOtp(action, req.tenant, user, filteredRequest, req, res, next);
+  }
+
   public static async handleRegisterUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check Tenant
     if (!req.tenant) {
@@ -126,14 +225,16 @@ export default class AuthService {
     // Filter
     const filteredRequest = AuthValidatorRest.getInstance().validateAuthSignOnReq(req.body);
     // Override
-    filteredRequest.status = UserStatus.PENDING;
+    // filteredRequest.status = UserStatus.PENDING;   change ayush
+    filteredRequest.status = UserStatus.ACTIVE;
     if (!filteredRequest.locale) {
       filteredRequest.locale = Constants.DEFAULT_LOCALE;
     }
-    req.user = { tenantID: req.tenant.id };
-    // Check reCaptcha
-    await UtilsService.checkReCaptcha(req.tenant, action, 'handleRegisterUser',
-      centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
+    console.log(filteredRequest,'signin');
+    req.user = {tenantID: req.tenant.id};
+    // Check reCaptcha remove
+    // await UtilsService.checkReCaptcha(req.tenant, action, 'handleRegisterUser',
+    //   centralSystemRestConfig, filteredRequest.captcha, req.connection.remoteAddress);
     // Check email
     const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     if (user) {
@@ -154,8 +255,8 @@ export default class AuthService {
     newUser.locale = filteredRequest.locale;
     newUser.mobile = filteredRequest.mobile;
     newUser.createdOn = new Date();
-    const verificationToken = Utils.generateToken(filteredRequest.email);
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(req.tenant, Utils.getLanguageFromLocale(newUser.locale));
+    // const verificationToken = Utils.generateToken(filteredRequest.email);
+    // const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(req.tenant, Utils.getLanguageFromLocale(newUser.locale));
     // Save User
     newUser.id = await UserStorage.saveUser(req.tenant, newUser);
     // Save User Status
@@ -165,7 +266,7 @@ export default class AuthService {
       await UserStorage.saveUserRole(req.tenant, newUser.id, UserRole.BASIC);
     }
     // Save User Status
-    await UserStorage.saveUserStatus(req.tenant, newUser.id, UserStatus.PENDING);
+    await UserStorage.saveUserStatus(req.tenant, newUser.id, UserStatus.ACTIVE);
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(newUser.locale);
     // Save User password
@@ -175,14 +276,18 @@ export default class AuthService {
       passwordResetHash: null,
       passwordBlockedUntil: null
     });
+    await UserStorage.saveUserOtp(req.tenant,newUser.id,{
+      otpWrongNbrTrials: 0,
+      otpBlockedUntil: null
+    })
     // Save User Account Verification
-    await UserStorage.saveUserAccountVerification(req.tenant, newUser.id, { verificationToken });
+    // await UserStorage.saveUserAccountVerification(req.tenant, newUser.id, { verificationToken });
     // Save User EULA
-    await UserStorage.saveUserEULA(req.tenant, newUser.id, {
-      eulaAcceptedOn: new Date(),
-      eulaAcceptedVersion: endUserLicenseAgreement.version,
-      eulaAcceptedHash: endUserLicenseAgreement.hash
-    });
+    // await UserStorage.saveUserEULA(req.tenant, newUser.id, {
+    //   eulaAcceptedOn: new Date(),
+    //   eulaAcceptedVersion: endUserLicenseAgreement.version,
+    //   eulaAcceptedHash: endUserLicenseAgreement.hash
+    // });
     // Assign user to all Sites with auto-assign flag
     await UtilsService.assignCreatedUserToSites(req.tenant, newUser);
     // Create default Tag
@@ -192,7 +297,7 @@ export default class AuthService {
         active: true,
         issuer: true,
         userID: newUser.id,
-        createdBy: { id: newUser.id },
+        createdBy: {id: newUser.id},
         createdOn: new Date(),
         description: i18nManager.translate('tags.virtualBadge'),
         default: true
@@ -205,33 +310,33 @@ export default class AuthService {
       module: MODULE_NAME,
       method: 'handleRegisterUser',
       message: `User with Email '${req.body.email as string}' has been created successfully`,
-      detailedMessages: { params: req.body }
+      detailedMessages: {params: req.body}
     });
-    if (req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
-      // Send notification
-      const evseDashboardVerifyEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
-        '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
-      // Notify (Async)
-      NotificationHandler.sendNewRegisteredUser(
-        req.tenant,
-        Utils.generateUUID(),
-        newUser,
-        {
-          'tenant': filteredRequest.name,
-          'user': newUser,
-          'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
-          'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-        }
-      ).catch((error) => {
-        Logging.logPromiseError(error, req?.tenant?.id);
-      });
-    }
+    // if (req.tenant.id !== Constants.DEFAULT_TENANT_ID) {
+    //   // Send notification
+    //   const evseDashboardVerifyEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
+    //     '/auth/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
+    //   // Notify (Async)
+    //   NotificationHandler.sendNewRegisteredUser(
+    //     req.tenant,
+    //     Utils.generateUUID(),
+    //     newUser,
+    //     {
+    //       'tenant': filteredRequest.name,
+    //       'user': newUser,
+    //       'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain),
+    //       'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
+    //     }
+    //   ).catch((error) => {
+    //     Logging.logPromiseError(error, req?.tenant?.id);
+    //   });
+    // }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
   public static async checkAndSendResetPasswordConfirmationEmail(tenant: Tenant, filteredRequest: Partial<HttpResetPasswordRequest>, action: ServerAction, req: Request,
-      res: Response, next: NextFunction): Promise<void> {
+                                                                 res: Response, next: NextFunction): Promise<void> {
     // No hash: Send email with init pass hash link
     if (!filteredRequest.captcha) {
       throw new AppError({
@@ -250,7 +355,7 @@ export default class AuthService {
       MODULE_NAME, 'checkAndSendResetPasswordConfirmationEmail', req.user);
     const resetHash = Utils.generateUUID();
     // Init Password info
-    await UserStorage.saveUserPassword(tenant, user.id, { passwordResetHash: resetHash });
+    await UserStorage.saveUserPassword(tenant, user.id, {passwordResetHash: resetHash});
     await Logging.logInfo({
       tenantID: tenant.id,
       user: user, action: action,
@@ -279,7 +384,7 @@ export default class AuthService {
   }
 
   public static async resetUserPassword(tenant: Tenant, filteredRequest: Partial<HttpResetPasswordRequest>,
-      action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+                                        action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get the user
     const user = await UserStorage.getUserByPasswordResetHash(tenant, filteredRequest.hash);
     UtilsService.assertObjectExists(action, user, `User with password reset hash '${filteredRequest.hash}' does not exist`,
@@ -305,7 +410,7 @@ export default class AuthService {
       module: MODULE_NAME,
       method: 'handleUserPasswordReset',
       message: 'User\'s password has been reset successfully',
-      detailedMessages: { params: req.body }
+      detailedMessages: {params: req.body}
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -347,7 +452,7 @@ export default class AuthService {
     const user = await UserStorage.getUserByEmail(req.tenant, filteredRequest.Email);
     if (!user) {
       // Do not return error, only reject it
-      res.json({ eulaAccepted: false });
+      res.json({eulaAccepted: false});
       next();
       return;
     }
@@ -355,12 +460,12 @@ export default class AuthService {
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(req.tenant, Utils.getLanguageFromLocale(user.locale));
     if (user.eulaAcceptedHash === endUserLicenseAgreement.hash) {
       // Check if version matches
-      res.json({ eulaAccepted: true });
+      res.json({eulaAccepted: true});
       next();
       return;
     }
     // Check if version matches
-    res.json({ eulaAccepted: false });
+    res.json({eulaAccepted: false});
     next();
   }
 
@@ -443,7 +548,7 @@ export default class AuthService {
     await UserStorage.saveUserStatus(req.tenant, user.id, userStatus);
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(req.tenant, user.id,
-      { verificationToken: null, verifiedAt: new Date() });
+      {verificationToken: null, verifiedAt: new Date()});
     await Logging.logInfo({
       tenantID: req.tenant.id,
       user: user, action: action,
@@ -451,7 +556,7 @@ export default class AuthService {
       message: userStatus === UserStatus.ACTIVE ?
         'User account has been successfully verified and activated' :
         'User account has been successfully verified but needs an admin to activate it',
-      detailedMessages: { params: req.query }
+      detailedMessages: {params: req.query}
     });
     // Notify
     NotificationHandler.sendAccountVerification(
@@ -466,7 +571,7 @@ export default class AuthService {
     ).catch((error) => {
       Logging.logPromiseError(error, req?.tenant?.id);
     });
-    res.json({ status: 'Success', userStatus });
+    res.json({status: 'Success', userStatus});
     next();
   }
 
@@ -518,7 +623,7 @@ export default class AuthService {
       verificationToken = Utils.generateToken(filteredRequest.email);
       user.verificationToken = verificationToken;
       // Save User Verification Account
-      await UserStorage.saveUserAccountVerification(req.tenant, user.id, { verificationToken });
+      await UserStorage.saveUserAccountVerification(req.tenant, user.id, {verificationToken});
     } else {
       // Get existing verificationToken
       verificationToken = user.verificationToken;
@@ -530,7 +635,7 @@ export default class AuthService {
       module: MODULE_NAME,
       method: 'handleResendVerificationEmail',
       message: `User with Email '${filteredRequest.email}' has been created successfully`,
-      detailedMessages: { params: req.body }
+      detailedMessages: {params: req.body}
     });
     // Send notification
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(req.tenant.subdomain) +
@@ -584,7 +689,7 @@ export default class AuthService {
       });
     } else {
       // Save User Nbr Password Trials
-      await UserStorage.saveUserPassword(tenant, user.id, { passwordWrongNbrTrials });
+      await UserStorage.saveUserPassword(tenant, user.id, {passwordWrongNbrTrials});
       throw new AppError({
         errorCode: StatusCodes.NOT_FOUND,
         message: `User failed to log in, ${centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,
@@ -594,6 +699,92 @@ export default class AuthService {
         user: user
       });
     }
+  }
+
+  public static async userLoginWithOtpWrongPassword(action: ServerAction, tenant: Tenant, user: User, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Add wrong trial + 1
+    if (isNaN(user.otpWrongNbrTrials)) {
+      user.otpWrongNbrTrials = 0;
+    }
+    const otpWrongNbrTrials = user.otpWrongNbrTrials + 1;
+    // Check if the number of trial is reached
+    if (otpWrongNbrTrials >= centralSystemRestConfig.passwordWrongNumberOfTrial) {
+      // Too many attempts, lock user
+      // Save User Status
+      await UserStorage.saveUserStatus(tenant, user.id, UserStatus.LOCKED);
+      // Save User Blocked Date
+      await UserStorage.saveUserOtp(tenant, user.id,
+        {
+          otpWrongNbrTrials,
+          otpBlockedUntil: moment().add(centralSystemRestConfig.otpBlockedWaitTimeMin, 'm').toDate()
+        });
+      throw new AppError({
+        errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
+        message: 'User is locked',
+        module: MODULE_NAME,
+        method: 'checkUserLogin',
+        action: action,
+        user: user
+      });
+    } else {
+      // Save User Nbr Password Trials
+      await UserStorage.saveUserOtp(tenant, user.id, { otpWrongNbrTrials });
+      throw new AppError({
+        errorCode: StatusCodes.NOT_FOUND,
+        message: `User failed to log in, ${centralSystemRestConfig.passwordWrongNumberOfTrial - user.otpWrongNbrTrials} trial(s) remaining`,
+        module: MODULE_NAME,
+        method: 'checkUserLogin',
+        action: action,
+        user: user
+      });
+    }
+  }
+
+  public static async userLoginSucceededWithOtp(action: ServerAction, tenant: Tenant, user: User, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Password / Login OK
+    await Logging.logInfo({
+      tenantID: tenant.id,
+      user: user,
+      module: MODULE_NAME, method: 'checkUserLogin',
+      action: action, message: 'User logged in successfully'
+    });
+    // Set Eula Info on Login Only
+    if (action === ServerAction.LOGIN) {
+      // Save EULA
+      const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenant, Utils.getLanguageFromLocale(user.locale));
+      await UserStorage.saveUserEULA(tenant, user.id,
+        {
+          eulaAcceptedOn: new Date(),
+          eulaAcceptedVersion: endUserLicenseAgreement.version,
+          eulaAcceptedHash: endUserLicenseAgreement.hash
+        }
+      );
+    }
+    // Reset wrong number of trial
+    await UserStorage.saveUserOtp(tenant, user.id,
+      {otpWrongNbrTrials: 0, otpBlockedUntil: null});
+    // Get the tags (limited) to avoid an overweighted token
+    const tags = await TagStorage.getTags(tenant, {userIDs: [user.id]}, Constants.DB_PARAMS_DEFAULT_RECORD);
+    // Yes: build token
+    const payload = await Authorizations.buildUserToken(tenant, user, tags.result);
+    // Build token
+    let token: string;
+    // Role Demo?
+    if (Authorizations.isDemo(user)) {
+      token = jwt.sign(payload, jwtOptions.secretOrKey, {
+        expiresIn: centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
+      });
+    } else if (user.technical) {
+      token = jwt.sign(payload, jwtOptions.secretOrKey, {
+        expiresIn: centralSystemRestConfig.userTechnicalTokenLifetimeDays * 24 * 3600
+      });
+    } else {
+      token = jwt.sign(payload, jwtOptions.secretOrKey, {
+        expiresIn: centralSystemRestConfig.userTokenLifetimeHours * 3600
+      });
+    }
+    // Return it
+    res.json({token: token});
   }
 
   public static async userLoginSucceeded(action: ServerAction, tenant: Tenant, user: User, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -618,9 +809,9 @@ export default class AuthService {
     }
     // Reset wrong number of trial
     await UserStorage.saveUserPassword(tenant, user.id,
-      { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
+      {passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null});
     // Get the tags (limited) to avoid an overweighted token
-    const tags = await TagStorage.getTags(tenant, { userIDs: [user.id] }, Constants.DB_PARAMS_DEFAULT_RECORD);
+    const tags = await TagStorage.getTags(tenant, {userIDs: [user.id]}, Constants.DB_PARAMS_DEFAULT_RECORD);
     // Yes: build token
     const payload = await Authorizations.buildUserToken(tenant, user, tags.result);
     // Build token
@@ -640,7 +831,7 @@ export default class AuthService {
       });
     }
     // Return it
-    res.json({ token: token });
+    res.json({token: token});
   }
 
   public static async getTenantID(subdomain: string): Promise<string> {
@@ -661,8 +852,81 @@ export default class AuthService {
     return (tenant ? tenant : null);
   }
 
-  public static async checkUserLogin(action: ServerAction, tenant: Tenant, user: User,
-      filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async verifyOtp(action: ServerAction, tenant: Tenant, user: User, filteredRequest: Partial<HttpVerifyOtp>, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // User Found?
+    if (!user) {
+      throw new AppError({
+        errorCode: StatusCodes.NOT_FOUND,
+        message: `Unknown user tried to log in with email '${filteredRequest.mobile}'`,
+        module: MODULE_NAME,
+        method: 'checkUserLogin',
+        user: user
+      });
+    }
+    // Check password
+    console.log(user.otp,filteredRequest.otp,'otp');
+    if (user.otp !== filteredRequest.otp) {
+      await AuthService.userLoginWithOtpWrongPassword(action, tenant, user, req, res, next);
+      throw new AppError({
+        errorCode: HTTPError.INVALID_CAPTCHA,
+        message: 'Invalid OTP',
+        module: MODULE_NAME,
+        method: 'verifyOtp'
+      });
+      // Login KO
+    } else {
+      switch (user.status) {
+        case UserStatus.PENDING:
+          throw new AppError({
+            errorCode: HTTPError.USER_ACCOUNT_PENDING_ERROR,
+            message: 'Account is pending! User must activate his account in his email',
+            module: MODULE_NAME,
+            method: 'checkUserLogin',
+            user: user
+          });
+        case UserStatus.LOCKED:
+          throw new AppError({
+            errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
+            message: `Account is locked ('${user.status}')`,
+            module: MODULE_NAME,
+            method: 'checkUserLogin',
+            user: user
+          });
+        case UserStatus.INACTIVE:
+          throw new AppError({
+            errorCode: HTTPError.USER_ACCOUNT_INACTIVE_ERROR,
+            message: `Account is inactive ('${user.status}')`,
+            module: MODULE_NAME,
+            method: 'checkUserLogin',
+            user: user
+          });
+        case UserStatus.BLOCKED:
+          throw new AppError({
+            errorCode: HTTPError.USER_ACCOUNT_BLOCKED_ERROR,
+            message: `Account is blocked ('${user.status}')`,
+            module: MODULE_NAME,
+            method: 'checkUserLogin',
+            user: user
+          });
+      }
+      // Check Technical users
+      if (user.technical && AuthService.isLoggedFromUserDevice(req)) {
+        // No authorized to log
+        throw new AppError({
+          errorCode: HTTPError.TECHNICAL_USER_CANNOT_LOG_TO_UI_ERROR,
+          message: 'API User cannot log in to UI but only B2B',
+          module: MODULE_NAME,
+          method: 'checkUserLogin',
+          user: user
+        });
+      }
+      // Login OK
+      await AuthService.userLoginSucceededWithOtp(action, tenant, user, req, res, next);
+    }
+  }
+
+
+  public static async checkUserLogin(action: ServerAction, tenant: Tenant, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
     // User Found?
     if (!user) {
       throw new AppError({
@@ -751,7 +1015,7 @@ export default class AuthService {
         module: MODULE_NAME, method: 'isLoggedFromUserDevice',
         action: ServerAction.LOGIN,
         message: 'User Agent: ' + userAgent.source,
-        detailedMessages: { userAgent }
+        detailedMessages: {userAgent}
       });
     }
     return false;

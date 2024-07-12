@@ -54,7 +54,8 @@ export interface HttpChargingStationsGetRequest extends HttpDatabaseRequest {
   LocLatitude?: number;
   LocCoordinates?: number[];
   LocMaxDistanceMeters?: number;
-  Public?: boolean,
+  Public?: boolean;
+  Inactive?: boolean,
 }
 
 export interface HttpChargingStationsInErrorGetRequest extends HttpDatabaseRequest {

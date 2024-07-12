@@ -42,6 +42,9 @@ export default interface User extends CreatedUpdatedProps, UserAuthorizationActi
   };
   technical?: boolean;
   freeAccess?: boolean;
+  otp?: string;
+  otpWrongNbrTrials?: number;
+  otpBlockedUntil?: Date;
 }
 
 export interface UserMobileData {

@@ -15,6 +15,8 @@ export enum ServerAction {
   DEPRECATED_REST_ENDPOINT = 'DeprecatedRestEndpoint',
   LOGIN = 'Login',
   LOGOUT = 'Logout',
+  LOGINOTP ='Loginotp',
+  VERIFYOTP ='Verifyotp',
   PASSWORD_RESET = 'PasswordReset',
   PING = 'Ping',
   CHECK_CONNECTION = 'CheckConnection',
@@ -80,6 +82,7 @@ export enum ServerAction {
   LOG = 'Log',
   LOGS_EXPORT = 'LogsExport',
 
+  DASHBOARD = 'Dashboard',
   CHARGING_STATIONS = 'ChargingStations',
 
   CAR_CATALOGS = 'CarCatalogs',
@@ -504,6 +507,8 @@ export enum ServerAction {
 export enum RESTServerRoute {
   REST_SIGNIN = 'signin',
   REST_SIGNON = 'signon',
+  REST_SIGNIN_OTP = 'signinotp',
+  REST_VERIFY_OTP = 'verifyotp',
   REST_SIGNOUT = 'signout',
   REST_PASSWORD_RESET = 'password/reset',
   REST_END_USER_LICENSE_AGREEMENT = 'eula',
@@ -515,6 +520,7 @@ export enum RESTServerRoute {
   REST_CHARGING_STATION_TEMPLATES = 'charging-station-templates',
   REST_CHARGING_STATION_TEMPLATE = 'charging-station-templates/:id',
 
+  REST_DASHBOARD = 'dashboard',
   REST_CHARGING_STATIONS = 'charging-stations',
   REST_CHARGING_STATION = 'charging-stations/:id',
 

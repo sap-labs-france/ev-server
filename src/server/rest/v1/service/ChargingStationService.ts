@@ -1,58 +1,88 @@
-import { Action, Entity } from '../../../../types/Authorization';
-import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, Command, ConnectorType, OCPPParams, OcppParameter, StaticLimitAmps } from '../../../../types/ChargingStation';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
-import { HttpChargingStationCompositeScheduleGetRequest, HttpChargingStationConfigurationChangeRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationTransactionStartRequest, HttpChargingStationTransactionStopRequest, HttpChargingStationsGetRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
-import { OCPICommandResponse, OCPICommandResponseType } from '../../../../types/ocpi/OCPICommandResponse';
-import { OCPPChangeConfigurationResponse, OCPPConfigurationStatus, OCPPGetCompositeScheduleResponse, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
-import Tenant, { TenantComponents } from '../../../../types/Tenant';
-
-import AppAuthError from '../../../../exception/AppAuthError';
-import AppError from '../../../../exception/AppError';
-import AuthorizationService from './AuthorizationService';
+import { StatusCodes } from 'http-status-codes';
 import Authorizations from '../../../../authorization/Authorizations';
-import BackendError from '../../../../exception/BackendError';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import { ChargingProfile } from '../../../../types/ChargingProfile';
+import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
+import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
+import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import ChargingStationClient from '../../../../client/ocpp/ChargingStationClient';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
-import { ChargingStationInErrorType } from '../../../../types/InError';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationValidatorRest from '../validator/ChargingStationValidatorRest';
-import ChargingStationVendorFactory from '../../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import { CommonUtilsService } from '../../../CommonUtilsService';
-import Constants from '../../../../utils/Constants';
-import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../../client/oicp/CpoOICPClient';
-import { DataResult } from '../../../../types/DataResult';
-import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
-import I18nManager from '../../../../utils/I18nManager';
+import OICPClientFactory from '../../../../client/oicp/OICPClientFactory';
+import AppError from '../../../../exception/AppError';
+import BackendError from '../../../../exception/BackendError';
+import ChargingStationVendorFactory
+  from '../../../../integration/charging-station-vendor/ChargingStationVendorFactory';
+import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
-import Logging from '../../../../utils/Logging';
-import LoggingHelper from '../../../../utils/LoggingHelper';
-import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import OCPPStorage from '../../../../storage/mongodb/OCPPStorage';
+import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
+import { Action, Entity } from '../../../../types/Authorization';
+import { ChargingProfile } from '../../../../types/ChargingProfile';
+import ChargingStation, {
+  ChargingStationOcppParameters,
+  ChargingStationQRCode,
+  Command,
+  ConnectorType,
+  OcppParameter,
+  OCPPParams,
+  StaticLimitAmps
+} from '../../../../types/ChargingStation';
+import { DataResult } from '../../../../types/DataResult';
+import { HTTPError } from '../../../../types/HTTPError';
+import { ChargingStationInErrorType } from '../../../../types/InError';
+import {
+  OCPICommandResponse,
+  OCPICommandResponseType
+} from '../../../../types/ocpi/OCPICommandResponse';
 import { OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
-import OCPPCommon from '../../../ocpp/utils/OCPPCommon';
-import OCPPStorage from '../../../../storage/mongodb/OCPPStorage';
-import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import {
+  OCPPChangeConfigurationResponse,
+  OCPPConfigurationStatus,
+  OCPPGetCompositeScheduleResponse,
+  OCPPStatus,
+  OCPPUnlockStatus
+} from '../../../../types/ocpp/OCPPClient';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import { OICPActionType } from '../../../../types/oicp/OICPEvseData';
-import OICPClientFactory from '../../../../client/oicp/OICPClientFactory';
-import OICPUtils from '../../../oicp/OICPUtils';
+import {
+  HttpChargingStationCompositeScheduleGetRequest,
+  HttpChargingStationConfigurationChangeRequest,
+  HttpChargingStationLimitPowerRequest,
+  HttpChargingStationParamsUpdateRequest,
+  HttpChargingStationsGetRequest,
+  HttpChargingStationTransactionStartRequest,
+  HttpChargingStationTransactionStopRequest
+} from '../../../../types/requests/HttpChargingStationRequest';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
-import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
-import TagStorage from '../../../../storage/mongodb/TagStorage';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import { TransactionStatus } from '../../../../types/Transaction';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import User from '../../../../types/User';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
+import Constants from '../../../../utils/Constants';
+import I18nManager from '../../../../utils/I18nManager';
+import Logging from '../../../../utils/Logging';
+import LoggingHelper from '../../../../utils/LoggingHelper';
 import Utils from '../../../../utils/Utils';
+import { CommonUtilsService } from '../../../CommonUtilsService';
+import OCPPCommon from '../../../ocpp/utils/OCPPCommon';
+import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
+import OICPUtils from '../../../oicp/OICPUtils';
+import ChargingStationValidatorRest from '../validator/ChargingStationValidatorRest';
+import TagValidatorRest from '../validator/TagValidatorRest';
+import TransactionValidatorRest from '../validator/TransactionValidatorRest';
+import UserValidatorRest from '../validator/UserValidatorRest';
+import AuthorizationService from './AuthorizationService';
+import TagService from './TagService';
+import TransactionService from './TransactionService';
+import UserService from './UserService';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'ChargingStationService';
@@ -154,7 +184,7 @@ export default class ChargingStationService {
     const result = await chargingStationVendor.setStaticPowerLimitation(req.tenant, chargingStation,
       chargePoint, filteredRequest.ampLimitValue);
     if (result.status !== OCPPConfigurationStatus.ACCEPTED &&
-        result.status !== OCPPConfigurationStatus.REBOOT_REQUIRED) {
+      result.status !== OCPPConfigurationStatus.REBOOT_REQUIRED) {
       throw new AppError({
         ...LoggingHelper.getChargingStationProperties(chargingStation),
         action, user: req.user,
@@ -367,7 +397,10 @@ export default class ChargingStationService {
       req.tenant, req.user, chargingStationID, Action.DELETE, action, null, { withSiteArea: true });
     // Check ongoing Transactions
     const ongoingTransactions = await TransactionStorage.getTransactions(req.tenant,
-      { chargingStationIDs: [chargingStationID], status: TransactionStatus.ACTIVE }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
+      {
+        chargingStationIDs: [chargingStationID],
+        status: TransactionStatus.ACTIVE
+      }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (ongoingTransactions.count > 0) {
       throw new AppError({
         action, user: req.user,
@@ -449,6 +482,103 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationsGetReq(req.query);
     // Get Charging Stations
     res.json(await ChargingStationService.getChargingStations(req, filteredRequest));
+    next();
+  }
+
+  public static async handleDashboard(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = ChargingStationValidatorRest.getInstance().validateChargingStationsGetReq({
+      Issuer: true,
+      WithSite: true,
+      WithSiteArea: true,
+      WithUser: true,
+      Limit: 5,
+      SortFields: 'id'
+    });
+    const activeRequest = ChargingStationValidatorRest.getInstance().validateChargingStationsGetReq({
+      Issuer: true,
+      WithSite: false,
+      WithSiteArea: false,
+      WithUser: false,
+      Limit: 1,
+      Inactive: false,
+    });
+    const inactiveRequest = ChargingStationValidatorRest.getInstance().validateChargingStationsGetReq({
+      Issuer: true,
+      WithSite: false,
+      WithSiteArea: false,
+      WithUser: false,
+      Limit: 1,
+      Inactive: true,
+    });
+    // Get Charging Stations
+    const stations = await ChargingStationService.getChargingStations(req, filteredRequest);
+    const activeStations = await ChargingStationService.getChargingStations(req, activeRequest);
+    const inactiveStations = await ChargingStationService.getChargingStations(req, inactiveRequest);
+    // Get Users
+    const pendingUserRequest = UserValidatorRest.getInstance().validateUsersGetReq({
+      Issuer: true,
+      Status: 'P',
+      Limit: 1
+    });
+    const pendingUser = await UserService.getUsers(req, pendingUserRequest);
+    const activeUserRequest = UserValidatorRest.getInstance().validateUsersGetReq({
+      Issuer: true,
+      Status: 'A',
+      Limit: 1
+    });
+    const activeUser = await UserService.getUsers(req, activeUserRequest);
+    // Get RFIDs
+    const activeRfidRequest = TagValidatorRest.getInstance().validateTagsGetReq({
+      Issuer: true,
+      withUser: false,
+      Limit: 4,
+      Active: true
+    });
+    const activeRfid = await TagService.getTags(req, activeRfidRequest);
+    const inactiveRfidRequest = TagValidatorRest.getInstance().validateTagsGetReq({
+      Issuer: true,
+      withUser: false,
+      Limit: 4,
+      Active: false
+    });
+    const inactiveRfid = await TagService.getTags(req, inactiveRfidRequest);
+    // Get transaction
+    const txnFilterRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq({
+      Status: TransactionStatus.ACTIVE,
+      Issuer: true,
+      WithSite: true,
+      WithSiteArea: true,
+      WithCompany: true,
+      WithUser: true,
+      Statistics: 'history',
+      Limit: 5,
+      SortFields: '-timestamp'
+    });
+    const txnCompleteFilterRequest = TransactionValidatorRest.getInstance().validateTransactionsGetReq({
+      Status: TransactionStatus.COMPLETED,
+      Issuer: true,
+      WithSite: true,
+      WithSiteArea: true,
+      WithCompany: true,
+      WithUser: true,
+      Statistics: 'history',
+      Limit: 1,
+      SortFields: '-timestamp'
+    });
+    const transactions = await TransactionService.getTransactions(req, txnFilterRequest, Action.GET_ACTIVE_TRANSACTION);
+    const completed_transactions = await TransactionService.getTransactions(req, txnCompleteFilterRequest, Action.GET_COMPLETED_TRANSACTION);
+    res.json({
+      completed_transactions:completed_transactions,
+      sessions: transactions,
+      active_rfid: activeRfid.count,
+      inactive_rfid: inactiveRfid.count,
+      pending_users: pendingUser.count,
+      active_users: activeUser.count,
+      stations: stations,
+      activeStations: activeStations.count,
+      inactiveStations: inactiveStations.count
+    });
     next();
   }
 
@@ -748,7 +878,10 @@ export default class ChargingStationService {
     const authAction = UtilsService.getAuthActionFromOCPPCommand(action, command);
     // Get the Charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, req.body.chargingStationID, authAction, action, null, { withSite: true, withSiteArea: true });
+      req.tenant, req.user, req.body.chargingStationID, authAction, action, null, {
+        withSite: true,
+        withSiteArea: true
+      });
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
     if (!chargingStationClient) {
@@ -928,7 +1061,7 @@ export default class ChargingStationService {
   }
 
   private static async getChargingStations(req: Request, filteredRequest: HttpChargingStationsGetRequest,
-      authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<ChargingStation>> {
+                                           authAction: Action = Action.LIST, additionalFilters: Record<string, any> = {}): Promise<DataResult<ChargingStation>> {
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetChargingStationsAuthorizations(
       req.tenant, req.user, authAction, filteredRequest, false);
@@ -950,6 +1083,7 @@ export default class ChargingStationService {
         withSite: filteredRequest.WithSite,
         withSiteArea: filteredRequest.WithSiteArea,
         withUser: filteredRequest.WithUser,
+        Inactive: filteredRequest.Inactive,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorStatuses: (filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null) as ChargePointStatus[],
         connectorTypes: (filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null) as ConnectorType[],
@@ -1105,7 +1239,7 @@ export default class ChargingStationService {
           ChargingStationService.build3SizesPDFQrCode(pdfDocument, qrCodeImage, qrCodeTitle);
           // Add page (expect the last one)
           if (!connectorID && (chargingStations[chargingStations.length - 1] !== chargingStation ||
-              chargingStation.connectors[chargingStation.connectors.length - 1] !== connector)) {
+            chargingStation.connectors[chargingStation.connectors.length - 1] !== connector)) {
             pdfDocument.addPage();
           }
         }
@@ -1162,7 +1296,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationGetCompositeSchedule(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationCompositeScheduleGetRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
+                                                                  filteredRequest: HttpChargingStationCompositeScheduleGetRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
     // Get the Vendor instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (!chargingStationVendor) {
@@ -1195,7 +1329,7 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationStartTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationTransactionStartRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
+                                                              filteredRequest: HttpChargingStationTransactionStartRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
     // Check Tag ID
     if (!filteredRequest.args || (!filteredRequest.args.visualTagID && !filteredRequest.args.tagID)) {
       throw new AppError({
@@ -1285,14 +1419,17 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationStopTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationTransactionStopRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
+                                                             filteredRequest: HttpChargingStationTransactionStopRequest, req: Request, res: Response, next: NextFunction, chargingStationClient: ChargingStationClient): Promise<any> {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
       req.tenant, filteredRequest.args.transactionId, { withUser: true });
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     // Get default Tag
-    const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
+    const tags = await TagStorage.getTags(req.tenant, {
+      userIDs: [req.user.id],
+      active: true
+    }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (Utils.isEmptyArray(tags.result)) {
       throw new AppError({
         action, user: req.user, actionOnUser: transaction.userID,
@@ -1320,15 +1457,15 @@ export default class ChargingStationService {
   }
 
   private static async executeChargingStationChangeConfiguration(action: ServerAction, chargingStation: ChargingStation, command: Command,
-      filteredRequest: HttpChargingStationConfigurationChangeRequest, req: Request, res: Response, next: NextFunction,
-      chargingStationClient: ChargingStationClient): Promise<OCPPChangeConfigurationResponse> {
+                                                                 filteredRequest: HttpChargingStationConfigurationChangeRequest, req: Request, res: Response, next: NextFunction,
+                                                                 chargingStationClient: ChargingStationClient): Promise<OCPPChangeConfigurationResponse> {
     // Change the config
     const result = await chargingStationClient.changeConfiguration({
       key: filteredRequest.args.key,
       value: filteredRequest.args.value
     });
     if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-        result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+      result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
       // Reboot?
       if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
         await Logging.logWarning({
@@ -1384,7 +1521,7 @@ export default class ChargingStationService {
   }
 
   private static async updateChargingStationRoaming(tenant: Tenant, loggedUser: UserToken,
-      chargingStation: ChargingStation, action: ServerAction) {
+                                                    chargingStation: ChargingStation, action: ServerAction) {
     // OCPI handling
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
       // Remove charging station from ocpi
@@ -1444,7 +1581,7 @@ export default class ChargingStationService {
   }
 
   private static async deactivateChargingStationRoaming(action: ServerAction, tenant: Tenant, user: UserToken,
-      chargingStation: ChargingStation, siteArea: SiteArea) {
+                                                        chargingStation: ChargingStation, siteArea: SiteArea) {
     if (chargingStation.public) {
       if (Utils.isComponentActiveFromToken(user, TenantComponents.OICP)) {
         try {
@@ -1477,7 +1614,7 @@ export default class ChargingStationService {
   }
 
   private static updateChargingStationCommonProperties(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
-      siteArea: SiteArea, user: UserToken, filteredRequest: HttpChargingStationParamsUpdateRequest): void {
+                                                       siteArea: SiteArea, user: UserToken, filteredRequest: HttpChargingStationParamsUpdateRequest): void {
     if (filteredRequest.chargingStationURL) {
       chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
     }
@@ -1487,7 +1624,7 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
       // Charging Station is public but cannot belong to a non public Site
       if (Utils.isComponentActiveFromToken(user, TenantComponents.ORGANIZATION) &&
-          filteredRequest.public && !siteArea.site?.public) {
+        filteredRequest.public && !siteArea.site?.public) {
         throw new AppError({
           ...LoggingHelper.getChargingStationProperties(chargingStation),
           action, user,
@@ -1523,7 +1660,7 @@ export default class ChargingStationService {
   }
 
   private static async updateChargingStationManualConfiguration(action: ServerAction,
-      chargingStation: ChargingStation, user: UserToken, filteredRequest: HttpChargingStationParamsUpdateRequest): Promise<boolean> {
+                                                                chargingStation: ChargingStation, user: UserToken, filteredRequest: HttpChargingStationParamsUpdateRequest): Promise<boolean> {
     let resetAndApplyTemplate = false;
     if (Utils.objectHasProperty(filteredRequest, 'manualConfiguration')) {
       // Auto config -> Manual Config
@@ -1534,9 +1671,9 @@ export default class ChargingStationService {
         delete chargingStation.templateHashOcppStandard;
         delete chargingStation.templateHashOcppVendor;
         delete chargingStation.templateHashTechnical;
-      // Manual config -> Auto Config || Auto Config with no Charge Point
+        // Manual config -> Auto Config || Auto Config with no Charge Point
       } else if ((chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) ||
-          (!filteredRequest.manualConfiguration && Utils.isEmptyArray(chargingStation.chargePoints))) {
+        (!filteredRequest.manualConfiguration && Utils.isEmptyArray(chargingStation.chargePoints))) {
         // If charging station is not configured manually anymore, the template will be applied again
         chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
         const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
@@ -1556,7 +1693,7 @@ export default class ChargingStationService {
   }
 
   private static updateChargingStationConnectors(chargingStation: ChargingStation, user: UserToken,
-      filteredRequest: HttpChargingStationParamsUpdateRequest): void {
+                                                 filteredRequest: HttpChargingStationParamsUpdateRequest): void {
     if (!Utils.isEmptyArray(filteredRequest.connectors)) {
       for (const filteredConnector of filteredRequest.connectors) {
         const connector = Utils.getConnectorFromID(chargingStation, filteredConnector.connectorId);
@@ -1582,7 +1719,7 @@ export default class ChargingStationService {
   }
 
   private static updateChargingStationManualAutoConfig(chargingStation: ChargingStation,
-      user: UserToken, filteredRequest: HttpChargingStationParamsUpdateRequest): void {
+                                                       user: UserToken, filteredRequest: HttpChargingStationParamsUpdateRequest): void {
     if (chargingStation.manualConfiguration) {
       // Existing charge points
       if (!Utils.isEmptyArray(filteredRequest.chargePoints)) {
@@ -1592,15 +1729,15 @@ export default class ChargingStationService {
           // Update Connectors only if manual configuration is enabled
           if (chargePoint) {
             chargePoint.currentType = filteredChargePoint.currentType,
-            chargePoint.voltage = filteredChargePoint.voltage,
-            chargePoint.amperage = filteredChargePoint.amperage,
-            chargePoint.numberOfConnectedPhase = filteredChargePoint.numberOfConnectedPhase,
-            chargePoint.cannotChargeInParallel = filteredChargePoint.cannotChargeInParallel,
-            chargePoint.sharePowerToAllConnectors = filteredChargePoint.sharePowerToAllConnectors,
-            chargePoint.excludeFromPowerLimitation = filteredChargePoint.excludeFromPowerLimitation;
+              chargePoint.voltage = filteredChargePoint.voltage,
+              chargePoint.amperage = filteredChargePoint.amperage,
+              chargePoint.numberOfConnectedPhase = filteredChargePoint.numberOfConnectedPhase,
+              chargePoint.cannotChargeInParallel = filteredChargePoint.cannotChargeInParallel,
+              chargePoint.sharePowerToAllConnectors = filteredChargePoint.sharePowerToAllConnectors,
+              chargePoint.excludeFromPowerLimitation = filteredChargePoint.excludeFromPowerLimitation;
             chargePoint.ocppParamForPowerLimitation = filteredChargePoint.ocppParamForPowerLimitation,
-            chargePoint.power = filteredChargePoint.power,
-            chargePoint.efficiency = filteredChargePoint.efficiency;
+              chargePoint.power = filteredChargePoint.power,
+              chargePoint.efficiency = filteredChargePoint.efficiency;
             chargePoint.connectorIDs = filteredChargePoint.connectorIDs;
             UtilsService.checkIfChargePointValid(chargingStation, chargePoint, user);
           } else {
@@ -1613,7 +1750,7 @@ export default class ChargingStationService {
             UtilsService.checkIfChargePointValid(chargingStation, filteredChargePoint, user);
           }
         }
-      // If charging station contains charge points, but request does not contain charge points, delete them
+        // If charging station contains charge points, but request does not contain charge points, delete them
       } else if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
         delete chargingStation.chargePoints;
       }
@@ -1621,7 +1758,7 @@ export default class ChargingStationService {
   }
 
   private static updateChargingStationSiteArea(action: ServerAction, chargingStation: ChargingStation,
-      user: UserToken, siteArea: SiteArea): void {
+                                               user: UserToken, siteArea: SiteArea): void {
     if (siteArea) {
       chargingStation.companyID = siteArea.site?.companyID;
       chargingStation.siteID = siteArea.siteID;
@@ -1651,7 +1788,7 @@ export default class ChargingStationService {
   }
 
   private static async checkAndApplyChargingStationTemplate(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
-      user: UserToken, resetAndApplyTemplate: boolean): Promise<void> {
+                                                            user: UserToken, resetAndApplyTemplate: boolean): Promise<void> {
     // Reboot the Charging Station to reapply the templates
     if (resetAndApplyTemplate) {
       try {
@@ -1670,14 +1807,14 @@ export default class ChargingStationService {
   }
 
   private static async updateChargingStationProfiles(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
-      user: UserToken, chargingProfiles: ChargingProfile[], updatedChargingProfiles: ChargingProfile[],
-      filteredRequest: HttpChargingStationLimitPowerRequest): Promise<void> {
+                                                     user: UserToken, chargingProfiles: ChargingProfile[], updatedChargingProfiles: ChargingProfile[],
+                                                     filteredRequest: HttpChargingStationLimitPowerRequest): Promise<void> {
     for (let index = 0; index < updatedChargingProfiles.length; index++) {
       const updatedChargingProfile = updatedChargingProfiles[index];
       let planHasBeenAdjusted = false;
       // Check schedules
       if (updatedChargingProfile.profile && updatedChargingProfile.profile.chargingSchedule &&
-          updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
+        updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
         for (const chargingSchedulePeriod of updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
           // Check the limit max is beyond the new values
           if (chargingSchedulePeriod.limit > filteredRequest.ampLimitValue) {
@@ -1716,7 +1853,7 @@ export default class ChargingStationService {
   }
 
   private static async handleOcpiStopTransaction(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
-      user: UserToken, remoteStopRequest: HttpChargingStationTransactionStopRequest): Promise<OCPICommandResponse> {
+                                                 user: UserToken, remoteStopRequest: HttpChargingStationTransactionStopRequest): Promise<OCPICommandResponse> {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
       tenant, remoteStopRequest.args.transactionId, { withUser: true });
@@ -1736,7 +1873,7 @@ export default class ChargingStationService {
   }
 
   private static async handleOcpiStartTransaction(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
-      user: UserToken, remoteStartRequest: HttpChargingStationTransactionStartRequest): Promise<OCPICommandResponse> {
+                                                  user: UserToken, remoteStartRequest: HttpChargingStationTransactionStartRequest): Promise<OCPICommandResponse> {
     // Get the Tag
     let tagID = remoteStartRequest.args.tagID;
     if (!tagID && remoteStartRequest.args.visualTagID) {

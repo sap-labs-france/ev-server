@@ -770,7 +770,7 @@ export default class TagService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getTags(req: Request, filteredRequest: HttpTagsGetRequest): Promise<DataResult<Tag>> {
+  static async getTags(req: Request, filteredRequest: HttpTagsGetRequest): Promise<DataResult<Tag>> {
     // Get authorization filters
     const authorizations = await AuthorizationService.checkAndGetTagsAuthorizations(
       req.tenant, req.user, filteredRequest, false);

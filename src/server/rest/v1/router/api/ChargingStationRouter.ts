@@ -13,6 +13,7 @@ export default class ChargingStationRouter {
   }
 
   public buildRoutes(): express.Router {
+    this.buildDashboard();
     this.buildRouteChargingStationsInError();
     this.buildRouteChargingStationsExport();
     this.buildRouteChargingStationGetChargingProfiles();
@@ -49,6 +50,12 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationReserveNow();
     this.buildRouteChargingStationCancelReservation();
     return this.router;
+  }
+
+  private buildDashboard(): void {
+    this.router.get(`/${RESTServerRoute.REST_DASHBOARD}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleRestServerAction(ChargingStationService.handleDashboard.bind(this), ServerAction.DASHBOARD, req, res, next);
+    });
   }
 
   private buildRouteChargingStations(): void {
