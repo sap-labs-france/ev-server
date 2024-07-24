@@ -1,0 +1,24 @@
+{
+  "$id": "walletrecharge-update",
+  "title": "wallet recharge update",
+  "type": "object",
+  "properties": {
+    "mobile": {
+      "$ref": "user#/definitions/mobile"
+    },
+    "id": {
+      "$ref": "wallet#/definitions/id"
+    },
+    "walletBalance": {
+      "$ref": "wallet#/definitions/walletBalance"
+    },
+    "amount": {
+      "$ref": "wallet#/definitions/amount"
+    }
+  },
+  "required": [
+    "mobile",
+    "amount",
+    "walletBalance"
+  ]
+}

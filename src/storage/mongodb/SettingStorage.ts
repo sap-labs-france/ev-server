@@ -58,6 +58,7 @@ export default class SettingStorage {
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
     await global.database.getCollection<any>(tenant.id, 'settings').findOneAndUpdate(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       settingFilter,
       { $set: settingMDB },
       { upsert: true, returnDocument: 'after' });
@@ -72,7 +73,7 @@ export default class SettingStorage {
     } as RoamingSettings;
     // Get the Ocpi settings
     const settings = await SettingStorage.getSettings(tenant,
-      { identifier: TenantComponents.OCPI },
+      { identifier:<string> TenantComponents.OCPI },
       Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
@@ -93,7 +94,7 @@ export default class SettingStorage {
       identifier: TenantComponents.OICP,
     } as RoamingSettings;
     // Get the oicp settings
-    const settings = await SettingStorage.getSettings(tenant, { identifier: TenantComponents.OICP }, Constants.DB_PARAMS_MAX_LIMIT);
+    const settings = await SettingStorage.getSettings(tenant, { identifier:<string> TenantComponents.OICP }, Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
       // ID

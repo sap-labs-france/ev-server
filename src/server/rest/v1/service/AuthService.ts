@@ -255,13 +255,17 @@ export default class AuthService {
     newUser.locale = filteredRequest.locale;
     newUser.mobile = filteredRequest.mobile;
     newUser.createdOn = new Date();
+    // newUser.address.address1 = 'delhi';
+    newUser.wallet.amount = 50;
+    // newUser.wallet.walletBalance = 50;
+    // newUser.wallet.id = '123';
     // const verificationToken = Utils.generateToken(filteredRequest.email);
     // const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(req.tenant, Utils.getLanguageFromLocale(newUser.locale));
     // Save User
     newUser.id = await UserStorage.saveUser(req.tenant, newUser);
     // Save User Status
     if (req.tenant.id === Constants.DEFAULT_TENANT_ID) {
-      await UserStorage.saveUserRole(req.tenant, newUser.id, UserRole.SUPER_ADMIN);
+      await UserStorage.saveUserRole(req.tenant, newUser.id, UserRole.BASIC);
     } else {
       await UserStorage.saveUserRole(req.tenant, newUser.id, UserRole.BASIC);
     }

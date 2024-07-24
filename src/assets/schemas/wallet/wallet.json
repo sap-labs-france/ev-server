@@ -1,0 +1,16 @@
+{
+  "$id": "wallet",
+  "definitions": {
+    "id": {
+      "$ref": "common#/definitions/id"
+    },
+    "walletBalance": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "amount": {
+      "type": "number",
+      "sanitize": "mongo"
+    }
+  }
+}

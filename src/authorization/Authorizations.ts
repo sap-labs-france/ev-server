@@ -692,7 +692,7 @@ export default class Authorizations {
 
   public static async can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<AuthorizationResult> {
     const authDefinition = AuthorizationsManager.getInstance();
-    const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
+    const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity.toString(), action, context);
     if (!result.authorized && Authorizations.getConfiguration().debug) {
       void Logging.logInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,

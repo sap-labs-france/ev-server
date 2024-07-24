@@ -3,6 +3,7 @@ import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
 import BillingRouter from './api/BillingRouter';
 import CarRouter from './api/CarRouter';
+import WalletRouter from './api/WalletRouter'; //ayush change
 import ChargingStationRouter from './api/ChargingStationRouter';
 import ChargingStationTemplateRouter from './api/ChargingStationTemplateRouter';
 import CommonService from '../service/CommonService';
@@ -59,6 +60,7 @@ export default class GlobalRouterV1 {
         new AssetRouter().buildRoutes(),
         new BillingRouter().buildRoutes(),
         new CarRouter().buildRoutes(),
+        new WalletRouter().buildRoutes(),// ayush change
         new ChargingStationRouter().buildRoutes(),
         new ChargingStationTemplateRouter().buildRoutes(),
         new CompanyRouter().buildRoutes(),

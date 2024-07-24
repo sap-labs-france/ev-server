@@ -2,6 +2,13 @@
 export enum ServerAction {
   UNKNOWN_ACTION = 'Unknown',
 
+  WALLET_RECHARGE = 'walletRecharge',
+  WALLET_WITHDRAW = 'walletWithdraw',
+  WALLET_BALANCE = 'walletBalance',
+  WALLET_TRANSACTION = 'walletTransaction',
+
+
+
   SAP_CONCUR_REQUEST = 'SapConcurRequest',
   RECAPTCHA_REQUEST = 'RecaptchaRequest',
   GREENCOM_REQUEST = 'GreencomRequest',
@@ -516,6 +523,12 @@ export enum RESTServerRoute {
   REST_END_USER_LICENSE_AGREEMENT_HTML = 'eula/html',
   REST_MAIL_CHECK = 'mail/check',
   REST_MAIL_RESEND = 'mail/resend',
+
+  // wallet
+  WALLET_RECHARGE = 'wallet-recharge',
+  WALLET_WITHDRAW = 'wallet-withdraw',
+  WALLET_BALANCE = 'wallet-balance',
+  WALLET_TRANSACTION = 'wallet-transaction',
 
   REST_CHARGING_STATION_TEMPLATES = 'charging-station-templates',
   REST_CHARGING_STATION_TEMPLATE = 'charging-station-templates/:id',

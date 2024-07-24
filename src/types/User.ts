@@ -1,10 +1,10 @@
 import { SiteUserAuthorizationActions, UserAuthorizationActions } from './Authorization';
-
 import Address from './Address';
 import { BillingUserData } from './Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { ImportStatus } from './GlobalType';
 import UserNotifications from './UserNotifications';
+import Wallet from './Wallet';
 
 export default interface User extends CreatedUpdatedProps, UserAuthorizationActions {
   id: string;
@@ -14,6 +14,7 @@ export default interface User extends CreatedUpdatedProps, UserAuthorizationActi
   email: string;
   phone?: string;
   mobile: string;
+  wallet?:Wallet;
   role: UserRole;
   status: UserStatus;
   locale: string;
